@@ -1,0 +1,6 @@
+table: test
+schema:
+  column1:
+      type: INTEGER
+  column2:
+      type: VARCHAR

@@ -1,0 +1,6 @@
+name: 'Test datastore configuration.'
+database:
+  dbtype: sqliteMemory
+  dbname: Test
+schemas:
+- data/table_schema_valid.yaml
