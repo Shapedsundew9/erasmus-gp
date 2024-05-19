@@ -1,7 +1,7 @@
 """Cache Base Abstract Base Class"""
-from typing import Any, TypedDict
+from typing import Any, TypedDict, Type
 from abc import abstractmethod
-from egppy.types.gc_abc import GCABC
+from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
 
 
@@ -10,6 +10,7 @@ class CacheConfig(TypedDict):
     max_items: int  # Maximum number of items in the cache. 0 = infinite
     purge_count: int  # Number of items to purge when the cache is full
     next_level: StoreABC  # The next level of caching or storage
+    flavor: Type[GCABC]  # The type of item stored in the cache
 
 
 def validate_cache_config(config: CacheConfig) -> None:
@@ -20,6 +21,8 @@ def validate_cache_config(config: CacheConfig) -> None:
         raise ValueError("purge_count must be an integer")
     if not isinstance(config["next_level"], StoreABC):
         raise ValueError("next_level must be a StoreABC")
+    if not issubclass(config["flavor"], GCABC):
+        raise ValueError("flavor must be a subclass of GCABC")
     if config["max_items"] < 0:
         raise ValueError("max_items must be >= 0")
     if config["purge_count"] < 0:
@@ -35,10 +38,13 @@ class CacheABC(StoreABC):
     """
     @abstractmethod
     def __init__(self, config: CacheConfig) -> None:
-        """Initialize the cache configuration."""
+        """Initialize the cache configuration.
+        The members below are available to be set in derived classes.        
+        """
         self.max_items: int = config["max_items"]
         self.purge_count: int = config["purge_count"]
         self.next_level: StoreABC = config["next_level"]
+        self.flavor: Type[GCABC] = config["flavor"]
         assert False, "CacheABC.__init__ must be overridden"
 
     @abstractmethod

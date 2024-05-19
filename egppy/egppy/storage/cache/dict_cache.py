@@ -1,7 +1,7 @@
 """A python dictionary based cache."""
 from typing import Any, Callable
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
-from egppy.types.gc_abc import GCABC
+from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
 
 
@@ -12,9 +12,12 @@ _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 class DictCache(dict[Any, GCABC], CacheABC):
     """An builtin python dictionary based fast cache.
     
-    In order to use all the optimized builtin dict methods, this cache
-    does not track access order or dirty state and so it cannot support
-    purging. That means it can only be of infinite size i.e. a fast cache.
+    Cache is a bit of a misnomer. A FastCache is a "one-way cache", like a temporary
+    store with some convinient configuration to push data to the next level. It cannot
+    pull data from the next level.
+    In order to use all the optimized builtin dict methods, a FastCache
+    does not track access order or dirty state, it cannot support
+    purging. That means it can only be of infinite size.
     """
 
     def __init__(self, config: CacheConfig) -> None:
@@ -38,3 +41,4 @@ class DictCache(dict[Any, GCABC], CacheABC):
 
     def touch(self, key: Any) -> None:
         """No-op for a FastCache."""
+        assert False, "FastCache should not be touched."

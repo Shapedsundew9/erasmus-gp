@@ -6,7 +6,7 @@ from mmap import mmap, ACCESS_WRITE
 from json import loads, dumps
 from os.path import getsize
 from egppy.storage.store.store_abc import StoreABC
-from egppy.types.gc_abc import GCABC
+from egppy.gc_types.gc_abc import GCABC
 
 
 class JsonFileStore(StoreABC):

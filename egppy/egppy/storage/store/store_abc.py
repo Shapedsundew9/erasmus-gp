@@ -3,7 +3,7 @@
 from typing import Any
 from collections.abc import MutableMapping
 from abc import abstractmethod
-from egppy.types.gc_abc import GCABC
+from egppy.gc_types.gc_abc import GCABC
 
 
 class StoreABC(MutableMapping):
