@@ -1,7 +1,7 @@
 """Tests for the DirtyDictUGC class."""
 import unittest
 from egppy.gc_types.ugc_class_factory import DirtyDictUGC
-from tests.test_storage.test_gc_types.ugc_test_base import UGCTestBase
+from tests.test_gc_types.ugc_test_base import UGCTestBase
 
 
 class TestDirtyDictUGC(UGCTestBase):

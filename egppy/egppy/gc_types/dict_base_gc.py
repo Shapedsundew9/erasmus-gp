@@ -20,6 +20,14 @@ class DictBaseGC(DirtyDictBaseGC):
         super().__setitem__(key, value)
         self.dirty()
 
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        """Set a default item in the dictionary."""
+        if not key in self:
+            super().__setitem__(key, default)
+            self.dirty()
+            return default
+        return self[key]
+
     def update(self, *args, **kwargs) -> None:
         """Update the dictionary."""
         super().update(*args, **kwargs)
