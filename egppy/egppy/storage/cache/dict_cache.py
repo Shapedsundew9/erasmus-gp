@@ -12,10 +12,10 @@ _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 class DictCache(dict[Any, GCABC], CacheABC):
     """An builtin python dictionary based fast cache.
     
-    Cache is a bit of a misnomer. A FastCache is a "one-way cache", like a temporary
+    Cache is a bit of a misnomer. A DictCache is a "one-way cache", like a temporary
     store with some convinient configuration to push data to the next level. It cannot
     pull data from the next level.
-    In order to use all the optimized builtin dict methods, a FastCache
+    In order to use all the optimized builtin dict methods, a DictCache
     does not track access order or dirty state, it cannot support
     purging. That means it can only be of infinite size.
     """
@@ -25,14 +25,15 @@ class DictCache(dict[Any, GCABC], CacheABC):
         self.next_level: StoreABC = config["next_level"]
         super().__init__()
 
-    def copy_back(self) -> None:
+    def copyback(self) -> None:
         """Copy the cache back to the next level."""
         for key, value in filter(lambda x: x[1].is_dirty(), self.items()):
-            self.next_level[key] = value
+            # All GCABC objects provide a copyback method to efficiently copy back modified data.
+            self.next_level[key] = value.copyback()
 
     def flush(self) -> None:
         """Flush the cache to the next level."""
-        self.copy_back()
+        self.copyback()
         super().clear()
 
     def purge(self, num: int) -> None:

@@ -24,14 +24,14 @@ class UserDictCacheBase(UserDict[Any, GCABC], CacheABC):
         self.flavor: Type[GCABC] = config["flavor"]
         super().__init__()
 
-    def copy_back(self) -> None:
+    def copyback(self) -> None:
         """Copy the cache back to the next level."""
         for key, value in filter(lambda x: x[1].is_dirty(), self.items()):
             self.next_level[key] = value
 
     def flush(self) -> None:
         """Flush the cache to the next level."""
-        self.copy_back()
+        self.copyback()
         super().clear()
 
     def purge(self, num: int) -> None:
@@ -40,7 +40,7 @@ class UserDictCacheBase(UserDict[Any, GCABC], CacheABC):
         for key, _ in victims:
             value: GCABC = self[key]
             if value.is_dirty():
-                self.next_level[key] = self[key]
+                self.next_level[key] = self[key].copyback()
             del self[key]
 
     def touch(self, key: Any) -> None:

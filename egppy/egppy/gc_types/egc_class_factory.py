@@ -1,8 +1,16 @@
-"""Genetic Code Class Factory"""
+"""Embryonic Genetic Code Class Factory
+
+An Embryonic Genetic Code, EGC, is the 'working' genetic code object. It is most practically
+used with the DictBaseGC class for performance but theoretically can be used with any genetic
+code class. As a working genetic code object, it only contains the essentials of what make a
+genetic code object avoiding all the derived data.
+"""
 from typing import Type, Callable, Any
 from egppy.gc_types.gc_abc import GCABC
+from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
 from egppy.gc_types.dict_base_gc import DictBaseGC
 from egppy.gc_types.null_gc import NULL_GC
+from egppy.gc_types.gc_illegal import GCIllegal
 
 
 def egc_class_factory(cls: Type[GCABC]) -> Type[GCABC]:
@@ -31,12 +39,14 @@ def egc_class_factory(cls: Type[GCABC]) -> Type[GCABC]:
             ancestorb=gcabc.get('ancestorb', NULL_GC),  # type: ignore
             pgc=gcabc.get('pgc', NULL_GC)  # type: ignore
         )
+        self.dirty()
 
     cls_name: str = cls.__name__.replace("Base", "E")
     cls_methods: dict[str, Callable] = {
         '__init__': __init__,
     }
-    return type(cls_name, (DictBaseGC,), cls_methods)
+    return type(cls_name, (GCIllegal, cls), cls_methods)
 
 
+DirtyDictEGC: Type[GCABC] = egc_class_factory(cls=DirtyDictBaseGC)
 DictEGC: Type[GCABC] = egc_class_factory(cls=DictBaseGC)

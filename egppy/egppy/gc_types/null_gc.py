@@ -34,7 +34,7 @@ class NullGC(dict, GCABC):
     def clean(self) -> None:
         """Null GC methods do nothing."""
 
-    def dirty(self) -> None:
+    def _dirty(self) -> None:
         """Null GC methods do nothing."""
 
     def is_dirty(self) -> bool:

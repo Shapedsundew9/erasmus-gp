@@ -58,7 +58,7 @@ class CacheABC(StoreABC):
         assert False, "__setitem__ must be overridden"
 
     @abstractmethod
-    def copy_back(self) -> None:
+    def copyback(self) -> None:
         """Copy the cache back to the next level."""
         assert False, "copy_back must be overridden"
 
