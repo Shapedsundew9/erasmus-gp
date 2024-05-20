@@ -7,16 +7,28 @@ from json import loads, dumps
 from os.path import getsize
 from egppy.storage.store.store_abc import StoreABC
 from egppy.gc_types.gc_abc import GCABC
+from egppy.gc_types.null_gc import NULL_GC
 
 
-class JsonFileStore(StoreABC):
-    """A file based store for JSON objects."""
-    def __init__(self, file_path: str, search_str: str = '"signature": "{key}"') -> None:
+class JSONFileStore(StoreABC):
+    """A file based store for JSON objects.
+    
+    JSONFileStore is not intended to be quick or efficient in any way. It is inteded for
+    testing or as a place holder for a StoreABC object when a NullStore is not appropriate.
+    By definition it is limited to JSONizable data types.
+
+    Individual JSON objects are stored in the file as separate lines. The file is memory
+    mapped and new JSON objects are appended to the end of the file. The JSON objects are
+    identified by the key being added into the JSON object as "__key__": key. This allows the
+    JSON object to be found by searching for the key in the file.
+    """
+    def __init__(self, file_path: str) -> None:
+        """Constructor for JSONFileStore"""
         self.file_path: str = file_path
         self.file: BufferedRandom = open(file=file_path, mode='a+b')
         self.file_size: int = getsize(filename=file_path)
         self.mmap_obj = mmap(fileno=self.file.fileno(), length=0, access=ACCESS_WRITE)
-        self.search_str: str = search_str
+        self.search_str: str = '{{"__key__": "{key}"'
 
     def __del__(self) -> None:
         """Close the file and flush the mmap object."""
@@ -51,7 +63,9 @@ class JsonFileStore(StoreABC):
             raise KeyError(f"Key {key} not found.")
         self.mmap_obj.seek(pos=pos)
         line: bytes = self.mmap_obj.readline()
-        return loads(s=line)
+        data = loads(s=line)
+        del data["__key__"]
+        return data
 
     def __iter__(self) -> Iterator:
         """Iterate over the store."""
@@ -79,14 +93,21 @@ class JsonFileStore(StoreABC):
 
     def append_json_objects(self, jobjs) -> None:
         """Append JSON objects to the file."""
-        new_data: bytes = ''.join(dumps(obj=obj) + '\n' for obj in jobjs).encode(encoding='utf-8')
+        new_data: bytes = ''.join(dumps(
+            obj=obj.json_dict()) + '\n' for obj in jobjs).encode(encoding='utf-8')
         self.mmap_obj.resize(newsize=self.file_size + len(new_data))
         self.mmap_obj.seek(pos=self.file_size)  # Move to the end of the file
         self.mmap_obj.write(bytes=new_data)
         self.file_size = self.mmap_obj.size()
 
-    def update(  # type: ignore pylint: disable=arguments-differ
-            self, m: MutableMapping[Any, GCABC]) -> None:
+    def setdefault(self, key: Any, default: GCABC = NULL_GC) -> GCABC:
+        """Set a default item in the store."""
+        if key in self:
+            return self[key]
+        self[key] = default
+        return default
+
+    def update(self, m: MutableMapping[Any, GCABC]) -> None:
         """Update the store. This is more efficient that setting items one at a time."""
         for key in m:
             del self[key]

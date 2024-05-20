@@ -11,9 +11,9 @@ from jsonschema import validate
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(__name__)
-_logger.addHandler(NullHandler())
-_LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 # Schema for the datastore YAML file

@@ -1,13 +1,20 @@
 """Genetic Code Cache module."""
+from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.storage.cache.cache_class_factory import FastCache, UserDictCache
-from egppy.storage.store.json_file_store import JsonFileStore
+from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.gc_types.gc_abc import GCABC
 
 
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+
+
 # TODO: The Gene Pool is temporarily a JsonFileStore. This will be replaced with either a stub
 # (as it will not be used locally) or an interface to a database server.
-gene_pool = JsonFileStore(file_path="genetic_code_store.json")
+gene_pool = JSONFileStore(file_path="genetic_code_store.json")
 remote_cache_client_config: CacheConfig = {
     "max_items": 0,
     "purge_count": 0,

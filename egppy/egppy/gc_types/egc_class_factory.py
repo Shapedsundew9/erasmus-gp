@@ -6,11 +6,18 @@ code class. As a working genetic code object, it only contains the essentials of
 genetic code object avoiding all the derived data.
 """
 from typing import Type, Callable, Any
+from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.gc_types.gc_abc import GCABC
 from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
 from egppy.gc_types.dict_base_gc import DictBaseGC
 from egppy.gc_types.null_gc import NULL_GC
 from egppy.gc_types.gc_illegal import GCIllegal
+
+
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 def egc_class_factory(cls: Type[GCABC]) -> Type[GCABC]:

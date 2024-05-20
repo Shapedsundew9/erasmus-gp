@@ -1,8 +1,15 @@
 """Cache Base Abstract Base Class"""
 from typing import Any, TypedDict, Type
+from logging import Logger, NullHandler, getLogger, DEBUG
 from abc import abstractmethod
 from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
+
+
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 class CacheConfig(TypedDict):

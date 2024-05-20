@@ -4,6 +4,7 @@ from typing import Any
 from collections.abc import MutableMapping
 from abc import abstractmethod
 from egppy.gc_types.gc_abc import GCABC
+from egppy.gc_types.null_gc import NULL_GC
 
 
 class StoreABC(MutableMapping):
@@ -18,3 +19,12 @@ class StoreABC(MutableMapping):
     @abstractmethod
     def __setitem__(self, key: Any, value: GCABC) -> None:
         """Set an item in the Store."""
+
+    @abstractmethod
+    def setdefault(self, key: Any, default: GCABC = NULL_GC) -> GCABC:  # type: ignore
+        """Set a default item in the Store."""
+
+    @abstractmethod
+    def update(  # type: ignore pylint: disable=arguments-differ
+        self, m: MutableMapping[Any, GCABC]) -> None:
+        """Update the store."""

@@ -1,8 +1,15 @@
 """A python dictionary based cache."""
 from typing import Any, Callable
+from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
+
+
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 # Function to select sequence numbers for sorting

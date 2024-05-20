@@ -1,8 +1,15 @@
 """Genetic Code Abstract Base Class"""
 from __future__ import annotations
 from typing import Any
+from logging import Logger, NullHandler, getLogger, DEBUG
 from collections.abc import MutableMapping
 from abc import abstractmethod
+
+
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 class GCABC(MutableMapping):
@@ -73,6 +80,13 @@ class GCABC(MutableMapping):
     def is_dirty(self) -> bool:
         """Check if the object is dirty.
         Returns True if the object has been modified since it was cleaned."""
+
+    @abstractmethod
+    def json_dict(self) -> dict[str, Any]:
+        """Return a JSON serializable dictionary representation of the object.
+        The dictionary should be a deep copy of the object's data and should
+        not include any meta data. The dictionary should be suitable for use
+        with json.dump()."""
 
     def pop(self, key: Any, default: Any = None) -> Any:
         """Popping from a GCABC is not supported. A GCABC is not an ordered

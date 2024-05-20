@@ -1,5 +1,14 @@
 """Dirty Dictionary Genetic Code Base Class module."""
+from typing import Any
+from logging import Logger, NullHandler, getLogger, DEBUG
+from copy import deepcopy
 from egppy.gc_types.gc_abc import GCABC
+
+
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 class DirtyDictBaseGC(dict, GCABC):
@@ -34,3 +43,7 @@ class DirtyDictBaseGC(dict, GCABC):
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self._dirty
+
+    def json_dict(self) -> dict[str, Any]:
+        """Return a JSON serializable dictionary."""
+        return deepcopy(x=self)
