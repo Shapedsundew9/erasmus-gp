@@ -28,3 +28,13 @@ class StoreABC(MutableMapping):
     def update(  # type: ignore pylint: disable=arguments-differ
         self, m: MutableMapping[Any, GCABC]) -> None:
         """Update the store."""
+
+    @abstractmethod
+    def pop(self, key: Any, default: Any = None) -> Any:
+        """Illegal method."""
+        raise AssertionError("Stores do not support pop.")
+
+    @abstractmethod
+    def popitem(self) -> tuple:
+        """Illegal method."""
+        raise AssertionError("Stores do not support popitem.")

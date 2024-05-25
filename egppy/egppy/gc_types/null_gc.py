@@ -22,7 +22,6 @@ class NullGC(dict, GCABC):
     def __init__(self) -> None:
         """Constructor for NullGC"""
         super().__init__()
-        self['lock'] = True
         self['dirty'] = False
 
     def __delitem__(self, key: str) -> None:
@@ -51,10 +50,6 @@ class NullGC(dict, GCABC):
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self['dirty']
-
-    def is_locked(self) -> bool:
-        """Check if the object is locked."""
-        return self['lock']
 
     def json_dict(self) -> dict[str, Any]:
         """Null GC methods do nothing."""

@@ -25,6 +25,9 @@ class GCABC(MutableMapping):
     too, dirty and lock flags. These data may be visible to the user and must not be modified
     directly by the user.
     """
+    @abstractmethod
+    def __init__(self, *args, **kwargs) -> None:
+        """Constructor for GCABC"""
 
     @abstractmethod
     def __delitem__(self, key: Any) -> None:
