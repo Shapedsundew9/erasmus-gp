@@ -41,16 +41,20 @@ class UserDictCacheBase(UserDict[Any, GCABC], CacheABC):
     def flush(self) -> None:
         """Flush the cache to the next level."""
         self.copyback()
-        super().clear()
+        for key in tuple(self.keys()):
+            super().__delitem__(key)
 
     def purge(self, num: int) -> None:
         """Purge the cache of count items."""
+        if num >= len(self):
+            self.flush()
+            return
         victims: list[tuple[Any, int]] = sorted(self.seqnum.items(), key=_KEY)[:self.purge_count]
         for key, _ in victims:
             value: GCABC = self[key]
             if value.is_dirty():
                 self.next_level[key] = self[key].copyback()
-            del self[key]
+            super().__delitem__(key)
 
     def setdefault(self, key: Any, default: GCABC = NULL_GC) -> GCABC:
         if key in self:
@@ -63,5 +67,5 @@ class UserDictCacheBase(UserDict[Any, GCABC], CacheABC):
         self.seqnum[key] = next(self.access_counter)
 
     def update(self, m: MutableMapping[Any, GCABC]) -> None:  # type: ignore
-        for k, v in m:
+        for k, v in m.items():
             self[k] = v

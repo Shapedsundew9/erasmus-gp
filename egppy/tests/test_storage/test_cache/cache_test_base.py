@@ -1,17 +1,29 @@
 """Cache test base class."""
+from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
-from egppy.storage.cache.cache_class_factory import DictCache
+from egppy.storage.cache.cache_class_factory import UserDictCache
 from egppy.gc_types.ugc_class_factory import DictUGC
-from tests.test_storage.store_test_base import StoreTestBase
+from tests.test_storage.test_cache.fast_cache_test_base import FastCacheTestBase, NUM_CACHE_ITEMS
 
 
-class CacheTestBase(StoreTestBase):
+# Standard EGP logging pattern
+_logger: Logger = getLogger(name=__name__)
+_logger.addHandler(hdlr=NullHandler())
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+
+
+# Maximum number of items the cache can hold
+MAX_NUM_CACHE_ITEMS = 2 * NUM_CACHE_ITEMS
+NUM_CACHE_PURGE_ITEMS = NUM_CACHE_ITEMS  # i.e. 50%
+
+
+class CacheTestBase(FastCacheTestBase):
     """Cache test base class."""
-    store_type = DictCache
+    store_type = UserDictCache
     cache_config: CacheConfig = {
-        "max_items": 0,
-        "purge_count": 0,
+        "max_items": MAX_NUM_CACHE_ITEMS,
+        "purge_count": NUM_CACHE_PURGE_ITEMS,
         "next_level": JSONFileStore(),
         "flavor": DictUGC
     }
@@ -33,64 +45,50 @@ class CacheTestBase(StoreTestBase):
         self.store2: CacheABC = self.cache2
         # The next level store for the caches is persistent so need to make sure they
         # are empty before each test.
-        self.cache.next_level.clear()
-        self.cache1.next_level.clear()
-        self.cache2.next_level.clear()
+        self.cache.next_level.clear()  # Disables below for a possible pylint bug
+        self.cache1.next_level.clear()  # pylint: disable=no-member
+        self.cache2.next_level.clear()  # pylint: disable=no-member
 
-    def test_del_item(self) -> None:
-        """__delitem__ method is not supported for caches."""
+    def test_get_from_next_level(self) -> None:
+        """Test getting an item from the next level."""
         if self.running_in_test_base_class():
             return
-        with self.assertRaises(expected_exception=AssertionError):
-            super().test_del_item()
-
-    def test_clear(self) -> None:
-        """clear method is not supported for caches."""
-        if self.running_in_test_base_class():
-            return
-        with self.assertRaises(expected_exception=AssertionError):
-            super().test_clear()
-
-    def test_copyback(self) -> None:
-        """Test the copyback method."""
-        if self.running_in_test_base_class():
-            return
-        for item in self.json_data:
-            self.cache[item['signature']] = DictUGC(item)
-        self.assertFalse(expr=len(self.cache.next_level))  # Nothing has been pushed to store yet
-        self.cache.copyback()
-        for item in self.json_data:  # All items are in the store
-            stored_item = self.cache.next_level[item['signature']]
-            self.assertEqual(first=DictUGC(stored_item), second=DictUGC(item))
-
-    def test_flush(self) -> None:
-        """Test the flush method."""
-        if self.running_in_test_base_class():
-            return
-        for item in self.json_data:
-            self.cache[item['signature']] = DictUGC(item)
-        self.cache.flush()
-        for item in self.json_data:  # Nothing put in the cache is still there
-            self.assertNotIn(member=item['signature'], container=self.cache)
-        self.assertFalse(expr=len(self.cache))  # Cache is empty
-        for item in self.json_data:  # All items are in the store
-            stored_item = self.cache.next_level[item['signature']]
-            self.assertEqual(first=DictUGC(stored_item), second=DictUGC(item))
+        # Add an item to the next level
+        item = self.json_data[0]
+        self.cache.next_level[item['signature']] = DictUGC(item)
+        # Get the item from the cache
+        self.assertEqual(first=self.cache[item['signature']], second=DictUGC(item))
 
     def test_purge(self) -> None:
-        """purge method is not supported for dict caches."""
+        """Purge method is called by over filling the cache."""
         if self.running_in_test_base_class():
             return
-        for item in self.json_data:
+        # Overfill the cache by one item to trigger a purge
+        for item in self.json_data[:MAX_NUM_CACHE_ITEMS + 1]:
             self.cache[item['signature']] = DictUGC(item)
-        with self.assertRaises(expected_exception=AssertionError):
-            self.cache.purge(num=1)
+        post_num = MAX_NUM_CACHE_ITEMS + 1 - NUM_CACHE_PURGE_ITEMS
+        self.assertEqual(first=len(self.cache), second=post_num)
+        # The cache should have purged the oldest items
+        for item in self.json_data[:NUM_CACHE_PURGE_ITEMS]:
+            self.assertNotIn(member=item['signature'], container=self.cache)
+        # The cache should have the newest items
+        for item in self.json_data[NUM_CACHE_PURGE_ITEMS:MAX_NUM_CACHE_ITEMS + 1]:
+            self.assertIn(member=item['signature'], container=self.cache)
+        # The store should have the purged items
+        for item in self.json_data[:NUM_CACHE_PURGE_ITEMS]:
+            self.assertIn(member=item['signature'], container=self.cache.next_level)
 
     def test_touch(self) -> None:
         """Test the touch method."""
         if self.running_in_test_base_class():
             return
-        for item in self.json_data:
+        # Exactly fill the cache with items
+        for item in self.json_data[:MAX_NUM_CACHE_ITEMS]:
             self.cache[item['signature']] = DictUGC(item)
-        with self.assertRaises(expected_exception=AssertionError):
-            self.cache.touch(key=self.json_data[0]['signature'])
+        # Touch the first item
+        self.cache.touch(key=self.json_data[0]['signature'])
+        # Add another item to the cache causing a purge
+        item = self.json_data[MAX_NUM_CACHE_ITEMS]
+        self.cache[item['signature']] = DictUGC(item)
+        # The first item should still be in the cache
+        self.assertIn(member=self.json_data[0]['signature'], container=self.cache)

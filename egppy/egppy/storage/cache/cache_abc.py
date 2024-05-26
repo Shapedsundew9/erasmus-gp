@@ -57,7 +57,13 @@ class CacheABC(StoreIllegal, StoreABC):
 
     @abstractmethod
     def __getitem__(self, key: Any) -> GCABC:
-        """Get an item from the cache."""
+        """Get an item from the cache.
+        
+        With the exception of the built-in dict 'fast' cache, all caches must
+        check the next level for the item if it is not in the cache and pull it in
+        as needed. The cache must also update the access sequence number by calling
+        the touch method. This ensures the cache can purge the least recently used.
+        """
         assert False, "__getitem__ must be overridden"
 
     @abstractmethod
@@ -67,20 +73,36 @@ class CacheABC(StoreIllegal, StoreABC):
 
     @abstractmethod
     def copyback(self) -> None:
-        """Copy the cache back to the next level."""
+        """Copy the cache back to the next level.
+        Copy all dirty items back to the next level store. No purge or flush
+        is done and the state of the cache and all access sequence numbers are
+        left unchanged.
+        """
         assert False, "copy_back must be overridden"
 
     @abstractmethod
     def flush(self) -> None:
-        """Flush the cache."""
+        """Flush the cache.
+        A flush is semantically a copyback() followed by a clear().
+        """
         assert False, "flush must be overridden"
 
     @abstractmethod
     def purge(self, num: int) -> None:
-        """Purge the cache of num items."""
+        """Purge the cache of num items.
+        The items purged are the least recently used items (as defined by the
+        access sequence number). If an item is dirty, it must be copied back to
+        the next level store before it is purged.
+        num may be greater than or euqal to the number of items in the cache in
+        which case purge() behaves like flush() (which may be an optimisation).
+        """
         assert False, "purge must be overridden"
 
     @abstractmethod
     def touch(self, key: Any) -> None:
-        """Touch the cache item to update the access sequence number."""
+        """Touch the cache item to update the access sequence number.
+        Touching an item updates the access sequence number to the current
+        value of the access counter. This is used to determine the least
+        recently used items for purging.
+        """
         assert False, "touch must be overridden"

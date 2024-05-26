@@ -32,17 +32,17 @@ def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
     def __init__(self, config: CacheConfig) -> None:
         """Constructor for Cache. Make sure config is valid and call base class constructor."""
         validate_cache_config(config=config)
-        super(cls, self).__init__(config=config)  # type: ignore
+        self.super = super(type(self), self)
+        self.super.__init__(config=config)  # type: ignore
 
     def __getitem__(self, key: Any) -> GCABC:
         """Get an item from the cache."""
-        s = super(cls, self)
         if key not in self:
             # Need to ask the next level for the item. First check if we have space.
             self.purge_check()
             # The next level GC type must be flavored (cast) to the type stored here.
-            s.__setitem__(key=key, value=self.flavor(self.next_level[key]))  # type: ignore
-        item: GCABC = s.__getitem__(key=key)  # type: ignore
+            self.super.__setitem__(key, self.flavor(self.next_level[key]))
+        item: GCABC = self.super.__getitem__(key)
         self.touch(key=key)
         return item
 
@@ -50,7 +50,8 @@ def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
         """Set an item in the cache. If the cache is full make space first."""
         if key not in self:
             self.purge_check()
-        super(cls, self).__setitem__(key=key, value=self.flavor(value))  # type: ignore
+        self.super.__setitem__(key, self.flavor(value))
+        self.touch(key=key)
 
     def purge_check(self) -> None:
         """Check if the cache needs to be purged."""
