@@ -1,6 +1,8 @@
 """Test JSONFileStore class."""
 from __future__ import annotations
 import unittest
+from os.path import join, dirname
+from json import load
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.null_store import NullStore
 from egppy.gc_types.ugc_class_factory import DictUGC
@@ -9,6 +11,7 @@ from egppy.gc_types.ugc_class_factory import DictUGC
 class StoreTestBase(unittest.TestCase):
     """Test case for Store classes."""
     # The Store class to test. Override this in subclasses.
+    json_data: list[dict] = []
     store_type = NullStore
 
     @classmethod
@@ -21,18 +24,24 @@ class StoreTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls() == StoreTestBase
+        return cls.get_test_cls().__name__.endswith('TestBase')
 
     @classmethod
     def get_store_cls(cls) -> type[StoreABC]:
         """Get the Store class."""
         return cls.store_type
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        datafile: str = join(dirname(p=__file__), 'data', 'ugc_test_data.json')
+        with open(file=datafile, mode='r', encoding='utf-8') as file:
+            cls.json_data: list[dict] = load(fp=file)
+
     def setUp(self) -> None:
-        self.type: type[StoreABC] = self.get_store_cls()
-        self.store = self.type()
-        self.store1 = self.type()
-        self.store2 = self.type()
+        self.store_type: type[StoreABC] = self.get_store_cls()
+        self.store = self.store_type()
+        self.store1 = self.store_type()
+        self.store2 = self.store_type()
 
     def test_set_item(self) -> None:
         """
@@ -179,13 +188,11 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.store1 = self.type()
         value = DictUGC(value='value1')
         self.store1['key1'] = value
         value = DictUGC(value='value2')
         self.store1['key2'] = value
 
-        self.store2 = self.type()
         value = DictUGC(value='value1')
         self.store2['key1'] = value
         value = DictUGC(value='value2')
@@ -199,13 +206,11 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.store1 = self.type()
         value = DictUGC(value='value1')
         self.store1['key1'] = value
         value = DictUGC(value='value2')
         self.store1['key2'] = value
 
-        self.store2 = self.type()
         value = DictUGC(value='value1')
         self.store2['key1'] = value
         value = DictUGC(value='value2')
@@ -233,10 +238,10 @@ class StoreTestBase(unittest.TestCase):
         value = DictUGC(value='value')
         default = DictUGC(value='default')
         self.store['key'] = value
-        value = self.store.setdefault(key='key', default=default)
+        value = self.store.setdefault('key',default)
         self.assertEqual(first=value, second=value)
 
-        value = self.store.setdefault(key='new_key', default=default)
+        value = self.store.setdefault('new_key', default)
         self.assertEqual(first=value, second=default)
 
     def test_update(self) -> None:

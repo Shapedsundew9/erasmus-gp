@@ -4,6 +4,7 @@ from logging import Logger, NullHandler, getLogger, DEBUG
 from abc import abstractmethod
 from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
+from egppy.storage.store.store_illegal import StoreIllegal
 
 
 # Standard EGP logging pattern
@@ -38,7 +39,7 @@ def validate_cache_config(config: CacheConfig) -> None:
         raise ValueError("purge_count must be <= max_items")
 
 
-class CacheABC(StoreABC):
+class CacheABC(StoreIllegal, StoreABC):
     """Abstract class for cache base classes.
     
     The cache class must implement all the primitives of cache operations.

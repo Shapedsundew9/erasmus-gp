@@ -23,7 +23,7 @@ class UGCTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls() == UGCTestBase
+        return cls.get_test_cls().__name__.endswith('TestBase')
 
     @classmethod
     def get_cls(cls) -> type[GCABC]:

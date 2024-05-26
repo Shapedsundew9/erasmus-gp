@@ -3,6 +3,8 @@ from typing import Any, Callable, Type
 from logging import Logger, NullHandler, getLogger, DEBUG
 from itertools import count
 from collections import UserDict
+from collections.abc import MutableMapping
+from egppy.gc_types.null_gc import NULL_GC
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
@@ -50,6 +52,16 @@ class UserDictCacheBase(UserDict[Any, GCABC], CacheABC):
                 self.next_level[key] = self[key].copyback()
             del self[key]
 
+    def setdefault(self, key: Any, default: GCABC = NULL_GC) -> GCABC:
+        if key in self:
+            return self[key]
+        self[key] = default
+        return default
+
     def touch(self, key: Any) -> None:
         """Touch the cache item to update the access sequence number."""
         self.seqnum[key] = next(self.access_counter)
+
+    def update(self, m: MutableMapping[Any, GCABC]) -> None:  # type: ignore
+        for k, v in m:
+            self[k] = v

@@ -42,4 +42,3 @@ class NullStore(StoreIllegal, StoreABC):
 
     def update(self, m: MutableMapping[Any, GCABC]) -> None:
         """Update the store."""
-

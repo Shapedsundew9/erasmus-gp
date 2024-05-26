@@ -72,4 +72,3 @@ def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
 
 UserDictCache: Type[CacheABC] = cache_factory(cls=UserDictCacheBase)
 FastCache: Type[CacheABC] = type("FastCache", (CacheIllegal, DictCache), {})
-

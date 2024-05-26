@@ -1,7 +1,7 @@
 """Test case for JSONFileStore class."""
 import unittest
 from egppy.storage.store.json_file_store import JSONFileStore
-from tests.test_storage.test_store.store_test_base import StoreTestBase
+from tests.test_storage.store_test_base import StoreTestBase
 
 
 class TestJSONFileStore(StoreTestBase):
