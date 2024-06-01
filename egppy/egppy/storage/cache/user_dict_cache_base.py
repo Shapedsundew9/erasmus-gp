@@ -1,9 +1,9 @@
 """A python dictionary based cache."""
 from typing import Any, Callable, Type
-from logging import Logger, NullHandler, getLogger, DEBUG
 from itertools import count
 from collections import UserDict
 from collections.abc import MutableMapping
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.null_gc import NULL_GC
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.gc_types.gc_abc import GCABC
@@ -11,9 +11,10 @@ from egppy.storage.store.store_abc import StoreABC
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(name=__name__)
-_logger.addHandler(hdlr=NullHandler())
+_logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Function to select sequence numbers for sorting

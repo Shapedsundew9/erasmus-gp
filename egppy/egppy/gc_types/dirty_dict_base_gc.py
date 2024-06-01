@@ -1,14 +1,15 @@
 """Dirty Dictionary Genetic Code Base Class module."""
 from typing import Any
-from logging import Logger, NullHandler, getLogger, DEBUG
 from copy import deepcopy
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_abc import GCABC
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(name=__name__)
-_logger.addHandler(hdlr=NullHandler())
+_logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class DirtyDictBaseGC(dict, GCABC):
@@ -24,15 +25,19 @@ class DirtyDictBaseGC(dict, GCABC):
         super().__init__(*args, **kwargs)
         self._dirty: bool = True
 
-    def assertions(self) -> None:
-        """Abstract method for assertions"""
-
     def clean(self) -> None:
         """Mark the object as clean."""
         self._dirty = False
 
+    def consistency(self) -> None:
+        """Check the consistency of the object."""
+
     def copyback(self) -> GCABC:
         """Copy the object back."""
+        if _LOG_VERIFY:
+            self.verify()
+            if _LOG_CONSISTENCY:
+                self.consistency()
         self.clean()
         return self
 
@@ -46,4 +51,11 @@ class DirtyDictBaseGC(dict, GCABC):
 
     def json_dict(self) -> dict[str, Any]:
         """Return a JSON serializable dictionary."""
+        if _LOG_VERIFY:
+            self.verify()
+            if _LOG_CONSISTENCY:
+                self.consistency()
         return deepcopy(x=self)
+
+    def verify(self) -> None:
+        """Verify the genetic code object."""

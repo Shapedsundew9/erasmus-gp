@@ -1,6 +1,15 @@
 """Mutation Queue module for evolution pipeline."""
 from egppy.worker.evolution_pipe.mutation_executor import mutation_executor
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
-def mutation_queue():
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
+
+def mutation_queue() -> None:
     """Queue the mutation."""
     mutation_executor()

@@ -1,16 +1,17 @@
 """Cache Base Abstract Base Class"""
 from typing import Any, TypedDict, Type
-from logging import Logger, NullHandler, getLogger, DEBUG
 from abc import abstractmethod
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_illegal import StoreIllegal
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(name=__name__)
-_logger.addHandler(hdlr=NullHandler())
+_logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class CacheConfig(TypedDict):
@@ -53,7 +54,7 @@ class CacheABC(StoreIllegal, StoreABC):
         self.purge_count: int = config["purge_count"]
         self.next_level: StoreABC = config["next_level"]
         self.flavor: Type[GCABC] = config["flavor"]
-        assert False, "CacheABC.__init__ must be overridden"
+        raise NotImplementedError("CacheABC.__init__ must be overridden")
 
     @abstractmethod
     def __getitem__(self, key: Any) -> GCABC:
@@ -64,12 +65,12 @@ class CacheABC(StoreIllegal, StoreABC):
         as needed. The cache must also update the access sequence number by calling
         the touch method. This ensures the cache can purge the least recently used.
         """
-        assert False, "__getitem__ must be overridden"
+        raise NotImplementedError("__getitem__ must be overridden")
 
     @abstractmethod
     def __setitem__(self, key: Any, value: GCABC) -> None:
         """Set an item in the cache."""
-        assert False, "__setitem__ must be overridden"
+        raise NotImplementedError("__setitem__ must be overridden")
 
     @abstractmethod
     def copyback(self) -> None:
@@ -78,14 +79,14 @@ class CacheABC(StoreIllegal, StoreABC):
         is done and the state of the cache and all access sequence numbers are
         left unchanged.
         """
-        assert False, "copy_back must be overridden"
+        raise NotImplementedError("copy_back must be overridden")
 
     @abstractmethod
     def flush(self) -> None:
         """Flush the cache.
         A flush is semantically a copyback() followed by a clear().
         """
-        assert False, "flush must be overridden"
+        raise NotImplementedError("flush must be overridden")
 
     @abstractmethod
     def purge(self, num: int) -> None:
@@ -96,7 +97,7 @@ class CacheABC(StoreIllegal, StoreABC):
         num may be greater than or euqal to the number of items in the cache in
         which case purge() behaves like flush() (which may be an optimisation).
         """
-        assert False, "purge must be overridden"
+        raise NotImplementedError("purge must be overridden")
 
     @abstractmethod
     def touch(self, key: Any) -> None:
@@ -105,4 +106,4 @@ class CacheABC(StoreIllegal, StoreABC):
         value of the access counter. This is used to determine the least
         recently used items for purging.
         """
-        assert False, "touch must be overridden"
+        raise NotImplementedError("touch must be overridden")

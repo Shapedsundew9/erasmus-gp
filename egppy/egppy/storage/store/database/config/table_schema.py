@@ -1,16 +1,17 @@
 """
 Table schemas are YAML files that define the structure of tables in a database (datastore).
 """
-from logging import Logger, NullHandler, getLogger, DEBUG
 from os.path import abspath, dirname, join
 from yaml import safe_load
 from jsonschema import validate
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(__name__)
-_logger.addHandler(NullHandler())
-_LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Schema for the datastore YAML file

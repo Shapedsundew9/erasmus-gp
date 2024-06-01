@@ -1,13 +1,14 @@
 """SQLAlchemy database interface implementation module."""
-from logging import Logger, NullHandler, getLogger, DEBUG
 from sqlalchemy import create_engine
 from egppy.database.db_abc import DBABC
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(__name__)
-_logger.addHandler(NullHandler())
-_LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 def maintenance_uri_end(db_config: dict[str, any], password: str) -> str:

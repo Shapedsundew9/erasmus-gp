@@ -3,14 +3,15 @@
 A NULL GC is needed to stub out GC references without requiring None type support.
 """
 from typing import Any
-from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.gc_types.gc_abc import GCABC
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(name=__name__)
-_logger.addHandler(hdlr=NullHandler())
+_logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class NullGC(dict, GCABC):
@@ -40,6 +41,9 @@ class NullGC(dict, GCABC):
     def clean(self) -> None:
         """Null GC methods do nothing."""
 
+    def consistency(self) -> None:
+        """Null GC methods do nothing."""
+
     def copyback(self) -> GCABC:
         """Null GC methods do nothing."""
         return self
@@ -54,6 +58,9 @@ class NullGC(dict, GCABC):
     def json_dict(self) -> dict[str, Any]:
         """Null GC methods do nothing."""
         return self.copy()
+
+    def verify(self) -> None:
+        """Null GC methods do nothing."""
 
 
 NULL_GC = NullGC()

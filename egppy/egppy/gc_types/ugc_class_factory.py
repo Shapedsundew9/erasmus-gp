@@ -6,7 +6,7 @@ for simplicity. The UGC allows any values to be stored in the genetic code objec
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
 from typing import Type, Callable, Any
-from logging import Logger, NullHandler, getLogger, DEBUG
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_abc import GCABC
 from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
 from egppy.gc_types.dict_base_gc import DictBaseGC
@@ -14,9 +14,10 @@ from egppy.gc_types.gc_illegal import GCIllegal
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(name=__name__)
-_logger.addHandler(hdlr=NullHandler())
+_logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 def ugc_class_factory(cls: Type[GCABC]) -> Type[GCABC]:

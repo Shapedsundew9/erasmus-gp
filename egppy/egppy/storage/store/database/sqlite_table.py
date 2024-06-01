@@ -2,6 +2,14 @@
 from copy import deepcopy
 from egppy.database.sqlalchemy_db import SQLAlchemySqliteMem
 from egppy.database.sqlalchemy_table import SQLAlchemyTable
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Mapping of types from the table schema to sqlite3 types.

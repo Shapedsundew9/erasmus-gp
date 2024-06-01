@@ -1,13 +1,14 @@
 """Dictionary Genetic Code Base Class module."""
 from typing import Any
-from logging import Logger, NullHandler, getLogger, DEBUG
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
 
 
 # Standard EGP logging pattern
-_logger: Logger = getLogger(name=__name__)
-_logger.addHandler(hdlr=NullHandler())
+_logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class DictBaseGC(DirtyDictBaseGC):
