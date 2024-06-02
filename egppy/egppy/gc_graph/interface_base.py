@@ -10,6 +10,10 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
+# Interface constants
+INTERFACE_MAX_LENGTH: int = 256
+
+
 class InterfaceBase():
     """Interface Base class.
 
@@ -32,6 +36,6 @@ class InterfaceBase():
     def verify(self) -> None:
         """Verify the interface."""
         _logger.info("Verifying the interface.")
-        assert len(self) <= 256, "Interface has too many endpoints."
+        assert len(self) <= INTERFACE_MAX_LENGTH, "Interface has too many endpoints."
         for ept in self:
             assert ept >= -2**16 and ept < 2**16, "Endpoint type out of range in interface."

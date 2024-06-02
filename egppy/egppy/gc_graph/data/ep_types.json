@@ -1,0 +1,84 @@
+{
+    "instanciation": {
+        "-1": [
+            "egp_types",
+            null,
+            "dGC",
+            "dGC",
+            true,
+            "egp_types_dGC_dGC()"
+        ],
+        "0": [
+            null,
+            null,
+            null,
+            "None",
+            false,
+            "None"
+        ],
+        "1": [
+            null,
+            null,
+            null,
+            "bool",
+            true,
+            "True"
+        ],
+        "2": [
+            null,
+            null,
+            null,
+            "int",
+            true,
+            "2"
+        ],
+        "3": [
+            null,
+            null,
+            null,
+            "float",
+            true,
+            "2.0"
+        ],
+        "4": [
+            null,
+            null,
+            null,
+            "complex",
+            true,
+            "complex(2.0,-2.0)"
+        ],
+        "5": [
+            null,
+            null,
+            null,
+            "str",
+            true,
+            "'two'"
+        ]
+    },
+    "n2v": {
+        "None": 0,
+        "bool": 1,
+        "builtins_NoneType": 0,
+        "builtins_bool": 1,
+        "builtins_complex": 4,
+        "builtins_float": 3,
+        "builtins_int": 2,
+        "builtins_str": 5,
+        "complex": 4,
+        "egp_types_dGC_dGC": -1,
+        "float": 3,
+        "int": 2,
+        "str": 5
+    },
+    "v2n": {
+        "-1": "egp_types_dGC_dGC",
+        "0": "builtins_NoneType",
+        "1": "builtins_bool",
+        "2": "builtins_int",
+        "3": "builtins_float",
+        "4": "builtins_complex",
+        "5": "builtins_str"
+    }
+}
