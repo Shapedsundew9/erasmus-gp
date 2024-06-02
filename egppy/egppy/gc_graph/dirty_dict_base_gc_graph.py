@@ -1,9 +1,8 @@
 """Dirty Dictionary Genetic Code Base Class module."""
-from __future__ import annotations
 from typing import Any
 from copy import deepcopy
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_types.gc_abc import GCABC
+from egppy.gc_graph.gc_graph_abc import GCGraphABC
 
 
 # Standard EGP logging pattern
@@ -13,8 +12,8 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class DirtyDictBaseGC(dict, GCABC):
-    """Dirty Dictionary Genetic Code Base Class.
+class DirtyDictBaseGCGraph(dict, GCGraphABC):
+    """Dirty Dictionary Genetic Code Graph Base Class.
     Builtin dictionaries are fast but use a lot of space. This class is a base class
     for genetic code objects using builtin dictionary methods without wrapping them.
     As a consequence when the dictionary is modified the object is not automatically
@@ -22,7 +21,7 @@ class DirtyDictBaseGC(dict, GCABC):
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        """Constructor for DirtyDictBaseGC"""
+        """Constructor for a GC Graph"""
         super().__init__(*args, **kwargs)
         self._dirty: bool = True
 
@@ -33,7 +32,7 @@ class DirtyDictBaseGC(dict, GCABC):
     def consistency(self) -> None:
         """Check the consistency of the object."""
 
-    def copyback(self) -> DirtyDictBaseGC:
+    def copyback(self) -> GCGraphABC:
         """Copy the object back."""
         if _LOG_VERIFY:
             self.verify()
@@ -46,15 +45,11 @@ class DirtyDictBaseGC(dict, GCABC):
         """Mark the object as dirty."""
         self._dirty = True
 
-    def from_json(self, json_obj: dict[str, Any] | list) -> None:
-        """Re-initialize the object with data from json_obj."""
-        self.update(json_obj)
-
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self._dirty
 
-    def to_json(self) -> dict[str, Any]:
+    def json_dict(self) -> dict[str, Any]:
         """Return a JSON serializable dictionary."""
         if _LOG_VERIFY:
             self.verify()
@@ -64,4 +59,3 @@ class DirtyDictBaseGC(dict, GCABC):
 
     def verify(self) -> None:
         """Verify the genetic code object."""
-        assert not list(filter(lambda x: not isinstance(x, str), self)), "Keys must be strings."

@@ -1,21 +1,40 @@
 """Test JSONFileStore class."""
 from __future__ import annotations
+from typing import Hashable
 import unittest
-from os.path import join, dirname
-from json import load
 from egppy.storage.store.store_abc import StoreABC
+from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.null_store import NullStore
-from egppy.gc_types.ugc_class_factory import DictUGC
+from egppy.gc_types.null_gc import NULL_GC
+
+
+# Default values for test cases
+DEFAULT_VALUES: tuple[dict[str, str], dict[str, int], dict[str, float]] = (
+    {'k': 'value'},
+    {'k1': 1243},
+    {'k2': 0.5678}
+)
 
 
 class StoreTestBase(unittest.TestCase):
     """Test case for Store classes."""
+
     # The Store class to test. Override this in subclasses.
-    json_data: list[dict] = []
     store_type = NullStore
+    # The Value class to test. Override this in subclasses.
+    value_type = StorableObjABC
+    # Instances of the Value class. Define these in setUpClass.
+    # No values should compare equal.
+    value: StorableObjABC = NULL_GC
+    value1: StorableObjABC = NULL_GC
+    value2: StorableObjABC = NULL_GC
+    # Key values for testing. Override these in subclasses to different types.
+    key: Hashable = 'key'
+    key1: Hashable = 'key1'
+    key2: Hashable = 'key2'
 
     @classmethod
-    def get_test_cls(cls) -> type[unittest.TestCase]:
+    def get_test_cls(cls) -> type:
         """Get the TestCase class."""
         return cls
 
@@ -32,16 +51,22 @@ class StoreTestBase(unittest.TestCase):
         return cls.store_type
 
     @classmethod
-    def setUpClass(cls) -> None:
-        datafile: str = join(dirname(p=__file__), 'data', 'ugc_test_data.json')
-        with open(file=datafile, mode='r', encoding='utf-8') as file:
-            cls.json_data: list[dict] = load(fp=file)
+    def get_value_cls(cls) -> type[StorableObjABC]:
+        """Get the Value class."""
+        return cls.value_type
 
     def setUp(self) -> None:
         self.store_type: type[StoreABC] = self.get_store_cls()
         self.store = self.store_type()
         self.store1 = self.store_type()
         self.store2 = self.store_type()
+        self.test_type: type = self.get_test_cls()
+        self.value: StorableObjABC = self.test_type.value
+        self.value1: StorableObjABC = self.test_type.value1
+        self.value2: StorableObjABC = self.test_type.value2
+        self.key: Hashable = self.test_type.key
+        self.key1: Hashable = self.test_type.key1
+        self.key2: Hashable = self.test_type.key2
 
     def test_set_item(self) -> None:
         """
@@ -49,9 +74,8 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
-        self.assertEqual(first=self.store['key'], second=value)
+        self.store[self.key] = self.value
+        self.assertEqual(first=self.store[self.key], second=self.value)
 
     def test_get_item(self) -> None:
         """
@@ -59,9 +83,8 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
-        self.assertEqual(first=self.store['key'], second=value)
+        self.store[self.key] = self.value
+        self.assertEqual(first=self.store[self.key], second=self.value)
 
     def test_del_item(self) -> None:
         """
@@ -69,10 +92,9 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
-        del self.store['key']
-        self.assertNotIn(member='key', container=self.store)
+        self.store[self.key] = self.value
+        del self.store[self.key]
+        self.assertNotIn(member=self.key, container=self.store)
 
     def test_contains(self) -> None:
         """
@@ -80,9 +102,8 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
-        self.assertIn(member='key', container=self.store)
+        self.store[self.key] = self.value
+        self.assertIn(member=self.key, container=self.store)
 
     def test_len(self) -> None:
         """
@@ -90,10 +111,8 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store['key1'] = value
-        value = DictUGC(value='value2')
-        self.store['key2'] = value
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
         self.assertEqual(first=len(self.store), second=2)
 
     def test_iter(self) -> None:
@@ -102,12 +121,10 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store['key1'] = value
-        value = DictUGC(value='value2')
-        self.store['key2'] = value
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
         keys = set(self.store.keys())
-        self.assertEqual(first=keys, second={'key1', 'key2'})
+        self.assertEqual(first=keys, second={self.key1, self.key2})
 
     def test_clear(self) -> None:
         """
@@ -115,8 +132,7 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
+        self.store[self.key] = self.value
         self.store.clear()
         self.assertEqual(first=len(self.store), second=0)
 
@@ -126,10 +142,9 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
+        self.store[self.key] = self.value
         with self.assertRaises(expected_exception=AssertionError):
-            self.store.pop(key='key')
+            self.store.pop(key=self.key)
 
     def test_popitem(self) -> None:
         """
@@ -137,8 +152,7 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
+        self.store[self.key] = self.value
         with self.assertRaises(expected_exception=AssertionError):
             self.store.popitem()
 
@@ -148,12 +162,10 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store['key1'] = value
-        value = DictUGC(value='value2')
-        self.store['key2'] = value
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
         keys = self.store.keys()
-        self.assertEqual(first=list(keys), second=['key1', 'key2'])
+        self.assertEqual(first=list(keys), second=[self.key1, self.key2])
 
     def test_items(self) -> None:
         """
@@ -161,12 +173,10 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store['key1'] = value
-        value = DictUGC(value='value2')
-        self.store['key2'] = value
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
         items = self.store.items()
-        second = [('key1', {'value': 'value1'}), ('key2', {'value': 'value2'})]
+        second = [(self.key1, self.value1), (self.key2, self.value2)]
         self.assertEqual(first=list(items), second=second)
 
     def test_values(self) -> None:
@@ -175,12 +185,10 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store['key1'] = value
-        value = DictUGC(value='value2')
-        self.store['key2'] = value
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
         values = self.store.values()
-        self.assertEqual(first=list(values), second=[{'value': 'value1'}, {'value': 'value2'}])
+        self.assertEqual(first=list(values), second=[self.value1, self.value2])
 
     def test_eq(self) -> None:
         """
@@ -188,15 +196,11 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store1['key1'] = value
-        value = DictUGC(value='value2')
-        self.store1['key2'] = value
+        self.store1[self.key1] = self.value1
+        self.store1[self.key2] = self.value2
 
-        value = DictUGC(value='value1')
-        self.store2['key1'] = value
-        value = DictUGC(value='value2')
-        self.store2['key2'] = value
+        self.store2[self.key1] = self.value1
+        self.store2[self.key2] = self.value2
 
         self.assertEqual(first=self.store1, second=self.store2)
 
@@ -206,15 +210,11 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value1')
-        self.store1['key1'] = value
-        value = DictUGC(value='value2')
-        self.store1['key2'] = value
+        self.store1[self.key1] = self.value1
+        self.store1[self.key2] = self.value2
 
-        value = DictUGC(value='value1')
-        self.store2['key1'] = value
-        value = DictUGC(value='value2')
-        self.store2['key3'] = value
+        self.store2[self.key2] = self.value1
+        self.store2[self.key1] = self.value2
 
         self.assertNotEqual(first=self.store1, second=self.store2)
 
@@ -224,10 +224,9 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        self.store['key'] = value
-        value = self.store.get('key')
-        self.assertEqual(first=value, second=value)
+        self.store[self.key] = self.value
+        value = self.store.get(self.key)
+        self.assertEqual(first=self.value, second=value)
 
     def test_setdefault(self) -> None:
         """
@@ -235,14 +234,12 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value = DictUGC(value='value')
-        default = DictUGC(value='default')
-        self.store['key'] = value
-        value = self.store.setdefault('key',default)
-        self.assertEqual(first=value, second=value)
+        self.store[self.key] = self.value1
+        value = self.store.setdefault(self.key,self.value2)
+        self.assertEqual(first=value, second=self.value1)
 
-        value = self.store.setdefault('new_key', default)
-        self.assertEqual(first=value, second=default)
+        value = self.store.setdefault('new_key', self.value2)
+        self.assertEqual(first=value, second=self.value2)
 
     def test_update(self) -> None:
         """
@@ -250,10 +247,7 @@ class StoreTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        value1 = DictUGC(value='value1')
-        value2 = DictUGC(value='value2')
-        value3 = DictUGC(value='value3')
-        self.store1['key1'] = value1
-        self.store.update({'key2': value2, 'key3': value3})
-        self.assertEqual(first=self.store['key2'], second=value2)
-        self.assertEqual(first=self.store['key3'], second=value3)
+        self.store1[self.key] = self.value
+        self.store.update({self.key1: self.value1, self.key2: self.value2})
+        self.assertEqual(first=self.store[self.key1], second=self.value1)
+        self.assertEqual(first=self.store[self.key2], second=self.value2)

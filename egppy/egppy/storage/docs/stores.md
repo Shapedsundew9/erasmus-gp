@@ -46,8 +46,45 @@ Caches are all derived from the Abstract Base Class *CacheABC* which provides a 
 | Class | Base Class | ABC | Description |
 |-------|------------|-----|-------------|
 | FastCache | dict | CacheABC | Fast, limited function* |
-| UserDictCache | UserDict | CacheABC | Quite fast | 
+| UserDictCache | UserDict | CacheABC | Quite fast |
 
 \* A FastCache is a "one-way cache", like a temporary store with some convinient configuration to push data to the next level. It cannot pull data from the next level (see one way arrow between the fast_cache and the compact_cache in the top level store flow diagram). In order to use all the optimized builtin dict methods without wrappers, a FastCache does not track access order or dirty state and has no size limit. It is intended as a "work area" for evolution.
 
-Caches cache genetic code objects derived from the Abstract Base Class *GCABC* keyed by thier signatures.
+Caches cache *CacheableObjABC* types. Because the object cached is a container there is no way for the CacheABC to know if the object it is caching has been accessed or changed without some sort of expensive checking or comparison or hashing. CacheableObjABC's have methods provided to explicitly and implicitly track access, set dirty/clean state that can be introspected by CacheABC's. CacheableObjABC's may include other CacheableObjABC's using the same methods to roll up state.
+
+## Class Hierarchy
+
+```mermaid
+---
+title: Storage & Cache Class Diagram
+---
+classDiagram
+    MutableMapping <|-- StoreABC
+    StoreABC <|-- NullStore
+    StoreABC <|-- JSONFileStore
+    StoreABC <|-- CacheABC
+    CacheABC <|-- DictCache
+    CacheABC <|-- UserDictCache
+```
+
+```mermaid
+---
+title: Storable & Cacheable Object Class Diagram
+---
+classDiagram
+    ABC <|-- StorableObjABC
+    StorableObjABC <|-- CacheableObjABC
+    MutableSequence <|-- InterfaceABC
+    CacheableObjABC <|-- InterfaceABC
+    CacheableObjABC <|-- GCABC
+    MutableMapping <|-- GCABC
+    GCABC <|-- DirtyDictBaseGC
+    dict <|--  DirtyDictBaseGC
+    UserDict <|-- DictBase
+    GCABC <|-- DictBase
+    DictBase <|-- DictBaseGC
+    DirtyDictBaseGC <|-- DirtyDictUGC
+    DictBaseGC <|-- DictUGC
+    DirtyDictBaseGC <|-- DirtyDictEGC
+    DictBaseGC <|-- DictEGC
+```

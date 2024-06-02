@@ -32,9 +32,9 @@ class UGCTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.type: type[GCABC] = self.get_cls()
-        self.ugc = self.type()
-        self.ugc1 = self.type()
-        self.ugc2 = self.type()
+        self.ugc: GCABC = self.type()
+        self.ugc1: GCABC = self.type()
+        self.ugc2: GCABC = self.type()
 
     def test_set_item(self) -> None:
         """

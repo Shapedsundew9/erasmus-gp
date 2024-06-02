@@ -1,8 +1,8 @@
 """A python dictionary based cache."""
-from typing import Any, Callable
+from typing import Any, Callable, Hashable
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
-from egppy.gc_types.gc_abc import GCABC
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.store_abc import StoreABC
 
 
@@ -17,7 +17,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 
 
-class DictCache(dict[Any, GCABC], CacheABC):
+class DictCache(dict[Hashable, CacheableObjABC], CacheABC):
     """An builtin python dictionary based fast cache.
     
     Cache is a bit of a misnomer. A DictCache is a "one-way cache", like a temporary
@@ -48,6 +48,6 @@ class DictCache(dict[Any, GCABC], CacheABC):
         """Illegal method."""
         assert False, "FastCache does not support purging."
 
-    def touch(self, key: Any) -> None:
+    def touch(self, key: Hashable) -> None:
         """No-op for a FastCache."""
         assert False, "FastCache should not be touched."

@@ -1,8 +1,9 @@
 """A cache factory module to create cache objects."""
-from typing import Any, Type, Callable
+from typing import Any, Callable, Hashable
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig, validate_cache_config
 from egppy.storage.cache.cache_illegal import CacheIllegal
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.user_dict_cache_base import UserDictCacheBase
 from egppy.storage.cache.dict_cache import DictCache
 from egppy.gc_types.gc_abc import GCABC
@@ -15,7 +16,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
+def cache_factory(cls: type[CacheABC]) -> type:
     """Create a cache object.
 
     Wraps the cls methods and adds derived methods to create a cache object.
@@ -36,7 +37,7 @@ def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
         self.super = super(type(self), self)
         self.super.__init__(config=config)  # type: ignore
 
-    def __getitem__(self, key: Any) -> GCABC:
+    def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the cache."""
         if key not in self:
             # Need to ask the next level for the item. First check if we have space.
@@ -47,7 +48,7 @@ def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
         self.touch(key=key)
         return item
 
-    def __setitem__(self, key: Any, value: GCABC) -> None:
+    def __setitem__(self, key: Any, value: CacheableObjABC) -> None:
         """Set an item in the cache. If the cache is full make space first."""
         if key not in self:
             self.purge_check()
@@ -72,5 +73,5 @@ def cache_factory(cls: Type[CacheABC]) -> Type[CacheABC]:
     return type(cls_name, (CacheIllegal, cls), cls_methods)
 
 
-UserDictCache: Type[CacheABC] = cache_factory(cls=UserDictCacheBase)
-FastCache: Type[CacheABC] = type("FastCache", (CacheIllegal, DictCache), {})
+UserDictCache: type[UserDictCacheBase] = cache_factory(cls=UserDictCacheBase)
+FastCache: type[DictCache] = type("FastCache", (CacheIllegal, DictCache), {})

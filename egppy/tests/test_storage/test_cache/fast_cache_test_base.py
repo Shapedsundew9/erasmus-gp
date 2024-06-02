@@ -1,4 +1,6 @@
 """Fast cache test base class."""
+from os.path import join, dirname
+from json import load
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.cache.cache_class_factory import DictCache
@@ -12,6 +14,7 @@ NUM_CACHE_ITEMS = 5
 
 class FastCacheTestBase(StoreTestBase):
     """Cache test base class."""
+    json_data: list[dict]
     store_type = DictCache
     cache_config: CacheConfig = {
         "max_items": 0,
@@ -25,6 +28,12 @@ class FastCacheTestBase(StoreTestBase):
         """Get the Store class."""
         assert issubclass(cls.store_type, CacheABC)
         return cls.store_type
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        datafile: str = join(dirname(p=__file__), '..', 'data', 'ugc_test_data.json')
+        with open(file=datafile, mode='r', encoding='utf-8') as file:
+            cls.json_data: list[dict] = load(fp=file)
 
     def setUp(self) -> None:
         self.cache_type: type[CacheABC] = self.get_cache_cls()

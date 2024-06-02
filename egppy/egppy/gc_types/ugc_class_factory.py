@@ -20,7 +20,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-def ugc_class_factory(cls: Type[GCABC]) -> Type[GCABC]:
+def ugc_class_factory(cls: Type[GCABC]) -> Type:
     """Create a genetic code object.
 
     Wraps the cls methods and adds derived methods to create a genetic code object.
@@ -38,14 +38,15 @@ def ugc_class_factory(cls: Type[GCABC]) -> Type[GCABC]:
     def __init__(self, *args, **kwargs) -> None:
         """Constructor for GC."""
         gcabc: GCABC | dict[str, Any] = args[0] if args else kwargs
-        super(cls, self).__init__(gcabc)  # type: ignore
+        self.super = super(type(self), self)
+        self.super.__init__(gcabc)  # type: ignore
 
     cls_name: str = cls.__name__.replace("Base", "U")
     cls_methods: dict[str, Callable] = {
         '__init__': __init__,
     }
-    return type(cls_name, (GCIllegal, DictBaseGC,), cls_methods)
+    return type(cls_name, (GCIllegal, cls,), cls_methods)
 
 
-DirtyDictUGC: Type[GCABC] = ugc_class_factory(cls=DirtyDictBaseGC)
-DictUGC: Type[GCABC] = ugc_class_factory(cls=DictBaseGC)
+DirtyDictUGC: Type[DirtyDictBaseGC] = ugc_class_factory(cls=DirtyDictBaseGC)
+DictUGC: Type[DictBaseGC] = ugc_class_factory(cls=DictBaseGC)

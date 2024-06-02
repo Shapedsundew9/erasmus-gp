@@ -1,10 +1,10 @@
 """Cache Base Abstract Base Class"""
-from typing import Any, TypedDict, Type
+from typing import Any, TypedDict, Hashable
 from abc import abstractmethod
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_types.gc_abc import GCABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_illegal import StoreIllegal
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 
 # Standard EGP logging pattern
@@ -19,7 +19,7 @@ class CacheConfig(TypedDict):
     max_items: int  # Maximum number of items in the cache. 0 = infinite
     purge_count: int  # Number of items to purge when the cache is full
     next_level: StoreABC  # The next level of caching or storage
-    flavor: Type[GCABC]  # The type of item stored in the cache
+    flavor: type[CacheableObjABC]  # The type of item stored in the cache
 
 
 def validate_cache_config(config: CacheConfig) -> None:
@@ -30,7 +30,7 @@ def validate_cache_config(config: CacheConfig) -> None:
         raise ValueError("purge_count must be an integer")
     if not isinstance(config["next_level"], StoreABC):
         raise ValueError("next_level must be a StoreABC")
-    if not issubclass(config["flavor"], GCABC):
+    if not issubclass(config["flavor"], CacheableObjABC):
         raise ValueError("flavor must be a subclass of GCABC")
     if config["max_items"] < 0:
         raise ValueError("max_items must be >= 0")
@@ -53,11 +53,11 @@ class CacheABC(StoreIllegal, StoreABC):
         self.max_items: int = config["max_items"]
         self.purge_count: int = config["purge_count"]
         self.next_level: StoreABC = config["next_level"]
-        self.flavor: Type[GCABC] = config["flavor"]
+        self.flavor: type[CacheableObjABC] = config["flavor"]
         raise NotImplementedError("CacheABC.__init__ must be overridden")
 
     @abstractmethod
-    def __getitem__(self, key: Any) -> GCABC:
+    def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the cache.
         
         With the exception of the built-in dict 'fast' cache, all caches must
@@ -68,7 +68,7 @@ class CacheABC(StoreIllegal, StoreABC):
         raise NotImplementedError("__getitem__ must be overridden")
 
     @abstractmethod
-    def __setitem__(self, key: Any, value: GCABC) -> None:
+    def __setitem__(self, key: Hashable, value: CacheableObjABC) -> None:  # type: ignore
         """Set an item in the cache."""
         raise NotImplementedError("__setitem__ must be overridden")
 
@@ -100,7 +100,7 @@ class CacheABC(StoreIllegal, StoreABC):
         raise NotImplementedError("purge must be overridden")
 
     @abstractmethod
-    def touch(self, key: Any) -> None:
+    def touch(self, key: str) -> None:
         """Touch the cache item to update the access sequence number.
         Touching an item updates the access sequence number to the current
         value of the access counter. This is used to determine the least

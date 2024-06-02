@@ -13,7 +13,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class CacheIllegal():
     """Illegal MutableMapping methods in concrete cache classes."""
 
-    def __delitem__(self, key: Any) -> None:
+    def __delitem__(self, key: str) -> None:
         raise AssertionError("Caches do not support deletion of items. Items are purged.")
 
     def clear(self) -> None:

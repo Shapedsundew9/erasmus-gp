@@ -1,9 +1,6 @@
-"""Dirty Dictionary Genetic Code Base Class module."""
-from __future__ import annotations
-from typing import Any
-from copy import deepcopy
+"""Dirty List Base Interface class definition."""
+from egppy.gc_graph.interface_abc import InterfaceABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_types.gc_abc import GCABC
 
 
 # Standard EGP logging pattern
@@ -13,16 +10,16 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class DirtyDictBaseGC(dict, GCABC):
-    """Dirty Dictionary Genetic Code Base Class.
-    Builtin dictionaries are fast but use a lot of space. This class is a base class
-    for genetic code objects using builtin dictionary methods without wrapping them.
-    As a consequence when the dictionary is modified the object is not automatically
+class DirtyListBaseInterface(list, InterfaceABC):  # type: ignore
+    """Dirty List Base Interface class.
+    Builtin lists are fast but use a lot of space. This class is a base class
+    for interface objects using builtin list methods without wrapping them.
+    As a consequence when the list is modified the object is not automatically
     marked as dirty, this must be done manually by the user using the dirty() method.
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        """Constructor for DirtyDictBaseGC"""
+        """Constructor for a GC Interface"""
         super().__init__(*args, **kwargs)
         self._dirty: bool = True
 
@@ -33,7 +30,7 @@ class DirtyDictBaseGC(dict, GCABC):
     def consistency(self) -> None:
         """Check the consistency of the object."""
 
-    def copyback(self) -> DirtyDictBaseGC:
+    def copyback(self) -> InterfaceABC:
         """Copy the object back."""
         if _LOG_VERIFY:
             self.verify()
@@ -46,22 +43,13 @@ class DirtyDictBaseGC(dict, GCABC):
         """Mark the object as dirty."""
         self._dirty = True
 
-    def from_json(self, json_obj: dict[str, Any] | list) -> None:
-        """Re-initialize the object with data from json_obj."""
-        self.update(json_obj)
-
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self._dirty
 
-    def to_json(self) -> dict[str, Any]:
-        """Return a JSON serializable dictionary."""
-        if _LOG_VERIFY:
-            self.verify()
-            if _LOG_CONSISTENCY:
-                self.consistency()
-        return deepcopy(x=self)
+    def json_list(self) -> list[int]:
+        """Return the object as a JSON list."""
+        return self.copy()
 
     def verify(self) -> None:
         """Verify the genetic code object."""
-        assert not list(filter(lambda x: not isinstance(x, str), self)), "Keys must be strings."

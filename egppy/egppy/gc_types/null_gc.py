@@ -2,6 +2,7 @@
 
 A NULL GC is needed to stub out GC references without requiring None type support.
 """
+from __future__ import annotations
 from typing import Any
 from egppy.gc_types.gc_abc import GCABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
@@ -44,20 +45,23 @@ class NullGC(dict, GCABC):
     def consistency(self) -> None:
         """Null GC methods do nothing."""
 
-    def copyback(self) -> GCABC:
+    def copyback(self) -> NullGC:
         """Null GC methods do nothing."""
         return self
 
     def dirty(self) -> None:
         """Null GC methods do nothing."""
 
+    def from_json(self, json_obj: dict[str, Any] | list) -> None:
+        """Null GC methods do nothing."""
+
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self['dirty']
 
-    def json_dict(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         """Null GC methods do nothing."""
-        return self.copy()
+        return {}
 
     def verify(self) -> None:
         """Null GC methods do nothing."""

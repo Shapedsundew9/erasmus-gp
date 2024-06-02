@@ -1,6 +1,6 @@
 """JSON File store implementation."""
 from io import BufferedRandom
-from typing import Any, Iterator
+from typing import Any, Iterator, Hashable
 from collections.abc import MutableMapping
 from mmap import mmap, ACCESS_WRITE
 from json import loads, dumps
@@ -8,9 +8,8 @@ from tempfile import TemporaryFile
 from os.path import exists
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.store.store_abc import StoreABC
-from egppy.gc_types.gc_abc import GCABC
-from egppy.gc_types.null_gc import NULL_GC
 from egppy.storage.store.store_illegal import StoreIllegal
+from egppy.storage.store.storable_obj_abc import StorableObjABC
 
 
 # Standard EGP logging pattern
@@ -21,12 +20,12 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Header
-_HEADER = b"JSON File Store for GCABC types in EGP\n"
+_HEADER = b"JSON File Store for T types in EGP\n"
 
 
 # StoreIllegal must be the first to overide any illegal methods as a priority.
 class JSONFileStore(StoreIllegal, StoreABC):
-    """A file based store for JSON objects.
+    """A file based store for StorableObjABC objects using the json() method.
     
     JSONFileStore is not intended to be quick or efficient in any way. It is inteded for
     testing or as a place holder for a StoreABC object when a NullStore is not appropriate.
@@ -58,9 +57,9 @@ class JSONFileStore(StoreIllegal, StoreABC):
         self.mmap_obj.close()
         self.file.close()
 
-    def __delitem__(self, key: Any) -> None:
+    def __delitem__(self, key: Hashable) -> None:
         """Delete an item from the store."""
-        search_str: bytes = self.search_str.format(key=key).encode(encoding='utf-8')
+        search_str: bytes = self.search_str.format(key=str(key)).encode(encoding='utf-8')
         self.mmap_obj.seek(0)  # Start from the beginning of the file
         pos: int = self.mmap_obj.find(search_str)
         if pos != -1:
@@ -76,9 +75,9 @@ class JSONFileStore(StoreIllegal, StoreABC):
             self.mmap_obj.resize(self.file_size - (end - start))
             self.file_size = self.mmap_obj.size()
 
-    def __getitem__(self, key) -> GCABC:
+    def __getitem__(self, key: Hashable) -> dict[str, Any] | list:
         """Get an item from the store."""
-        search_str: bytes = self.search_str.format(key=key).encode(encoding='utf-8')
+        search_str: bytes = self.search_str.format(key=str(key)).encode(encoding='utf-8')
         self.mmap_obj.seek(0)  # Start from the beginning of the file
         pos: int = self.mmap_obj.find(search_str)
         if pos == -1:
@@ -87,8 +86,7 @@ class JSONFileStore(StoreIllegal, StoreABC):
         self.mmap_obj.seek(start)
         line: bytes = self.mmap_obj.readline()
         data = loads(s=line)
-        del data["__key__"]
-        return data
+        return data["__value__"]
 
     def __iter__(self) -> Iterator:
         """Iterate over the store."""
@@ -111,16 +109,13 @@ class JSONFileStore(StoreIllegal, StoreABC):
             count += 1
         return count - 1  # Subtract 1 for the header line
 
-    def __setitem__(self, key: Any, value: GCABC) -> None:
+    def __setitem__(self, key: Hashable, value: StorableObjABC) -> None:
         """Set an item in the store."""
         self.append_json_objects(jobjs={key: value})
 
-    def append_json_objects(self, jobjs) -> None:
+    def append_json_objects(self, jobjs: MutableMapping[Hashable, StorableObjABC]) -> None:
         """Append JSON objects to the file."""
-        jds = []
-        for k, v in jobjs.items():
-            jds.append(v.json_dict())
-            jds[-1]["__key__"] = k
+        jds = [{"__key__": str(k), "__value__": v.to_json()} for k, v in jobjs.items()]
         new_data: bytes = ''.join(dumps(
             obj=v) + '\n' for v in jds).encode(encoding='utf-8')
         self.mmap_obj.resize(self.file_size + len(new_data))
@@ -137,20 +132,20 @@ class JSONFileStore(StoreIllegal, StoreABC):
         """Return a list of keys in the store."""
         return [k for k in self]
 
-    def setdefault(self, key: Any, default: GCABC = NULL_GC) -> GCABC:
+    def setdefault(self, key: Hashable, default: StorableObjABC) -> Any:
         """Set a default item in the store."""
         if key in self:
             return self[key]
         self[key] = default
         return default
 
-    def update(self, m: MutableMapping[Any, GCABC]) -> None:
-        """Update the store. This is more efficient that setting items one at a time."""
+    def update(self, m: MutableMapping[Hashable, StorableObjABC]) -> None:
+        """Update the store. This is more efficient than setting items one at a time."""
         for key in m:
             del self[key]
         self.append_json_objects(jobjs=m)
 
-    def values(self) -> list:  # type: ignore
+    def values(self) -> list[dict[str, Any], list]:  # type: ignore
         """Return a list of values in the store."""
         self.mmap_obj.seek(0)  # Start from the beginning of the file
         self.mmap_obj.readline()  # Skip the header line
@@ -160,6 +155,5 @@ class JSONFileStore(StoreIllegal, StoreABC):
             if not line:
                 break
             data = loads(s=line)
-            del data["__key__"]
-            values.append(data)
+            values.append(data["__value__"])
         return values
