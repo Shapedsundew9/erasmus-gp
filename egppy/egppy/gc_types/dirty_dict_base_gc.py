@@ -1,7 +1,7 @@
 """Dirty Dictionary Genetic Code Base Class module."""
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_abc import GCABC
-from egppy.storage.cache.cacheable_dirty_dict_base import CacheableDirtyDictBase
+from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
 
 
 # Standard EGP logging pattern
@@ -11,7 +11,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class DirtyDictBaseGC(CacheableDirtyDictBase, GCABC):
+class DirtyDictBaseGC(CacheableDirtyDict, GCABC):
     """Dirty Dictionary Genetic Code Base Class.
     Builtin dictionaries are fast but use a lot of space. This class is a base class
     for genetic code objects using builtin dictionary methods without wrapping them.

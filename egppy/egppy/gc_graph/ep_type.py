@@ -35,7 +35,8 @@ with open(join(dirname(__file__), "data/ep_types.json"), "r", encoding="utf-8") 
 ep_type_lookup: EndPointTypeLookup = {"v2n": {}, "n2v": {}, "instanciation": {}}
 ep_type_lookup["v2n"] = {int(k): v for k, v in data["v2n"].items()}
 ep_type_lookup["n2v"] = {k: int(v) for k, v in data["n2v"].items()}
-ep_type_lookup["instanciation"] = {int(k): v for k, v in data["instanciation"].items() if isInstanciationValue(v)}
+ep_type_lookup["instanciation"] = {
+    int(k): v for k, v in data["instanciation"].items() if isInstanciationValue(v)}
 
 
 _EGP_SPECIAL_TYPE_LIMIT: Literal[-32767] = -32767
@@ -56,18 +57,22 @@ def _real_type_filter(v) -> bool:
     return _EGP_REAL_TYPE_LIMIT <= v < _EGP_TYPE_LIMIT
 
 
-SPECIAL_EP_TYPE_VALUES: tuple[int, ...] = tuple((v for v in filter(_special_type_filter, ep_type_lookup["v2n"])))
-PHYSICAL_EP_TYPE_VALUES: tuple[int, ...] = tuple((v for v in filter(_physical_type_filter, ep_type_lookup["v2n"])))
-REAL_EP_TYPE_VALUES: tuple[int, ...] = tuple((v for v in filter(_real_type_filter, ep_type_lookup["v2n"])))
+SPECIAL_EP_TYPE_VALUES: tuple[int, ...] = tuple(
+    (v for v in filter(_special_type_filter, ep_type_lookup["v2n"])))
+PHYSICAL_EP_TYPE_VALUES: tuple[int, ...] = tuple(
+    (v for v in filter(_physical_type_filter, ep_type_lookup["v2n"])))
+REAL_EP_TYPE_VALUES: tuple[int, ...] = tuple(
+    (v for v in filter(_real_type_filter, ep_type_lookup["v2n"])))
 _EP_TYPE_VALUES: tuple[int, ...] = (*PHYSICAL_EP_TYPE_VALUES, *REAL_EP_TYPE_VALUES)
 MIN_EP_TYPE_VALUE: int = min(_EP_TYPE_VALUES)
 MAX_EP_TYPE_VALUE: int = max(_EP_TYPE_VALUES)
 assert len(set(_EP_TYPE_VALUES)) == len(_EP_TYPE_VALUES), "Duplicate end point types detected!"
-assert max(_EP_TYPE_VALUES) - min(_EP_TYPE_VALUES) == len(_EP_TYPE_VALUES) - 1, "End point types must be contiguous!"
+_CONTIGUOUS_CHECK: bool = max(_EP_TYPE_VALUES) - min(_EP_TYPE_VALUES) == len(_EP_TYPE_VALUES) - 1
+assert _CONTIGUOUS_CHECK, "End point types must be contiguous!"
 
-_logger.info(f"{len(SPECIAL_EP_TYPE_VALUES)} special endpoint types identified.")
-_logger.info(f"{len(PHYSICAL_EP_TYPE_VALUES)} physical endpoint types identified.")
-_logger.info(f"{len(REAL_EP_TYPE_VALUES)} real endpoint types identified.")
+_logger.info("%s special endpoint types identified.", len(SPECIAL_EP_TYPE_VALUES))
+_logger.info("%s physical endpoint types identified.", len(PHYSICAL_EP_TYPE_VALUES))
+_logger.info("%s real endpoint types identified.", len(REAL_EP_TYPE_VALUES))
 
 INVALID_EP_TYPE_NAME: Literal["egp_invalid_type"] = "egp_invalid_type"
 INVALID_EP_TYPE_VALUE: Literal[-32768] = -32768
@@ -96,7 +101,7 @@ ep_type_lookup["instanciation"][UNKNOWN_EP_TYPE_VALUE] = (
 )
 
 
-class inst(IntEnum):
+class InstanceIndex(IntEnum):
     """EP type 'instanciation' value list index."""
 
     PACKAGE = 0  # (str) package name
@@ -107,7 +112,7 @@ class inst(IntEnum):
     DEFAULT = 5  # (str) a default value
 
 
-class vtype(IntEnum):
+class VType(IntEnum):
     """Validation type to use in validate().
 
     An objects EP type is determined by how the object is interpreted. There are
@@ -128,11 +133,12 @@ class vtype(IntEnum):
 
 def object_name(i11n: InstanciationType) -> str:
     """Return the imported object name."""
-    if i11n[inst.PACKAGE] is None:
-        return str(i11n[inst.NAME])
-    if i11n[inst.MODULE] is None:
-        return "_".join((str(i11n[inst.PACKAGE]), str(i11n[inst.NAME])))
-    return "_".join((str(i11n[inst.PACKAGE]), str(i11n[inst.MODULE]), str(i11n[inst.NAME])))
+    if i11n[InstanceIndex.PACKAGE] is None:
+        return str(i11n[InstanceIndex.NAME])
+    if i11n[InstanceIndex.MODULE] is None:
+        return "_".join((str(i11n[InstanceIndex.PACKAGE]), str(i11n[InstanceIndex.NAME])))
+    return "_".join((str(i11n[InstanceIndex.PACKAGE]), str(
+        i11n[InstanceIndex.MODULE]), str(i11n[InstanceIndex.NAME])))
 
 
 def import_str(ep_type_i: int) -> str:
@@ -148,13 +154,13 @@ def import_str(ep_type_i: int) -> str:
     """
     # FIXME: This needs to become arbitary module depth & consider name collisions.
     i11n: InstanciationType = ep_type_lookup["instanciation"][ep_type_i]
-    if i11n[inst.PACKAGE] is None:
+    if i11n[InstanceIndex.PACKAGE] is None:
         return "None"
-    if i11n[inst.MODULE] is None:
-        source: str = str(i11n[inst.PACKAGE])
+    if i11n[InstanceIndex.MODULE] is None:
+        source: str = str(i11n[InstanceIndex.PACKAGE])
     else:
-        source: str = str(i11n[inst.PACKAGE]) + "." + str(i11n[inst.MODULE])
-    return f"from {source} import {i11n[inst.NAME]} as {object_name(i11n)}"
+        source: str = str(i11n[InstanceIndex.PACKAGE]) + "." + str(i11n[InstanceIndex.MODULE])
+    return f"from {source} import {i11n[InstanceIndex.NAME]} as {object_name(i11n)}"
 
 
 # If a type does not exist on this system remove it (all instances will be treated as INVALID)
@@ -162,14 +168,16 @@ def import_str(ep_type_i: int) -> str:
 # We can assume GC types will be defined for the contexts they are used.
 def func1(i11n) -> bool:
     """Filter function."""
-    return i11n[1][inst.PACKAGE] is not None and i11n[1][inst.PACKAGE] != "egp_types"
+    valid_package: bool = i11n[1][InstanceIndex.PACKAGE] is not None
+    return valid_package and i11n[1][InstanceIndex.PACKAGE] != "egp_types"
 
 
 for _ep_type_int, instn in tuple(filter(func1, ep_type_lookup["instanciation"].items())):
     try:
         exec(import_str(_ep_type_int))  # pylint: disable=exec-used
     except ModuleNotFoundError:
-        _logger.warning(f"Module '{instn[inst.MODULE]}' was not found. '{instn[inst.NAME]}' will be treated as an INVALID type.")
+        _logger.warning("Module '%s' was not found. '%s' will be treated as an INVALID type.",
+                        instn[InstanceIndex.MODULE], instn[InstanceIndex.NAME])
         del ep_type_lookup["n2v"][ep_type_lookup["v2n"][_ep_type_int]]
         del ep_type_lookup["instanciation"][_ep_type_int]
         del ep_type_lookup["v2n"][_ep_type_int]
@@ -179,7 +187,7 @@ for _ep_type_int, instn in tuple(filter(func1, ep_type_lookup["instanciation"].i
 
 def func2(i11n) -> bool:
     """Filter function."""
-    return i11n[inst.PACKAGE] is not None and i11n[inst.PACKAGE] == "egp_types"
+    return i11n[InstanceIndex.PACKAGE] is not None and i11n[InstanceIndex.PACKAGE] == "egp_types"
 
 
 _GC_TYPE_NAMES: list[str] = []
@@ -193,7 +201,7 @@ EP_TYPE_VALUES: set[int] = set(ep_type_lookup["v2n"].keys())
 EP_TYPE_VALUES_TUPLE: tuple[int, ...] = tuple(sorted(EP_TYPE_VALUES)[2:])
 
 
-def validate(obj: Any, value_t: vtype = vtype.EP_TYPE_INT) -> bool:
+def validate(obj: Any, value_t: VType = VType.EP_TYPE_INT) -> bool:
     """Validate an object as an EP type.
 
     NOTE: GC types e.g. eGC, mGC etc. cannot be instance strings as they would require
@@ -209,23 +217,23 @@ def validate(obj: Any, value_t: vtype = vtype.EP_TYPE_INT) -> bool:
     -------
     True if the type is defined else false.
     """
-    if value_t == vtype.TYPE_OBJECT:
+    if value_t == VType.TYPE_OBJECT:
         return fully_qualified_name(obj()) in EP_TYPE_NAMES
-    if value_t == vtype.OBJECT:
+    if value_t == VType.OBJECT:
         return fully_qualified_name(obj) in EP_TYPE_NAMES
-    if value_t == vtype.INSTANCE_STR:
+    if value_t == VType.INSTANCE_STR:
         try:
             name: str = fully_qualified_name(eval(obj))  # pylint: disable=eval-used
         except NameError:
             # If it looks like a GC type instanciation assume it is OK.
             return any(x + "(" in obj for x in _GC_TYPE_NAMES)
         return name in EP_TYPE_NAMES
-    if value_t == vtype.EP_TYPE_STR:
+    if value_t == VType.EP_TYPE_STR:
         return obj != INVALID_EP_TYPE_NAME and obj in EP_TYPE_NAMES
     return obj != INVALID_EP_TYPE_VALUE and obj in EP_TYPE_VALUES
 
 
-def asint(obj: Any, vault_t: vtype = vtype.EP_TYPE_STR) -> int:
+def asint(obj: Any, vault_t: VType = VType.EP_TYPE_STR) -> int:
     """Return the EP type value for an object.
 
     NOTE: GC types e.g. eGC, mGC etc. cannot be instance strings as they would require
@@ -241,11 +249,11 @@ def asint(obj: Any, vault_t: vtype = vtype.EP_TYPE_STR) -> int:
     -------
     The EP type of the object (may be egp.invalid_type)
     """
-    if vault_t == vtype.TYPE_OBJECT:
+    if vault_t == VType.TYPE_OBJECT:
         return ep_type_lookup["n2v"].get(fully_qualified_name(obj()), INVALID_EP_TYPE_VALUE)
-    if vault_t == vtype.OBJECT:
+    if vault_t == VType.OBJECT:
         return ep_type_lookup["n2v"].get(fully_qualified_name(obj), INVALID_EP_TYPE_VALUE)
-    if vault_t == vtype.INSTANCE_STR:
+    if vault_t == VType.INSTANCE_STR:
         try:
             ep_type_name: str = fully_qualified_name(eval(obj))  # pylint: disable=eval-used
         except NameError:
@@ -256,12 +264,12 @@ def asint(obj: Any, vault_t: vtype = vtype.EP_TYPE_STR) -> int:
                     ep_type_name = type_name
                     break
         return ep_type_lookup["n2v"].get(ep_type_name, INVALID_EP_TYPE_VALUE)
-    if vault_t == vtype.EP_TYPE_STR:
+    if vault_t == VType.EP_TYPE_STR:
         return ep_type_lookup["n2v"].get(obj, INVALID_EP_TYPE_VALUE)
     return obj
 
 
-def asstr(obj: Any, value_t: vtype = vtype.EP_TYPE_INT) -> str:
+def asstr(obj: Any, value_t: VType = VType.EP_TYPE_INT) -> str:
     """Return the EP type string for an object.
 
     NOTE: GC types e.g. eGC, mGC etc. cannot be instance strings as they would require
@@ -278,13 +286,13 @@ def asstr(obj: Any, value_t: vtype = vtype.EP_TYPE_INT) -> str:
     -------
     The EP type of the object (may be egp.invalid_type)
     """
-    if value_t == vtype.TYPE_OBJECT:
+    if value_t == VType.TYPE_OBJECT:
         ep_type_name: str = fully_qualified_name(obj())
         return ep_type_name if ep_type_name in EP_TYPE_NAMES else INVALID_EP_TYPE_NAME
-    if value_t == vtype.OBJECT:
+    if value_t == VType.OBJECT:
         ep_type_name = fully_qualified_name(obj)
         return ep_type_name if ep_type_name in EP_TYPE_NAMES else INVALID_EP_TYPE_NAME
-    if value_t == vtype.INSTANCE_STR:
+    if value_t == VType.INSTANCE_STR:
         try:
             ep_type_name = fully_qualified_name(eval(obj))  # pylint: disable=eval-used
         except NameError:
@@ -294,7 +302,7 @@ def asstr(obj: Any, value_t: vtype = vtype.EP_TYPE_INT) -> str:
                     return type_name
             return INVALID_EP_TYPE_NAME
         return ep_type_name if ep_type_name in EP_TYPE_NAMES else INVALID_EP_TYPE_NAME
-    if value_t == vtype.EP_TYPE_INT:
+    if value_t == VType.EP_TYPE_INT:
         return ep_type_lookup["v2n"].get(obj, INVALID_EP_TYPE_NAME)
     return obj
 
@@ -360,12 +368,15 @@ def instance_str(ep_type_i: int, param_str: str = "") -> str:
     The instanciation e.g. numpy_float32(<param_str>)
     """
     inst_str: str = type_str(ep_type_i)
-    if ep_type_lookup["instanciation"][ep_type_i][inst.PARAM]:
+    if ep_type_lookup["instanciation"][ep_type_i][InstanceIndex.PARAM]:
         inst_str += f"({param_str})"
     return inst_str
 
 
-def interface_definition(xputs: Iterable[Any], value_t: vtype = vtype.TYPE_OBJECT) -> tuple[tuple[int, ...], list[int], bytes]:
+def interface_definition(
+        xputs: Iterable[Any],
+        value_t: VType = VType.TYPE_OBJECT
+        ) -> tuple[tuple[int, ...], list[int], bytes]:
     """Create an interface definition from xputs.
 
     Used to define the inputs or outputs of a GC from an iterable
@@ -378,8 +389,9 @@ def interface_definition(xputs: Iterable[Any], value_t: vtype = vtype.TYPE_OBJEC
 
     Returns
     -------
-    A list of the xputs as EP type in value format, a list of the EP types in xputs in value format in ascending order and a list of
-        indexes into it in the order of xputs.
+    A list of the xputs as EP type in value format, a list of the EP types
+    in xputs in value format in ascending order and a list of
+    indexes into it in the order of xputs.
     """
     xput_eps: tuple[int, ...] = tuple((asint(x, value_t) for x in xputs))
     xput_types: list[int] = sorted(set(xput_eps))
@@ -468,7 +480,7 @@ def validate_value(value_str: str, ep_type_int: int) -> bool:
     except NameError:
         execution_str = import_str(ep_type_int)
         if _LOG_DEBUG:
-            _logger.debug(f"Import execution string: {execution_str}.")
+            _logger.debug("Import execution string: %s.", execution_str)
         exec(execution_str)  # pylint: disable=exec-used
 
     # None is special
@@ -482,15 +494,18 @@ def validate_value(value_str: str, ep_type_int: int) -> bool:
             try:
                 typ: str = eval(f"type({value_str})")  # pylint: disable=eval-used
             except (NameError, SyntaxError):
-                _logger.debug(f"isinstance({value_str}, {tstr}) is False. {value_str} is not a valid object.")
+                _logger.debug("isinstance(%s, %s) is False. %s is not a valid object.",
+                              value_str, tstr, value_str)
             else:
-                _logger.debug(f"isinstance({value_str}, {tstr}) is False. {value_str} is of type {typ}")
+                _logger.debug("isinstance(%s, %s) is False. %s is of type %s",
+                              value_str, tstr, value_str, typ)
         return False
     if _LOG_DEBUG:
         if retval:
-            _logger.debug(f"retval = isinstance({value_str}, {tstr}) is True")
+            _logger.debug("retval = isinstance(%s, %s) is True", value_str, tstr)
         else:
             typ: str = eval(f"type({value_str})")  # pylint: disable=eval-used
-            _logger.debug(f"retval = isinstance({value_str}, {tstr}) is False. {value_str} is of type {typ}.")
+            _logger.debug("retval = isinstance(%s, %s) is False. %s is of type %s.",
+                          value_str, tstr, value_str, typ)
 
     return retval

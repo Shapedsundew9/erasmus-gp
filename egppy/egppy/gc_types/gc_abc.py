@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 from collections.abc import MutableMapping
 from abc import abstractmethod
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -14,7 +13,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GCABC(MutableMapping, CacheableObjABC):
+class GCABC(MutableMapping):
     """Abstract Base Class for Genetic Code Types.
     
     The Genetic Code Abstract Base Class, GCABC, is the base class for all genetic code objects.

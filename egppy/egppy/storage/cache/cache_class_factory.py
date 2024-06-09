@@ -44,7 +44,7 @@ def cache_factory(cls: type[CacheABC]) -> type:
             self.purge_check()
             # The next level GC type must be flavored (cast) to the type stored here.
             self.super.__setitem__(key, self.flavor(self.next_level[key]))
-        item: GCABC = self.super.__getitem__(key)
+        item: Any = self.super.__getitem__(key)
         self.touch(key=key)
         return item
 

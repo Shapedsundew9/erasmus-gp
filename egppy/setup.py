@@ -1,13 +1,16 @@
 """Package configuration for egppy."""
 from setuptools import setup, find_packages
 
+with open('README.md', 'r', encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name='egppy',
     version='1.0.0',
     author='Your Name',
     author_email='your_email@example.com',
     description='A Python package for example purposes',
-    long_description=open('README.md', 'r', encoding='utf-8').read(),
+    long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/your_username/egppy',
     packages=find_packages(),

@@ -1,5 +1,5 @@
 """The list interface module."""
-from egppy.storage.cache.cacheable_list import CacheableList
+from egppy.storage.cache.cacheable_dirty_list import CacheableDirtyList
 from egppy.storage.cache.cache_illegal import CacheIllegal
 from egppy.gc_graph.interface_base import InterfaceBase
 from egppy.gc_graph.interface_abc import InterfaceABC
@@ -13,8 +13,8 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class ListInterface(  # type: ignore
-    CacheIllegal, CacheableList, InterfaceBase, InterfaceABC):
+class DirtyListInterface(  # type: ignore
+    CacheIllegal, CacheableDirtyList, InterfaceBase, InterfaceABC):
     """List Interface class.
 
     The ListInterface class is a subclass of list and InterfaceABC.

@@ -3,9 +3,9 @@
 from enum import IntEnum
 from typing import Any, Literal, LiteralString, TypedDict, TypeGuard
 
-DestinationRow = Literal["A", "B", "F", "O", "P", "U"]
-SourceRow = Literal["I", "C", "A", "B"]
-Row = Literal["A", "B", "F", "O", "P", "I", "C", "U"]
+DestinationRow = Literal["A", "B", "F", "O", "P"]
+SourceRow = Literal["I", "A", "B"]
+Row = DestinationRow | SourceRow
 EndPointClass = bool
 EndPointClassStr = Literal["s", "d"]
 SrcEndPointHash = str
@@ -15,51 +15,44 @@ EndPointType = int
 EndPointHash = SrcEndPointHash | DstEndPointHash | str
 
 
-# TODO: Can GCGraphRows be constrained further to tuple[dict[DestinationRow, int], dict[SourceRow, int]]
-GCGraphRows = tuple[dict[Row, int], dict[Row, int]]
-
-
 # Constants
 SRC_EP: Literal[True] = True
 DST_EP: Literal[False] = False
 SRC_EP_CLS_STR: Literal["s"] = "s"
 DST_EP_CLS_STR: Literal["d"] = "d"
 EP_CLS_STR_TUPLE: tuple[Literal["d"], Literal["s"]] = (DST_EP_CLS_STR, SRC_EP_CLS_STR)
-DESTINATION_ROWS: tuple[DestinationRow, ...] = ("F", "A", "B", "O", "P", "U")
-SOURCE_ROWS: tuple[SourceRow, ...] = ("I", "C", "A", "B")
+DESTINATION_ROWS: tuple[DestinationRow, ...] = ("F", "A", "B", "O", "P")
+SOURCE_ROWS: tuple[SourceRow, ...] = ("I", "A", "B")
 ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
-ALL_ROWS_STR: LiteralString = "".join(row for row in ROWS if row != "U")
+ALL_ROWS_STR: LiteralString = "".join(ROWS)
 
 # Indices for source and destination rows must match the order of the rows in the tuple.
-ROWS_INDEXED: tuple[Row, ...] = ("I", "C", "A", "B", "F", "A", "B", "O", "P", "U")
-ROW_CLS_INDEXED: tuple[str, ...] = ("Is", "Cs", "As", "Bs", "Fd", "Ad", "Bd", "Od", "Pd", "Ud")
+ROWS_INDEXED: tuple[Row, ...] = ("I", "A", "B", "F", "A", "B", "O", "P")
+ROW_CLS_INDEXED: tuple[str, ...] = ("Is", "As", "Bs", "Fd", "Ad", "Bd", "Od", "Pd")
 
 
 class SrcRowIndex(IntEnum):
     """Indices for source rows."""
 
-    I = 0
-    C = 1
-    A = 2
-    B = 3
+    I = ROW_CLS_INDEXED.index("Is")
+    A = ROW_CLS_INDEXED.index("As")
+    B = ROW_CLS_INDEXED.index("Bs")
 
 
 class DstRowIndex(IntEnum):
     """Indices for destination rows."""
 
-    F = 4
-    A = 5
-    B = 6
-    O = 7
-    P = 8
-    U = 9
+    F = ROW_CLS_INDEXED.index("Fd")
+    A = ROW_CLS_INDEXED.index("Ad")
+    B = ROW_CLS_INDEXED.index("Bd")
+    O = ROW_CLS_INDEXED.index("Od")
+    P = ROW_CLS_INDEXED.index("Pd")
 
 
 GRAPH_ROW_INDEX_ORDER: tuple[
-    SrcRowIndex, SrcRowIndex, DstRowIndex, DstRowIndex, SrcRowIndex, DstRowIndex, SrcRowIndex, DstRowIndex, DstRowIndex, DstRowIndex
+    SrcRowIndex, DstRowIndex, DstRowIndex, SrcRowIndex, DstRowIndex, SrcRowIndex, DstRowIndex, DstRowIndex
 ] = (
     SrcRowIndex.I,
-    SrcRowIndex.C,
     DstRowIndex.F,
     DstRowIndex.A,
     SrcRowIndex.A,
@@ -67,12 +60,10 @@ GRAPH_ROW_INDEX_ORDER: tuple[
     SrcRowIndex.B,
     DstRowIndex.O,
     DstRowIndex.P,
-    DstRowIndex.U,
 )
 
 SOURCE_ROW_INDEXES: dict[SourceRow, SrcRowIndex] = {
     "I": SrcRowIndex.I,
-    "C": SrcRowIndex.C,
     "A": SrcRowIndex.A,
     "B": SrcRowIndex.B,
 }
@@ -82,11 +73,9 @@ DESTINATION_ROW_INDEXES: dict[DestinationRow, DstRowIndex] = {
     "B": DstRowIndex.B,
     "O": DstRowIndex.O,
     "P": DstRowIndex.P,
-    "U": DstRowIndex.U,
 }
 SOURCE_ROW_LETTERS: dict[SrcRowIndex, SourceRow] = {
     SrcRowIndex.I: "I",
-    SrcRowIndex.C: "C",
     SrcRowIndex.A: "A",
     SrcRowIndex.B: "B",
 }
@@ -96,7 +85,6 @@ DESTINATION_ROW_LETTERS: dict[DstRowIndex, DestinationRow] = {
     DstRowIndex.B: "B",
     DstRowIndex.O: "O",
     DstRowIndex.P: "P",
-    DstRowIndex.U: "U",
 }
 
 # Valid source rows for a given row.
@@ -105,34 +93,29 @@ VALID_ROW_SOURCES: tuple[dict[Row, tuple[SourceRow, ...]], dict[Row, tuple[Sourc
     # No row F
     {
         "I": tuple(),
-        "C": tuple(),
-        "A": ("I", "C"),
-        "B": ("I", "C", "A"),
-        "U": ("I", "C", "A", "B"),
-        "O": ("I", "C", "A", "B"),
+        "A": ("I",),
+        "B": ("I", "A"),
+        "O": ("I", "A", "B"),
     },
     # Has row F
     # F determines if the path through A or B is chosen
     {
         "I": tuple(),
-        "C": tuple(),
-        "A": ("I", "C"),
-        "B": ("I", "C"),
-        "O": ("I", "C", "A"),
-        "U": ("I", "C", "A", "B"),
-        "P": ("I", "C", "B"),
         "F": ("I",),
+        "A": ("I",),
+        "B": ("I",),
+        "O": ("I", "A"),
+        "P": ("I", "B"),
     },
 )
-VALID_DESTINATIONS: tuple[tuple[DestinationRow, ...], tuple[DestinationRow, ...]] = (("A", "B", "O", "U"), ("F", "A", "B", "O", "P", "U"))
+VALID_DESTINATIONS: tuple[tuple[DestinationRow, ...], tuple[DestinationRow, ...]] = (
+    ("A", "B", "O"), ("F", "A", "B", "O", "P"))
 
 # Valid graph row combinations.
 # NB: These rules define a valid graph not necessarily a stable graph.
-# NB: Row U is implicit in all cases in the event of unconnected SRC endpoints.
 # Rules:
-#   1. If row F is present then row I must be present & an implied row A at least (0 inputs & 0 outputs, GCA defined)
-#   2. If row F and row O are present then row P must be present
-#   3. P cannot be present unless F and O is present
+#   1. If row F is present then row P must be present
+#   3. P cannot be present unless F is present
 #   4. Row B cannot exist without row A
 #   5. Row F cannot exists without row A
 #   6. A graph must have an interface i.e. row I or row O (or both)

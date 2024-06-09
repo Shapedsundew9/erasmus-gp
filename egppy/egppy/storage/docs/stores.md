@@ -74,6 +74,19 @@ title: Storable & Cacheable Object Class Diagram
 classDiagram
     ABC <|-- StorableObjABC
     StorableObjABC <|-- CacheableObjABC
+    CacheableObjABC <|-- CacheableDirtyDict
+    CacheableObjABC <|-- CacheableDirtyList
+    CacheableDirtyDict <|-- CacheableDict
+    CacheableDirtyList <|-- CacheableList
+```
+
+```mermaid
+---
+title: Storable & Cacheable Object Class Diagram
+---
+classDiagram
+    ABC <|-- StorableObjABC
+    StorableObjABC <|-- CacheableObjABC
     MutableSequence <|-- InterfaceABC
     CacheableObjABC <|-- InterfaceABC
     CacheableObjABC <|-- GCABC
@@ -87,4 +100,18 @@ classDiagram
     DictBaseGC <|-- DictUGC
     DirtyDictBaseGC <|-- DirtyDictEGC
     DictBaseGC <|-- DictEGC
+```
+
+```mermaid
+---
+title: Cache Class Diagram
+---
+classDiagram
+    MutableMapping <|-- StoreABC
+    StoreIllegal <|-- CacheABC
+    StoreABC <|-- CacheABC
+    CacheIllegal <|-- _baseCache
+    _base <|-- _baseCache
+    CacheABC <|-- _baseCache
+    CacheBase <|-- _baseCache
 ```

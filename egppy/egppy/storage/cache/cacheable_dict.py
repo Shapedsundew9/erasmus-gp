@@ -1,7 +1,7 @@
 """Cacheable Dictionary Base Class module."""
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_dirty_dict_base import CacheableDirtyDictBase
+from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
 
 
 # Standard EGP logging pattern
@@ -11,15 +11,15 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheableDictBase(CacheableDirtyDictBase):
-    """Cacheable Dictionary Base Class.
-    The CacheableDictBaseGC uses a builtin dictionary for storage but wraps the __setitem__
+class CacheableDict(CacheableDirtyDict):
+    """Cacheable Dictionary  Class.
+    The CacheableDict uses a builtin dictionary for storage but wraps the __setitem__
     and update methods to mark the object as dirty when modified. This makes it slightly
     slower but relieves the user from having to keep track of the object's state.
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        """Constructor for DictGC"""
+        """Constructor."""
         super().__init__(*args, **kwargs)
         self._dirty: bool = True
 

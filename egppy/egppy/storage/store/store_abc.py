@@ -27,6 +27,19 @@ class StoreABC(MutableMapping):
         """Set an item in the Store."""
 
     @abstractmethod
+    def consistency(self) -> None:
+        """Check the consistency of the StoreABC.
+        The consistency() method is used to check the consistency of the StoreABC
+        object. An object verified by verify() may not raise an exception because each of its
+        values is individually correct but may raise one in a consistency() check because of
+        an invalid relationship between values.
+        The consistency() method should raise a RuntimeError if the object is not
+        consistent.
+        NOTE: Likely to significantly slow down the code.
+        """
+        raise NotImplementedError("StoreABC.consistency must be overridden")
+
+    @abstractmethod
     def setdefault(self, key: Hashable, default: StorableObjABC) -> Any:  # type: ignore pylint: disable=signature-differs
         """Set a default item in the Store."""
 
@@ -44,3 +57,14 @@ class StoreABC(MutableMapping):
     def popitem(self) -> tuple:
         """Illegal method."""
         raise AssertionError("Stores do not support popitem.")
+
+    @abstractmethod
+    def verify(self) -> None:
+        """Verify the StoreABC object.
+        The verify() method is used to check the StoreABC objects data for validity.
+        e.g. correct value ranges, lengths, types etc.
+        The verify() method should raise a ValueError if the object is not
+        valid.
+        NOTE: May significantly slow down the code if called frequently.
+        """
+        raise NotImplementedError("StoreABC.verify must be overridden")

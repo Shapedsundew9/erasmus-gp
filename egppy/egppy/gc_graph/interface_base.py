@@ -1,7 +1,7 @@
 """The interfcae base class module."""
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+from egppy.gc_graph.ep_type import validate
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -38,4 +38,4 @@ class InterfaceBase():
         _logger.info("Verifying the interface.")
         assert len(self) <= INTERFACE_MAX_LENGTH, "Interface has too many endpoints."
         for ept in self:
-            assert ept >= -2**16 and ept < 2**16, "Endpoint type out of range in interface."
+            assert validate(ept), f"Endpoint type is invalid = {ept}"

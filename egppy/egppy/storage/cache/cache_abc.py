@@ -1,5 +1,6 @@
 """Cache Base Abstract Base Class"""
-from typing import Any, TypedDict, Hashable
+from typing import Any, TypedDict
+from collections.abc import Hashable
 from abc import abstractmethod
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.store.store_abc import StoreABC
@@ -60,7 +61,7 @@ class CacheABC(StoreIllegal, StoreABC):
     def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the cache.
         
-        With the exception of the built-in dict 'fast' cache, all caches must
+        With the exception of the built-in 'fast' caches, all caches must
         check the next level for the item if it is not in the cache and pull it in
         as needed. The cache must also update the access sequence number by calling
         the touch method. This ensures the cache can purge the least recently used.

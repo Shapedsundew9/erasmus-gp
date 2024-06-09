@@ -1,6 +1,6 @@
 """Dictionary Genetic Code Base Class module."""
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_dict_base import CacheableDictBase
+from egppy.storage.cache.cacheable_dict import CacheableDict
 from egppy.gc_types.gc_abc import GCABC
 
 
@@ -11,7 +11,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class DictBaseGC(CacheableDictBase, GCABC):
+class DictBaseGC(CacheableDict, GCABC):
     """Dictionary Genetic Code Base Class.
     The DictBaseGC uses a builtin dictionary for storage but wraps the __setitem__
     and update methods to mark the object as dirty when modified. This makes it slightly

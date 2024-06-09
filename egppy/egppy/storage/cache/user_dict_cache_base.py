@@ -36,7 +36,7 @@ class UserDictCacheBase(UserDict[Any, CacheableObjABC], CacheABC):
 
     def copyback(self) -> None:
         """Copy the cache back to the next level."""
-        for key, value in filter(lambda x: x[1].is_dirty(), self.items()):
+        for key, value in (x for x in self.items() if x[1].is_dirty()):
             self.next_level[key] = value
 
     def flush(self) -> None:
@@ -65,6 +65,7 @@ class UserDictCacheBase(UserDict[Any, CacheableObjABC], CacheABC):
 
     def touch(self, key: Hashable) -> None:
         """Touch the cache item to update the access sequence number."""
+        # deepcode ignore unguarded~next~call: access_counter cannot raise StopIteration. Infinite sequence.
         self.seqnum[key] = next(self.access_counter)
 
     def update(self, m: MutableMapping[Hashable, CacheableObjABC]) -> None:  # type: ignore
