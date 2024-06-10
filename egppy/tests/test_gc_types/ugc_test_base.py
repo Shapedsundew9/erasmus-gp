@@ -1,8 +1,8 @@
 """Tests for the DirtyDictUGC class."""
 from __future__ import annotations
 import unittest
-from egppy.gc_types.gc_abc import GCABC
-from egppy.gc_types.ugc_class_factory import DirtyDictUGC
+from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
+from egppy.gc_types.ugc_class_factory import UGCType, DictUGC
 
 
 class UGCTestBase(unittest.TestCase):
@@ -11,7 +11,7 @@ class UGCTestBase(unittest.TestCase):
 
     """
     # The UGC class to test. Override this in subclasses.
-    ugc_type = DirtyDictUGC
+    ugc_type: type[UGCType] = DictUGC
 
     @classmethod
     def get_test_cls(cls) -> type[unittest.TestCase]:
@@ -26,15 +26,15 @@ class UGCTestBase(unittest.TestCase):
         return cls.get_test_cls().__name__.endswith('TestBase')
 
     @classmethod
-    def get_cls(cls) -> type[GCABC]:
+    def get_cls(cls) -> type[UGCType]:
         """Get the UGC class."""
         return cls.ugc_type
 
     def setUp(self) -> None:
-        self.type: type[GCABC] = self.get_cls()
-        self.ugc: GCABC = self.type()
-        self.ugc1: GCABC = self.type()
-        self.ugc2: GCABC = self.type()
+        self.type: type[UGCType] = self.get_cls()
+        self.ugc: UGCType = self.type()
+        self.ugc1: UGCType = self.type()
+        self.ugc2: UGCType = self.type()
 
     def test_set_item(self) -> None:
         """
@@ -269,7 +269,7 @@ class UGCTestBase(unittest.TestCase):
         self.ugc['key2'] = 'value2'
         self.ugc['key3'] = 'value3'
 
-        copy: GCABC = self.ugc.copyback()
+        copy: CacheableDirtyDict = self.ugc.copyback()
         self.assertEqual(first=copy['key1'], second='value1')
         self.assertEqual(first=copy['key2'], second='value2')
         self.assertEqual(first=copy['key3'], second='value3')

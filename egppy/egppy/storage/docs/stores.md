@@ -74,8 +74,10 @@ title: Storable & Cacheable Object Class Diagram
 classDiagram
     ABC <|-- StorableObjABC
     StorableObjABC <|-- CacheableObjABC
+    dict <|-- CacheableDirtyDict
     CacheableObjABC <|-- CacheableDirtyDict
     CacheableObjABC <|-- CacheableDirtyList
+    list <|-- CacheableDirtyList
     CacheableDirtyDict <|-- CacheableDict
     CacheableDirtyList <|-- CacheableList
 ```
@@ -110,8 +112,8 @@ classDiagram
     MutableMapping <|-- StoreABC
     StoreIllegal <|-- CacheABC
     StoreABC <|-- CacheABC
-    CacheIllegal <|-- _baseCache
-    _base <|-- _baseCache
-    CacheABC <|-- _baseCache
-    CacheBase <|-- _baseCache
+    CacheIllegal <|-- dict_likeCache
+    dict_like <|-- dict_likeCache
+    CacheABC <|-- dict_likeCache
+    CacheBase <|-- dict_likeCache
 ```

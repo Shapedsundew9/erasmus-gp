@@ -13,10 +13,3 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class StoreIllegal():
     """Illegal MutableMapping methods in concrete store classes."""
 
-    def pop(self, key: Any, default: Any = None) -> Any:
-        """Illegal method."""
-        raise AssertionError("Stores do not support pop.")
-
-    def popitem(self) -> tuple:
-        """Illegal method."""
-        raise AssertionError("Stores do not support popitem.")

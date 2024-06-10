@@ -43,9 +43,15 @@ class NullStore(StoreIllegal, StoreABC):
     def clear(self) -> None:
         """Clear the store."""
 
+    def consistency(self) -> None:
+        """Check the consistency of the store."""
+
     def setdefault(self, key: Hashable, default: StorableObjABC) -> Any:
         """Set a default item in the store."""
         return default
 
     def update(self, m: MutableMapping[Hashable, StorableObjABC]) -> None:
         """Update the store."""
+
+    def verify(self) -> None:
+        """Verify the store."""

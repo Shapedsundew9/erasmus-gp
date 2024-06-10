@@ -1,6 +1,6 @@
 """Test JSONFileStore class."""
 from __future__ import annotations
-from typing import Hashable
+from collections.abc import Hashable
 import unittest
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
@@ -143,8 +143,8 @@ class StoreTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.store[self.key] = self.value
-        with self.assertRaises(expected_exception=AssertionError):
-            self.store.pop(key=self.key)
+        self.store.pop(self.key)
+        self.assertNotIn(member=self.key, container=self.store)
 
     def test_popitem(self) -> None:
         """
@@ -153,8 +153,8 @@ class StoreTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.store[self.key] = self.value
-        with self.assertRaises(expected_exception=AssertionError):
-            self.store.popitem()
+        self.store.popitem()
+        self.assertNotIn(member=self.key, container=self.store)
 
     def test_keys(self) -> None:
         """

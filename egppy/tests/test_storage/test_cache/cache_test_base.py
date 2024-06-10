@@ -2,7 +2,7 @@
 from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
-from egppy.storage.cache.cache_class_factory import UserDictCache
+from egppy.storage.cache.user_dict_cache import UserDictCache
 from egppy.gc_types.ugc_class_factory import DictUGC
 from tests.test_storage.test_cache.fast_cache_test_base import FastCacheTestBase, NUM_CACHE_ITEMS
 
@@ -86,7 +86,7 @@ class CacheTestBase(FastCacheTestBase):
         for item in self.json_data[:MAX_NUM_CACHE_ITEMS]:
             self.cache[item['signature']] = DictUGC(item)
         # Touch the first item
-        self.cache.touch(key=self.json_data[0]['signature'])
+        self.cache[self.json_data[0]['signature']].touch()
         # Add another item to the cache causing a purge
         item = self.json_data[MAX_NUM_CACHE_ITEMS]
         self.cache[item['signature']] = DictUGC(item)

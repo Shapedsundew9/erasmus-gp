@@ -1,8 +1,9 @@
 """Genetic Code Cache module."""
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cache_class_factory import FastCache, UserDictCache
 from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
+from egppy.storage.cache.user_dict_cache import UserDictCache
+from egppy.storage.cache.dict_cache import DictCache
 from egppy.gc_types.gc_abc import GCABC
 
 
@@ -44,5 +45,5 @@ fast_cache_config: CacheConfig = {
 # Both the compact_cache and the fast_cache interfaces are exposed to the logic layer.
 # The fast cache cannot pull data from the compact cache but it can push to it. The
 # fast cache can be considered a "working area" for the logic layer.
-fast_cache: CacheABC = FastCache(config=fast_cache_config)
+fast_cache: CacheABC = DictCache(config=fast_cache_config)
 genetic_code_cache: CacheABC = compact_cache

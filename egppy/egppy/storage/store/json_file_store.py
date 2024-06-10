@@ -1,7 +1,7 @@
 """JSON File store implementation."""
 from io import BufferedRandom
-from typing import Any, Iterator, Hashable
-from collections.abc import MutableMapping
+from typing import Any, Iterator
+from collections.abc import MutableMapping, Hashable
 from mmap import mmap, ACCESS_WRITE
 from json import loads, dumps
 from tempfile import TemporaryFile
@@ -128,6 +128,9 @@ class JSONFileStore(StoreIllegal, StoreABC):
         self.mmap_obj.resize(len(_HEADER))
         self.file_size = self.mmap_obj.size()
 
+    def consistency(self) -> None:
+        """Check the consistency of the store."""
+
     def keys(self) -> list:  # type: ignore
         """Return a list of keys in the store."""
         return [k for k in self]
@@ -157,3 +160,6 @@ class JSONFileStore(StoreIllegal, StoreABC):
             data = loads(s=line)
             values.append(data["__value__"])
         return values
+
+    def verify(self) -> None:
+        """Verify the store."""

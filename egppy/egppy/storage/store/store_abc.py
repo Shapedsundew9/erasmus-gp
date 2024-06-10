@@ -1,6 +1,7 @@
 """Store Base Abstract Base Class"""
 
-from typing import Any, Hashable
+from typing import Any
+from collections.abc import Hashable
 from collections.abc import MutableMapping
 from abc import abstractmethod
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
@@ -47,16 +48,6 @@ class StoreABC(MutableMapping):
     def update(  # type: ignore pylint: disable=arguments-differ
         self, m: MutableMapping[Hashable, StorableObjABC]) -> None:
         """Update the store."""
-
-    @abstractmethod
-    def pop(self, key: Any, default: Any = None) -> Any:
-        """Illegal method."""
-        raise AssertionError("Stores do not support pop.")
-
-    @abstractmethod
-    def popitem(self) -> tuple:
-        """Illegal method."""
-        raise AssertionError("Stores do not support popitem.")
 
     @abstractmethod
     def verify(self) -> None:

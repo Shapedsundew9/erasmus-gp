@@ -1,5 +1,5 @@
 """Test the FastCache class."""
-from egppy.storage.cache.cache_class_factory import FastCache
+from egppy.storage.cache.dict_cache import DictCache as FastCache
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.gc_types.ugc_class_factory import DictUGC, DirtyDictUGC
 from tests.test_storage.test_cache.fast_cache_test_base import FastCacheTestBase

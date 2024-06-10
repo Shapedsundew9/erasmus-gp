@@ -6,6 +6,9 @@ from __future__ import annotations
 from typing import Any
 from egppy.gc_types.gc_abc import GCABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
+from egppy.gc_types.gc_illegal import GCIllegal
+from egppy.gc_types.gc_base import GCBase
 
 
 # Standard EGP logging pattern
@@ -15,7 +18,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class NullGC(dict, GCABC):
+class NullGC(GCIllegal, DirtyDictBaseGC, GCBase, GCABC):
     """Null Genetic Code Class.
 
     This class is a stub for genetic code objects.
@@ -23,8 +26,8 @@ class NullGC(dict, GCABC):
 
     def __init__(self) -> None:
         """Constructor for NullGC"""
-        super().__init__()
-        self['dirty'] = False
+        DirtyDictBaseGC.__init__(self)
+        GCBase.__init__(self)
 
     def __delitem__(self, key: str) -> None:
         """Null GC methods do nothing."""
@@ -58,6 +61,12 @@ class NullGC(dict, GCABC):
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self['dirty']
+
+    def seq_num(self) -> int:
+        return -2**63
+
+    def touch(self) -> None:
+        """Null GC methods do nothing."""
 
     def to_json(self) -> dict[str, Any]:
         """Null GC methods do nothing."""

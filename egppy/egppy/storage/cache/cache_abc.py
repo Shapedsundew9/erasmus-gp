@@ -3,6 +3,7 @@ from typing import Any, TypedDict
 from collections.abc import Hashable
 from abc import abstractmethod
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_illegal import StoreIllegal
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -49,6 +50,11 @@ class CacheABC(StoreIllegal, StoreABC):
     @abstractmethod
     def __init__(self, config: CacheConfig) -> None:
         """Initialize the cache configuration."""
+        # These unused definitions prevent pylance from complaining about missing attributes
+        self.max_items: int = config["max_items"]
+        self.purge_count: int = config["purge_count"]
+        self.next_level: StoreABC = config["next_level"]
+        self.flavor: type[CacheableObjABC] = config["flavor"]
         raise NotImplementedError("CacheABC.__init__ must be overridden")
 
     @abstractmethod
@@ -95,10 +101,6 @@ class CacheABC(StoreIllegal, StoreABC):
         raise NotImplementedError("purge must be overridden")
 
     @abstractmethod
-    def touch(self, key: str) -> None:
-        """Touch the cache item to update the access sequence number.
-        Touching an item updates the access sequence number to the current
-        value of the access counter. This is used to determine the least
-        recently used items for purging.
-        """
-        raise NotImplementedError("touch must be overridden")
+    def setdefault(self, key: Hashable, default: CacheableObjABC) -> Any:  # type: ignore pylint: disable=signature-differs
+        """Set the default value for a key."""
+        raise NotImplementedError("setdefault must be overridden")

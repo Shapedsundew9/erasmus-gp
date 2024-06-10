@@ -5,12 +5,13 @@ used for testing or as a placeholder but can be used in less resource intensive 
 for simplicity. The UGC allows any values to be stored in the genetic code object and can
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
-from typing import Type, Callable, Any
+from typing import Union
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_abc import GCABC
-from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
-from egppy.gc_types.dict_base_gc import DictBaseGC
+from egppy.gc_types.gc_base import GCBase
 from egppy.gc_types.gc_illegal import GCIllegal
+from egppy.storage.cache.cacheable_dict import CacheableDict
+from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
 
 
 # Standard EGP logging pattern
@@ -20,33 +21,26 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-def ugc_class_factory(cls: Type[GCABC]) -> Type:
-    """Create a genetic code object.
+class UGCBase(GCBase):
+    """Universal Genetic Code Base Class."""
 
-    Wraps the cls methods and adds derived methods to create a genetic code object.
-    The cls must be a subclass of GCABC.
 
-    Args:
-        cls: The genetic code base class to wrap.
-
-    Returns:
-        A genetic code object.
-    """
-    if not issubclass(cls, GCABC):
-        raise ValueError("cls must be a subclass of GCABC")
+class DirtyDictUGC(GCIllegal, CacheableDirtyDict, UGCBase, GCABC):
+    """Dirty Dictionary Universal Genetic Code Class."""
 
     def __init__(self, *args, **kwargs) -> None:
-        """Constructor for GC."""
-        gcabc: GCABC | dict[str, Any] = args[0] if args else kwargs
-        self.super = super(type(self), self)
-        self.super.__init__(gcabc)  # type: ignore
-
-    cls_name: str = cls.__name__.replace("Base", "U")
-    cls_methods: dict[str, Callable] = {
-        '__init__': __init__,
-    }
-    return type(cls_name, (GCIllegal, cls,), cls_methods)
+        """Constructor for DirtyDictUGC"""
+        CacheableDirtyDict.__init__(self, *args, **kwargs)
+        UGCBase.__init__(self, *args, **kwargs)
 
 
-DirtyDictUGC: Type[DirtyDictBaseGC] = ugc_class_factory(cls=DirtyDictBaseGC)
-DictUGC: Type[DictBaseGC] = ugc_class_factory(cls=DictBaseGC)
+class DictUGC(GCIllegal, CacheableDict, UGCBase, GCABC):
+    """Dictionary Universal Genetic Code Class."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        """Constructor for DictUGC"""
+        CacheableDict.__init__(self, *args, **kwargs)
+        UGCBase.__init__(self, *args, **kwargs)
+
+
+UGCType = DirtyDictUGC | DictUGC

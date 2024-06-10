@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from copy import deepcopy
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC, SEQUENCE_NUMBER_GENERATOR
 
 
 # Standard EGP logging pattern
@@ -25,6 +25,8 @@ class CacheableDirtyDict(dict, CacheableObjABC):
         """Constructor."""
         super().__init__(*args, **kwargs)
         self._dirty: bool = True
+        # deepcode ignore unguarded~next~call: Cannot raise StopIteration
+        self._seq_num: int = next(SEQUENCE_NUMBER_GENERATOR)
 
     def clean(self) -> None:
         """Mark the object as clean."""
@@ -45,6 +47,7 @@ class CacheableDirtyDict(dict, CacheableObjABC):
     def dirty(self) -> None:
         """Mark the object as dirty."""
         self._dirty = True
+        self.touch()
 
     def from_json(self, json_obj: dict[str, Any] | list) -> None:
         """Re-initialize the object with data from json_obj."""
@@ -53,6 +56,15 @@ class CacheableDirtyDict(dict, CacheableObjABC):
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self._dirty
+
+    def seq_num(self) -> int:
+        """Dirty dicts do not track sequence numbers."""
+        return self._seq_num
+
+    def touch(self) -> None:
+        """Dirty dict objects cannot be touched."""
+        # deepcode ignore unguarded~next~call: Cannot raise StopIteration
+        self._seq_num: int = next(SEQUENCE_NUMBER_GENERATOR)
 
     def to_json(self) -> dict[str, Any]:
         """Return a JSON serializable dictionary."""

@@ -1,5 +1,5 @@
 """Test the UserDictCache class."""
-from egppy.storage.cache.cache_class_factory import UserDictCache
+from egppy.storage.cache.user_dict_cache import UserDictCache
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.gc_types.ugc_class_factory import DictUGC, DirtyDictUGC
 from tests.test_storage.test_cache.cache_test_base import CacheTestBase

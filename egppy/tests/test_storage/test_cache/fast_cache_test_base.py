@@ -3,7 +3,7 @@ from os.path import join, dirname
 from json import load
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
-from egppy.storage.cache.cache_class_factory import DictCache
+from egppy.storage.cache.dict_cache import DictCache
 from egppy.gc_types.ugc_class_factory import DictUGC
 from tests.test_storage.store_test_base import StoreTestBase
 
@@ -50,20 +50,6 @@ class FastCacheTestBase(StoreTestBase):
         self.cache1.next_level.clear()
         self.cache2.next_level.clear()
 
-    def test_del_item(self) -> None:
-        """__delitem__ method is not supported for caches."""
-        if self.running_in_test_base_class():
-            return
-        with self.assertRaises(expected_exception=AssertionError):
-            super().test_del_item()
-
-    def test_clear(self) -> None:
-        """clear method is not supported for caches."""
-        if self.running_in_test_base_class():
-            return
-        with self.assertRaises(expected_exception=AssertionError):
-            super().test_clear()
-
     def test_copyback(self) -> None:
         """Test the copyback method."""
         if self.running_in_test_base_class():
@@ -96,8 +82,8 @@ class FastCacheTestBase(StoreTestBase):
             return
         for item in self.json_data[:NUM_CACHE_ITEMS]:
             self.cache[item['signature']] = DictUGC(item)
-        with self.assertRaises(expected_exception=AssertionError):
-            self.cache.purge(num=1)
+        self.cache.purge(num=1)
+        self.assertEqual(first=len(self.cache), second=NUM_CACHE_ITEMS-1)
 
     def test_touch(self) -> None:
         """Test the touch method."""
@@ -105,5 +91,5 @@ class FastCacheTestBase(StoreTestBase):
             return
         for item in self.json_data[:NUM_CACHE_ITEMS]:
             self.cache[item['signature']] = DictUGC(item)
-        with self.assertRaises(expected_exception=AssertionError):
-            self.cache.touch(key=self.json_data[0]['signature'])
+        # In a dict cache the touch method has no real use case
+        self.cache[self.json_data[0]['signature']].touch()

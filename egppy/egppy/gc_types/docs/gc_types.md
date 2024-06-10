@@ -8,11 +8,13 @@ All Genetic Code types are derived from the Abstract Base Class *GCABC* which pr
 ---
 title: GC Types
 ---
-flowchart TB
-    A["GCABC"] --> B["DictBaseGC"]
-    A --> C["CompactBaseGC"]
-    D["EGC\nGGC\nPGC\n..."]
-    E["EGC\nGGC\nPGC\n..."]
-    B --> D
-    C --> E
+classDiagram
+    MutableMapping <|-- GCABC
+    CacheableObjABC <|-- GCABC
+    GCIllegal <|-- dict_likeGC
+    cacheable_dict_like <|-- dict_likeGC
+    GCBase <|-- dict_likeGC
+    GCABC <|-- dict_likeGC
+    dict_likeGC <|-- dict_likeEGC
+    dict_likeGC <|-- dict_likeUGC
 ```

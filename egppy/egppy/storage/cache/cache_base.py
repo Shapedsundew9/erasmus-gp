@@ -1,5 +1,5 @@
 """Cache Base class module."""
-from typing import Iterable
+from typing import ValuesView
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cache_abc import CacheConfig, validate_cache_config
@@ -33,7 +33,7 @@ class CacheBase():
         for value in self.values():
             value.consistency()
 
-    def values(self) -> Iterable[CacheableObjABC]:
+    def values(self) -> ValuesView[CacheableObjABC]:
         """Must be implemented by subclasses."""
         raise NotImplementedError
 

@@ -18,15 +18,20 @@ class CacheableDict(CacheableDirtyDict):
     slower but relieves the user from having to keep track of the object's state.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Constructor."""
-        super().__init__(*args, **kwargs)
-        self._dirty: bool = True
+    def __getitem__(self, key: Any) -> Any:
+        """Get an item from the dictionary."""
+        self.touch()
+        return super().__getitem__(key)
 
     def __setitem__(self, key: str, value: Any) -> None:
         """Set an item in the dictionary."""
         super().__setitem__(key, value)
         self.dirty()
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get an item from the dictionary."""
+        self.touch()
+        return super().get(key, default)
 
     def setdefault(self, key: str, default: Any = None) -> Any:
         """Set a default item in the dictionary."""
