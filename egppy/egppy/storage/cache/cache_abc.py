@@ -48,13 +48,7 @@ class CacheABC(StoreIllegal, StoreABC):
     """
     @abstractmethod
     def __init__(self, config: CacheConfig) -> None:
-        """Initialize the cache configuration.
-        The members below are available to be set in derived classes.        
-        """
-        self.max_items: int = config["max_items"]
-        self.purge_count: int = config["purge_count"]
-        self.next_level: StoreABC = config["next_level"]
-        self.flavor: type[CacheableObjABC] = config["flavor"]
+        """Initialize the cache configuration."""
         raise NotImplementedError("CacheABC.__init__ must be overridden")
 
     @abstractmethod
