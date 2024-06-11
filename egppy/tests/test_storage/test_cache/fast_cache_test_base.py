@@ -19,7 +19,7 @@ class FastCacheTestBase(StoreTestBase):
     cache_config: CacheConfig = {
         "max_items": 0,
         "purge_count": 0,
-        "next_level": JSONFileStore(),
+        "next_level": JSONFileStore(DictUGC),
         "flavor": DictUGC
     }
 

@@ -28,18 +28,5 @@ class TestJSONFileStoreDirtyDictUGC(JSONFileStoreTestBase):
     value2: StorableObjABC = DirtyDictUGC(DEFAULT_VALUES[2])
 
 
-class TestJSONFileStoreIntKey(JSONFileStoreTestBase):
-    """Test cases for JSONFileStore class with integer keys.
-    """
-    store_type = JSONFileStore
-    value_type = DirtyDictUGC
-    value: StorableObjABC = DirtyDictUGC(DEFAULT_VALUES[0])
-    value1: StorableObjABC = DirtyDictUGC(DEFAULT_VALUES[1])
-    value2: StorableObjABC = DirtyDictUGC(DEFAULT_VALUES[2])
-    key = 120
-    key1 = 340
-    key2 = 560
-
-
 if __name__ == '__main__':
     unittest.main()

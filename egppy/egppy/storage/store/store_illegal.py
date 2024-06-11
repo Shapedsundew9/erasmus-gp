@@ -1,5 +1,4 @@
 """Illegal MutableMapping methods in concrete store classes."""
-from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -12,4 +11,3 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class StoreIllegal():
     """Illegal MutableMapping methods in concrete store classes."""
-

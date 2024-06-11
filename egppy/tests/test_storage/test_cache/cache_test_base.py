@@ -24,7 +24,7 @@ class CacheTestBase(FastCacheTestBase):
     cache_config: CacheConfig = {
         "max_items": MAX_NUM_CACHE_ITEMS,
         "purge_count": NUM_CACHE_PURGE_ITEMS,
-        "next_level": JSONFileStore(),
+        "next_level": JSONFileStore(DictUGC),
         "flavor": DictUGC
     }
 

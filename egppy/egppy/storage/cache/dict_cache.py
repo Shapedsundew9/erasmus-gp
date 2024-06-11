@@ -39,7 +39,7 @@ class DictCache(CacheIllegal, dict[Hashable, CacheableObjABC], CacheBase, CacheA
         """Copy the cache back to the next level."""
         for key, value in (x for x in self.items() if x[1].is_dirty()):
             # All GCABC objects provide a copyback method to efficiently copy back modified data.
-            self.next_level[key] = value.copyback()
+            self.next_level.update_value(key, value.copyback())
 
     def flush(self) -> None:
         """Flush the cache to the next level."""
@@ -56,4 +56,4 @@ class DictCache(CacheIllegal, dict[Hashable, CacheableObjABC], CacheBase, CacheA
             value: CacheableObjABC
             key, value = self.popitem()
             if value.is_dirty():
-                self.next_level[key] = value.copyback()
+                self.next_level.update_value(key, value.copyback())

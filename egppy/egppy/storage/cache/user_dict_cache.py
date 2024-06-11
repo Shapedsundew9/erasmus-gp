@@ -8,7 +8,6 @@ from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cache_illegal import CacheIllegal
 from egppy.storage.cache.cache_base import CacheBase
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.storage.store.storable_obj_abc import StorableObjABC
 
 
 # Standard EGP logging pattern
@@ -46,14 +45,14 @@ class UserDictCache(CacheIllegal, UserDict[Any, CacheableObjABC], CacheBase, Cac
         """Set an item in the cache. If the cache is full make space first."""
         if key not in self:
             self.purge_check()
-        item = self.flavor(value)
+        item = self.flavor(value) if not isinstance(value, self.flavor) else value
         self.data[key] = item
         item.touch()
 
     def copyback(self) -> None:
         """Copy the cache back to the next level."""
         for key, value in (x for x in self.data.items() if x[1].is_dirty()):
-            self.next_level[key] = value.copyback()
+            self.next_level.update_value(key, value.copyback())
 
     def flush(self) -> None:
         """Flush the cache to the next level."""
@@ -70,7 +69,7 @@ class UserDictCache(CacheIllegal, UserDict[Any, CacheableObjABC], CacheBase, Cac
         for key, _ in victims:
             value: CacheableObjABC = self.data[key]
             if value.is_dirty():
-                self.next_level[key] = self.data[key].copyback()
+                self.next_level.update_value(key, self.data[key].copyback())
             del self.data[key]
 
     def purge_check(self) -> None:

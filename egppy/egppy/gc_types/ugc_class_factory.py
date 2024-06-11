@@ -5,7 +5,6 @@ used for testing or as a placeholder but can be used in less resource intensive 
 for simplicity. The UGC allows any values to be stored in the genetic code object and can
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
-from typing import Union
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_abc import GCABC
 from egppy.gc_types.gc_base import GCBase

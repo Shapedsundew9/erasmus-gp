@@ -1,8 +1,7 @@
 """Store Base Abstract Base Class"""
 
 from typing import Any
-from collections.abc import Hashable
-from collections.abc import MutableMapping
+from collections.abc import Collection, MutableMapping, Hashable
 from abc import abstractmethod
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.store.storable_obj_abc import StorableObjABC
@@ -19,6 +18,15 @@ class StoreABC(MutableMapping):
     
     The Store class must implement all the primitives of Store operations.
     """
+
+    @abstractmethod
+    def __init__(self, *args, **kwargs) -> None:
+        """Initialize the Store."""
+
+    @abstractmethod
+    def __contains__(self, key: object) -> bool:
+        """Check if an item is in the Store."""
+
     @abstractmethod
     def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the Store."""
@@ -48,6 +56,13 @@ class StoreABC(MutableMapping):
     def update(  # type: ignore pylint: disable=arguments-differ
         self, m: MutableMapping[Hashable, StorableObjABC]) -> None:
         """Update the store."""
+
+    @abstractmethod
+    def update_value(self, key: Hashable, value: Collection) -> None:
+        """Update the value of an item in the store. This is a more efficient
+        version of the __setitem__ method that only updates the value of an
+        existing item in the store where it needs updating.
+        """
 
     @abstractmethod
     def verify(self) -> None:

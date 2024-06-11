@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any
 from abc import abstractmethod, ABC
+from collections.abc import Hashable, Collection
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -34,6 +35,14 @@ class StorableObjABC(ABC):
         raise NotImplementedError("StoreableObjABC.__eq__ must be overridden")
 
     @abstractmethod
+    def __getitem__(self, key: Hashable) -> Any:
+        """Get an item from the Store."""
+
+    @abstractmethod
+    def __setitem__(self, key: Hashable, value: StorableObjABC) -> None:
+        """Set an item in the Store."""
+
+    @abstractmethod
     def consistency(self) -> None:
         """Check the consistency of the StoreableObjABC.
         The consistency() method is used to check the consistency of the StoreableObjABC
@@ -61,6 +70,11 @@ class StorableObjABC(ABC):
         not include any meta data. The container should be suitable for use
         with json.dump()."""
         raise NotImplementedError("StoreableObjABC.to_json must be overridden")
+
+    @abstractmethod
+    def update(  # type: ignore pylint: disable=arguments-differ
+        self, m: Collection) -> None:
+        """Update the storable object."""
 
     @abstractmethod
     def verify(self) -> None:

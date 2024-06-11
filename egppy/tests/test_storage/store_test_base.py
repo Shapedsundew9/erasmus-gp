@@ -57,9 +57,9 @@ class StoreTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.store_type: type[StoreABC] = self.get_store_cls()
-        self.store = self.store_type()
-        self.store1 = self.store_type()
-        self.store2 = self.store_type()
+        self.store = self.store_type(self.get_value_cls())
+        self.store1 = self.store_type(self.get_value_cls())
+        self.store2 = self.store_type(self.get_value_cls())
         self.test_type: type = self.get_test_cls()
         self.value: StorableObjABC = self.test_type.value
         self.value1: StorableObjABC = self.test_type.value1

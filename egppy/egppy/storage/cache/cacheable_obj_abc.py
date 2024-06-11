@@ -2,7 +2,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 from itertools import count
-from typing import Any
+from collections.abc import Collection
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
@@ -33,7 +33,7 @@ class CacheableObjABC(StorableObjABC):
         raise NotImplementedError("CacheableObjABC.clean must be overridden")
 
     @abstractmethod
-    def copyback(self) -> Any:
+    def copyback(self) -> Collection:
         """Copy the CacheableObjABC data back to the CacheABC next level StoreABC.
         This method exists to support caching behaviour where the object may be
         a local copy of a remote object. The copyback() method is used to copy
