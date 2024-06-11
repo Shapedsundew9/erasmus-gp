@@ -32,7 +32,7 @@ def validate_cache_config(config: CacheConfig) -> None:
     if not isinstance(config["next_level"], StoreABC):
         raise ValueError("next_level must be a StoreABC")
     if not issubclass(config["flavor"], CacheableObjABC):
-        raise ValueError("flavor must be a subclass of GCABC")
+        raise ValueError("flavor must be a subclass of CacheableObjABC")
     if config["max_items"] < 0:
         raise ValueError("max_items must be >= 0")
     if config["purge_count"] < 0:
@@ -80,6 +80,16 @@ class CacheABC(StoreIllegal, StoreABC):
         left unchanged.
         """
         raise NotImplementedError("copy_back must be overridden")
+
+    @abstractmethod
+    def copythrough(self) -> None:
+        """Copy the cache through all the way to the store.
+        Copy all dirty items in the cache back to the store (through multiple cache levels).
+        No purge or flush is done, all items are marked clean and all access sequence numbers
+        are left unchanged.
+        NOTE: If the next level cache has dirty items they will be copied back to the store too.
+        """
+        raise NotImplementedError("copythrough must be overridden")
 
     @abstractmethod
     def flush(self) -> None:

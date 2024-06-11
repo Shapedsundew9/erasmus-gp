@@ -37,6 +37,8 @@ class DictCache(CacheIllegal, dict[Hashable, CacheableObjABC], CacheBase, CacheA
 
     def copyback(self) -> None:
         """Copy the cache back to the next level."""
+        if _LOG_DEBUG:
+            _logger.debug("DictCache: %s", str(self))
         for key, value in (x for x in self.items() if x[1].is_dirty()):
             # All GCABC objects provide a copyback method to efficiently copy back modified data.
             self.next_level.update_value(key, value.copyback())

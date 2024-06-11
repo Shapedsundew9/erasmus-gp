@@ -32,7 +32,11 @@ class UserDictCache(CacheIllegal, UserDict[Any, CacheableObjABC], CacheBase, Cac
 
     def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the cache."""
+        if _LOG_DEBUG:
+            _logger.debug("UserDictCache getitem: %s", str(key))
         if key not in self:
+            if _LOG_DEBUG:
+                _logger.debug("UserDictCache getitem: %s not in cache.", str(key))
             # Need to ask the next level for the item. First check if we have space.
             self.purge_check()
             # The next level GC type must be flavored (cast) to the type stored here.
@@ -48,6 +52,8 @@ class UserDictCache(CacheIllegal, UserDict[Any, CacheableObjABC], CacheBase, Cac
         item = self.flavor(value) if not isinstance(value, self.flavor) else value
         self.data[key] = item
         item.touch()
+        if _LOG_DEBUG:
+            _logger.debug("UserDictCache setitem: %s: %s", str(key), str(item))
 
     def copyback(self) -> None:
         """Copy the cache back to the next level."""
@@ -56,6 +62,8 @@ class UserDictCache(CacheIllegal, UserDict[Any, CacheableObjABC], CacheBase, Cac
 
     def flush(self) -> None:
         """Flush the cache to the next level."""
+        if _LOG_DEBUG:
+            _logger.debug("UserDictCache flush.")
         self.copyback()
         self.data.clear()
 
@@ -66,6 +74,8 @@ class UserDictCache(CacheIllegal, UserDict[Any, CacheableObjABC], CacheBase, Cac
             return
         victims: list[tuple[Any, int]] = sorted(
             ((k, v.seq_num()) for k, v in self.data.items()), key=_KEY)[:self.purge_count]
+        if _LOG_DEBUG:
+            _logger.debug("UserDictCache purge %d items.", len(victims))
         for key, _ in victims:
             value: CacheableObjABC = self.data[key]
             if value.is_dirty():

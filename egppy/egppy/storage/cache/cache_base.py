@@ -3,7 +3,7 @@ from typing import ValuesView
 from collections.abc import Hashable, Collection, MutableSequence
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.storage.cache.cache_abc import CacheConfig, validate_cache_config
+from egppy.storage.cache.cache_abc import CacheConfig, validate_cache_config, CacheABC
 from egppy.storage.store.store_abc import StoreABC
 
 
@@ -45,6 +45,16 @@ class CacheBase():
         """Check the cache for self consistency."""
         for value in self.values():
             value.consistency()
+
+    def copyback(self) -> None:
+        """Copy all dirty items back to the next level."""
+        raise NotImplementedError
+
+    def copythrough(self) -> None:
+        """Copy all dirty items back to the store."""
+        self.copyback()
+        if issubclass(type(self.next_level), CacheABC):
+            self.next_level.copythrough()  # type: ignore
 
     def update_value(self, key: Hashable, value: Collection) -> None:
         """Update a value in the store."""

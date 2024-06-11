@@ -1,4 +1,4 @@
-"""Test JSONFileStore class."""
+"""Test Store classes."""
 from __future__ import annotations
 from collections.abc import Hashable
 import unittest
