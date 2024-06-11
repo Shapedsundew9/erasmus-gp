@@ -100,22 +100,26 @@ class MultilevelCacheTestBase(unittest.TestCase):
         """Test writing 2x the 2nd level cache size and reading back."""
         if self.running_in_test_base_class():
             return
-        for v in self.values:
-            self.first_level_cache[v['value']] = v
+        for i, v in enumerate(self.values):
+            self.first_level_cache[i] = v
+        # Do not check the first level cache as it may be a DictCache
+        # The store should have the items from the second level cache that were purged
+        # That is the first quarter of the values if it is not a DictCache else it is half
         # DictCache does not automatically copyback()
         if self.get_first_level_cache_cls() is DictCache:
+            # Second level cache is empty until we copyback from the 1st level cache
+            self.assertEqual(first=len(self.second_level_cache), second=0)
             self.first_level_cache.copyback()
-        # Do not check the first level cache as it may be a DictCache
+            self.assertEqual(first=len(self.store), second=SECOND_LEVEL_CACHE_SIZE)
+        else:
+            self.assertEqual(first=len(self.store), second=FIRST_LEVEL_CACHE_SIZE)
         # The second level cache should be full
         self.assertEqual(first=len(self.second_level_cache), second=SECOND_LEVEL_CACHE_SIZE)
-        # The store should have the items from the second level cache that were purged
-        # That is the first half of the values
-        self.assertEqual(first=len(self.store), second=SECOND_LEVEL_CACHE_SIZE)
         # Reading back through the first level cache should bring the items back from the
         # second level cache and store. This causes the newest itemes to be purged back
         # if not a DictCache.
-        for v in self.values:
-            self.assertEqual(first=self.first_level_cache[v['value']], second=v)
+        for i, v in enumerate(self.values):
+            self.assertEqual(first=self.first_level_cache[i], second=v)
         # To get everything in the store when using a DictCache, the copythrough() method
         # must be called.
         if self.get_first_level_cache_cls() is DictCache:
@@ -148,13 +152,13 @@ class MultilevelCacheTestBase(unittest.TestCase):
         """Test random writing and reading back."""
         if self.running_in_test_base_class():
             return
-        for v in self.values:
-            self.first_level_cache[v['value']] = v
+        for i, v in enumerate(self.values):
+            self.first_level_cache[i] = v
         # DictCache does not automatically copyback()
         if self.get_first_level_cache_cls() is DictCache:
             self.first_level_cache.copyback()
-        for v in choices(self.values, k = 4 * SECOND_LEVEL_CACHE_SIZE):
-            self.assertEqual(first=self.first_level_cache[v['value']], second=v)
+        for v in choices(list(range(2 * SECOND_LEVEL_CACHE_SIZE)), k = 4 * SECOND_LEVEL_CACHE_SIZE):
+            self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
         # To get everything in the store when using a DictCache, the copythrough() method
         # must be called.
         if self.get_first_level_cache_cls() is DictCache:
