@@ -30,19 +30,6 @@ class StorableObjABC(ABC):
         raise NotImplementedError("StoreableObjABC.__init__ must be overridden")
 
     @abstractmethod
-    def __eq__(self, other: Any) -> bool:
-        """Equality comparison must be implemented in the derived class."""
-        raise NotImplementedError("StoreableObjABC.__eq__ must be overridden")
-
-    @abstractmethod
-    def __getitem__(self, key: Hashable) -> Any:
-        """Get an item from the Store."""
-
-    @abstractmethod
-    def __setitem__(self, key: Hashable, value: StorableObjABC) -> None:
-        """Set an item in the Store."""
-
-    @abstractmethod
     def consistency(self) -> None:
         """Check the consistency of the StoreableObjABC.
         The consistency() method is used to check the consistency of the StoreableObjABC
@@ -54,14 +41,6 @@ class StorableObjABC(ABC):
         NOTE: Likely to significantly slow down the code.
         """
         raise NotImplementedError("StoreableObjABC.consistency must be overridden")
-
-    @abstractmethod
-    def from_json(self, json_obj: dict[str, Any] | list) -> None:
-        """Re-initialize the object with data from json_obj.
-        Superfluous data in json_obj should be ignored and json_obj may only contain
-        a subset of the data required to initialize the object overwriting
-        only the data in the object that is present in json_obj."""
-        raise NotImplementedError("StoreableObjABC.from_json must be overridden")
 
     @abstractmethod
     def to_json(self) -> dict[str, Any] | list:

@@ -1,9 +1,8 @@
 """Abstract base class for GC graph objects."""
 from __future__ import annotations
-from collections.abc import MutableMapping
-from abc import abstractmethod
-from typing import Any
+from abc import abstractmethod, ABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.gc_graph.interface.interface_abc import InterfaceABC
 
 
 # Standard EGP logging pattern
@@ -13,28 +12,27 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GCGraphABC(MutableMapping):
+class GCGraphABC(ABC):
     """Abstract Base Class for Genetic Code Graphs.
     
     The graph abstract base class, GCGraphABC, is the base class for all genetic code graph objects.
     GC graph objects define connections between interfaces.
-    
-   
+
+    Keys accessing items in the graph use the following format:
+        [Row][s|d]
+    where Row is the capitalized row letter and s|d represents a source or destination
+    Every key is therefore exactly 2 characters long. e.g. Ad, Bs, Od etc. 
     """
-    @abstractmethod
-    def __init__(self, *args, **kwargs) -> None:
-        """Constructor for GCGraphABC"""
-        raise NotImplementedError("GCGraphABC.__init__ must be overridden")
 
     @abstractmethod
-    def __eq__(self, other: Any) -> bool:
-        """Equality comparison must be implemented in the derived class."""
-        raise NotImplementedError("GCGraphABC.__eq__ must be overridden")
+    def get_interface(self, key: str) -> InterfaceABC:
+        """Return the interface object for the given key"""
+        raise NotImplementedError("GCGraphABC.get_interface must be overridden")
 
     @abstractmethod
-    def __ne__(self, other: Any) -> bool:
-        """Inequality comparison must be implemented in the derived class."""
-        raise NotImplementedError("GCGraphABC.__ne__ must be overridden")
+    def get_connections(self, key: str) -> InterfaceABC:
+        """Return the interface object for the given key"""
+        raise NotImplementedError("GCGraphABC.get_interface must be overridden")
 
     @abstractmethod
     def consistency(self) -> None:

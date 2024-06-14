@@ -6,9 +6,9 @@ from __future__ import annotations
 from typing import Any
 from egppy.gc_types.gc_abc import GCABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_types.dirty_dict_base_gc import DirtyDictBaseGC
 from egppy.gc_types.gc_illegal import GCIllegal
 from egppy.gc_types.gc_base import GCBase
+from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
 
 
 # Standard EGP logging pattern
@@ -18,7 +18,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class NullGC(GCIllegal, DirtyDictBaseGC, GCBase, GCABC):
+class NullGC(GCIllegal, CacheableDirtyDict, GCBase, GCABC):
     """Null Genetic Code Class.
 
     This class is a stub for genetic code objects.
@@ -26,7 +26,7 @@ class NullGC(GCIllegal, DirtyDictBaseGC, GCBase, GCABC):
 
     def __init__(self) -> None:
         """Constructor for NullGC"""
-        DirtyDictBaseGC.__init__(self)
+        CacheableDirtyDict.__init__(self)
         GCBase.__init__(self)
 
     def __delitem__(self, key: str) -> None:
@@ -34,7 +34,7 @@ class NullGC(GCIllegal, DirtyDictBaseGC, GCBase, GCABC):
 
     def __getitem__(self, key: str) -> Any:
         """Null GC methods do nothing."""
-        return super().__getitem__(key)
+        return None
 
     def __setitem__(self, key, value) -> None:
         """Null GC methods do nothing."""
@@ -53,9 +53,6 @@ class NullGC(GCIllegal, DirtyDictBaseGC, GCBase, GCABC):
         return self
 
     def dirty(self) -> None:
-        """Null GC methods do nothing."""
-
-    def from_json(self, json_obj: dict[str, Any] | list) -> None:
         """Null GC methods do nothing."""
 
     def is_dirty(self) -> bool:

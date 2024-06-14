@@ -4,7 +4,7 @@ from collections.abc import Hashable
 import unittest
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.storage.store.null_store import NullStore
+from egppy.storage.store.in_memory_store import InMemoryStore
 from egppy.gc_types.null_gc import NULL_GC
 
 
@@ -20,7 +20,7 @@ class StoreTestBase(unittest.TestCase):
     """Test case for Store classes."""
 
     # The Store class to test. Override this in subclasses.
-    store_type = NullStore
+    store_type = InMemoryStore
     # The Value class to test. Override this in subclasses.
     value_type = StorableObjABC
     # Instances of the Value class. Define these in setUpClass.

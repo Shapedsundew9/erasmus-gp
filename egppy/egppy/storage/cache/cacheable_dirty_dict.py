@@ -49,10 +49,6 @@ class CacheableDirtyDict(dict, CacheableObjABC):
         self._dirty = True
         self.touch()
 
-    def from_json(self, json_obj: dict[str, Any] | list) -> None:
-        """Re-initialize the object with data from json_obj."""
-        self.update(json_obj)
-
     def is_dirty(self) -> bool:
         """Check if the object is dirty."""
         return self._dirty

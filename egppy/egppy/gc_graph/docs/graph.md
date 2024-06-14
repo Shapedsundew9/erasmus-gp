@@ -122,3 +122,21 @@ classDef Ocd fill:#000,stroke:#333,stroke-width:1px
 class I Icd
 class O Ocd
 ```
+
+## Rows, Interfaces & Connections
+
+An interface is an array of endpoints with 0 to 256 elements each defining the endpoint type.
+A Genetic Code has two interfaces, the input and the output interface. When viewed from within the
+GC Graph the input interface is a source interface i.e. it is a source of connections
+to other rows, and the output interface a destination interface. Row A and row B represent the input
+and output interfaces to GCA and GCB reprectively. Within the graph though GCA's input interface is
+a destination and its output a source.
+
+### Source Interfaces
+
+Source interface endpoints may have 0, 1 or many connections to destination interface endpoints (but
+only one connection to the same destination endpoint).
+
+### Destination Interfaces
+
+All destination interface endpoints must be connected to one (and only one) source interface endpoint.

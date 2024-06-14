@@ -140,6 +140,9 @@ class JSONFileStore(StoreIllegal, StoreBase, StoreABC):
         self.mmap_obj.resize(len(_HEADER))
         self.file_size = self.mmap_obj.size()
 
+    def consistency(self) -> None:
+        """Check the consistency of the store."""
+
     keys = __iter__  # type: ignore
 
     def setdefault(self, key: Hashable, default: StorableObjABC) -> Any:
@@ -167,3 +170,6 @@ class JSONFileStore(StoreIllegal, StoreBase, StoreABC):
                 break
             data = loads(s=line)
             yield self.flavor(data["__value__"])
+
+    def verify(self) -> None:
+        """Verify the store."""

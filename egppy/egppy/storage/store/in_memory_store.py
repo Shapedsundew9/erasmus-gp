@@ -1,7 +1,6 @@
 """In Memory Store store module.
 This module provides a Store that can be used for testing.
 """
-from typing import Any
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_illegal import StoreIllegal
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
@@ -23,9 +22,3 @@ class InMemoryStore(StoreIllegal, dict, StoreBase, StoreABC):  # type: ignore
         """Initialize the store."""
         dict.__init__(self)
         StoreBase.__init__(self, flavor=flavor)
-
-    def __setitem__(self, key: Any, value: Any) -> None:
-        """Set an item in the store."""
-        if _LOG_DEBUG:
-            _logger.debug("Setting item in InMemoryStore: %s: %s", key, value)
-        return super().__setitem__(key, value)

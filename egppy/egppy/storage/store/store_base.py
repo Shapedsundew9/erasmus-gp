@@ -22,9 +22,6 @@ class StoreBase():
         """Set an item in the store."""
         raise NotImplementedError
 
-    def consistency(self) -> None:
-        """Check the consistency of the store."""
-
     def update_value(self, key: Hashable, value: Collection) -> None:
         """Update a value in the store."""
         if key in self:
@@ -37,5 +34,3 @@ class StoreBase():
         else:
             self[key] = self.flavor(value)
 
-    def verify(self) -> None:
-        """Verify the store."""

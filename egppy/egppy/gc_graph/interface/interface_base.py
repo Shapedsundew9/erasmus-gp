@@ -31,7 +31,6 @@ class InterfaceBase():
 
     def consistency(self) -> None:
         """Check the consistency of the interface."""
-        _logger.info("Checking the consistency of the interface.")
 
     def verify(self) -> None:
         """Verify the interface."""

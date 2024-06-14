@@ -1,6 +1,5 @@
 """Cacheable Dirty Dictionary Base Class module."""
 from __future__ import annotations
-from copy import deepcopy
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC, SEQUENCE_NUMBER_GENERATOR
 
@@ -12,17 +11,17 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheableDirtyList(list, CacheableObjABC):
-    """Cacheable Dirty List Class.
-    Builtin lists are fast but use a fair amount of space. This class is a base class
-    for cache objects using builtin list methods without wrapping them.
-    As a consequence when the list is modified the object is not automatically
-    marked as dirty, this must be done manually by the user using the dirty() method.
+class CacheableTuple(tuple, CacheableObjABC):
+    """Cacheable Tuple Class.
+    Cacheable tuple objects cannot be modified so will never mark themseleves dirty.
+    However, the dirty() and clean() methods are provided for consistency and can be used
+    to copyback() automatically should that have someside effect that requires it.
     """
+
 
     def __init__(self, *args, **kwargs) -> None:
         """Constructor."""
-        super().__init__(*args, **kwargs)
+        tuple.__init__(*args, **kwargs)
         self._dirty: bool = True
         # deepcode ignore unguarded~next~call: Cannot raise StopIteration
         self._seq_num: int = next(SEQUENCE_NUMBER_GENERATOR)
@@ -34,7 +33,7 @@ class CacheableDirtyList(list, CacheableObjABC):
     def consistency(self) -> None:
         """Check the consistency of the object."""
 
-    def copyback(self) -> CacheableDirtyList:
+    def copyback(self) -> CacheableTuple:
         """Copy the object back."""
         if _LOG_VERIFY:
             self.verify()
@@ -67,7 +66,7 @@ class CacheableDirtyList(list, CacheableObjABC):
             self.verify()
             if _LOG_CONSISTENCY:
                 self.consistency()
-        return deepcopy(x=self)
+        return list(self)
 
     def verify(self) -> None:
         """Verify the genetic code object."""
