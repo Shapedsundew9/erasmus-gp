@@ -22,3 +22,18 @@ class InMemoryStore(StoreIllegal, dict, StoreBase, StoreABC):  # type: ignore
         """Initialize the store."""
         dict.__init__(self)
         StoreBase.__init__(self, flavor=flavor)
+
+    def consistency(self) -> None:
+        """Check the consistency of the store."""        
+        if _LOG_CONSISTENCY:
+            _logger.log(level=CONSISTENCY, msg=f'Consistency check passed for {self}')
+
+    def verify(self) -> None:
+        """Verify the store."""
+        if not self.flavor:
+            raise ValueError('Flavor not set')
+        for value in self.values():
+            if not isinstance(value, self.flavor):
+                raise ValueError(f'Value {value} not of type {self.flavor}')
+        if _LOG_VERIFY:
+            _logger.log(level=VERIFY, msg=f'Verify check passed for {self}')

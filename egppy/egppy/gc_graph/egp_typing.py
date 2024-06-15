@@ -1,13 +1,38 @@
 """Common Erasmus GP Types."""
+from enum import StrEnum, IntEnum
+from typing import TypeGuard, TypedDict
 
-from enum import IntEnum
-from typing import Any, Literal, LiteralString, TypedDict, TypeGuard
 
-DestinationRow = Literal["A", "B", "F", "O", "P"]
-SourceRow = Literal["I", "A", "B"]
-Row = DestinationRow | SourceRow
-EndPointClass = bool
-EndPointClassStr = Literal["s", "d"]
+class SourceRow(StrEnum):
+    """Source rows."""
+    I = "I"
+    A = "A"
+    B = "B"
+
+
+class DestinationRow(StrEnum):
+
+    """Destination rows."""
+    A = "A"
+    B = "B"
+    F = "F"
+    O = "O"
+    P = "P"
+
+
+class EPClsPostfix(StrEnum):
+    """End Point Class postfixes."""
+    SRC = "s"
+    DST = "d"
+
+
+class EndPointClass(IntEnum):
+    """End Point Class."""
+    SRC = True
+    DST = False
+
+
+Row = SourceRow | DestinationRow
 SrcEndPointHash = str
 DstEndPointHash = str
 EndPointIndex = int
@@ -16,212 +41,70 @@ EndPointHash = SrcEndPointHash | DstEndPointHash | str
 
 
 # Constants
-SRC_EP: Literal[True] = True
-DST_EP: Literal[False] = False
-SRC_EP_CLS_STR: Literal["s"] = "s"
-DST_EP_CLS_STR: Literal["d"] = "d"
-EP_CLS_STR_TUPLE: tuple[Literal["d"], Literal["s"]] = (DST_EP_CLS_STR, SRC_EP_CLS_STR)
-DESTINATION_ROWS: tuple[DestinationRow, ...] = ("F", "A", "B", "O", "P")
-SOURCE_ROWS: tuple[SourceRow, ...] = ("I", "A", "B")
+DESTINATION_ROWS: tuple[DestinationRow, ...] = tuple(DestinationRow)
+SOURCE_ROWS: tuple[SourceRow, ...] = tuple(SourceRow)
 ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
-ALL_ROWS_STR: LiteralString = "".join(ROWS)
-
-# Indices for source and destination rows must match the order of the rows in the tuple.
-ROWS_INDEXED: tuple[Row, ...] = ("I", "A", "B", "F", "A", "B", "O", "P")
-ROW_CLS_INDEXED: tuple[str, ...] = ("Is", "As", "Bs", "Fd", "Ad", "Bd", "Od", "Pd")
-
-
-class SrcRowIndex(IntEnum):
-    """Indices for source rows."""
-
-    I = ROW_CLS_INDEXED.index("Is")
-    A = ROW_CLS_INDEXED.index("As")
-    B = ROW_CLS_INDEXED.index("Bs")
-
-
-class DstRowIndex(IntEnum):
-    """Indices for destination rows."""
-
-    F = ROW_CLS_INDEXED.index("Fd")
-    A = ROW_CLS_INDEXED.index("Ad")
-    B = ROW_CLS_INDEXED.index("Bd")
-    O = ROW_CLS_INDEXED.index("Od")
-    P = ROW_CLS_INDEXED.index("Pd")
-
-
-GRAPH_ROW_INDEX_ORDER: tuple[
-    SrcRowIndex, DstRowIndex, DstRowIndex, SrcRowIndex, DstRowIndex, SrcRowIndex, DstRowIndex, DstRowIndex
-] = (
-    SrcRowIndex.I,
-    DstRowIndex.F,
-    DstRowIndex.A,
-    SrcRowIndex.A,
-    DstRowIndex.B,
-    SrcRowIndex.B,
-    DstRowIndex.O,
-    DstRowIndex.P,
-)
-
-SOURCE_ROW_INDEXES: dict[SourceRow, SrcRowIndex] = {
-    "I": SrcRowIndex.I,
-    "A": SrcRowIndex.A,
-    "B": SrcRowIndex.B,
-}
-DESTINATION_ROW_INDEXES: dict[DestinationRow, DstRowIndex] = {
-    "F": DstRowIndex.F,
-    "A": DstRowIndex.A,
-    "B": DstRowIndex.B,
-    "O": DstRowIndex.O,
-    "P": DstRowIndex.P,
-}
-SOURCE_ROW_LETTERS: dict[SrcRowIndex, SourceRow] = {
-    SrcRowIndex.I: "I",
-    SrcRowIndex.A: "A",
-    SrcRowIndex.B: "B",
-}
-DESTINATION_ROW_LETTERS: dict[DstRowIndex, DestinationRow] = {
-    DstRowIndex.F: "F",
-    DstRowIndex.A: "A",
-    DstRowIndex.B: "B",
-    DstRowIndex.O: "O",
-    DstRowIndex.P: "P",
-}
-
+EP_CLS_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
+ALL_ROWS_STR: str = "".join(ROWS)
+ROW_CLS_INDEXED: tuple[str, ...] = (tuple(f"{row}{EPClsPostfix.SRC}" for row in SOURCE_ROWS)
+    + tuple(f"{row}{EPClsPostfix.DST}" for row in DESTINATION_ROWS))
 # Valid source rows for a given row.
 # The valid source rows depends on whether there is a row F
-VALID_ROW_SOURCES: tuple[dict[Row, tuple[SourceRow, ...]], dict[Row, tuple[SourceRow, ...]]] = (
+
+VALID_ROW_SOURCES: tuple[
+    dict[Row, tuple[SourceRow, ...]],
+    dict[Row, tuple[SourceRow, ...]]
+] = (
     # No row F
     {
-        "I": tuple(),
-        "A": ("I",),
-        "B": ("I", "A"),
-        "O": ("I", "A", "B"),
+        SourceRow.I: tuple(),
+        DestinationRow.A: (SourceRow.I,),
+        DestinationRow.B: (SourceRow.I, SourceRow.A),
+        DestinationRow.O: (SourceRow.I, SourceRow.A, SourceRow.B),
     },
     # Has row F
     # F determines if the path through A or B is chosen
     {
-        "I": tuple(),
-        "F": ("I",),
-        "A": ("I",),
-        "B": ("I",),
-        "O": ("I", "A"),
-        "P": ("I", "B"),
+        SourceRow.I: tuple(),
+        DestinationRow.F: (SourceRow.I,),
+        DestinationRow.A: (SourceRow.I,),
+        DestinationRow.B: (SourceRow.I,),
+        DestinationRow.O: (SourceRow.I, SourceRow.A),
+        DestinationRow.P: (SourceRow.I, SourceRow.B),
     },
 )
+
 VALID_DESTINATIONS: tuple[tuple[DestinationRow, ...], tuple[DestinationRow, ...]] = (
-    ("A", "B", "O"), ("F", "A", "B", "O", "P"))
+    (DestinationRow.A, DestinationRow.B, DestinationRow.O),
+    (DestinationRow.F, DestinationRow.A, DestinationRow.B, DestinationRow.O, DestinationRow.P))
 
-# Valid graph row combinations.
-# NB: These rules define a valid graph not necessarily a stable graph.
-# Rules:
-#   1. If row F is present then row P must be present
-#   3. P cannot be present unless F is present
-#   4. Row B cannot exist without row A
-#   5. Row F cannot exists without row A
-#   6. A graph must have an interface i.e. row I or row O (or both)
-#   7. Row O cannot exist without any source rows.
-#   8. A null graph (one with no rows) is invalid.
-#   9. Rows must be explicitly defined (no implied rows)
-#
-# Derived by:
-"""
-from itertools import combinations
-combos = []
-for c in [''.join(sorted(s)) for n in range(7) for s in combinations("ABCFIOP", n)]:
-    if "F" in c and "I" not in c:
-        continue
-    if "F" in c and "O" in c and "P" not in c:
-        continue
-    if "P" in c and ("F" not in c or "O" not in c):
-        continue
-    if ("F" in c or "B" in c) and "A" not in c:
-        continue
-    if "O" not in c and "I" not in c:
-        continue
-    if c == "" or c == "O":
-        continue
-    combos.append(c)
-"""
 VALID_GRAPH_ROW_COMBINATIONS: set[str] = {
-    "I",
-    "AI",
-    "AO",
-    "IO",
-    "ABI",
-    "ABO",
-    "ACI",
-    "ACO",
-    "AFI",
-    "AIO",
-    "ABCI",
-    "ABCO",
-    "ABFI",
-    "ABIO",
-    "ACFI",
-    "ACIO",
-    "ABCFI",
-    "ABCIO",
-    "AFIOP",
-    "ABFIOP",
-    "ACFIOP",
+    "IABO",  # Standard
+    "IFABOP",  # Conditional
+    "IO"  # Codon or Empty
 }
-
-
-def isDestinationRow(row: Row) -> TypeGuard[DestinationRow]:
-    """Narrow a row to a destination row."""
-    return row in DESTINATION_ROWS
-
 
 # Valid destination rows for a given row.
 # The valid destination rows depends on whether there is a row F
-VALID_ROW_DESTINATIONS: tuple[dict[Row, tuple[DestinationRow, ...]], dict[Row, tuple[DestinationRow, ...]]] = (
-    # No row F
-    {k: tuple(d for d, s in VALID_ROW_SOURCES[False].items() if k in s and isDestinationRow(d)) for k in ROWS},
-    # Has row F
-    # F determines if the path through A or B is chosen
-    {k: tuple(d for d, s in VALID_ROW_SOURCES[True].items() if k in s and isDestinationRow(d)) for k in ROWS},
+VALID_ROW_DESTINATIONS: tuple[
+    dict[Row, tuple[DestinationRow, ...]],
+    dict[Row, tuple[DestinationRow, ...]]
+] = (
+    {  # No row F
+        SourceRow.I: (DestinationRow.A, DestinationRow.B, DestinationRow.O),
+        SourceRow.A: (DestinationRow.B, DestinationRow.O),
+        SourceRow.B: (DestinationRow.O,),
+        DestinationRow.O: tuple()
+    },
+    {  # Has row F
+        SourceRow.I: (DestinationRow.F, DestinationRow.A, DestinationRow.B,
+            DestinationRow.O, DestinationRow.P),
+        SourceRow.A: (DestinationRow.O,),
+        SourceRow.B: (DestinationRow.P,),
+        DestinationRow.O: tuple(),
+        DestinationRow.P: tuple()
+    },
 )
-
-
-class CPI(IntEnum):
-    """Indices into a ConnectionPoint."""
-
-    ROW = 0
-    IDX = 1
-    TYP = 2
-
-
-class CVI(IntEnum):
-    """Indices into a ConstantValue."""
-
-    VAL = 0
-    TYP = 1
-
-
-class PairIdx(IntEnum):
-    """Indices into *Pair."""
-
-    ROW = 0
-    VALUES = 1
-
-
-# A ConnectionGraph is the graph defined in the GC GMS.
-# It is a dict of Destination Rows (or constant value row - which makes things a bit more awkward)
-# with a list of the Source row references + type that connect to it.
-ConstantExecStr = str
-ConstantValue = tuple[ConstantExecStr, EndPointType]
-ConstantRow = list[ConstantValue]
-ConstantPair = tuple[Literal["C"], ConstantRow]
-JSONGraph = dict[
-    DestinationRow | Literal["C"],
-    list[list[SourceRow | EndPointIndex | EndPointType]] | list[list[ConstantExecStr | EndPointType]],
-]
-
-
-def isConstantPair(obj: tuple[str, Any]) -> TypeGuard[ConstantPair]:
-    """Narrow a connection graph key:value pair to a constant row."""
-    return obj[0] == "C"
-
 
 class EndPointTypeLookupFile(TypedDict):
     """Format of the egp_type.json file."""

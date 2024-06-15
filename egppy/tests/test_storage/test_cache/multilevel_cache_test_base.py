@@ -1,7 +1,7 @@
 """Test Store classes."""
 from __future__ import annotations
 import unittest
-from random import choices
+from random import choices, sample
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.in_memory_store import InMemoryStore
@@ -157,6 +157,9 @@ class MultilevelCacheTestBase(unittest.TestCase):
         # DictCache does not automatically copyback()
         if self.get_first_level_cache_cls() is DictCache:
             self.first_level_cache.copyback()
+        # Once without replacement to ensure everything is read at least once
+        for v in sample(list(range(len(self.values))), k = len(self.values)):
+            self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
         for v in choices(list(range(2 * SECOND_LEVEL_CACHE_SIZE)), k = 4 * SECOND_LEVEL_CACHE_SIZE):
             self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
         # To get everything in the store when using a DictCache, the copythrough() method

@@ -18,8 +18,8 @@ Note that both GCA and GCB are present or neither are present. This simplifies t
 |------|---|---| ---|---|---|---|
 | Standard | X | - | X | X | X | - |
 | Conditional | X | X | X | X | X | X |
-| Codon | X | - | - | X | - | - |
-| Empty | X | - | - | X | - | - |
+| Codon | X | - | - | - | X | - |
+| Empty | X | - | - | - | X | - |
 
 - **X** = Must be present i.e. have at least 1 endpoint.
 - **-** = Must _not_ be present

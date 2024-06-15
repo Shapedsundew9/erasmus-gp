@@ -1,0 +1,82 @@
+"""Unit tests for the End Point classes."""
+from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
+from egppy.gc_graph.ep_type import ep_type_lookup
+from egppy.gc_graph.end_point.builtin_end_point import BuiltInEndPoint, BuiltinSrcEndPointRef, BuiltinDstEndPointRef
+from egppy.gc_graph.egp_typing import ROWS, EndPointClass, SOURCE_ROWS, DESTINATION_ROWS
+
+
+class EndPointTestBase(XEndPointRefTestBase):
+    """Test cases for the EndPointRef class."""
+
+    # Override this in subclasses.
+    endpoint_type = BuiltInEndPoint
+    src_ref_type = BuiltinSrcEndPointRef
+    dst_ref_type = BuiltinDstEndPointRef
+
+    @classmethod
+    def get_src_ref_cls(cls) -> type:
+        """Get the Source Ref class."""
+        return cls.src_ref_type
+
+    @classmethod
+    def get_dst_ref_cls(cls) -> type:
+        """Get the Destination Ref class."""
+        return cls.dst_ref_type
+
+    def setUp(self) -> None:
+        """
+        Set up the test case by initializing the row, index, and endpoint.
+        """
+        self.row1 = ROWS[0]
+        self.row2 = ROWS[1]
+        self.idx1 = 0
+        self.idx2 = 1
+        self.typ1 = ep_type_lookup['n2v']['int']
+        self.typ2 = ep_type_lookup['n2v']['float']
+        self.cls1 = EndPointClass.SRC
+        self.cls2 = EndPointClass.DST
+        self.refs1 = [self.get_src_ref_cls()(SOURCE_ROWS[0], 0)]
+        self.refs2 = [self.get_dst_ref_cls()(DESTINATION_ROWS[0], 0),
+            self.get_dst_ref_cls()(DESTINATION_ROWS[1], 1)]
+        self.endpoint1a = self.get_endpoint_cls()(self.row1,
+            self.idx1, self.typ1, self.cls1, self.refs1)
+        self.endpoint1b = self.get_endpoint_cls()(self.row1,
+            self.idx1, self.typ1, self.cls1, self.refs1)
+        self.endpoint2 = self.get_endpoint_cls()(self.row2,
+            self.idx2, self.typ2, self.cls2, self.refs2)
+
+    def test_eq(self) -> None:
+        """
+        Test the __eq__() method of the endpoint.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.assertEqual(self.endpoint1a, self.endpoint1b)
+        self.assertNotEqual(self.endpoint1a, self.endpoint2)
+
+    def test_get_typ(self) -> None:
+        """
+        Test the get_typ() method of the endpoint.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.assertEqual(self.endpoint1a.get_typ(), self.typ1)
+        self.assertEqual(self.endpoint2.get_typ(), self.typ2)
+
+    def test_get_cls(self) -> None:
+        """
+        Test the get_cls() method of the endpoint.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.assertEqual(self.endpoint1a.get_cls(), self.cls1)
+        self.assertEqual(self.endpoint2.get_cls(), self.cls2) 
+
+    def test_get_refs(self) -> None:
+        """
+        Test the get_refs() method of the endpoint.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.assertEqual(self.endpoint1a.get_refs(), self.refs1)
+        self.assertEqual(self.endpoint2.get_refs(), self.refs2)
