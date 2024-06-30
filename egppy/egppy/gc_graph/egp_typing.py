@@ -41,8 +41,8 @@ EndPointHash = SrcEndPointHash | DstEndPointHash | str
 
 
 # Constants
-DESTINATION_ROWS: tuple[DestinationRow, ...] = tuple(DestinationRow)
-SOURCE_ROWS: tuple[SourceRow, ...] = tuple(SourceRow)
+DESTINATION_ROWS: tuple[DestinationRow, ...] = tuple(sorted(DestinationRow))
+SOURCE_ROWS: tuple[SourceRow, ...] = tuple(sorted(SourceRow))
 ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
 EP_CLS_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
 ALL_ROWS_STR: str = "".join(ROWS)

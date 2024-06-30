@@ -52,7 +52,7 @@ class BuiltinSrcEndPointRef(BuiltinEndPointRef, SrcEndPointRefMixin, XEndPointRe
     """Refers to a source end point."""
 
 
-class BuiltInEndPoint(BuiltinGenericEndPoint, EndPointMixin, EndPointABC):
+class BuiltinEndPoint(BuiltinEndPointRef, EndPointMixin, EndPointABC):
     """Endpoint class using builtin collections."""
 
     def __init__(self, row: Row, idx: int, typ: EndPointType,
@@ -91,11 +91,3 @@ class BuiltInEndPoint(BuiltinGenericEndPoint, EndPointMixin, EndPointABC):
     def set_refs(self, refs: list[XEndPointRefABC]) -> None:
         """Set the references of the end point."""
         self._refs = refs.copy()
-
-
-class BuiltInDstEndPoint(BuiltInEndPoint, DstEndPointRefMixin):
-    """Endpoint class using builtin collections."""
-
-
-class BuiltInSrcEndPoint(BuiltInEndPoint, SrcEndPointRefMixin):
-    """Endpoint class using builtin collections."""

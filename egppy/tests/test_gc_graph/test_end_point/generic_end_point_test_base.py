@@ -78,7 +78,9 @@ class GenericEndPointTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.assertEqual(repr(self.endpoint).endswith(f"(row={self.row1}, idx={self.idx1})"), True)
+        print(repr(self.endpoint))
+        print(f"_row={self.row1}")
+        self.assertEqual(f"_row={self.row1}" in repr(self.endpoint), True)
 
     def test_json_obj(self) -> None:
         """
@@ -86,7 +88,9 @@ class GenericEndPointTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.assertEqual(self.endpoint.json_obj(), [self.row1, self.idx1])
+        json = self.endpoint.json_obj()
+        self.assertEqual(self.row1, json["_row"])
+        self.assertEqual(self.idx1, json["_idx"])
 
     def test_key_base(self) -> None:
         """
@@ -95,3 +99,11 @@ class GenericEndPointTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.assertEqual(self.endpoint.key_base(), f"{self.row1}{self.idx1}")
+
+    def test_verify(self) -> None:
+        """
+        Test the verify() method of the endpoint.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.assertIsNone(self.endpoint.verify())

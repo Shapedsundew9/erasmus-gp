@@ -43,7 +43,7 @@ class GenericEndPointABC(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def json_obj(self) -> list[Any]:
+    def json_obj(self) -> list[Any] | dict[str, Any]:
         """Return a json serializable object."""
         raise NotImplementedError
 
@@ -118,7 +118,7 @@ class EndPointABC(XEndPointRefABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _del_invalid_refs(self, ep: EndPointABC, row: Row, has_f: bool = False) -> None:
+    def del_invalid_refs(self, has_f: bool = False) -> None:
         """Remove any invalid references"""
         raise NotImplementedError
 
@@ -128,13 +128,8 @@ class EndPointABC(XEndPointRefABC):
         raise NotImplementedError
 
     @abstractmethod
-    def clean_copy(self) -> EndPointABC:
-        """Return a copy of the end point with no references."""
-        raise NotImplementedError
-
-    @abstractmethod
     def copy(self, clean: bool = False) -> EndPointABC:
-        """Return a copy of the end point with no references."""
+        """Return a copy of the end point, with no references if clean is True."""
         raise NotImplementedError
 
     @abstractmethod
