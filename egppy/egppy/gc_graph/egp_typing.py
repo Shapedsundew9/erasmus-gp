@@ -32,6 +32,13 @@ class EndPointClass(IntEnum):
     DST = False
 
 
+class CPI(IntEnum):
+    """Indices into a JSON GC Graph End Point."""
+    ROW = 0
+    IDX = 1
+    TYP = 2
+
+
 Row = SourceRow | DestinationRow
 SrcEndPointHash = str
 DstEndPointHash = str
@@ -138,3 +145,8 @@ class EndPointTypeLookup(TypedDict):
 
     # End point type value: package, version, module, name, default can take parameters
     instanciation: dict[int, InstanciationType]
+
+
+def ep_cls_str_to_ep_cls_int(ep_cls_str: str) -> EndPointClass:
+    """Convert an end point class string to an end point class integer."""
+    return EndPointClass.SRC if ep_cls_str == EPClsPostfix.SRC else EndPointClass.DST

@@ -1,8 +1,8 @@
 """The Interface Abstract Base Class module."""
 from __future__ import annotations
-from collections.abc import MutableSequence
+from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+from egppy.gc_graph.egp_typing import EndPointType
 
 
 # Standard EGP logging pattern
@@ -12,15 +12,33 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class InterfaceABC(CacheableObjABC, MutableSequence):
+class InterfaceABC():
     """Interface Abstract Base Class.
 
     The Interface Abstract Base Class, InterfaceABC, is the base class for all interface objects.
-    Interface objects define the properties of an interface.
-    It is a subclass of MutableSequence (broadly list-like) and must implement all the primitives
-    as required by MutableSequence. HOWEVER, InterfaceABC stubs out the methods that are not
-    supported by
-    interface objects. This is because the interface objects are designed to be lightweight
-    and do not support all the methods of MutableSequence (just most of them). The most notable
-    missing methods are pop, popitem, and clear.
+    Interface objects define the properties of an interface. It is a tuple-like object of integers
+    representing endpoint types.
+
+    Interfaces and connections are closely related but archiecturally distinct to allow storage
+    optimisation.
     """
+
+    def __getitem__(self, index: int) -> EndPointType:
+        """Return the endpoint type."""
+        raise NotImplementedError("Interface.__getitem__ must be overridden")
+
+    def __iter__(self) -> Any:
+        """Iterate over the endpoints."""
+        raise NotImplementedError("Interface.__iter__ must be overridden")
+
+    def __len__(self) -> int:
+        """Return the number of endpoints."""
+        raise NotImplementedError("Interface.__len__ must be overridden")
+
+    def consistency(self) -> None:
+        """Check the consistency of the Interface."""
+        raise NotImplementedError("Interface.consistency must be overridden")
+
+    def verify(self) -> None:
+        """Verify the Interface object."""
+        raise NotImplementedError("Interface.verify must be overridden")

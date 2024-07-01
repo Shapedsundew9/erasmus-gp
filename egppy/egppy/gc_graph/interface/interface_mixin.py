@@ -14,8 +14,8 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 INTERFACE_MAX_LENGTH: int = 256
 
 
-class InterfaceBase():
-    """Interface Base class.
+class InterfaceMixin():
+    """Interface Mixin class.
 
     The InterfaceBase class is a subclass of InterfaceABC.
     It is the base class for all interface objects.

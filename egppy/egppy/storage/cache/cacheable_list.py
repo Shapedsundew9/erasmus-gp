@@ -18,10 +18,10 @@ class CacheableList(CacheableDirtyList):
     slower but relieves the user from having to keep track of the object's state.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Constructor."""
-        super().__init__(*args, **kwargs)
-        self._dirty: bool = True
+    def __getitem__(self, x: slice | SupportsIndex) -> Any:
+        """Get an element of the list."""
+        self.touch()
+        return super().__getitem__(x)
 
     @overload
     def __setitem__(self, i: SupportsIndex, value: Any, /) -> None: ...

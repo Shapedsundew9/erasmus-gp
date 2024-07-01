@@ -33,4 +33,3 @@ class StoreBase():
                 self[key] = item
         else:
             self[key] = self.flavor(value)
-

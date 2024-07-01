@@ -1,9 +1,7 @@
 """The list interface module."""
-from egppy.storage.cache.cacheable_list import CacheableList
-from egppy.storage.cache.cacheable_dirty_list import CacheableDirtyList
-from egppy.gc_graph.interface.interface_base import InterfaceBase
+from egppy.gc_graph.interface.interface_mixin import InterfaceMixin
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
-from egppy.gc_graph.interface.interface_illegal import InterfaceIllegal
+from egppy.gc_graph.egp_typing import EndPointType
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -14,14 +12,12 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class ListInterface(InterfaceIllegal, CacheableList, InterfaceBase, InterfaceABC):  # type: ignore
-    """Interface class based on a CacheableList."""
+class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):
+    """A tuple interface object.
 
-
-class DirtyListInterface(  # type: ignore
-    InterfaceIllegal, CacheableDirtyList, InterfaceBase, InterfaceABC):
-    """Interface class based on a CacheableDirtyList."""
-
+    The TupleInterface class is a subclass of tuple and InterfaceMixin.
+    It is a tuple-like object of integers representing endpoint types.
+    """
 
 # To be used for all empty interface references
-EMPTY_INTERFACE: ListInterface = ListInterface()
+EMPTY_INTERFACE: TupleInterface = TupleInterface()
