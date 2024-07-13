@@ -8,7 +8,6 @@ from tempfile import TemporaryFile
 from os.path import exists
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.store.store_abc import StoreABC
-from egppy.storage.store.store_illegal import StoreIllegal
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_base import StoreBase
 
@@ -25,7 +24,7 @@ _HEADER = b"JSON File Store for T types in EGP\n"
 
 
 # StoreIllegal must be the first to overide any illegal methods as a priority.
-class JSONFileStore(StoreIllegal, StoreBase, StoreABC):
+class JSONFileStore(StoreBase, StoreABC):
     """A file based store for StorableObjABC objects using the json() method.
     
     JSONFileStore is not intended to be quick or efficient in any way. It is inteded for
@@ -134,42 +133,3 @@ class JSONFileStore(StoreIllegal, StoreBase, StoreABC):
         self.mmap_obj.seek(self.file_size)  # Move to the end of the file
         self.mmap_obj.write(new_data)
         self.file_size = self.mmap_obj.size()
-
-    def clear(self) -> None:
-        """Clear the store."""
-        self.mmap_obj.resize(len(_HEADER))
-        self.file_size = self.mmap_obj.size()
-
-    def consistency(self) -> None:
-        """Check the consistency of the store."""
-
-    keys = __iter__  # type: ignore
-
-    def setdefault(self, key: Hashable, default: StorableObjABC) -> Any:
-        """Set a default item in the store."""
-        assert isinstance(key, str), f"Key must be a string, not {type(key)} for JSONFileStore."
-        if key in self:
-            return self[key]
-        self[key] = default
-        return default
-
-    def update(self, m: MutableMapping[Hashable, StorableObjABC]) -> None:
-        """Update the store. This is more efficient than setting items one at a time."""
-        for key in m:
-            assert isinstance(key, str), f"Key must be a string, not {type(key)} for JSONFileStore."
-            del self[key]
-        self.append_json_objects(jobjs=m)
-
-    def values(self) -> Iterator:  # type: ignore
-        """Return a list of values in the store."""
-        self.mmap_obj.seek(0)  # Start from the beginning of the file
-        self.mmap_obj.readline()  # Skip the header line
-        while True:
-            line: bytes = self.mmap_obj.readline()
-            if not line:
-                break
-            data = loads(s=line)
-            yield self.flavor(data["__value__"])
-
-    def verify(self) -> None:
-        """Verify the store."""

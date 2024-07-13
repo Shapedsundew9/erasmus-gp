@@ -38,11 +38,12 @@ class BuiltinGCGraph(GCGraphMixin, GCGraphABC):
         """Initialize the GC graph.
         Construct the internal representation of the graph from the JSON graph.
         """
-        self.interfaces: dict[str, InterfaceABC] = _EMPTY_INTERFACES.copy()
-        self.connections: dict[str, ConnectionsABC] = _EMPTY_CONNECTIONS.copy()
-        self._dirty = True
+        self._interfaces: dict[str, InterfaceABC] = _EMPTY_INTERFACES.copy()
+        self._connections: dict[str, ConnectionsABC] = _EMPTY_CONNECTIONS.copy()
+        self._dirty_rows: set[str] = set()
         src_interface_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
         src_interface_refs: dict[SourceRow, dict[int, list[tuple]]] = {r: {} for r in SOURCE_ROWS}
+        super().__init__(json_gc_graph)
 
         # Step through the json_gc_graph and create the interfaces and connections
         for idx, (row, jeps) in enumerate(json_gc_graph.items()):
@@ -50,9 +51,9 @@ class BuiltinGCGraph(GCGraphMixin, GCGraphABC):
             # Otherwise it is a valid destination row
             if row != "U":
                 rowd = row + 'd'
-                self.interfaces[rowd] = TupleInterface([jep[CPI.TYP] for jep in jeps])
-                self.connections[rowd] = TupleConnections(
-                    ((jep[CPI.ROW], jep[CPI.IDX]) for jep in jeps))
+                self.set_interface(rowd, TupleInterface([jep[CPI.TYP] for jep in jeps]))
+                self.set_connections(rowd, TupleConnections(
+                    ((jep[CPI.ROW], jep[CPI.IDX]) for jep in jeps)))
                 # Convert each dst endpoint into a dst reference for a src endpoint
                 for jep in jeps:
                     src_interface_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX],[]).append((row, idx))
@@ -62,44 +63,46 @@ class BuiltinGCGraph(GCGraphMixin, GCGraphABC):
 
         # Create the source interfaces from the references collected above
         for row, sif in src_interface_typs.items():
-            self.interfaces[row + 's'] = TupleInterface((t for _, t in sorted(sif, key=skey)))
+            self.set_interface(row + 's', TupleInterface((t for _, t in sorted(sif, key=skey))))
         # Add the references to the destinations from the sources
         for row, idx_refs in src_interface_refs.items():
-            src_refs = [tuple()] * len(self.interfaces[row + 's'])
+            src_refs = [tuple()] * len(self._interfaces[row + 's'])
             for idx, refs in idx_refs.items():
                 src_refs[idx] = tuple(BuiltinSrcEndPointRef(r[0], r[1]) for r in refs)
-            self.connections[row + 's'] = TupleConnections(src_refs)
+            self.set_connections(row + 's', TupleConnections(src_refs))
 
         # Run the mixin initialization (sanity checks, cacheable setup etc.)
         super().__init__(json_gc_graph)
 
     def conditional_graph(self) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
-        return 'Fd' in self.interfaces
+        return self._interfaces['Fd'] is not EMPTY_INTERFACE
 
     def get_connections(self, key: str) -> ConnectionsABC:
         """Return the connections object for the given key."""
         self.touch()
-        return self.connections[key]
+        return self._connections[key]
 
     def get_interface(self, key: str) -> InterfaceABC:
         """Return the interface object for the given key."""
         self.touch()
-        return self.interfaces[key]
+        return self._interfaces[key]
 
     def set_connections(self, key: str,
         conns: ConnectionsABC | Iterable[Iterable[XEndPointRefABC]]) -> None:
         """Set the connections object for the given key."""
         self.dirty()
+        self._dirty_rows.add(key)
         if isinstance(conns, ConnectionsABC):
-            self.connections[key] = conns
+            self._connections[key] = conns
         else:
-            self.connections[key] = TupleConnections(conns)
+            self._connections[key] = TupleConnections(conns)
 
     def set_interface(self, key: str, iface: InterfaceABC | Iterable[EndPointType]) -> None:
         """Set the interface object for the given key."""
         self.dirty()
+        self._dirty_rows.add(key)
         if isinstance(iface, InterfaceABC):
-            self.interfaces[key] = iface
+            self._interfaces[key] = iface
         else:
-            self.interfaces[key] = TupleInterface(iface)
+            self._interfaces[key] = TupleInterface(iface)

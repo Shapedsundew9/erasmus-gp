@@ -5,7 +5,7 @@ from random import choices, sample
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.in_memory_store import InMemoryStore
-from egppy.storage.cache.cacheable_dict import CacheableDict
+from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.user_dict_cache import UserDictCache
 from egppy.storage.cache.dict_cache import DictCache
 from egppy.storage.cache.cache_abc import CacheABC

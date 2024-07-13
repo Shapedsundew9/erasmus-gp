@@ -7,7 +7,7 @@ from egppy.gc_graph.end_point.builtin_end_point import BuiltinEndPoint
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.ep_type import ep_type_lookup
-from egppy.storage.cache.cacheable_mixin import CacheableMixin
+from egppy.storage.cache.cacheable_obj import CacheableObjMixin
 from egppy.gc_graph.egp_typing import (SourceRow, ep_cls_str_to_ep_cls_int, Row, ROWS, EndPointType,
     EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED)
 
@@ -19,7 +19,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GCGraphMixin(CacheableMixin):
+class GCGraphMixin(CacheableObjMixin):
     """Base class for GC graph objects."""
 
     def __init__(self, json_gc_graph: dict[str, list[list[Any]]]) -> None:

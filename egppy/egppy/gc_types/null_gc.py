@@ -8,7 +8,7 @@ from egppy.gc_types.gc_abc import GCABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_types.gc_illegal import GCIllegal
 from egppy.gc_types.gc_base import GCBase
-from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
+from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 
 
 # Standard EGP logging pattern

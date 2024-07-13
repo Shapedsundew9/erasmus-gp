@@ -21,6 +21,9 @@ class InterfaceABC():
 
     Interfaces and connections are closely related but archiecturally distinct to allow storage
     optimisation.
+
+    NOTE: The __init__() method is not required for an abstract base class but may call verify()
+    or otherwise assert the object is valid.
     """
 
     def __getitem__(self, index: int) -> EndPointType:
@@ -36,9 +39,19 @@ class InterfaceABC():
         raise NotImplementedError("Interface.__len__ must be overridden")
 
     def consistency(self) -> None:
-        """Check the consistency of the Interface."""
+        """Check the consistency of the Interface.
+        The consistency() method is used to check the semantic consistency. The
+        consistency() method should raise an exception if the object is not
+        consistent.
+        NOTE: Likely to significantly slow down the code.
+        """
         raise NotImplementedError("Interface.consistency must be overridden")
 
     def verify(self) -> None:
-        """Verify the Interface object."""
+        """Verify the Interface object.
+        The verify() method is used to check the object for validity.
+        The verify() method should raise an exception if the object is not
+        valid. 
+        NOTE: May significantly slow down the code if called frequently.
+        """
         raise NotImplementedError("Interface.verify must be overridden")

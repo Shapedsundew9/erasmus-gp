@@ -37,20 +37,25 @@ flowchart TB
 
 ## Stores
 
-Stores are all derived from the Abstract Base Class *StoreABC* which provide a dictionary like interface with a few other store like methods.
+Stores are all derived from the Abstract Base Class *StoreABC* which provide a dictionary like interface for storing *StorableObj*s in a data structure aka store e.g. database, file or compact memory store. Store's exist to implement the EGP runtime object verification and consistency philosophy and provide a common interface to data storage technologies (and thier space/performance/remoteness tradeoffs). Stores are typically tightly bound to the storable objects they store.
+
+Stores work with storable objects modified() method to efficiently store only those fields that have been modified. For the store is is not mandatory to use the method but it is required
+for the storable object to implement it (even if it returns a constant tuple of all the fields). In addition storable objects are required to provide a method to convert the object to JSON compatible builtin python types and be initialised by the same object structure i.e. type(self)(self.to_json()) == self shall be True for StorableObjABC types.
 
 ## Caches
 
-Caches are all derived from the Abstract Base Class *CacheABC* which provides a dictionary like interface plus a few other cache like methods. CacheABC is derived from StoreABC. A cache is a store that has limited capacity and pushes and pulls to a next level store or cache.
+Caches are all derived from the Abstract Base Class *CacheABC* which provides a dictionary like interface plus a few other cache like methods. CacheABC is derived from StoreABC. A cache is a store that and pushes and pulls *CacheableObjABC* types to/from a next level store or cache. There are two different implementation behaviors of caches determined by the configuration.
 
-| Class | Base Class | ABC | Description |
-|-------|------------|-----|-------------|
-| FastCache | dict | CacheABC | Fast, limited function* |
-| UserDictCache | UserDict | CacheABC | Quite fast |
+| Behavior | ABC | max_items | purge_count | Description |
+|-------|:------------:|:----:|:-------------:|---------|
+| Dirty Cache | CacheABC | 0 | 0 | Fast access with limitless space requiring manual purging of items to the next_level. No items can be pulled from the next_level into the cache. |
+| Cache | CacheABC | >= 1 | >= 1 | Quite fast. If the cache has max_items in it and a new object is added it will first push purge_count items to the next_level. Items that have been purged or initially exists in the next_level will be pulled in automatically if accessed via the cache interface. |
 
-\* A FastCache is a "one-way cache", like a temporary store with some convinient configuration to push data to the next level. It cannot pull data from the next level (see one way arrow between the fast_cache and the compact_cache in the top level store flow diagram). In order to use all the optimized builtin dict methods without wrappers, a FastCache does not track access order or dirty state and has no size limit. It is intended as a "work area" for evolution.
+Caches cache *CacheableObjABC* types. Because the object cached is a container there is no way for the CacheABC to know if the object it is caching has been accessed or changed without some sort of expensive checking or comparison or hashing. CacheableObjABC's have methods provided to explicitly and implicitly track access and set dirty/clean state that can be introspected by CacheABC's. CacheableObjABC's may include other CacheableObjABC's using the same methods to roll up state.
 
-Caches cache *CacheableObjABC* types. Because the object cached is a container there is no way for the CacheABC to know if the object it is caching has been accessed or changed without some sort of expensive checking or comparison or hashing. CacheableObjABC's have methods provided to explicitly and implicitly track access, set dirty/clean state that can be introspected by CacheABC's. CacheableObjABC's may include other CacheableObjABC's using the same methods to roll up state.
+## Implementations
+
+\* A fast cache is a Dirty Cache, like a temporary store with some convinient configuration to push data to the next level. It cannot pull data from the next level (see one way arrow between the fast_cache and the compact_cache in the top level store flow diagram). In order to use all the optimized builtin dict methods without wrappers, a FastCache does not track access order or dirty state and has no size limit. It is intended as a "work area" for evolution.
 
 ## Class Hierarchy
 

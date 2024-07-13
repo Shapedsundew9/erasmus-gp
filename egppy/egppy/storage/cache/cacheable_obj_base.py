@@ -1,4 +1,6 @@
-"""Illegal MutableMapping methods in concrete cache classes."""
+"""Cacheable object base class."""
+from itertools import count
+from egppy.storage.store.storable_obj_base import StorableObjBase
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -9,5 +11,9 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheIllegal():
-    """Illegal MutableMapping methods in concrete cache classes."""
+# Universal sequence number generator
+SEQUENCE_NUMBER_GENERATOR = count(start=-2**63)
+
+
+class CacheableObjBase(StorableObjBase):
+    """Cacheable object base class."""

@@ -27,6 +27,9 @@ class ConnectionsABC(ABC):
     Consequently the length of an interface is the same as the length of the connections.
 
     In theory connection objects can be shared between multiple graphs.
+
+    NOTE: The __init__() method is not required for an abstract base class but may call verify()
+    or otherwise assert the object is valid.
     """
 
     @abstractmethod
@@ -49,13 +52,9 @@ class ConnectionsABC(ABC):
     @abstractmethod
     def consistency(self) -> None:
         """Check the consistency of the Connections.
-        The consistency() method is used to check the consistency of the Connections
-        object. This method is called by the copyback() method to ensure that
-        the object is in a consistent state before it is copied back if the
-        log level is set to CONSISTENCY. The
+        The consistency() method is used to check the semantic consistency. The
         consistency() method should raise an exception if the object is not
-        consistent. The consistency() method may also be called by the user
-        to check the consistency of the object.
+        consistent.
         NOTE: Likely to significantly slow down the code.
         """
         raise NotImplementedError("Connections.consistency must be overridden")
@@ -65,10 +64,7 @@ class ConnectionsABC(ABC):
         """Verify the Connections object.
         The verify() method is used to check the Connections object for validity.
         The verify() method should raise an exception if the object is not
-        valid. The verify() method may also be called by the user to check the
-        validity of the object. The verify() method is called by the copyback()
-        method if the _LOG_VERIFY level is set. The verify() method should not
-        be called by the user unless the user has a good reason to do so.
+        valid. 
         NOTE: May significantly slow down the code if called frequently.
         """
         raise NotImplementedError("Connections.verify must be overridden")

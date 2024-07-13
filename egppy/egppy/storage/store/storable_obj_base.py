@@ -1,4 +1,6 @@
-"""Illegal MutableMapping methods in concrete store classes."""
+"""Storable object base class"""
+from egppy.common.common_obj_base import CommonObjBase
+from egppy.common.common_obj_abc import CommonObjABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -9,5 +11,5 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class StoreIllegal():
-    """Illegal MutableMapping methods in concrete store classes."""
+class StorableObjBase(CommonObjBase, CommonObjABC):
+    """Storable Base class has methods generic to all storable objects classes."""

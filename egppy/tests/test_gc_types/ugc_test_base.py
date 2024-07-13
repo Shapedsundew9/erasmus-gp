@@ -1,7 +1,7 @@
 """Tests for the DirtyDictUGC class."""
 from __future__ import annotations
 import unittest
-from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
+from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.gc_types.ugc_class_factory import UGCType, DictUGC
 
 

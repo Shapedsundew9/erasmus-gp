@@ -11,8 +11,8 @@ from egppy.gc_types.gc_abc import GCABC
 from egppy.gc_types.null_gc import NULL_GC
 from egppy.gc_types.gc_illegal import GCIllegal
 from egppy.gc_types.gc_base import GCBase
-from egppy.storage.cache.cacheable_dict import CacheableDict
-from egppy.storage.cache.cacheable_dirty_dict import CacheableDirtyDict
+from egppy.storage.cache.cacheable_obj import CacheableDict
+from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 
 
 # Standard EGP logging pattern
@@ -33,14 +33,6 @@ class EGCBase(GCBase):
         """
         gcabc: GCABC | dict[str, Any] = args[0] if args else kwargs
         self.set_members(gcabc)
-
-    def __getitem__(self, key: str) -> Any:
-        """Must be implemented by derived classes."""
-        raise NotImplementedError
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Must be implemented by derived classes."""
-        raise NotImplementedError
 
     def consistency(self) -> None:
         """Check the genetic code object for consistency.
@@ -106,6 +98,7 @@ class DirtyDictEGC(GCIllegal, CacheableDirtyDict, EGCBase, GCABC):
         """Constructor for DirtyDictEGC."""
         CacheableDirtyDict.__init__(self, *args, **kwargs)
         EGCBase.__init__(self, *args, **kwargs)
+
 
 class DictEGC(CacheableDict, EGCBase, GCABC):
     """Dict Embryonic Genetic Code Class."""
