@@ -52,3 +52,4 @@ class StorableObjABC(Collection, CommonObjABC):
         not checking for modifications and always updating all fields.
         """
         raise NotImplementedError("StoreableObjABC.modified must be overridden")
+

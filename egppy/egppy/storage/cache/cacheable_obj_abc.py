@@ -1,7 +1,6 @@
 """Genetic Code Abstract Base Class"""
 from __future__ import annotations
 from abc import abstractmethod
-from itertools import count
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 

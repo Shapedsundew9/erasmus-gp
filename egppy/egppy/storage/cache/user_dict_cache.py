@@ -1,5 +1,5 @@
 """A python dictionary based cache."""
-from typing import Any, Callable
+from typing import Any, Callable, MutableMapping
 from collections.abc import Hashable
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
@@ -80,3 +80,8 @@ class UserDictCache(CacheBase, CacheMixin, CacheABC):
             _logger.debug("UserDictCache purge %d items.", len(victims))
         for key, _ in victims:
             del self[key]
+
+class test(MutableMapping):
+
+    def a(self):
+        self.setdefault(1, 2)

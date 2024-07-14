@@ -7,10 +7,6 @@ genetic code object avoiding all the derived data.
 """
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_types.gc_abc import GCABC
-from egppy.gc_types.null_gc import NULL_GC
-from egppy.gc_types.gc_illegal import GCIllegal
-from egppy.gc_types.gc_base import GCBase
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 
@@ -20,6 +16,13 @@ _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
+
+class GCMixin:
+    """Genetic Code Mixin Class.
+    
+    Common methods for all genetic code classes.
+    """
 
 
 class EGCBase(GCBase):

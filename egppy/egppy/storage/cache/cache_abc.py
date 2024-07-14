@@ -4,7 +4,6 @@ from abc import abstractmethod
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
-
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 

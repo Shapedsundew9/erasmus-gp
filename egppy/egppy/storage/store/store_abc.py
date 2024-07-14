@@ -1,4 +1,5 @@
 """Store Base Abstract Base Class"""
+from __future__ import annotations
 from collections.abc import MutableMapping
 from abc import abstractmethod
 from egppy.common.common_obj_abc import CommonObjABC
