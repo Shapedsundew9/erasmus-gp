@@ -68,11 +68,13 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
         """Set an item in the cache. If the cache is full make space first."""
         if key not in self:
             self.purge_check()
-        item = self.flavor(value) if not isinstance(value, self.flavor) else value
+        # The value must be flavored (cast) to the type stored here. At a minimum this is a shallow
+        # copy so the next layer dirty flag is not affected.
+        item = self.flavor(value)
         self.data[key] = item  # type: ignore
-        item.touch()  # type: ignore
+        item.dirty()  # type: ignore
         if _LOG_DEBUG:
-            _logger.debug("UserDictCache setitem: %s: %s", str(key), str(item))
+            _logger.debug("DictCache setitem: %s: %s", str(key), str(item))
 
     def purge(self, num: int) -> None:
         """Purge the cache of count items."""

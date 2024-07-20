@@ -1,15 +1,15 @@
-"""Tests for the DirtyDictUGC class."""
+"""Tests for the UGCDirtyDict class."""
 import unittest
-from egppy.gc_types.ugc_class_factory import DirtyDictUGC
+from egppy.gc_types.ugc_class_factory import UGCDirtyDict
 from tests.test_gc_types.ugc_test_base import UGCTestBase
 
 
-class TestDirtyDictUGC(UGCTestBase):
+class TestUGCDirtyDict(UGCTestBase):
     """
-    Test case for DirtyDictUGC class.
+    Test case for UGCDirtyDict class.
     Test cases are inherited from UGCTestBase.
     """
-    ugc_type = DirtyDictUGC
+    ugc_type = UGCDirtyDict
 
     def test_clean(self) -> None:
         """

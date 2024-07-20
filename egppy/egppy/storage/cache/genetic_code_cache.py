@@ -4,7 +4,7 @@ from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.cache.dirty_cache import DirtyDictCache
-from egppy.gc_types.gc_abc import GCABC
+from egppy.gc_types.gc import GCABC
 
 
 # Standard EGP logging pattern

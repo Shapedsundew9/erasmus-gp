@@ -1,8 +1,7 @@
-"""Tests for the DirtyDictUGC class."""
+"""Tests for the DirtyUGCDict class."""
 from __future__ import annotations
 import unittest
-from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
-from egppy.gc_types.ugc_class_factory import UGCType, DictUGC
+from egppy.gc_types.ugc_class_factory import UGCType, UGCDict
 
 
 class UGCTestBase(unittest.TestCase):
@@ -11,7 +10,7 @@ class UGCTestBase(unittest.TestCase):
 
     """
     # The UGC class to test. Override this in subclasses.
-    ugc_type: type[UGCType] = DictUGC
+    ugc_type: type[UGCType] = UGCDict
 
     @classmethod
     def get_test_cls(cls) -> type[unittest.TestCase]:
@@ -32,9 +31,9 @@ class UGCTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.type: type[UGCType] = self.get_cls()
-        self.ugc: UGCType = self.type()
-        self.ugc1: UGCType = self.type()
-        self.ugc2: UGCType = self.type()
+        self.ugc: UGCType = self.type({})
+        self.ugc1: UGCType = self.type({})
+        self.ugc2: UGCType = self.type({})
 
     def test_set_item(self) -> None:
         """
@@ -144,7 +143,7 @@ class UGCTestBase(unittest.TestCase):
             return
         self.ugc['key'] = 'value'
         with self.assertRaises(expected_exception=AssertionError):
-            self.ugc.pop(key='key')
+            self.ugc.pop('key')
 
     def test_popitem(self) -> None:
         """
@@ -195,11 +194,11 @@ class UGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ugc1 = self.type()
+        self.ugc1 = self.type({})
         self.ugc1['key1'] = 'value1'
         self.ugc1['key2'] = 'value2'
 
-        self.ugc2 = self.type()
+        self.ugc2 = self.type({})
         self.ugc2['key1'] = 'value1'
         self.ugc2['key2'] = 'value2'
 
@@ -211,11 +210,11 @@ class UGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ugc1 = self.type()
+        self.ugc1 = self.type({})
         self.ugc1['key1'] = 'value1'
         self.ugc1['key2'] = 'value2'
 
-        self.ugc2 = self.type()
+        self.ugc2 = self.type({})
         self.ugc2['key1'] = 'value1'
         self.ugc2['key3'] = 'value3'
 
@@ -258,18 +257,3 @@ class UGCTestBase(unittest.TestCase):
         self.assertEqual(first=self.ugc['key2'], second='value2')
         self.assertEqual(first=self.ugc['key3'], second='value3')
         self.assertTrue(expr=self.ugc.is_dirty())
-
-    def test_copyback(self) -> None:
-        """
-        Test the copyback method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.ugc['key1'] = 'value1'
-        self.ugc['key2'] = 'value2'
-        self.ugc['key3'] = 'value3'
-
-        copy: CacheableDirtyDict = self.ugc.copyback()
-        self.assertEqual(first=copy['key1'], second='value1')
-        self.assertEqual(first=copy['key2'], second='value2')
-        self.assertEqual(first=copy['key3'], second='value3')

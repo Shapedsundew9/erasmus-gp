@@ -30,7 +30,8 @@ class CacheableObjABC(StorableObjABC):
     def dirty(self) -> None:
         """Mark the object as dirty.
         dirty() is the opposite of clean(). A dirty CacheableObjABC has been modified
-        since it was cleaned using the clean() method."""
+        since it was cleaned using the clean() method. Dirtying an object also touches
+        it (see touch())"""
         raise NotImplementedError("CacheableObjABC.dirty must be overridden")
 
     @abstractmethod

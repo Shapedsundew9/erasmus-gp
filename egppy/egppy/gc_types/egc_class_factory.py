@@ -7,8 +7,9 @@ genetic code object avoiding all the derived data.
 """
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
+from egppy.gc_types.gc import GCABC, GCMixin, GCProtocol, NULL_GC
+from egppy.storage.cache.cacheable_obj import CacheableDict
 
 
 # Standard EGP logging pattern
@@ -18,26 +19,10 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GCMixin:
-    """Genetic Code Mixin Class.
-    
-    Common methods for all genetic code classes.
-    """
+class EGCMixin(GCMixin):
+    """Embryonic Genetic Code Mixin Class."""
 
-
-class EGCBase(GCBase):
-    """Embryonic Genetic Code Base Class."""
-
-    def __init__(self, *args, **kwargs) -> None:
-        """Constructor for EGC.
-        An EGC can take any GCABC object as an argument or a dictionary. Only required
-        key:value pairs will be copied and the rest will be ignored. The required key:value
-        pairs not in the dictionary/GCABC will be set to defaults.
-        """
-        gcabc: GCABC | dict[str, Any] = args[0] if args else kwargs
-        self.set_members(gcabc)
-
-    def consistency(self) -> None:
+    def consistency(self: GCProtocol) -> None:
         """Check the genetic code object for consistency.
 
         Raises:
@@ -61,7 +46,7 @@ class EGCBase(GCBase):
                 raise ValueError(
                     "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL.")
 
-    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
+    def set_members(self: GCProtocol, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
 
         Args:
@@ -74,7 +59,7 @@ class EGCBase(GCBase):
         self['ancestorb']=gcabc.get('ancestorb', NULL_GC)
         self['pgc']=gcabc.get('pgc', NULL_GC)
 
-    def verify(self) -> None:
+    def verify(self: GCProtocol) -> None:
         """Verify the genetic code object.
 
         Raises:
@@ -94,19 +79,22 @@ class EGCBase(GCBase):
             raise ValueError("pgc must be a genetic code object")
 
 
-class DirtyDictEGC(GCIllegal, CacheableDirtyDict, EGCBase, GCABC):
-    """Dirty Dict Embryonic Genetic Code Class."""
+class EGCDirtyDict(CacheableDirtyDict, EGCMixin, GCABC):
+    """Dirty Dictionary Embryonic Genetic Code Class."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Constructor for DirtyDictEGC."""
-        CacheableDirtyDict.__init__(self, *args, **kwargs)
-        EGCBase.__init__(self, *args, **kwargs)
+    def __init__(self, gcabc: GCABC | dict[str, Any]) -> None:
+        """Constructor for DirtyDictEGC"""
+        super().__init__()
+        self.set_members(gcabc)  # type: ignore
 
 
-class DictEGC(CacheableDict, EGCBase, GCABC):
-    """Dict Embryonic Genetic Code Class."""
+class EGCDict(CacheableDict, EGCMixin, GCABC):
+    """Dirty Dictionary Embryonic Genetic Code Class."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Constructor for DictEGC."""
-        CacheableDict.__init__(self, *args, **kwargs)
-        EGCBase.__init__(self, *args, **kwargs)
+    def __init__(self, gcabc: GCABC | dict[str, Any]) -> None:
+        """Constructor for DirtyDictEGC"""
+        super().__init__()
+        self.set_members(gcabc)  # type: ignore
+
+
+EGCType = EGCDirtyDict | EGCDict

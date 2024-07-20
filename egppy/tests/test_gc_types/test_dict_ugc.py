@@ -1,15 +1,15 @@
-"""Test case for DictUGC class."""
+"""Test case for UGCDict class."""
 import unittest
-from egppy.gc_types.ugc_class_factory import DictUGC
+from egppy.gc_types.ugc_class_factory import UGCDict
 from tests.test_gc_types.ugc_test_base import UGCTestBase
 
 
-class TestDictUGC(UGCTestBase):
+class TestUGCDict(UGCTestBase):
     """
-    Test case for DictUGC class.
+    Test case for UGCDict class.
     Test cases are inherited from UGCTestBase.
     """
-    ugc_type = DictUGC
+    ugc_type = UGCDict
 
 
 if __name__ == '__main__':
