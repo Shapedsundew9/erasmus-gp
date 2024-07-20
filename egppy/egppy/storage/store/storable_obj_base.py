@@ -13,3 +13,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class StorableObjBase(CommonObjBase, CommonObjABC):
     """Storable Base class has methods generic to all storable objects classes."""
+
+    def modified(self) -> tuple[str | int, ...] | bool:
+        """Mark the object as modified - always."""
+        return True

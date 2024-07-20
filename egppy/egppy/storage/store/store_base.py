@@ -18,4 +18,4 @@ class StoreBase(CommonObjBase, CommonObjABC):
     def __init__(self, flavor: type[StorableObjABC]) -> None:
         """All stores must have a flavor."""
         self.flavor: type[StorableObjABC] = flavor
-        super().__init__()
+        CommonObjBase.__init__(self)

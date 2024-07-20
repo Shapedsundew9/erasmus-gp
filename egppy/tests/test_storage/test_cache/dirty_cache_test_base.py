@@ -1,10 +1,10 @@
-"""Fast cache test base class."""
+"""Dirty cache test base class."""
 from os.path import join, dirname
 from json import load
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
-from egppy.storage.cache.dict_cache import DictCache
-from egppy.gc_types.ugc_class_factory import DictUGC
+from egppy.storage.cache.dirty_cache import DirtyDictCache
+from egppy.storage.cache.cacheable_obj import CacheableDict
 from tests.test_storage.store_test_base import StoreTestBase
 
 
@@ -12,15 +12,15 @@ from tests.test_storage.store_test_base import StoreTestBase
 NUM_CACHE_ITEMS = 5
 
 
-class FastCacheTestBase(StoreTestBase):
+class DirtyCacheTestBase(StoreTestBase):
     """Cache test base class."""
     json_data: list[dict]
-    store_type = DictCache
+    store_type = DirtyDictCache
     cache_config: CacheConfig = {
         "max_items": 0,
         "purge_count": 0,
-        "next_level": JSONFileStore(DictUGC),
-        "flavor": DictUGC
+        "next_level": JSONFileStore(CacheableDict),
+        "flavor": CacheableDict
     }
 
     @classmethod
@@ -37,9 +37,9 @@ class FastCacheTestBase(StoreTestBase):
 
     def setUp(self) -> None:
         self.cache_type: type[CacheABC] = self.get_cache_cls()
-        self.cache = self.cache_type(config=FastCacheTestBase.cache_config)
-        self.cache1 = self.cache_type(config=FastCacheTestBase.cache_config)
-        self.cache2 = self.cache_type(config=FastCacheTestBase.cache_config)
+        self.cache = self.cache_type(config=DirtyCacheTestBase.cache_config)
+        self.cache1 = self.cache_type(config=DirtyCacheTestBase.cache_config)
+        self.cache2 = self.cache_type(config=DirtyCacheTestBase.cache_config)
         # Store test base class test methods use the store* members
         self.store: CacheABC = self.cache
         self.store1: CacheABC = self.cache1
@@ -55,33 +55,33 @@ class FastCacheTestBase(StoreTestBase):
         if self.running_in_test_base_class():
             return
         for item in self.json_data[:NUM_CACHE_ITEMS]:
-            self.cache[item['signature']] = DictUGC(item)
+            self.cache[item['signature']] = CacheableDict(item)
         self.assertFalse(expr=len(self.cache.next_level))  # Nothing has been pushed to store yet
         self.cache.copyback()
         for item in self.json_data[:NUM_CACHE_ITEMS]:  # All items are in the store
             stored_item = self.cache.next_level[item['signature']]
-            self.assertEqual(first=DictUGC(stored_item), second=DictUGC(item))
+            self.assertEqual(first=CacheableDict(stored_item), second=CacheableDict(item))
 
     def test_flush(self) -> None:
         """Test the flush method."""
         if self.running_in_test_base_class():
             return
         for item in self.json_data[:NUM_CACHE_ITEMS]:
-            self.cache[item['signature']] = DictUGC(item)
+            self.cache[item['signature']] = CacheableDict(item)
         self.cache.flush()
         for item in self.json_data[:NUM_CACHE_ITEMS]:  # Nothing put in the cache is still there
             self.assertNotIn(member=item['signature'], container=self.cache)
         self.assertFalse(expr=len(self.cache))  # Cache is empty
         for item in self.json_data[:NUM_CACHE_ITEMS]:  # All items are in the store
             stored_item = self.cache.next_level[item['signature']]
-            self.assertEqual(first=DictUGC(stored_item), second=DictUGC(item))
+            self.assertEqual(first=CacheableDict(stored_item), second=CacheableDict(item))
 
     def test_purge(self) -> None:
         """purge method is not supported for dict caches."""
         if self.running_in_test_base_class():
             return
         for item in self.json_data[:NUM_CACHE_ITEMS]:
-            self.cache[item['signature']] = DictUGC(item)
+            self.cache[item['signature']] = CacheableDict(item)
         self.cache.purge(num=1)
         self.assertEqual(first=len(self.cache), second=NUM_CACHE_ITEMS-1)
 
@@ -90,6 +90,6 @@ class FastCacheTestBase(StoreTestBase):
         if self.running_in_test_base_class():
             return
         for item in self.json_data[:NUM_CACHE_ITEMS]:
-            self.cache[item['signature']] = DictUGC(item)
+            self.cache[item['signature']] = CacheableDict(item)
         # In a dict cache the touch method has no real use case
         self.cache[self.json_data[0]['signature']].touch()

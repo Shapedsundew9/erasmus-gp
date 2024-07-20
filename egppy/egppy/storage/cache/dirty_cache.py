@@ -19,14 +19,14 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 
 
-class DictCache(dict[Hashable, CacheableObjABC], CacheBase, CacheMixin, CacheABC):
-    """An builtin python dictionary based fast cache.
+class DirtyDictCache(dict[Hashable, CacheableObjABC], CacheBase, CacheMixin, CacheABC):
+    """An builtin python dictionary based dirty cache.
     
-    Cache is a bit of a misnomer. A DictCache is a "one-way cache", like a temporary
+    Cache is a bit of a misnomer. A DirtyDictCache is a "one-way cache", like a temporary
     store with some convinient configuration to push data to the next level. It cannot
     pull data from the next level.
-    In order to use all the optimized builtin dict methods, a DictCache
-    does not track access order or dirty state, it cannot support
+    In order to use all the optimized builtin dict methods, a DirtyDictCache
+    does not track access order or dirty state, it cannot support automatic
     purging. That means it can only be of infinite size.
     """
 

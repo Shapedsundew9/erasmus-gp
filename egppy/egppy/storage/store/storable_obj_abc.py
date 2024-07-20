@@ -21,15 +21,15 @@ class StorableObjABC(Collection, CommonObjABC):
     objects in EGP. Storeable objects are objects that can be stored in a StoreABC that supports its
     subclass. They are serializable to JSON and can be re-created from their JSON representation.
     As a python type they are always a subclass of Collection.
+
+    Note that type(self)(self.to_json()) == self shall be True.
+    i.e. the object should be able to be re-created from its JSON representation when
+    it is passed to the constructor.
     """
 
     @abstractmethod
     def __init__(self, *args, **kwargs) -> None:
-        """Constructor for StoreableObjABC.
-        Note that type(self)(self.to_json()) == self shall be True.
-        i.e. the object should be able to be re-created from its JSON representation when
-        it is passed to the constructor.
-        """
+        """Initialize the Storeable object."""
         raise NotImplementedError("StoreableObjABC.__init__ must be overridden")
 
     @abstractmethod
@@ -41,15 +41,13 @@ class StorableObjABC(Collection, CommonObjABC):
         raise NotImplementedError("StoreableObjABC.to_json must be overridden")
 
     @abstractmethod
-    def modified(self) -> tuple[str | int, ...]:
-        """Return a tuple of modified fields.
-        Since the object is a collection, the modified method may be used by the StoreABC to
-        efficiently determine which fields have been modified and only update those in the store.
-        An empty tuple indicates that the object has not been modified and is the semantic
-        equivilent of a no-op.
+    def modified(self) -> tuple[str | int, ...] | bool:
+        """Return a tuple of modified fields or a boolean indicating if the object has been
+        modified. Since the object is a collection, the modified method may be used by the StoreABC
+        to efficiently determine which fields have been modified and only update those in the
+        store. An empty tuple is the same as returning False.
         A tuple of all fields indicates that the object has been completely modified and is
-        the semantic equivilent of a copy. The StoreABC may choose to optimize this case by
-        not checking for modifications and always updating all fields.
+        the semantic equivilent of returning True.
+        NOTE: Stores are not obligated to use this information, but it is provided for efficiency.
         """
         raise NotImplementedError("StoreableObjABC.modified must be overridden")
-

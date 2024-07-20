@@ -1,5 +1,4 @@
 """Cache Base class module."""
-from typing import ValuesView
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cache_abc import CacheConfig
@@ -23,19 +22,9 @@ class CacheBase(StoreBase):
         self.next_level: StoreABC = config["next_level"]
         super().__init__(config["flavor"])
         self.validate_cache_config(config)
-        assert isinstance(self.flavor, CacheableObjABC)
+        assert issubclass(self.flavor, CacheableObjABC)
         assert isinstance(self.next_level, StoreBase)
         self._convert = self.flavor != self.next_level.flavor
-
-    def __len__(self) -> int:
-        """Must be implemented by subclasses."""
-        raise NotImplementedError("CacheBase.__len__ must be overridden")
-
-    def consistency(self) -> None:
-        """Check the cache for self consistency."""
-        for value in self.values():
-            value.consistency()
-        super().consistency()
 
     def validate_cache_config(self, config: CacheConfig) -> None:
         """Validate the cache configuration."""
@@ -53,18 +42,3 @@ class CacheBase(StoreBase):
             raise ValueError("purge_count must be >= 0")
         if config["max_items"] < config["purge_count"]:
             raise ValueError("purge_count must be <= max_items")
-
-    def values(self) -> ValuesView[CacheableObjABC]:
-        """Must be implemented by subclasses."""
-        raise NotImplementedError
-
-    def verify(self) -> None:
-        """Verify the cache.
-        Every object stored in the cache is verified as well as basic
-        cache parameters.
-        """
-        for value in self.values():
-            value.verify()
-
-        assert len(self) <= self.max_items, "Cache size exceeds max_items."
-        super().verify()

@@ -2,13 +2,15 @@
 from __future__ import annotations
 from collections.abc import Hashable
 import unittest
+
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
+from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.in_memory_store import InMemoryStore
-from egppy.gc_types.null_gc import NULL_GC
 
 
 # Default values for test cases
+NULL_OBJ = StorableDict()
 DEFAULT_VALUES: tuple[dict[str, str], dict[str, int], dict[str, float]] = (
     {'k': 'value'},
     {'k1': 1243},
@@ -25,9 +27,9 @@ class StoreTestBase(unittest.TestCase):
     value_type = StorableObjABC
     # Instances of the Value class. Define these in setUpClass.
     # No values should compare equal.
-    value: StorableObjABC = NULL_GC
-    value1: StorableObjABC = NULL_GC
-    value2: StorableObjABC = NULL_GC
+    value: StorableObjABC = NULL_OBJ
+    value1: StorableObjABC = NULL_OBJ
+    value2: StorableObjABC = NULL_OBJ
     # Key values for testing. Override these in subclasses to different types.
     key: Hashable = 'key'
     key1: Hashable = 'key1'

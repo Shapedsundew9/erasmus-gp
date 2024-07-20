@@ -1,20 +1,18 @@
 """Test the Multi-level Caches."""
-from egppy.storage.cache.user_dict_cache import UserDictCache
-from egppy.storage.cache.dict_cache import DictCache
-from egppy.storage.cache.cacheable_obj import CacheableDict
-from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
-from egppy.storage.cache.cacheable_dirty_list import CacheableDirtyList
+from egppy.storage.cache.cache import DictCache
+from egppy.storage.cache.dirty_cache import DirtyDictCache
+from egppy.storage.cache.cacheable_obj import CacheableDict, CacheableList
+from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict, CacheableDirtyList
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.storage.cache.cacheable_list import CacheableList
 from egppy.storage.store.in_memory_store import InMemoryStore
 from tests.test_storage.test_cache.multilevel_cache_test_base import (
     MultilevelCacheTestBase, SECOND_LEVEL_CACHE_SIZE)
 
 
 class TestMultiLevelCache11(MultilevelCacheTestBase):
-    """Test case multilevel caches using UserDictCache and CacheableDicts uniformly."""
-    first_level_cache_type = UserDictCache
-    second_level_cache_type = UserDictCache
+    """Test case multilevel caches using DictCache and CacheableDicts uniformly."""
+    first_level_cache_type = DictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableDict
     second_level_value_type = CacheableDict
@@ -22,9 +20,9 @@ class TestMultiLevelCache11(MultilevelCacheTestBase):
 
 
 class TestMultiLevelCache12(MultilevelCacheTestBase):
-    """Test case multilevel caches using UserDictCache and CacheableDirtyDicts uniformly."""
-    first_level_cache_type = UserDictCache
-    second_level_cache_type = UserDictCache
+    """Test case multilevel caches using DictCache and CacheableDirtyDicts uniformly."""
+    first_level_cache_type = DictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableDirtyDict
     second_level_value_type = CacheableDirtyDict
@@ -32,9 +30,9 @@ class TestMultiLevelCache12(MultilevelCacheTestBase):
 
 
 class TestMultiLevelCache13(MultilevelCacheTestBase):
-    """Test case multilevel caches using UserDictCache and CacheableLists uniformly."""
-    first_level_cache_type = UserDictCache
-    second_level_cache_type = UserDictCache
+    """Test case multilevel caches using DictCache and CacheableLists uniformly."""
+    first_level_cache_type = DictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableList
     second_level_value_type = CacheableList
@@ -47,9 +45,9 @@ class TestMultiLevelCache13(MultilevelCacheTestBase):
 
 
 class TestMultiLevelCache14(MultilevelCacheTestBase):
-    """Test case multilevel caches using UserDictCache and CacheableDirtyLists uniformly."""
-    first_level_cache_type = UserDictCache
-    second_level_cache_type = UserDictCache
+    """Test case multilevel caches using DictCache and CacheableDirtyLists uniformly."""
+    first_level_cache_type = DictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableDirtyList
     second_level_value_type = CacheableDirtyList
@@ -63,9 +61,9 @@ class TestMultiLevelCache14(MultilevelCacheTestBase):
 
 class TestMultiLevelCache21(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
-    UserDictCache as a second level with CacheableDicts."""
-    first_level_cache_type = DictCache
-    second_level_cache_type = UserDictCache
+    DictCache as a second level with CacheableDicts."""
+    first_level_cache_type = DirtyDictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableDict
     second_level_value_type = CacheableDict
@@ -74,9 +72,9 @@ class TestMultiLevelCache21(MultilevelCacheTestBase):
 
 class TestMultiLevelCache22(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
-    UserDictCache as a second level with CacheableDirtyDicts."""
-    first_level_cache_type = DictCache
-    second_level_cache_type = UserDictCache
+    DictCache as a second level with CacheableDirtyDicts."""
+    first_level_cache_type = DirtyDictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableDirtyDict
     second_level_value_type = CacheableDirtyDict
@@ -85,9 +83,9 @@ class TestMultiLevelCache22(MultilevelCacheTestBase):
 
 class TestMultiLevelCache23(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
-    UserDictCache as a second level with CacheableLists."""
-    first_level_cache_type = DictCache
-    second_level_cache_type = UserDictCache
+    DictCache as a second level with CacheableLists."""
+    first_level_cache_type = DirtyDictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableList
     second_level_value_type = CacheableList
@@ -101,9 +99,9 @@ class TestMultiLevelCache23(MultilevelCacheTestBase):
 
 class TestMultiLevelCache24(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
-    UserDictCache as a second level with CacheableDirtyLists."""
-    first_level_cache_type = DictCache
-    second_level_cache_type = UserDictCache
+    DictCache as a second level with CacheableDirtyLists."""
+    first_level_cache_type = DirtyDictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     first_level_value_type = CacheableDirtyList
     second_level_value_type = CacheableDirtyList

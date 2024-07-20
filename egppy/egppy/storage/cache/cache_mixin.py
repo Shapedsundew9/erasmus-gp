@@ -1,6 +1,6 @@
 """Cache Base class module."""
 from typing import Protocol
-from collections.abc import ItemsView, Hashable
+from collections.abc import ItemsView, Hashable, ValuesView
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -62,9 +62,20 @@ class CacheMixinProtocol(Protocol):
     def purge(self, num: int) -> None:
         """Protocol placeholder for purge method."""
 
+    def values(self) -> ValuesView:
+        """Protocol placeholder for values method."""
+        ...  #  pylint: disable=unnecessary-ellipsis
+
 
 class CacheMixin():
     """Cache Base class has methods generic to all cache classes."""
+
+
+    def consistency(self: CacheMixinProtocol) -> None:
+        """Check the cache for self consistency."""
+        for value in self.values():
+            value.consistency()
+        super().consistency()
 
     def copyback(self: CacheMixinProtocol) -> None:
         """Copy the cache back to the next level."""
@@ -104,3 +115,14 @@ class CacheMixin():
             assert length == self.max_items, (f"Cache length ({length}) is greater"
                 f" than max_items ({self.max_items})")
             self.purge(num=self.purge_count)
+
+    def verify(self: CacheMixinProtocol) -> None:
+        """Verify the cache.
+        Every object stored in the cache is verified as well as basic
+        cache parameters.
+        """
+        for value in self.values():
+            value.verify()
+
+        assert len(self) <= self.max_items, "Cache size exceeds max_items."
+        super().verify()

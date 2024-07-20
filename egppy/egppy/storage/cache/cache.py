@@ -1,6 +1,6 @@
 """A python dictionary based cache."""
-from typing import Any, Callable, MutableMapping
-from collections.abc import Hashable
+from typing import Any, Callable
+from collections.abc import Hashable, Iterator
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cache_base import CacheBase
@@ -19,14 +19,19 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 
 
-class UserDictCache(CacheBase, CacheMixin, CacheABC):
-    """User dictionary based cache. A UserDict has less optimized methods 
-    than a builtin dict but is more flexible and can be subclassed more easily."""
+class DictCache(CacheBase, CacheMixin, CacheABC):
+    """Dictionary based cache. The cache functions wrap the builtin dict methods.
+    Providing all the automated function of a cache with a small overhead.
+    """
 
     def __init__(self, config: CacheConfig) -> None:
         """Initialize the cache."""
         super().__init__(config=config)
         self.data: dict[Hashable, CacheableObjABC] = {}
+
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the cache."""
+        return iter(self.data)
 
     def __len__(self) -> int:
         """Return the number of items in the cache."""
@@ -80,8 +85,3 @@ class UserDictCache(CacheBase, CacheMixin, CacheABC):
             _logger.debug("UserDictCache purge %d items.", len(victims))
         for key, _ in victims:
             del self[key]
-
-class test(MutableMapping):
-
-    def a(self):
-        self.setdefault(1, 2)

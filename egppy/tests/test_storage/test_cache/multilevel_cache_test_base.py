@@ -6,8 +6,8 @@ from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.in_memory_store import InMemoryStore
 from egppy.storage.cache.cacheable_obj import CacheableDict
-from egppy.storage.cache.user_dict_cache import UserDictCache
-from egppy.storage.cache.dict_cache import DictCache
+from egppy.storage.cache.cache import DictCache
+from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -23,8 +23,8 @@ class MultilevelCacheTestBase(unittest.TestCase):
     """Test case for multilevel cache classes."""
 
     # The Store class to test. Override this in subclasses.
-    first_level_cache_type = UserDictCache
-    second_level_cache_type = UserDictCache
+    first_level_cache_type = DictCache
+    second_level_cache_type = DictCache
     store_type = InMemoryStore
     # The Value class to test. Override this in subclasses.
     first_level_value_type = CacheableDict
@@ -89,8 +89,8 @@ class MultilevelCacheTestBase(unittest.TestCase):
         })
         flc_type = self.get_first_level_cache_cls()
         self.first_level_cache = flc_type({
-            "max_items": FIRST_LEVEL_CACHE_SIZE if flc_type is not DictCache else 0, 
-            "purge_count": FIRST_LEVEL_CACHE_SIZE // 2 if flc_type is not DictCache else 0,
+            "max_items": FIRST_LEVEL_CACHE_SIZE if flc_type is not DirtyDictCache else 0, 
+            "purge_count": FIRST_LEVEL_CACHE_SIZE // 2 if flc_type is not DirtyDictCache else 0,
             "next_level": self.second_level_cache,
             "flavor": self.get_first_level_value_cls()
         })
@@ -106,7 +106,7 @@ class MultilevelCacheTestBase(unittest.TestCase):
         # The store should have the items from the second level cache that were purged
         # That is the first quarter of the values if it is not a DictCache else it is half
         # DictCache does not automatically copyback()
-        if self.get_first_level_cache_cls() is DictCache:
+        if self.get_first_level_cache_cls() is DirtyDictCache:
             # Second level cache is empty until we copyback from the 1st level cache
             self.assertEqual(first=len(self.second_level_cache), second=0)
             self.first_level_cache.copyback()
@@ -122,7 +122,7 @@ class MultilevelCacheTestBase(unittest.TestCase):
             self.assertEqual(first=self.first_level_cache[i], second=v)
         # To get everything in the store when using a DictCache, the copythrough() method
         # must be called.
-        if self.get_first_level_cache_cls() is DictCache:
+        if self.get_first_level_cache_cls() is DirtyDictCache:
             self.first_level_cache.copythrough()
         # The store should have all the items
         self.assertEqual(first=len(self.store), second=2 * SECOND_LEVEL_CACHE_SIZE)
@@ -135,7 +135,7 @@ class MultilevelCacheTestBase(unittest.TestCase):
             for v in range(2**i // 2, 2**i):
                 self.first_level_cache[v] = self.values[v]
             # DictCache does not automatically copyback()
-            if self.get_first_level_cache_cls() is DictCache:
+            if self.get_first_level_cache_cls() is DirtyDictCache:
                 self.first_level_cache.copyback()
             for v in range(2**i // 4, 2**i // 2):
                 self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
@@ -144,7 +144,7 @@ class MultilevelCacheTestBase(unittest.TestCase):
         self.assertEqual(first=len(self.second_level_cache), second=SECOND_LEVEL_CACHE_SIZE)
         # To get everything in the store when using a DictCache, the copythrough() method
         # must be called.
-        if self.get_first_level_cache_cls() is DictCache:
+        if self.get_first_level_cache_cls() is DirtyDictCache:
             self.first_level_cache.copythrough()
         self.assertEqual(first=len(self.store), second=2 * SECOND_LEVEL_CACHE_SIZE)
 
@@ -155,7 +155,7 @@ class MultilevelCacheTestBase(unittest.TestCase):
         for i, v in enumerate(self.values):
             self.first_level_cache[i] = v
         # DictCache does not automatically copyback()
-        if self.get_first_level_cache_cls() is DictCache:
+        if self.get_first_level_cache_cls() is DirtyDictCache:
             self.first_level_cache.copyback()
         # Once without replacement to ensure everything is read at least once
         for v in sample(list(range(len(self.values))), k = len(self.values)):
@@ -164,6 +164,6 @@ class MultilevelCacheTestBase(unittest.TestCase):
             self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
         # To get everything in the store when using a DictCache, the copythrough() method
         # must be called.
-        if self.get_first_level_cache_cls() is DictCache:
+        if self.get_first_level_cache_cls() is DirtyDictCache:
             self.first_level_cache.copythrough()
         self.assertEqual(first=len(self.store), second=2 * SECOND_LEVEL_CACHE_SIZE)

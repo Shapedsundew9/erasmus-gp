@@ -2,9 +2,9 @@
 from logging import Logger, NullHandler, getLogger, DEBUG
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
-from egppy.storage.cache.user_dict_cache import UserDictCache
-from egppy.gc_types.ugc_class_factory import DictUGC
-from tests.test_storage.test_cache.fast_cache_test_base import FastCacheTestBase, NUM_CACHE_ITEMS
+from egppy.storage.cache.cache import DictCache
+from egppy.storage.cache.cacheable_obj import CacheableDict
+from tests.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase, NUM_CACHE_ITEMS
 
 
 # Standard EGP logging pattern
@@ -18,14 +18,14 @@ MAX_NUM_CACHE_ITEMS = 2 * NUM_CACHE_ITEMS
 NUM_CACHE_PURGE_ITEMS = NUM_CACHE_ITEMS  # i.e. 50%
 
 
-class CacheTestBase(FastCacheTestBase):
+class CacheTestBase(DirtyCacheTestBase):
     """Cache test base class."""
-    store_type = UserDictCache
+    store_type = DictCache
     cache_config: CacheConfig = {
         "max_items": MAX_NUM_CACHE_ITEMS,
         "purge_count": NUM_CACHE_PURGE_ITEMS,
-        "next_level": JSONFileStore(DictUGC),
-        "flavor": DictUGC
+        "next_level": JSONFileStore(CacheableDict),
+        "flavor": CacheableDict
     }
 
     @classmethod
@@ -55,9 +55,9 @@ class CacheTestBase(FastCacheTestBase):
             return
         # Add an item to the next level
         item = self.json_data[0]
-        self.cache.next_level[item['signature']] = DictUGC(item)
+        self.cache.next_level[item['signature']] = CacheableDict(item)
         # Get the item from the cache
-        self.assertEqual(first=self.cache[item['signature']], second=DictUGC(item))
+        self.assertEqual(first=self.cache[item['signature']], second=CacheableDict(item))
 
     def test_purge(self) -> None:
         """Purge method is called by over filling the cache."""
@@ -65,7 +65,7 @@ class CacheTestBase(FastCacheTestBase):
             return
         # Overfill the cache by one item to trigger a purge
         for item in self.json_data[:MAX_NUM_CACHE_ITEMS + 1]:
-            self.cache[item['signature']] = DictUGC(item)
+            self.cache[item['signature']] = CacheableDict(item)
         post_num = MAX_NUM_CACHE_ITEMS + 1 - NUM_CACHE_PURGE_ITEMS
         self.assertEqual(first=len(self.cache), second=post_num)
         # The cache should have purged the oldest items
@@ -84,11 +84,11 @@ class CacheTestBase(FastCacheTestBase):
             return
         # Exactly fill the cache with items
         for item in self.json_data[:MAX_NUM_CACHE_ITEMS]:
-            self.cache[item['signature']] = DictUGC(item)
+            self.cache[item['signature']] = CacheableDict(item)
         # Touch the first item
         self.cache[self.json_data[0]['signature']].touch()
         # Add another item to the cache causing a purge
         item = self.json_data[MAX_NUM_CACHE_ITEMS]
-        self.cache[item['signature']] = DictUGC(item)
+        self.cache[item['signature']] = CacheableDict(item)
         # The first item should still be in the cache
         self.assertIn(member=self.json_data[0]['signature'], container=self.cache)
