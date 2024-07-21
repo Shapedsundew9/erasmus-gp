@@ -56,6 +56,7 @@ SRC_ONLY_ROWS: tuple[SourceRow, ...] = tuple(sorted({SourceRow.I}))
 ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
 EP_CLS_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
 ALL_ROWS_STR: str = "".join(ROWS)
+GRAPH_ORDER: str = "IFABOP"
 ROW_CLS_INDEXED: tuple[str, ...] = (tuple(f"{row}{EPClsPostfix.SRC}" for row in SOURCE_ROWS)
     + tuple(f"{row}{EPClsPostfix.DST}" for row in DESTINATION_ROWS))
 # Valid source rows for a given row.
@@ -150,6 +151,6 @@ class EndPointTypeLookup(TypedDict):
     instanciation: dict[int, InstanciationType]
 
 
-def ep_cls_str_to_ep_cls_int(ep_cls_str: str) -> EndPointClass:
+def str2epcls(ep_cls_str: str) -> EndPointClass:
     """Convert an end point class string to an end point class integer."""
     return EndPointClass.SRC if ep_cls_str == EPClsPostfix.SRC else EndPointClass.DST

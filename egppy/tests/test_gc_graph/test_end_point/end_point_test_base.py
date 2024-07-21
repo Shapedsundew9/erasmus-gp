@@ -1,8 +1,8 @@
 """Unit tests for the End Point classes."""
 from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
 from egppy.gc_graph.ep_type import ep_type_lookup
-from egppy.gc_graph.end_point.builtin_end_point import (BuiltinEndPoint, BuiltinSrcEndPointRef,
-    BuiltinDstEndPointRef)
+from egppy.gc_graph.end_point.end_point import (EndPoint, SrcEndPointRef,
+    DstEndPointRef)
 from egppy.gc_graph.egp_typing import ROWS, DestinationRow, EndPointClass, SourceRow
 
 
@@ -10,9 +10,9 @@ class EndPointTestBase(XEndPointRefTestBase):
     """Test cases for the EndPointRef class."""
 
     # Override this in subclasses.
-    endpoint_type = BuiltinEndPoint
-    src_ref_type = BuiltinSrcEndPointRef
-    dst_ref_type = BuiltinDstEndPointRef
+    endpoint_type = EndPoint
+    src_ref_type = SrcEndPointRef
+    dst_ref_type = DstEndPointRef
 
     @classmethod
     def get_src_ref_cls(cls) -> type:

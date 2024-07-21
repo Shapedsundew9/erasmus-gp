@@ -1,14 +1,14 @@
 """Unit tests for the GenericEndpoint class."""
 import unittest
 from egppy.gc_graph.egp_typing import ROWS
-from egppy.gc_graph.end_point.builtin_end_point import BuiltinGenericEndPoint
+from egppy.gc_graph.end_point.end_point import GenericEndPoint
 
 
 class GenericEndPointTestBase(unittest.TestCase):
     """Test cases for the GenericEndPoint class."""
 
     # Override this in subclasses.
-    endpoint_type = BuiltinGenericEndPoint
+    endpoint_type = GenericEndPoint
 
     @classmethod
     def get_test_cls(cls) -> type:

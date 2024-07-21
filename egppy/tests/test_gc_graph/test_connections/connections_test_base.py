@@ -1,7 +1,7 @@
 """Base class of connections tests."""
 import unittest
 from egppy.gc_graph.connections.connections_class_factory import TupleConnections
-from egppy.gc_graph.end_point.builtin_end_point import BuiltinSrcEndPointRef, BuiltinDstEndPointRef
+from egppy.gc_graph.end_point.end_point import SrcEndPointRef, DstEndPointRef
 from egppy.gc_graph.egp_typing import DestinationRow, SourceRow
 
 
@@ -33,7 +33,7 @@ class ConnectionsTestBase(unittest.TestCase):
     def setUp(self) -> None:
         self.connections_type = self.get_connections_cls()
         self.connections = self.connections_type([[
-            BuiltinSrcEndPointRef(DestinationRow.A, i)] for i in range(4)])
+            SrcEndPointRef(DestinationRow.A, i)] for i in range(4)])
 
     def test_len(self) -> None:
         """Test the length of the connections."""
@@ -46,8 +46,8 @@ class ConnectionsTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         for idx, ept in enumerate(self.connections):
-            self.assertEqual(ept, [BuiltinSrcEndPointRef(DestinationRow.A, idx)])
-            self.assertEqual(self.connections[idx], [BuiltinSrcEndPointRef(DestinationRow.A, idx)])
+            self.assertEqual(ept, [SrcEndPointRef(DestinationRow.A, idx)])
+            self.assertEqual(self.connections[idx], [SrcEndPointRef(DestinationRow.A, idx)])
 
     def test_consistency(self) -> None:
         """Test the consistency of the connections."""
@@ -60,8 +60,8 @@ class ConnectionsTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         with self.assertRaises(AssertionError):
-            conns = TupleConnections([[BuiltinSrcEndPointRef(DestinationRow.O, 0),
-                                       BuiltinDstEndPointRef(SourceRow.I, 0)] * 4])
+            conns = TupleConnections([[SrcEndPointRef(DestinationRow.O, 0),
+                                       DstEndPointRef(SourceRow.I, 0)] * 4])
             conns.consistency()
 
     def test_verify(self) -> None:
@@ -77,7 +77,7 @@ class ConnectionsTestBase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
             conns = self.connections_type([[
-                BuiltinSrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)])
+                SrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)])
             conns.verify()
 
 if __name__ == '__main__':

@@ -1,14 +1,15 @@
 """Base class for GC graph objects."""
 from __future__ import annotations
-from typing import Any, cast, Iterable
+from typing import Any, Generator, Protocol
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
-from egppy.gc_graph.end_point.builtin_end_point import BuiltinEndPoint
+from egppy.gc_graph.end_point.end_point import EndPoint
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
+from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
+from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.ep_type import ep_type_lookup
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
-from egppy.gc_graph.egp_typing import (SourceRow, ep_cls_str_to_ep_cls_int, Row, ROWS, EndPointType,
+from egppy.gc_graph.egp_typing import (SourceRow,
     EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED)
 
 
@@ -19,10 +20,46 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
+class GCGraphProtocol(Protocol):
+    """Genetic Code Graph Protocol."""
+
+    def __contains__(self, key: str) -> bool:
+        """Return True if the endpoint exists."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def __delitem__(self, key: str) -> None:
+        """Delete the endpoint with the given key."""
+
+    def __getitem__(self, key: str) -> Any:
+        """Get the endpoint with the given key."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Set the endpoint with the given key to the given value."""
+
+    def conditional_graph(self) -> bool:
+        """Return True if the graph is conditional i.e. has row F."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def consistency(self) -> None:
+        """Check the consistency of the GC graph."""
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get the endpoint with the given key."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def to_json(self) -> dict[str, Any]:
+        """Return a JSON GC Graph."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def verify(self) -> None:
+        """Verify the GC graph."""
+
+
 class GCGraphMixin(CacheableObjMixin):
     """Base class for GC graph objects."""
 
-    def __init__(self, json_gc_graph: dict[str, list[list[Any]]]) -> None:
+    def __init__(self: GCGraphProtocol, json_gc_graph: dict[str, list[list[Any]]]) -> None:
         """Initialize the GC graph."""
         if _LOG_VERIFY:
             self.verify()
@@ -31,25 +68,47 @@ class GCGraphMixin(CacheableObjMixin):
             assert self.to_json() == json_gc_graph, "JSON GC Graph consistency failure."
         super().__init__()
 
-    def conditional_graph(self) -> bool:
-        """Return True if the graph is conditional i.e. has row F."""
-        raise NotImplementedError("GCGraphMixin.conditional_graph must be overridden")
+    def __contains__(self: GCGraphProtocol, key: object) -> bool:
+        """Return True if the row, interface or endpoint exists."""
+        if isinstance(key, str):
+            keylen = len(key)
+            if keylen == 1:  # Its a row
+                return self.get(key + 'd', EMPTY_INTERFACE) is not EMPTY_INTERFACE or \
+                    self.get(key + 's', EMPTY_INTERFACE) is not EMPTY_INTERFACE
+            if keylen == 2:  # Its an interface
+                return self.get(key, EMPTY_INTERFACE) is not EMPTY_INTERFACE
+            if keylen == 3:  # Its connections
+                return self.get(key, EMPTY_CONNECTIONS) is not EMPTY_CONNECTIONS
+            if keylen == 5:  # Its an endpoint
+                iface = self.get(key[0] + key[4], EMPTY_INTERFACE)
+                return len(iface) > int(key[1:4]) + 1
+        return False  # Its none of the above!
 
-    def consistency(self) -> None:
+    def __iter__(self: GCGraphProtocol) -> Generator[EndPoint, None, None]:
+        """Return an iterator over the GC graph end points."""
+        for key in ROW_CLS_INDEXED:
+            for idx in range(len(self[key])):
+                yield self[f"{key[0]}{idx:03d}{key[1]}"]
+
+    def conditional_graph(self: GCGraphProtocol) -> bool:
+        """Return True if the graph is conditional i.e. has row F."""
+        return 'F' in self
+
+    def consistency(self: GCGraphProtocol) -> None:
         """Check the consistency of the GC graph."""
         has_f = self.conditional_graph()
         # Check graph structure
         if has_f:
-            fi: InterfaceABC = self.get_interface('F' + EPClsPostfix.DST)
+            fi: InterfaceABC = self['F' + EPClsPostfix.DST]
             assert len(fi) == 1, f"Row F must only have one end point: {len(fi)}"
             assert fi[0] == ep_type_lookup['n2v']['bool'], f"F EP must be bool: {fi[0]}"
-            fc: ConnectionsABC = self.get_connections('F' + EPClsPostfix.DST)
+            fc: ConnectionsABC = self['F' + EPClsPostfix.DST + 'c']
             assert len(fc) == 1, f"Row F must only have one connection: {len(fc)}"
             assert fc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fc[0][0].get_row()}"
 
         for key in ROW_CLS_INDEXED:
-            iface = self.get_interface(key)
-            conns = self.get_connections(key)
+            iface = self[key]
+            conns = self[key + 'c']
             iface.consistency()
             conns.consistency()
             assert len(iface) == len(conns), f"Length mismatch: {len(iface)} != {len(conns)}"
@@ -60,9 +119,9 @@ class GCGraphMixin(CacheableObjMixin):
                     assert len(refs) == 1, f"Dst EPs must have one reference: {len(refs)}"
                     srow = refs[0].get_row()
                     assert srow in VALID_ROW_SOURCES[has_f], f"Invalid src row: {srow}"
-                    styp = self.get_interface(srow + EPClsPostfix.SRC)[refs[0].get_idx()]
+                    styp = self[srow + EPClsPostfix.SRC][refs[0].get_idx()]
                     assert iface[idx] == styp, f"Dst EP type mismatch: {iface[idx]} != {styp}"
-                    srefs = self.get_connections(srow + EPClsPostfix.SRC)[refs[0].get_idx()]
+                    srefs = self[srow + EPClsPostfix.SRC + 'c'][refs[0].get_idx()]
                     assert (key[0], idx) in srefs, f"Src not connected to Dst: {key[0]}[{idx}]"
             else:
                 # Check source connections
@@ -70,72 +129,35 @@ class GCGraphMixin(CacheableObjMixin):
                     for ref in refs:
                         drow = ref.get_row()
                         assert drow in VALID_ROW_DESTINATIONS[has_f], f"Invalid dst row: {drow}"
-                        dtyp = self.get_interface(drow + EPClsPostfix.DST)[ref.get_idx()]
+                        dtyp = self[drow + EPClsPostfix.DST][ref.get_idx()]
                         assert iface[idx] == dtyp, f"Src typ mismatch: {iface[idx]} != {dtyp}"
-                        drefs = self.get_connections(drow + EPClsPostfix.DST)[ref.get_idx()]
+                        drefs = self[drow + EPClsPostfix.DST + 'c'][ref.get_idx()]
                         assert (key[0], idx) in drefs, f"Dst not connected to src: {key[0]}[{idx}]"
 
-    def get_connections(self, key: str) -> ConnectionsABC:
-        """Return the connections object for the given key."""
-        raise NotImplementedError("GCGraphMixin.get_connections must be overridden")
+    def get(self: GCGraphProtocol, key: str, default: Any = None) -> Any:
+        """Get the endpoint with the given key."""
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
-    def get_endpoints(self, key: str) -> list[EndPointABC]:
-        """Return the endpoints for a given interface.
-        NOTE: Modification of the endpoints does not modify the graph.
-        To modify the graph use the set_endpoints() method.
+    def setdefault(self: GCGraphProtocol, key: str, default: Any) -> Any:
+        """Set the endpoint with the given key to the default if it does not exist."""
+        if key not in self:
+            self[key] = default
+        return self[key]
 
-        Args:
-            key: The interface/connections key i.e. "[row][s|d]".
-        """
-        if _LOG_VERIFY:
-            assert key[0] in ROWS, f"Invalid row: {key[0]}"
-            assert key[1] in ['s', 'd'], f"Invalid endpoint class: {key[1]}"
-
-        row = cast(Row, key[0])
-        cls = ep_cls_str_to_ep_cls_int(key[1])
-        iface = self.get_interface(key)
-        conns = self.get_connections(key)
-        return [BuiltinEndPoint(row=row, idx=idx, typ=iface[idx], cls=cls,
-            refs=conns[idx]) for idx in range(len(conns))]
-
-    def get_interface(self, key: str) -> InterfaceABC:
-        """Return the interface object for the given key."""
-        raise NotImplementedError("GCGraphMixin.get_interface must be overridden")
-
-    def set_connections(self, key: str,
-            conns: ConnectionsABC | Iterable[Iterable[XEndPointRefABC]]) -> None:
-        """Set the connections for a given interface.
-
-        Args:
-            key: The interface/connections key i.e. "[row][s|d]".
-            conns: The connections object.
-        """
-        raise NotImplementedError("GCGraphMixin.set_connections must be overridden")
-
-    def set_endpoints(self, key: str, endpoints: Iterable[EndPointABC]) -> None:
-        """Set the endpoints for a given interface."""
-        if _LOG_VERIFY:
-            assert key[0] in ROWS, f"Invalid row: {key[0]}"
-            assert key[1] in ['s', 'd'], f"Invalid endpoint class: {key[1]}"
-
-        self.set_connections(key, [ep.get_refs() for ep in endpoints])
-        self.set_interface(key, [ep.get_typ() for ep in endpoints])
-
-    def set_interface(self, key: str, iface: InterfaceABC | Iterable[EndPointType]) -> None:
-        """Set the interface for the given key."""
-        raise NotImplementedError("GCGraphMixin.set_interface must be overridden")
-
-    def to_json(self) -> dict[str, Any]:
+    def to_json(self: GCGraphProtocol) -> dict[str, Any]:
         """Return a JSON GC Graph."""
         jgcg: dict[str, list[list[Any]]] = {}
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST):
-            iface: InterfaceABC = self.get_interface(key)
-            conns: ConnectionsABC = self.get_connections(key)
+            iface: InterfaceABC = self[key]
+            conns: ConnectionsABC = self[key + 'c']
             jgcg[key[0]] = [[r[0].get_row(), r[0].get_idx(), i] for r, i in zip(conns, iface)]
         return jgcg
 
-    def verify(self) -> None:
+    def verify(self: GCGraphProtocol) -> None:
         """Verify the GC graph."""
         for key in ROW_CLS_INDEXED:
-            self.get_interface(key).verify()
-            self.get_connections(key).verify()
+            self[key].verify()
+            self[key].verify()

@@ -5,9 +5,10 @@ from random import randint
 from typing import cast
 from json import dump, load
 from os.path import join, dirname, exists
-from egppy.gc_graph.gc_graph_class_factory import BuiltinGCGraph
+from egppy.gc_graph.gc_graph_class_factory import StaticGCGraph
 from egppy.gc_graph.ep_type import ep_type_lookup, INVALID_EP_TYPE_VALUE
-from egppy.gc_graph.egp_typing import DestinationRow, EndPointType, Row, VALID_ROW_SOURCES, SOURCE_ROWS, SourceRow
+from egppy.gc_graph.egp_typing import (DestinationRow, EndPointType, Row, 
+    VALID_ROW_SOURCES, SOURCE_ROWS, SourceRow)
 
 
 _FOUR_EP_TYPES: tuple[EndPointType, ...] = (ep_type_lookup['n2v']['bool'],
@@ -46,7 +47,7 @@ def generate_valid_json_gc_graphs() -> list[dict[str, list[list]]]:
                 src_next_idx = {row: count() for row in SOURCE_ROWS}
                 src_positions = {}
                 for row in row_order:
-                    # Row only appears in JSON format GCG's for unconnected 
+                    # Row only appears in JSON format GCG's for unconnected
                     # sources so has the same connectivity as row O in standard graphs
                     dst_row = DestinationRow.O if row == 'U' else cast(Row, row)
                     for src in VALID_ROW_SOURCES[False][dst_row]:
@@ -70,7 +71,7 @@ class GCGraphTestBase(unittest.TestCase):
     """
 
     # The connections type to test. Define in subclass.
-    itype: type[BuiltinGCGraph] = BuiltinGCGraph
+    itype: type[StaticGCGraph] = StaticGCGraph
     jgcg_list: list[dict[str, list[list]]] = generate_valid_json_gc_graphs()
 
     @classmethod
@@ -94,3 +95,14 @@ class GCGraphTestBase(unittest.TestCase):
         self.gcg_type = self.get_gcg_cls()
         cls = self.get_test_cls()
         self.gcg = self.gcg_type(cls.jgcg_list[0])
+
+    def test_valid_graphs(self) -> None:
+        """Test the validity of the graphs."""
+        if self.running_in_test_base_class():
+            return
+        for idx, jgcg in enumerate(self.jgcg_list):
+            with self.subTest(idx=idx):
+                gcg = self.gcg_type(jgcg)
+                gcg.verify()
+                gcg.consistency()
+                self.assertEqual(gcg.to_json(), jgcg)

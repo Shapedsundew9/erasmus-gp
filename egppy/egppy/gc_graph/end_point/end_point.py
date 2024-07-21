@@ -15,7 +15,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class BuiltinGenericEndPoint(GenericEndPointMixin, GenericEndPointABC):
+class GenericEndPoint(GenericEndPointMixin, GenericEndPointABC):
     """Endpoint class using builtin collections."""
 
     def __init__(self, row: Row, idx: int) -> None:
@@ -40,19 +40,19 @@ class BuiltinGenericEndPoint(GenericEndPointMixin, GenericEndPointABC):
         self._row = row
 
 
-class BuiltinEndPointRef(BuiltinGenericEndPoint, EndPointRefMixin, EndPointRefABC):
+class EndPointRef(GenericEndPoint, EndPointRefMixin, EndPointRefABC):
     """Refers to an end point."""
 
 
-class BuiltinDstEndPointRef(BuiltinEndPointRef, DstEndPointRefMixin, XEndPointRefABC):
+class DstEndPointRef(EndPointRef, DstEndPointRefMixin, XEndPointRefABC):
     """Refers to a destination end point."""
 
 
-class BuiltinSrcEndPointRef(BuiltinEndPointRef, SrcEndPointRefMixin, XEndPointRefABC):
+class SrcEndPointRef(EndPointRef, SrcEndPointRefMixin, XEndPointRefABC):
     """Refers to a source end point."""
 
 
-class BuiltinEndPoint(BuiltinEndPointRef, EndPointMixin, EndPointABC):
+class EndPoint(EndPointRef, EndPointMixin, EndPointABC):
     """Endpoint class using builtin collections."""
 
     def __init__(self, row: Row, idx: int, typ: EndPointType,
@@ -65,7 +65,7 @@ class BuiltinEndPoint(BuiltinEndPointRef, EndPointMixin, EndPointABC):
 
     def as_ref(self) -> EndPointRefABC:
         """Return a reference to this end point."""
-        ref_cls = BuiltinSrcEndPointRef if self.is_src() else BuiltinDstEndPointRef
+        ref_cls = SrcEndPointRef if self.is_src() else DstEndPointRef
         return ref_cls(self._row, self._idx)
 
     def get_typ(self) -> EndPointType:

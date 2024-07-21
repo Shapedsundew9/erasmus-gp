@@ -1,6 +1,5 @@
 """The interfcae base class module."""
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.egp_typing import DST_ONLY_ROWS, SRC_ONLY_ROWS
 from egppy.gc_graph.interface.interface_mixin import INTERFACE_MAX_LENGTH
 
 # Standard EGP logging pattern

@@ -3,7 +3,7 @@ from typing import Iterable
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_graph.egp_typing import DestinationRow
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.gc_graph.end_point.builtin_end_point import BuiltinSrcEndPointRef
+from egppy.gc_graph.end_point.end_point import SrcEndPointRef
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.connections.connections_mixin import ConnectionsMixin
 
@@ -27,4 +27,4 @@ class TupleConnections(tuple, ConnectionsMixin, ConnectionsABC):
 
 
 EMPTY_CONNECTIONS: TupleConnections = TupleConnections(
-    ((BuiltinSrcEndPointRef(DestinationRow.A, 0),),))
+    ((SrcEndPointRef(DestinationRow.A, 0),),))

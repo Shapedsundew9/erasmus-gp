@@ -1,13 +1,13 @@
 """Unit tests for the Src & Dst EndpointRef classes."""
 from tests.test_gc_graph.test_end_point.end_point_ref_test_base import EndPointRefTestBase
 from egppy.gc_graph.egp_typing import EndPointClass
-from egppy.gc_graph.end_point.builtin_end_point import BuiltinDstEndPointRef
+from egppy.gc_graph.end_point.end_point import DstEndPointRef
 
 class XEndPointRefTestBase(EndPointRefTestBase):
     """Test cases for the EndPointRef class."""
 
     # Override this in subclasses.
-    endpoint_type = BuiltinDstEndPointRef
+    endpoint_type = DstEndPointRef
 
     def test_key(self) -> None:
         """

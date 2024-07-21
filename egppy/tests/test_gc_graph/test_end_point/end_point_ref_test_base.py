@@ -1,6 +1,6 @@
 """Unit tests for the EndpointRef class."""
 from tests.test_gc_graph.test_end_point.generic_end_point_test_base import GenericEndPointTestBase
-from egppy.gc_graph.end_point.builtin_end_point import BuiltinEndPointRef
+from egppy.gc_graph.end_point.end_point import EndPointRef
 from egppy.gc_graph.egp_typing import EndPointClass
 
 
@@ -8,7 +8,7 @@ class EndPointRefTestBase(GenericEndPointTestBase):
     """Test cases for the EndPointRef class."""
 
     # Override this in subclasses.
-    endpoint_type = BuiltinEndPointRef
+    endpoint_type = EndPointRef
 
     def test_eq(self) -> None:
         """
