@@ -100,8 +100,8 @@ class UGCTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.ugc['key'] = 'value'
-        with self.assertRaises(expected_exception=AssertionError):
-            self.ugc.clear()
+        self.ugc.clear()
+        self.assertEqual(first=len(self.ugc), second=0)
 
     def test_dirty(self) -> None:
         """
@@ -142,8 +142,8 @@ class UGCTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.ugc['key'] = 'value'
-        with self.assertRaises(expected_exception=AssertionError):
-            self.ugc.pop('key')
+        value = self.ugc.pop('key')
+        self.assertEqual(first=value, second='value')
 
     def test_popitem(self) -> None:
         """
@@ -152,8 +152,9 @@ class UGCTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.ugc['key'] = 'value'
-        with self.assertRaises(expected_exception=AssertionError):
-            self.ugc.popitem()
+        key, value = self.ugc.popitem()
+        self.assertEqual(first=key, second='key')
+        self.assertEqual(first=value, second='value')
 
     def test_keys(self) -> None:
         """

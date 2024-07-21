@@ -1,5 +1,5 @@
 """Cacheable Dictionary Base Class module."""
-from typing import Any, Iterator, Protocol
+from typing import Any, Iterable, Iterator, Protocol
 from copy import deepcopy
 from collections.abc import MutableMapping, MutableSequence, Sequence, MutableSet
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
@@ -79,15 +79,31 @@ class CacheableDict(CacheableObjBase, MutableMapping, CacheableObjMixin, Cacheab
     slower but relieves the user from having to keep track of the object's state.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, dictlike: Any = None) -> None:
         """Initialize the CacheableDict."""
-        self.data: dict[str, Any] = dict(*args, **kwargs)
+        if dictlike is not None:
+            if isinstance(dictlike, dict):
+                self.data: dict[str, Any] = deepcopy(dictlike)
+            elif isinstance(dictlike, CacheableDict):
+                self.data: dict[str, Any] = deepcopy(dictlike.data)
+            else:
+                self.data: dict[str, Any] = {str(k): deepcopy(v) for k, v in dictlike.items()}
+        else:
+            self.data: dict[str, Any] = {}
         super().__init__()
 
     def __delitem__(self, key: str) -> None:
         """Delete an item from the dictionary."""
         del self.data[key]
         self.dirty()
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two objects are equal."""
+        if isinstance(other, CacheableDict):
+            return self.data == other.data
+        if isinstance(other, dict):
+            return self.data == other
+        return False
 
     def __getitem__(self, key: Any) -> Any:
         """Get an item from the dictionary."""
@@ -124,9 +140,17 @@ class CacheableList(CacheableObjBase, MutableSequence, CacheableObjMixin, Cachea
     slower but relieves the user from having to keep track of the object's state.
     """
 
-    def __init__(self, *args) -> None:
+    def __init__(self, iterable: Iterable | None = None) -> None:
         """Initialize the CacheableList."""
-        self.data: list[Any] = list(*args)
+        if iterable is not None:
+            if isinstance(iterable, list):
+                self.data: list = deepcopy(iterable)
+            elif isinstance(iterable, CacheableList):
+                self.data: list = deepcopy(iterable.data)
+            else:
+                self.data: list = [deepcopy(v) for v in iterable]
+        else:
+            self.data: list = []
         super().__init__()
 
     def __delitem__(self, i: int | slice) -> None:
@@ -134,9 +158,19 @@ class CacheableList(CacheableObjBase, MutableSequence, CacheableObjMixin, Cachea
         del self.data[i]
         self.dirty()
 
+    def __eq__(self, other: object) -> bool:
+        """Check if two objects are equal."""
+        if isinstance(other, CacheableList):
+            return self.data == other.data
+        if isinstance(other, Iterable):
+            return self.data == [v for v in other]
+        return False
+
     def __getitem__(self, i: int | slice) -> Any:
         """Get an item from the list."""
+        _logger.debug("CacheableList.__getitem__ i: %s", str(i))
         self.touch()
+        _logger.debug("CacheableList.__getitem__ data: %s", str(self.data))
         return self.data[i]
 
     def __len__(self) -> int:
@@ -165,10 +199,21 @@ class CacheableTuple(CacheableObjBase, Sequence, CacheableObjMixin, CacheableObj
     to copyback() automatically should that have someside effect that requires it.
     """
 
-    def __init__(self, *args) -> None:
+    def __init__(self, iterable: Iterable | None = None) -> None:
         """Initialize the CacheableList."""
-        self.data: tuple = tuple(*args)
+        if iterable is not None:
+            self.data: tuple = tuple(deepcopy(v) for v in iterable)
+        else:
+            self.data: tuple = tuple()
         super().__init__()
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two objects are equal."""
+        if isinstance(other, CacheableTuple):
+            return self.data == other.data
+        if isinstance(other, Iterable):
+            return self.data == tuple(v for v in other)
+        return False
 
     def __getitem__(self, i: int | slice) -> Any:
         """Get an item from the list."""
@@ -191,14 +236,25 @@ class CacheableSet(CacheableObjBase, MutableSet, CacheableObjMixin, CacheableObj
     slower but relieves the user from having to keep track of the object's state.
     """
 
-    def __init__(self, *args) -> None:
+    def __init__(self, iterable: Iterable | None = None) -> None:
         """Initialize the CacheableSet."""
-        self.data: set[Any] = set(*args)
+        if iterable is not None:
+            self.data: set[Any] = set(deepcopy(v) for v in iterable)
+        else:
+            self.data: set[Any] = set()
         super().__init__()
 
     def __contains__(self, item: Any) -> bool:
         """Check if the set contains an item."""
         return item in self.data
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two objects are equal."""
+        if isinstance(other, CacheableSet):
+            return self.data == other.data
+        if isinstance(other, set):
+            return self.data == other
+        return False
 
     def __iter__(self) -> Iterator[Any]:
         """Return an iterator for the set."""

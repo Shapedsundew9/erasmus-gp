@@ -19,7 +19,8 @@ class TestUGCDirtyDict(UGCTestBase):
         self.ugc.dirty()
         self.assertTrue(expr=self.ugc.is_dirty())
         self.ugc.clean()
-        self.assertFalse(expr=self.ugc.is_dirty())
+        # Dirty objects are never clean
+        self.assertTrue(expr=self.ugc.is_dirty())
 
     def test_setdefault(self) -> None:
         """

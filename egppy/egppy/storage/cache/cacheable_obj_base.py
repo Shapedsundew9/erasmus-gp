@@ -16,4 +16,4 @@ SEQUENCE_NUMBER_GENERATOR = count(start=-2**63)
 
 
 class CacheableObjBase(StorableObjBase):
-    """Cacheable object base class."""
+    """Cacheable object base class aka high priority MRO mixin."""
