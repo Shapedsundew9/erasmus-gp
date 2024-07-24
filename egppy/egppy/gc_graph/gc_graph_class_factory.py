@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Any, Iterable, cast
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.end_point.end_point import EndPoint, SrcEndPointRef
+from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.interface.interface_class_factory import TupleInterface, EMPTY_INTERFACE
@@ -57,16 +57,16 @@ class StaticGCGraph(GCGraphMixin, GCGraphProtocol, GCGraphABC):
         src_interface_refs: dict[SourceRow, dict[int, list[tuple]]] = {r: {} for r in SOURCE_ROWS}
 
         # Step through the json_gc_graph and create the interfaces and connections
-        for idx, (row, jeps) in enumerate(json_gc_graph.items()):
+        for row, jeps in json_gc_graph.items():
             # Row U only exists in the JSON GC Graph to identify unconnected src endpoints
             # Otherwise it is a valid destination row
             if row != "U":
                 rowd = row + 'd'
                 self._set_interface(rowd, TupleInterface([jep[CPI.TYP] for jep in jeps]))
                 self._set_connections(rowd, TupleConnections(
-                    ((jep[CPI.ROW], jep[CPI.IDX]) for jep in jeps)))
+                    ((SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),) for jep in jeps)))
                 # Convert each dst endpoint into a dst reference for a src endpoint
-                for jep in jeps:
+                for idx, jep in enumerate(jeps):
                     src_interface_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX],[]).append((row, idx))
             # Collect the references to the source interfaces - this is used to define them below
             for jep in jeps:
@@ -79,7 +79,7 @@ class StaticGCGraph(GCGraphMixin, GCGraphProtocol, GCGraphABC):
         for row, idx_refs in src_interface_refs.items():
             src_refs = [tuple()] * len(self._interfaces[row + 's'])
             for idx, refs in idx_refs.items():
-                src_refs[idx] = tuple(SrcEndPointRef(r[0], r[1]) for r in refs)
+                src_refs[idx] = tuple(DstEndPointRef(r[0], r[1]) for r in refs)
             self._set_connections(row + 's', TupleConnections(src_refs))
 
         # Call the mixin constructor & run the sanity checks

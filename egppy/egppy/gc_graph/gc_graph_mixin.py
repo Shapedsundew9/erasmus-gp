@@ -1,15 +1,15 @@
 """Base class for GC graph objects."""
 from __future__ import annotations
-from typing import Any, Generator, Protocol
+from typing import Any, Generator, Protocol, cast
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.end_point.end_point import EndPoint
+from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
 from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.ep_type import ep_type_lookup
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
-from egppy.gc_graph.egp_typing import (SourceRow,
+from egppy.gc_graph.egp_typing import (SourceRow, Row,
     EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED)
 
 
@@ -107,8 +107,8 @@ class GCGraphMixin(CacheableObjMixin):
             assert fc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fc[0][0].get_row()}"
 
         for key in ROW_CLS_INDEXED:
-            iface = self[key]
-            conns = self[key + 'c']
+            iface = self.get(key, EMPTY_INTERFACE)
+            conns = self.get(key + 'c', EMPTY_CONNECTIONS)
             iface.consistency()
             conns.consistency()
             assert len(iface) == len(conns), f"Length mismatch: {len(iface)} != {len(conns)}"
@@ -122,7 +122,8 @@ class GCGraphMixin(CacheableObjMixin):
                     styp = self[srow + EPClsPostfix.SRC][refs[0].get_idx()]
                     assert iface[idx] == styp, f"Dst EP type mismatch: {iface[idx]} != {styp}"
                     srefs = self[srow + EPClsPostfix.SRC + 'c'][refs[0].get_idx()]
-                    assert (key[0], idx) in srefs, f"Src not connected to Dst: {key[0]}[{idx}]"
+                    assert DstEndPointRef(cast(Row, key[0]), idx) in srefs, \
+                        f"Src not connected to Dst: {key[0]}[{idx}]"
             else:
                 # Check source connections
                 for idx, refs in enumerate(conns):
@@ -132,7 +133,8 @@ class GCGraphMixin(CacheableObjMixin):
                         dtyp = self[drow + EPClsPostfix.DST][ref.get_idx()]
                         assert iface[idx] == dtyp, f"Src typ mismatch: {iface[idx]} != {dtyp}"
                         drefs = self[drow + EPClsPostfix.DST + 'c'][ref.get_idx()]
-                        assert (key[0], idx) in drefs, f"Dst not connected to src: {key[0]}[{idx}]"
+                        assert SrcEndPointRef(cast(Row, key[0]), idx) in drefs, \
+                            f"Dst not connected to src: {key[0]}[{idx}]"
 
     def get(self: GCGraphProtocol, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key."""
@@ -150,14 +152,21 @@ class GCGraphMixin(CacheableObjMixin):
     def to_json(self: GCGraphProtocol) -> dict[str, Any]:
         """Return a JSON GC Graph."""
         jgcg: dict[str, list[list[Any]]] = {}
-        for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST):
+        for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST and k in self):
             iface: InterfaceABC = self[key]
             conns: ConnectionsABC = self[key + 'c']
-            jgcg[key[0]] = [[r[0].get_row(), r[0].get_idx(), i] for r, i in zip(conns, iface)]
+            jgcg[key[0]] = [[str(r[0].get_row()), r[0].get_idx(), t] for r, t in zip(conns, iface)]
+        ucn: list[list[Any]] = []
+        for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.SRC and k in self):
+            iface: InterfaceABC = self[key]
+            conns: ConnectionsABC = self[key + 'c']
+            row = cast(Row, key[0])
+            ucn.extend([[row, i, t] for i, (r, t) in enumerate(zip(conns, iface)) if not r])
+        if ucn:
+            jgcg['U'] = sorted(ucn, key=lambda x: x[0]+f"{x[1]:03d}")
         return jgcg
 
     def verify(self: GCGraphProtocol) -> None:
         """Verify the GC graph."""
         for key in ROW_CLS_INDEXED:
-            self[key].verify()
-            self[key].verify()
+            self.get(key, EMPTY_INTERFACE).verify()

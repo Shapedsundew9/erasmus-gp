@@ -123,6 +123,11 @@ class I Icd
 class O Ocd
 ```
 
+## JSON Format
+
+TO DO: Explain more
+In row U the connections are stored in alphabetical order, then index order. This is specified for reproducablility.
+
 ## Rows, Interfaces & Connections
 
 An interface is an array of endpoints with 0 to 256 elements each defining the endpoint type.

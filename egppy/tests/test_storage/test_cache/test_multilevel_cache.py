@@ -7,6 +7,14 @@ from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.in_memory_store import InMemoryStore
 from tests.test_storage.test_cache.multilevel_cache_test_base import (
     MultilevelCacheTestBase, SECOND_LEVEL_CACHE_SIZE)
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class TestMultiLevelCache11(MultilevelCacheTestBase):

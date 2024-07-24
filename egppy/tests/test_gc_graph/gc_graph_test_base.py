@@ -1,4 +1,5 @@
 """Base test module for GC Graph classes."""
+from pprint import pformat
 import unittest
 from itertools import product, permutations, count
 from random import randint
@@ -9,6 +10,14 @@ from egppy.gc_graph.gc_graph_class_factory import StaticGCGraph
 from egppy.gc_graph.ep_type import ep_type_lookup, INVALID_EP_TYPE_VALUE
 from egppy.gc_graph.egp_typing import (DestinationRow, EndPointType, Row, 
     VALID_ROW_SOURCES, SOURCE_ROWS, SourceRow)
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 _FOUR_EP_TYPES: tuple[EndPointType, ...] = (ep_type_lookup['n2v']['bool'],
@@ -51,9 +60,16 @@ def generate_valid_json_gc_graphs() -> list[dict[str, list[list]]]:
                     # sources so has the same connectivity as row O in standard graphs
                     dst_row = DestinationRow.O if row == 'U' else cast(Row, row)
                     for src in VALID_ROW_SOURCES[False][dst_row]:
-                        for typ in _FOUR_EP_TYPES:
+                        if row == 'U':
+                            typ = ep_type_lookup['n2v']['complex']
                             idx = next_idx(src_next_idx, src_positions, src, typ)
-                            jgcg.setdefault(row, []).append([src, idx, typ])
+                            jgcg.setdefault(row, []).append([src,idx, typ])
+                        else:
+                            for typ in _FOUR_EP_TYPES:
+                                idx = next_idx(src_next_idx, src_positions, src, typ)
+                                jgcg.setdefault(row, []).append([src, idx, typ])
+                if 'U' in jgcg:
+                    jgcg['U'] = sorted(jgcg['U'], key=lambda x: x[0]+f"{x[1]:03d}")
 
         # Write the JSON GC Graphs to a file
         with open(filename, 'w', encoding="ascii") as f:
@@ -105,4 +121,6 @@ class GCGraphTestBase(unittest.TestCase):
                 gcg = self.gcg_type(jgcg)
                 gcg.verify()
                 gcg.consistency()
+                _logger.debug(f"Validated graph {idx} JSON:\n{pformat(gcg.to_json())}")
+                _logger.debug(f"Validated graph {idx} Original JSON:\n{pformat(jgcg)}")
                 self.assertEqual(gcg.to_json(), jgcg)

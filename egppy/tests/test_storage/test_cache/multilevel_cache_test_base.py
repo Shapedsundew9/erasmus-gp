@@ -10,6 +10,14 @@ from egppy.storage.cache.cache import DictCache
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Log base 2 second level cache size

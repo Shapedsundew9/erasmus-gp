@@ -6,6 +6,14 @@ from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from tests.test_storage.store_test_base import StoreTestBase
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Number of items to put in the cache for testing

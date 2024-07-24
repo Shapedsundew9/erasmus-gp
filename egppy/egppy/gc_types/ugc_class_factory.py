@@ -6,10 +6,10 @@ for simplicity. The UGC allows any values to be stored in the genetic code objec
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
 from typing import Any
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.gc_types.gc import GCABC, GCMixin, GCProtocol
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
 # Standard EGP logging pattern
