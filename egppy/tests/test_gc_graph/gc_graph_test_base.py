@@ -153,6 +153,26 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         for ikey in gcg.ikeys():
             self.assertEqual(len(gcg[ikey]), 0)
 
+    def test_del_interface(self) -> None:
+        """Test deleting interfaces."""
+        if self.running_in_test_base_class():
+            return
+        jgcg = self.jgcg_list[0]
+        gcg = self.gcg_type(jgcg)
+        for ikey in gcg.ikeys():
+            del gcg[ikey]
+            self.assertNotIn(ikey, gcg)
+
+    def test_del_connections(self) -> None:
+        """Test deleting connections."""
+        if self.running_in_test_base_class():
+            return
+        jgcg = self.jgcg_list[0]
+        gcg = self.gcg_type(jgcg)
+        for ikey in gcg.ikeys():
+            del gcg[ikey + 'c']
+            self.assertNotIn(ikey + 'c', gcg)
+
     def test_pop_endpoints(self) -> None:
         """Test popping endpoints."""
         if self.running_in_test_base_class():
@@ -165,3 +185,22 @@ class MutableGCGraphTestBase(GCGraphTestBase):
             self.assertEqual(len(gcg[ikey]) + 1, len(sgcg[ikey]))
             for idx, ept in enumerate(gcg[ikey]):
                 self.assertEqual(ept, sgcg[ikey][idx])
+
+    def test_append_endpoints(self) -> None:
+        """Test appending endpoints."""
+        if self.running_in_test_base_class():
+            return
+        jgcg = self.jgcg_list[0]
+        gcg = self.gcg_type(jgcg)
+        sgcg = FrozenGCGraph(jgcg)
+        for ikey in gcg.ikeys():
+            gcg[ikey[0] + '+++' + ikey[1]] = sgcg[ikey[0] + '000' + ikey[1]]
+            self.assertEqual(len(gcg[ikey]), len(sgcg[ikey]) + 1)
+            self.assertEqual(gcg[ikey][-1], sgcg[ikey][0])
+            self.assertEqual(tuple(gcg[ikey + 'c'][-1]), tuple(sgcg[ikey + 'c'][0]))
+            ep1 = gcg[ikey[0] + f"{len(gcg[ikey]) - 1:03d}" + ikey[1]]
+            ep2 = sgcg[ikey[0] + '000' + ikey[1]]
+            self.assertEqual(ep1.get_cls(), ep2.get_cls())
+            self.assertEqual(ep1.get_refs(), ep2.get_refs())
+            self.assertEqual(ep1.get_typ(), ep2.get_typ())
+            self.assertEqual(ep1.get_row(), ep2.get_row())

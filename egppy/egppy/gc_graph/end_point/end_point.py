@@ -61,7 +61,7 @@ class EndPoint(EndPointRef, EndPointMixin, EndPointABC):
         super().__init__(row=row, idx=idx)
         self._typ: EndPointType = typ
         self._cls: EndPointClass = cls
-        self._refs: list[XEndPointRefABC] = refs.copy()
+        self._refs: list[XEndPointRefABC] = list(refs)
 
     def as_ref(self) -> EndPointRefABC:
         """Return a reference to this end point."""
