@@ -1,14 +1,13 @@
 """Base test module for GC Graph classes."""
-from pprint import pformat
 import unittest
 from itertools import product, permutations, count
 from random import randint
 from typing import cast
 from json import dump, load
 from os.path import join, dirname, exists
-from egppy.gc_graph.gc_graph_class_factory import StaticGCGraph
+from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph, FrozenGCGraph
 from egppy.gc_graph.ep_type import ep_type_lookup, INVALID_EP_TYPE_VALUE
-from egppy.gc_graph.egp_typing import (DestinationRow, EndPointType, Row, 
+from egppy.gc_graph.egp_typing import (DestinationRow, EndPointType, Row,
     VALID_ROW_SOURCES, SOURCE_ROWS, SourceRow)
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
@@ -87,7 +86,7 @@ class GCGraphTestBase(unittest.TestCase):
     """
 
     # The connections type to test. Define in subclass.
-    itype: type[StaticGCGraph] = StaticGCGraph
+    gcgtype: type[FrozenGCGraph] = FrozenGCGraph
     jgcg_list: list[dict[str, list[list]]] = generate_valid_json_gc_graphs()
 
     @classmethod
@@ -105,12 +104,10 @@ class GCGraphTestBase(unittest.TestCase):
     @classmethod
     def get_gcg_cls(cls) -> type:
         """Get the Connections class."""
-        return cls.itype
+        return cls.gcgtype
 
     def setUp(self) -> None:
         self.gcg_type = self.get_gcg_cls()
-        cls = self.get_test_cls()
-        self.gcg = self.gcg_type(cls.jgcg_list[0])
 
     def test_valid_graphs(self) -> None:
         """Test the validity of the graphs."""
@@ -121,6 +118,50 @@ class GCGraphTestBase(unittest.TestCase):
                 gcg = self.gcg_type(jgcg)
                 gcg.verify()
                 gcg.consistency()
-                _logger.debug(f"Validated graph {idx} JSON:\n{pformat(gcg.to_json())}")
-                _logger.debug(f"Validated graph {idx} Original JSON:\n{pformat(jgcg)}")
                 self.assertEqual(gcg.to_json(), jgcg)
+
+    def test_create_from_self(self):
+        """Test creating a graph from itself."""
+        if self.running_in_test_base_class():
+            return
+        gcg1 = self.gcg_type(self.jgcg_list[0])
+        gcg2 = self.gcg_type(gcg1)
+        self.assertEqual(gcg1, gcg2)
+
+
+class MutableGCGraphTestBase(GCGraphTestBase):
+    """Extends the static graph test cases with dynamic graph tests."""
+    gcgtype: type = MutableGCGraph
+
+    def test_equal_to_static(self) -> None:
+        """Test building a graph from endpoints."""
+        if self.running_in_test_base_class():
+            return
+        sgcg = FrozenGCGraph(self.jgcg_list[0])
+        dgcg = self.gcg_type(sgcg)
+        self.assertEqual(sgcg, dgcg)
+
+    def test_del_all_endpoints(self) -> None:
+        """Test deleting and setting endpoints."""
+        if self.running_in_test_base_class():
+            return
+        jgcg = self.jgcg_list[0]
+        gcg = self.gcg_type(jgcg)
+        for ep in reversed(tuple(gcg.epkeys())):
+            del gcg[ep]
+        self.assertEqual(gcg.to_json(), {r: [] for r in jgcg}) # Empty graph
+        for ikey in gcg.ikeys():
+            self.assertEqual(len(gcg[ikey]), 0)
+
+    def test_pop_endpoints(self) -> None:
+        """Test popping endpoints."""
+        if self.running_in_test_base_class():
+            return
+        jgcg = self.jgcg_list[0]
+        gcg = self.gcg_type(jgcg)
+        sgcg = FrozenGCGraph(jgcg)
+        for ikey in gcg.ikeys():
+            del gcg[ikey[0] + '---' + ikey[1]]
+            self.assertEqual(len(gcg[ikey]) + 1, len(sgcg[ikey]))
+            for idx, ept in enumerate(gcg[ikey]):
+                self.assertEqual(ept, sgcg[ikey][idx])

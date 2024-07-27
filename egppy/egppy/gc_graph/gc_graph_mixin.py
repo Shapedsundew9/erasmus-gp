@@ -3,14 +3,16 @@ from __future__ import annotations
 from typing import Any, Generator, Protocol, cast
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
+from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
 from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.ep_type import ep_type_lookup
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
-from egppy.gc_graph.egp_typing import (SourceRow, Row,
-    EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED)
+from egppy.gc_graph.egp_typing import (CPI, SOURCE_ROWS, EndPointClass, EndPointType, SourceRow, Row,
+    EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED, str2epcls)
+from egppy.storage.cache.cacheable_obj_mixin import CacheableObjProtocol
 
 
 # Standard EGP logging pattern
@@ -20,7 +22,24 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GCGraphProtocol(Protocol):
+# Sort key function
+def skey(x: tuple[int, EndPointType]) -> EndPointType:
+    """Return the second element of tuple."""
+    return x[0]
+
+
+# Key to parts
+def key2parts(key: str) -> tuple[Row, int, EndPointClass]:
+    """Return the parts of the key."""
+    lenkey = len(key)
+    if lenkey == 1:
+        return cast(Row, key), 0, EndPointClass.SRC
+    if lenkey <= 3:
+        return cast(Row, key[0]), 0, str2epcls(key[1])
+    return cast(Row, key[0]), int(key[1:4]), str2epcls(key[4])
+
+
+class GCGraphProtocol(CacheableObjProtocol, Protocol):
     """Genetic Code Graph Protocol."""
 
     def __contains__(self, key: str) -> bool:
@@ -41,31 +60,67 @@ class GCGraphProtocol(Protocol):
         """Return True if the graph is conditional i.e. has row F."""
         ...  # pylint: disable=unnecessary-ellipsis
 
-    def consistency(self) -> None:
-        """Check the consistency of the GC graph."""
-
     def get(self, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def ikeys(self) -> Generator[str, None, None]:
+        """Return an iterator over the GC graph interface keys."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def epkeys(self) -> Generator[str, None, None]:
+        """Return an iterator over the GC graph endpoint keys."""
         ...  # pylint: disable=unnecessary-ellipsis
 
     def to_json(self) -> dict[str, Any]:
         """Return a JSON GC Graph."""
         ...  # pylint: disable=unnecessary-ellipsis
 
-    def verify(self) -> None:
-        """Verify the GC graph."""
-
 
 class GCGraphMixin(CacheableObjMixin):
     """Base class for GC graph objects."""
 
-    def __init__(self: GCGraphProtocol, json_gc_graph: dict[str, list[list[Any]]]) -> None:
+    def __init__(self: GCGraphProtocol, gc_graph: dict[str, list[list[Any]]] | GCGraphABC) -> None:
         """Initialize the GC graph."""
+        # Step through the json_gc_graph and create the interfaces and connections
+        if isinstance(gc_graph, GCGraphABC):
+            # Copy the interfaces and connections from the given graph
+            for key in ROW_CLS_INDEXED:
+                self[key] = gc_graph.get(key, EMPTY_INTERFACE)
+                self[key + 'c'] = gc_graph.get(key + 'c', EMPTY_CONNECTIONS)
+        else:
+            src_if_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
+            src_if_refs: dict[SourceRow, dict[int, list[tuple]]] = {r: {} for r in SOURCE_ROWS}
+            for row, jeps in gc_graph.items():
+                # Row U only exists in the JSON GC Graph to identify unconnected src endpoints
+                # Otherwise it is a valid destination row
+                if row != "U":
+                    rowd = row + EPClsPostfix.DST
+                    self[rowd] = [jep[CPI.TYP] for jep in jeps]
+                    self[rowd + 'c'] = \
+                        ((SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),) for jep in jeps)
+                    # Convert each dst endpoint into a dst reference for a src endpoint
+                    for idx, jep in enumerate(jeps):
+                        src_if_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX],[]).append((row, idx))
+                # Collect the references to the source interfaces
+                for jep in jeps:
+                    src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], jep[CPI.TYP]))
+
+            # Create the source interfaces from the references collected above
+            for row, sif in src_if_typs.items():
+                self[row + EPClsPostfix.SRC] = (t for _, t in sorted(sif, key=skey))
+            # Add the references to the destinations from the sources
+            for row, idx_refs in src_if_refs.items():
+                src_refs = [tuple()] * len(self[row + EPClsPostfix.SRC])
+                for idx, refs in idx_refs.items():
+                    src_refs[idx] = tuple(DstEndPointRef(r[0], r[1]) for r in refs)
+                self[row + EPClsPostfix.SRC + 'c'] = src_refs
+
         if _LOG_VERIFY:
             self.verify()
         if _LOG_CONSISTENCY:
             self.consistency()
-            assert self.to_json() == json_gc_graph, "JSON GC Graph consistency failure."
+            assert self.to_json() == gc_graph, "JSON GC Graph consistency failure."
         super().__init__()
 
     def __contains__(self: GCGraphProtocol, key: object) -> bool:
@@ -73,8 +128,8 @@ class GCGraphMixin(CacheableObjMixin):
         if isinstance(key, str):
             keylen = len(key)
             if keylen == 1:  # Its a row
-                return self.get(key + 'd', EMPTY_INTERFACE) is not EMPTY_INTERFACE or \
-                    self.get(key + 's', EMPTY_INTERFACE) is not EMPTY_INTERFACE
+                return self.get(key + EPClsPostfix.DST, EMPTY_INTERFACE) is not EMPTY_INTERFACE or \
+                    self.get(key + EPClsPostfix.SRC, EMPTY_INTERFACE) is not EMPTY_INTERFACE
             if keylen == 2:  # Its an interface
                 return self.get(key, EMPTY_INTERFACE) is not EMPTY_INTERFACE
             if keylen == 3:  # Its connections
@@ -86,9 +141,8 @@ class GCGraphMixin(CacheableObjMixin):
 
     def __iter__(self: GCGraphProtocol) -> Generator[EndPoint, None, None]:
         """Return an iterator over the GC graph end points."""
-        for key in ROW_CLS_INDEXED:
-            for idx in range(len(self[key])):
-                yield self[f"{key[0]}{idx:03d}{key[1]}"]
+        for key in self.epkeys():
+            yield self[key]
 
     def conditional_graph(self: GCGraphProtocol) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
@@ -135,6 +189,7 @@ class GCGraphMixin(CacheableObjMixin):
                         drefs = self[drow + EPClsPostfix.DST + 'c'][ref.get_idx()]
                         assert SrcEndPointRef(cast(Row, key[0]), idx) in drefs, \
                             f"Dst not connected to src: {key[0]}[{idx}]"
+        super().consistency()
 
     def get(self: GCGraphProtocol, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key."""
@@ -142,6 +197,17 @@ class GCGraphMixin(CacheableObjMixin):
             return self[key]
         except KeyError:
             return default
+
+    def ikeys(self: GCGraphProtocol) -> Generator[str, None, None]:
+        """Return an iterator over the GC graph interface keys."""
+        for key in (r for r in ROW_CLS_INDEXED if r in self):
+            yield key
+
+    def epkeys(self: GCGraphProtocol) -> Generator[str, None, None]:
+        """Return an iterator over the GC graph endpoint keys."""
+        for key in self.ikeys():
+            for idx in range(len(self[key])):
+                yield f"{key[0]}{idx:03d}{key[1]}"
 
     def setdefault(self: GCGraphProtocol, key: str, default: Any) -> Any:
         """Set the endpoint with the given key to the default if it does not exist."""
@@ -170,3 +236,4 @@ class GCGraphMixin(CacheableObjMixin):
         """Verify the GC graph."""
         for key in ROW_CLS_INDEXED:
             self.get(key, EMPTY_INTERFACE).verify()
+        super().verify()

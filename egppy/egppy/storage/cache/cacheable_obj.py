@@ -1,11 +1,10 @@
 """Cacheable Dictionary Base Class module."""
-from typing import Any, Iterable, Iterator, Protocol
+from typing import Any, Iterable, Iterator
 from copy import deepcopy
 from collections.abc import MutableMapping, MutableSequence, Sequence, MutableSet
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.storage.cache.cacheable_obj_base import CacheableObjBase, SEQUENCE_NUMBER_GENERATOR
-
+from egppy.storage.cache.cacheable_obj_mixin import CacheableObjMixin
 
 
 # Standard EGP logging pattern
@@ -15,64 +14,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheableObjMixinProtocol(Protocol):
-    """Cacheable Mixin Protocol Class.
-    Used to add cacheable functionality to a class.
-    """
-
-    def clean(self) -> None:
-        """Mark the object as clean."""
-
-    def dirty(self) -> None:
-        """Mark the object as dirty."""
-
-    def is_dirty(self) -> bool:
-        """Check if the object is dirty."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def seq_num(self) -> int:
-        """Dirty dicts do not track sequence numbers."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def touch(self) -> None:
-        """Dirty dict objects cannot be touched."""
-
-
-class CacheableObjMixin():
-    """Cacheable Mixin Class.
-    Used to add cacheable functionality to a class.
-    """
-
-    def __init__(self) -> None:
-        """Constructor."""
-        self._dirty: bool = True
-        # deepcode ignore unguarded~next~call: Cannot raise StopIteration
-        self._seq_num: int = next(SEQUENCE_NUMBER_GENERATOR)
-
-    def clean(self) -> None:
-        """Mark the object as clean."""
-        self._dirty = False
-
-    def dirty(self) -> None:
-        """Mark the object as dirty."""
-        self._dirty = True
-        self.touch()
-
-    def is_dirty(self) -> bool:
-        """Check if the object is dirty."""
-        return self._dirty
-
-    def seq_num(self) -> int:
-        """Dirty dicts do not track sequence numbers."""
-        return self._seq_num
-
-    def touch(self) -> None:
-        """Dirty dict objects cannot be touched."""
-        # deepcode ignore unguarded~next~call: Cannot raise StopIteration
-        self._seq_num: int = next(SEQUENCE_NUMBER_GENERATOR)
-
-
-class CacheableDict(CacheableObjBase, MutableMapping, CacheableObjMixin, CacheableObjABC):
+class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
     """Cacheable Dictionary  Class.
     The CacheableDict uses a builtin dictionary for storage but wraps the __setitem__
     and update methods to mark the object as dirty when modified. This makes it slightly
@@ -128,12 +70,12 @@ class CacheableDict(CacheableObjBase, MutableMapping, CacheableObjMixin, Cacheab
         return deepcopy(x=self.data)
 
     def verify(self) -> None:
-        """Verify the genetic code object."""
+        """Verify the cacheable object."""
         assert not (x for x in self if not isinstance(x, str)), "Keys must be strings."
         super().verify()
 
 
-class CacheableList(CacheableObjBase, MutableSequence, CacheableObjMixin, CacheableObjABC):
+class CacheableList(MutableSequence, CacheableObjMixin, CacheableObjABC):
     """Cacheable List Class.
     The CacheableList uses a builtin list for storage but implements the MutableSequence
     interface to mark the object as dirty when modified. This makes it slightly
@@ -192,7 +134,7 @@ class CacheableList(CacheableObjBase, MutableSequence, CacheableObjMixin, Cachea
         return deepcopy(x=self.data)
 
 
-class CacheableTuple(CacheableObjBase, Sequence, CacheableObjMixin, CacheableObjABC):
+class CacheableTuple(Sequence, CacheableObjMixin, CacheableObjABC):
     """Cacheable Tuple Class.
     Cacheable tuple objects cannot be modified so will never mark themseleves dirty.
     However, the dirty() and clean() methods are provided for consistency and can be used
@@ -229,7 +171,7 @@ class CacheableTuple(CacheableObjBase, Sequence, CacheableObjMixin, CacheableObj
         return list(deepcopy(self.data))
 
 
-class CacheableSet(CacheableObjBase, MutableSet, CacheableObjMixin, CacheableObjABC):
+class CacheableSet(MutableSet, CacheableObjMixin, CacheableObjABC):
     """Cacheable Set Class.
     The CacheableSet uses a builtin set for storage but implements the MutableSet
     interface to mark the object as dirty when modified. This makes it slightly

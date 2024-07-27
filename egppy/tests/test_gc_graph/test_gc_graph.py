@@ -1,5 +1,6 @@
 """Test GC Graphs."""
-from tests.test_gc_graph.gc_graph_test_base import GCGraphTestBase
+from tests.test_gc_graph.gc_graph_test_base import GCGraphTestBase, MutableGCGraphTestBase
+from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -10,5 +11,10 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class TestGCGraph(GCGraphTestBase):
-    """Test cases for the GC Graph class."""
+class TestFrozenGCGraph(GCGraphTestBase):
+    """Test cases for the FrozenGCGraph class."""
+
+
+class TestMutableGCGraph(MutableGCGraphTestBase):
+    """Test cases for the MutableGCGraph class."""
+    gcgtype = MutableGCGraph

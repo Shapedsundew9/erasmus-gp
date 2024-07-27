@@ -1,7 +1,16 @@
 """Base class of interface tests."""
 import unittest
-from egppy.gc_graph.interface.interface_class_factory import TupleInterface
+from egppy.gc_graph.interface.interface_class_factory import TupleInterface, ListInterface
 from egppy.gc_graph.ep_type import ep_type_lookup, INVALID_EP_TYPE_VALUE
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
 
 
 class InterfaceTestBase(unittest.TestCase):
@@ -78,5 +87,34 @@ class InterfaceTestBase(unittest.TestCase):
             iface.verify()
 
 
-if __name__ == '__main__':
-    unittest.main()
+class MutableInterfaceTestBase(InterfaceTestBase):
+    """Extends the static interface test cases with dynamic interface tests."""
+    itype: type = ListInterface
+
+    def test_setitem(self) -> None:
+        """Test setting an endpoint type."""
+        if self.running_in_test_base_class():
+            return
+        iface = self.interface_type([ep_type_lookup['n2v']['bool']] * 4)
+        iface[0] = ep_type_lookup['n2v']['int']
+        self.assertEqual(iface[0], ep_type_lookup['n2v']['int'])
+
+    def test_delitem(self) -> None:
+        """Test deleting an endpoint type."""
+        if self.running_in_test_base_class():
+            return
+        iface = self.interface_type([ep_type_lookup['n2v']['bool'], \
+            ep_type_lookup['n2v']['int'], ep_type_lookup['n2v']['str'], \
+            ep_type_lookup['n2v']['float']])
+        del iface[1]
+        self.assertEqual(len(iface), 3)
+        self.assertEqual(iface[1], ep_type_lookup['n2v']['str'])
+
+    def test_append(self) -> None:
+        """Test appending an endpoint type."""
+        if self.running_in_test_base_class():
+            return
+        iface = self.interface_type([ep_type_lookup['n2v']['bool']] * 4)
+        iface.append(ep_type_lookup['n2v']['int'])
+        self.assertEqual(len(iface), 5)
+        self.assertEqual(iface[4], ep_type_lookup['n2v']['int'])

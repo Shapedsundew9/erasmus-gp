@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.common.common_obj_mixin import CommonObjMixin
 from egppy.gc_graph.egp_typing import (DestinationRow, Row, EndPointHash, EndPointType,
     EndPointClass, VALID_ROW_DESTINATIONS as VRD, VALID_ROW_SOURCES as VRS, SOURCE_ROWS, ROWS,
     DESTINATION_ROWS, EP_CLS_STR_TUPLE)
@@ -16,22 +17,18 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPointMixin():
+class GenericEndPointMixin(CommonObjMixin):
     """Mixin methods for GenericEndPoint."""
 
     def __repr__(self) -> str:
         """Return a string representation of the endpoint."""
-        cls = self.cls().__name__
         sorted_members = sorted(self.json_obj().items(), key=lambda x: x[0])
-        return f"{cls}({', '.join((k + '=' + str(v) for k, v in sorted_members))})"
+        return f"{self.cls().__name__}({', '.join((k + '=' + str(v) for k, v in sorted_members))})"
 
     @classmethod
     def cls(cls) -> type:
         """Return the object class type."""
         return cls
-
-    def consistency(self) -> None:
-        """Check the consistency of the end point."""
 
     def get_idx(self) -> int:
         """Return the index of the end point."""
@@ -56,9 +53,10 @@ class GenericEndPointMixin():
         assert self.get_row() in ROWS, f"Invalid row: {self.get_row()}"
         assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
+        super().verify()
 
 
-class EndPointRefMixin():
+class EndPointRefMixin(CommonObjMixin):
     """Mixin methods for EndPointRef."""
 
     def __eq__(self, other: object) -> bool:
@@ -66,9 +64,6 @@ class EndPointRefMixin():
         if not isinstance(other, self.__class__):
             return False
         return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
-
-    def consistency(self) -> None:
-        """Check the consistency of the end point."""
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:
         """Create a unique key to use in the internal graph."""
@@ -91,9 +86,10 @@ class EndPointRefMixin():
         assert self.get_row() in ROWS, f"Invalid row: {self.get_row()}"
         assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
+        super().verify()
 
 
-class DstEndPointRefMixin():
+class DstEndPointRefMixin(CommonObjMixin):
     """Mixin methods for DstEndPointRef."""
 
     def __eq__(self, other: object) -> bool:
@@ -101,9 +97,6 @@ class DstEndPointRefMixin():
         if not isinstance(other, self.__class__):
             return False
         return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
-
-    def consistency(self) -> None:
-        """Check the consistency of the end point reference."""
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:
         """Create a unique key to use in the internal graph."""
@@ -144,9 +137,10 @@ class DstEndPointRefMixin():
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
         if self.get_row() == DestinationRow.F:
             assert self.get_idx() == 0, f"Invalid index for row F: {self.get_idx()}"
+        super().verify()
 
 
-class SrcEndPointRefMixin():
+class SrcEndPointRefMixin(CommonObjMixin):
     """Mixin methods for SrcEndPointRef."""
 
     def __eq__(self, other: object) -> bool:
@@ -154,9 +148,6 @@ class SrcEndPointRefMixin():
         if not isinstance(other, self.__class__):
             return False
         return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
-
-    def consistency(self) -> None:
-        """Check the consistency of the end point reference."""
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:
         """Create a unique key to use in the internal graph."""
@@ -195,14 +186,23 @@ class SrcEndPointRefMixin():
         assert self.get_row() in SOURCE_ROWS, f"Invalid source row: {self.get_row()}"
         assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
+        super().verify()
 
 
-class EndPointMixin():
+class EndPointMixin(CommonObjMixin):
     """Mixin methods for EndPoint."""
 
     def __init__(self, *args) -> None:
         """Initialize the endpoint."""
         raise NotImplementedError
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two end points."""
+        if not isinstance(other, self.__class__):
+            return False
+        return self.get_row() == other.get_row() and self.get_idx() == other.get_idx() \
+            and self.get_typ() == other.get_typ() and self.get_cls() == other.get_cls() \
+            and self.get_refs() == other.get_refs()
 
     def del_invalid_refs(self, has_f: bool = False) -> None:
         """Remove any invalid references"""
@@ -221,6 +221,7 @@ class EndPointMixin():
         """Check the consistency of the end point."""
         if self.is_src():
             assert list(self.get_refs()) == list(set(self.get_refs())), "Duplicate references."
+        super().consistency()
 
     def copy(self, clean: bool = False) -> EndPointABC:
         """Return a copy of the end point with no references."""
@@ -325,3 +326,4 @@ class EndPointMixin():
             for ref in self.get_refs():
                 assert ref.is_dst(), f"Invalid destination reference: {ref}"
                 ref.verify()
+        super().verify()

@@ -1,8 +1,9 @@
 """End point and end point reference classes."""
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.common.common_obj_abc import CommonObjABC
 from egppy.gc_graph.egp_typing import EndPointClass, EndPointHash, EndPointIndex, EndPointType, Row
 
 
@@ -13,7 +14,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPointABC(ABC):
+class GenericEndPointABC(CommonObjABC):
     """Lowest common denominator end point class"""
 
     @abstractmethod
@@ -25,11 +26,6 @@ class GenericEndPointABC(ABC):
     @abstractmethod
     def cls(cls) -> type:
         """Return the object class type."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def consistency(self) -> None:
-        """Check the consistency of the end point reference."""
         raise NotImplementedError
 
     @abstractmethod
@@ -60,11 +56,6 @@ class GenericEndPointABC(ABC):
     @abstractmethod
     def set_row(self, row: Row) -> None:
         """Set the row of the end point."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def verify(self) -> None:
-        """Verify the end point reference."""
         raise NotImplementedError
 
 

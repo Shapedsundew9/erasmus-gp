@@ -79,8 +79,6 @@ class CacheMixin():
 
     def copyback(self: CacheMixinProtocol) -> None:
         """Copy the cache back to the next level."""
-        if _LOG_DEBUG:
-            _logger.debug("DictCache: %s", str(self))
         for key, value in (x for x in self.items() if x[1].is_dirty()):
             self.next_level[key] = value
             value.clean()

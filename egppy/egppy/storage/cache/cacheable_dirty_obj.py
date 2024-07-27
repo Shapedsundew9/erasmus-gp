@@ -4,7 +4,7 @@ from typing import Any
 from copy import deepcopy
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.storage.cache.cacheable_obj_base import CacheableObjBase
+from egppy.storage.cache.cacheable_obj_mixin import CacheableObjMixin
 
 
 # Standard EGP logging pattern
@@ -14,7 +14,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheableDirtyObjMixin():
+class CacheableDirtyObjMixin(CacheableObjMixin):
     """Cacheable Dirty Object Mixin Class."""
 
     def clean(self) -> None:
@@ -35,7 +35,7 @@ class CacheableDirtyObjMixin():
         """Dirty objects cannot be touched."""
 
 
-class CacheableDirtyDict(dict, CacheableObjBase, CacheableDirtyObjMixin, CacheableObjABC):
+class CacheableDirtyDict(dict, CacheableDirtyObjMixin, CacheableObjABC):
     """Cacheable Dirty Dictionary Class.
     Builtin dictionaries are fast but use a lot of space. This class is a base class
     for EGP objects using builtin dictionary methods without wrapping them.
@@ -53,7 +53,7 @@ class CacheableDirtyDict(dict, CacheableObjBase, CacheableDirtyObjMixin, Cacheab
         super().verify()
 
 
-class CacheableDirtyList(list, CacheableObjBase, CacheableDirtyObjMixin, CacheableObjABC):
+class CacheableDirtyList(list, CacheableDirtyObjMixin, CacheableObjABC):
     """Cacheable Dirty List Class.
     Builtin lists are fast but use a fair amount of space. This class is a base class
     for cache objects using builtin list methods without wrapping them.

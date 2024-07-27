@@ -50,11 +50,7 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
 
     def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the cache."""
-        if _LOG_DEBUG:
-            _logger.debug("UserDictCache getitem: %s", str(key))
         if key not in self:
-            if _LOG_DEBUG:
-                _logger.debug("UserDictCache getitem: %s not in cache.", str(key))
             # Need to ask the next level for the item. First check if we have space.
             self.purge_check()
             # The next level object type must be flavored (cast) to the type stored here.
@@ -73,8 +69,6 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
         item = self.flavor(value)
         self.data[key] = item  # type: ignore
         item.dirty()  # type: ignore
-        if _LOG_DEBUG:
-            _logger.debug("DictCache setitem: %s: %s", str(key), str(item))
 
     def purge(self, num: int) -> None:
         """Purge the cache of count items."""
@@ -83,7 +77,5 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
             return
         victims: list[tuple[Any, int]] = sorted(
             ((k, v.seq_num()) for k, v in self.data.items()), key=_KEY)[:self.purge_count]
-        if _LOG_DEBUG:
-            _logger.debug("UserDictCache purge %d items.", len(victims))
         for key, _ in victims:
             del self[key]

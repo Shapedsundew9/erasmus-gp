@@ -27,8 +27,8 @@ class GCGraphABC(CacheableObjABC):
         e.g. 'Asc', 'Bdc', 'Isc', 'Odc' etc. 
     Endpoints are keyed by the row letter, a 3 digit index and 's' or 'd'.
         e.g. 'A000s', 'B002d', 'I013s', 'O255d' etc.
-    
-    The indexes can be used with:
+
+    The keys above can be used with:
         __contains__    (required by CacheableObjABC. Mixed in)
         __delitem__
         __getitem__
@@ -40,12 +40,20 @@ class GCGraphABC(CacheableObjABC):
         __iter__ must iterate through the endpoints (mixed in)
         __len__ must return the total number of endpoints.
         __contains__ must return True if the endpoint exists. (mixed in)
+
+    Appending and deleting endpoints is done by replacing the 3 digit index with +++ or ---.
+        e.g. 'A+++s', 'B---d', 'I+++s', 'O---d' etc.
     """
 
     @abstractmethod
     def __delitem__(self, key: str) -> None:
         """Delete the endpoint with the given key."""
         raise NotImplementedError("GCGraphABC.__delitem__ must be overridden")
+
+    @abstractmethod
+    def __eq__(self, value: object) -> bool:
+        """Check if two objects are equal."""
+        raise NotImplementedError("GCGraphABC.__eq__ must be overridden")
 
     @abstractmethod
     def __getitem__(self, key: str) -> Any:
@@ -61,3 +69,8 @@ class GCGraphABC(CacheableObjABC):
     def conditional_graph(self) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
         raise NotImplementedError("GCGraphABC.conditional_graph must be overridden")
+
+    @abstractmethod
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get the endpoint with the given key or return the default."""
+        raise NotImplementedError("GCGraphABC.get must be overridden")

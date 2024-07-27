@@ -1,7 +1,10 @@
 """Connections Abstract Base Class"""
-from typing import Any
-from abc import ABC, abstractmethod
+from __future__ import annotations
+from typing import Any, Iterable
+from abc import abstractmethod
+from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.common.common_obj_abc import CommonObjABC
 
 
 # Standard EGP logging pattern
@@ -11,7 +14,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class ConnectionsABC(ABC):
+class ConnectionsABC(CommonObjABC):
     """Abstract Base Class for Genetic Code Graph Connections between Interface Endpoints.
 
     ConnectionsABC does not inherent from CacheableObjABC because the connections are
@@ -33,6 +36,16 @@ class ConnectionsABC(ABC):
     """
 
     @abstractmethod
+    def __init__(self, conns: Iterable[Iterable[XEndPointRefABC]] | ConnectionsABC) -> None:
+        """Initialize the connections."""
+        raise NotImplementedError("Connections.__init__ must be overridden")
+
+    @abstractmethod
+    def __delitem__(self, index: int) -> None:
+        """Delete the connection."""
+        raise NotImplementedError("Connections.__delitem__ must be overridden")
+
+    @abstractmethod
     def __getitem__(self, index: int) -> Any:
         """Return the list of connections."""
         raise NotImplementedError("Connections.__getitem__ must be overridden")
@@ -50,21 +63,11 @@ class ConnectionsABC(ABC):
         raise NotImplementedError("Connections.__len__ must be overridden")
 
     @abstractmethod
-    def consistency(self) -> None:
-        """Check the consistency of the Connections.
-        The consistency() method is used to check the semantic consistency. The
-        consistency() method should raise an exception if the object is not
-        consistent.
-        NOTE: Likely to significantly slow down the code.
-        """
-        raise NotImplementedError("Connections.consistency must be overridden")
+    def __setitem__(self, index: int, value: Any) -> None:
+        """Set the connection."""
+        raise NotImplementedError("Connections.__setitem__ must be overridden")
 
     @abstractmethod
-    def verify(self) -> None:
-        """Verify the Connections object.
-        The verify() method is used to check the Connections object for validity.
-        The verify() method should raise an exception if the object is not
-        valid. 
-        NOTE: May significantly slow down the code if called frequently.
-        """
-        raise NotImplementedError("Connections.verify must be overridden")
+    def append(self, value: Iterable[XEndPointRefABC]) -> None:
+        """Append the connection."""
+        raise NotImplementedError("Connections.append must be overridden")

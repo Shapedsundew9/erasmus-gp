@@ -1,6 +1,6 @@
 """Base class of connections tests."""
 import unittest
-from egppy.gc_graph.connections.connections_class_factory import TupleConnections
+from egppy.gc_graph.connections.connections_class_factory import ListConnections, TupleConnections
 from egppy.gc_graph.end_point.end_point import SrcEndPointRef, DstEndPointRef
 from egppy.gc_graph.egp_typing import DestinationRow, SourceRow
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
@@ -19,7 +19,7 @@ class ConnectionsTestBase(unittest.TestCase):
     """
 
     # The connections type to test. Define in subclass.
-    ctype: type[TupleConnections] = TupleConnections
+    ctype: type= TupleConnections
 
     @classmethod
     def get_test_cls(cls) -> type:
@@ -88,5 +88,36 @@ class ConnectionsTestBase(unittest.TestCase):
                 SrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)])
             conns.verify()
 
-if __name__ == '__main__':
-    unittest.main()
+
+class MutableConnectionsTestBase(ConnectionsTestBase):
+    """Extends the static connections test cases with dynamic connections tests."""
+    ctype: type = ListConnections
+
+    def test_setitem(self) -> None:
+        """Test setting an item in the connections."""
+        if self.running_in_test_base_class():
+            return
+        self.connections[0] = [SrcEndPointRef(DestinationRow.O, 0)]
+        self.assertEqual(self.connections[0], [SrcEndPointRef(DestinationRow.O, 0)])
+
+    def test_delitem(self) -> None:
+        """Test deleting an item in the connections."""
+        if self.running_in_test_base_class():
+            return
+        del self.connections[0]
+        self.assertEqual(len(self.connections), 3)
+        self.assertEqual(self.connections[0], [SrcEndPointRef(DestinationRow.A, 1)])
+        self.assertEqual(self.connections[1], [SrcEndPointRef(DestinationRow.A, 2)])
+        self.assertEqual(self.connections[2], [SrcEndPointRef(DestinationRow.A, 3)])
+        with self.assertRaises(IndexError):
+            _ = self.connections[3]
+        with self.assertRaises(IndexError):
+            del self.connections[3]
+
+    def test_append(self) -> None:
+        """Test appending an item in the connections."""
+        if self.running_in_test_base_class():
+            return
+        self.connections.append([SrcEndPointRef(DestinationRow.O, 0)])
+        self.assertEqual(len(self.connections), 5)
+        self.assertEqual(self.connections[4], [SrcEndPointRef(DestinationRow.O, 0)])
