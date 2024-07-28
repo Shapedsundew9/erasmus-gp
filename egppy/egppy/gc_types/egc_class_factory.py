@@ -6,10 +6,12 @@ code class. As a working genetic code object, it only contains the essentials of
 genetic code object avoiding all the derived data.
 """
 from typing import Any
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.gc_types.gc import GCABC, GCMixin, GCProtocol, NULL_GC
+from egppy.gc_graph.gc_graph_class_factory import EMPTY_GC_GRAPH
 from egppy.storage.cache.cacheable_obj import CacheableDict
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
 # Standard EGP logging pattern
@@ -19,8 +21,18 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class EGCMixin(GCMixin):
+class EGCMixin(GCMixin, GCProtocol):
     """Embryonic Genetic Code Mixin Class."""
+
+    # The types are used for perising the genetic code object to a database.
+    GC_KEY_TYPES: dict[str, str] = {
+        'graph': "BYTEA[]",
+        'gca': "BYTEA[32]",
+        'gcb': "BYTEA[32]",
+        'ancestora': "BYTEA[32]",
+        'ancestorb': "BYTEA[32]",
+        'pgc': "BYTEA[32]"
+    }
 
     def consistency(self: GCProtocol) -> None:
         """Check the genetic code object for consistency.
@@ -29,7 +41,6 @@ class EGCMixin(GCMixin):
             ValueError: If the genetic code object is inconsistent.
         """
         # Only codons can have GCA, PGC or Ancestor A NULL. Then all must be NULL.
-        # TODO: Add graph check to this.
         if self['gca'] is NULL_GC or self['pgc'] is NULL_GC or self['ancestora'] is NULL_GC:
             if (self['gca'] is not NULL_GC
                 or self['gcb'] is not NULL_GC
@@ -43,8 +54,8 @@ class EGCMixin(GCMixin):
                             f"pgc = {self['pgc']}\n"
                             f"ancestora = {self['ancestora']}\n"
                             f"ancestorb = {self['ancestorb']}\n")
-                raise ValueError(
-                    "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL.")
+                assert False, "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL."
+        super().consistency()
 
     def set_members(self: GCProtocol, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
@@ -52,7 +63,7 @@ class EGCMixin(GCMixin):
         Args:
             gcabc: The genetic code object or dictionary to set the attributes.
         """
-        self['graph']=gcabc.get('graph', {})
+        self['graph']=gcabc.get('graph', EMPTY_GC_GRAPH)
         self['gca']=gcabc.get('gca', NULL_GC)
         self['gcb']=gcabc.get('gcb', NULL_GC)
         self['ancestora']=gcabc.get('ancestora', NULL_GC)
@@ -60,41 +71,58 @@ class EGCMixin(GCMixin):
         self['pgc']=gcabc.get('pgc', NULL_GC)
 
     def verify(self: GCProtocol) -> None:
-        """Verify the genetic code object.
-
-        Raises:
-            ValueError: If the genetic code object is invalid.
-        """
-        if not isinstance(self['graph'], dict):
-            raise ValueError("graph must be a dictionary")
-        if not issubclass(self['gca'], GCABC):
-            raise ValueError("gca must be a genetic code object")
-        if not issubclass(self['gcb'], GCABC):
-            raise ValueError("gcb must be a genetic code object")
-        if not issubclass(self['ancestora'], GCABC):
-            raise ValueError("ancestora must be a genetic code object")
-        if not issubclass(self['ancestorb'], GCABC):
-            raise ValueError("ancestorb must be a genetic code object")
-        if not issubclass(self['pgc'], GCABC):
-            raise ValueError("pgc must be a genetic code object")
+        """Verify the genetic code object."""
+        assert isinstance(self['graph'], GCGraphABC), "graph must be a dictionary"
+        assert issubclass(self['gca'], GCABC), "gca must be a genetic code object"
+        assert issubclass(self['gcb'], GCABC), "gcb must be a genetic code object"
+        assert issubclass(self['ancestora'], GCABC), "ancestora must be a genetic code object"
+        assert issubclass(self['ancestorb'], GCABC), "ancestorb must be a genetic code object"
+        assert issubclass(self['pgc'], GCABC), "pgc must be a genetic code object"
+        for key in self:
+            assert key in self.GC_KEY_TYPES, f"Invalid key: {key}"
+        super().verify()
 
 
-class EGCDirtyDict(CacheableDirtyDict, EGCMixin, GCABC):
+class EGCDirtyDict(CacheableDirtyDict, EGCMixin, GCProtocol, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Constructor for DirtyDictEGC"""
         super().__init__()
-        self.set_members(gcabc)  # type: ignore
+        self.set_members(gcabc)
+
+    def consistency(self) -> None:
+        """Check the genetic code object for consistency."""
+        # Need to call consistency down both MRO paths.
+        CacheableDirtyDict.consistency(self)
+        EGCMixin.consistency(self)
+
+    def verify(self) -> None:
+        """Verify the genetic code object."""
+        # Need to call verify down both MRO paths.
+        CacheableDirtyDict.verify(self)
+        EGCMixin.verify(self)
 
 
-class EGCDict(CacheableDict, EGCMixin, GCABC):
+class EGCDict(CacheableDict, EGCMixin, GCProtocol, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Constructor for DirtyDictEGC"""
         super().__init__()
-        self.set_members(gcabc)  # type: ignore
+        self.set_members(gcabc)
+
+    def consistency(self) -> None:
+        """Check the genetic code object for consistency."""
+        # Need to call consistency down both MRO paths.
+        CacheableDict.consistency(self)
+        EGCMixin.consistency(self)
+
+    def verify(self) -> None:
+        """Verify the genetic code object."""
+        # Need to call verify down both MRO paths.
+        CacheableDict.verify(self)
+        EGCMixin.verify(self)
 
 
 EGCType = EGCDirtyDict | EGCDict

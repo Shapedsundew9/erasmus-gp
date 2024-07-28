@@ -1,0 +1,92 @@
+{
+    "dGC": {
+        "default": "()",
+        "num_inputs": 0,
+        "uid": -1,
+        "output_types": ["dGC"],
+        "constructor": {
+            "inline": "dGC()"
+        },
+        "instanciation": {
+            "package": "egp_types",
+            "version": null,
+            "module": "dGC",
+            "param": true
+        }
+    },
+    "None": {
+        "default": "None",
+        "num_inputs": 0,
+        "constructor": {
+            "inline": "None"
+        },
+        "uid": 0,
+        "instanciation": {
+            "package": null,
+            "version": null,
+            "module": null,
+            "param": false
+        }
+    },
+    "bool": {
+        "default": "True",
+        "num_inputs": 1,
+        "uid": 1,
+        "output_types": ["bool"],
+        "instanciation": {
+            "package": null,
+            "version": null,
+            "module": null,
+            "param": true
+        }
+    },
+    "int": {
+        "default": "2",
+        "num_inputs": 1,
+        "uid": 2,
+        "output_types": ["int"],
+        "instanciation": {
+            "package": null,
+            "version": null,
+            "module": null,
+            "param": true
+        }
+    },
+    "float": {
+        "default": "2.0",
+        "num_inputs": 1,
+        "uid": 3,
+        "output_types": ["float"],
+        "instanciation": {
+            "package": null,
+            "version": null,
+            "module": null,
+            "param": true
+        }
+    },
+    "complex": {
+        "default": "complex(2.0,-2.0)",
+        "constructor": {
+            "inline": "complex({i0}, {i1})"
+        },
+        "uid": 4,
+        "instanciation": {
+            "package": null,
+            "version": null,
+            "module": null,
+            "param": true
+        }
+    },
+    "str": {
+        "default": "'two'",
+        "num_inputs": 1,
+        "uid": 5,
+        "output_types": ["str"],
+        "instanciation": {
+            "package": null,
+            "version": null,
+            "module": null,
+            "param": true
+        }
+    }
+}

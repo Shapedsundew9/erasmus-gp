@@ -1,0 +1,25 @@
+{
+    "graph": {
+        "A": [],
+        "O": [
+            [
+                "A",
+                0,
+                "To Be Defined"
+            ]
+        ]
+    },
+    "alpha_class": 0,
+    "beta_class": 0,
+    "properties": {},
+    "meta_data": {
+        "name": "To Be Defined",
+        "function": {
+            "python3": {
+                "0": {
+                    "inline": "To Be Defined"
+                }
+            }
+        }
+    }
+}

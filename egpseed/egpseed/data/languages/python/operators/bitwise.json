@@ -1,0 +1,47 @@
+{
+    "operators": {
+        "&": {
+            "inline": "{i0} & {i1}",
+            "name": "bitwise AND {t0} and {t1}",
+            "properties": {
+                "bitwise": true
+            }
+        },
+        "<<": {
+            "inline": "{i0} << {i1}",
+            "name": "left shift {t0} by {t1}",
+            "properties": {
+                "bitwise": true
+            }
+        },
+        ">>": {
+            "inline": "{i0} >> {i1}",
+            "name": "right shift {t0} by {t1}",
+            "properties": {
+                "bitwise": true
+            }
+        },
+        "^": {
+            "inline": "{i0} ^ {i1}",
+            "name": "bitwise XOR {t0} and {t1}",
+            "properties": {
+                "bitwise": true
+            }
+        },
+        "|": {
+            "inline": "{i0} | {i1}",
+            "name": "bitwise OR {t0} and {t1}",
+            "properties": {
+                "bitwise": true
+            }
+        },
+        "~": {
+            "inline": "~{i0}",
+            "name": "bitwise NOT {t0}",
+            "properties": {
+                "bitwise": true
+            },
+            "num_inputs": 1
+        }
+    }
+}

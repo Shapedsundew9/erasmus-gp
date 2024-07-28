@@ -1,0 +1,60 @@
+{
+    "operators": {
+        "is not": {
+            "inline": "{i0} is not {i1}",
+            "name": "{t0} is not {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        "is": {
+            "inline": "{i0} is {i1}",
+            "name": "{t0} is {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        "<": {
+            "inline": "{i0} < {i1}",
+            "name": "less than {t0} with {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        "<=": {
+            "inline": "{i0} <= {i1}",
+            "name": "less than equal {t0} with {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        "!=": {
+            "inline": "{i0} != {i1}",
+            "name": "not equal {t0} with {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        "==": {
+            "inline": "{i0} == {i1}",
+            "name": "equal {t0} with {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        ">": {
+            "inline": "{i0} > {i1}",
+            "name": "greater than {t0} with {t1}",
+            "properties": {
+                "conditional": true
+            }
+        },
+        ">=": {
+            "inline": "{i0} >= {i1}",
+            "name": "greater than equal {t0} with {t1}",
+            "properties": {
+                "conditional": true
+            }
+        }
+    }
+}

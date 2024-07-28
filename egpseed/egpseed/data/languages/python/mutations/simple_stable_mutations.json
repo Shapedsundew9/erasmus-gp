@@ -1,0 +1,133 @@
+{
+    "operators": {
+        "gc_remove_all_connections": {
+            "inline": "gc_remove_all_connections(_GMS, {i0})",
+            "name": "Remove all connections in GC graph.",
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_remove_all_connections",
+                    "name": "gc_remove_all_connections"
+                }
+            ]
+        },
+        "gc_stack": {
+            "inline": "gc_stack(_GMS, {i0}, {i1}, False)",
+            "name": "Stack GC i1 onto GC i0.",
+            "num_inputs": 2,
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_stack",
+                    "name": "gc_stack"
+                }
+            ]
+        },
+        "gc_stack_inverse": {
+            "inline": "gc_stack(_GMS, {i0}, {i1}, True)",
+            "name": "Stack GC i0 onto GC i1.",
+            "num_inputs": 2,
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_stack",
+                    "name": "gc_stack"
+                }
+            ]
+        },
+        "gc_insert": {
+            "inline": "gc_insert(_GMS, {i0}, {i1})",
+            "name": "Insert GC i1 into GC i0 at a random row.",
+            "num_inputs": 2,
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_insert",
+                    "name": "gc_insert"
+                }
+            ]
+        },
+        "gc_add_input": {
+            "inline": "gc_add_input(_GMS, {i0})",
+            "name": "Create an input of a random type.",
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_add_input",
+                    "name": "gc_add_input"
+                }
+            ]
+        },
+        "remove_input": {
+            "inline": "gc_remove_input(_GMS, {i0})",
+            "name": "Remove a random input.",
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_remove_input",
+                    "name": "gc_remove_input"
+                }
+            ]
+        },
+        "add_output": {
+            "inline": "gc_add_output(_GMS, {i0})",
+            "name": "Create an output of a random type.",
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_add_output",
+                    "name": "gc_add_output"
+                }
+            ]
+        },
+        "remove_output": {
+            "inline": "gc_remove_output(_GMS, {i0})",
+            "name": "Remove a random output.",
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_remove_output",
+                    "name": "gc_remove_output"
+                }
+            ]
+        },
+        "remove_constant": {
+            "inline": "gc_remove_constant(_GMS, {i0})",
+            "name": "Remove a random constant.",
+            "properties": {
+                "physical": true
+            },
+            "imports": [
+                {
+                    "module": "egp_physics.physics",
+                    "object": "gc_remove_constant",
+                    "name": "gc_remove_constant"
+                }
+            ]
+        }
+    }
+}

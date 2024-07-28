@@ -176,3 +176,7 @@ class MutableGCGraph(FrozenGCGraph):
         """Initialize the GC graph."""
         super().__init__(gc_graph)
         self._lock = False
+
+
+# The empty graph
+EMPTY_GC_GRAPH = FrozenGCGraph({})

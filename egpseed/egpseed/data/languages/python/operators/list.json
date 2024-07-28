@@ -1,0 +1,13 @@
+{
+    "operators": {
+        "sort": {
+            "inline": "{i0}.sort()",
+            "properties": {
+                "sequence": true,
+                "object_modify": true
+            },
+            "num_inputs": 1,
+            "num_outputs": 0
+        }
+    }
+}
