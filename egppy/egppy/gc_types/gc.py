@@ -1,5 +1,9 @@
 """Genetic Code Abstract Base Class."""
 from __future__ import annotations
+from collections.abc import Mapping
+from datetime import datetime
+from hashlib import sha256
+from pprint import pformat
 from typing import Any, Iterator, Protocol
 from abc import abstractmethod
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -17,19 +21,11 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # GC signatre None type management
 # It is space efficient to have None types in the DB for signatures but not in the cache.
 # In the GPC a None type is represented by a 0 SHA256
-NULL_SIGNATURE_BYTES: bytes = b"\x00" * 32
-
-# Evolve a pGC after this many 'uses'.
-# MUST be a power of 2
-M_CONSTANT: int = 1 << 4
-M_MASK: int = M_CONSTANT - 1
-NUM_PGC_LAYERS = 16
-# With M_CONSTANT = 16 & NUM_PGC_LAYERS = 16 it will take 16**16 (== 2**64 == 18446744073709551616)
-# population individual evolutions to require a 17th layer (and that is assuming all PGC's are
-# children of the one in the 16th layer). Thats about 5.8 billion evolutions per second for
-# 100 years. A million super fast cores doing 5.8 million per second...only an outside chance
-# of hitting the limit if Erasmus becomes a global phenomenon and is not rewritten! Sensibly 
-# future proofed.
+NULL_SHA256: bytes = b"\x00" * 32
+NULL_SHA256_STR = NULL_SHA256.hex()
+NULL_SIGNATURE: bytes = NULL_SHA256
+NULL_PROBLEM: bytes = NULL_SHA256
+NULL_PROBLEM_SET: bytes = NULL_SHA256
 
 # PROPERTIES must define the bit position of all the properties listed in
 # the "properties" field of the entry_format.json definition.
@@ -49,6 +45,57 @@ PROPERTIES: dict[str, int] = {
 }
 
 
+def encode_properties(obj: dict[str, bool] | int | None) -> int:
+    """Encode the properties dictionary into its integer representation.
+
+    The properties field is a dictionary of properties to boolean values. Each
+    property maps to a specific bit of a 64 bit value as defined
+    by the _PROPERTIES dictionary.
+
+    Args
+    ----
+    obj(dict): Properties dictionary.
+
+    Returns
+    -------
+    (int): Integer representation of the properties dictionary.
+    """
+    if isinstance(obj, dict):
+        bitfield: int = 0
+        for k, _ in filter(lambda x: x[1], obj.items()):
+            bitfield |= PROPERTIES[k]
+        return bitfield
+    if isinstance(obj, int):
+        return obj
+    if obj is None:
+        return 0
+    raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or integer type.")
+
+
+def decode_properties(obj: int | dict[str, bool] | None) -> dict[str, bool]:
+    """Decode the properties dictionary from its integer representation.
+
+    The properties field is a dictionary of properties to boolean values. Each
+    property maps to a specific bit of a 64 bit value as defined
+    by the _PROPERTIES dictionary.
+
+    Args
+    ----
+    obj(int): Integer representation of the properties dictionary.
+
+    Returns
+    -------
+    (dict): Properties dictionary.
+    """
+    if isinstance(obj, dict):
+        return obj
+    if isinstance(obj, int):
+        return {b: bool(f & obj) for b, f in PROPERTIES.items()}
+    if obj is None:
+        return {b: False for b, f in PROPERTIES.items()}
+    raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or integer type.")
+
+
 class GCABC(CacheableObjABC):
     """Genetic Code Abstract Base Class.
     
@@ -57,7 +104,7 @@ class GCABC(CacheableObjABC):
     """
 
     @abstractmethod
-    def __init__(self, gcabc: GCABC | dict[str, Any]) -> None:
+    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Initialize the genetic code object."""
         raise NotImplementedError("GCABC.__init__ must be overridden")
 
@@ -96,11 +143,17 @@ class GCABC(CacheableObjABC):
         """Set the data members of the GCABC."""
         raise NotImplementedError("GCABC.set_members must be overridden")
 
+    @abstractmethod
+    def signature(self) -> bytes:
+        """Return the signature of the genetic code."""
+        raise NotImplementedError("GCABC.signature must be overridden")
+
 
 class GCProtocol(Protocol):
     """Genetic Code Protocol."""
 
     GC_KEY_TYPES: dict[str, str]
+    REFERENCE_KEYS: set[str]
 
     def __contains__(self, key: str) -> bool:
         """Delete a key and value."""
@@ -129,6 +182,10 @@ class GCProtocol(Protocol):
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
+
+    def signature(self) -> bytes:
+        """Return the signature of the genetic code."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 class GCMixin:
@@ -160,13 +217,55 @@ class GCMixin:
         for key in gcabc:
             self[key] = gcabc[key]
 
+    def signature(self: GCProtocol) -> bytes:
+        """Return the signature of the genetic code object."""
+        if self['signature'] is NULL_SIGNATURE:
+            hash_obj = sha256(self['gca'].signature())
+            hash_obj.update(self['gcb'].signature())
+            hash_obj.update(pformat(self['graph'].json(), compact=True).encode())
+            meta_data = self.get('meta_data', {})
+            if "function" in meta_data:
+                hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
+                if "code" in meta_data["function"]["python3"]["0"]:
+                    hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
+            self['signature'] = hash_obj.digest()
+        return self['signature']
+
+
+class GCBase:
+    """Genetic Code Base Class."""
+
+    def to_json(self: GCProtocol) -> dict[str, int | str | float | list | dict]:
+        """Return a JSON serializable dictionary."""
+        retval = {}
+        for key in self:
+            value = self[key]
+            if key == 'properties':
+                retval[key] = decode_properties(value)
+            elif isinstance(value, GCABC):
+                # Must get signatures from GC objects first otherwise will recursively
+                # call this function.
+                retval[key] = value.signature().hex()
+            elif getattr(self[key], 'to_json', None) is not None:
+                retval[key] = self[key].to_json()
+            elif isinstance(value, bytes):
+                retval[key] = value.hex()
+            elif isinstance(value, datetime):
+                retval[key] = value.isoformat()
+            else:
+                retval[key] = value
+                if _LOG_DEBUG:
+                    assert isinstance(value, (int, str, float, list, dict)), \
+                        f"Invalid type: {type(value)}"
+        return retval
+
 
 class NullGC(CacheableDirtyDict, GCMixin, GCABC):
     """Genetic Code Protocol."""
 
-    def __init__(self, gcabc: GCABC | dict[str, Any]) -> None:
+    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Initialize the genetic code object."""
-        super().__init__(gcabc)
+        super().__init__(gcabc if gcabc is not None else {})
 
     def __delitem__(self, key: str) -> None:
         """Cannot modifiy a NullGC."""
@@ -179,6 +278,10 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
         raise RuntimeError("Cannot modify a NullGC")
+
+    def signature(self) -> bytes:
+        """Return the signature of the genetic code object."""
+        return NULL_SIGNATURE
 
 
 # The NullGC is a singleton object that is used to represent a NULL genetic code object.

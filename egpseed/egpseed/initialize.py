@@ -56,15 +56,13 @@ from typing import Any
 from datetime import datetime
 from cerberus import Validator
 from egppy.gc_graph.ep_type import _EGP_REAL_TYPE_LIMIT, fully_qualified_name
-from egppy.gc_types.gc import NUM_PGC_LAYERS
-from egppy.gc_types.pgc_class_factory import PGCDirtyDict
-from egppy.gc_types.ggc_class_factory import GGCDirtyDict
+from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType   # pylint: disable=unused-import
+from egppy.problem.problem import ABIOGENESIS_PROBLEM
 
 
 _logger: Logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
 _LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
-
 
 _path: str = dirname(__file__)
 _template_file: str = join(_path, "data/languages/template.json")
@@ -79,6 +77,7 @@ _GC_MCODON_TEMPLATE: dict[str, Any] = {
     "gcb": None,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
     "created": datetime.now(),
+    "problem": ABIOGENESIS_PROBLEM,
     "properties": {},
     "meta_data": {"function": {"python3": {"0": {"inline": "To Be Defined"}}}},
 }
@@ -139,10 +138,11 @@ def _load_operators(operator_files, validator) -> dict[str, dict[str, Any]]:
                 operators[key] = validator.normalized(operator)
                 if "output_types" in operator:
                     # This is python specific
-                    operators[key]["output_types"] = [
-                        fully_qualified_name(eval(f"{ot}()"))  # pylint: disable=eval-used
-                        for ot in operator["output_types"]
-                    ]
+                    operators[key]["output_types"] = operator["output_types"]
+                    # [
+                    #    fully_qualified_name(eval(f"{ot}()"))  # pylint: disable=eval-used
+                    #    for ot in operator["output_types"]
+                    #]
             else:
                 _logger.error("%s\n%s", str(operator), validator.errors)
                 print("Operator validation failed. See logs for details.")
@@ -176,10 +176,11 @@ def _load_mutations(mutation_files, validator) -> dict[str, dict[str, Any]]:
                 mutations[key] = validator.normalized(mutation)
                 # This is python specific
                 if "input_types" in mutation:
-                    mutations[key]["input_types"] = [
-                        fully_qualified_name(eval(f"{mt}()"))  # pylint: disable=eval-used
-                        for mt in mutation["input_types"]
-                    ]
+                    mutations[key]["input_types"] = mutation["input_types"] 
+                    # [
+                    #    fully_qualified_name(eval(f"{mt}()"))  # pylint: disable=eval-used
+                    #    for mt in mutation["input_types"]
+                    # ]
                 if (
                     "num_inputs" in mutation
                     and mutation["num_inputs"] > 1
@@ -212,8 +213,9 @@ def _load_types(type_file, operators, validator):
     types: list[str] = []
     for key, typ in tuple(_types.items()):
         _logger.debug("Current type: %s %s", key, typ)
-        obj: Any | None = eval(f"{key}()") if key != "None" else None  # pylint: disable=eval-used
-        name: str = fully_qualified_name(obj)
+        # obj: Any | None = eval(f"{key}()") if key != "None" else None  # pylint: disable=eval-used
+        # name: str = fully_qualified_name(obj)
+        name = key
         _types[key]["fully_qualified_type"] = name
 
         # Type casts use operator defaults then explicitly override as needed.
@@ -228,9 +230,8 @@ def _load_types(type_file, operators, validator):
             "num_outputs", operators[name]["num_outputs"]
         )
         if "output_types" in typ:
-            operators[name]["output_types"] = [
-                fully_qualified_name(eval(f"{typ['output_types'][0]}()"))  # pylint: disable=eval-used
-            ]
+            operators[name]["output_types"] = typ["output_types"]
+            # [fully_qualified_name(eval(f"{typ['output_types'][0]}()"))  # pylint: disable=eval-used]
 
         # A default value of '(*)' where * is wildcard is an instanciation of the object.
         # All objects are
@@ -306,20 +307,10 @@ def _create_mcodon(operator, type_dict):
     """
     codon = deepcopy(_GC_MCODON_TEMPLATE)
     codon["properties"] = operator["properties"]
-    if operator["properties"]["physical"]:
-        codon["pgc_evolvability"] = [1.0] * NUM_PGC_LAYERS
-        codon["pgc_e_count"] = [1] * NUM_PGC_LAYERS
-        codon["pgc_fitness"] = [1.0] * NUM_PGC_LAYERS
-        codon["pgc_f_count"] = [1] * NUM_PGC_LAYERS
-        codon["_pgc_evolvability"] = [0.0] * NUM_PGC_LAYERS
-        codon["_pgc_e_count"] = [0] * NUM_PGC_LAYERS
-        codon["_pgc_fitness"] = [0.0] * NUM_PGC_LAYERS
-        codon["_pgc_f_count"] = [0] * NUM_PGC_LAYERS
-    else:
-        codon["evolvability"] = 1.0
-        codon["e_count"] = 1
-        codon["fitness"] = 1.0
-        codon["f_count"] = 1
+    codon["evolvability"] = 1.0
+    codon["e_count"] = 1
+    codon["fitness"] = 1.0
+    codon["f_count"] = 1
     for position, inpt in enumerate(operator["input_types"]):
         codon["graph"]["A"].append(["I", position, type_dict["n2v"][inpt]])
     if "imports" in operator:
@@ -349,7 +340,7 @@ def _index_types(types):
         },
     }
 
-    # For convenience map all built in unqualified names to the UIDs of the fullay qualified names
+    # For convenience map all built in unqualified names to the UIDs of the fully qualified names
     type_dict["n2v"].update(
         {
             k.replace("builtins_", ""): v
@@ -357,8 +348,8 @@ def _index_types(types):
             if "builtins_" in k
         }
     )
-    type_dict["n2v"]["None"] = type_dict["n2v"]["NoneType"]
-    del type_dict["n2v"]["NoneType"]
+    # type_dict["n2v"]["None"] = type_dict["n2v"]["NoneType"]
+    # del type_dict["n2v"]["NoneType"]
 
     with open(_ep_type_file, "w", encoding="utf-8") as file_ptr:
         dump(type_dict, file_ptr, indent=4, sort_keys=True)
@@ -375,7 +366,7 @@ def _generate(language):
         language (string): Name of a language folder under data/languages.
     """
     operators, types, exceptions, type_dict, mutations = _load(language)
-    # TODO: Only python supported at this stage.
+    # Only python supported at this stage.
     generator = python_generator
     codon_list = []
 
@@ -400,17 +391,15 @@ def _generate(language):
                 result.setdefault("name", key)
                 codon = _create_mcodon(result, type_dict)
                 codon_list.append(GGCDirtyDict(codon).to_json())
-    print(
-        "Generated %d codons from %d operator-type combinations (%0.1f%%)."
-        % (generated, tried, generated * 100 / tried)
-    )
+    print(f"Generated {generated} codons from {tried} operator-type combinations"
+          f" {generated * 100 / tried:0.1f}).")
 
     # Mutations
     for key, mutation in mutations.items():
         mutation.setdefault("name", key)
         codon = _create_mcodon(mutation, type_dict)
-        codon_list.append(PGCDirtyDict(codon).to_json())
-    print("Generated %d mutation codons." % len(mutations))
+        codon_list.append(GGCDirtyDict(codon).to_json())
+    print(f"Generated {len(mutations)} mutation codons.")
 
     with open(_codon_file, "w", encoding="utf-8") as file_ptr:
         dump(codon_list, file_ptr, indent=4, sort_keys=True)
@@ -424,16 +413,19 @@ def python_generator(key, operators, input_types, exceptions):
         operators(dict(dict)): Dictionary of normalised operators.
         input_types(list(str)): List of fully qualified input types to operator. The list is the
             same length as the operator has inputs.
-        exceptions(dict(list(str))): Exception definitions for python. exceptions has the following structure:
+        exceptions(dict(list(str))): Exception definitions for python. exceptions has the 
+        following structure:
                 "ok": [sub-strings]
                 "info": [sub-strings]
                 "warning": [sub-strings]
                 "error": [sub-strings]
-            sub-strings are partial exception strings but sufficient to be unique. If a sub-string matches
-            an execption raised by characterising the operator the 'exceptions' key defines what happens:
+            sub-strings are partial exception strings but sufficient to be unique. If a sub-string
+            matches an execption raised by characterising the operator the 'exceptions' key 
+            defines what happens:
                 "ok": This exception is raised but the operator-input_types is actually valid.
                 "info": The exception means this operator-input_types combination is invalid.
-                "warning": The exception is ambiguous the operator-input_types combination could be valid or invalid.
+                "warning": The exception is ambiguous the operator-input_types combination could be 
+                           valid or invalid.
                 "error": Something is wrong with the operator definition (needs fixing).
     """
     operator = deepcopy(operators[key])
@@ -443,22 +435,17 @@ def python_generator(key, operators, input_types, exceptions):
             imp["module"].replace(".", "_") + "_" + imp["object"].replace(".", "_")
         )
         if imp["name"] not in dir(modules[python_generator.__module__]):
-            exec(
-                f"from {imp['module']} import {imp['object']} as {imp['name']}",
-                globals(),
-            )
+            exec(f"from {imp['module']} import {imp['object']} as {imp['name']}", globals())  # pylint: disable=exec-used
     expression = f"{operator['inline']}".format_map(inputs)
     operator["input_types"] = input_types
     try:
-        result = eval(expression)
+        result = eval(expression)  # pylint: disable=eval-used
     except Exception as excptn:  # pylint: disable=broad-exception-caught
         exception = str(excptn)
         for level in ("info", "warning", "error"):
             for etext in exceptions[level]:
                 if etext in exception:
-                    getattr(_logger, level)(
-                        f"Expression: {expression}, Exception: {exception}"
-                    )
+                    getattr(_logger, level)(f"Expression: {expression}, Exception: {exception}")
                     return None
             for etext in exceptions["ok"]:
                 if etext in exception:
@@ -477,5 +464,8 @@ def python_generator(key, operators, input_types, exceptions):
                 f"Expression: {expression}, generated unrecognised exception: '{exception}' using operator: {operator}"
             )
         sys_exit()
-    operator["output_types"] = [fully_qualified_name(result)]
+    # FIXME: Hack for now. Need to fix unique import name and fully qualified name.
+    rtype = result.__class__.__qualname__
+    typ = "None" if rtype == None.__class__.__qualname__ else rtype
+    operator["output_types"] = [typ]  # [fully_qualified_name(result)]
     return operator

@@ -30,14 +30,14 @@
     },
     "input_types": {
         "type": "list",
-        "default": ["egp_types_dGC_dGC"],
+        "default": ["XGCType"],
         "schema": {
             "type": "string"
         }
     },
     "output_types": {
         "type": "list",
-        "default": ["egp_types_dGC_dGC"],
+        "default": ["XGCType"],
         "schema": {
             "type": "string"
         }

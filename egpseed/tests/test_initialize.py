@@ -10,3 +10,7 @@ def test_initialize() -> None:
     cp ~/Projects/egp-seed/data/codons.json ~/Projects/egp-stores/egp_stores/data/
     """
     _generate("python")
+
+
+if __name__ == "__main__":
+    test_initialize()

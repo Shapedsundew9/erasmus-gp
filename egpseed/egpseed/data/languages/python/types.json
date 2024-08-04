@@ -1,16 +1,16 @@
 {
-    "dGC": {
-        "default": "()",
-        "num_inputs": 0,
+    "XGCType": {
+        "default": "XGCType()",
+        "num_inputs": 1,
         "uid": -1,
-        "output_types": ["dGC"],
+        "output_types": ["XGCType"],
         "constructor": {
-            "inline": "dGC()"
+            "inline": "XGCType()"
         },
         "instanciation": {
-            "package": "egp_types",
+            "package": "egppy",
             "version": null,
-            "module": "dGC",
+            "module": "gc_types.ggc_class_factory",
             "param": true
         }
     },
