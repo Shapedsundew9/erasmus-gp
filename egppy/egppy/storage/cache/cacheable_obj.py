@@ -65,13 +65,25 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
         self.data[key] = value
         self.dirty()
 
+    def popitem(self) -> tuple[Any, Any]:
+        """Default MutableMapping mixin popitem() method is implemented
+        using FIFO ordering which is inconsistent with python 3.7+ dict."""
+        if len(self) > 0:
+            key = tuple(self.keys())[-1]
+        else:
+            raise KeyError from None
+        value = self[key]
+        del self[key]
+        return key, value
+
     def to_json(self) -> dict[str, Any]:
         """Return a JSON serializable dictionary."""
         return deepcopy(x=self.data)
 
     def verify(self) -> None:
         """Verify the cacheable object."""
-        assert not (x for x in self if not isinstance(x, str)), "Keys must be strings."
+        non_str_keys = tuple(x for x in self if not isinstance(x, str))
+        assert not non_str_keys, f"Keys must be strings: Non-string keys {non_str_keys}."
         super().verify()
 
 

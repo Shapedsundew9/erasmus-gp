@@ -49,7 +49,8 @@ class CacheableDirtyDict(dict, CacheableDirtyObjMixin, CacheableObjABC):
 
     def verify(self) -> None:
         """Verify the genetic code object."""
-        assert not (x for x in self if not isinstance(x, str)), "Keys must be strings."
+        non_str_keys = tuple(x for x in self if not isinstance(x, str))
+        assert not non_str_keys, f"Keys must be strings: Non-string keys {non_str_keys}."
         super().verify()
 
 

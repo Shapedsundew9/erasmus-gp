@@ -23,7 +23,8 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Empty GC Graph templates
 _EMPTY_INTERFACES: dict[str, InterfaceABC] = {r: EMPTY_INTERFACE for r in ROW_CLS_INDEXED}
-_EMPTY_CONNECTIONS: dict[str, ConnectionsABC] = {r + 'c': EMPTY_CONNECTIONS for r in ROW_CLS_INDEXED}
+_EMPTY_CONNECTIONS: dict[str, ConnectionsABC] = \
+    {r + 'c': EMPTY_CONNECTIONS for r in ROW_CLS_INDEXED}
 
 
 class FrozenGCGraph(GCGraphMixin, GCGraphABC):

@@ -70,10 +70,9 @@ class CacheMixinProtocol(Protocol):
 class CacheMixin():
     """Cache Base class has methods generic to all cache classes."""
 
-
     def consistency(self: CacheMixinProtocol) -> None:
         """Check the cache for self consistency."""
-        for value in self.values():
+        for value in (v for v in self.values() if getattr(v, 'consistency', None) is not None):
             value.consistency()
         super().consistency()
 
@@ -119,7 +118,7 @@ class CacheMixin():
         Every object stored in the cache is verified as well as basic
         cache parameters.
         """
-        for value in self.values():
+        for value in (v for v in self.values() if getattr(v, 'verify', None) is not None):
             value.verify()
 
         assert len(self) <= self.max_items, "Cache size exceeds max_items."

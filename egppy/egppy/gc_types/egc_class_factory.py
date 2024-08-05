@@ -9,7 +9,7 @@ from typing import Any, Mapping
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.gc_types.gc import GCABC, GCBase, GCMixin, GCProtocol, NULL_GC, NULL_SIGNATURE
-from egppy.gc_graph.gc_graph_class_factory import EMPTY_GC_GRAPH
+from egppy.gc_graph.gc_graph_class_factory import EMPTY_GC_GRAPH, FrozenGCGraph
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
@@ -68,7 +68,6 @@ class EGCMixin(GCMixin, GCProtocol):
                 self[key].consistency()
         if self['signature'] is not NULL_SIGNATURE:
             assert self.signature() == self['signature'], "Signature is incorrect."
-        super().consistency()
 
     def resolve_references(self: GCProtocol, mapping: Mapping[bytes, GCABC]) -> None:
         """Resolve the genetic code object references.
@@ -87,29 +86,54 @@ class EGCMixin(GCMixin, GCProtocol):
         Args:
             gcabc: The genetic code object or dictionary to set the attributes.
         """
-        self['graph']=gcabc.get('graph', EMPTY_GC_GRAPH)
-        self['gca']=gcabc.get('gca', NULL_GC)
-        self['gcb']=gcabc.get('gcb', NULL_GC)
-        self['ancestora']=gcabc.get('ancestora', NULL_GC)
-        self['ancestorb']=gcabc.get('ancestorb', NULL_GC)
-        self['pgc']=gcabc.get('pgc', NULL_GC)
-        self['signature']=gcabc.get('signature', NULL_SIGNATURE)
+        tmp = gcabc.get('graph', EMPTY_GC_GRAPH)
+        self['graph'] = FrozenGCGraph(tmp) if not isinstance(tmp, GCGraphABC) else tmp
+        tmp = gcabc.get('gca', NULL_GC) if gcabc.get('gca') is not None else NULL_GC
+        self['gca'] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
+        tmp = gcabc.get('gcb', NULL_GC) if gcabc.get('gcb') is not None else NULL_GC
+        self['gcb'] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
+        tmp = gcabc.get('ancestora', NULL_GC) if gcabc.get('ancestora') is not None else NULL_GC
+        self['ancestora'] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
+        tmp = gcabc.get('ancestorb', NULL_GC) if gcabc.get('ancestorb') is not None else NULL_GC
+        self['ancestorb'] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
+        tmp = gcabc.get('pgc', NULL_GC) if gcabc.get('pgc') is not None else NULL_GC
+        self['pgc'] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
+        tmp = gcabc.get('signature', NULL_SIGNATURE)
+        if tmp is None:
+            tmp = NULL_SIGNATURE
+        self['signature'] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)  # type: ignore
 
     def verify(self: GCProtocol) -> None:
         """Verify the genetic code object."""
-        assert isinstance(self['graph'], GCGraphABC), "graph must be a GC graph object"
-        assert issubclass(self['gca'], GCABC), "gca must be a genetic code object"
-        assert issubclass(self['gcb'], GCABC), "gcb must be a genetic code object"
-        assert issubclass(self['ancestora'], GCABC), "ancestora must be a genetic code object"
-        assert issubclass(self['ancestorb'], GCABC), "ancestorb must be a genetic code object"
-        assert issubclass(self['pgc'], GCABC), "pgc must be a genetic code object"
-        assert isinstance(self['signature'], bytes), "signature must be a bytes object"
+        assert isinstance(self['graph'], GCGraphABC), \
+            "graph must be a GC graph object"
+        assert isinstance(self['gca'], (bytes, GCABC)), \
+            "gca must be a bytes or genetic code object"
+        if isinstance(self['gca'], bytes):
+            assert len(self['gca']) == 32, "gca must be 32 bytes"
+        assert isinstance(self['gcb'], (bytes, GCABC)), \
+            "gcb must be a bytes or genetic code object"
+        if isinstance(self['gcb'], bytes):
+            assert len(self['gcb']) == 32, "gcb must be 32 bytes"
+        assert isinstance(self['ancestora'], (bytes, GCABC)), \
+            "ancestora must be a bytes or genetic code object"
+        if isinstance(self['ancestora'], bytes):
+            assert len(self['ancestora']) == 32, "ancestora must be 32 bytes"
+        assert isinstance(self['ancestorb'], (bytes, GCABC)), \
+            "ancestorb must be a bytes or genetic code object"
+        if isinstance(self['ancestorb'], bytes):
+            assert len(self['ancestorb']) == 32, "ancestorb must be 32 bytes"
+        assert isinstance(self['pgc'], (bytes, GCABC)), \
+            "pgc must be a bytes or genetic code object"
+        if isinstance(self['pgc'], bytes):
+            assert len(self['pgc']) == 32, "pgc must be 32 bytes"
+        assert isinstance(self['signature'], bytes), \
+            "signature must be a bytes object"
         assert len(self['signature']) == 32, "signature must be 32 bytes"
         for key in self:
             assert key in self.GC_KEY_TYPES, f"Invalid key: {key}"
             if getattr(self[key], 'verify', None) is not None:
                 self[key].verify()
-        super().verify()
 
 
 class EGCDirtyDict(GCBase, CacheableDirtyDict, EGCMixin, GCProtocol, GCABC):

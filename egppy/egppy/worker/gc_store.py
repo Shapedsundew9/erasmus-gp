@@ -15,17 +15,21 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Temporary store for testing
-remote_store = InMemoryStore(GGCDirtyDict)
-codon_file = join(dirname(__file__), '..', '..', 'egpseed', 'data', 'codons.json')
-with open(codon_file, 'r', encoding='ascii') as f:
+_REMOTE_STORE = InMemoryStore(GGCDirtyDict)
+_CODON_FILE = join(dirname(__file__), '..', '..', '..', 'egpseed', 'data', 'codons.json')
+_CODON_SIGNATURE_LIST = []
+with open(_CODON_FILE, 'r', encoding='ascii') as f:
     for gc in load(f):
         ggc = GGCDirtyDict(gc)
-        remote_store[ggc.signature()] = ggc
+        _REMOTE_STORE[ggc.signature()] = ggc
+        _CODON_SIGNATURE_LIST.append(ggc.signature())
 
 
-ggc_cache = DictCache({
+CODON_SIGNATURES = tuple(_CODON_SIGNATURE_LIST)
+del _CODON_SIGNATURE_LIST
+GGC_CACHE = DictCache({
     'max_items': 2**20,
     'purge_count': 2**18,
     'flavor': GGCDict,
-    'next_level': remote_store
+    'next_level': _REMOTE_STORE
 })

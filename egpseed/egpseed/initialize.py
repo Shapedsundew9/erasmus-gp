@@ -53,7 +53,7 @@ from logging import DEBUG, NullHandler, getLogger, Logger
 from os import listdir
 from os.path import dirname, join
 from typing import Any
-from datetime import datetime
+from datetime import datetime, UTC
 from cerberus import Validator
 from egppy.gc_graph.ep_type import _EGP_REAL_TYPE_LIMIT, fully_qualified_name
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType   # pylint: disable=unused-import
@@ -76,7 +76,7 @@ _GC_MCODON_TEMPLATE: dict[str, Any] = {
     "gca": None,
     "gcb": None,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
-    "created": datetime.now(),
+    "created": datetime.now(UTC).isoformat(),
     "problem": ABIOGENESIS_PROBLEM,
     "properties": {},
     "meta_data": {"function": {"python3": {"0": {"inline": "To Be Defined"}}}},

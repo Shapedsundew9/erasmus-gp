@@ -1,6 +1,5 @@
 """Genetic Code Abstract Base Class."""
 from __future__ import annotations
-from collections.abc import Mapping
 from datetime import datetime
 from hashlib import sha256
 from pprint import pformat
@@ -62,7 +61,7 @@ def encode_properties(obj: dict[str, bool] | int | None) -> int:
     """
     if isinstance(obj, dict):
         bitfield: int = 0
-        for k, _ in filter(lambda x: x[1], obj.items()):
+        for k in (x[0] for x in obj.items() if x[1]):
             bitfield |= PROPERTIES[k]
         return bitfield
     if isinstance(obj, int):
@@ -195,23 +194,6 @@ class GCMixin:
     methods are used first.
     """
 
-    def __iter__(self: GCProtocol) -> Iterator:
-        """Iterate over the keys."""
-        return iter(self.GC_KEY_TYPES)
-
-    def get(self: GCProtocol, key: str, default: Any = None) -> Any:
-        """Get the value of a key or return the default."""
-        if key in self:
-            return self[key]
-        return default
-
-    def setdefault(self: GCProtocol, key: str, default: Any) -> Any:
-        """Set the value of a key if it does not exist and return the set value."""
-        if key in self:
-            return self[key]
-        self[key] = default
-        return default
-
     def set_members(self: GCProtocol, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
         for key in gcabc:
@@ -222,7 +204,7 @@ class GCMixin:
         if self['signature'] is NULL_SIGNATURE:
             hash_obj = sha256(self['gca'].signature())
             hash_obj.update(self['gcb'].signature())
-            hash_obj.update(pformat(self['graph'].json(), compact=True).encode())
+            hash_obj.update(pformat(self['graph'].to_json(), compact=True).encode())
             meta_data = self.get('meta_data', {})
             if "function" in meta_data:
                 hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
@@ -232,8 +214,18 @@ class GCMixin:
         return self['signature']
 
 
-class GCBase:
+class GCBase(GCProtocol):
     """Genetic Code Base Class."""
+
+    def __eq__(self: GCProtocol, other: object) -> bool:
+        """Return True if the genetic code objects have the same signature."""
+        if isinstance(other, GCABC):
+            return self.signature() == other.signature()
+        if isinstance(other, dict):
+            other_signature = other.get('signature', NULL_SIGNATURE)
+            if isinstance(other_signature, str) and len(other_signature) == 64:
+                return self.signature().hex() == other_signature
+        return False
 
     def to_json(self: GCProtocol) -> dict[str, int | str | float | list | dict]:
         """Return a JSON serializable dictionary."""

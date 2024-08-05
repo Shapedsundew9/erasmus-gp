@@ -28,7 +28,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class GGCMixin(EGCMixin, GCProtocol):
     """General Genetic Code Mixin Class."""
 
-    GC_KEY_TYPES: dict[str, str] = {
+    GC_KEY_TYPES: dict[str, str] = EGCMixin.GC_KEY_TYPES | {
         '_e_count': "INT",
         '_e_total': "FLOAT",
         '_evolvability': "FLOAT",
@@ -65,7 +65,7 @@ class GGCMixin(EGCMixin, GCProtocol):
         'reference_count': "BIGINT",
         'survivability': "FLOAT",
         'updated': "TIMESTAMP"
-    } | EGCMixin.GC_KEY_TYPES
+    }
 
     def consistency(self: GCProtocol) -> None:
         """Check the genetic code object for consistency."""
@@ -143,6 +143,7 @@ class GGCMixin(EGCMixin, GCProtocol):
         self['_lost_descendants'] = gcabc.get('_lost_descendants', 0)
         self['_reference_count'] = gcabc.get('_reference_count', 0)
         self['code_depth'] = gcabc.get('code_depth', 1)
+        self['codon_depth'] = gcabc.get('codon_depth', 1)
         tmp = gcabc.get('created', datetime.now(UTC))
         self['created'] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
         self['descendants'] = gcabc.get('descendants', 0)
@@ -328,7 +329,7 @@ class GGCMixin(EGCMixin, GCProtocol):
         # The properties of the genetic code.
         assert self['properties'] >= -2**63, "properties must be greater than or equal to -2**63."
         assert self['properties'] <= 2**63-1, "properties must be less than or equal to 2**63-1."
-        assert not(sum(PROPERTIES.values()) & ~self['properties']), \
+        assert not(~sum(PROPERTIES.values()) & self['properties']), \
             "Reserved property bits are set."
 
         # The reference count of the genetic code.
