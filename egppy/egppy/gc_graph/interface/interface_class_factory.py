@@ -2,7 +2,7 @@
 from typing import Iterable
 from egppy.gc_graph.interface.interface_mixin import InterfaceMixin
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
-from egppy.gc_graph.egp_typing import EndPointType
+from egppy.gc_graph.typing import EndPointType
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 

@@ -46,7 +46,6 @@ NOTE: Containers are not yet supported for python
 """
 from copy import deepcopy
 from sys import modules
-from sys import exit as sys_exit
 from itertools import product
 from json import dump, load
 from logging import DEBUG, NullHandler, getLogger, Logger
@@ -55,7 +54,7 @@ from os.path import dirname, join
 from typing import Any
 from datetime import datetime, UTC
 from cerberus import Validator
-from egppy.gc_graph.ep_type import _EGP_REAL_TYPE_LIMIT, fully_qualified_name
+from egppy.gc_graph.ep_type import _EGP_REAL_TYPE_LIMIT, asstr  # , fully_qualified_name
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType   # pylint: disable=unused-import
 from egppy.problem.problem import ABIOGENESIS_PROBLEM
 
@@ -67,8 +66,8 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
 _path: str = dirname(__file__)
 _template_file: str = join(_path, "data/languages/template.json")
 _logger.debug("template_file: %s", _template_file)
-_codon_file: str = join(_path, "../data/codons.json")
-_ep_type_file: str = join(_path, "../data/ep_types.json")
+_codon_file: str = join(_path, "../../egppy/egppy/data/codons.json")
+_ep_type_file: str = join(_path, "../../egppy/egppy/data/ep_types.json")
 
 
 _GC_MCODON_TEMPLATE: dict[str, Any] = {
@@ -133,7 +132,7 @@ def _load_operators(operator_files, validator) -> dict[str, dict[str, Any]]:
                     key,
                     operator_file,
                 )
-                sys_exit()
+                raise RuntimeError("Duplicate operator.")
             if validator.validate(operator):
                 operators[key] = validator.normalized(operator)
                 if "output_types" in operator:
@@ -146,7 +145,7 @@ def _load_operators(operator_files, validator) -> dict[str, dict[str, Any]]:
             else:
                 _logger.error("%s\n%s", str(operator), validator.errors)
                 print("Operator validation failed. See logs for details.")
-                sys_exit()
+                raise RuntimeError("Invalid operator.")
     return operators
 
 
@@ -171,12 +170,12 @@ def _load_mutations(mutation_files, validator) -> dict[str, dict[str, Any]]:
                     key,
                     mutation_file,
                 )
-                sys_exit()
+                raise RuntimeError("Duplicate mutation.")
             if validator.validate(mutation):
                 mutations[key] = validator.normalized(mutation)
                 # This is python specific
                 if "input_types" in mutation:
-                    mutations[key]["input_types"] = mutation["input_types"] 
+                    mutations[key]["input_types"] = mutation["input_types"]
                     # [
                     #    fully_qualified_name(eval(f"{mt}()"))  # pylint: disable=eval-used
                     #    for mt in mutation["input_types"]
@@ -190,7 +189,7 @@ def _load_mutations(mutation_files, validator) -> dict[str, dict[str, Any]]:
             else:
                 _logger.error("%s\n%s", str(mutation), validator.errors)
                 print("Mutation validation failed. See logs for details.")
-                sys_exit()
+                raise RuntimeError("Invalid mutation operator.")
     return mutations
 
 
@@ -309,14 +308,17 @@ def _create_mcodon(operator, type_dict):
     codon["properties"] = operator["properties"]
     codon["evolvability"] = 1.0
     codon["e_count"] = 1
+    codon["e_total"] = 1
     codon["fitness"] = 1.0
     codon["f_count"] = 1
+    codon["f_total"] = 1
     for position, inpt in enumerate(operator["input_types"]):
         codon["graph"]["A"].append(["I", position, type_dict["n2v"][inpt]])
     if "imports" in operator:
         codon["meta_data"]["function"]["python3"]["0"]["imports"] = operator["imports"]
     codon["meta_data"]["function"]["python3"]["0"]["inline"] = operator["inline"]
-    codon["meta_data"]["name"] = operator["name"]
+    codon["meta_data"]["name"] = \
+        f'{operator["name"]}({", ".join(operator["input_types"])})'
     for position, typ in enumerate(operator["output_types"]):
         codon["graph"]["O"][position][2] = type_dict["n2v"][typ]
     return codon
@@ -385,7 +387,7 @@ def _generate(language):
                     "Incomplete operator. Operator must modify state in some way. %s",
                     operators[key],
                 )
-                sys_exit()
+                raise RuntimeError("Incomplete operator.")
             if result is not None:
                 generated += 1
                 result.setdefault("name", key)
@@ -430,7 +432,7 @@ def python_generator(key, operators, input_types, exceptions):
     """
     operator = deepcopy(operators[key])
     inputs = {"i" + str(n): operators[t]["default"] for n, t in enumerate(input_types)}
-    for imp in filter(lambda x: x["module"], operator.get("imports", tuple())):
+    for imp in (x for x in operator.get("imports", tuple()) if x["module"]):
         imp["name"] = (
             imp["module"].replace(".", "_") + "_" + imp["object"].replace(".", "_")
         )
@@ -445,7 +447,7 @@ def python_generator(key, operators, input_types, exceptions):
         for level in ("info", "warning", "error"):
             for etext in exceptions[level]:
                 if etext in exception:
-                    getattr(_logger, level)(f"Expression: {expression}, Exception: {exception}")
+                    getattr(_logger, level)("Expression: %s, Exception: %s", expression, exception)
                     return None
             for etext in exceptions["ok"]:
                 if etext in exception:
@@ -454,18 +456,23 @@ def python_generator(key, operators, input_types, exceptions):
                         or operator["properties"]["memory_modify"]
                     ):
                         _logger.fatal(
-                            f"No output_type or global state modification for operator {operator}"
+                            "No output_type or global state modification for operator %s",
+                            operator
                         )
-                        sys_exit()
+                        raise RuntimeError("Incomplete operator.")
                     else:
                         operator.setdefault("output_types", [])
                         return operator
             _logger.fatal(
-                f"Expression: {expression}, generated unrecognised exception: '{exception}' using operator: {operator}"
+                "Expression: %s, generated unrecognised exception: '%s' using operator: %s",
+                expression,
+                exception,
+                operator,
             )
-        sys_exit()
+        raise RuntimeError("Unrecognised exception.")
     # FIXME: Hack for now. Need to fix unique import name and fully qualified name.
     rtype = result.__class__.__qualname__
-    typ = "None" if rtype == None.__class__.__qualname__ else rtype
+    none_str = None.__class__.__qualname__
+    typ = "None" if rtype == none_str else rtype
     operator["output_types"] = [typ]  # [fully_qualified_name(result)]
     return operator

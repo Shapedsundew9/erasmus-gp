@@ -8,7 +8,7 @@ from abc import abstractmethod
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+from egppy.common.common import NULL_SHA256
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -20,8 +20,6 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # GC signatre None type management
 # It is space efficient to have None types in the DB for signatures but not in the cache.
 # In the GPC a None type is represented by a 0 SHA256
-NULL_SHA256: bytes = b"\x00" * 32
-NULL_SHA256_STR = NULL_SHA256.hex()
 NULL_SIGNATURE: bytes = NULL_SHA256
 NULL_PROBLEM: bytes = NULL_SHA256
 NULL_PROBLEM_SET: bytes = NULL_SHA256

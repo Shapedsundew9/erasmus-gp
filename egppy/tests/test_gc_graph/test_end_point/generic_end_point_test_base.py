@@ -1,6 +1,6 @@
 """Unit tests for the GenericEndpoint class."""
 import unittest
-from egppy.gc_graph.egp_typing import ROWS
+from egppy.gc_graph.typing import ROWS
 from egppy.gc_graph.end_point.end_point import GenericEndPoint
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 

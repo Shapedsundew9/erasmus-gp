@@ -2,9 +2,9 @@
 This module provides a Store that can be used for testing.
 """
 from egppy.storage.store.store_abc import StoreABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_base import StoreBase
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
 # Standard EGP logging pattern

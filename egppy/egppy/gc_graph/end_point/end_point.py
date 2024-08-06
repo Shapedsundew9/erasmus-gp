@@ -5,7 +5,7 @@ from egppy.gc_graph.end_point.end_point_abc import (EndPointRefABC, GenericEndPo
     EndPointABC, XEndPointRefABC)
 from egppy.gc_graph.end_point.end_point_mixin import (GenericEndPointMixin, EndPointRefMixin,
     DstEndPointRefMixin, SrcEndPointRefMixin, EndPointMixin)
-from egppy.gc_graph.egp_typing import EndPointClass, EndPointType, Row
+from egppy.gc_graph.typing import EndPointClass, EndPointType, Row
 
 
 # Standard EGP logging pattern

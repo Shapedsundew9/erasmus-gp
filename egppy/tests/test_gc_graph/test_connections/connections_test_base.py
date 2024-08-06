@@ -2,7 +2,7 @@
 import unittest
 from egppy.gc_graph.connections.connections_class_factory import ListConnections, TupleConnections
 from egppy.gc_graph.end_point.end_point import SrcEndPointRef, DstEndPointRef
-from egppy.gc_graph.egp_typing import DestinationRow, SourceRow
+from egppy.gc_graph.typing import DestinationRow, SourceRow
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 

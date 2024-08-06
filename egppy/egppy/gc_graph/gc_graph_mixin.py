@@ -10,8 +10,8 @@ from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
 from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.ep_type import ep_type_lookup
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
-from egppy.gc_graph.egp_typing import (CPI, SOURCE_ROWS, EndPointClass, EndPointType, SourceRow, Row,
-    EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED, str2epcls)
+from egppy.gc_graph.typing import (CPI, SOURCE_ROWS, DestinationRow, EndPointClass, EndPointType, SourceRow,
+    Row, EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED, str2epcls)
 from egppy.storage.cache.cacheable_obj_mixin import CacheableObjProtocol
 
 
@@ -64,16 +64,28 @@ class GCGraphProtocol(CacheableObjProtocol, Protocol):
         """Get the endpoint with the given key."""
         ...  # pylint: disable=unnecessary-ellipsis
 
-    def ikeys(self) -> Generator[str, None, None]:
-        """Return an iterator over the GC graph interface keys."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
     def epkeys(self) -> Generator[str, None, None]:
         """Return an iterator over the GC graph endpoint keys."""
         ...  # pylint: disable=unnecessary-ellipsis
 
+    def ikeys(self) -> Generator[str, None, None]:
+        """Return an iterator over the GC graph interface keys."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def itypes(self: GCGraphProtocol) -> tuple[list[EndPointType], list[int]]:
+        """Return the input types and input row indices into them."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def otypes(self: GCGraphProtocol) -> tuple[list[EndPointType], list[int]]:
+        """Return the output types and output row indices into them."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
     def to_json(self) -> dict[str, Any]:
         """Return a JSON GC Graph."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def types(self, ikey: str) -> Generator[EndPointType, None, None]:
+        """Return an iterator over the ordered interface endpoint types."""
         ...  # pylint: disable=unnecessary-ellipsis
 
 
@@ -191,6 +203,12 @@ class GCGraphMixin(CacheableObjMixin):
                             f"Dst not connected to src: {key[0]}[{idx}]"
         super().consistency()
 
+    def epkeys(self: GCGraphProtocol) -> Generator[str, None, None]:
+        """Return an iterator over the GC graph endpoint keys."""
+        for key in self.ikeys():
+            for idx in range(len(self[key])):
+                yield f"{key[0]}{idx:03d}{key[1]}"
+
     def get(self: GCGraphProtocol, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key."""
         try:
@@ -203,11 +221,19 @@ class GCGraphMixin(CacheableObjMixin):
         for key in (r for r in ROW_CLS_INDEXED if r in self):
             yield key
 
-    def epkeys(self: GCGraphProtocol) -> Generator[str, None, None]:
-        """Return an iterator over the GC graph endpoint keys."""
-        for key in self.ikeys():
-            for idx in range(len(self[key])):
-                yield f"{key[0]}{idx:03d}{key[1]}"
+    def itypes(self: GCGraphProtocol) -> tuple[list[EndPointType], list[int]]:
+        """Return the input types and input row indices into them."""
+        ikey =  SourceRow.I + EPClsPostfix.SRC
+        itypes = list(self.types(ikey))
+        ilu = {t: i for i, t in enumerate(itypes)}
+        return itypes, [ilu[i] for i in self.get(ikey, EMPTY_INTERFACE)]
+
+    def otypes(self: GCGraphProtocol) -> tuple[list[EndPointType], list[int]]:
+        """Return the output types and output row indices into them."""
+        okey = DestinationRow.O + EPClsPostfix.DST
+        otypes = list(self.types(okey))
+        olu = {t: o for o, t in enumerate(otypes)}
+        return otypes, [olu[i] for i in self.get(okey, EMPTY_INTERFACE)]
 
     def setdefault(self: GCGraphProtocol, key: str, default: Any) -> Any:
         """Set the endpoint with the given key to the default if it does not exist."""
@@ -231,6 +257,12 @@ class GCGraphMixin(CacheableObjMixin):
         if ucn:
             jgcg['U'] = sorted(ucn, key=lambda x: x[0]+f"{x[1]:03d}")
         return jgcg
+
+    def types(self: GCGraphProtocol, ikey: str) -> Generator[EndPointType, None, None]:
+        """Return an iterator over the ordered interface endpoint types.
+        Endpoint types are returned in the order of lowest value to highest.
+        """
+        return (typ for typ in sorted({typ for typ in self.get(ikey, EMPTY_INTERFACE)}))
 
     def verify(self: GCGraphProtocol) -> None:
         """Verify the GC graph."""

@@ -1,6 +1,6 @@
 """Unit tests for the Src & Dst EndpointRef classes."""
 from tests.test_gc_graph.test_end_point.end_point_ref_test_base import EndPointRefTestBase
-from egppy.gc_graph.egp_typing import EndPointClass
+from egppy.gc_graph.typing import EndPointClass
 from egppy.gc_graph.end_point.end_point import DstEndPointRef
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 

@@ -16,7 +16,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Temporary store for testing
 _REMOTE_STORE = InMemoryStore(GGCDirtyDict)
-_CODON_FILE = join(dirname(__file__), '..', '..', '..', 'egpseed', 'data', 'codons.json')
+_CODON_FILE = join(dirname(__file__), '..', 'data', 'codons.json')
 _CODON_SIGNATURE_LIST = []
 with open(_CODON_FILE, 'r', encoding='ascii') as f:
     for gc in load(f):

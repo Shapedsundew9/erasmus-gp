@@ -3,7 +3,7 @@ from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPoi
 from egppy.gc_graph.ep_type import ep_type_lookup
 from egppy.gc_graph.end_point.end_point import (EndPoint, SrcEndPointRef,
     DstEndPointRef)
-from egppy.gc_graph.egp_typing import ROWS, DestinationRow, EndPointClass, SourceRow
+from egppy.gc_graph.typing import ROWS, DestinationRow, EndPointClass, SourceRow
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 

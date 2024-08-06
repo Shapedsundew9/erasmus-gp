@@ -4,7 +4,7 @@ from typing import Any, Iterable
 from abc import abstractmethod
 from egppy.common.common_obj_abc import CommonObjABC
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.egp_typing import EndPointType
+from egppy.gc_graph.typing import EndPointType
 
 
 # Standard EGP logging pattern

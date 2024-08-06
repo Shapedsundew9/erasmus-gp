@@ -17,7 +17,7 @@ from logging import Logger, NullHandler, getLogger, DEBUG
 from os.path import dirname, join
 from typing import Any, Iterable, Literal
 
-from egppy.gc_graph.egp_typing import (
+from egppy.gc_graph.typing import (
     EndPointTypeLookup,
     EndPointTypeLookupFile,
     isInstanciationValue,

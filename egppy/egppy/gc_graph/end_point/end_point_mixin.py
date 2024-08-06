@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 from egppy.common.common_obj_mixin import CommonObjMixin
-from egppy.gc_graph.egp_typing import (DestinationRow, Row, EndPointHash, EndPointType,
+from egppy.gc_graph.typing import (DestinationRow, Row, EndPointHash, EndPointType,
     EndPointClass, VALID_ROW_DESTINATIONS as VRD, VALID_ROW_SOURCES as VRS, SOURCE_ROWS, ROWS,
     DESTINATION_ROWS, EP_CLS_STR_TUPLE)
 from egppy.gc_graph.ep_type import validate

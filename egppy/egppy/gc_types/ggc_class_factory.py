@@ -149,23 +149,20 @@ class GGCMixin(EGCMixin, GCProtocol):
         self['descendants'] = gcabc.get('descendants', 0)
         self['e_count'] = gcabc.get('e_count', self['_e_count'])
         self['e_total'] = gcabc.get('e_total', self['_e_total'])
-        assert self['e_count'] > 0, "e_count must be greater than 0."
         self['evolvability'] = self['e_total'] / self['e_count']
         self['f_count'] = gcabc.get('f_count', self['_f_count'])
         self['f_total'] = gcabc.get('f_total', self['_f_total'])
-        assert self['f_count'] > 0, "f_count must be greater than 0."
         self['fitness'] = self['f_total'] / self['f_count']
         self['generation'] = gcabc.get('generation', 0)
-        self['input_types'] = gcabc.get('input_types', [])
-        self['inputs'] = gcabc.get('inputs', [])
+        self['input_types'], self['inputs'] = self['graph'].itypes()
         self['lost_descendants'] = gcabc.get('lost_descendants', 0)
         self['meta_data'] = gcabc.get('meta_data', {})
         self['num_codes'] = gcabc.get('num_codes', 1)
         self['num_codons'] = gcabc.get('num_codons', 1)
-        self['num_inputs'] = gcabc.get('num_inputs', 0)
-        self['num_outputs'] = gcabc.get('num_outputs', 0)
-        self['output_types'] = gcabc.get('output_types', [])
-        self['outputs'] = gcabc.get('outputs', [])
+        self['num_inputs'] = len(self['inputs'])
+        self['num_outputs'] = 0  # To keep alaphabetical ordering in keys.
+        self['output_types'], self['outputs'] = self['graph'].otypes()
+        self['num_outputs'] = len(self['outputs'])
         self['population_uid'] = gcabc.get('population_uid', 0)
         tmp = gcabc.get('problem', NULL_PROBLEM)
         self['problem'] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
@@ -177,6 +174,21 @@ class GGCMixin(EGCMixin, GCProtocol):
         self['survivability'] = gcabc.get('survivability', 0.0)
         tmp = gcabc.get('updated', datetime.now(UTC))
         self['updated'] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+
+        # Some sanity that GCABC was consistent for derived values. _LOG_DEBUG because this is fast.
+        if _LOG_DEBUG:
+            assert self['input_types'] == gcabc.get('input_types', self['input_types']), \
+                "input_types must be the input types."
+            assert self['inputs'] == gcabc.get('inputs', self['inputs']), \
+                "inputs must be the input indexes."
+            assert self['num_inputs'] == gcabc.get('num_inputs', self['num_inputs']), \
+                "num_inputs must be the number of inputs."
+            assert self['output_types'] == gcabc.get('output_types', self['output_types']), \
+                "output_types must be the output types."
+            assert self['outputs'] == gcabc.get('outputs', self['outputs']), \
+                "outputs must be the output indexes."
+            assert self['num_outputs'] == gcabc.get('num_outputs', self['num_outputs']), \
+                "num_outputs must be the number of outputs."
 
     def verify(self: GCProtocol) -> None:
         """Verify the genetic code object."""

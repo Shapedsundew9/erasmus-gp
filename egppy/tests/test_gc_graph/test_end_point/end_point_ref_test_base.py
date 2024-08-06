@@ -1,7 +1,7 @@
 """Unit tests for the EndpointRef class."""
 from tests.test_gc_graph.test_end_point.generic_end_point_test_base import GenericEndPointTestBase
 from egppy.gc_graph.end_point.end_point import EndPointRef
-from egppy.gc_graph.egp_typing import EndPointClass
+from egppy.gc_graph.typing import EndPointClass
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 

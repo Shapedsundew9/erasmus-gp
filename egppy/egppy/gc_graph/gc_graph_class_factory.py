@@ -9,7 +9,7 @@ from egppy.gc_graph.interface.interface_class_factory import TupleInterface, EMP
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.connections.connections_class_factory import TupleConnections, \
     EMPTY_CONNECTIONS, ListConnections
-from egppy.gc_graph.egp_typing import ROW_CLS_INDEXED
+from egppy.gc_graph.typing import ROW_CLS_INDEXED
 from egppy.gc_graph.gc_graph_mixin import GCGraphMixin, key2parts
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 
@@ -125,7 +125,7 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
             raise RuntimeError("Cannot modify a static graph.")
         if (keylen := len(key)) == 2:  # Its an interface
             if value is EMPTY_INTERFACE:
-                self._interfaces[key] = EMPTY_INTERFACE    
+                self._interfaces[key] = EMPTY_INTERFACE
             else:
                 self._interfaces[key] = value if isinstance(value, self._TI) else self._TI(value)
             self._dirty_ics.add(key)

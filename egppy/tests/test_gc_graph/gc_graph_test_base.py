@@ -7,7 +7,7 @@ from json import dump, load
 from os.path import join, dirname, exists
 from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph, FrozenGCGraph
 from egppy.gc_graph.ep_type import ep_type_lookup, INVALID_EP_TYPE_VALUE
-from egppy.gc_graph.egp_typing import (DestinationRow, EndPointType, Row,
+from egppy.gc_graph.typing import (DestinationRow, EndPointType, Row,
     VALID_ROW_SOURCES, SOURCE_ROWS, SourceRow)
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
