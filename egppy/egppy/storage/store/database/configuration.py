@@ -1,7 +1,7 @@
 """Store typing definitions."""
 from re import Pattern
 from re import compile as regex_compile
-from egppy.common.common import Validator
+from egppy.common.common import DictTypeAccessor, Validator
 from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
 
@@ -12,29 +12,35 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class DatabaseConfig(Validator):
-    """Configuration for databases in EGP."""
+class DatabaseConfig(Validator, DictTypeAccessor):
+    """Configuration for databases in EGP.
+    
+    Must set from the JSON or internal types and validate the values.
+    Getting the values returns the internal types.
+    The to_json() method returns the JSON types.
+    """
 
-    _dbnme_regex_str: str = r"[a-zA-Z][a-zA-Z0-9_-]{0,62}"
-    _dbname_regex: Pattern[str] = regex_compile(_dbnme_regex_str)
+    _dbname_regex_str: str = r"[a-zA-Z][a-zA-Z0-9_-]{0,62}"
+    _dbname_regex: Pattern[str] = regex_compile(_dbname_regex_str)
+    _user_regex: Pattern[str] = _dbname_regex
 
     def __init__(self,
         dbname: str = "postgres",
         host: str = "localhost",
-        passowrd: str = "postgres",
+        password: str = "Password123!",
         port: int = 5432,
         maintenance_db: str = "postgres",
         retires: int = 3,
         user: str = "postgres"
     ) -> None:
         """Initialize the class."""
-        self._dbname: str = dbname
-        self._host: str = host
-        self._user: str = user
-        self._password: str = passowrd
-        self._port: int = port
-        self._maintenance_db: str = maintenance_db
-        self._retires: int = retires
+        setattr(self, "dbname", dbname)
+        setattr(self, "host", host)
+        setattr(self, "password", password)
+        setattr(self, "port", port)
+        setattr(self, "maintenance_db", maintenance_db)
+        setattr(self, "retires", retires)
+        setattr(self, "user", user)
 
     @property
     def dbname(self) -> str:
@@ -45,7 +51,7 @@ class DatabaseConfig(Validator):
     def dbname(self, value: str) -> None:
         """The name of the database."""
         self._is_string("dbname", value)
-        self._regex("dbname", value, self._dbname_regex)
+        self._is_regex("dbname", value, self._dbname_regex)
         self._dbname = value
 
     @property
@@ -92,7 +98,7 @@ class DatabaseConfig(Validator):
     def maintenance_db(self, value: str) -> None:
         """The maintenance database."""
         self._is_string("maintenance_db", value)
-        self._regex("maintenance_db", value, self._dbname_regex)
+        self._is_regex("maintenance_db", value, self._dbname_regex)
         self._maintenance_db = value
 
     @property
@@ -107,6 +113,18 @@ class DatabaseConfig(Validator):
         self._in_range("retires", value, 1, 10)
         self._retires = value
 
+    def to_json(self) -> dict:
+        """Get the configuration as a JSON object."""
+        return {
+            "dbname": self.dbname,
+            "host": self.host,
+            "password": self.password,
+            "port": self.port,
+            "maintenance_db": self.maintenance_db,
+            "retires": self.retires,
+            "user": self.user
+        }
+
     @property
     def user(self) -> str:
         """Get the user."""
@@ -116,5 +134,5 @@ class DatabaseConfig(Validator):
     def user(self, value: str) -> None:
         """The user for the database."""
         self._is_string("user", value)
-        self._regex("user", value, self._dbname_regex)
+        self._is_regex("user", value, self._user_regex)
         self._user = value

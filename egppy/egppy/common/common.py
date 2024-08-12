@@ -59,22 +59,58 @@ def merge(  # pylint: disable=dangerous-default-value
     return dict_a
 
 
+class DictTypeAccessor():
+    """Provide very simple get/set dictionary like access to an objects members."""
+
+    def __getitem__(self, key: str) -> Any:
+        """Get the value of the attribute."""
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Set the value of the attribute."""
+        setattr(self, key, value)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get the value of the attribute."""
+        return getattr(self, key, default)
+
+    def setdefault(self, key: str, default: Any) -> Any:
+        """Get the value of the attribute."""
+        if hasattr(self, key):
+            return getattr(self, key)
+        setattr(self, key, default)
+        return default
+
+
 class Validator():
-    """Validate data."""
+    """Validate data.
+    
+    The class provides a set of functions to validate data. Validation typically is done
+    by asserting that a value is of a certain type, within a certain range, or matches a
+    certain pattern. The class provides a set of functions to validate these conditions.
+
+    All validation functions return a boolean value if the parameter _assert is False. If
+    _assert is True, the function will raise an AssertionError if the condition is not met.
+
+    The naming convention for the validation functions is _is_<condition> or _in_<set>. The
+    functions all take the following parameters (though more are not prohibited):
+    - attr: The name of the attribute being validated.
+    - value: The value of the attribute being validated.
+    - _assert: If True, the function will raise an AssertionError if the conditions are not met.
+    """
 
     _hostname_regex_str: str = r"^(?!-)[A-Z\d-]{1,63}(?<!-)$"
     _hostname_regex: Pattern = regex_compile(_hostname_regex_str, IGNORECASE)
+
+    # Designed to match strings that meet the following criteria:
+    #   At least one lowercase letter ([a-z]).
+    #   At least one uppercase letter ([A-Z]).
+    #   At least one digit (\d).
+    #   At least one special character ([\W_]), where \W matches any non-word character, including
+    #   punctuation and space, and _ is explicitly included.
+    #   The total length of the string must be between 8 and 32 characters.
     _password_regex_str: str = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,32}$"
     _password_regex: Pattern = regex_compile(_password_regex_str)
-
-
-    def __getitem__(self, key: str) -> Any:
-        """Get the item."""
-        return getattr(self, '_' + key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set the item."""
-        return getattr(self, key)(value)
 
     def _in_range(
             self, attr: str,
@@ -101,6 +137,13 @@ class Validator():
         result = isinstance(value, bytes)
         if _assert:
             assert result, f"{attr} must be bytes but is {type(value)}"
+        return result
+
+    def _is_callable(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is callable."""
+        result = callable(value)
+        if _assert:
+            assert result, f"{attr} must be callable but is {type(value)}"
         return result
 
     def _is_datetime(self, attr: str, value: Any, _assert: bool = True) -> bool:
@@ -169,7 +212,14 @@ class Validator():
     def _is_password(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a password."""
         result = self._is_string(attr, value, _assert)
-        result = result or self._regex(attr, value, self._password_regex, _assert)
+        result = result and self._is_regex(attr, value, self._password_regex, _assert)
+        return result
+
+    def _is_sha256(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a SHA256 hash."""
+        result = self._is_bytes(attr, value, False) and len(value) == 32
+        if _assert:
+            assert result, f"{attr} must be a SHA256 hash but is {value}"
         return result
 
     def _is_string(self, attr: str, value: Any, _assert: bool = True) -> bool:
@@ -179,14 +229,28 @@ class Validator():
             assert result, f"{attr} must be a string but is {type(value)}"
         return result
 
-    def _length(self, attr: str, value: Any, minm: int, maxm: int, _assert: bool = True) -> bool:
+    def _is_tuple(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a tuple."""
+        result = isinstance(value, tuple)
+        if _assert:
+            assert result, f"{attr} must be a tuple but is {type(value)}"
+        return result
+
+    def _is_uuid(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a UUID."""
+        result = isinstance(value, UUID)
+        if _assert:
+            assert result, f"{attr} must be a UUID but is {type(value)}"
+        return result
+
+    def _is_length(self, attr: str, value: Any, minm: int, maxm: int, _assert: bool = True) -> bool:
         """Check the length of the value."""
         result = len(value) >= minm and len(value) <= maxm
         if _assert:
             assert result, f"{attr} must be between {minm} and {maxm} in length but is {len(value)}"
         return result
 
-    def _regex(self, attr: str, value: str, pattern: Pattern, _assert: bool = True) -> bool:
+    def _is_regex(self, attr: str, value: str, pattern: Pattern, _assert: bool = True) -> bool:
         """Check the value against a regex."""
         result = pattern.fullmatch(value)
         if _assert:

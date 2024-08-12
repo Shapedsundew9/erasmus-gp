@@ -18,6 +18,7 @@ from os.path import dirname, join
 from typing import Any, Iterable, Literal
 
 from egppy.gc_graph.typing import (
+    EndPointType,
     EndPointTypeLookup,
     EndPointTypeLookupFile,
     isInstanciationValue,
@@ -233,7 +234,7 @@ def validate(obj: Any, value_t: VType = VType.EP_TYPE_INT) -> bool:
     return obj != INVALID_EP_TYPE_VALUE and obj in EP_TYPE_VALUES
 
 
-def asint(obj: Any, vault_t: VType = VType.EP_TYPE_STR) -> int:
+def asint(obj: Any, vault_t: VType = VType.EP_TYPE_STR) -> EndPointType:
     """Return the EP type value for an object.
 
     NOTE: GC types e.g. eGC, mGC etc. cannot be instance strings as they would require
