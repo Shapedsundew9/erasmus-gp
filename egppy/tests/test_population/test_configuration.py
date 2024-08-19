@@ -50,6 +50,27 @@ class TestPopulationConfig(TestCase):
         self.assertEqual(config.survivability_function, xf)
         self.assertEqual(config.fitness_function, xf)
 
+    def test_to_json(self) -> None:
+        """Test the to_json method."""
+        config = PopulationConfig(
+            uid = 7,
+            problem = "1"*64,
+            worker_id = str(uuid4()),
+            size = 10,
+            inputs = ['int', 'str', 'bool'],
+            outputs = ['int', 'str', 'bool'],
+            ordered_interface_hash = "1"*16,
+            unordered_interface_hash = "e"*16,
+            name = "test",
+            description = "test",
+            meta_data = '{"test": "test"}',
+            created = datetime.now().isoformat(),
+            updated = datetime.now().isoformat(),
+            survivability_function = xf,
+            fitness_function = xf
+        )
+        self.assertEqual(config.to_json(), PopulationConfig(**config.to_json()).to_json())
+
 
 class TestPopulationsConfig(TestCase):
     """Test the populations configuration class."""

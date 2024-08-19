@@ -25,7 +25,7 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     _user_regex: Pattern[str] = _dbname_regex
 
     def __init__(self,
-        dbname: str = "postgres",
+        dbname: str = "erasmus_db",
         host: str = "localhost",
         password: str = "Password123!",
         port: int = 5432,

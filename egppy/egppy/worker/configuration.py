@@ -1,57 +1,153 @@
 """Load the confifuration and validate it."""
-from typing import Any
-from os.path import dirname, join, exists
-from json import load, dump
-from json.decoder import JSONDecodeError
-from copy import deepcopy
-from sys import exit as sys_exit, stderr
-from cerberus.validator import DocumentError
-from egp_utils.base_validator import base_validator
-from egp_population.population_validator import POPULATION_ENTRY_SCHEMA
-from pypgtable.validators import PYPGTABLE_DB_CONFIG_SCHEMA
-from .egp_typing import WorkerConfigNorm
-
-# Load the config file validator
-with open(join(dirname(__file__), "formats/config_format.json"), "r", encoding="utf8") as file_ptr:
-    CONFIG_SCHEMA: dict[str, Any] = load(file_ptr)
-CONFIG_SCHEMA["populations"]["schema"]["configs"]["schema"]["schema"] = deepcopy(POPULATION_ENTRY_SCHEMA)
-CONFIG_SCHEMA["databases"]["valuesrules"]["schema"] = deepcopy(PYPGTABLE_DB_CONFIG_SCHEMA)
-config_validator: base_validator = base_validator(CONFIG_SCHEMA)
+from typing import Any, cast
+from egppy.common.common import DictTypeAccessor, Validator
+from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egppy.common.security import dump_signed_json, load_signed_json
+from egppy.populations.configuration import PopulationsConfig
+from egppy.storage.store.database.configuration import DatabaseConfig
 
 
-# Dump the default configuration
-def dump_config() -> None:
-    """Save the default configuration to config.json."""
-    with open("config.json", "w", encoding="utf8") as fileptr:
-        dump(generate_config(), fileptr, indent=4, sort_keys=True)
-    print("Default configuration written to ./config.json")
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# Generate the default configuration
-def generate_config() -> WorkerConfigNorm:
-    """Generate the default configuration."""
-    return config_validator.normalized({})
+# Constants
+_DEFAULT_DBS = {"erasmus_db": DatabaseConfig()}
+_DEFAULT_PROBLEMS = \
+    "https://raw.githubusercontent.com/Shapedsundew9/egp-problems/main/egp_problems.json"
 
 
-# Load & validate worker configuration
-def load_config(filename: str | None = None) -> WorkerConfigNorm:
-    """Load and validate the configuration."""
-    config_file: str = filename if filename is not None else "config.json"
-    if exists(config_file):
+class WorkerConfig(Validator, DictTypeAccessor):
+    """Configuration for workers in EGP.
+    
+    Must set from the JSON or internal types and validate the values.
+    Getting the values returns the internal types.
+    The to_json() method returns the JSON types.
+    """
+
+    def __init__(self,
+        databases: dict[str, DatabaseConfig | dict[str, Any]] | None = None,
+        gene_pool: str = "erasmus_db",
+        microbiome: str = "erasmus_db",
+        populations: PopulationsConfig | dict[str, Any] = PopulationsConfig(),
+        problem_definitions: str = _DEFAULT_PROBLEMS,
+        problem_folder: str = "/tmp/egp",
+    ) -> None:
+        """Initialize the class."""
+        setattr(self, "databases", databases if databases is not None else _DEFAULT_DBS)
+        setattr(self, "gene_pool", gene_pool)
+        setattr(self, "microbiome", microbiome)
+        setattr(self, "populations", populations)
+        setattr(self, "problem_definitions", problem_definitions)
+        setattr(self, "problem_folder", problem_folder)
+
+    @property
+    def databases(self) -> dict[str, DatabaseConfig]:
+        """Get the databases."""
+        return self._databases
+
+    @databases.setter
+    def databases(self, value: dict[str, DatabaseConfig | dict[str, Any]]) -> None:
+        """The databases for the workers."""
+        self._is_dict("databases", value)
+        for key, val in value.items():
+            self._is_simple_string("databases key", key)
+            if isinstance(val, dict):
+                value[key] = DatabaseConfig(**val)
+            assert isinstance(val, DatabaseConfig), "databases value must be a DatabaseConfig"
+        self._databases = cast(dict[str, DatabaseConfig], value)
+
+    @property
+    def gene_pool(self) -> str:
+        """Get the gene pool."""
+        return self._gene_pool
+
+    @gene_pool.setter
+    def gene_pool(self, value: str) -> None:
+        """The name of the gene pool."""
+        self._is_simple_string("gene_pool", value)
+        self._is_length("gene_pool", value, 1, 64)
+        assert value in self.databases, "gene_pool must be a database"
+        self._gene_pool = value
+
+    @property
+    def microbiome(self) -> str:
+        """Get the microbiome."""
+        return self._microbiome
+
+    @microbiome.setter
+    def microbiome(self, value: str) -> None:
+        """The name of the microbiome."""
+        self._is_simple_string("microbiome", value)
+        self._is_length("microbiome", value, 1, 64)
+        assert value in self.databases, "microbiome must be a database"
+        self._microbiome = value
+
+    @property
+    def populations(self) -> PopulationsConfig:
+        """Get the populations."""
+        return self._populations
+
+    @populations.setter
+    def populations(self, value: PopulationsConfig | dict[str, Any]) -> None:
+        """The name of the populations."""
+        if isinstance(value, dict):
+            value = PopulationsConfig(**value)
+        assert isinstance(value, PopulationsConfig), "populations must be a PopulationsConfig"
+        self._populations = value
+
+    @property
+    def problem_definitions(self) -> str:
+        """Get the problem definitions."""
+        return self._problem_definitions
+
+    @problem_definitions.setter
+    def problem_definitions(self, value: str) -> None:
+        """The URL to the problem definitions."""
+        self._is_length("problem_definitions", value, 8, 2048)
+        self._is_url("problem_definitions", value)
+        self._problem_definitions = value
+
+    @property
+    def problem_folder(self) -> str:
+        """Get the problem folder."""
+        return self._problem_folder
+
+    @problem_folder.setter
+    def problem_folder(self, value: str) -> None:
+        """The folder for the problem definitions."""
+        self._is_length("problem_folder", value, 1, 256)
+        self._is_path("problem_folder", value)
+        self._problem_folder = value
+
+    def dump_config(self) -> None:
+        """Dump the configuration to disk."""
+        with open("./config.json", "w", encoding="utf8") as fileptr:
+            dump_signed_json(self.to_json(), fileptr)
+        print("Configuration written to ./config.json")
+
+    def load_config(self, config_file: str) -> None:
+        """Load the configuration from disk."""
         with open(config_file, "r", encoding="utf8") as fileptr:
-            try:
-                config: WorkerConfigNorm | None = config_validator.normalized(load(fileptr))
-            except JSONDecodeError as json_error:
-                print(f"{config_file} is not valid JSON: {json_error}\n", file=stderr)
-                sys_exit(1)
-            except DocumentError as doc_error:
-                print(f"{config_file} is invalid: {doc_error}\n", file=stderr)
-                sys_exit(1)
-        if config is None or not config_validator.validate(config):
-            print(f"{config_file} is invalid:\n{config_validator.error_str()}\n", file=stderr)
-            sys_exit(1)
-    else:
-        print(f"Configuration file '{config_file}' does not exist.", file=stderr)
-        sys_exit(1)
+            config = load_signed_json(fileptr)
+        assert isinstance(config, dict), "Configuration must be a dictionary"
+        self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
+        self.gene_pool = config["gene_pool"]
+        self.microbiome = config["microbiome"]
+        self.populations = PopulationsConfig(**config["populations"])
+        self.problem_definitions = config["problem_definitions"]
+        self.problem_folder = config["problem_folder"]
 
-    return config
+    def to_json(self) -> dict[str, Any]:
+        """Return the configuration as a JSON type."""
+        return {
+            "databases": {key: val.to_json() for key, val in self.databases.items()},
+            "gene_pool": self.gene_pool,
+            "microbiome": self.microbiome,
+            "populations": self.populations.to_json(),
+            "problem_definitions": self.problem_definitions,
+            "problem_folder": self.problem_folder,
+        }

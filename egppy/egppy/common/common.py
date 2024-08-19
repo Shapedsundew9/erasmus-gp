@@ -1,9 +1,11 @@
 """Common functions for the EGPPY package."""
+from typing import Any
 from datetime import UTC, datetime
 from re import Pattern, IGNORECASE
 from re import compile as regex_compile
 from ipaddress import ip_address
-from typing import Any
+from os.path import normpath, split, splitext
+from urllib.parse import urlparse, urlunparse
 from uuid import UUID
 
 
@@ -15,6 +17,14 @@ EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, 
 NULL_SHA256: bytes = b"\x00" * 32
 NULL_SHA256_STR = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
+
+
+# Local Constants
+_RESERVED_FILE_NAMES: set[str] = {
+    'CON', 'PRN', 'AUX', 'NUL', 
+    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+}
 
 
 # https://stackoverflow.com/questions/7204805/how-to-merge-dictionaries-of-dictionaries
@@ -111,6 +121,22 @@ class Validator():
     #   The total length of the string must be between 8 and 32 characters.
     _password_regex_str: str = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,32}$"
     _password_regex: Pattern = regex_compile(_password_regex_str)
+    _simple_string_regex_str: str = r"^[a-zA-Z0-9_-]+$"
+    _simple_string_regex: Pattern = regex_compile(_simple_string_regex_str)
+    _printable_string_regex_str: str = r"^[ -~]+$"
+    _printable_string_regex: Pattern = regex_compile(_printable_string_regex_str)
+    _illegal_filename_regex_str: str = r'[<>:"/\\|?*]'
+    _illegal_filename_regex: Pattern = regex_compile(_illegal_filename_regex_str)
+
+    # URL regex
+    _url_regex_str: str = (
+        r'^(https?|ftp):\/\/'  # http, https, or ftp protocol
+        r'(\w+(\-\w+)*\.)+[a-z]{2,}'  # domain name
+        r'(\/[\w\-\/]*)*'  # resource path
+        r'(\?\w+=\w+(&\w+=\w+)*)?'  # query parameters
+        r'(#\w*)?$'  # fragment identifier
+    )
+    _url_regex: Pattern = regex_compile(_url_regex_str, IGNORECASE)
 
     def _in_range(
             self, attr: str,
@@ -160,11 +186,42 @@ class Validator():
             assert result, f"{attr} must be a dict but is {type(value)}"
         return result
 
+    def _is_filename(self, attr: str, value: str, _assert: bool = True) -> bool:
+        """Validate a filename without any preceding path."""
+        result = self._is_string(attr, value, _assert)
+        result = result and self._is_length(attr, value, 1, 256, _assert)
+        result = result and not self._is_regex(attr, value, self._illegal_filename_regex, False)
+        if _assert:
+            assert result, f"{attr} must be a valid filename without a " \
+                f"preceding path: {value} is not valid."
+        result = result and value.upper() in _RESERVED_FILE_NAMES
+        name, ext = splitext(value)
+        result = result or ((name.upper() in _RESERVED_FILE_NAMES) and len(ext) > 0)
+        if _assert:
+            assert result, f"{attr} not include a reserved name" \
+                 f" ({_RESERVED_FILE_NAMES}): {value} is not valid."
+        return result
+
     def _is_float(self, attr: str, value: Any, _assert: bool = True) -> bool:
         """Check if the value is a float."""
         result = isinstance(value, float)
         if _assert:
             assert result, f"{attr} must be a float but is {type(value)}"
+        return result
+
+    def _is_hash8(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a hash8."""
+        result = self._is_bytes(attr, value, False) and len(value) == 8
+        if _assert:
+            assert result, f"{attr} must be a hash8 but is {value}"
+        return result
+
+    def _is_historical_datetime(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a historical datetime."""
+        result = self._is_datetime(attr, value, _assert)
+        result = result or (value >= EGP_EPOCH and value <= datetime.now(UTC))
+        if _assert:
+            assert result, f"{attr} must be a post-EGP epoch historical datetime but is {value}"
         return result
 
     def _is_hostname(self, attr: str, value: str, _assert: bool = True)-> bool:
@@ -209,10 +266,33 @@ class Validator():
             assert result, f"{attr} must be a list but is {type(value)}"
         return result
 
+    def _is_not_none(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is not None."""
+        result = value is not None
+        if _assert:
+            assert result, f"{attr} must not be None"
+        return result
+
     def _is_password(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a password."""
         result = self._is_string(attr, value, _assert)
         result = result and self._is_regex(attr, value, self._password_regex, _assert)
+        return result
+
+    def _is_path(self, attr: str, value: str, _assert: bool = True) -> bool:
+        """Validate a path."""
+        result = self._is_string(attr, value, _assert)
+        normalized_path = normpath(value)
+        head, tail = split(normalized_path)
+        if _assert:
+            assert head and not tail, f"{attr} must be a valid folder path without a filename: " \
+                 f" {value} is not valid."
+        return result
+
+    def _is_printable_string(self, attr: str, value: str, _assert: bool = True) -> bool:
+        """Validate a printable string."""
+        result = self._is_string(attr, value, _assert)
+        result = result and self._is_regex(attr, value, self._printable_string_regex, _assert)
         return result
 
     def _is_sha256(self, attr: str, value: Any, _assert: bool = True) -> bool:
@@ -220,6 +300,12 @@ class Validator():
         result = self._is_bytes(attr, value, False) and len(value) == 32
         if _assert:
             assert result, f"{attr} must be a SHA256 hash but is {value}"
+        return result
+
+    def _is_simple_string(self, attr: str, value: str, _assert: bool = True) -> bool:
+        """Validate a simple string."""
+        result = self._is_string(attr, value, False)
+        result = result and self._is_regex(attr, value, self._simple_string_regex, _assert)
         return result
 
     def _is_string(self, attr: str, value: Any, _assert: bool = True) -> bool:
@@ -234,6 +320,23 @@ class Validator():
         result = isinstance(value, tuple)
         if _assert:
             assert result, f"{attr} must be a tuple but is {type(value)}"
+        return result
+
+    def _is_url(self, attr: str, value: str, _assert: bool = True) -> bool:
+        """Validate a URL."""
+        result = self._is_string(attr, value, False)
+        result = result and self._is_regex(attr, value, self._url_regex, _assert)
+        presult = urlparse(value)
+        # Ensure the scheme is HTTPS and the network location is present
+        if presult.scheme != 'https' or not presult.netloc:
+            if _assert:
+                assert False, f"{attr} must be a valid URL: {value} is not valid."
+            return False
+
+        # Rebuild the URL to ensure it is properly formed
+        reconstructed_url = urlunparse(presult)
+        if reconstructed_url != value and _assert:
+            assert False, f"{attr} must be a valid URL: {value} is not valid."
         return result
 
     def _is_uuid(self, attr: str, value: Any, _assert: bool = True) -> bool:

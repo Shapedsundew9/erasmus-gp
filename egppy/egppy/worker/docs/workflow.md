@@ -73,8 +73,32 @@ The Mutation Queue is a FIFO queue. It is used to channel and buffer mutation wo
 
 The Mutation Executors execute the mutations on the GC's resulting in an offspring GC that must be evaluated against the Fitness Function. They pull from the Mutation Queue and push to the Fitness Queue.
 
-## Mutation Updater
+### Mutation Updater
 
 Mutations evolve and mutation selectors evolve as solution GC's do. When the fitness function of a solution GC is evaluated its result rolls up to the mutation that created it, the selector that selected the mutation, the mutation that created the mutation, the mutation that created the selector, ... and so on. Physical GC fitness functions are evaluated over multiple uses which practically restricts how many levels of mutation that created the mutation, that created the mutation, that created the mutation...are likely to go on. Initially this value is set at 8 uses thus requiring 8<sup>2</sup>=64 uses of mutation offspring (total) for a mutation of a mutation to evolve again. The 16<sup>th</sup> level requires 281,474,976,710,656 1<sup>st</sup> level uses (which is a lot). Note, however, that the number of levels of mutation are not bounded.
 
 Mutations are not bound to levels, as solution GC's are not bound to a single problem. A mutation 4 steps removed from the solution GC its great, great, grandchild created is not required to be evolved by a mutation 5 steps removed. That is a decision for the selectors.
+
+## Worker Configuration Flow
+
+```mermaid
+---
+title: Worker Configuration Flow
+---
+
+flowchart TB
+    U["User"] --> DC["Generate default config"]
+    DC --> EC["Edit Config"]
+    EC --> LC["Load config"]
+    LC --> IC["Configure infrastructure (e.g. databases)"]
+    LC --> PC["Configure Populations"]
+    LC --> FP["Where to find Problems"]
+    PC --> WEC["Worker Execution Config"]
+    FP --> PP["Pull Probelms"]
+    PP --> PEE["Problem Execution Environment"]
+    PEE --> WEC
+    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
+    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
+    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+```
+

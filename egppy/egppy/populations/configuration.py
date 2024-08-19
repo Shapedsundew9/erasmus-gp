@@ -302,12 +302,12 @@ class PopulationsConfig(Validator, DictTypeAccessor):
     """
 
     def __init__(self,
-        worker_id: UUID | str,
-        configs: list[PopulationConfig] | list[dict[str, Any]]
+        worker_id: UUID | str = UUID("0"),
+        configs: list[PopulationConfig] | list[dict[str, Any]] | None = None
     ) -> None:
         """Initialize the class."""
         setattr(self, "worker_id", worker_id)
-        setattr(self, "configs", configs)
+        setattr(self, "configs", configs if configs is not None else [])
 
     @property
     def worker_id(self) -> UUID:
@@ -357,3 +357,7 @@ class PopulationsConfig(Validator, DictTypeAccessor):
                 self._configs = []
             else:
                 assert False, "Invalid population config type."
+
+    def to_json(self) -> dict[str, Any]:
+        """Return the JSON representation of the configuration."""
+        return {"worker_id": self.worker_id, "configs": [item.to_json() for item in self.configs]}
