@@ -88,6 +88,8 @@ def init_worker(args: Namespace) -> None:
     worker_id: UUID = uuid4()
     _logger.info("Worker ID: %s", worker_id)
 
+    # FIXME: For now we will hardcode all the values regardless of the configuration file
+    
 
     init_generation()
 

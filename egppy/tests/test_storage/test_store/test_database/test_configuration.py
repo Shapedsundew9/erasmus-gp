@@ -9,7 +9,7 @@ class TestDatabaseConfig(TestCase):
     def test_init(self):
         """Test the initialization of the class."""
         config = DatabaseConfig()
-        self.assertEqual(config.dbname, "postgres")
+        self.assertEqual(config.dbname, "erasmus_db")
         self.assertEqual(config.host, "localhost")
         self.assertEqual(config.password, "Password123!")
         self.assertEqual(config.port, 5432)

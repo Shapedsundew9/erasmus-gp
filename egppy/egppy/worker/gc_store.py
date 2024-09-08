@@ -14,7 +14,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# Temporary store for testing
+# FIXME: Temporary store for testing
 _REMOTE_STORE = InMemoryStore(GGCDirtyDict)
 _CODON_FILE = join(dirname(__file__), '..', 'data', 'codons.json')
 _CODON_SIGNATURE_LIST = []

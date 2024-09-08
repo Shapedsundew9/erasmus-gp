@@ -302,7 +302,7 @@ class PopulationsConfig(Validator, DictTypeAccessor):
     """
 
     def __init__(self,
-        worker_id: UUID | str = UUID("0"),
+        worker_id: UUID | str = UUID("00000000-0000-0000-0000-000000000000"),
         configs: list[PopulationConfig] | list[dict[str, Any]] | None = None
     ) -> None:
         """Initialize the class."""

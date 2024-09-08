@@ -1,4 +1,11 @@
-"""The sensor class."""
+"""The sensor class.
+
+WARNING: Sensors are experimental.
+The intent is to have a defined mechansim for interaction with the world.
+Not 100% sure about it yet. Sensors would become types for individual GC's input
+interface and *actions* would become types for individual GC's output interface.
+All other GC interfaces would support all other types (int, float, str etc.)
+"""
 from sensors_abc import QuarternionABC, PositionABC
 
 
@@ -216,14 +223,3 @@ class SensorGroup:
 # Need to rethink: What to allow groups of groups of groups etc.
 # Class needs to be recursive which means offset must be applied at each level and
 # sensors accessed through the group at each level.
-
-class AlignedSensorGroup(SensorGroup):
-    """An aligned sensor group is a collection of sensors that all have the same position
-    and orientation. This allows the sensors to be moved together."""
-
-    def __init__(self, p: Position, q: Quarternion, s: list[PlateSensor]) -> None:
-        """Initialization of the aligned sensor group."""
-        super().__init__(p, s)
-        self.quarternion = q
-        for sensor in self.sensors:
-            sensor.quarternion = self.quarternion
