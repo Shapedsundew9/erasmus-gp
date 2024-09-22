@@ -81,6 +81,11 @@ class Genotype:
         self.energy = INT64_65536  # The energy of the individual
         self.fitness = DOUBLE_ZERO  # The fitness of the individual
         self.survivability = DOUBLE_ZERO  # The survivability of the individual
+        def _energy(x: int64) -> int64:
+            self.energy += x
+            return self.energy
+        self.energy_cb: Callable[[int64], int64] = _energy
+        self.problem_meta_data: Any = None  # The problem meta data. This is set by the user.
 
     def execute(self, i: tuple) -> tuple:
         """Execute the individual."""

@@ -1,5 +1,7 @@
 """Common functions for the EGPPY package."""
-from typing import Any
+
+from typing import Any, Self
+from copy import deepcopy
 from datetime import UTC, datetime
 from re import Pattern, IGNORECASE
 from re import compile as regex_compile
@@ -21,9 +23,28 @@ NULL_UUID: UUID = UUID(int=0)
 
 # Local Constants
 _RESERVED_FILE_NAMES: set[str] = {
-    'CON', 'PRN', 'AUX', 'NUL', 
-    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
 }
 
 
@@ -69,7 +90,7 @@ def merge(  # pylint: disable=dangerous-default-value
     return dict_a
 
 
-class DictTypeAccessor():
+class DictTypeAccessor:
     """Provide very simple get/set dictionary like access to an objects members."""
 
     def __getitem__(self, key: str) -> Any:
@@ -79,6 +100,10 @@ class DictTypeAccessor():
     def __setitem__(self, key: str, value: Any) -> None:
         """Set the value of the attribute."""
         setattr(self, key, value)
+
+    def copy(self) -> Self:
+        """Return a dictionary of the object."""
+        return deepcopy(self)
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get the value of the attribute."""
@@ -92,9 +117,9 @@ class DictTypeAccessor():
         return default
 
 
-class Validator():
+class Validator:
     """Validate data.
-    
+
     The class provides a set of functions to validate data. Validation typically is done
     by asserting that a value is of a certain type, within a certain range, or matches a
     certain pattern. The class provides a set of functions to validate these conditions.
@@ -130,21 +155,20 @@ class Validator():
 
     # URL regex
     _url_regex_str: str = (
-        r'^(https?|ftp):\/\/'  # http, https, or ftp protocol
-        r'(\w+(\-\w+)*\.)+[a-z]{2,}'  # domain name
-        r'(\/[\w\-\/]*)*'  # resource path
-        r'(\?\w+=\w+(&\w+=\w+)*)?'  # query parameters
-        r'(#\w*)?$'  # fragment identifier
+        r"^(https?|ftp):\/\/"  # http, https, or ftp protocol
+        r"(\w+(\-\w+)*\.)+[a-z]{2,}"  # domain name
+        r"(\/[\w\-\/]*)*"  # resource path
+        r"(\?\w+=\w+(&\w+=\w+)*)?"  # query parameters
+        r"(#\w*)?$"  # fragment identifier
     )
     _url_regex: Pattern = regex_compile(_url_regex_str, IGNORECASE)
 
+    def consistency(self) -> None:
+        """Check the consistency of the object."""
+
     def _in_range(
-            self, attr: str,
-            value: int | float,
-            minm: float,
-            maxm: float,
-            _assert: bool = True
-        ) -> bool:
+        self, attr: str, value: int | float, minm: float, maxm: float, _assert: bool = True
+    ) -> bool:
         """Check if the value is in a range."""
         result = value >= minm and value <= maxm
         if _assert:
@@ -192,14 +216,18 @@ class Validator():
         result = result and self._is_length(attr, value, 1, 256, _assert)
         result = result and not self._is_regex(attr, value, self._illegal_filename_regex, False)
         if _assert:
-            assert result, f"{attr} must be a valid filename without a " \
+            assert result, (
+                f"{attr} must be a valid filename without a "
                 f"preceding path: {value} is not valid."
+            )
         result = result and value.upper() in _RESERVED_FILE_NAMES
         name, ext = splitext(value)
         result = result or ((name.upper() in _RESERVED_FILE_NAMES) and len(ext) > 0)
         if _assert:
-            assert result, f"{attr} not include a reserved name" \
-                 f" ({_RESERVED_FILE_NAMES}): {value} is not valid."
+            assert result, (
+                f"{attr} not include a reserved name"
+                f" ({_RESERVED_FILE_NAMES}): {value} is not valid."
+            )
         return result
 
     def _is_float(self, attr: str, value: Any, _assert: bool = True) -> bool:
@@ -224,7 +252,7 @@ class Validator():
             assert result, f"{attr} must be a post-EGP epoch historical datetime but is {value}"
         return result
 
-    def _is_hostname(self, attr: str, value: str, _assert: bool = True)-> bool:
+    def _is_hostname(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a hostname."""
         if len(value) > 255:
             assert not _assert, f"{attr} must be a valid hostname: {value} is >255 chars."
@@ -234,6 +262,15 @@ class Validator():
         result = all(self._hostname_regex.match(x) for x in value.split("."))
         if _assert:
             assert result, f"{attr} must be a valid hostname: {value} is not valid."
+        return result
+
+    def _is_instance(
+        self, attr: str, value: Any, cls: type | tuple[type, ...], _assert: bool = True
+    ) -> bool:
+        """Check if the value is an instance of a class."""
+        result = isinstance(value, cls)
+        if _assert:
+            assert result, f"{attr} must be an instance of {cls} but is {type(value)}"
         return result
 
     def _is_int(self, attr: str, value: Any, _assert: bool = True) -> bool:
@@ -273,6 +310,15 @@ class Validator():
             assert result, f"{attr} must not be None"
         return result
 
+    def _is_one_of(
+        self, attr: str, value: Any, values: tuple[Any, ...], _assert: bool = True
+    ) -> bool:
+        """Check if the value is one of a set of values."""
+        result = value in values
+        if _assert:
+            assert result, f"{attr} must be one of {values} but is {value}"
+        return result
+
     def _is_password(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a password."""
         result = self._is_string(attr, value, _assert)
@@ -285,8 +331,9 @@ class Validator():
         normalized_path = normpath(value)
         head, tail = split(normalized_path)
         if _assert:
-            assert head and not tail, f"{attr} must be a valid folder path without a filename: " \
-                 f" {value} is not valid."
+            assert head and not tail, (
+                f"{attr} must be a valid folder path without a filename: " f" {value} is not valid."
+            )
         return result
 
     def _is_printable_string(self, attr: str, value: str, _assert: bool = True) -> bool:
@@ -328,7 +375,7 @@ class Validator():
         result = result and self._is_regex(attr, value, self._url_regex, _assert)
         presult = urlparse(value)
         # Ensure the scheme is HTTPS and the network location is present
-        if presult.scheme != 'https' or not presult.netloc:
+        if presult.scheme != "https" or not presult.netloc:
             if _assert:
                 assert False, f"{attr} must be a valid URL: {value} is not valid."
             return False

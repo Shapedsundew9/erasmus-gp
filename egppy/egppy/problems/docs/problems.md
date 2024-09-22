@@ -18,3 +18,17 @@ A problem set is the definition of the relationship between two problems, proble
 
 The problem (binary) tree is universal. Whilst problem leaves and problem set nodes are immutable, having a fixed hash defined by the ordered hashes of the left and right adjoining nodes. The left node always being the node with the numerically unsigned highest hash value and the node hash being the SHA256 of the concatenation of left:right adjoining node hashes.
 Each problem or problem set has a weight equal to the number of GCs that have that problem set.
+
+```mermaid
+flowchart
+    E(("Entropy"))
+    E --> S(("Sense & React"))
+    S --> D(("Gradient detection"))
+    S --> M(("Memory & Time"))
+    S --> I(("Internal State"))
+    S --> P(("Prediction"))
+    D --> GM(("Gradient & Memory"))
+    D --> GI(("Gradient & Intenal State"))
+    D --> GP(("Gradient & Prediction"))
+…   P --> L
+```

@@ -33,7 +33,7 @@ from typing import Iterable, Callable, Any
 from pygame import quit as pgquit, display, init, QUIT, draw, \
     Rect, surfarray, event, time  # pylint: disable=no-name-in-module
 from numpy import full, zeros, int64, uint8, bool_, False_, True_, double
-from egppy.genotype.genotype import Genotype
+from egppy.genotype.genotype import INT64_ZERO, Genotype
 
 
 # Constants
@@ -71,9 +71,10 @@ class LifeForm:
         def _action() -> bool:
             return choice([True, False])
         self.action_cb: Callable[[], bool] = _action
-        def _energy(x: int64) -> None:
+        def _energy(x: int64 = INT64_ZERO) -> int64:
             self.energy += x
-        self.energy_cb: Callable[[int64], None] = _energy
+            return self.energy
+        self.energy_cb: Callable[[int64], int64] = _energy
 
     def action(self) -> bool:
         """Return True if the life form should move."""
@@ -89,19 +90,16 @@ class LifeForm:
         self.x = ENV_MIN if self.x < ENV_MIN else ENV_MAX if self.x > ENV_MAX else self.x
         self.y = ENV_MIN if self.y < ENV_MIN else ENV_MAX if self.y > ENV_MAX else self.y
 
-        # Decrement the energy level.
-        # NOTE this does give an advantage to life forms that move diagonally.
-        self.energy_cb(-MOVEMENT_COST)
-
-    def update(self, nutrients: int64 = ZERO) -> bool_:
+    def update(self, nutrients: int64 = INT64_ZERO) -> bool_:
         """Update the life form's energy level based on the passage of
         time & its movement. Update() returns a boolean indicating
         whether the life form is still alive."""
-        assert self.energy > ZERO, "Energy level must be > 0 for this call."
-        self.energy_cb(nutrients - TIME_COST)
+        assert self.energy_cb(INT64_ZERO) > INT64_ZERO, "Energy level must be > 0 for this call."
+        energy = nutrients - TIME_COST
         if self.moved:
             self.move()
-        return self.energy > ZERO
+            energy -= MOVEMENT_COST
+        return self.energy_cb(energy) > INT64_ZERO
 
 
 class RenderLifeForm(LifeForm):
@@ -129,7 +127,7 @@ class RenderLifeForm(LifeForm):
         if self.cb_post_move is not None:
             self.cb_post_move()
 
-    def update(self, nutrients: int64 = ZERO) -> bool_:
+    def update(self, nutrients: int64 = INT64_ZERO) -> bool_:
         """Wrap the update method with pre and post update callbacks."""
         if self.cb_pre_update is not None:
             self.cb_pre_update()
@@ -177,14 +175,14 @@ class Environment:
             # assume there are none left if the life form has not moved.
             nutrients = self.nutrients[lifeform.x - LFS_HALF:lifeform.x + LFS_HALF + 1,
                 lifeform.y - LFS_HALF:lifeform.y + LFS_HALF + 1
-                ].sum() if lifeform.action() else ZERO
+                ].sum() if lifeform.action() else INT64_ZERO
 
             # Update() must be called every tick whilst the lifeform is alive
             # as energy reduces due to entropy every tick.
             still_alive = lifeform.update(nutrients)
 
             # Only zero the nutrients if there were some to begin with
-            if still_alive and nutrients > ZERO:
+            if still_alive and nutrients > INT64_ZERO:
                 self.nutrients[lifeform.x - LFS_HALF:lifeform.x + LFS_HALF + 1,
                     lifeform.y - LFS_HALF:lifeform.y + LFS_HALF + 1] = 0
 
@@ -264,7 +262,7 @@ class RenderEnvironment(Environment):
         display.flip()
 
 
-def fitness_function(genotypes: Iterable[Genotype]) -> None:
+def fitness_function(phenotypes: Iterable[Genotype]) -> None:
     """Run the headless version of the simulation with one individual
     life form and set the genotype fitness score.
 
@@ -275,13 +273,27 @@ def fitness_function(genotypes: Iterable[Genotype]) -> None:
     The life form starts in the center of the environment and decides
     whether to move or not based on the action callback.    
     """
-    for genotype in genotypes:
+    for phenotype in phenotypes:
+        # Create a new lifeform as defined here.
         lifeform = LifeForm(ENV_SIZE // 2, ENV_SIZE // 2)
-        lifeform.action_cb = genotype.func
+
+        # Ensure the phenotype has the starting energy set correctly (as in the
+        # energy of the LifeForm at construction) and that the energy modifier
+        # callback is set to modify the energy of the phenotype.
+        phenotype.energy = lifeform.energy
+        lifeform.energy_cb = phenotype.energy_cb
+        lifeform.action_cb = phenotype.func
+
+        # Attach the lifeform object to the phenotype for debugging purposes.
+        # NOTE: pylance will complain about this but it is correct.
+        phenotype.problem_meta_data = lifeform  # type: ignore
+
+        # Create the environment and see how we did.
+        # In this case survivability is the same as fitness.
         environment = Environment([lifeform])
         environment.run()
-        genotype.fitness = double(lifeform.lifespan / THE_END_OF_TIME)
-        genotype.survivability = genotype.fitness
+        phenotype.fitness = double(lifeform.lifespan / THE_END_OF_TIME)
+        phenotype.survivability = phenotype.fitness
 
 
 # This structure is required by Erasmus

@@ -28,11 +28,60 @@ flowchart TB
 
 ### Initialize Worker
 
-The initialization of the Worker includes details such as which Gene Pool to draw from, the initial generation, the fitness function used to evaulate the individuals etc.
+The initialization of the Worker is done from a JSON config file that defines where the genetic code stores are and the populations to work on. The populations specify the problem to solve the details of which can be found in the problem definitions file (also JSON). With this information the worker initalization is complete and the inital generation of the eveolution work can be pulled and/or created.
+
+```mermaid
+---
+title: Initialize Worker
+---
+
+flowchart TB
+    CL["Parse command line"] --> HE["Help & Config options"]
+    subgraph WC["Load worker configuration"]
+        PP["Pull Problems"]:::red
+        PC["Load Populations Config"] --> PP
+        PD["Pull Problem Definitions"]:::red --> PP
+    end 
+    CL --> WC
+    WC --> IG["Initial Generation"]
+    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
+    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
+    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+```
 
 ### Initial Generation
 
-If the GC's in the initial generation do not have a fitness score for the supplied fitness function then they must be evaluated else they can join the evolution queue.
+The initial generation is the list of signatures of the phenotype GC's for all of the populations defined in the worker config.
+
+```mermaid
+---
+title: Initial Generation
+---
+
+flowchart TB
+    subgraph PP["For each population:"]
+        PB["Get signatures of best/diverse GC's from GP as per config"]:::red
+        PB --> |If not enough|CE["Create empty GC's"]:::red
+    end 
+    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
+    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
+    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+```
+
+The initial generation for a given population configuration can come from multiple sources:
+
+#### Incremental Spontaneous Assembly
+
+Pre-cursor GC's are first formed by spontaneous assembly reducing the difference between available GCs interface and properties and the target population interface and properties. Pre-cursor GC's combine with other GC's to eventually create a GC that is stable with the correct interface. The more incremental steps assembly must take to create an appropriate GC the slower evolution will be to find initial partial solutions to the population target problem.
+
+
+
+
+
+
+Note that the Gene Pool updates itself from the Genomic Library on its own schedule or trigger.
+
+If the GC's in the initial generation do not have a fitness score for the supplied problem (because, for example, none could be found for this problem but the problem is related to another problem from which we can use solution GC's to start) then they must be evaluated else they can join the evolution queue.
 
 ### Fitness Queue
 

@@ -399,7 +399,7 @@ def interface_definition(
     return xput_eps, xput_types, bytes([xput_types.index(x) for x in xput_eps])
 
 
-def unordered_interface_hash(input_eps: Iterable[int], output_eps: Iterable[int]) -> int:
+def unordered_interface_hash(input_eps: Iterable[int], output_eps: Iterable[int]) -> bytes:
     """Create a 64-bit hash of the population interface definition.
 
     The interface hash is order agnostic i.e.
@@ -421,8 +421,7 @@ def unordered_interface_hash(input_eps: Iterable[int], output_eps: Iterable[int]
         ihash.update(inpt.to_bytes(2, "big"))
     for outpt in sorted(output_eps):
         ihash.update(outpt.to_bytes(2, "big"))
-    ihash_val: int = int.from_bytes(ihash.digest(), "big")
-    return (0x7FFFFFFFFFFFFFFF & ihash_val) - (ihash_val & (1 << 63))
+    return ihash.digest()
 
 
 def ordered_interface_hash(
@@ -430,7 +429,7 @@ def ordered_interface_hash(
     output_types: Iterable[int],
     inputs: bytes,
     outputs: bytes,
-) -> int:
+) -> bytes:
     """Create a 64-bit hash of the population interface definition.
 
     The interface hash is specific to the order and type in the inputs
@@ -445,7 +444,7 @@ def ordered_interface_hash(
 
     Returns
     -------
-    64 bit hash as a signed 64 bit int.
+    64 bit hash as bytes object.
     """
     ihash: blake2b = blake2b(digest_size=8)
     for inpt in input_types:
@@ -454,8 +453,7 @@ def ordered_interface_hash(
         ihash.update(outpt.to_bytes(2, "big"))
     ihash.update(inputs)
     ihash.update(outputs)
-    ihash_val: int = int.from_bytes(ihash.digest(), "big")
-    return (0x7FFFFFFFFFFFFFFF & ihash_val) - (ihash_val & (1 << 63))
+    return ihash.digest()
 
 
 def validate_value(value_str: str, ep_type_int: int) -> bool:
