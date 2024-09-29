@@ -6,9 +6,6 @@ from json import load
 from logging import NullHandler, getLogger
 from os.path import dirname, join
 
-from pytest import approx
-
-from pypgtable import table
 
 _logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
@@ -302,7 +299,11 @@ def test_recursive_select():
     _logger.debug(stack()[0][3])
     config = deepcopy(_CONFIG)
     t = table(config)
-    data = list(t.recursive_select("WHERE {id} = 2", columns=("id", "uid", "left", "right"), container="tuple"))
+    data = list(
+        t.recursive_select(
+            "WHERE {id} = 2", columns=("id", "uid", "left", "right"), container="tuple"
+        )
+    )
     assert data == [
         (2, 102, 5, 6),
         (5, 105, 10, 11),
@@ -318,7 +319,9 @@ def test_recursive_select_no_pk():
     _logger.debug(stack()[0][3])
     config = deepcopy(_CONFIG)
     t = table(config)
-    data = tuple(t.recursive_select("WHERE {id} = 2", columns=("uid", "left", "right"), container="pkdict"))
+    data = tuple(
+        t.recursive_select("WHERE {id} = 2", columns=("uid", "left", "right"), container="pkdict")
+    )
     assert len(data)
 
 
@@ -445,7 +448,9 @@ def test_update_all_rows():
     _logger.debug(stack()[0][3])
     config = deepcopy(_CONFIG)
     t = table(config)
-    returning = t.update("{left}={left}*{left}", literals={}, returning=("id", "left"), container="dict")
+    returning = t.update(
+        "{left}={left}*{left}", literals={}, returning=("id", "left"), container="dict"
+    )
     row = t.select(
         "WHERE {id} = 0",
         columns=("id", "left", "right", "uid", "metadata", "name"),
@@ -525,7 +530,9 @@ def test_discover_table():
     t2 = table({"database": _CONFIG["database"], "table": _CONFIG["table"]})
     data = t2.select(columns=values_dict[0].keys())
     assert list(data) == values_dict
-    values_dict.append({"id": 0, "left": 1, "right": 2, "uid": 201, "metadata": [], "name": "Diana"})
+    values_dict.append(
+        {"id": 0, "left": 1, "right": 2, "uid": 201, "metadata": [], "name": "Diana"}
+    )
     t2.insert([values_dict[-1]])
     data = t1.select(columns=values_dict[0].keys())
     assert list(data) == values_dict

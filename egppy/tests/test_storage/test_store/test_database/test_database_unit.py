@@ -6,7 +6,7 @@ from copy import deepcopy
 from itertools import count
 from threading import get_ident
 
-from psycopg2 import OperationalError, ProgrammingError, errors, sql
+from psycopg2 import OperationalError, ProgrammingError, errors
 
 from egppy.storage.store.database import database
 from egppy.storage.store.database.common import backoff_generator
@@ -141,21 +141,18 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-            def open(self) -> None:
-                """Open the connection."""
-                self.value = _MOCK_VALUE_1
-
-        mock_connect.return_value = MockConnection()
         with patch.dict(
             database._connections,  # pylint: disable=protected-access
             {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {get_ident(): MockConnection()}}},
             clear=True,
         ):
+            mock_connect.return_value = MockConnection()
             self.assertEqual(
                 db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
             )
 
-    def test_db_reconnect_n0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_reconnect_n0(self, mock_connect):
         """Pre-existing connection close() raises an OperationalError."""
         db_disconnect_all()
 
@@ -183,19 +180,19 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect(*_, **__) -> MockConnection:
-            """Mock connect function."""
-            return MockConnection()
-
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setitem(
+        with patch.dict(
             database._connections,  # pylint: disable=protected-access
-            _MOCK_CONFIG["host"],
-            {_MOCK_DBNAME: {get_ident(): MockConnection()}},
-        )
-        assert db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_2  # type: ignore
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {get_ident(): MockConnection()}}},
+            clear=True,
+        ):
+            mock_connect.return_value = MockConnection()
+            self.assertEqual(
+                db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
+            )
 
-    def test_db_reconnect_n1(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("egppy.storage.store.database.database.sleep")
+    def test_db_reconnect_n1(self, mock_sleep, mock_connect):
         """Connection raises OperationalError.
 
         There is a pre-existing connection.
@@ -231,30 +228,37 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect() -> MockConnection:
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        def mock_sleep(backoff: float) -> None:
+        def mock_sleep_func(backoff: float) -> None:
             """Mock sleep function."""
-            global sleep_duration  # pylint: disable=global-variable-undefined
-            sleep_duration += backoff
+            nonlocal sleep_duration
+            sleep_duration += backoff  # pylint: disable=redefined-outer-name
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setattr(database, "sleep", mock_sleep)
+        mock_connect.side_effect = mock_connect_func
+        mock_sleep.side_effect = mock_sleep_func
+
         try:
             backoff = next(backoff_generator(fuzz=False))
         except StopIteration:
             backoff = 0
-        monkeypatch.setitem(
-            database._connections,  # pylint: disable=protected-access
-            _MOCK_CONFIG["host"],
-            {_MOCK_DBNAME: {get_ident(): MockConnection()}},
-        )
-        assert db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_2  # type: ignore
-        assert backoff >= sleep_duration / 1.1 and backoff <= sleep_duration / 0.9
 
-    def test_db_reconnect_n2(self, monkeypatch):
+        with patch.dict(
+            database._connections,  # pylint: disable=protected-access
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {get_ident(): MockConnection()}}},
+            clear=True,
+        ):
+            self.assertEqual(
+                db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
+            )
+            self.assertGreaterEqual(backoff, sleep_duration / 1.1)
+            self.assertLessEqual(backoff, sleep_duration / 0.9)
+
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("egppy.storage.store.database.database.sleep")
+    def test_db_reconnect_n2(self, mock_sleep, mock_connect):
         """Check infinite backoff.
 
         There is a pre-existing connection.
@@ -275,7 +279,6 @@ class TestDatabase(TestCase):
                 yield i
 
         mock_values = _connection_iter()
-        global sleep_duration  # pylint: disable=global-variable-undefined
         sleep_duration = 0.0
 
         class MockConnection:
@@ -298,31 +301,36 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect(*_, **__):
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        def mock_sleep(backoff):
+        def mock_sleep_func(backoff: float) -> None:
             """Mock sleep function."""
-            global sleep_duration  # pylint: disable=global-variable-undefined
+            nonlocal sleep_duration
             sleep_duration += backoff
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setattr(database, "sleep", mock_sleep)
-        monkeypatch.setitem(
-            database._connections,  # pylint: disable=protected-access
-            _MOCK_CONFIG["host"],
-            {_MOCK_DBNAME: {get_ident(): MockConnection()}},
-        )
-        backoff_gen = backoff_generator(fuzz=False)
-        try:
-            total_backoff = sum((next(backoff_gen) for _ in range(_INFINITE_BACKOFFS)))
-        except StopIteration:
-            total_backoff = 0
-        assert db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_2  # type: ignore
-        assert total_backoff >= sleep_duration / 1.1 and total_backoff <= sleep_duration / 0.9
+        mock_connect.side_effect = mock_connect_func
+        mock_sleep.side_effect = mock_sleep_func
 
-    def test_db_reconnect_n3(self, monkeypatch):
+        with patch.dict(
+            database._connections,  # pylint: disable=protected-access
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {get_ident(): MockConnection()}}},
+            clear=True,
+        ):
+            backoff_gen = backoff_generator(fuzz=False)
+            try:
+                total_backoff = sum((next(backoff_gen) for _ in range(_INFINITE_BACKOFFS)))
+            except StopIteration:
+                total_backoff = 0
+            self.assertEqual(
+                db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
+            )
+            self.assertGreaterEqual(total_backoff, sleep_duration / 1.1)
+            self.assertLessEqual(total_backoff, sleep_duration / 0.9)
+
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_reconnect_n3(self, mock_connect):
         """Check error after all retries.
 
         There is a pre-existing connection.
@@ -361,26 +369,24 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect(*_, **__) -> MockConnection:
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setitem(
-            database._connections,  # pylint: disable=protected-access
-            _MOCK_CONFIG["host"],
-            {_MOCK_DBNAME: {get_ident(): MockConnection()}},
-        )
-        config = deepcopy(_MOCK_CONFIG)
-        config["retries"] = 0
-        try:
-            db_reconnect(_MOCK_DBNAME, config)
-        except OperationalError:
-            pass
-        else:
-            assert False
+        mock_connect.side_effect = mock_connect_func
 
-    def test_db_connect_p0(self, monkeypatch):
+        with patch.dict(
+            database._connections,  # pylint: disable=protected-access
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {get_ident(): MockConnection()}}},
+            clear=True,
+        ):
+            config = deepcopy(_MOCK_CONFIG)
+            config["retries"] = 0
+            with self.assertRaises(OperationalError):
+                db_reconnect(_MOCK_DBNAME, config)
+
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_connect_p0(self, mock_connect):
         """No pre-existing connection test for db_connect()."""
         db_disconnect_all()
 
@@ -395,14 +401,13 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect(*_, **__) -> MockConnection:
-            """Mock connect function."""
-            return MockConnection()
+        mock_connect.return_value = MockConnection()
+        self.assertEqual(
+            db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
+        )
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_1  # type: ignore
-
-    def test_db_connect_p1(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_connect_p1(self, mock_connect):
         """With pre-existing connection test for db_connect()."""
         db_disconnect_all()
 
@@ -430,15 +435,21 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect(*_, **__) -> MockConnection:
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_1  # type: ignore
-        assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_1  # type: ignore
+        mock_connect.side_effect = mock_connect_func
 
-    def test_db_disconnect_p0(self, monkeypatch):
+        self.assertEqual(
+            db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
+        )
+        self.assertEqual(
+            db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
+        )
+
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_disconnect_p0(self, mock_connect):
         """Create a connection and then disconnect it.
 
         Connection should be closed.
@@ -470,18 +481,21 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect(*_, **__):
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        monkeypatch.setattr(database, "connect", mock_connect)
+        mock_connect.side_effect = mock_connect_func
         connection = db_connect(_MOCK_DBNAME, _MOCK_CONFIG)
-        assert connection.value == _MOCK_VALUE_1  # type: ignore
+        self.assertEqual(connection.value, _MOCK_VALUE_1)  # type: ignore
         db_disconnect(_MOCK_DBNAME, _MOCK_CONFIG)
-        assert connection.value is None  # type: ignore
-        assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_2  # type: ignore
+        self.assertIsNone(connection.value)  # type: ignore
+        self.assertEqual(
+            db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
+        )
 
-    def test_db_disconnect_n0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_disconnect_n0(self, mock_connect):
         """Create a connection and then disconnect it with an OperationalError on close().
 
         A new connection should be a new connection object.
@@ -512,16 +526,23 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect(*_, **__):
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_1  # type: ignore
-        db_disconnect(_MOCK_DBNAME, _MOCK_CONFIG)
-        assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value == _MOCK_VALUE_2  # type: ignore
+        mock_connect.side_effect = mock_connect_func
 
-    def test_db_transaction_p0(self, monkeypatch):
+        # type: ignore
+        self.assertEqual(
+            db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
+        )
+        db_disconnect(_MOCK_DBNAME, _MOCK_CONFIG)
+        self.assertEqual(
+            db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
+        )
+
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_transaction_p0(self, mock_connect):
         """Execute a read-only SQL statement.
 
         A single cursor should be returned.
@@ -565,15 +586,12 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect(*_, **__) -> MockConnection:
-            """Mock connect function."""
-            return MockConnection()
-
-        monkeypatch.setattr(database, "connect", mock_connect)
+        mock_connect.return_value = MockConnection()
         dbcur = db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, ("SQL0",))
         assert not dbcur.fetchone()
 
-    def test_db_transaction_p1(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    def test_db_transaction_p1(self, mock_connect):
         """Test that a write transaction is committed."""
         db_disconnect_all()
 
@@ -603,7 +621,7 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-            def cursor(self) -> MockCursor:
+            def cursor(self, *_, **__) -> MockCursor:
                 """Return a new cursor."""
                 self.committed = False
                 return MockCursor()
@@ -612,25 +630,24 @@ class TestDatabase(TestCase):
                 """Commit the transaction."""
                 self.committed = True
 
-        def mock_connect(*_, **__) -> MockConnection:
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        monkeypatch.setattr(database, "connect", mock_connect)
+        mock_connect.side_effect = mock_connect_func
+
         dbcur = db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, "SQL0", read=False)
         assert dbcur.fetchone() == 2
         assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).commit
 
     def test_db_transaction_n4(self) -> None:
         """All reconnection attempts fail and a ProgrammingError is raised."""
-        try:
+        with self.assertRaises(ProgrammingError):
             db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, ("SQL0",), recons=0)
-        except ProgrammingError:
-            pass
-        else:
-            assert False
 
-    def test_db_exists_p0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("psycopg2.sql.SQL.as_string")
+    def test_db_exists_p0(self, mock_as_string, mock_connect):
         """Test the case when the DB exists."""
         db_disconnect_all()
         mock_connection_ref = count()
@@ -666,7 +683,7 @@ class TestDatabase(TestCase):
                 except StopIteration:
                     self.value = None
 
-            def cursor(self) -> MockCursor:
+            def cursor(self, *_, **__) -> MockCursor:
                 """Return a new cursor."""
                 return MockCursor()
 
@@ -674,23 +691,16 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect() -> MockConnection:
-            """Mock connect function."""
-            return MockConnection()
+        mock_connect.return_value = MockConnection()
+        mock_as_string.return_value = "SQL string"
+        self.assertTrue(db_exists(_MOCK_DBNAME, _MOCK_CONFIG))
 
-        def mock_as_string():
-            """Mock as_string function."""
-            return "SQL string"
-
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setattr(sql.SQL, "as_string", mock_as_string)
-        assert db_exists(_MOCK_DBNAME, _MOCK_CONFIG)
-
-    def test_db_exists_p1(self, monkeypatch) -> None:
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("psycopg2.sql.SQL.as_string")
+    def test_db_exists_p1(self, mock_as_string, mock_connect):
         """Test the case when the DB does not exist."""
         db_disconnect_all()
         mock_connection_ref = count()
-        # mock_cursor_ref = count()
 
         class MockCursor:
             """Mock cursor class for testing."""
@@ -723,7 +733,7 @@ class TestDatabase(TestCase):
                 except StopIteration:
                     self.value = None
 
-            def cursor(self):
+            def cursor(self, *_, **__) -> MockCursor:
                 """Return a new cursor."""
                 return MockCursor()
 
@@ -731,54 +741,38 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect():
-            """Mock connect function."""
-            return MockConnection()
+        mock_connect.return_value = MockConnection()
+        mock_as_string.return_value = "SQL string"
+        self.assertFalse(db_exists("Does not exist", _MOCK_CONFIG))
 
-        def mock_as_string():
-            """Mock as_string function."""
-            return "SQL string"
-
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setattr(sql.SQL, "as_string", mock_as_string)
-        assert not db_exists("Does not exist", _MOCK_CONFIG)
-
-    def test_db_exists_n0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("psycopg2.sql.SQL.as_string")
+    def test_db_exists_n0(self, mock_as_string, mock_connect):
         """Test the case when the maintenance DB connection raises an error."""
         db_disconnect_all()
 
-        def mock_db_connect(*_, **__):
-            raise ProgrammingError
+        mock_connect.side_effect = ProgrammingError
+        mock_as_string.return_value = "SQL string"
 
-        def mock_as_string(*_, **__):
-            return "SQL string"
-
-        monkeypatch.setattr(database, "db_connect", mock_db_connect)
-        monkeypatch.setattr(sql.SQL, "as_string", mock_as_string)
-        try:
+        with self.assertRaises(ProgrammingError):
             db_exists(_MOCK_DBNAME, _MOCK_CONFIG)
-        except ProgrammingError:
-            pass
-        else:
-            assert False
 
-    def test_db_exists_n1(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("psycopg2.sql.SQL.as_string")
+    def test_db_exists_n1(self, mock_as_string, mock_connect):
         """Test the case when the maintenance DB connection raises InsufficientPrivilege."""
         db_disconnect_all()
         pgerr = deepcopy(ProgrammingError)
         pgerr.pgcode = errors.InsufficientPrivilege  # pylint: disable=no-member # type: ignore
 
-        def mock_db_connect(*_, **__):
-            raise pgerr
+        mock_connect.side_effect = pgerr
+        mock_as_string.return_value = "SQL string"
 
-        def mock_as_string(*_, **__):
-            return "SQL string"
+        self.assertTrue(db_exists(_MOCK_DBNAME, _MOCK_CONFIG))
 
-        monkeypatch.setattr(database, "db_connect", mock_db_connect)
-        monkeypatch.setattr(sql.SQL, "as_string", mock_as_string)
-        assert db_exists(_MOCK_DBNAME, _MOCK_CONFIG)
-
-    def test_db_create_p0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("psycopg2.sql.Identifier.as_string")
+    def test_db_create_p0(self, mock_as_string, mock_connect):
         """Create a DB."""
         db_disconnect_all()
         mock_connection_ref = count()
@@ -819,19 +813,22 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect(*_, **__) -> MockConnection:
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        def mock_as_string(*_, **__) -> str:
+        def mock_as_string_func(*_, **__) -> str:
             """Mock as_string function."""
             return "SQL string"
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setattr(sql.Composed, "as_string", mock_as_string)
+        mock_connect.side_effect = mock_connect_func
+        mock_as_string.side_effect = mock_as_string_func
+
         db_create(_MOCK_DBNAME, _MOCK_CONFIG)
 
-    def test_db_delete_p0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    @patch("psycopg2.sql.Identifier.as_string")
+    def test_db_delete_p0(self, mock_as_string, mock_connect):
         """Delete a DB."""
         db_disconnect_all()
         mock_connection_ref = count()
@@ -861,7 +858,7 @@ class TestDatabase(TestCase):
                     self.value = None
                 self.autocommit = False
 
-            def cursor(self) -> MockCursor:
+            def cursor(self, *_, **__) -> MockCursor:
                 """Return a new cursor."""
                 return MockCursor()
 
@@ -872,19 +869,21 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
-        def mock_connect(*_, **__) -> MockConnection:
+        def mock_connect_func(*_, **__) -> MockConnection:
             """Mock connect function."""
             return MockConnection()
 
-        def mock_as_string(*_, **__) -> str:
+        def mock_as_string_func(*_, **__) -> str:
             """Mock as_string function."""
             return "SQL string"
 
-        monkeypatch.setattr(database, "connect", mock_connect)
-        monkeypatch.setattr(sql.Composed, "as_string", mock_as_string)
+        mock_connect.side_effect = mock_connect_func
+        mock_as_string.side_effect = mock_as_string_func
+
         db_delete(_MOCK_DBNAME, _MOCK_CONFIG)
 
-    def test_clean_connections_p0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    def test_clean_connections_p0(self, mock_connect):
         """Add a connection, fake a closed thread and make sure it is removed."""
         db_disconnect_all()
 
@@ -903,23 +902,22 @@ class TestDatabase(TestCase):
                 """Open the connection."""
                 self.value = _MOCK_VALUE_1
 
-        def mock_connect() -> MockConnection:
-            """Mock connect function."""
-            return MockConnection()
-
-        monkeypatch.setattr(database, "connect", mock_connect)
+        mock_connect.return_value = MockConnection()
         db_connect(_MOCK_DBNAME, _MOCK_CONFIG)
 
-        #  pylint: disable=protected-access
-        monkeypatch.setitem(
+        # pylint: disable=protected-access
+        with patch.dict(
             database._connections,
-            _MOCK_CONFIG["host"],
-            {_MOCK_DBNAME: {1234: None}},
-        )
-        _clean_connections()
-        assert database._connections[_MOCK_CONFIG["host"]][_MOCK_DBNAME].get(1234, None) is None
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {1234: None}}},
+            clear=True,
+        ):
+            _clean_connections()
+            self.assertIsNone(
+                database._connections[_MOCK_CONFIG["host"]][_MOCK_DBNAME].get(1234, None)
+            )
 
-    def test_clean_connections_n0(self, monkeypatch):
+    @patch("egppy.storage.store.database.database.connect")
+    def test_clean_connections_n0(self, mock_connect):
         """Add a connection, fake a closed thread and make sure it is removed."""
         db_disconnect_all()
 
@@ -933,20 +931,16 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 raise ProgrammingError
 
-        def mock_connect(*_, **__) -> MockConnection:
-            """Mock connect function."""
-            return MockConnection()
-
-        monkeypatch.setattr(database, "connect", mock_connect)
+        mock_connect.return_value = MockConnection()
         db_connect(_MOCK_DBNAME, _MOCK_CONFIG)
 
         #  pylint: disable=protected-access
-        monkeypatch.setitem(
+        with patch.dict(
             database._connections,
-            _MOCK_CONFIG["host"],
-            {_MOCK_DBNAME: {1234: MockConnection()}},
-        )
-        _clean_connections()
-        assert (
-            database._connections[_MOCK_CONFIG["host"]][_MOCK_DBNAME][1234].value == _MOCK_VALUE_1
-        )
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {1234: MockConnection()}}},
+            clear=True,
+        ):
+            _clean_connections()
+            self.assertEqual(
+                database._connections[_MOCK_CONFIG["host"]][_MOCK_DBNAME][1234].value, _MOCK_VALUE_1
+            )
