@@ -1,7 +1,8 @@
 """Tests for the text_token module."""
 
 import unittest
-from egppy.common.text_token import register_token_code, text_token, token_library
+
+from egppy.common.text_token import TextToken, register_token_code, token_library
 
 
 class TestTextToken(unittest.TestCase):
@@ -40,7 +41,7 @@ class TestTextToken(unittest.TestCase):
     def test_text_token(self):
         """Test that a text_token can be created."""
         register_token_code("E00002", "A test token {test}")
-        token = text_token({"E00002": {"test": "test value"}})
+        token = TextToken({"E00002": {"test": "test value"}})
         self.assertEqual(token.code, "E00002")
         self.assertEqual(token.parameters, {"test": "test value"})
         self.assertEqual(str(token), "E00002: A test token test value")

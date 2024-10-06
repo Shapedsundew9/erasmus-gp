@@ -5,12 +5,14 @@ from json import load
 from os.path import join
 from pprint import pformat
 from time import sleep
-from typing import Any, Iterable, Literal, Generator
+from typing import Any, Generator, Iterable, Literal
 
 from psycopg2 import ProgrammingError, errors, sql
-from egppy.common.text_token import register_token_code, text_token
 
+from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egppy.common.text_token import TextToken, register_token_code
 from egppy.storage.store.database.common import backoff_generator
+from egppy.storage.store.database.configuration import ColumnSchema, TableConfig
 from egppy.storage.store.database.database import (
     db_connect,
     db_create,
@@ -19,9 +21,6 @@ from egppy.storage.store.database.database import (
     db_transaction,
 )
 from egppy.storage.store.database.row_iterators import RawCType
-from egppy.storage.store.database.configuration import ColumnSchema, TableConfig
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -168,7 +167,6 @@ class RawTable:
         self._primary_key = None
         self._entry_validator = None
         self.config = config.copy()
-        self.config.consistency()
         self.creator = False
         self.db_creator = False
         self.populate = populate
@@ -176,20 +174,22 @@ class RawTable:
         self.ptr_map_def(self.config["ptr_map"])
         if self.config["delete_db"]:
             self.delete_db()
-        if not self._db_exists():
+        if not self._db_exists(self.config["wait_for_db"]):
             if self.config["create_db"]:
                 self._create_db()
-            elif self.config["wait_for_db"]:
+            else:  # We are not waiting for the db to exist and we are not creating it.
                 raise ValueError(
-                    text_token({"E05007": {"dbname": self.config["database"]["dbname"]}})
+                    TextToken({"E05007": {"dbname": self.config["database"]["dbname"]}})
                 )
         if self.config["delete_table"]:
             self.delete_table()
-        create_table: bool = not self._table_exists() and self.config["create_table"]
+        create_table: bool = (
+            not self._table_exists(self.config["wait_for_table"]) and self.config["create_table"]
+        )
         self.columns = self._create_table() if create_table else self._table_definition()
         if not create_table and not self.columns:
             raise ValueError(
-                text_token(
+                TextToken(
                     {
                         "E05005": {
                             "table": self.config["table"],
@@ -250,7 +250,7 @@ class RawTable:
                 backoff = next(backoff_gen)
                 dbname = self.config["database"]["dbname"]
                 _logger.info(
-                    text_token(
+                    TextToken(
                         {
                             "I05008": {
                                 "dbname": dbname,
@@ -335,7 +335,7 @@ class RawTable:
             for data_file in self.config["data_files"]:
                 abspath: str = join(self.config["data_file_folder"], data_file)
                 _logger.info(
-                    text_token({"I05004": {"table": self.config["table"], "file": abspath}})
+                    TextToken({"I05004": {"table": self.config["table"], "file": abspath}})
                 )
                 with open(abspath, "r", encoding="utf-8") as file_ptr:
                     for columns, values in self.batch_dict_data(load(file_ptr)):
@@ -395,25 +395,6 @@ class RawTable:
         -------
         Column names.
         """
-        backoff_gen: Generator[Any, None, None] = backoff_generator(
-            _INITIAL_DELAY, _BACKOFF_STEPS, _BACKOFF_FUZZ
-        )
-        while not self._table_exists() and self.config["wait_for_table"]:
-            # deepcode ignore unguarded~next~call: backoff generator is infinite
-            backoff = next(backoff_gen)
-            dbname = self.config["database"]["dbname"]
-            _logger.info(
-                text_token(
-                    {
-                        "I05003": {
-                            "table": self.config["table"],
-                            "dbname": dbname,
-                            "backoff": backoff,
-                        }
-                    }
-                )
-            )
-            sleep(backoff)
         results = tuple(
             self._db_transaction(_TABLE_DEFINITION_SQL.format(sql.Literal(self.config["table"])))
         )
@@ -430,13 +411,14 @@ class RawTable:
                 "primary_key", False
             )
 
-        self.config.setdefault("schema", schema)
+        if not self.config["schema"]:
+            self.config["schema"] = schema
         self._primary_key = self._get_primary_key()
         _logger.debug("Table %s schema:\n%s", self.config["table"], pformat(self.config["schema"]))
 
         unmatched_set = columns - set(self.config["schema"].keys())
         if unmatched_set:
-            token = text_token(
+            token = TextToken(
                 {
                     "E05001": {
                         "set": unmatched_set,
@@ -451,43 +433,25 @@ class RawTable:
         for column in columns:
             if schema[column]["primary_key"] != self.config["schema"][column]["primary_key"]:
                 raise ValueError(
-                    text_token({"E05002": {"table": self.config["table"], "column": column}})
+                    TextToken({"E05002": {"table": self.config["table"], "column": column}})
                 )
             if schema[column]["unique"] != self.config["schema"][column]["unique"]:
                 raise ValueError(
-                    text_token({"E05003": {"table": self.config["table"], "column": column}})
+                    TextToken({"E05003": {"table": self.config["table"], "column": column}})
                 )
             if schema[column]["nullable"] != self.config["schema"][column]["nullable"]:
                 raise ValueError(
-                    text_token({"E05004": {"table": self.config["table"], "column": column}})
+                    TextToken({"E05004": {"table": self.config["table"], "column": column}})
                 )
         return columns
 
-    def _table_exists(self):
+    def _table_exists_(self) -> bool:
         """Test if the table exists in the database.
 
         Returns
         -------
         (bool) True if the table exists else False.
         """
-        backoff_gen = backoff_generator(_INITIAL_DELAY, _BACKOFF_STEPS, _BACKOFF_FUZZ)
-        while (
-            not db_exists(self.config["database"]["dbname"], self.config["database"])
-            and self.config["wait_for_db"]
-        ):
-            # deepcode ignore unguarded~next~call: backoff generator is infinite
-            backoff = next(backoff_gen)
-            _logger.info(
-                text_token(
-                    {
-                        "I05005": {
-                            "dbname": self.config["database"]["dbname"],
-                            "backoff": backoff,
-                        }
-                    }
-                )
-            )
-            sleep(backoff)
         try:
             return next(
                 self._db_transaction(_TABLE_EXISTS_SQL.format(sql.Literal(self.config["table"])))
@@ -496,6 +460,37 @@ class RawTable:
             raise RuntimeError(
                 "Could not determine if table exists. Query returned no value."
             ) from exc
+
+    def _table_exists(self, wait: bool = False) -> bool:
+        """Test if the table exists in the database.
+
+        Args
+        ----
+        wait: If True wait for the table to exist.
+
+        Returns
+        -------
+        (bool) True if the table exists else False.
+        """
+        backoff_gen = backoff_generator(_INITIAL_DELAY, _BACKOFF_STEPS, _BACKOFF_FUZZ)
+        exists = self._table_exists_()
+        while not exists and wait:
+            # deepcode ignore unguarded~next~call: backoff generator is infinite
+            backoff = next(backoff_gen)
+            _logger.info(
+                TextToken(
+                    {
+                        "I05003": {
+                            "dbname": self.config["database"]["dbname"],
+                            "table": self.config["table"],
+                            "backoff": backoff,
+                        }
+                    }
+                )
+            )
+            exists = self._table_exists_()
+            sleep(backoff)
+        return exists
 
     def _add_alignment(self, definition):
         """Add the byte alignment of the column type to the column definition.
@@ -510,7 +505,7 @@ class RawTable:
         -------
         (dict): A column definition plus an 'alignment' field.
         """
-        upper_type = definition["type"].upper()
+        upper_type = definition["db_type"].upper()
         array_idx = upper_type.find("[")
         fixed_length = upper_type.find("[]") == -1
         if array_idx != -1:
@@ -550,14 +545,14 @@ class RawTable:
         definition_list = self._order_schema()
         _logger.info("Table will be created with columns in the order logged below.")
         for column, definition in definition_list:
-            sql_str = " " + definition["type"]
+            sql_str = " " + definition["db_type"]
             if not definition["nullable"]:
                 sql_str += " NOT NULL"
             if definition["primary_key"]:
                 sql_str += " PRIMARY KEY"
             if definition["unique"] and not definition["primary_key"]:
                 sql_str += " UNIQUE"
-            if "default" in definition:
+            if definition["default"] is not None:
                 sql_str += " DEFAULT " + definition["default"]
             self.columns.add(column)
             _logger.info(
@@ -569,13 +564,13 @@ class RawTable:
             columns.append(sql.Identifier(column) + sql.SQL(sql_str))
 
         sql_str = _TABLE_CREATE_SQL.format(self._table, sql.SQL(", ").join(columns))
-        _logger.info(text_token({"I05000": {"sql": self._sql_to_string(sql_str)}}))
+        _logger.info(TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
         try:
             self._db_transaction(sql_str, read=False)
         except ProgrammingError as exc:
             if exc.pgcode == errors.DuplicateTable:  # pylint: disable=no-member
                 _logger.info(
-                    text_token(
+                    TextToken(
                         {
                             "I05001": {
                                 "table": self.config["table"],
@@ -602,14 +597,14 @@ class RawTable:
             )
             sql_str += sql.SQL(" USING ") + sql.Identifier(definition["index"])
             sql_str += _TABLE_INDEX_COLUMN_SQL.format(sql.Identifier(column))
-            _logger.info(text_token({"I05000": {"sql": self._sql_to_string(sql_str)}}))
+            _logger.info(TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
             self._db_transaction(sql_str, read=False)
 
     def delete_table(self) -> None:
         """Delete the table."""
         if db_exists(self.config["database"]["dbname"], self.config["database"]):
             sql_str: sql.Composed = _TABLE_DELETE_TABLE_SQL.format(self._table)
-            _logger.info(text_token({"I05000": {"sql": self._sql_to_string(sql_str)}}))
+            _logger.info(TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
             self._db_transaction(sql_str, read=False)
 
     def select(
@@ -705,7 +700,7 @@ class RawTable:
         if literals is None:
             literals = {}
         if not self._pm:
-            raise ValueError(text_token({"E05006": {"table": self.config["table"]}}))
+            raise ValueError(TextToken({"E05006": {"table": self.config["table"]}}))
 
         if columns == "*":
             columns = self.columns

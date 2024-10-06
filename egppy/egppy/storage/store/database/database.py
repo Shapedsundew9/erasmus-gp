@@ -15,21 +15,14 @@ from threading import enumerate as thread_enumerate
 from threading import get_ident
 from time import sleep
 from typing import Any, Generator
-from psycopg2 import (
-    InterfaceError,
-    OperationalError,
-    ProgrammingError,
-    connect,
-    errors,
-    sql,
-)
+
+from psycopg2 import InterfaceError, OperationalError, ProgrammingError, connect, errors, sql
 from psycopg2.extensions import cursor as TupleCursor
 from psycopg2.extras import DictCursor, NamedTupleCursor, register_uuid
 
+from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egppy.common.text_token import TextToken, register_token_code
 from egppy.storage.store.database.common import backoff_generator
-from egppy.common.text_token import register_token_code, text_token
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -162,7 +155,7 @@ def _clean_connections() -> None:
                             connection.close()
                     except (ProgrammingError, OperationalError, InterfaceError) as exc:
                         _logger.warning(
-                            text_token(
+                            TextToken(
                                 {
                                     "W04005": {
                                         "host": host,
@@ -195,7 +188,7 @@ def db_disconnect(dbname, config) -> None:
             connection.close()
         except (InterfaceError, OperationalError, ProgrammingError) as exc:
             _logger.warning(
-                text_token(
+                TextToken(
                     {
                         "W04006": {
                             "host": config["host"],
@@ -258,7 +251,7 @@ def db_reconnect(dbname, config):
             break
         attempts += 1
         _logger.warning(
-            text_token(
+            TextToken(
                 {
                     "W04000": {
                         "attempts": attempts,
@@ -318,11 +311,11 @@ def _connect_core(dbname, config):
     except (InterfaceError, OperationalError) as exc:
         connection = None
         _logger.warning(
-            text_token({"W04001": {"dbname": dbname, "config": config, "error": (err := exc)}})
+            TextToken({"W04001": {"dbname": dbname, "config": config, "error": (err := exc)}})
         )
     else:
         err = None
-        _logger.info(text_token({"I04000": {"dbname": dbname, "config": config}}))
+        _logger.info(TextToken({"I04000": {"dbname": dbname, "config": config}}))
     return connection, err
 
 
@@ -355,7 +348,7 @@ def db_exists(dbname, config):
     except ProgrammingError as exc:
         if exc.pgcode == errors.InsufficientPrivilege:  # pylint: disable=no-member
             _logger.warning(
-                text_token(
+                TextToken(
                     {
                         "W04004": {
                             "user": config["user"],
@@ -370,7 +363,7 @@ def db_exists(dbname, config):
     _logger.info(_DB_EXISTS_SQL.as_string(connection))
     retval = (dbname,) in db_transaction(config["maintenance_db"], config, _DB_EXISTS_SQL)
     _logger.info(
-        text_token(
+        TextToken(
             {
                 "I04001": {
                     "dbname": config["maintenance_db"],
@@ -406,7 +399,7 @@ def db_create(dbname, config):
     connection.autocommit = True
     _logger.info(sql_str.as_string(connection))
     db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
-    _logger.info(text_token({"I04002": {"dbname": config["maintenance_db"], "config": config}}))
+    _logger.info(TextToken({"I04002": {"dbname": config["maintenance_db"], "config": config}}))
     db_disconnect(config["maintenance_db"], config)
 
 
@@ -433,7 +426,7 @@ def db_delete(dbname, config):
     connection.autocommit = True
     _logger.info(sql_str.as_string(connection))
     db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
-    _logger.info(text_token({"I04003": {"dbname": dbname, "config": config}}))
+    _logger.info(TextToken({"I04003": {"dbname": dbname, "config": config}}))
     db_disconnect(config["maintenance_db"], config)
 
 
@@ -507,7 +500,7 @@ def db_transaction(dbname, config, sql_str, read=True, recons=_DB_RECONNECTIONS,
                     connection.rollback()
                 token2["code"] = exc.pgcode
                 token2["error"] = exc
-                _logger.warning(text_token({"W04002": token2}))
+                _logger.warning(TextToken({"W04002": token2}))
                 try:
                     sleep(next(backoff_gen))
                 except StopIteration:
@@ -518,7 +511,7 @@ def db_transaction(dbname, config, sql_str, read=True, recons=_DB_RECONNECTIONS,
                 connection.commit()
             return cursor
         token3["reconnection"] = reconnection
-        _logger.warning(text_token({"W04003": token3}))
+        _logger.warning(TextToken({"W04003": token3}))
         db_reconnect(dbname, config)
-    _logger.error(text_token({"E04000": {"dbname": dbname}}))
+    _logger.error(TextToken({"E04000": {"dbname": dbname}}))
     raise ProgrammingError

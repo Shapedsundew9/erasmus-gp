@@ -3,20 +3,18 @@
 from copy import deepcopy
 from json import load
 from os.path import join
-from typing import Any, Iterable, Literal, Callable
+from typing import Any, Callable, Iterable, Literal
 
-from egppy.common.text_token import text_token
-
+from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egppy.common.text_token import TextToken
 from egppy.storage.store.database.raw_table import RawTable
 from egppy.storage.store.database.row_iterators import (
-    RowIter,
     DictIter,
     GenIter,
     NamedTupleIter,
+    RowIter,
     TupleIter,
 )
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -127,7 +125,7 @@ class Table:
             for data_file in self.raw.config["data_files"]:
                 abspath = join(self.raw.config["data_file_folder"], data_file)
                 _logger.info(
-                    text_token({"I05004": {"table": self.raw.config["table"], "file": abspath}})
+                    TextToken({"I05004": {"table": self.raw.config["table"], "file": abspath}})
                 )
                 with open(abspath, "r", encoding="utf-8") as file_ptr:
                     self.insert(load(file_ptr))

@@ -1,6 +1,7 @@
 """Store typing definitions."""
 
 from typing import Any, Callable, LiteralString
+from os.path import normpath, expanduser
 from re import Pattern
 from re import compile as regex_compile
 from egppy.common.common import DictTypeAccessor, Validator
@@ -30,10 +31,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
         self,
         dbname: str = "erasmus_db",
         host: str = "localhost",
-        password: str = "Password123!",
+        password: str = "~/.egppy/db_password",
         port: int = 5432,
         maintenance_db: str = "postgres",
-        retires: int = 3,
+        retries: int = 3,
         user: str = "postgres",
     ) -> None:
         """Initialize the class."""
@@ -42,7 +43,7 @@ class DatabaseConfig(Validator, DictTypeAccessor):
         setattr(self, "password", password)
         setattr(self, "port", port)
         setattr(self, "maintenance_db", maintenance_db)
-        setattr(self, "retires", retires)
+        setattr(self, "retries", retries)
         setattr(self, "user", user)
 
     @property
@@ -72,12 +73,15 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @property
     def password(self) -> str:
         """Get the password."""
-        return self._password
+        with open(self._password, "r", encoding="utf-8") as f:
+            return f.read().strip()
 
     @password.setter
     def password(self, value: str) -> None:
-        """The password for the database."""
-        self._is_password("password", value)
+        """The file that contains the password for the database."""
+        self._is_filename("password", value)
+        value = expanduser(normpath(value))
+        self._is_accessible("password", value)
         self._password = value
 
     @property
@@ -105,26 +109,27 @@ class DatabaseConfig(Validator, DictTypeAccessor):
         self._maintenance_db = value
 
     @property
-    def retires(self) -> int:
-        """Get the retires."""
-        return self._retires
+    def retries(self) -> int:
+        """Get the retries."""
+        return self._retries
 
-    @retires.setter
-    def retires(self, value: int) -> None:
-        """The number of retires."""
-        self._is_int("retires", value)
-        self._in_range("retires", value, 1, 10)
-        self._retires = value
+    @retries.setter
+    def retries(self, value: int) -> None:
+        """The number of retries."""
+        self._is_int("retries", value)
+        self._in_range("retries", value, 1, 10)
+        self._retries = value
 
     def to_json(self) -> dict:
         """Get the configuration as a JSON object."""
         return {
             "dbname": self.dbname,
             "host": self.host,
-            "password": self.password,
+            # NOTE: Returns the path to the file not the actual password.
+            "password": self._password,
             "port": self.port,
             "maintenance_db": self.maintenance_db,
-            "retires": self.retires,
+            "retries": self.retries,
             "user": self.user,
         }
 
@@ -151,7 +156,7 @@ class ColumnSchema(Validator, DictTypeAccessor):
 
     def __init__(
         self,
-        db_type: str | None = None,
+        db_type: str = "VARCHAR",
         volatile: bool = False,
         default: str | None = None,
         description: str | None = None,
@@ -184,7 +189,7 @@ class ColumnSchema(Validator, DictTypeAccessor):
         setattr(self, "nullable", nullable)
         setattr(self, "primary_key", primary_key)
         setattr(self, "index", index)
-        setattr(self, "unique", unique)
+        setattr(self, "unique", unique or primary_key)
         self.consistency()
 
     def consistency(self) -> None:
@@ -192,13 +197,26 @@ class ColumnSchema(Validator, DictTypeAccessor):
         if self.primary_key:
             if self.nullable:
                 raise ValueError("Primary key columns cannot have NULL entries.")
-            if self.unique:
-                raise ValueError("Primary key columns cannot also be unique.")
+            if not self.unique:
+                raise RuntimeError("Primary key columns must also be unique.")
         if self.index is not None:
             if self.primary_key:
                 raise ValueError("Primary key columns cannot be additionally indexed.")
             if self.unique:
                 raise ValueError("Unique columns cannot be additionally indexed.")
+
+    def to_json(self) -> dict:
+        """Get the configuration as a JSON object."""
+        return {
+            "db_type": self.db_type,
+            "volatile": self.volatile,
+            "default": self.default,
+            "description": self.description,
+            "nullable": self.nullable,
+            "primary_key": self.primary_key,
+            "index": self.index,
+            "unique": self.unique,
+        }
 
     @property
     def db_type(self) -> str:
@@ -314,7 +332,7 @@ class TableConfig(Validator, DictTypeAccessor):
         table: str = "default_table",
         schema: TableSchema | dict[str, dict[str, Any]] | None = None,
         ptr_map: PtrMap | None = None,
-        data_file_folder: str = "",
+        data_file_folder: str = ".",
         data_files: list[str] | None = None,
         delete_db: bool = False,
         delete_table: bool = False,
@@ -350,6 +368,10 @@ class TableConfig(Validator, DictTypeAccessor):
         schema and the value is a field in the schema. The key field is a pointer to the value
         field. A value cannot be the same as a key as this would be a circular reference.
         """
+        if isinstance(database, dict):
+            assert (
+                "database" not in database
+            ), "Did you remember to unpack the configuration dictionary?"
         setattr(self, "database", database if database is not None else DatabaseConfig())
         setattr(self, "table", table)
         setattr(self, "schema", schema if schema is not None else {})
@@ -390,6 +412,24 @@ class TableConfig(Validator, DictTypeAccessor):
             raise ValueError("Create DB requires wait for DB to be False.")
         if self.create_table and self.wait_for_table:
             raise ValueError("Create table requires wait for table to be False.")
+
+    def to_json(self) -> dict:
+        """Get the configuration as a JSON object."""
+        return {
+            "database": self.database.to_json(),
+            "table": self.table,
+            "schema": {k: v.to_json() for k, v in self.schema.items()},
+            "ptr_map": self.ptr_map,
+            "data_file_folder": self.data_file_folder,
+            "data_files": self.data_files,
+            "delete_db": self.delete_db,
+            "delete_table": self.delete_table,
+            "create_db": self.create_db,
+            "create_table": self.create_table,
+            "wait_for_db": self.wait_for_db,
+            "wait_for_table": self.wait_for_table,
+            "conversions": self.conversions,
+        }
 
     @property
     def database(self) -> DatabaseConfig:
@@ -455,8 +495,8 @@ class TableConfig(Validator, DictTypeAccessor):
     def data_file_folder(self, value: str) -> None:
         """The data file folder."""
         self._is_path("data_file_folder", value)
-        self._is_length("data_file_folder", value, 1, 1024)
-        self._data_file_folder = value
+        self._is_length("data_file_folder", value, 0, 1024)
+        self._data_file_folder = expanduser(normpath(value))
 
     @property
     def data_files(self) -> list[str]:

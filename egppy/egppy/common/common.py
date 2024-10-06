@@ -1,12 +1,12 @@
 """Common functions for the EGPPY package."""
 
+from os.path import normpath, splitext
 from typing import Any, Self
 from copy import deepcopy
 from datetime import UTC, datetime
 from re import Pattern, IGNORECASE
 from re import compile as regex_compile
 from ipaddress import ip_address
-from os.path import normpath, split, splitext
 from urllib.parse import urlparse, urlunparse
 from uuid import UUID
 
@@ -93,6 +93,10 @@ def merge(  # pylint: disable=dangerous-default-value
 class DictTypeAccessor:
     """Provide very simple get/set dictionary like access to an objects members."""
 
+    def __contains__(self, key: str) -> bool:
+        """Check if the attribute exists."""
+        return hasattr(self, key)
+
     def __getitem__(self, key: str) -> Any:
         """Get the value of the attribute."""
         return getattr(self, key)
@@ -175,6 +179,29 @@ class Validator:
             assert result, f"{attr} must be between {minm} and {maxm} but is {value}"
         return result
 
+    def _is_accessible(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a path to a file that can be read."""
+        result = self._is_path(attr, value, _assert)
+        value = normpath(value)
+        if not result:
+            return False
+        try:
+            with open(value, "r", encoding="utf-8"):
+                pass
+        except FileNotFoundError:
+            if _assert:
+                assert (
+                    False
+                ), f"{attr} must be a path to a file that can be read: {value} does not exist."
+            return False
+        except PermissionError:
+            if _assert:
+                assert (
+                    False
+                ), f"{attr} must be a path to a file that can be read: {value} is not accessible."
+            return False
+        return True
+
     def _is_bool(self, attr: str, value: Any, _assert: bool = True) -> bool:
         """Check if the value is a bool."""
         result = isinstance(value, bool)
@@ -220,7 +247,7 @@ class Validator:
                 f"{attr} must be a valid filename without a "
                 f"preceding path: {value} is not valid."
             )
-        result = result and value.upper() in _RESERVED_FILE_NAMES
+        result = result and not value.upper() in _RESERVED_FILE_NAMES
         name, ext = splitext(value)
         result = result or ((name.upper() in _RESERVED_FILE_NAMES) and len(ext) > 0)
         if _assert:
@@ -257,7 +284,7 @@ class Validator:
         if len(value) > 255:
             assert not _assert, f"{attr} must be a valid hostname: {value} is >255 chars."
             return False
-        if value[-1] == ".":
+        if len(value) > 1 and value[-1] == ".":
             value = value[:-1]  # Strip exactly one dot from the right, if present
         result = all(self._hostname_regex.match(x) for x in value.split("."))
         if _assert:
@@ -328,12 +355,6 @@ class Validator:
     def _is_path(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a path."""
         result = self._is_string(attr, value, _assert)
-        normalized_path = normpath(value)
-        head, tail = split(normalized_path)
-        if _assert:
-            assert head and not tail, (
-                f"{attr} must be a valid folder path without a filename: " f" {value} is not valid."
-            )
         return result
 
     def _is_printable_string(self, attr: str, value: str, _assert: bool = True) -> bool:

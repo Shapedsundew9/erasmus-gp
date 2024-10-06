@@ -3,9 +3,8 @@
 This module is used to map tokens to user text.
 """
 
-from logging import NullHandler, getLogger, Logger
-from typing import Literal, Any
-
+from logging import Logger, NullHandler, getLogger
+from typing import Any, Literal
 
 _logger: Logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
@@ -18,7 +17,9 @@ _logger.addHandler(NullHandler())
 #    'E': Error
 #    'F': Fatal
 #    'X': Unknown
-_CODE_PREFIXES: tuple[Literal["D"], Literal["I"], Literal["W"], Literal["E"], Literal["F"], Literal["X"]] = ("D", "I", "W", "E", "F", "X")
+_CODE_PREFIXES: tuple[
+    Literal["D"], Literal["I"], Literal["W"], Literal["E"], Literal["F"], Literal["X"]
+] = ("D", "I", "W", "E", "F", "X")
 
 
 """The token library maps token codes to formatted strings.
@@ -57,7 +58,7 @@ def register_token_code(code: str, fmt_str: str) -> None:
     token_library[code] = fmt_str
 
 
-class text_token:
+class TextToken:
     """Maintains a relationship between a code and a human readable string.
 
     A token has the structure:
@@ -75,4 +76,8 @@ class text_token:
         """Convert the token to a human readbale string."""
         # text_token._logger.debug("Code {}: Parameters: {} Library string: {}".format(
         #   self.code, self.parameters, token_library[self.code]))
-        return self.code + ": " + token_library[self.code].format_map(self.parameters)
+        return (
+            self.code
+            + ": "
+            + token_library.get(self.code, "TOKEN NOT FOUND").format_map(self.parameters)
+        )
