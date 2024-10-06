@@ -1,19 +1,19 @@
 """Unit tests for raw_table.py."""
 
-from unittest import TestCase
-from unittest.mock import patch
 from copy import deepcopy
 from inspect import stack
+from itertools import count, islice
 from json import load
 from logging import NullHandler, getLogger
 from os.path import dirname, join
-from itertools import count
-from psycopg2 import ProgrammingError
-from egppy.storage.store.database import database
-from egppy.storage.store.database.raw_table import RawTable, default_config
-from egppy.storage.store.database.configuration import TableConfig
-from egppy.storage.store.database.database import db_transaction
+from unittest import TestCase
+from unittest.mock import patch
 
+from psycopg2 import ProgrammingError
+
+from egppy.storage.store.database.configuration import TableConfig
+from egppy.storage.store.database.database import db_delete, db_transaction
+from egppy.storage.store.database.raw_table import RawTable, default_config
 
 _logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
@@ -49,7 +49,10 @@ _CONFIG = TableConfig(
 
 
 # To uniquely name databases for parallel execution
-_DB_COUNTER = count(1)
+# To avoid conflicts with other test modules we just use the range 0 to 999
+_START_DB_COUNTER = 0
+_NUM_DBS = 100
+_DB_COUNTER = islice(count(_START_DB_COUNTER), _NUM_DBS)
 
 
 with open(join(dirname(__file__), "data/data_values.json"), "r", encoding="utf-8") as fileptr:
@@ -58,6 +61,13 @@ with open(join(dirname(__file__), "data/data_values.json"), "r", encoding="utf-8
 
 class RawTableIntegrationTest(TestCase):
     """Test the RawTable class."""
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """Clean up the test databases."""
+        _logger.debug(stack()[0][3])
+        for num in islice(count(_START_DB_COUNTER), _NUM_DBS):
+            db_delete(f"test_db_{num}", _CONFIG["database"])
 
     def test_create_table(self) -> None:
         """Validate the SQL sequence when a table exists."""

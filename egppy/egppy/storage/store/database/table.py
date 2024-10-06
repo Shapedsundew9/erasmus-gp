@@ -7,6 +7,7 @@ from typing import Any, Callable, Iterable, Literal
 
 from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egppy.common.text_token import TextToken
+from egppy.storage.store.database.configuration import TableConfig
 from egppy.storage.store.database.raw_table import RawTable
 from egppy.storage.store.database.row_iterators import (
     DictIter,
@@ -26,7 +27,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class Table:
     """Wrap raw_table providing convinience functions for managing a postgresql table."""
 
-    def __init__(self, config) -> None:
+    def __init__(self, config: TableConfig) -> None:
         """Create a table object."""
         self.raw = RawTable(config, populate=False)
         self._entry_validator = None
