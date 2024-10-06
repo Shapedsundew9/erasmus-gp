@@ -4,7 +4,7 @@ Only one connection per database is maintained following the design principle
 of a single threaded process.
 """
 
-# TODO: Look into VACUUM & ANALYZE
+# TODO: Look into VACUUM & ANALYZE  pylint: disable=fixme
 # See https://bbengfort.github.io/2017/12/psycopg2-transactions/
 
 

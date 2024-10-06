@@ -6,13 +6,14 @@ Not 100% sure about it yet. Sensors would become types for individual GC's input
 interface and *actions* would become types for individual GC's output interface.
 All other GC interfaces would support all other types (int, float, str etc.)
 """
-from sensors_abc import QuarternionABC, PositionABC
+
+from egppy.sensors.sensors_abc import PositionABC, QuarternionABC
 
 
 class Quarternion(QuarternionABC):
     """The Quarternion class."""
 
-    def __init__(self, w: float = 0.0, x: float = 0.0, y: float = 0.0, z:float = 0.0) -> None:
+    def __init__(self, w: float = 0.0, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
         """The Quarternion class."""
         self.w = w
         self.x = x
@@ -159,8 +160,9 @@ class PointSensor(Sensor):
     """The point sensor is used to measure the value at a point in space.
     For example a temperature sensor that measures the temperature at a point in space."""
 
-    def __init__(self, p: PositionABC | None = None,
-            po: PositionABC | None = None, v: float = 0.0) -> None:
+    def __init__(
+        self, p: PositionABC | None = None, po: PositionABC | None = None, v: float = 0.0
+    ) -> None:
         """Initialization of the point sensor.
         All point sensors have a position in space and an offset from that position.
         This allows sensors to be grouped together in a single object with a common position.
@@ -180,8 +182,15 @@ class PlateSensor(PointSensor):
     A square is used instead of a disc to make the maths easier/faster.
     """
 
-    def __init__(self, s: float = 1E-9, p: Position | None = None, po: Position | None = None,
-        q: Quarternion | None = None, qo: Quarternion | None = None, v: float = 0.0) -> None:
+    def __init__(
+        self,
+        s: float = 1e-9,
+        p: Position | None = None,
+        po: Position | None = None,
+        q: Quarternion | None = None,
+        qo: Quarternion | None = None,
+        v: float = 0.0,
+    ) -> None:
         """The sensor class."""
         super().__init__(p, po, v)
         self.quarternion = Quarternion() if q is None else q
@@ -201,9 +210,16 @@ class TubeSensor(PlateSensor):
     """The tube sensor is a plate sensor at the end of a tube (sensor on the inside)
     like a telescope or a camera. The longer the tube the more focused the sensor is."""
 
-    def __init__(self, l: float = 1E-9, s: float = 1E-9, p: Position | None = None,
-        po: Position | None = None, q: Quarternion | None = None,
-        qo: Quarternion | None = None, v: float = 0.0) -> None:
+    def __init__(
+        self,
+        l: float = 1e-9,
+        s: float = 1e-9,
+        p: Position | None = None,
+        po: Position | None = None,
+        q: Quarternion | None = None,
+        qo: Quarternion | None = None,
+        v: float = 0.0,
+    ) -> None:
         """The sensor class."""
         super().__init__(s, p, po, q, qo, v)
         self.length = l
@@ -219,6 +235,7 @@ class SensorGroup:
         self.sensors = [] if s is None else s
         for sensor in self.sensors:
             sensor.position = self.position
+
 
 # Need to rethink: What to allow groups of groups of groups etc.
 # Class needs to be recursive which means offset must be applied at each level and

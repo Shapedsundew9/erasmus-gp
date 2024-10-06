@@ -654,7 +654,7 @@ class RawTable:
         )
         return self._db_transaction(sql_str, ctype=ctype)
 
-    # TODO: Add delta (results in A but not in B) & intersection (results in A & B)
+    # TODO: Add delta (results in A but not in B) & intersection (results in A & B)  pylint: disable=fixme
     # recursive queries https://www.postgresql.org/docs/8.3/queries-union.html
 
     def recursive_select(
@@ -738,7 +738,7 @@ class RawTable:
             format_dict.update({k: sql.Literal(v) for k, v in literals.items()})
         return format_dict
 
-    # TODO: This could overflow an SQL statement size limit. In which case
+    # TODO: This could overflow an SQL statement size limit. In which case  pylint: disable=fixme
     # should we use a COPY https://www.postgresql.org/docs/12/dml-insert.html
     def upsert(
         self,
