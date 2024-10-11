@@ -66,7 +66,8 @@ class RawTableIntegrationTest(TestCase):
     def tearDownClass(cls) -> None:
         """Clean up the test databases."""
         _logger.debug(stack()[0][3])
-        for num in islice(count(_START_DB_COUNTER), _NUM_DBS):
+        # deepcode ignore unguarded~next~call: infinite counter
+        for num in range(next(_DB_COUNTER) - 1, _START_DB_COUNTER - 1, -1):
             db_delete(f"test_db_{num}", _CONFIG["database"])
 
     def test_create_table(self) -> None:

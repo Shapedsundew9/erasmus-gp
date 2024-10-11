@@ -50,19 +50,39 @@ class Table:
         -------
         (bool) True if pk_value is a primary key.
         """
-        if self.raw._primary_key is None:
+        if self.raw.primary_key is None:
             raise ValueError("SELECT row on primary key but no primary key defined!")
-        encoded_pk_value: Any = self.encode_value(self.raw._primary_key, pk_value)
+        encoded_pk_value: Any = self.encode_value(self.raw.primary_key, pk_value)
         try:
             next(
                 self.select(
-                    "WHERE {" + self.raw._primary_key + "} = {_pk_value}",
+                    "WHERE {" + self.raw.primary_key + "} = {_pk_value}",
                     {"_pk_value": encoded_pk_value},
                 )
             )
         except StopIteration:
             return False
         return True
+
+    def __delitem__(self, pk_value: Any) -> None:
+        """Delete the row with primary key value pk_value.
+
+        Args
+        ----
+        pk_value (obj): A primary key value.
+        """
+        if self.raw.primary_key is None:
+            raise ValueError("DELETE row on primary key but no primary key defined!")
+        encoded_pk_value: Any = self.encode_value(self.raw.primary_key, pk_value)
+        try:
+            next(
+                self.delete(
+                    "WHERE {" + self.raw.primary_key + "} = {_pk_value}",
+                    {"_pk_value": encoded_pk_value},
+                )
+            )
+        except StopIteration as stop_iteration:
+            raise KeyError("Primary key value not found in table!") from stop_iteration
 
     def __getitem__(self, pk_value: Any) -> Any:
         """Query the table for the row with primary key value pk_value.
@@ -75,18 +95,26 @@ class Table:
         -------
         (dict) with the row values or an empty dict if the primary key does not exist.
         """
-        if self.raw._primary_key is None:
+        if self.raw.primary_key is None:
             raise ValueError("SELECT row on primary key but no primary key defined!")
-        encoded_pk_value: Any = self.encode_value(self.raw._primary_key, pk_value)
+        encoded_pk_value: Any = self.encode_value(self.raw.primary_key, pk_value)
         try:
             return next(
                 self.select(
-                    "WHERE {" + self.raw._primary_key + "} = {_pk_value}",
+                    "WHERE {" + self.raw.primary_key + "} = {_pk_value}",
                     {"_pk_value": encoded_pk_value},
                 )
             )
         except StopIteration as stop_iteration:
             raise KeyError("Primary key value not found in table!") from stop_iteration
+
+    def __iter__(self) -> RowIter:
+        """Return an iterator of all rows in the table."""
+        return self._return_container("*", self.raw.select(), "dict")
+
+    def __len__(self):
+        """Count the number of rows in the table."""
+        return len(self.raw)
 
     def __setitem__(self, pk_value: Any, values: Any) -> None:
         """Upsert the row with primary key pk_value using values.
@@ -100,12 +128,8 @@ class Table:
         values (obj): A dict of column:value
         """
         new_values: Any = deepcopy(values)
-        new_values[self.raw._primary_key] = pk_value
+        new_values[self.raw.primary_key] = pk_value
         self.upsert((new_values,))
-
-    def __len__(self):
-        """Count the number of rows in the table."""
-        return len(self.raw)
 
     def _populate_table(self):
         """Add data to table after creation.

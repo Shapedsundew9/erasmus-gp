@@ -164,7 +164,7 @@ class RawTable:
 
     def __init__(self, config: TableConfig, populate: bool = True) -> None:
         """Connect to or create all required objects."""
-        self._primary_key = None
+        self.primary_key = None
         self._entry_validator = None
         self.config = config.copy()
         self.creator = False
@@ -413,7 +413,7 @@ class RawTable:
 
         if not self.config["schema"]:
             self.config["schema"] = schema
-        self._primary_key = self._get_primary_key()
+        self.primary_key = self._get_primary_key()
         _logger.debug("Table %s schema:\n%s", self.config["table"], pformat(self.config["schema"]))
 
         unmatched_set = columns - set(self.config["schema"].keys())
@@ -789,13 +789,13 @@ class RawTable:
             returning = self.columns
         if update_str is None:
             update_str = ",".join(
-                (_DEFAULT_UPDATE_STR.format(k) for k in columns if k != self._primary_key)
+                (_DEFAULT_UPDATE_STR.format(k) for k in columns if k != self.primary_key)
             )
         if update_str != _TABLE_INSERT_CONFLICT_STR:
-            if self._primary_key is None:
+            if self.primary_key is None:
                 raise ValueError("Can only upsert if a primary key is defined.")
             update_str = (
-                _TABLE_UPSERT_CONFLICT_STR.format("({" + self._primary_key + "})") + update_str
+                _TABLE_UPSERT_CONFLICT_STR.format("({" + self.primary_key + "})") + update_str
             )
         columns_sql = sql.SQL(",").join([sql.Identifier(k) for k in columns])
         values_sql = sql.SQL(",").join(

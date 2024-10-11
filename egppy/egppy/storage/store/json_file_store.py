@@ -1,16 +1,17 @@
 """JSON File store implementation."""
-from io import BufferedRandom
-from typing import Any, Iterator
-from collections.abc import MutableMapping, Hashable
-from mmap import mmap, ACCESS_WRITE
-from json import loads, dumps
-from tempfile import TemporaryFile
-from os.path import exists
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.store.store_abc import StoreABC
-from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.storage.store.store_base import StoreBase
 
+from collections.abc import Hashable, MutableMapping
+from io import BufferedRandom
+from json import dumps, loads
+from mmap import ACCESS_WRITE, mmap
+from os.path import exists
+from tempfile import TemporaryFile
+from typing import Any, Iterator
+
+from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egppy.storage.store.storable_obj_abc import StorableObjABC
+from egppy.storage.store.store_abc import StoreABC
+from egppy.storage.store.store_base import StoreBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -23,10 +24,9 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 _HEADER = b"JSON File Store for T types in EGP\n"
 
 
-# StoreIllegal must be the first to overide any illegal methods as a priority.
 class JSONFileStore(StoreBase, StoreABC):
     """A file based store for StorableObjABC objects using the json() method.
-    
+
     JSONFileStore is not intended to be quick or efficient in any way. It is inteded for
     testing or as a place holder for a StoreABC object when a NullStore is not appropriate.
     By definition it is limited to JSONizable data types.
@@ -36,13 +36,14 @@ class JSONFileStore(StoreBase, StoreABC):
     identified by the key being added into the JSON object as "__key__": key. This allows the
     JSON object to be found by searching for the key in the file.
     """
+
     def __init__(self, flavor: type[StorableObjABC], file_path: str | None = None) -> None:
         """Constructor for JSONFileStore"""
         if file_path is not None:
             empty_file: bool = not exists(path=file_path)
-            self.file: BufferedRandom = open(file=file_path, mode='a+b')
+            self.file: BufferedRandom = open(file=file_path, mode="a+b")
         else:
-            self.file = TemporaryFile(suffix='.json')
+            self.file = TemporaryFile(suffix=".json")
             empty_file = True
         if empty_file:
             self.file.write(_HEADER)
@@ -55,7 +56,7 @@ class JSONFileStore(StoreBase, StoreABC):
     def __contains__(self, key: Hashable) -> bool:
         """Check if an item is in the store."""
         assert isinstance(key, str), f"Key must be a string, not {type(key)} for JSONFileStore."
-        search_str: bytes = self.search_str.format(key=key).encode(encoding='utf-8')
+        search_str: bytes = self.search_str.format(key=key).encode(encoding="utf-8")
         self.mmap_obj.seek(0)
         return self.mmap_obj.find(search_str) != -1
 
@@ -68,15 +69,15 @@ class JSONFileStore(StoreBase, StoreABC):
     def __delitem__(self, key: Hashable) -> None:
         """Delete an item from the store."""
         assert isinstance(key, str), f"Key must be a string, not {type(key)} for JSONFileStore."
-        search_str: bytes = self.search_str.format(key=key).encode(encoding='utf-8')
+        search_str: bytes = self.search_str.format(key=key).encode(encoding="utf-8")
         self.mmap_obj.seek(0)  # Start from the beginning of the file
         pos: int = self.mmap_obj.find(search_str)
         if pos != -1:
             self.mmap_obj.seek(pos)
-            start: int = self.mmap_obj.rfind(b'\n', 0, pos) + 1  # Find the start
+            start: int = self.mmap_obj.rfind(b"\n", 0, pos) + 1  # Find the start
             if start == 0:  # If it's the first line, handle it correctly
                 start = pos
-            end: int = self.mmap_obj.find(b'\n', start) + 1  # Find the end of the line
+            end: int = self.mmap_obj.find(b"\n", start) + 1  # Find the end of the line
             if end == 0:  # If it's the last line, handle it correctly
                 end = self.file_size
             remaining_data: bytes = self.mmap_obj[end:]
@@ -87,12 +88,12 @@ class JSONFileStore(StoreBase, StoreABC):
     def __getitem__(self, key: Hashable) -> Any:
         """Get an item from the store."""
         assert isinstance(key, str), f"Key must be a string, not {type(key)} for JSONFileStore."
-        search_str: bytes = self.search_str.format(key=key).encode(encoding='utf-8')
+        search_str: bytes = self.search_str.format(key=key).encode(encoding="utf-8")
         self.mmap_obj.seek(0)  # Start from the beginning of the file
         pos: int = self.mmap_obj.find(search_str)
         if pos == -1:
             raise KeyError(f"Key {key} not found.")
-        start = self.mmap_obj.rfind(b'\n', 0, pos) + 1  # Find the start of the line
+        start = self.mmap_obj.rfind(b"\n", 0, pos) + 1  # Find the start of the line
         self.mmap_obj.seek(start)
         line: bytes = self.mmap_obj.readline()
         data = loads(s=line)
@@ -127,8 +128,7 @@ class JSONFileStore(StoreBase, StoreABC):
     def append_json_objects(self, jobjs: MutableMapping[Hashable, StorableObjABC]) -> None:
         """Append JSON objects to the file."""
         jds = [{"__key__": str(k), "__value__": v.to_json()} for k, v in jobjs.items()]
-        new_data: bytes = ''.join(dumps(
-            obj=v) + '\n' for v in jds).encode(encoding='utf-8')
+        new_data: bytes = "".join(dumps(obj=v) + "\n" for v in jds).encode(encoding="utf-8")
         self.mmap_obj.resize(self.file_size + len(new_data))
         self.mmap_obj.seek(self.file_size)  # Move to the end of the file
         self.mmap_obj.write(new_data)
