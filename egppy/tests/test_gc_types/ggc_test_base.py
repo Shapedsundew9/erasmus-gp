@@ -1,9 +1,12 @@
 """Tests for the GGC* class."""
-from __future__ import annotations
-import unittest
-from egppy.gc_types.ggc_class_factory import GGCMixin, GGCType, GGCDict
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from __future__ import annotations
+
+import unittest
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_types.ggc_class_factory import GGCDict, GGCMixin, GGCType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -17,6 +20,7 @@ class GGCTestBase(unittest.TestCase):
     Test base class for GGC classes.
 
     """
+
     # The GGC class to test. Override this in subclasses.
     ugc_type: type[GGCType] = GGCDict
 
@@ -30,7 +34,7 @@ class GGCTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
     def get_cls(cls) -> type[GGCType]:
@@ -49,8 +53,8 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
-        self.assertEqual(first=self.ggc['key'], second='value')
+        self.ggc["key"] = "value"
+        self.assertEqual(first=self.ggc["key"], second="value")
 
     def test_get_item(self) -> None:
         """
@@ -58,8 +62,8 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
-        self.assertEqual(first=self.ggc['key'], second='value')
+        self.ggc["key"] = "value"
+        self.assertEqual(first=self.ggc["key"], second="value")
 
     def test_del_item(self) -> None:
         """
@@ -67,9 +71,9 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
-        del self.ggc['key']
-        self.assertNotIn(member='key', container=self.ggc)
+        self.ggc["key"] = "value"
+        del self.ggc["key"]
+        self.assertNotIn(member="key", container=self.ggc)
 
     def test_contains(self) -> None:
         """
@@ -77,8 +81,8 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
-        self.assertIn(member='key', container=self.ggc)
+        self.ggc["key"] = "value"
+        self.assertIn(member="key", container=self.ggc)
 
     def test_len(self) -> None:
         """
@@ -103,7 +107,7 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
+        self.ggc["key"] = "value"
         self.ggc.clear()
         self.assertEqual(first=len(self.ggc), second=0)
 
@@ -125,7 +129,7 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key1'] = 'value1'
+        self.ggc["key1"] = "value1"
         self.assertTrue(expr=self.ggc.is_dirty())
 
     def test_clean(self) -> None:
@@ -134,7 +138,7 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
+        self.ggc["key"] = "value"
         self.assertTrue(expr=self.ggc.is_dirty())
         self.ggc.clean()
         self.assertFalse(expr=self.ggc.is_dirty())
@@ -145,9 +149,9 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
-        value = self.ggc.pop('key')
-        self.assertEqual(first=value, second='value')
+        self.ggc["key"] = "value"
+        value = self.ggc.pop("key")
+        self.assertEqual(first=value, second="value")
 
     def test_popitem(self) -> None:
         """
@@ -204,7 +208,7 @@ class GGCTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.ggc1 = self.type({})
-        self.ggc2 = self.type({"signature": '1'*64})
+        self.ggc2 = self.type({"signature": "1" * 64})
         self.assertNotEqual(first=self.ggc1, second=self.ggc2)
 
     def test_get(self) -> None:
@@ -213,9 +217,9 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
-        value = self.ggc.get('key', None)  # pylint: disable=assignment-from-no-return
-        self.assertEqual(first=value, second='value')
+        self.ggc["key"] = "value"
+        value = self.ggc.get("key", None)  # pylint: disable=assignment-from-no-return
+        self.assertEqual(first=value, second="value")
 
     def test_setdefault(self) -> None:
         """
@@ -223,14 +227,16 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key'] = 'value'
+        self.ggc["key"] = "value"
         self.ggc.clean()
-        value = self.ggc.setdefault('key', 'default')  # pylint: disable=assignment-from-no-return
-        self.assertEqual(first=value, second='value')
+        value = self.ggc.setdefault("key", "default")  # pylint: disable=assignment-from-no-return
+        self.assertEqual(first=value, second="value")
         self.assertFalse(expr=self.ggc.is_dirty())
 
-        value = self.ggc.setdefault('new_key', 'default')  # pylint: disable=assignment-from-no-return
-        self.assertEqual(first=value, second='default')
+        value = self.ggc.setdefault(
+            "new_key", "default"
+        )  # pylint: disable=assignment-from-no-return
+        self.assertEqual(first=value, second="default")
         self.assertTrue(expr=self.ggc.is_dirty())
 
     def test_update(self) -> None:
@@ -239,8 +245,8 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        self.ggc['key1'] = 'value1'
-        self.ggc.update({'key2': 'value2', 'key3': 'value3'})
-        self.assertEqual(first=self.ggc['key2'], second='value2')
-        self.assertEqual(first=self.ggc['key3'], second='value3')
+        self.ggc["key1"] = "value1"
+        self.ggc.update({"key2": "value2", "key3": "value3"})
+        self.assertEqual(first=self.ggc["key2"], second="value2")
+        self.assertEqual(first=self.ggc["key3"], second="value3")
         self.assertTrue(expr=self.ggc.is_dirty())

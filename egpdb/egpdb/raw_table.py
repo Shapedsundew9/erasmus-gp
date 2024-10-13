@@ -7,20 +7,14 @@ from pprint import pformat
 from time import sleep
 from typing import Any, Generator, Iterable, Literal
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.text_token import TextToken, register_token_code
 from psycopg2 import ProgrammingError, errors, sql
 
-from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egppy.common.text_token import TextToken, register_token_code
-from egppy.storage.store.database.common import backoff_generator
-from egppy.storage.store.database.configuration import ColumnSchema, TableConfig
-from egppy.storage.store.database.database import (
-    db_connect,
-    db_create,
-    db_delete,
-    db_exists,
-    db_transaction,
-)
-from egppy.storage.store.database.row_iterators import RawCType
+from egpdb.common import backoff_generator
+from egpdb.configuration import ColumnSchema, TableConfig
+from egpdb.database import db_connect, db_create, db_delete, db_exists, db_transaction
+from egpdb.row_iterators import RawCType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

@@ -1,7 +1,8 @@
 """The Gene Pool Interface."""
 
+from egpdb.configuration import DatabaseConfig
+
 from egppy.populations.configuration import PopulationConfig
-from egppy.storage.store.database.configuration import DatabaseConfig
 
 
 class GenePoolInterface:

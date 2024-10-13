@@ -1,11 +1,13 @@
 """Load the confifuration and validate it."""
+
 from typing import Any, cast
-from egppy.common.common import DictTypeAccessor, Validator
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.security import dump_signed_json, load_signed_json
+
+from egpcommon.common import DictTypeAccessor, Validator
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.security import dump_signed_json, load_signed_json
+
 from egppy.populations.configuration import PopulationsConfig
 from egppy.storage.store.database.configuration import DatabaseConfig
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -16,19 +18,21 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Constants
 _DEFAULT_DBS = {"erasmus_db": DatabaseConfig()}
-_DEFAULT_PROBLEMS = \
+_DEFAULT_PROBLEMS = (
     "https://raw.githubusercontent.com/Shapedsundew9/egp-problems/main/egp_problems.json"
+)
 
 
 class WorkerConfig(Validator, DictTypeAccessor):
     """Configuration for workers in EGP.
-    
+
     Must set from the JSON or internal types and validate the values.
     Getting the values returns the internal types.
     The to_json() method returns the JSON types.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         databases: dict[str, DatabaseConfig | dict[str, Any]] | None = None,
         gene_pool: str = "erasmus_db",
         microbiome: str = "erasmus_db",

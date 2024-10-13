@@ -1,10 +1,11 @@
 """Create the initial generation of individuals."""
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
+from egppy.worker.configuration import WorkerConfig
 from egppy.worker.evolution_queue import evolution_queue
 from egppy.worker.fitness_queue import fitness_queue
-from egppy.worker.configuration import WorkerConfig
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

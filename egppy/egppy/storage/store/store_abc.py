@@ -1,10 +1,12 @@
 """Store Base Abstract Base Class"""
-from __future__ import annotations
-from collections.abc import MutableMapping
-from abc import abstractmethod
-from egppy.common.common_obj_abc import CommonObjABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from __future__ import annotations
+
+from abc import abstractmethod
+from collections.abc import MutableMapping
+
+from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -15,7 +17,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class StoreABC(MutableMapping, CommonObjABC):
     """Abstract class for Store base classes.
-    
+
     The Store class must implement all the primitives of Store operations.
     """
 

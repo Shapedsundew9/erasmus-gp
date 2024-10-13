@@ -1,7 +1,8 @@
 """Common Object Abstract Base Class"""
-from abc import ABC, abstractmethod
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from abc import ABC, abstractmethod
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -12,7 +13,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class CommonObjABC(ABC):
     """Abstract Base Class for Common Object types.
-    
+
     The Common Object Abstract Base Class, CommonObjABC, is the base class for all
     custom objects in EGP. EGP has the philosophy that all objects should be able to
     verify their own data and check their own consistency. This is enforced by the

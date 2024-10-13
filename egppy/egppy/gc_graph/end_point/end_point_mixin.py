@@ -1,14 +1,18 @@
 """Endpoint class using builtin collections."""
-from __future__ import annotations
-from typing import Any
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common_obj_mixin import CommonObjMixin
-from egppy.gc_graph.typing import (DestinationRow, Row, EndPointHash, EndPointType,
-    EndPointClass, VALID_ROW_DESTINATIONS as VRD, VALID_ROW_SOURCES as VRS, SOURCE_ROWS, ROWS,
-    DESTINATION_ROWS, EP_CLS_STR_TUPLE)
-from egppy.gc_graph.ep_type import validate
-from egppy.gc_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
 
+from __future__ import annotations
+
+from typing import Any
+
+from egpcommon.common_obj_mixin import CommonObjMixin
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
+from egppy.gc_graph.ep_type import validate
+from egppy.gc_graph.typing import DESTINATION_ROWS, EP_CLS_STR_TUPLE, ROWS, SOURCE_ROWS
+from egppy.gc_graph.typing import VALID_ROW_DESTINATIONS as VRD
+from egppy.gc_graph.typing import VALID_ROW_SOURCES as VRS
+from egppy.gc_graph.typing import DestinationRow, EndPointClass, EndPointHash, EndPointType, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -200,9 +204,13 @@ class EndPointMixin(CommonObjMixin):
         """Compare two end points."""
         if not isinstance(other, self.__class__):
             return False
-        return self.get_row() == other.get_row() and self.get_idx() == other.get_idx() \
-            and self.get_typ() == other.get_typ() and self.get_cls() == other.get_cls() \
+        return (
+            self.get_row() == other.get_row()
+            and self.get_idx() == other.get_idx()
+            and self.get_typ() == other.get_typ()
+            and self.get_cls() == other.get_cls()
             and self.get_refs() == other.get_refs()
+        )
 
     def del_invalid_refs(self, has_f: bool = False) -> None:
         """Remove any invalid references"""
@@ -225,8 +233,13 @@ class EndPointMixin(CommonObjMixin):
 
     def copy(self, clean: bool = False) -> EndPointABC:
         """Return a copy of the end point with no references."""
-        return self.cls()(self.get_row(), self.get_idx(), self.get_typ(), self.get_cls(),
-            [] if clean else self.get_refs())
+        return self.cls()(
+            self.get_row(),
+            self.get_idx(),
+            self.get_typ(),
+            self.get_cls(),
+            [] if clean else self.get_refs(),
+        )
 
     def get_cls(self) -> EndPointClass:
         """Return the class of the end point."""
@@ -318,7 +331,7 @@ class EndPointMixin(CommonObjMixin):
             if self.get_row() == DestinationRow.F:
                 assert self.get_idx() == 0, f"Invalid index for row F: {self.get_idx()}"
             refs = self.get_refs()
-            assert len(refs) ==1, f"Invalid number of references for dst endpoint: {len(refs)}"
+            assert len(refs) == 1, f"Invalid number of references for dst endpoint: {len(refs)}"
             assert refs[0].is_src(), f"Invalid source reference: {refs[0]}"
             refs[0].verify()
         if self.is_src():

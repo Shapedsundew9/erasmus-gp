@@ -1,14 +1,17 @@
 """Test the Multi-level Caches."""
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cache import DictCache
-from egppy.storage.cache.dirty_cache import DirtyDictCache
-from egppy.storage.cache.cacheable_obj import CacheableDict, CacheableList
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict, CacheableDirtyList
+from egppy.storage.cache.cacheable_obj import CacheableDict, CacheableList
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.store.in_memory_store import InMemoryStore
 from tests.test_storage.test_cache.multilevel_cache_test_base import (
-    MultilevelCacheTestBase, SECOND_LEVEL_CACHE_SIZE)
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+    SECOND_LEVEL_CACHE_SIZE,
+    MultilevelCacheTestBase,
+)
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,6 +22,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class TestMultiLevelCache11(MultilevelCacheTestBase):
     """Test case multilevel caches using DictCache and CacheableDicts uniformly."""
+
     first_level_cache_type = DictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -29,6 +33,7 @@ class TestMultiLevelCache11(MultilevelCacheTestBase):
 
 class TestMultiLevelCache12(MultilevelCacheTestBase):
     """Test case multilevel caches using DictCache and CacheableDirtyDicts uniformly."""
+
     first_level_cache_type = DictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -39,6 +44,7 @@ class TestMultiLevelCache12(MultilevelCacheTestBase):
 
 class TestMultiLevelCache13(MultilevelCacheTestBase):
     """Test case multilevel caches using DictCache and CacheableLists uniformly."""
+
     first_level_cache_type = DictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -54,6 +60,7 @@ class TestMultiLevelCache13(MultilevelCacheTestBase):
 
 class TestMultiLevelCache14(MultilevelCacheTestBase):
     """Test case multilevel caches using DictCache and CacheableDirtyLists uniformly."""
+
     first_level_cache_type = DictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -70,6 +77,7 @@ class TestMultiLevelCache14(MultilevelCacheTestBase):
 class TestMultiLevelCache21(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
     DictCache as a second level with CacheableDicts."""
+
     first_level_cache_type = DirtyDictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -81,6 +89,7 @@ class TestMultiLevelCache21(MultilevelCacheTestBase):
 class TestMultiLevelCache22(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
     DictCache as a second level with CacheableDirtyDicts."""
+
     first_level_cache_type = DirtyDictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -92,6 +101,7 @@ class TestMultiLevelCache22(MultilevelCacheTestBase):
 class TestMultiLevelCache23(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
     DictCache as a second level with CacheableLists."""
+
     first_level_cache_type = DirtyDictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore
@@ -108,6 +118,7 @@ class TestMultiLevelCache23(MultilevelCacheTestBase):
 class TestMultiLevelCache24(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
     DictCache as a second level with CacheableDirtyLists."""
+
     first_level_cache_type = DirtyDictCache
     second_level_cache_type = DictCache
     store_type = InMemoryStore

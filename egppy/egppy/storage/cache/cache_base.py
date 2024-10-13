@@ -1,7 +1,9 @@
 """Cache Base class module."""
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cache_abc import CacheConfig
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_base import StoreBase
 

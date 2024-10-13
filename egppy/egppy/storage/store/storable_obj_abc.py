@@ -1,11 +1,13 @@
 """Genetic Code Abstract Base Class"""
+
 from __future__ import annotations
-from typing import Any
+
 from abc import abstractmethod
 from collections.abc import Collection
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common_obj_abc import CommonObjABC
+from typing import Any
 
+from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -16,7 +18,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class StorableObjABC(Collection, CommonObjABC):
     """Abstract Base Class for Storeable Object types.
-    
+
     The Storeable Object Abstract Base Class, StoreableObjABC, is the base class for all storeable
     objects in EGP. Storeable objects are objects that can be stored in a StoreABC that supports its
     subclass. They are serializable to JSON and can be re-created from their JSON representation.
@@ -35,7 +37,7 @@ class StorableObjABC(Collection, CommonObjABC):
     @abstractmethod
     def to_json(self) -> dict[str, Any] | list:
         """Return a JSON serializable representation of the object.
-        The returned JSON serializable object will not contain any references to data in 
+        The returned JSON serializable object will not contain any references to data in
         this object. The return object must be serializable by json.dump().
         """
         raise NotImplementedError("StoreableObjABC.to_json must be overridden")

@@ -1,11 +1,13 @@
 """Cacheable Dictionary Base Class module."""
-from typing import Any, Iterable, Iterator
+
+from collections.abc import MutableMapping, MutableSequence, MutableSet, Sequence
 from copy import deepcopy
-from collections.abc import MutableMapping, MutableSequence, Sequence, MutableSet
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Any, Iterable, Iterator
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cacheable_obj_mixin import CacheableObjMixin
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

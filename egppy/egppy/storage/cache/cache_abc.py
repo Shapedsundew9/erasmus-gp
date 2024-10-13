@@ -1,11 +1,13 @@
 """Cache Base Abstract Base Class"""
-from typing import TypedDict
+
 from abc import abstractmethod
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import TypedDict
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -16,6 +18,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class CacheConfig(TypedDict):
     """Cache configuration."""
+
     max_items: int  # Maximum number of items in the cache. 0 = infinite
     purge_count: int  # Number of items to purge when the cache is full
     next_level: StoreABC  # The next level of caching or storage
@@ -24,9 +27,10 @@ class CacheConfig(TypedDict):
 
 class CacheABC(StoreABC):
     """Abstract class for cache base classes.
-    
+
     The cache class must implement all the primitives of cache operations.
     """
+
     @abstractmethod
     def __init__(self, config: CacheConfig) -> None:
         """Initialize the cache configuration."""

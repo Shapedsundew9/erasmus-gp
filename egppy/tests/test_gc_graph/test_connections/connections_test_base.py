@@ -1,10 +1,12 @@
 """Base class of connections tests."""
-import unittest
-from egppy.gc_graph.connections.connections_class_factory import ListConnections, TupleConnections
-from egppy.gc_graph.end_point.end_point import SrcEndPointRef, DstEndPointRef
-from egppy.gc_graph.typing import DestinationRow, SourceRow
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+import unittest
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.connections.connections_class_factory import ListConnections, TupleConnections
+from egppy.gc_graph.end_point.end_point import DstEndPointRef, SrcEndPointRef
+from egppy.gc_graph.typing import DestinationRow, SourceRow
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,7 +21,7 @@ class ConnectionsTestBase(unittest.TestCase):
     """
 
     # The connections type to test. Define in subclass.
-    ctype: type= TupleConnections
+    ctype: type = TupleConnections
 
     @classmethod
     def get_test_cls(cls) -> type:
@@ -31,7 +33,7 @@ class ConnectionsTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
     def get_connections_cls(cls) -> type:
@@ -40,8 +42,9 @@ class ConnectionsTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.connections_type = self.get_connections_cls()
-        self.connections = self.connections_type([[
-            SrcEndPointRef(DestinationRow.A, i)] for i in range(4)])
+        self.connections = self.connections_type(
+            [[SrcEndPointRef(DestinationRow.A, i)] for i in range(4)]
+        )
 
     def test_len(self) -> None:
         """Test the length of the connections."""
@@ -68,8 +71,9 @@ class ConnectionsTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         with self.assertRaises(AssertionError):
-            conns = TupleConnections([[SrcEndPointRef(DestinationRow.O, 0),
-                                       DstEndPointRef(SourceRow.I, 0)] * 4])
+            conns = TupleConnections(
+                [[SrcEndPointRef(DestinationRow.O, 0), DstEndPointRef(SourceRow.I, 0)] * 4]
+            )
             conns.consistency()
 
     def test_verify(self) -> None:
@@ -84,13 +88,15 @@ class ConnectionsTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
-            conns = self.connections_type([[
-                SrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)])
+            conns = self.connections_type(
+                [[SrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)]
+            )
             conns.verify()
 
 
 class MutableConnectionsTestBase(ConnectionsTestBase):
     """Extends the static connections test cases with dynamic connections tests."""
+
     ctype: type = ListConnections
 
     def test_setitem(self) -> None:

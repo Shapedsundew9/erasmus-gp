@@ -1,11 +1,14 @@
 """End point and end point reference classes."""
+
 from __future__ import annotations
+
 from abc import abstractmethod
 from typing import Any
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common_obj_abc import CommonObjABC
-from egppy.gc_graph.typing import EndPointClass, EndPointHash, EndPointIndex, EndPointType, Row
 
+from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.typing import EndPointClass, EndPointHash, EndPointIndex, EndPointType, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -103,8 +106,9 @@ class EndPointABC(XEndPointRefABC):
     """Defines an end point in a gc_graph."""
 
     @abstractmethod
-    def __init__(self, row: Row, idx: int, typ: EndPointType,
-            cls: EndPointClass, refs: list[XEndPointRefABC]) -> None:
+    def __init__(
+        self, row: Row, idx: int, typ: EndPointType, cls: EndPointClass, refs: list[XEndPointRefABC]
+    ) -> None:
         """Initialize the endpoint."""
         raise NotImplementedError
 

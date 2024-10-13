@@ -1,11 +1,14 @@
 """The Interface Abstract Base Class module."""
-from __future__ import annotations
-from typing import Any, Iterable
-from abc import abstractmethod
-from egppy.common.common_obj_abc import CommonObjABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.typing import EndPointType
 
+from __future__ import annotations
+
+from abc import abstractmethod
+from typing import Any, Iterable
+
+from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.typing import EndPointType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -27,6 +30,7 @@ class InterfaceABC(CommonObjABC):
     NOTE: The __init__() method is not required for an abstract base class but may call verify()
     or otherwise assert the object is valid.
     """
+
     @abstractmethod
     def __init__(self, iface: Iterable[EndPointType] | InterfaceABC) -> None:
         """Initialize the interface."""

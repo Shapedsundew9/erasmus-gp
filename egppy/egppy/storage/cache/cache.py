@@ -1,12 +1,14 @@
 """A python dictionary based cache."""
-from typing import Any, Callable
+
 from collections.abc import Hashable, Iterator
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Any, Callable
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cache_base import CacheBase
 from egppy.storage.cache.cache_mixin import CacheMixin
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -76,6 +78,7 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
             self.flush()
             return
         victims: list[tuple[Any, int]] = sorted(
-            ((k, v.seq_num()) for k, v in self.data.items()), key=_KEY)[:self.purge_count]
+            ((k, v.seq_num()) for k, v in self.data.items()), key=_KEY
+        )[: self.purge_count]
         for key, _ in victims:
             del self[key]

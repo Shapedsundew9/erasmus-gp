@@ -1,7 +1,8 @@
 """Define an evolution pipeline."""
-from egppy.worker.evolution_pipe.mutation_selector import mutation_selector
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.worker.evolution_pipe.mutation_selector import mutation_selector
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

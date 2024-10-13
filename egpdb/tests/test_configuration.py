@@ -1,9 +1,9 @@
 """Test the database configuration class."""
 
-from os.path import join, dirname, normpath, expanduser
+from os.path import dirname, expanduser, join, normpath
 from unittest import TestCase
-from egppy.storage.store.database.configuration import DatabaseConfig, ColumnSchema, TableConfig
 
+from egpdb.configuration import ColumnSchema, DatabaseConfig, TableConfig
 
 # Location of the password file
 PSWD_FILE = join(dirname(__file__), "data", "db_password")

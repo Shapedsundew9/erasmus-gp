@@ -5,8 +5,9 @@ from collections.abc import Hashable
 from copy import deepcopy
 from itertools import count
 
-from egppy.storage.store.database.configuration import TableConfig
-from egppy.storage.store.database.database import db_create, db_delete
+from egpdb.configuration import TableConfig
+from egpdb.database import db_create, db_delete
+
 from egppy.storage.store.db_table_store import DBTableStore
 from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.storable_obj_abc import StorableObjABC
@@ -82,7 +83,7 @@ class TestDBTableStore(JSONFileStoreTestBase):
     @classmethod
     def tearDownClass(cls) -> None:
         """Tear down the test."""
-        # db_delete(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
+        db_delete(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
 
 
 if __name__ == "__main__":

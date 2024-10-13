@@ -1,8 +1,11 @@
 """Test the Connections class."""
-from tests.test_gc_graph.test_connections.connections_test_base import ConnectionsTestBase, \
-    MutableConnectionsTestBase
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from tests.test_gc_graph.test_connections.connections_test_base import (
+    ConnectionsTestBase,
+    MutableConnectionsTestBase,
+)
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

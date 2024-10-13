@@ -1,16 +1,24 @@
 """Base test module for GC Graph classes."""
+
 import unittest
-from itertools import product, permutations, count
+from itertools import count, permutations, product
+from json import dump, load
+from os.path import dirname, exists, join
 from random import randint
 from typing import cast
-from json import dump, load
-from os.path import join, dirname, exists
-from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph, FrozenGCGraph
-from egppy.gc_graph.ep_type import ep_type_lookup, INVALID_EP_TYPE_VALUE
-from egppy.gc_graph.typing import (DestinationRow, EndPointType, Row,
-    VALID_ROW_SOURCES, SOURCE_ROWS, SourceRow)
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.ep_type import INVALID_EP_TYPE_VALUE, ep_type_lookup
+from egppy.gc_graph.gc_graph_class_factory import FrozenGCGraph, MutableGCGraph
+from egppy.gc_graph.typing import (
+    SOURCE_ROWS,
+    VALID_ROW_SOURCES,
+    DestinationRow,
+    EndPointType,
+    Row,
+    SourceRow,
+)
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,20 +27,26 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-_FOUR_EP_TYPES: tuple[EndPointType, ...] = (ep_type_lookup['n2v']['bool'],
-    ep_type_lookup['n2v']['int'],
-    ep_type_lookup['n2v']['float'],
-    ep_type_lookup['n2v']['str']
+_FOUR_EP_TYPES: tuple[EndPointType, ...] = (
+    ep_type_lookup["n2v"]["bool"],
+    ep_type_lookup["n2v"]["int"],
+    ep_type_lookup["n2v"]["float"],
+    ep_type_lookup["n2v"]["str"],
 )
-_TYPE_COMBINATIONS: tuple[tuple[EndPointType, ...], ...] = tuple(product(
-    _FOUR_EP_TYPES, _FOUR_EP_TYPES + (INVALID_EP_TYPE_VALUE,)))
+_TYPE_COMBINATIONS: tuple[tuple[EndPointType, ...], ...] = tuple(
+    product(_FOUR_EP_TYPES, _FOUR_EP_TYPES + (INVALID_EP_TYPE_VALUE,))
+)
 
 
-def next_idx(src_next_idx: dict[SourceRow, count], src_positions: dict[str, list[int]],
-    row: SourceRow, typa: EndPointType) -> int:
+def next_idx(
+    src_next_idx: dict[SourceRow, count],
+    src_positions: dict[str, list[int]],
+    row: SourceRow,
+    typa: EndPointType,
+) -> int:
     """Get the next index for a source endpoint."""
     # HERE & NEEDS FIXING
-    if row != 'U':
+    if row != "U":
         key = f"{row}{typa}"
         src_positions.setdefault(key, [])
         if len(src_positions[key]) < 2:
@@ -46,10 +60,10 @@ def next_idx(src_next_idx: dict[SourceRow, count], src_positions: dict[str, list
 
 def generate_valid_json_gc_graphs() -> list[dict[str, list[list]]]:
     """Generate all possible valid JSON GC Graphs with short rows."""
-    filename = join(dirname(__file__), '..', 'data', 'valid_json_gc_graphs.json')
+    filename = join(dirname(__file__), "..", "data", "valid_json_gc_graphs.json")
     if not exists(filename):
         jgcg_list = []
-        for structure in ('ABO', 'ABOU'):  # JSON GC graphs that are standard graphs
+        for structure in ("ABO", "ABOU"):  # JSON GC graphs that are standard graphs
             for row_order in permutations(structure):  # Different orders of assignment
                 jgcg_list.append(jgcg := {})
                 src_next_idx = {row: count() for row in SOURCE_ROWS}
@@ -57,25 +71,25 @@ def generate_valid_json_gc_graphs() -> list[dict[str, list[list]]]:
                 for row in row_order:
                     # Row only appears in JSON format GCG's for unconnected
                     # sources so has the same connectivity as row O in standard graphs
-                    dst_row = DestinationRow.O if row == 'U' else cast(Row, row)
+                    dst_row = DestinationRow.O if row == "U" else cast(Row, row)
                     for src in VALID_ROW_SOURCES[False][dst_row]:
-                        if row == 'U':
-                            typ = ep_type_lookup['n2v']['complex']
+                        if row == "U":
+                            typ = ep_type_lookup["n2v"]["complex"]
                             idx = next_idx(src_next_idx, src_positions, src, typ)
-                            jgcg.setdefault(row, []).append([src,idx, typ])
+                            jgcg.setdefault(row, []).append([src, idx, typ])
                         else:
                             for typ in _FOUR_EP_TYPES:
                                 idx = next_idx(src_next_idx, src_positions, src, typ)
                                 jgcg.setdefault(row, []).append([src, idx, typ])
-                if 'U' in jgcg:
-                    jgcg['U'] = sorted(jgcg['U'], key=lambda x: x[0]+f"{x[1]:03d}")
+                if "U" in jgcg:
+                    jgcg["U"] = sorted(jgcg["U"], key=lambda x: x[0] + f"{x[1]:03d}")
 
         # Write the JSON GC Graphs to a file
-        with open(filename, 'w', encoding="ascii") as f:
+        with open(filename, "w", encoding="ascii") as f:
             dump(jgcg_list, f, indent=4, sort_keys=True)
     else:
         # Read the JSON GC Graphs from a file
-        with open(filename, 'r', encoding="ascii") as f:
+        with open(filename, "r", encoding="ascii") as f:
             jgcg_list = load(f)
     return jgcg_list
 
@@ -99,7 +113,7 @@ class GCGraphTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
     def get_gcg_cls(cls) -> type:
@@ -131,6 +145,7 @@ class GCGraphTestBase(unittest.TestCase):
 
 class MutableGCGraphTestBase(GCGraphTestBase):
     """Extends the static graph test cases with dynamic graph tests."""
+
     gcgtype: type = MutableGCGraph
 
     def test_equal_to_static(self) -> None:
@@ -149,7 +164,7 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         gcg = self.gcg_type(jgcg)
         for ep in reversed(tuple(gcg.epkeys())):
             del gcg[ep]
-        self.assertEqual(gcg.to_json(), {r: [] for r in jgcg}) # Empty graph
+        self.assertEqual(gcg.to_json(), {r: [] for r in jgcg})  # Empty graph
         for ikey in gcg.ikeys():
             self.assertEqual(len(gcg[ikey]), 0)
 
@@ -170,8 +185,8 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         jgcg = self.jgcg_list[0]
         gcg = self.gcg_type(jgcg)
         for ikey in gcg.ikeys():
-            del gcg[ikey + 'c']
-            self.assertNotIn(ikey + 'c', gcg)
+            del gcg[ikey + "c"]
+            self.assertNotIn(ikey + "c", gcg)
 
     def test_pop_endpoints(self) -> None:
         """Test popping endpoints."""
@@ -181,7 +196,7 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         gcg = self.gcg_type(jgcg)
         sgcg = FrozenGCGraph(jgcg)
         for ikey in gcg.ikeys():
-            del gcg[ikey[0] + '---' + ikey[1]]
+            del gcg[ikey[0] + "---" + ikey[1]]
             self.assertEqual(len(gcg[ikey]) + 1, len(sgcg[ikey]))
             for idx, ept in enumerate(gcg[ikey]):
                 self.assertEqual(ept, sgcg[ikey][idx])
@@ -194,12 +209,12 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         gcg = self.gcg_type(jgcg)
         sgcg = FrozenGCGraph(jgcg)
         for ikey in gcg.ikeys():
-            gcg[ikey[0] + '+++' + ikey[1]] = sgcg[ikey[0] + '000' + ikey[1]]
+            gcg[ikey[0] + "+++" + ikey[1]] = sgcg[ikey[0] + "000" + ikey[1]]
             self.assertEqual(len(gcg[ikey]), len(sgcg[ikey]) + 1)
             self.assertEqual(gcg[ikey][-1], sgcg[ikey][0])
-            self.assertEqual(tuple(gcg[ikey + 'c'][-1]), tuple(sgcg[ikey + 'c'][0]))
+            self.assertEqual(tuple(gcg[ikey + "c"][-1]), tuple(sgcg[ikey + "c"][0]))
             ep1 = gcg[ikey[0] + f"{len(gcg[ikey]) - 1:03d}" + ikey[1]]
-            ep2 = sgcg[ikey[0] + '000' + ikey[1]]
+            ep2 = sgcg[ikey[0] + "000" + ikey[1]]
             self.assertEqual(ep1.get_cls(), ep2.get_cls())
             self.assertEqual(ep1.get_refs(), ep2.get_refs())
             self.assertEqual(ep1.get_typ(), ep2.get_typ())

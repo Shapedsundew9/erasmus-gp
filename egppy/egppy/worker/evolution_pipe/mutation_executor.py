@@ -1,7 +1,8 @@
 """Mutation executor module."""
-from egppy.worker.fitness_queue import fitness_queue
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.worker.fitness_queue import fitness_queue
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

@@ -1,10 +1,11 @@
 """Find the platform information of the system."""
-from hashlib import sha256
+
 import platform as pyplatform
 from datetime import datetime
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common import DictTypeAccessor, Validator
+from hashlib import sha256
 
+from egpcommon.common import DictTypeAccessor, Validator
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -16,13 +17,14 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class PlatformInfo(Validator, DictTypeAccessor):
     """Worker plaftorm information.
     i.e. details of the hardware it is running on.
-    
+
     Must set from the JSON or internal types and validate the values.
     Getting the values returns the internal types.
     The to_json() method returns the JSON types.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         machine: str | None = None,
         signature: bytes | str | None = None,
         processor: str | None = None,
@@ -31,10 +33,10 @@ class PlatformInfo(Validator, DictTypeAccessor):
         system: str | None = None,
         release: str | None = None,
         egp_ops: float | None = None,
-        created: datetime | str | None = None
+        created: datetime | str | None = None,
     ) -> None:
         super().__init__()
-        machine =  pyplatform.machine() if machine is None else machine
+        machine = pyplatform.machine() if machine is None else machine
         processor = pyplatform.processor() if processor is None else processor
         platform = pyplatform.platform() if platform is None else platform
         python_version = pyplatform.python_version() if python_version is None else python_version
@@ -116,7 +118,7 @@ class PlatformInfo(Validator, DictTypeAccessor):
 
     @platform.setter
     def platform(self, value: str) -> None:
-        """The underlying platform with as much useful information as possible. 
+        """The underlying platform with as much useful information as possible.
         The output is intended to be human readable rather than machine parseable.
         """
         self._is_string("platform", value)
@@ -170,7 +172,7 @@ class PlatformInfo(Validator, DictTypeAccessor):
 
     @egp_ops.setter
     def egp_ops(self, value: float) -> None:
-        """An Erasmus GP specific performance metric directly proportional to the prcoessing 
+        """An Erasmus GP specific performance metric directly proportional to the prcoessing
         power of the system for typical Erasmus GP tasks in units of notional operations
         per second. Bigger = faster.
         """

@@ -8,7 +8,8 @@ from os.path import exists
 from tempfile import TemporaryFile
 from typing import Any, Iterator
 
-from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_base import StoreBase

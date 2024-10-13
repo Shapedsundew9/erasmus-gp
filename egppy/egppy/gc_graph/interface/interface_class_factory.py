@@ -1,10 +1,12 @@
 """The list interface module."""
-from typing import Iterable
-from egppy.gc_graph.interface.interface_mixin import InterfaceMixin
-from egppy.gc_graph.interface.interface_abc import InterfaceABC
-from egppy.gc_graph.typing import EndPointType
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from typing import Iterable
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.interface.interface_abc import InterfaceABC
+from egppy.gc_graph.interface.interface_mixin import InterfaceMixin
+from egppy.gc_graph.typing import EndPointType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,6 +21,7 @@ class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):
     The TupleInterface class is a subclass of tuple and InterfaceMixin.
     It is a tuple-like object of integers representing endpoint types.
     """
+
     def __init__(self, iface: Iterable[EndPointType] | InterfaceABC) -> None:
         """Initialize the interface."""
 
@@ -35,12 +38,13 @@ class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):
         raise RuntimeError("TupleInterface.append is not supported")
 
 
-class ListInterface(list[EndPointType], InterfaceMixin, InterfaceABC):  #type: ignore
+class ListInterface(list[EndPointType], InterfaceMixin, InterfaceABC):  # type: ignore
     """A list interface object.
 
     The ListInterface class is a subclass of list and InterfaceMixin.
     It is a list-like object of integers representing endpoint types.
     """
+
     def __init__(self, iface: Iterable[EndPointType]) -> None:
         """Initialize the interface."""
         super().__init__(iface)

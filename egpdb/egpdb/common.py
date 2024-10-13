@@ -3,9 +3,9 @@
 from random import random
 from typing import Any, Callable, Generator
 
-from egppy.storage.store.database.configuration import DatabaseConfig
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egpdb.configuration import DatabaseConfig
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

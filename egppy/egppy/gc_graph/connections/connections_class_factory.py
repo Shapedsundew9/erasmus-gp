@@ -1,10 +1,12 @@
 """Connections class factory module."""
+
 from typing import Iterable
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.connections.connections_mixin import ConnectionsMixin, ConnectionsProtocol
-
+from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,6 +21,7 @@ class TupleConnections(tuple, ConnectionsMixin, ConnectionsProtocol, Connections
     The TupleConnections class is a subclass of tuple and ConnectionsMixin.
     It is a tuple-like object of tuples of end point references.
     """
+
     def __init__(self, conns: Iterable[Iterable[XEndPointRefABC]] | ConnectionsABC) -> None:
         """Initialize the connections."""
 
@@ -35,12 +38,13 @@ class TupleConnections(tuple, ConnectionsMixin, ConnectionsProtocol, Connections
         raise RuntimeError("TupleConnections.append is not supported")
 
 
-class ListConnections(list, ConnectionsMixin, ConnectionsABC):  #type: ignore
+class ListConnections(list, ConnectionsMixin, ConnectionsABC):  # type: ignore
     """A list connections object.
 
     The ListConnections class is a subclass of list and ConnectionsMixin.
     It is a list-like object of lists of end point references.
     """
+
     def __init__(self, conns: Iterable[Iterable[XEndPointRefABC]] | ConnectionsABC) -> None:
         """Initialize the connections."""
         super().__init__(conns)

@@ -1,11 +1,14 @@
 """Cacheable Dirty Dictionary Base Class module."""
+
 from __future__ import annotations
-from typing import Any
+
 from copy import deepcopy
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Any
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cacheable_obj_mixin import CacheableObjMixin
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

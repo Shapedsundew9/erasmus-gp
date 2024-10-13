@@ -1,12 +1,14 @@
 """A python dictionary based cache."""
-from typing import Any, Callable
+
 from collections.abc import Hashable
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Any, Callable
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
+from egppy.storage.cache.cache_base import CacheBase
 from egppy.storage.cache.cache_mixin import CacheMixin
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.storage.cache.cache_base import CacheBase
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -21,7 +23,7 @@ _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 
 class DirtyDictCache(dict[Hashable, CacheableObjABC], CacheBase, CacheMixin, CacheABC):
     """An builtin python dictionary based dirty cache.
-    
+
     Cache is a bit of a misnomer. A DirtyDictCache is a "one-way cache", like a temporary
     store with some convinient configuration to push data to the next level. It cannot
     pull data from the next level.

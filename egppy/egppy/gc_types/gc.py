@@ -1,14 +1,18 @@
 """Genetic Code Abstract Base Class."""
+
 from __future__ import annotations
+
+from abc import abstractmethod
 from datetime import datetime
 from hashlib import sha256
 from pprint import pformat
 from typing import Any, Iterator, Protocol
-from abc import abstractmethod
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+
+from egpcommon.common import NULL_SHA256
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common import NULL_SHA256
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -95,7 +99,7 @@ def decode_properties(obj: int | dict[str, bool] | None) -> dict[str, bool]:
 
 class GCABC(CacheableObjABC):
     """Genetic Code Abstract Base Class.
-    
+
     Add Genetic Code classes have a very simple dictionary like interface for getting and
     setting members. All GC keys are strings from a frozen set of keys.
     """
@@ -187,7 +191,7 @@ class GCProtocol(Protocol):
 
 class GCMixin:
     """Genetic Code Mixin Class.
-    
+
     This class should be inhereted low in the MRO so that more efficient standard access
     methods are used first.
     """
@@ -199,17 +203,17 @@ class GCMixin:
 
     def signature(self: GCProtocol) -> bytes:
         """Return the signature of the genetic code object."""
-        if self['signature'] is NULL_SIGNATURE:
-            hash_obj = sha256(self['gca'].signature())
-            hash_obj.update(self['gcb'].signature())
-            hash_obj.update(pformat(self['graph'].to_json(), compact=True).encode())
-            meta_data = self.get('meta_data', {})
+        if self["signature"] is NULL_SIGNATURE:
+            hash_obj = sha256(self["gca"].signature())
+            hash_obj.update(self["gcb"].signature())
+            hash_obj.update(pformat(self["graph"].to_json(), compact=True).encode())
+            meta_data = self.get("meta_data", {})
             if "function" in meta_data:
                 hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
                 if "code" in meta_data["function"]["python3"]["0"]:
                     hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
-            self['signature'] = hash_obj.digest()
-        return self['signature']
+            self["signature"] = hash_obj.digest()
+        return self["signature"]
 
 
 class GCBase(GCProtocol):
@@ -220,7 +224,7 @@ class GCBase(GCProtocol):
         if isinstance(other, GCABC):
             return self.signature() == other.signature()
         if isinstance(other, dict):
-            other_signature = other.get('signature', NULL_SIGNATURE)
+            other_signature = other.get("signature", NULL_SIGNATURE)
             if isinstance(other_signature, str) and len(other_signature) == 64:
                 return self.signature().hex() == other_signature
         return False
@@ -230,13 +234,13 @@ class GCBase(GCProtocol):
         retval = {}
         for key in self:
             value = self[key]
-            if key == 'properties':
+            if key == "properties":
                 retval[key] = decode_properties(value)
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
                 retval[key] = value.signature().hex()
-            elif getattr(self[key], 'to_json', None) is not None:
+            elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()
             elif isinstance(value, bytes):
                 retval[key] = value.hex()
@@ -245,8 +249,9 @@ class GCBase(GCProtocol):
             else:
                 retval[key] = value
                 if _LOG_DEBUG:
-                    assert isinstance(value, (int, str, float, list, dict)), \
-                        f"Invalid type: {type(value)}"
+                    assert isinstance(
+                        value, (int, str, float, list, dict)
+                    ), f"Invalid type: {type(value)}"
         return retval
 
 

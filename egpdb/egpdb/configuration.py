@@ -1,12 +1,13 @@
 """Store typing definitions."""
 
-from typing import Any, Callable, LiteralString
-from os.path import normpath, expanduser
+from os.path import expanduser, normpath
 from re import Pattern
 from re import compile as regex_compile
-from egppy.common.common import DictTypeAccessor, Validator
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Any, Callable, LiteralString
 
+from egpcommon.common import DictTypeAccessor
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.validator import Validator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -389,7 +390,7 @@ class TableConfig(Validator, DictTypeAccessor):
 
     def consistency(self) -> None:
         """Check the consistency of the table configuration."""
-        for k, v in self.ptr_map.items():
+        for k, v in self.ptr_map.items():  # pylint error? pylint: disable=no-member
             if k not in self.schema:
                 raise ValueError(f"Pointer map key '{k}' not in schema.")
             if v not in self.schema:

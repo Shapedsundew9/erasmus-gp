@@ -1,7 +1,9 @@
 """Fitness Executor module."""
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-#from egppy.worker.evolution_queue import evolution_queue
-#from egppy.worker.mutation_evolution import mutation_evolution
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+# from egppy.worker.evolution_queue import evolution_queue
+# from egppy.worker.mutation_evolution import mutation_evolution
 
 
 # Standard EGP logging pattern
@@ -14,5 +16,5 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 def fitness_executor():
     """Execute the fitness."""
     # Push to evolution queue
-    #evolution_queue()
-    #mutation_evolution()
+    # evolution_queue()
+    # mutation_evolution()

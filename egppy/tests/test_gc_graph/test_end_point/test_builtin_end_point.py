@@ -1,15 +1,18 @@
 """Test the builtin end point class."""
-from tests.test_gc_graph.test_end_point.generic_end_point_test_base import GenericEndPointTestBase
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.end_point.end_point import (
+    DstEndPointRef,
+    EndPoint,
+    EndPointRef,
+    GenericEndPoint,
+    SrcEndPointRef,
+)
 from tests.test_gc_graph.test_end_point.end_point_ref_test_base import EndPointRefTestBase
-from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
 from tests.test_gc_graph.test_end_point.end_point_test_base import EndPointTestBase
-
-from egppy.gc_graph.end_point.end_point import GenericEndPoint
-from egppy.gc_graph.end_point.end_point import EndPointRef
-from egppy.gc_graph.end_point.end_point import SrcEndPointRef, DstEndPointRef
-from egppy.gc_graph.end_point.end_point import EndPoint
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+from tests.test_gc_graph.test_end_point.generic_end_point_test_base import GenericEndPointTestBase
+from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -20,20 +23,29 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class BuiltinGenericEndPointTest(GenericEndPointTestBase):
     """Test cases for the BuiltinGenericEndPoint class."""
+
     endpoint_type = GenericEndPoint
+
 
 class BuiltinEndPointRefTest(EndPointRefTestBase):
     """Test cases for the BuiltinEndPoint class."""
+
     endpoint_type = EndPointRef
+
 
 class BuiltinSrcEndPointRefTest(XEndPointRefTestBase):
     """Test cases for the BuiltinSrcEndPointRef class."""
+
     endpoint_type = SrcEndPointRef
+
 
 class BuiltinDstEndPointRefTest(XEndPointRefTestBase):
     """Test cases for the BuiltinDstEndPointRef class."""
+
     endpoint_type = DstEndPointRef
+
 
 class BuiltinEndPointTest(EndPointTestBase):
     """Test cases for the BuiltinEndPoint class."""
+
     endpoint_type = EndPoint

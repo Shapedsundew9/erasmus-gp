@@ -1,9 +1,12 @@
 """The problem module contains the classes and functions for the problem object."""
+
 from datetime import datetime
 from hashlib import sha256
-from re import Pattern, compile as regex_compile
-from egppy.common.common import EGP_EPOCH, Validator, DictTypeAccessor
+from re import Pattern
+from re import compile as regex_compile
 
+from egpcommon.common import EGP_EPOCH, DictTypeAccessor
+from egpcommon.validator import Validator
 
 # The beginning
 ACYBERGENESIS_PROBLEM = sha256(b"Acybergenesis Problem").digest()
@@ -11,7 +14,7 @@ ACYBERGENESIS_PROBLEM = sha256(b"Acybergenesis Problem").digest()
 
 class ProblemConfig(Validator, DictTypeAccessor):
     """Configuration for the problem in EGP.
-    
+
     Must set from the JSON or internal types and validate the values.
     Getting the values returns the internal types.
     The to_json() method returns the JSON types.
@@ -20,7 +23,8 @@ class ProblemConfig(Validator, DictTypeAccessor):
     git_repo_regex_str: str = r"[a-zA-Z0-9_\\.-]{1,256}"
     git_repo_regex: Pattern[str] = regex_compile(git_repo_regex_str)
 
-    def __init__(self,
+    def __init__(
+        self,
         git_hash: bytes | str,
         git_repo: str,
         git_url: str,
@@ -55,11 +59,11 @@ class ProblemConfig(Validator, DictTypeAccessor):
     def git_hash(self, value: bytes | str) -> None:
         """The git hash of the last verified commit.
         NOTE: Older git hashes may be 160 bit SHA1. These are extended
-        to 256 bit SHA256 by prefixing zeros. 
+        to 256 bit SHA256 by prefixing zeros.
         """
         assert value is not None, "git_hash must be a string"
         if isinstance(value, bytes) and len(value) == 20:
-            value = b'0' * 12 + value
+            value = b"0" * 12 + value
         elif isinstance(value, str) and len(value) == 40:
             value = "0" * 24 + value
         if isinstance(value, str):

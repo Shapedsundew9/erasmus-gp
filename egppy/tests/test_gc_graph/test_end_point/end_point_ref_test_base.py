@@ -1,9 +1,10 @@
 """Unit tests for the EndpointRef class."""
-from tests.test_gc_graph.test_end_point.generic_end_point_test_base import GenericEndPointTestBase
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.gc_graph.end_point.end_point import EndPointRef
 from egppy.gc_graph.typing import EndPointClass
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+from tests.test_gc_graph.test_end_point.generic_end_point_test_base import GenericEndPointTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

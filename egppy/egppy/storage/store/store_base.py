@@ -1,9 +1,10 @@
 """Store Base class module."""
-from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.common.common_obj_mixin import CommonObjMixin
-from egppy.common.common_obj_abc import CommonObjABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.common_obj_mixin import CommonObjMixin
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.store.storable_obj_abc import StorableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

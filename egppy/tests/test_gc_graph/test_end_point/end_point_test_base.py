@@ -1,11 +1,11 @@
 """Unit tests for the End Point classes."""
-from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
-from egppy.gc_graph.ep_type import ep_type_lookup
-from egppy.gc_graph.end_point.end_point import (EndPoint, SrcEndPointRef,
-    DstEndPointRef)
-from egppy.gc_graph.typing import ROWS, DestinationRow, EndPointClass, SourceRow
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
+from egppy.gc_graph.ep_type import ep_type_lookup
+from egppy.gc_graph.typing import ROWS, DestinationRow, EndPointClass, SourceRow
+from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -39,20 +39,22 @@ class EndPointTestBase(XEndPointRefTestBase):
         # As a destination row
         self.row1 = DestinationRow.B
         self.idx1 = 0
-        self.typ1 = ep_type_lookup['n2v']['int']
+        self.typ1 = ep_type_lookup["n2v"]["int"]
         self.cls1 = EndPointClass.DST
         self.refs1 = [self.get_src_ref_cls()(SourceRow.A, 0)]
         self.endpoint = self.get_endpoint_cls()(
-            self.row1, self.idx1, self.typ1, self.cls1, self.refs1)
+            self.row1, self.idx1, self.typ1, self.cls1, self.refs1
+        )
 
         # Endpoint2 must be same class but different with invalid refs
         self.row2 = DestinationRow.B
         self.idx2 = 1
-        self.typ2 = ep_type_lookup['n2v']['float']
+        self.typ2 = ep_type_lookup["n2v"]["float"]
         self.cls2 = EndPointClass.DST
         self.refs2 = [self.get_src_ref_cls()(SourceRow.B, 1)]
         self.endpoint2 = self.get_endpoint_cls()(
-            self.row2, self.idx2, self.typ2, self.cls2, self.refs2)
+            self.row2, self.idx2, self.typ2, self.cls2, self.refs2
+        )
 
     def test_eq(self) -> None:
         """
@@ -152,7 +154,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         """
         if self.running_in_test_base_class():
             return
-        new_typ = ep_type_lookup['n2v']['str']
+        new_typ = ep_type_lookup["n2v"]["str"]
         self.endpoint.set_typ(new_typ)
         self.assertEqual(self.endpoint.get_typ(), new_typ)
 

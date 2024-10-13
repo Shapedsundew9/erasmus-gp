@@ -5,17 +5,12 @@ from json import load
 from os.path import join
 from typing import Any, Callable, Iterable, Literal
 
-from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egppy.common.text_token import TextToken
-from egppy.storage.store.database.configuration import TableConfig
-from egppy.storage.store.database.raw_table import RawTable
-from egppy.storage.store.database.row_iterators import (
-    DictIter,
-    GenIter,
-    NamedTupleIter,
-    RowIter,
-    TupleIter,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.text_token import TextToken
+
+from egpdb.configuration import TableConfig
+from egpdb.raw_table import RawTable
+from egpdb.row_iterators import DictIter, GenIter, NamedTupleIter, RowIter, TupleIter
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

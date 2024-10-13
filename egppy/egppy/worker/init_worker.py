@@ -5,23 +5,25 @@ if none is specified, from the JSON REST API. The worker will then initialize th
 start the work loop.
 """
 
-from datetime import datetime
-from sys import argv, exit as sys_exit
 from argparse import ArgumentParser, Namespace
+from datetime import datetime
+from sys import argv
+from sys import exit as sys_exit
 from uuid import UUID, uuid4
-from egppy.populations.configuration import PopulationConfig
-from egppy.worker.init_generation import init_generation
-from egppy.worker.configuration import WorkerConfig
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.egp_logo import header, header_lines, gallery
-from egppy.problems.genesis import EGP_PROBLEM_CONFIG
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_logo import gallery, header, header_lines
+
 from egppy.gc_graph.ep_type import (
+    VType,
     interface_definition,
     ordered_interface_hash,
     unordered_interface_hash,
-    VType,
 )
-
+from egppy.populations.configuration import PopulationConfig
+from egppy.problems.genesis import EGP_PROBLEM_CONFIG
+from egppy.worker.configuration import WorkerConfig
+from egppy.worker.init_generation import init_generation
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

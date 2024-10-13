@@ -1,11 +1,14 @@
 """Connections Abstract Base Class"""
-from __future__ import annotations
-from typing import Any, Iterable
-from abc import abstractmethod
-from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common_obj_abc import CommonObjABC
 
+from __future__ import annotations
+
+from abc import abstractmethod
+from typing import Any, Iterable
+
+from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

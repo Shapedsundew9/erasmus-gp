@@ -2,9 +2,10 @@
 
 from typing import Any, Iterator
 
-from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egppy.storage.store.database.configuration import TableConfig
-from egppy.storage.store.database.table import Table
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpdb.configuration import TableConfig
+from egpdb.table import Table
+
 from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_base import StoreBase
@@ -40,6 +41,8 @@ class DBTableStore(StoreBase, StoreABC):
         """Set an item in the store. NOTE this is an UPSERT operation."""
         if self.table.raw.primary_key not in value:
             value[self.table.raw.primary_key] = key
+        elif _LOG_VERIFY:
+            assert value[self.table.raw.primary_key] == key
         self.table[key] = value
 
     def __iter__(self) -> Iterator:

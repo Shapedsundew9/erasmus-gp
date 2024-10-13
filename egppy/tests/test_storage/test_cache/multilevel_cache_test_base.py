@@ -1,17 +1,20 @@
 """Test Store classes."""
+
 from __future__ import annotations
+
 import unittest
 from random import choices, sample
-from egppy.storage.store.store_abc import StoreABC
-from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.storage.store.in_memory_store import InMemoryStore
-from egppy.storage.cache.cacheable_obj import CacheableDict
-from egppy.storage.cache.cache import DictCache
-from egppy.storage.cache.dirty_cache import DirtyDictCache
-from egppy.storage.cache.cache_abc import CacheABC
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.cache.cache import DictCache
+from egppy.storage.cache.cache_abc import CacheABC
+from egppy.storage.cache.cacheable_obj import CacheableDict
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+from egppy.storage.cache.dirty_cache import DirtyDictCache
+from egppy.storage.store.in_memory_store import InMemoryStore
+from egppy.storage.store.storable_obj_abc import StorableObjABC
+from egppy.storage.store.store_abc import StoreABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -23,7 +26,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # Log base 2 second level cache size
 LOG2_SECOND_LEVEL_CACHE_SIZE: int = 4
 
-FIRST_LEVEL_CACHE_SIZE: int = 2**(LOG2_SECOND_LEVEL_CACHE_SIZE - 1)
+FIRST_LEVEL_CACHE_SIZE: int = 2 ** (LOG2_SECOND_LEVEL_CACHE_SIZE - 1)
 SECOND_LEVEL_CACHE_SIZE: int = 2**LOG2_SECOND_LEVEL_CACHE_SIZE
 
 
@@ -49,7 +52,7 @@ class MultilevelCacheTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
     def get_first_level_cache_cls(cls) -> type[CacheABC]:
@@ -89,19 +92,23 @@ class MultilevelCacheTestBase(unittest.TestCase):
     def setUp(self) -> None:
         """Set up for each test."""
         self.store = self.get_store_cls()(self.get_store_value_cls())
-        self.second_level_cache = self.get_second_level_cache_cls()({
-            "max_items": SECOND_LEVEL_CACHE_SIZE,
-            "purge_count": SECOND_LEVEL_CACHE_SIZE // 2,
-            "next_level": self.store,
-            "flavor": self.get_second_level_value_cls()
-        })
+        self.second_level_cache = self.get_second_level_cache_cls()(
+            {
+                "max_items": SECOND_LEVEL_CACHE_SIZE,
+                "purge_count": SECOND_LEVEL_CACHE_SIZE // 2,
+                "next_level": self.store,
+                "flavor": self.get_second_level_value_cls(),
+            }
+        )
         flc_type = self.get_first_level_cache_cls()
-        self.first_level_cache = flc_type({
-            "max_items": FIRST_LEVEL_CACHE_SIZE if flc_type is not DirtyDictCache else 0, 
-            "purge_count": FIRST_LEVEL_CACHE_SIZE // 2 if flc_type is not DirtyDictCache else 0,
-            "next_level": self.second_level_cache,
-            "flavor": self.get_first_level_value_cls()
-        })
+        self.first_level_cache = flc_type(
+            {
+                "max_items": FIRST_LEVEL_CACHE_SIZE if flc_type is not DirtyDictCache else 0,
+                "purge_count": FIRST_LEVEL_CACHE_SIZE // 2 if flc_type is not DirtyDictCache else 0,
+                "next_level": self.second_level_cache,
+                "flavor": self.get_first_level_value_cls(),
+            }
+        )
         self.values = self.set_values(self.get_first_level_value_cls())
 
     def test_readback(self) -> None:
@@ -166,9 +173,9 @@ class MultilevelCacheTestBase(unittest.TestCase):
         if self.get_first_level_cache_cls() is DirtyDictCache:
             self.first_level_cache.copyback()
         # Once without replacement to ensure everything is read at least once
-        for v in sample(list(range(len(self.values))), k = len(self.values)):
+        for v in sample(list(range(len(self.values))), k=len(self.values)):
             self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
-        for v in choices(list(range(2 * SECOND_LEVEL_CACHE_SIZE)), k = 4 * SECOND_LEVEL_CACHE_SIZE):
+        for v in choices(list(range(2 * SECOND_LEVEL_CACHE_SIZE)), k=4 * SECOND_LEVEL_CACHE_SIZE):
             self.assertEqual(first=self.first_level_cache[v], second=self.values[v])
         # To get everything in the store when using a DictCache, the copythrough() method
         # must be called.

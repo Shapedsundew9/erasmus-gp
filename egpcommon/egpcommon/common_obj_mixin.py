@@ -1,7 +1,8 @@
 """Common Object Mixin Class."""
-from typing import Protocol
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from typing import Protocol
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -20,9 +21,9 @@ class CommonObjProtocol(Protocol):
         """Verify the CommonObjProtocol object."""
 
 
-class CommonObjMixin():
+class CommonObjMixin:
     """Common Object Mixin Class.
-    
+
     The Common Object Mixin Class, CommonObjMixin, is the base class for all custom objects in EGP.
     EGP has the philosophy that all objects should be able to verify their own data and check
     their own consistency. The methods defined here shall always be called by derived classes.
@@ -39,7 +40,7 @@ class CommonObjMixin():
         NOTE: Likely to significantly slow down the code.
         """
         if _LOG_CONSISTENCY:
-            _logger.log(level=CONSISTENCY, msg=f'Consistency check passed for {self}')
+            _logger.log(level=CONSISTENCY, msg=f"Consistency check passed for {self}")
 
     def verify(self) -> None:
         """Verify the CommonObjMixin object.
@@ -48,4 +49,4 @@ class CommonObjMixin():
         The verify() method shall raise a ValueError if the object is not valid.
         """
         if _LOG_VERIFY:
-            _logger.log(level=VERIFY, msg=f'Verify check passed for {self}')
+            _logger.log(level=VERIFY, msg=f"Verify check passed for {self}")

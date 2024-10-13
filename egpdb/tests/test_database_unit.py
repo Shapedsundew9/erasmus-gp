@@ -1,16 +1,17 @@
 """Unit tests for the database.py module."""
 
-from unittest import TestCase
-from unittest.mock import patch
 from copy import deepcopy
 from itertools import count
 from threading import get_ident
+from unittest import TestCase
+from unittest.mock import patch
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from psycopg2 import OperationalError, ProgrammingError, errors
 
-from egppy.storage.store.database import database
-from egppy.storage.store.database.common import backoff_generator
-from egppy.storage.store.database.database import (
+from egpdb import database
+from egpdb.common import backoff_generator
+from egpdb.database import (
     _clean_connections,
     _connect_core,
     db_connect,
@@ -22,8 +23,6 @@ from egppy.storage.store.database.database import (
     db_reconnect,
     db_transaction,
 )
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -50,7 +49,7 @@ _INFINITE_BACKOFFS = 100
 class TestDatabase(TestCase):
     """Unit tests for the database.py module."""
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_connect_core_p0(self, mock_connect) -> None:
         """Positive path for _connection_core()."""
         db_disconnect_all()
@@ -71,7 +70,7 @@ class TestDatabase(TestCase):
             _connect_core(_MOCK_DBNAME, _MOCK_CONFIG)[0].value, _MOCK_VALUE_1  # type: ignore
         )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_connect_core_n0(self, mock_connect) -> None:
         """Raise an OperationalError in _connection_core()."""
         db_disconnect_all()
@@ -91,7 +90,7 @@ class TestDatabase(TestCase):
         mock_connect.side_effect = MockConnection
         self.assertIsNone(_connect_core(_MOCK_DBNAME, _MOCK_CONFIG)[0])
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_reconnect_p0(self, mock_connect):
         """Reconnect to the DB with no initial connection."""
         db_disconnect_all()
@@ -116,7 +115,7 @@ class TestDatabase(TestCase):
             db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
         )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_reconnect_p1(self, mock_connect):
         """Reconnect to the DB with a pre-existing connection."""
         db_disconnect_all()
@@ -151,7 +150,7 @@ class TestDatabase(TestCase):
                 db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
             )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_reconnect_n0(self, mock_connect):
         """Pre-existing connection close() raises an OperationalError."""
         db_disconnect_all()
@@ -190,8 +189,8 @@ class TestDatabase(TestCase):
                 db_reconnect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
             )
 
-    @patch("egppy.storage.store.database.database.connect")
-    @patch("egppy.storage.store.database.database.sleep")
+    @patch("egpdb.database.connect")
+    @patch("egpdb.database.sleep")
     def test_db_reconnect_n1(self, mock_sleep, mock_connect):
         """Connection raises OperationalError.
 
@@ -256,8 +255,8 @@ class TestDatabase(TestCase):
             self.assertGreaterEqual(backoff, sleep_duration / 1.1)
             self.assertLessEqual(backoff, sleep_duration / 0.9)
 
-    @patch("egppy.storage.store.database.database.connect")
-    @patch("egppy.storage.store.database.database.sleep")
+    @patch("egpdb.database.connect")
+    @patch("egpdb.database.sleep")
     def test_db_reconnect_n2(self, mock_sleep, mock_connect):
         """Check infinite backoff.
 
@@ -329,7 +328,7 @@ class TestDatabase(TestCase):
             self.assertGreaterEqual(total_backoff, sleep_duration / 1.1)
             self.assertLessEqual(total_backoff, sleep_duration / 0.9)
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_reconnect_n3(self, mock_connect):
         """Check error after all retries.
 
@@ -385,7 +384,7 @@ class TestDatabase(TestCase):
             with self.assertRaises(OperationalError):
                 db_reconnect(_MOCK_DBNAME, config)
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_connect_p0(self, mock_connect):
         """No pre-existing connection test for db_connect()."""
         db_disconnect_all()
@@ -406,7 +405,7 @@ class TestDatabase(TestCase):
             db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
         )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_connect_p1(self, mock_connect):
         """With pre-existing connection test for db_connect()."""
         db_disconnect_all()
@@ -448,7 +447,7 @@ class TestDatabase(TestCase):
             db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_1  # type: ignore
         )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_disconnect_p0(self, mock_connect):
         """Create a connection and then disconnect it.
 
@@ -494,7 +493,7 @@ class TestDatabase(TestCase):
             db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
         )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_disconnect_n0(self, mock_connect):
         """Create a connection and then disconnect it with an OperationalError on close().
 
@@ -541,7 +540,7 @@ class TestDatabase(TestCase):
             db_connect(_MOCK_DBNAME, _MOCK_CONFIG).value, _MOCK_VALUE_2  # type: ignore
         )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_transaction_p0(self, mock_connect):
         """Execute a read-only SQL statement.
 
@@ -590,7 +589,7 @@ class TestDatabase(TestCase):
         dbcur = db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, ("SQL0",))
         assert not dbcur.fetchone()
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_db_transaction_p1(self, mock_connect):
         """Test that a write transaction is committed."""
         db_disconnect_all()
@@ -645,7 +644,7 @@ class TestDatabase(TestCase):
         with self.assertRaises(ProgrammingError):
             db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, ("SQL0",), recons=0)
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     @patch("psycopg2.sql.SQL.as_string")
     def test_db_exists_p0(self, mock_as_string, mock_connect):
         """Test the case when the DB exists."""
@@ -695,7 +694,7 @@ class TestDatabase(TestCase):
         mock_as_string.return_value = "SQL string"
         self.assertTrue(db_exists(_MOCK_DBNAME, _MOCK_CONFIG))
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     @patch("psycopg2.sql.SQL.as_string")
     def test_db_exists_p1(self, mock_as_string, mock_connect):
         """Test the case when the DB does not exist."""
@@ -745,7 +744,7 @@ class TestDatabase(TestCase):
         mock_as_string.return_value = "SQL string"
         self.assertFalse(db_exists("Does not exist", _MOCK_CONFIG))
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     @patch("psycopg2.sql.SQL.as_string")
     def test_db_exists_n0(self, mock_as_string, mock_connect):
         """Test the case when the maintenance DB connection raises an error."""
@@ -757,7 +756,7 @@ class TestDatabase(TestCase):
         with self.assertRaises(ProgrammingError):
             db_exists(_MOCK_DBNAME, _MOCK_CONFIG)
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     @patch("psycopg2.sql.SQL.as_string")
     def test_db_exists_n1(self, mock_as_string, mock_connect):
         """Test the case when the maintenance DB connection raises InsufficientPrivilege."""
@@ -770,7 +769,7 @@ class TestDatabase(TestCase):
 
         self.assertTrue(db_exists(_MOCK_DBNAME, _MOCK_CONFIG))
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     @patch("psycopg2.sql.Identifier.as_string")
     def test_db_create_p0(self, mock_as_string, mock_connect):
         """Create a DB."""
@@ -826,7 +825,7 @@ class TestDatabase(TestCase):
 
         db_create(_MOCK_DBNAME, _MOCK_CONFIG)
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     @patch("psycopg2.sql.Identifier.as_string")
     def test_db_delete_p0(self, mock_as_string, mock_connect):
         """Delete a DB."""
@@ -882,7 +881,7 @@ class TestDatabase(TestCase):
 
         db_delete(_MOCK_DBNAME, _MOCK_CONFIG)
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_clean_connections_p0(self, mock_connect):
         """Add a connection, fake a closed thread and make sure it is removed."""
         db_disconnect_all()
@@ -916,7 +915,7 @@ class TestDatabase(TestCase):
                 database._connections[_MOCK_CONFIG["host"]][_MOCK_DBNAME].get(1234, None)
             )
 
-    @patch("egppy.storage.store.database.database.connect")
+    @patch("egpdb.database.connect")
     def test_clean_connections_n0(self, mock_connect):
         """Add a connection, fake a closed thread and make sure it is removed."""
         db_disconnect_all()

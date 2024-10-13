@@ -1,12 +1,13 @@
 """Test the DirtyDictCache class."""
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
+from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.storage.cache.cacheable_obj import CacheableDict
-from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
-from tests.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase
 from tests.test_storage.store_test_base import DEFAULT_VALUES
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+from tests.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -17,6 +18,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class TestDirtyDictCacheCacheableDict(DirtyCacheTestBase):
     """Test case for DirtyDictCache class using CacheableDict."""
+
     store_type = DirtyDictCache
     value_type = CacheableDict
     value: StorableObjABC = CacheableDict(DEFAULT_VALUES[0])
@@ -26,6 +28,7 @@ class TestDirtyDictCacheCacheableDict(DirtyCacheTestBase):
 
 class TestDirtyDictCacheCacheableDirtyDict(DirtyCacheTestBase):
     """Test case for DirtyDictCache class using CacheableDirtyDict."""
+
     store_type = DirtyDictCache
     value_type = CacheableDirtyDict
     value: StorableObjABC = CacheableDirtyDict(DEFAULT_VALUES[0])

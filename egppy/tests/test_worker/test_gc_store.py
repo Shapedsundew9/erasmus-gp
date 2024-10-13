@@ -1,8 +1,12 @@
 """Tests for the GC Store."""
+
 from __future__ import annotations
+
 import unittest
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.worker.gc_store import GGC_CACHE, CODON_SIGNATURES
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.worker.gc_store import CODON_SIGNATURES, GGC_CACHE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -26,7 +30,7 @@ class GCStoreTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     def setUp(self) -> None:
         # NOTE: The ggc_cache is a global object so it does not reset

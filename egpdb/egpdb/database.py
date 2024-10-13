@@ -16,13 +16,13 @@ from threading import get_ident
 from time import sleep
 from typing import Any, Generator
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.text_token import TextToken, register_token_code
 from psycopg2 import InterfaceError, OperationalError, ProgrammingError, connect, errors, sql
 from psycopg2.extensions import cursor as TupleCursor
 from psycopg2.extras import DictCursor, NamedTupleCursor, register_uuid
 
-from egppy.common.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egppy.common.text_token import TextToken, register_token_code
-from egppy.storage.store.database.common import backoff_generator
+from egpdb.common import backoff_generator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

@@ -2,7 +2,7 @@
 
 import unittest
 
-from egppy.common.text_token import TextToken, register_token_code, token_library
+from egpcommon.text_token import TextToken, register_token_code, token_library
 
 
 class TestTextToken(unittest.TestCase):

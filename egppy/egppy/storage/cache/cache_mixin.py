@@ -1,11 +1,13 @@
 """Cache Base class module."""
+
+from collections.abc import Hashable, ItemsView, ValuesView
 from typing import Protocol
-from collections.abc import ItemsView, Hashable, ValuesView
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.store_abc import StoreABC
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -16,7 +18,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class CacheMixinProtocol(Protocol):
     """Supplies CacheABC method references to satisfy type checker.
-    
+
     NOTE: This method is preferred over using ABC methods in the mixin
     class. This is because the mixin class will be used in multiple
     inheritance and MRO may attempt to call them (I think). This method
@@ -67,12 +69,12 @@ class CacheMixinProtocol(Protocol):
         ...  #  pylint: disable=unnecessary-ellipsis
 
 
-class CacheMixin():
+class CacheMixin:
     """Cache Base class has methods generic to all cache classes."""
 
     def consistency(self: CacheMixinProtocol) -> None:
         """Check the cache for self consistency."""
-        for value in (v for v in self.values() if getattr(v, 'consistency', None) is not None):
+        for value in (v for v in self.values() if getattr(v, "consistency", None) is not None):
             value.consistency()
         super().consistency()
 
@@ -109,8 +111,9 @@ class CacheMixin():
         """Check if the cache needs to be purged."""
         length: int = len(self)
         if length >= self.max_items:
-            assert length == self.max_items, (f"Cache length ({length}) is greater"
-                f" than max_items ({self.max_items})")
+            assert length == self.max_items, (
+                f"Cache length ({length}) is greater" f" than max_items ({self.max_items})"
+            )
             self.purge(num=self.purge_count)
 
     def verify(self: CacheMixinProtocol) -> None:
@@ -118,7 +121,7 @@ class CacheMixin():
         Every object stored in the cache is verified as well as basic
         cache parameters.
         """
-        for value in (v for v in self.values() if getattr(v, 'verify', None) is not None):
+        for value in (v for v in self.values() if getattr(v, "verify", None) is not None):
             value.verify()
 
         assert len(self) <= self.max_items, "Cache size exceeds max_items."

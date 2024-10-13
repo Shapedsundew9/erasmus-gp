@@ -1,12 +1,23 @@
 """Endpoint class using builtin collections."""
-from __future__ import annotations
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.gc_graph.end_point.end_point_abc import (EndPointRefABC, GenericEndPointABC,
-    EndPointABC, XEndPointRefABC)
-from egppy.gc_graph.end_point.end_point_mixin import (GenericEndPointMixin, EndPointRefMixin,
-    DstEndPointRefMixin, SrcEndPointRefMixin, EndPointMixin)
-from egppy.gc_graph.typing import EndPointClass, EndPointType, Row
 
+from __future__ import annotations
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.end_point.end_point_abc import (
+    EndPointABC,
+    EndPointRefABC,
+    GenericEndPointABC,
+    XEndPointRefABC,
+)
+from egppy.gc_graph.end_point.end_point_mixin import (
+    DstEndPointRefMixin,
+    EndPointMixin,
+    EndPointRefMixin,
+    GenericEndPointMixin,
+    SrcEndPointRefMixin,
+)
+from egppy.gc_graph.typing import EndPointClass, EndPointType, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -55,8 +66,9 @@ class SrcEndPointRef(EndPointRef, SrcEndPointRefMixin, XEndPointRefABC):
 class EndPoint(EndPointRef, EndPointMixin, EndPointABC):
     """Endpoint class using builtin collections."""
 
-    def __init__(self, row: Row, idx: int, typ: EndPointType,
-            cls: EndPointClass, refs: list[XEndPointRefABC]) -> None:
+    def __init__(
+        self, row: Row, idx: int, typ: EndPointType, cls: EndPointClass, refs: list[XEndPointRefABC]
+    ) -> None:
         """Initialize the endpoint."""
         super().__init__(row=row, idx=idx)
         self._typ: EndPointType = typ

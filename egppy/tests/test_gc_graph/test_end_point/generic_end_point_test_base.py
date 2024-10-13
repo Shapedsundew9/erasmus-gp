@@ -1,9 +1,11 @@
 """Unit tests for the GenericEndpoint class."""
-import unittest
-from egppy.gc_graph.typing import ROWS
-from egppy.gc_graph.end_point.end_point import GenericEndPoint
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+import unittest
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.end_point.end_point import GenericEndPoint
+from egppy.gc_graph.typing import ROWS
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -28,7 +30,7 @@ class GenericEndPointTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
     def get_endpoint_cls(cls) -> type:

@@ -8,9 +8,9 @@ from logging import NullHandler, getLogger
 from os.path import dirname, join
 from unittest import TestCase
 
-from egppy.storage.store.database.configuration import TableConfig
-from egppy.storage.store.database.database import db_delete
-from egppy.storage.store.database.table import Table
+from egpdb.configuration import TableConfig
+from egpdb.database import db_delete
+from egpdb.table import Table
 
 _logger = getLogger(__name__)
 _logger.addHandler(NullHandler())

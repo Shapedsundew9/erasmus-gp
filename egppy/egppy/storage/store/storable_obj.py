@@ -1,10 +1,12 @@
 """Storable Dictionary Base Class module."""
-from typing import Any
-from copy import deepcopy
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.store.storable_obj_mixin import StorableObjMixin
-from egppy.storage.store.storable_obj_abc import StorableObjABC
 
+from copy import deepcopy
+from typing import Any
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.store.storable_obj_abc import StorableObjABC
+from egppy.storage.store.storable_obj_mixin import StorableObjMixin
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

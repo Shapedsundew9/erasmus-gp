@@ -11,9 +11,9 @@ from unittest.mock import patch
 
 from psycopg2 import ProgrammingError
 
-from egppy.storage.store.database.configuration import TableConfig
-from egppy.storage.store.database.database import db_delete, db_transaction
-from egppy.storage.store.database.raw_table import RawTable, default_config
+from egpdb.configuration import TableConfig
+from egpdb.database import db_delete, db_transaction
+from egpdb.raw_table import RawTable, default_config
 
 _logger = getLogger(__name__)
 _logger.addHandler(NullHandler())

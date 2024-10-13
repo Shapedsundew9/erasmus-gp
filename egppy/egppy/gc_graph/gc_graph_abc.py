@@ -1,10 +1,13 @@
 """Abstract base class for GC graph objects."""
+
 from __future__ import annotations
+
 from abc import abstractmethod
 from typing import Any
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -15,16 +18,16 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class GCGraphABC(CacheableObjABC):
     """Abstract Base Class for Genetic Code Graphs.
-    
+
     The graph abstract base class, GCGraphABC, is the base class for all genetic code graph objects.
     GC graph objects define connections between interfaces.
 
     A row is a tuple of interfaces. The row is keyed by a capital letter (used for __contains__)
-        e.g. 'A', 'B', 'I', 'O' etc. 
+        e.g. 'A', 'B', 'I', 'O' etc.
     An interface is keyed by the row letter and 's' or 'd' for source or destination.
         e.g. 'As', 'Bd', 'Is', 'Od' etc.
     An interfaces connections usues the interface key with a 'c' appended:
-        e.g. 'Asc', 'Bdc', 'Isc', 'Odc' etc. 
+        e.g. 'Asc', 'Bdc', 'Isc', 'Odc' etc.
     Endpoints are keyed by the row letter, a 3 digit index and 's' or 'd'.
         e.g. 'A000s', 'B002d', 'I013s', 'O255d' etc.
 
@@ -35,7 +38,7 @@ class GCGraphABC(CacheableObjABC):
         __setitem__
         get             (mixed in)
         setdefault      (mixed in)
-    
+
     In addition the following methods are required by CacheableObjABC:
         __iter__ must iterate through the endpoints (mixed in)
         __len__ must return the total number of endpoints.

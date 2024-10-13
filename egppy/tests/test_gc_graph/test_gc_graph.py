@@ -1,8 +1,9 @@
 """Test GC Graphs."""
-from tests.test_gc_graph.gc_graph_test_base import GCGraphTestBase, MutableGCGraphTestBase
-from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph
+from tests.test_gc_graph.gc_graph_test_base import GCGraphTestBase, MutableGCGraphTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -17,4 +18,5 @@ class TestFrozenGCGraph(GCGraphTestBase):
 
 class TestMutableGCGraph(MutableGCGraphTestBase):
     """Test cases for the MutableGCGraph class."""
+
     gcgtype = MutableGCGraph

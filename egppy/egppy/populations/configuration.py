@@ -1,13 +1,16 @@
 """Population configuration module."""
+
 from datetime import datetime
-from uuid import UUID
-from typing import Any, Callable
 from itertools import count
-from egppy.common.common import DictTypeAccessor, Validator
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Any, Callable
+from uuid import UUID
+
+from egpcommon.common import DictTypeAccessor
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.validator import Validator
+
 from egppy.gc_graph.ep_type import asint, asstr, validate
 from egppy.gc_graph.typing import EndPointType
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -26,13 +29,14 @@ SurvivabilityFunction = Callable[[Callable], float]
 
 class PopulationConfig(Validator, DictTypeAccessor):
     """Validate the population configuration.
-    
+
     Must set from the JSON or internal types and validate the values.
     Getting the values returns the internal types.
     The to_json() method returns the JSON types.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         uid: int,
         problem: str | bytes,
         worker_id: str | UUID,
@@ -47,7 +51,7 @@ class PopulationConfig(Validator, DictTypeAccessor):
         created: datetime | str,
         updated: datetime | str,
         survivability_function: SurvivabilityFunction,
-        fitness_function: FitnessFunction
+        fitness_function: FitnessFunction,
     ) -> None:
         """Initialize the class."""
         setattr(self, "uid", uid)
@@ -74,7 +78,7 @@ class PopulationConfig(Validator, DictTypeAccessor):
     @uid.setter
     def uid(self, value: int) -> None:
         """The uid of the population."""
-        self._in_range("uid", value, 1, 2**15-1)
+        self._in_range("uid", value, 1, 2**15 - 1)
         self._uid = value
 
     @property
@@ -115,7 +119,7 @@ class PopulationConfig(Validator, DictTypeAccessor):
     def size(self, value: int) -> None:
         """The size of the population."""
         self._is_int("size", value)
-        self._in_range("size", value, 1, 2**15-1)
+        self._in_range("size", value, 1, 2**15 - 1)
         self._size = value
 
     @property
@@ -289,21 +293,22 @@ class PopulationConfig(Validator, DictTypeAccessor):
             "created": self.created.isoformat(),
             "updated": self.updated.isoformat(),
             "survivability_function": self.survivability_function.__name__,
-            "fitness_function": self.fitness_function.__name__
+            "fitness_function": self.fitness_function.__name__,
         }
 
 
 class PopulationsConfig(Validator, DictTypeAccessor):
     """Validate the populations configuration.
-    
+
     Must set from the JSON or internal types and validate the values.
     Getting the values returns the internal types.
     The to_json() method returns the JSON types.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         worker_id: UUID | str = UUID("00000000-0000-0000-0000-000000000000"),
-        configs: list[PopulationConfig] | list[dict[str, Any]] | None = None
+        configs: list[PopulationConfig] | list[dict[str, Any]] | None = None,
     ) -> None:
         """Initialize the class."""
         setattr(self, "worker_id", worker_id)
@@ -333,23 +338,25 @@ class PopulationsConfig(Validator, DictTypeAccessor):
         """The population configurations."""
         if isinstance(value, list):
             if len(value) > 0 and isinstance(value[0], dict):
-                self._configs = [PopulationConfig(
-                    uid=item["uid"],
-                    problem=item["problem"],
-                    worker_id=item["worker_id"],
-                    size=item["size"],
-                    inputs=item["inputs"],
-                    outputs=item["outputs"],
-                    ordered_interface_hash=item["ordered_interface_hash"],
-                    unordered_interface_hash=item["unordered_interface_hash"],
-                    name=item["name"],
-                    description=item["description"],
-                    meta_data=item["meta_data"],
-                    created=item["created"],
-                    updated=item["updated"],
-                    survivability_function=item["survivability_function"],
-                    fitness_function=item["fitness_function"]
-                    ) for item in value
+                self._configs = [
+                    PopulationConfig(
+                        uid=item["uid"],
+                        problem=item["problem"],
+                        worker_id=item["worker_id"],
+                        size=item["size"],
+                        inputs=item["inputs"],
+                        outputs=item["outputs"],
+                        ordered_interface_hash=item["ordered_interface_hash"],
+                        unordered_interface_hash=item["unordered_interface_hash"],
+                        name=item["name"],
+                        description=item["description"],
+                        meta_data=item["meta_data"],
+                        created=item["created"],
+                        updated=item["updated"],
+                        survivability_function=item["survivability_function"],
+                        fitness_function=item["fitness_function"],
+                    )
+                    for item in value
                 ]
             elif len(value) > 0 and isinstance(value[0], PopulationConfig):
                 self._configs: list[PopulationConfig] = value  # type: ignore

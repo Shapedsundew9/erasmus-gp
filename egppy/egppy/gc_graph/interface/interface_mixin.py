@@ -1,9 +1,11 @@
 """The interfcae base class module."""
-from typing import Any, Protocol
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-from egppy.common.common_obj_mixin import CommonObjMixin, CommonObjProtocol
-from egppy.gc_graph.ep_type import validate
 
+from typing import Any, Protocol
+
+from egpcommon.common_obj_mixin import CommonObjMixin, CommonObjProtocol
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.ep_type import validate
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

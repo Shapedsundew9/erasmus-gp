@@ -1,9 +1,12 @@
 """Genetic Code Abstract Base Class"""
-from __future__ import annotations
-from abc import abstractmethod
-from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from __future__ import annotations
+
+from abc import abstractmethod
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.storage.store.storable_obj_abc import StorableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -14,7 +17,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 class CacheableObjABC(StorableObjABC):
     """Abstract Base Class for EGP Cacheable Object Types.
-    
+
     The Cacheable Object Abstract Base Class, CacheableObjABC, is the base class for all cacheable
     objects in EGP. Cacheable objects are objects that can be stored in a CacheABC.
     """

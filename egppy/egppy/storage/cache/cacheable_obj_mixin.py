@@ -1,12 +1,14 @@
 """Cacheable Dictionary Base Class module."""
-from typing import Protocol
+
 from itertools import count
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+from typing import Protocol
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.store.storable_obj_mixin import StorableObjMixin, StorableObjProtocol
 
-
 # Universal sequence number generator
-SEQUENCE_NUMBER_GENERATOR = count(start=-2**63)
+SEQUENCE_NUMBER_GENERATOR = count(start=-(2**63))
 
 
 # Standard EGP logging pattern
@@ -16,7 +18,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheableObjProtocol(StorableObjProtocol,Protocol):
+class CacheableObjProtocol(StorableObjProtocol, Protocol):
     """Cacheable Mixin Protocol Class.
     Used to add cacheable functionality to a class.
     """

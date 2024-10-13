@@ -1,7 +1,8 @@
 """Evolution queue module."""
-from egppy.worker.evolution_pipe.evolution_pipe import evolution_pipe
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.worker.evolution_pipe.evolution_pipe import evolution_pipe
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

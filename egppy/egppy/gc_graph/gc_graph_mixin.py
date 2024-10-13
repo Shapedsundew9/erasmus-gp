@@ -1,19 +1,34 @@
 """Base class for GC graph objects."""
+
 from __future__ import annotations
+
 from typing import Any, Generator, Protocol, cast
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
+
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.gc_graph.connections.connections_abc import ConnectionsABC
+from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
+from egppy.gc_graph.ep_type import ep_type_lookup
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
-from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
-from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
-from egppy.gc_graph.ep_type import ep_type_lookup
+from egppy.gc_graph.typing import (
+    CPI,
+    ROW_CLS_INDEXED,
+    SOURCE_ROWS,
+    VALID_ROW_DESTINATIONS,
+    VALID_ROW_SOURCES,
+    DestinationRow,
+    EndPointClass,
+    EndPointType,
+    EPClsPostfix,
+    Row,
+    SourceRow,
+    str2epcls,
+)
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
-from egppy.gc_graph.typing import (CPI, SOURCE_ROWS, DestinationRow, EndPointClass, EndPointType, SourceRow,
-    Row, EPClsPostfix, VALID_ROW_SOURCES, VALID_ROW_DESTINATIONS, ROW_CLS_INDEXED, str2epcls)
 from egppy.storage.cache.cacheable_obj_mixin import CacheableObjProtocol
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -99,7 +114,7 @@ class GCGraphMixin(CacheableObjMixin):
             # Copy the interfaces and connections from the given graph
             for key in ROW_CLS_INDEXED:
                 self[key] = gc_graph.get(key, EMPTY_INTERFACE)
-                self[key + 'c'] = gc_graph.get(key + 'c', EMPTY_CONNECTIONS)
+                self[key + "c"] = gc_graph.get(key + "c", EMPTY_CONNECTIONS)
         else:
             src_if_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
             src_if_refs: dict[SourceRow, dict[int, list[tuple]]] = {r: {} for r in SOURCE_ROWS}
@@ -109,11 +124,12 @@ class GCGraphMixin(CacheableObjMixin):
                 if row != "U":
                     rowd = row + EPClsPostfix.DST
                     self[rowd] = [jep[CPI.TYP] for jep in jeps]
-                    self[rowd + 'c'] = \
-                        ((SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),) for jep in jeps)
+                    self[rowd + "c"] = (
+                        (SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),) for jep in jeps
+                    )
                     # Convert each dst endpoint into a dst reference for a src endpoint
                     for idx, jep in enumerate(jeps):
-                        src_if_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX],[]).append((row, idx))
+                        src_if_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX], []).append((row, idx))
                 # Collect the references to the source interfaces
                 for jep in jeps:
                     src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], jep[CPI.TYP]))
@@ -126,7 +142,7 @@ class GCGraphMixin(CacheableObjMixin):
                 src_refs = [tuple()] * len(self[row + EPClsPostfix.SRC])
                 for idx, refs in idx_refs.items():
                     src_refs[idx] = tuple(DstEndPointRef(r[0], r[1]) for r in refs)
-                self[row + EPClsPostfix.SRC + 'c'] = src_refs
+                self[row + EPClsPostfix.SRC + "c"] = src_refs
 
         if _LOG_VERIFY:
             self.verify()
@@ -140,8 +156,10 @@ class GCGraphMixin(CacheableObjMixin):
         if isinstance(key, str):
             keylen = len(key)
             if keylen == 1:  # Its a row
-                return self.get(key + EPClsPostfix.DST, EMPTY_INTERFACE) is not EMPTY_INTERFACE or \
-                    self.get(key + EPClsPostfix.SRC, EMPTY_INTERFACE) is not EMPTY_INTERFACE
+                return (
+                    self.get(key + EPClsPostfix.DST, EMPTY_INTERFACE) is not EMPTY_INTERFACE
+                    or self.get(key + EPClsPostfix.SRC, EMPTY_INTERFACE) is not EMPTY_INTERFACE
+                )
             if keylen == 2:  # Its an interface
                 return self.get(key, EMPTY_INTERFACE) is not EMPTY_INTERFACE
             if keylen == 3:  # Its connections
@@ -158,23 +176,23 @@ class GCGraphMixin(CacheableObjMixin):
 
     def conditional_graph(self: GCGraphProtocol) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
-        return 'F' in self
+        return "F" in self
 
     def consistency(self: GCGraphProtocol) -> None:
         """Check the consistency of the GC graph."""
         has_f = self.conditional_graph()
         # Check graph structure
         if has_f:
-            fi: InterfaceABC = self['F' + EPClsPostfix.DST]
+            fi: InterfaceABC = self["F" + EPClsPostfix.DST]
             assert len(fi) == 1, f"Row F must only have one end point: {len(fi)}"
-            assert fi[0] == ep_type_lookup['n2v']['bool'], f"F EP must be bool: {fi[0]}"
-            fc: ConnectionsABC = self['F' + EPClsPostfix.DST + 'c']
+            assert fi[0] == ep_type_lookup["n2v"]["bool"], f"F EP must be bool: {fi[0]}"
+            fc: ConnectionsABC = self["F" + EPClsPostfix.DST + "c"]
             assert len(fc) == 1, f"Row F must only have one connection: {len(fc)}"
             assert fc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fc[0][0].get_row()}"
 
         for key in ROW_CLS_INDEXED:
             iface = self.get(key, EMPTY_INTERFACE)
-            conns = self.get(key + 'c', EMPTY_CONNECTIONS)
+            conns = self.get(key + "c", EMPTY_CONNECTIONS)
             iface.consistency()
             conns.consistency()
             assert len(iface) == len(conns), f"Length mismatch: {len(iface)} != {len(conns)}"
@@ -187,9 +205,10 @@ class GCGraphMixin(CacheableObjMixin):
                     assert srow in VALID_ROW_SOURCES[has_f], f"Invalid src row: {srow}"
                     styp = self[srow + EPClsPostfix.SRC][refs[0].get_idx()]
                     assert iface[idx] == styp, f"Dst EP type mismatch: {iface[idx]} != {styp}"
-                    srefs = self[srow + EPClsPostfix.SRC + 'c'][refs[0].get_idx()]
-                    assert DstEndPointRef(cast(Row, key[0]), idx) in srefs, \
-                        f"Src not connected to Dst: {key[0]}[{idx}]"
+                    srefs = self[srow + EPClsPostfix.SRC + "c"][refs[0].get_idx()]
+                    assert (
+                        DstEndPointRef(cast(Row, key[0]), idx) in srefs
+                    ), f"Src not connected to Dst: {key[0]}[{idx}]"
             else:
                 # Check source connections
                 for idx, refs in enumerate(conns):
@@ -198,9 +217,10 @@ class GCGraphMixin(CacheableObjMixin):
                         assert drow in VALID_ROW_DESTINATIONS[has_f], f"Invalid dst row: {drow}"
                         dtyp = self[drow + EPClsPostfix.DST][ref.get_idx()]
                         assert iface[idx] == dtyp, f"Src typ mismatch: {iface[idx]} != {dtyp}"
-                        drefs = self[drow + EPClsPostfix.DST + 'c'][ref.get_idx()]
-                        assert SrcEndPointRef(cast(Row, key[0]), idx) in drefs, \
-                            f"Dst not connected to src: {key[0]}[{idx}]"
+                        drefs = self[drow + EPClsPostfix.DST + "c"][ref.get_idx()]
+                        assert (
+                            SrcEndPointRef(cast(Row, key[0]), idx) in drefs
+                        ), f"Dst not connected to src: {key[0]}[{idx}]"
         super().consistency()
 
     def epkeys(self: GCGraphProtocol) -> Generator[str, None, None]:
@@ -223,7 +243,7 @@ class GCGraphMixin(CacheableObjMixin):
 
     def itypes(self: GCGraphProtocol) -> tuple[list[EndPointType], list[int]]:
         """Return the input types and input row indices into them."""
-        ikey =  SourceRow.I + EPClsPostfix.SRC
+        ikey = SourceRow.I + EPClsPostfix.SRC
         itypes = list(self.types(ikey))
         ilu = {t: i for i, t in enumerate(itypes)}
         return itypes, [ilu[i] for i in self.get(ikey, EMPTY_INTERFACE)]
@@ -246,16 +266,16 @@ class GCGraphMixin(CacheableObjMixin):
         jgcg: dict[str, list[list[Any]]] = {}
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST and k in self):
             iface: InterfaceABC = self[key]
-            conns: ConnectionsABC = self[key + 'c']
+            conns: ConnectionsABC = self[key + "c"]
             jgcg[key[0]] = [[str(r[0].get_row()), r[0].get_idx(), t] for r, t in zip(conns, iface)]
         ucn: list[list[Any]] = []
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.SRC and k in self):
             iface: InterfaceABC = self[key]
-            conns: ConnectionsABC = self[key + 'c']
+            conns: ConnectionsABC = self[key + "c"]
             row = cast(Row, key[0])
             ucn.extend([[row, i, t] for i, (r, t) in enumerate(zip(conns, iface)) if not r])
         if ucn:
-            jgcg['U'] = sorted(ucn, key=lambda x: x[0]+f"{x[1]:03d}")
+            jgcg["U"] = sorted(ucn, key=lambda x: x[0] + f"{x[1]:03d}")
         return jgcg
 
     def types(self: GCGraphProtocol, ikey: str) -> Generator[EndPointType, None, None]:

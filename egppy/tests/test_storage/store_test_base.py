@@ -1,14 +1,16 @@
 """Test Store classes."""
+
 from __future__ import annotations
-from collections.abc import Hashable
+
 import unittest
+from collections.abc import Hashable
 
-from egppy.storage.store.store_abc import StoreABC
-from egppy.storage.store.storable_obj_abc import StorableObjABC
-from egppy.storage.store.storable_obj import StorableDict
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
 from egppy.storage.store.in_memory_store import InMemoryStore
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
-
+from egppy.storage.store.storable_obj import StorableDict
+from egppy.storage.store.storable_obj_abc import StorableObjABC
+from egppy.storage.store.store_abc import StoreABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -20,9 +22,9 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # Default values for test cases
 NULL_OBJ = StorableDict()
 DEFAULT_VALUES: tuple[dict[str, str], dict[str, int], dict[str, float]] = (
-    {'k': 'value'},
-    {'k1': 1243},
-    {'k2': 0.5678}
+    {"k": "value"},
+    {"k1": 1243},
+    {"k2": 0.5678},
 )
 
 
@@ -39,9 +41,9 @@ class StoreTestBase(unittest.TestCase):
     value1: StorableObjABC = NULL_OBJ
     value2: StorableObjABC = NULL_OBJ
     # Key values for testing. Override these in subclasses to different types.
-    key: Hashable = 'key'
-    key1: Hashable = 'key1'
-    key2: Hashable = 'key2'
+    key: Hashable = "key"
+    key1: Hashable = "key1"
+    key2: Hashable = "key2"
 
     @classmethod
     def get_test_cls(cls) -> type:
@@ -53,7 +55,7 @@ class StoreTestBase(unittest.TestCase):
         """Pass the test if the Test class class is the Test Base class."""
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
-        return cls.get_test_cls().__name__.endswith('TestBase')
+        return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
     def get_store_cls(cls) -> type[StoreABC]:
@@ -245,10 +247,10 @@ class StoreTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         self.store[self.key] = self.value1
-        value = self.store.setdefault(self.key,self.value2)
+        value = self.store.setdefault(self.key, self.value2)
         self.assertEqual(first=value, second=self.value1)
 
-        value = self.store.setdefault('new_key', self.value2)
+        value = self.store.setdefault("new_key", self.value2)
         self.assertEqual(first=value, second=self.value2)
 
     def test_update(self) -> None:

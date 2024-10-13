@@ -1,7 +1,8 @@
 """Fitness queue module."""
-from egppy.worker.fitness_executor import fitness_executor
-from egppy.common.egp_log import egp_logger, DEBUG, VERIFY, CONSISTENCY, Logger
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+from egppy.worker.fitness_executor import fitness_executor
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
