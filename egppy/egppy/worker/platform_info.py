@@ -4,8 +4,9 @@ import platform as pyplatform
 from datetime import datetime
 from hashlib import sha256
 
-from egpcommon.common import DictTypeAccessor, Validator
+from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.validator import Validator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

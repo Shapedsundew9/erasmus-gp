@@ -7,7 +7,6 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.security import dump_signed_json, load_signed_json
 from egpcommon.validator import Validator
 from egpdb.configuration import DatabaseConfig
-
 from egppy.populations.configuration import PopulationsConfig
 
 # Standard EGP logging pattern
@@ -17,15 +16,8 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# Constants
-_DEFAULT_DBS = {"erasmus_db": DatabaseConfig()}
-_DEFAULT_PROBLEMS = (
-    "https://raw.githubusercontent.com/Shapedsundew9/egp-problems/main/egp_problems.json"
-)
-
-
-class WorkerConfig(Validator, DictTypeAccessor):
-    """Configuration for workers in EGP.
+class DBManagerConfig(Validator, DictTypeAccessor):
+    """Configuration for a DB Manager.
 
     Must set from the JSON or internal types and validate the values.
     Getting the values returns the internal types.
@@ -35,11 +27,10 @@ class WorkerConfig(Validator, DictTypeAccessor):
     def __init__(
         self,
         databases: dict[str, DatabaseConfig | dict[str, Any]] | None = None,
-        gene_pool: str = "erasmus_db",
-        microbiome: str = "erasmus_db",
-        populations: PopulationsConfig | dict[str, Any] = PopulationsConfig(),
-        problem_definitions: str = _DEFAULT_PROBLEMS,
-        problem_folder: str = "/tmp/egp",
+        local_db: str = "erasmus_db",
+        local_type: str = "pool",
+        remote_dbs: list[str] = ["erasmus_db"],
+        remote_type: str = "library",
     ) -> None:
         """Initialize the class."""
         setattr(self, "databases", databases if databases is not None else _DEFAULT_DBS)
