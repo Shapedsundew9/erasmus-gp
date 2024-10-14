@@ -24,6 +24,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     The to_json() method returns the JSON types.
     """
 
+    # pylint: disable=fixme
+    # TODO: Split dbname from postgres host
+    # TODO: Split maintenance db user from standard DB user
+
     _dbname_regex_str: str = r"[a-zA-Z][a-zA-Z0-9_-]{0,62}"
     _dbname_regex: Pattern[str] = regex_compile(_dbname_regex_str)
     _user_regex: Pattern[str] = _dbname_regex

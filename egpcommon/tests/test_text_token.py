@@ -45,7 +45,3 @@ class TestTextToken(unittest.TestCase):
         self.assertEqual(token.code, "E00002")
         self.assertEqual(token.parameters, {"test": "test value"})
         self.assertEqual(str(token), "E00002: A test token test value")
-
-
-if __name__ == "__main__":
-    unittest.main()

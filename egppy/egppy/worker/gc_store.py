@@ -4,7 +4,6 @@ from json import load
 from os.path import dirname, join
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.gc_types.ggc_class_factory import GGCDict, GGCDirtyDict
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.in_memory_store import InMemoryStore
@@ -18,7 +17,8 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # FIXME: Temporary store for testing
 _REMOTE_STORE = InMemoryStore(GGCDirtyDict)
-_CODON_FILE = join(dirname(__file__), "..", "data", "codons.json")
+_CODON_FILE = join(dirname(__file__), "..", "..", "..",
+    "egpdbmgr", "egpdbmgr", "data", "codons.json")
 _CODON_SIGNATURE_LIST = []
 with open(_CODON_FILE, "r", encoding="ascii") as f:
     for gc in load(f):

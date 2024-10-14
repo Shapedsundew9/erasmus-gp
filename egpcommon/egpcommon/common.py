@@ -91,6 +91,12 @@ class DictTypeAccessor:
         """Check if the attribute exists."""
         return hasattr(self, key)
 
+    def __eq__(self, value: object) -> bool:
+        """Check if the object is equal to the value."""
+        if not isinstance(value, self.__class__):
+            return False
+        return self.__dict__ == value.__dict__
+
     def __getitem__(self, key: str) -> Any:
         """Get the value of the attribute."""
         return getattr(self, key)

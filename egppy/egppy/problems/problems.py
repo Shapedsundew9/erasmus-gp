@@ -8,10 +8,10 @@ from os.path import exists, join
 from pathlib import Path
 from sys import exit as sys_exit
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.security import load_signed_json
 from requests import Response, get
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.security import load_signed_json
 from egppy.problems.configuration import ProblemConfig
 from egppy.worker.configuration import WorkerConfig
 

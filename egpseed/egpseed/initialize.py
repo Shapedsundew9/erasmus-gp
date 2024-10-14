@@ -45,19 +45,22 @@ NOTE: Containers are not yet supported for python
     }
 """
 from copy import deepcopy
-from sys import modules
+from datetime import UTC, datetime
 from itertools import product
 from json import dump, load
-from logging import DEBUG, NullHandler, getLogger, Logger
+from logging import DEBUG, Logger, NullHandler, getLogger
 from os import listdir
 from os.path import dirname, join
+from sys import modules
 from typing import Any
-from datetime import datetime, UTC
-from cerberus import Validator
-from egppy.gc_graph.ep_type import _EGP_REAL_TYPE_LIMIT, asstr  # , fully_qualified_name
-from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType   # pylint: disable=unused-import
-from egppy.problem.problem import ABIOGENESIS_PROBLEM
 
+from cerberus import Validator
+
+# pylint: disable=unused-import
+from egppy.gc_graph.ep_type import (  # , fully_qualified_name
+    _EGP_REAL_TYPE_LIMIT, asstr)
+from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType
+from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
 _logger: Logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
@@ -76,7 +79,7 @@ _GC_MCODON_TEMPLATE: dict[str, Any] = {
     "gcb": None,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
     "created": datetime.now(UTC).isoformat(),
-    "problem": ABIOGENESIS_PROBLEM,
+    "problem": ACYBERGENESIS_PROBLEM,
     "properties": {},
     "meta_data": {"function": {"python3": {"0": {"inline": "To Be Defined"}}}},
 }
@@ -459,7 +462,7 @@ def python_generator(key, operators, input_types, exceptions):
                             "No output_type or global state modification for operator %s",
                             operator
                         )
-                        raise RuntimeError("Incomplete operator.")
+                        raise RuntimeError("Incomplete operator.") from excptn
                     else:
                         operator.setdefault("output_types", [])
                         return operator
@@ -469,7 +472,7 @@ def python_generator(key, operators, input_types, exceptions):
                 exception,
                 operator,
             )
-        raise RuntimeError("Unrecognised exception.")
+        raise RuntimeError("Unrecognised exception.") from excptn
     # FIXME: Hack for now. Need to fix unique import name and fully qualified name.
     rtype = result.__class__.__qualname__
     none_str = None.__class__.__qualname__

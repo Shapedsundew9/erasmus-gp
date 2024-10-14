@@ -13,13 +13,9 @@ from uuid import UUID, uuid4
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.egp_logo import gallery, header, header_lines
-
-from egppy.gc_graph.ep_type import (
-    VType,
-    interface_definition,
-    ordered_interface_hash,
-    unordered_interface_hash,
-)
+from egppy.gc_graph.ep_type import (VType, interface_definition,
+                                    ordered_interface_hash,
+                                    unordered_interface_hash)
 from egppy.populations.configuration import PopulationConfig
 from egppy.problems.genesis import EGP_PROBLEM_CONFIG
 from egppy.worker.configuration import WorkerConfig
@@ -31,6 +27,17 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
+# EGP Worker header
+# From ptfiglet: print(figlet_format("EGP Worker"))
+# NB: Needs monospace font to display correctly
+_HEADER = "\n".join((
+    " _____ ____ ____   __        __         _             ",
+    "| ____/ ___|  _ \\  \\ \\      / /__  _ __| | _____ _ __ ",
+    "|  _|| |  _| |_) |  \\ \\ /\\ / / _ \\| '__| |/ / _ \\ '__|",
+    "| |__| |_| |  __/    \\ V  V / (_) | |  |   <  __/ |   ",
+    "|_____\\____|_|        \\_/\\_/ \\___/|_|  |_|\\_\\___|_|   ",
+    "                                                      "
+))
 
 def parse_cmdline_args(args: list[str]) -> Namespace:
     """Parse the command line arguments."""
@@ -78,6 +85,7 @@ def init_worker(args: Namespace) -> None:
     """Initialize the worker."""
     # Erasmus header to stdout and logfile
     print(header())
+    print(_HEADER)
     for line in header_lines(attr="bw"):
         _logger.info(line)
 

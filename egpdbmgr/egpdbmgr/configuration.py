@@ -7,13 +7,16 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.security import dump_signed_json, load_signed_json
 from egpcommon.validator import Validator
 from egpdb.configuration import DatabaseConfig
-from egppy.populations.configuration import PopulationsConfig
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
+
+# Constants
+_DEFAULT_DBS = {"erasmus_db": DatabaseConfig()}
 
 
 class DBManagerConfig(Validator, DictTypeAccessor):
@@ -26,19 +29,36 @@ class DBManagerConfig(Validator, DictTypeAccessor):
 
     def __init__(
         self,
+        name: str = "DBManagerConfig",
         databases: dict[str, DatabaseConfig | dict[str, Any]] | None = None,
         local_db: str = "erasmus_db",
         local_type: str = "pool",
-        remote_dbs: list[str] = ["erasmus_db"],
+        remote_dbs: list[str] | None = None,
         remote_type: str = "library",
+        archive_db: str = "erasmus_archive_db",
     ) -> None:
         """Initialize the class."""
+        setattr(self, "_name", name)
         setattr(self, "databases", databases if databases is not None else _DEFAULT_DBS)
-        setattr(self, "gene_pool", gene_pool)
-        setattr(self, "microbiome", microbiome)
-        setattr(self, "populations", populations)
-        setattr(self, "problem_definitions", problem_definitions)
-        setattr(self, "problem_folder", problem_folder)
+        setattr(self, "local_db", local_db)
+        setattr(self, "local_type", local_type)
+        setattr(self, "remote_dbs", remote_dbs if remote_dbs is not None else [])
+        setattr(self, "remote_type", remote_type)
+        setattr(self, "archive_db", archive_db)
+
+    @property
+    def name(self) -> str:
+        """Get the name of the configuration."""
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """The name of the configuration.
+        User defined and arbitary. Not used by EGP.
+        """
+        self._is_simple_string("name", value)
+        self._is_length("name", value, 1, 64)
+        self._name = value
 
     @property
     def databases(self) -> dict[str, DatabaseConfig]:
@@ -57,67 +77,64 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         self._databases = cast(dict[str, DatabaseConfig], value)
 
     @property
-    def gene_pool(self) -> str:
-        """Get the gene pool."""
-        return self._gene_pool
+    def local_db(self) -> str:
+        """Get the local database."""
+        return self._local_db
 
-    @gene_pool.setter
-    def gene_pool(self, value: str) -> None:
-        """The name of the gene pool."""
-        self._is_simple_string("gene_pool", value)
-        self._is_length("gene_pool", value, 1, 64)
-        assert value in self.databases, "gene_pool must be a database"
-        self._gene_pool = value
-
-    @property
-    def microbiome(self) -> str:
-        """Get the microbiome."""
-        return self._microbiome
-
-    @microbiome.setter
-    def microbiome(self, value: str) -> None:
-        """The name of the microbiome."""
-        self._is_simple_string("microbiome", value)
-        self._is_length("microbiome", value, 1, 64)
-        assert value in self.databases, "microbiome must be a database"
-        self._microbiome = value
+    @local_db.setter
+    def local_db(self, value: str) -> None:
+        """The local database name."""
+        self._is_simple_string("local_db", value)
+        self._is_length("local_db", value, 1, 64)
+        self._local_db = value
 
     @property
-    def populations(self) -> PopulationsConfig:
-        """Get the populations."""
-        return self._populations
+    def local_type(self) -> str:
+        """Get the local database type."""
+        return self._local_type
 
-    @populations.setter
-    def populations(self, value: PopulationsConfig | dict[str, Any]) -> None:
-        """The name of the populations."""
-        if isinstance(value, dict):
-            value = PopulationsConfig(**value)
-        assert isinstance(value, PopulationsConfig), "populations must be a PopulationsConfig"
-        self._populations = value
+    @local_type.setter
+    def local_type(self, value: str) -> None:
+        """The local database type."""
+        self._is_one_of("local_type", value, ("pool", "library", "archive"))
+        self._local_type = value
 
     @property
-    def problem_definitions(self) -> str:
-        """Get the problem definitions."""
-        return self._problem_definitions
+    def remote_dbs(self) -> list[str]:
+        """Get the remote databases."""
+        return self._remote_dbs
 
-    @problem_definitions.setter
-    def problem_definitions(self, value: str) -> None:
-        """The URL to the problem definitions."""
-        self._is_length("problem_definitions", value, 8, 2048)
-        self._is_url("problem_definitions", value)
-        self._problem_definitions = value
+    @remote_dbs.setter
+    def remote_dbs(self, value: list[str]) -> None:
+        """The remote databases."""
+        self._is_list("remote_dbs", value)
+        for val in value:
+            self._is_simple_string("remote_dbs", val)
+            self._is_length("remote_dbs", val, 1, 64)
+        self._remote_dbs = value
 
     @property
-    def problem_folder(self) -> str:
-        """Get the problem folder."""
-        return self._problem_folder
+    def remote_type(self) -> str:
+        """Get the remote database type."""
+        return self._remote_type
 
-    @problem_folder.setter
-    def problem_folder(self, value: str) -> None:
-        """The folder for the problem definitions."""
-        self._is_length("problem_folder", value, 1, 256)
-        self._is_path("problem_folder", value)
-        self._problem_folder = value
+    @remote_type.setter
+    def remote_type(self, value: str) -> None:
+        """The remote database type."""
+        self._is_one_of("remote_type", value, ("pool", "library", "archive"))
+        self._remote_type = value
+
+    @property
+    def archive_db(self) -> str:
+        """Get the archive database."""
+        return self._archive_db
+
+    @archive_db.setter
+    def archive_db(self, value: str) -> None:
+        """The archive database name."""
+        self._is_simple_string("archive_db", value)
+        self._is_length("archive_db", value, 1, 64)
+        self._archive_db = value
 
     def dump_config(self) -> None:
         """Dump the configuration to disk."""
@@ -130,20 +147,22 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         with open(config_file, "r", encoding="utf8") as fileptr:
             config = load_signed_json(fileptr)
         assert isinstance(config, dict), "Configuration must be a dictionary"
+        self.name = config["name"]
         self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
-        self.gene_pool = config["gene_pool"]
-        self.microbiome = config["microbiome"]
-        self.populations = PopulationsConfig(**config["populations"])
-        self.problem_definitions = config["problem_definitions"]
-        self.problem_folder = config["problem_folder"]
+        self.local_db = config["local_db"]
+        self.local_type = config["local_type"]
+        self.remote_dbs = config["remote_dbs"]
+        self.remote_type = config["remote_type"]
+        self.archive_db = config["archive_db"]
 
     def to_json(self) -> dict[str, Any]:
         """Return the configuration as a JSON type."""
         return {
+            "name": self.name,
             "databases": {key: val.to_json() for key, val in self.databases.items()},
-            "gene_pool": self.gene_pool,
-            "microbiome": self.microbiome,
-            "populations": self.populations.to_json(),
-            "problem_definitions": self.problem_definitions,
-            "problem_folder": self.problem_folder,
+            "local_db": self.local_db,
+            "local_type": self.local_type,
+            "remote_dbs": self.remote_dbs,
+            "remote_type": self.remote_type,
+            "archive_db": self.archive_db,
         }

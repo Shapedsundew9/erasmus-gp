@@ -1,6 +1,8 @@
 """Common logging tools & configurations for EGP."""
-from logging import Logger, NullHandler, getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL, FATAL
-
+# pylint: disable=unused-import
+# Logging levels are imported from this module in other EGP modules
+from logging import (CRITICAL, DEBUG, ERROR, FATAL, INFO,  # type: ignore
+                     WARNING, Logger, NullHandler, getLogger)
 
 # Custom log levels
 # Verify the correctness of values and types of data. e.g. right type, range, length etc.
@@ -24,17 +26,9 @@ if _logger.isEnabledFor(level=CONSISTENCY):
     _logger.debug("EGP logger created and set for CONSISTENCY level logging.")
 elif _logger.isEnabledFor(level=VERIFY):
     _logger.debug("EGP logger created and set for VERIFY level logging.")
-elif _logger.isEnabledFor(level=DEBUG):
-    _logger.debug("EGP logger created and set for DEBUG level logging.")
-elif _logger.isEnabledFor(level=INFO):
-    _logger.info("EGP logger created and set for INFO level logging.")
-elif _logger.isEnabledFor(level=WARNING):
-    _logger.warning("EGP logger created and set for WARNING level logging.")
-elif _logger.isEnabledFor(level=ERROR):
-    _logger.error("EGP logger created and set for ERROR level logging.")
-elif _logger.isEnabledFor(level=CRITICAL):
-    _logger.critical("EGP logger created and set for CRITICAL level logging.")
-elif _logger.isEnabledFor(level=FATAL):
-    _logger.fatal("EGP logger created and set for FATAL level logging.")
-else: # pragma: no cover
-    _logger.info("EGP logger created and set for NULL level logging.")
+_logger.debug("EGP logger created and set for DEBUG level logging.")
+_logger.info("EGP logger created and set for INFO level logging.")
+_logger.warning("EGP logger created and set for WARNING level logging.")
+_logger.error("EGP logger created and set for ERROR level logging.")
+_logger.critical("EGP logger created and set for CRITICAL level logging.")
+_logger.fatal("EGP logger created and set for FATAL level logging.")

@@ -1,6 +1,6 @@
 """Tests for egp-seed."""
 
-from egpseed import _generate
+from egpseed.initialize import _generate
 
 
 def test_initialize() -> None:
