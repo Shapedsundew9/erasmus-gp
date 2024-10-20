@@ -30,5 +30,4 @@ flowchart
     D --> GM(("Gradient & Memory"))
     D --> GI(("Gradient & Intenal State"))
     D --> GP(("Gradient & Prediction"))
-…   P --> L
 ```

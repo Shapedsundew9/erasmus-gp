@@ -10,21 +10,13 @@ from datetime import UTC, datetime
 from math import isclose
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH
+from egpcommon.common import EGP_EPOCH, GGC_KVT, PROPERTIES
+from egpcommon.conversions import encode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.ep_type import validate
 from egppy.gc_types.egc_class_factory import EGCMixin
-from egppy.gc_types.gc import (
-    GCABC,
-    NULL_GC,
-    NULL_PROBLEM,
-    NULL_PROBLEM_SET,
-    PROPERTIES,
-    GCBase,
-    GCProtocol,
-    encode_properties,
-)
+from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, GCBase, GCProtocol
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -38,44 +30,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class GGCMixin(EGCMixin, GCProtocol):
     """General Genetic Code Mixin Class."""
 
-    GC_KEY_TYPES: dict[str, str] = EGCMixin.GC_KEY_TYPES | {
-        "_e_count": "INT",
-        "_e_total": "FLOAT",
-        "_evolvability": "FLOAT",
-        "_f_count": "INT",
-        "_f_total": "FLOAT",
-        "_fitness": "FLOAT",
-        "_lost_descendants": "BIGINT",
-        "_reference_count": "BIGINT",
-        "code_depth": "INT",
-        "codon_depth": "INT",
-        "created": "TIMESTAMP",
-        "descendants": "BIGINT",
-        "e_count": "INT",
-        "e_total": "FLOAT",
-        "evolvability": "FLOAT",
-        "f_count": "INT",
-        "f_total": "FLOAT",
-        "fitness": "FLOAT",
-        "generation": "BIGINT",
-        "input_types": "SMALLINT[]",
-        "inputs": "BYTEA[]",
-        "lost_descendants": "BIGINT",
-        "meta_data": "BYTEA[]",
-        "num_codes": "INT",
-        "num_codons": "INT",
-        "num_inputs": "SMALLINT",
-        "num_outputs": "SMALLINT",
-        "output_types": "SMALLINT[]",
-        "outputs": "BYTEA[]",
-        "population_uid": "SMALLINT",
-        "problem": "BYTEA[32]",
-        "problem_set": "BYTEA[32]",
-        "properties": "BIGINT",
-        "reference_count": "BIGINT",
-        "survivability": "FLOAT",
-        "updated": "TIMESTAMP",
-    }
+    GC_KEY_TYPES: dict[str, dict[str, str | bool]] = GGC_KVT
 
     def consistency(self: GCProtocol) -> None:
         """Check the genetic code object for consistency."""
@@ -198,9 +153,11 @@ class GGCMixin(EGCMixin, GCProtocol):
         self["output_types"], self["outputs"] = self["graph"].otypes()
         self["num_outputs"] = len(self["outputs"])
         self["population_uid"] = gcabc.get("population_uid", 0)
-        tmp = gcabc.get("problem", NULL_PROBLEM)
+        tmp = gcabc.get("problem") if gcabc.get("problem") is not None else NULL_PROBLEM
+        assert not isinstance(tmp, (bytearray, memoryview)) and tmp is not None
         self["problem"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
-        tmp = gcabc.get("problem_set", NULL_PROBLEM_SET)
+        tmp = gcabc.get("problem_set") if gcabc.get("problem_set") is not None else NULL_PROBLEM_SET
+        assert not isinstance(tmp, (bytearray, memoryview)) and tmp is not None
         self["problem_set"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
         tmp = gcabc.get("properties", 0)
         self["properties"] = tmp if isinstance(tmp, int) else encode_properties(tmp)

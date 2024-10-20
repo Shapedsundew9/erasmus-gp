@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from datetime import datetime
-from hashlib import sha256
-from pprint import pformat
 from typing import Any, Iterator, Protocol
 
-from egpcommon.common import NULL_SHA256
+from egpcommon.common import NULL_SHA256, sha256_signature
+from egpcommon.conversions import decode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
@@ -27,74 +26,6 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 NULL_SIGNATURE: bytes = NULL_SHA256
 NULL_PROBLEM: bytes = NULL_SHA256
 NULL_PROBLEM_SET: bytes = NULL_SHA256
-
-# PROPERTIES must define the bit position of all the properties listed in
-# the "properties" field of the entry_format.json definition.
-PROPERTIES: dict[str, int] = {
-    "extended": 1 << 0,
-    "constant": 1 << 1,
-    "conditional": 1 << 2,
-    "deterministic": 1 << 3,
-    "memory_modify": 1 << 4,
-    "object_modify": 1 << 5,
-    "physical": 1 << 6,
-    "arithmetic": 1 << 16,
-    "logical": 1 << 17,
-    "bitwise": 1 << 18,
-    "boolean": 1 << 19,
-    "sequence": 1 << 20,
-}
-
-
-def encode_properties(obj: dict[str, bool] | int | None) -> int:
-    """Encode the properties dictionary into its integer representation.
-
-    The properties field is a dictionary of properties to boolean values. Each
-    property maps to a specific bit of a 64 bit value as defined
-    by the _PROPERTIES dictionary.
-
-    Args
-    ----
-    obj(dict): Properties dictionary.
-
-    Returns
-    -------
-    (int): Integer representation of the properties dictionary.
-    """
-    if isinstance(obj, dict):
-        bitfield: int = 0
-        for k in (x[0] for x in obj.items() if x[1]):
-            bitfield |= PROPERTIES[k]
-        return bitfield
-    if isinstance(obj, int):
-        return obj
-    if obj is None:
-        return 0
-    raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or integer type.")
-
-
-def decode_properties(obj: int | dict[str, bool] | None) -> dict[str, bool]:
-    """Decode the properties dictionary from its integer representation.
-
-    The properties field is a dictionary of properties to boolean values. Each
-    property maps to a specific bit of a 64 bit value as defined
-    by the _PROPERTIES dictionary.
-
-    Args
-    ----
-    obj(int): Integer representation of the properties dictionary.
-
-    Returns
-    -------
-    (dict): Properties dictionary.
-    """
-    if isinstance(obj, dict):
-        return obj
-    if isinstance(obj, int):
-        return {b: bool(f & obj) for b, f in PROPERTIES.items()}
-    if obj is None:
-        return {b: False for b, f in PROPERTIES.items()}
-    raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or integer type.")
 
 
 class GCABC(CacheableObjABC):
@@ -153,7 +84,7 @@ class GCABC(CacheableObjABC):
 class GCProtocol(Protocol):
     """Genetic Code Protocol."""
 
-    GC_KEY_TYPES: dict[str, str]
+    GC_KEY_TYPES: dict[str, dict[str, str | bool]]
     REFERENCE_KEYS: set[str]
 
     def __contains__(self, key: str) -> bool:
@@ -204,15 +135,12 @@ class GCMixin:
     def signature(self: GCProtocol) -> bytes:
         """Return the signature of the genetic code object."""
         if self["signature"] is NULL_SIGNATURE:
-            hash_obj = sha256(self["gca"].signature())
-            hash_obj.update(self["gcb"].signature())
-            hash_obj.update(pformat(self["graph"].to_json(), compact=True).encode())
-            meta_data = self.get("meta_data", {})
-            if "function" in meta_data:
-                hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
-                if "code" in meta_data["function"]["python3"]["0"]:
-                    hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
-            self["signature"] = hash_obj.digest()
+            self["signature"] = sha256_signature(
+                self["gca"] if isinstance(self["gca"], bytes) else self["gca"].signature(),
+                self["gcb"] if isinstance(self["gcb"], bytes) else self["gcb"].signature(),
+                self["graph"].to_json(),
+                self["meta_data"] if self["meta_data"] is not None else {},
+            )
         return self["signature"]
 
 
@@ -239,11 +167,11 @@ class GCBase(GCProtocol):
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
-                retval[key] = value.signature().hex()
+                retval[key] = value.signature().hex() if value is not NULL_GC else None
             elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()
             elif isinstance(value, bytes):
-                retval[key] = value.hex()
+                retval[key] = value.hex() if value is not NULL_SIGNATURE else None
             elif isinstance(value, datetime):
                 retval[key] = value.isoformat()
             else:

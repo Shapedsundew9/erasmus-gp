@@ -55,7 +55,6 @@ from sys import modules
 from typing import Any
 
 from cerberus import Validator
-
 # pylint: disable=unused-import
 from egppy.gc_graph.ep_type import (  # , fully_qualified_name
     _EGP_REAL_TYPE_LIMIT, asstr)
@@ -69,7 +68,7 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
 _path: str = dirname(__file__)
 _template_file: str = join(_path, "data/languages/template.json")
 _logger.debug("template_file: %s", _template_file)
-_codon_file: str = join(_path, "../../egppy/egppy/data/codons.json")
+_codon_file: str = join(_path, "../../egpdbmgr/egpdbmgr/data/codons.json")
 _ep_type_file: str = join(_path, "../../egppy/egppy/data/ep_types.json")
 
 
@@ -394,16 +393,18 @@ def _generate(language):
             if result is not None:
                 generated += 1
                 result.setdefault("name", key)
-                codon = _create_mcodon(result, type_dict)
-                codon_list.append(GGCDirtyDict(codon).to_json())
+                codon = GGCDirtyDict(_create_mcodon(result, type_dict))
+                codon["signature"] = codon.signature()
+                codon_list.append(codon.to_json())
     print(f"Generated {generated} codons from {tried} operator-type combinations"
           f" {generated * 100 / tried:0.1f}).")
 
     # Mutations
     for key, mutation in mutations.items():
         mutation.setdefault("name", key)
-        codon = _create_mcodon(mutation, type_dict)
-        codon_list.append(GGCDirtyDict(codon).to_json())
+        codon = GGCDirtyDict(_create_mcodon(mutation, type_dict))
+        codon["signature"] = codon.signature()
+        codon_list.append(codon.to_json())
     print(f"Generated {len(mutations)} mutation codons.")
 
     with open(_codon_file, "w", encoding="utf-8") as file_ptr:

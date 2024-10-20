@@ -40,7 +40,12 @@ flowchart TD
         DB Exists?}
     crt3[Populate from
         Higher Layer]
-    crt4[Populate from
+    crt4{Remote DB file exists?}
+    crt5[Pull remote DB file]
+    crt6[Validate file signature]
+    crt7[Populate from file]
+    crt8[Validate installation signature]
+    crt9[Populate from
         Installation]
     init4{Migration
         required?}
@@ -86,7 +91,14 @@ flowchart TD
     crt2 --> |Yes|crt3
     crt2 --> |No|crt4
     crt3 --> end1
-    crt4 --> end1
+    crt4 --> |Yes|crt5
+    crt4 --> |No|crt8
+    crt5 --> crt6
+    crt6 --> crt7
+    crt7 --> end1
+    crt8 --> crt9
+    crt9 --> end1
+
 ```
 
 ## Operation

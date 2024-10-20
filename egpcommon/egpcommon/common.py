@@ -2,6 +2,8 @@
 
 from copy import deepcopy
 from datetime import UTC, datetime
+from hashlib import sha256
+from pprint import pformat
 from typing import Any, Self
 from uuid import UUID
 
@@ -13,6 +15,74 @@ EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, 
 NULL_SHA256: bytes = b"\x00" * 32
 NULL_SHA256_STR = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
+
+
+# PROPERTIES must define the bit position of all the properties listed in
+# the "properties" field of the entry_format.json definition.
+PROPERTIES: dict[str, int] = {
+    "extended": 1 << 0,
+    "constant": 1 << 1,
+    "conditional": 1 << 2,
+    "deterministic": 1 << 3,
+    "memory_modify": 1 << 4,
+    "object_modify": 1 << 5,
+    "physical": 1 << 6,
+    "arithmetic": 1 << 16,
+    "logical": 1 << 17,
+    "bitwise": 1 << 18,
+    "boolean": 1 << 19,
+    "sequence": 1 << 20,
+}
+
+
+# GC Fields with Postgres definitions
+EGC_KVT: dict[str, dict[str, Any]] = {
+    "graph": {"db_type": "BYTEA", "nullable": False},
+    "gca": {"db_type": "BYTEA", "nullable": True},
+    "gcb": {"db_type": "BYTEA", "nullable": True},
+    "ancestora": {"db_type": "BYTEA", "nullable": True},
+    "ancestorb": {"db_type": "BYTEA", "nullable": True},
+    "pgc": {"db_type": "BYTEA", "nullable": True},
+    "signature": {"db_type": "BYTEA", "nullable": False},
+}
+GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
+    "_e_count": {"db_type": "INT", "nullable": False},
+    "_e_total": {"db_type": "FLOAT", "nullable": False},
+    "_evolvability": {"db_type": "FLOAT", "nullable": False},
+    "_f_count": {"db_type": "INT", "nullable": False},
+    "_f_total": {"db_type": "FLOAT", "nullable": False},
+    "_fitness": {"db_type": "FLOAT", "nullable": False},
+    "_lost_descendants": {"db_type": "BIGINT", "nullable": False},
+    "_reference_count": {"db_type": "BIGINT", "nullable": False},
+    "code_depth": {"db_type": "INT", "nullable": False},
+    "codon_depth": {"db_type": "INT", "nullable": False},
+    "created": {"db_type": "TIMESTAMP", "nullable": False},
+    "descendants": {"db_type": "BIGINT", "nullable": False},
+    "e_count": {"db_type": "INT", "nullable": False},
+    "e_total": {"db_type": "FLOAT", "nullable": False},
+    "evolvability": {"db_type": "FLOAT", "nullable": False},
+    "f_count": {"db_type": "INT", "nullable": False},
+    "f_total": {"db_type": "FLOAT", "nullable": False},
+    "fitness": {"db_type": "FLOAT", "nullable": False},
+    "generation": {"db_type": "BIGINT", "nullable": False},
+    "input_types": {"db_type": "SMALLINT[]", "nullable": False},
+    "inputs": {"db_type": "BYTEA", "nullable": False},
+    "lost_descendants": {"db_type": "BIGINT", "nullable": False},
+    "meta_data": {"db_type": "BYTEA", "nullable": True},
+    "num_codes": {"db_type": "INT", "nullable": False},
+    "num_codons": {"db_type": "INT", "nullable": False},
+    "num_inputs": {"db_type": "SMALLINT", "nullable": False},
+    "num_outputs": {"db_type": "SMALLINT", "nullable": False},
+    "output_types": {"db_type": "SMALLINT[]", "nullable": False},
+    "outputs": {"db_type": "BYTEA", "nullable": False},
+    "population_uid": {"db_type": "SMALLINT", "nullable": False},
+    "problem": {"db_type": "BYTEA", "nullable": True},
+    "problem_set": {"db_type": "BYTEA", "nullable": True},
+    "properties": {"db_type": "BIGINT", "nullable": False},
+    "reference_count": {"db_type": "BIGINT", "nullable": False},
+    "survivability": {"db_type": "FLOAT", "nullable": False},
+    "updated": {"db_type": "TIMESTAMP", "nullable": False},
+}
 
 
 # Local Constants
@@ -82,6 +152,27 @@ def merge(  # pylint: disable=dangerous-default-value
         elif not no_new_keys:
             dict_a[key] = dict_b[key]
     return dict_a
+
+
+def sha256_signature(
+    gca: bytes, gcb: bytes, graph: dict[str, Any], meta_data: dict[str, Any] | None
+) -> bytes:
+    """Return the SHA256 signature of the data.
+    This function is the basis for identifying *EVERYTHING* in the EGP system.
+    The signature is based on the graph, the gca, and the gcb. If the meta_data
+    is provided then the function code is also included in the signature..
+    This function must not change!
+
+    Make sure the unit tests pass!
+    """
+    hash_obj = sha256(gca)
+    hash_obj.update(gcb)
+    hash_obj.update(pformat(graph, compact=True).encode())
+    if meta_data is not None and "function" in meta_data:
+        hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
+        if "code" in meta_data["function"]["python3"]["0"]:
+            hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
+    return hash_obj.digest()
 
 
 class DictTypeAccessor:

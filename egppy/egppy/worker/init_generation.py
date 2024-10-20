@@ -19,7 +19,8 @@ def init_generation(config: WorkerConfig) -> None:
 
     # Connect to the Gene Pool and find the best phenotypes
     gene_pool = GenePoolInterface(config.databases[config.gene_pool])
-    igps = [gene_pool.initial_generation_query(pconfig) for pconfig in config.populations.configs]
+    for pconfig in config.populations.configs:
+        
 
     # If the population is not full, fill it with new individuals
     # The new individuals are created from a stabilized empty genetic code meeting

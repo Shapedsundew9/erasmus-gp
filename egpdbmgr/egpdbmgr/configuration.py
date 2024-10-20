@@ -17,6 +17,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Constants
 _DEFAULT_DBS = {"erasmus_db": DatabaseConfig()}
+TABLE_TYPES = ("pool", "library", "archive")
 
 
 class DBManagerConfig(Validator, DictTypeAccessor):
@@ -35,6 +36,7 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         local_type: str = "pool",
         remote_dbs: list[str] | None = None,
         remote_type: str = "library",
+        remote_url: str | None = None,
         archive_db: str = "erasmus_archive_db",
     ) -> None:
         """Initialize the class."""
@@ -44,6 +46,7 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         setattr(self, "local_type", local_type)
         setattr(self, "remote_dbs", remote_dbs if remote_dbs is not None else [])
         setattr(self, "remote_type", remote_type)
+        setattr(self, "remote_url", remote_url)
         setattr(self, "archive_db", archive_db)
 
     @property
@@ -96,7 +99,7 @@ class DBManagerConfig(Validator, DictTypeAccessor):
     @local_type.setter
     def local_type(self, value: str) -> None:
         """The local database type."""
-        self._is_one_of("local_type", value, ("pool", "library", "archive"))
+        self._is_one_of("local_type", value, TABLE_TYPES)
         self._local_type = value
 
     @property
@@ -121,8 +124,20 @@ class DBManagerConfig(Validator, DictTypeAccessor):
     @remote_type.setter
     def remote_type(self, value: str) -> None:
         """The remote database type."""
-        self._is_one_of("remote_type", value, ("pool", "library", "archive"))
+        self._is_one_of("remote_type", value, TABLE_TYPES)
         self._remote_type = value
+
+    @property
+    def remote_url(self) -> str | None:
+        """Get the remote database URL."""
+        return self._remote_url
+
+    @remote_url.setter
+    def remote_url(self, value: str | None) -> None:
+        """The remote database file URL for download."""
+        if value is not None:
+            self._is_url("remote_url", value)
+        self._remote_url = value
 
     @property
     def archive_db(self) -> str:

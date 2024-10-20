@@ -8,6 +8,7 @@ genetic code object avoiding all the derived data.
 
 from typing import Any, Mapping
 
+from egpcommon.common import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
@@ -27,15 +28,9 @@ class EGCMixin(GCMixin, GCProtocol):
     """Embryonic Genetic Code Mixin Class."""
 
     # The types are used for perising the genetic code object to a database.
-    GC_KEY_TYPES: dict[str, str] = {
-        "graph": "BYTEA[]",
-        "gca": "BYTEA[32]",
-        "gcb": "BYTEA[32]",
-        "ancestora": "BYTEA[32]",
-        "ancestorb": "BYTEA[32]",
-        "pgc": "BYTEA[32]",
-        "signature": "BYTEA[32]",
-    }
+    GC_KEY_TYPES: dict[str, dict[str, str | bool]] = EGC_KVT
+
+    # Keys that reference other GC's
     REFERENCE_KEYS: set[str] = {"gca", "gcb", "ancestora", "ancestorb", "pgc"}
 
     def consistency(self: GCProtocol) -> None:

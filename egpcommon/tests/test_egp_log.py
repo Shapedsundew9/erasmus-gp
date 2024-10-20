@@ -1,8 +1,9 @@
 """Tests for the egp_log module."""
+
 import unittest
 from logging import Logger, NullHandler
 
-from egpcommon.egpcommon.egp_log import egp_logger
+from egpcommon.egp_log import egp_logger
 
 
 class TestEGPLogger(unittest.TestCase):

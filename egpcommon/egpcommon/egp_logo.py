@@ -1,10 +1,12 @@
 """Erasmus GP ASCII Art"""
-from typing import LiteralString, Literal
-from datetime import datetime, timezone, timedelta
 
+from datetime import datetime, timedelta, timezone
+from typing import Literal, LiteralString
 
 EGP_DEFAULT_BW_HEADER: Literal["wide3_bold"] = "wide3_bold"
 _SPACER: Literal[6] = 6
+# pylint: disable=fixme
+# TODO: Add dynamic versioning
 _VERSION: Literal["0.1"] = "0.1"
 _DATETIME: datetime = datetime(2023, 2, 11, 11, 7, tzinfo=timezone(timedelta(0)))
 _HEADER: tuple[str, ...] = (
@@ -65,37 +67,37 @@ EGP_TEXT_TREE: dict[str, tuple[LiteralString, LiteralString, LiteralString]] = {
         f"{TestColors.EGP_TREE_GROUND}~~~~~{TestColors.ENDC}",
     ),
     "slim_bold": (
-        f"{TestColors.BOLD}\\{TestColors.ENDC}" \
-            f"{TestColors.BOLD}O{TestColors.ENDC}" \
-            f"{TestColors.BOLD}/{TestColors.ENDC}",
+        f"{TestColors.BOLD}\\{TestColors.ENDC}"
+        f"{TestColors.BOLD}O{TestColors.ENDC}"
+        f"{TestColors.BOLD}/{TestColors.ENDC}",
         f" {TestColors.BOLD}|{TestColors.ENDC} ",
         f"{TestColors.BOLD}~~~{TestColors.ENDC}",
     ),
     "standard_bold": (
-        f"{TestColors.BOLD}\\{TestColors.ENDC}" \
-            f"{TestColors.BOLD}(){TestColors.ENDC}" \
-            f"{TestColors.BOLD}/{TestColors.ENDC}",
+        f"{TestColors.BOLD}\\{TestColors.ENDC}"
+        f"{TestColors.BOLD}(){TestColors.ENDC}"
+        f"{TestColors.BOLD}/{TestColors.ENDC}",
         f" {TestColors.BOLD}||{TestColors.ENDC} ",
         f"{TestColors.BOLD}~~~~{TestColors.ENDC}",
     ),
     "wide1_bold": (
-        f"{TestColors.BOLD}\\({TestColors.ENDC}" \
-            f"{TestColors.BOLD}O{TestColors.ENDC}" \
-            f"{TestColors.BOLD})/{TestColors.ENDC}",
+        f"{TestColors.BOLD}\\({TestColors.ENDC}"
+        f"{TestColors.BOLD}O{TestColors.ENDC}"
+        f"{TestColors.BOLD})/{TestColors.ENDC}",
         f" {TestColors.BOLD}/|\\{TestColors.ENDC} ",
         f"{TestColors.BOLD}~~~~~{TestColors.ENDC}",
     ),
     "wide2_bold": (
-        f"{TestColors.BOLD}\\({TestColors.ENDC}" \
-            f"{TestColors.BOLD}O{TestColors.ENDC}" \
-            f"{TestColors.BOLD})/{TestColors.ENDC}",
+        f"{TestColors.BOLD}\\({TestColors.ENDC}"
+        f"{TestColors.BOLD}O{TestColors.ENDC}"
+        f"{TestColors.BOLD})/{TestColors.ENDC}",
         f" {TestColors.BOLD}|||{TestColors.ENDC} ",
         f"{TestColors.BOLD}~~~~~{TestColors.ENDC}",
     ),
     "wide3_bold": (
-        f"{TestColors.BOLD}\\({TestColors.ENDC}" \
-            f"{TestColors.BOLD}O{TestColors.ENDC}" \
-            f"{TestColors.BOLD})/{TestColors.ENDC}",
+        f"{TestColors.BOLD}\\({TestColors.ENDC}"
+        f"{TestColors.BOLD}O{TestColors.ENDC}"
+        f"{TestColors.BOLD})/{TestColors.ENDC}",
         f" {TestColors.BOLD}|@|{TestColors.ENDC} ",
         f"{TestColors.BOLD}~~~~~{TestColors.ENDC}",
     ),

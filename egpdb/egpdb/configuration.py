@@ -320,6 +320,7 @@ class ColumnSchema(Validator, DictTypeAccessor):
 
 
 ConversionFunc = Callable[[Any], Any] | None
+# ('column_name', encode_func, decode_func) or ['column_name', encode_func, decode_func]
 Conversion = (
     tuple[LiteralString, ConversionFunc, ConversionFunc] | list[LiteralString | ConversionFunc]
 )
@@ -596,8 +597,10 @@ class TableConfig(Validator, DictTypeAccessor):
                 self._is_tuple("conversions", v)
                 self._is_length("conversions", v, 3, 3)
                 self._is_printable_string("conversions", v[0])
-                self._is_callable("conversions", v[1])
-                self._is_callable("conversions", v[2])
+                if v[1] is not None:
+                    self._is_callable("conversions", v[1])
+                if v[2] is not None:
+                    self._is_callable("conversions", v[2])
             else:
                 self._is_callable("conversions", v)
         self._conversions = value
