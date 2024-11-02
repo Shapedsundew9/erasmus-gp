@@ -55,6 +55,17 @@ class ConnectionsMixin(CommonObjMixin):
             ), f"Connections endpoint {ep} has both source and destination row references: {self}"
         super().consistency()
 
+    def get_unconnected_idx(self: ConnectionsProtocol) -> list[int]:
+        """Return a list of unconnected endpoints."""
+        return [idx for idx, ep in enumerate(self) if len(ep) == 0]
+
+    def has_unconnected_eps(self: ConnectionsProtocol) -> bool:
+        """Check if any of the connections are unconnected."""
+        if len(self) == 0:
+            # No endpoints to be unconnected
+            return False
+        return any(len(ep) == 0 for ep in self)
+
     def verify(self: ConnectionsProtocol) -> None:
         """Verify the connections."""
         assert (

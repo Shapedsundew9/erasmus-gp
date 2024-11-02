@@ -26,7 +26,7 @@ class GCGraphABC(CacheableObjABC):
         e.g. 'A', 'B', 'I', 'O' etc.
     An interface is keyed by the row letter and 's' or 'd' for source or destination.
         e.g. 'As', 'Bd', 'Is', 'Od' etc.
-    An interfaces connections usues the interface key with a 'c' appended:
+    An interfaces connections uses the interface key with a 'c' appended:
         e.g. 'Asc', 'Bdc', 'Isc', 'Odc' etc.
     Endpoints are keyed by the row letter, a 3 digit index and 's' or 'd'.
         e.g. 'A000s', 'B002d', 'I013s', 'O255d' etc.
@@ -77,3 +77,13 @@ class GCGraphABC(CacheableObjABC):
     def get(self, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key or return the default."""
         raise NotImplementedError("GCGraphABC.get must be overridden")
+
+    @abstractmethod
+    def is_stable(self) -> bool:
+        """Return True if the graph is stable."""
+        raise NotImplementedError("GCGraphABC.is_stable must be overridden")
+
+    @abstractmethod
+    def stabilize(self, empty: bool = True):
+        """Stabilize the genetic code object."""
+        raise NotImplementedError("GCABC.stabilize must be overridden")

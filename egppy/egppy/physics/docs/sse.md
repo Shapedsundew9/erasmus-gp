@@ -15,58 +15,18 @@ The only steady state exception is a destination endpoint in a GC connection gra
 
 ### Choosing an Endpoint Source
 
-There are 3 types of internal endpoint sources:
+There are 3 types of internal endpoint sources from which an eligible source is randomly selected:
 
-1. Unused sources higher in the graph (if there is a viable one)
-2. A new top level input interface source (if not a wrapping)
-3. Reuse a source from higher in the graph (if there is a viable one)
+- Unused sources higher in the graph (if there is a viable one)
+- A new top level input interface source (if not a wrapping)
+- Reuse a source from higher in the graph (if there is a viable one)
 
-If none of these are viable then an external source must be sought. The algorithm for this is as follows:
+The selection is uniformly random from the set of viable endpoints. If there are no viable source endpoints then an external source must be sought. The algorithm for this is as follows:
 
-```mermaid
-%% Destination Endpoint Source Selection Algorithm
-flowchart TB
-    RC[Uniform
-    Random Type
-    Choice]
-    RC --> US[Unused
-    Source]
-    RC --> TS[Top
-    Level
-    Source]
-    RC --> RS[Reuse
-    Source]
-    RC --> ES[External
-    Source]
-
-    US --> VS{Viable
-    sources?}
-    TS --> VS
-    RS --> VS
-
-    VS --> |No: Remove
-    Choice| RC
-
-    VS --> |Yes| URC[Uniform
-    Random Source
-    Choice]
-
-    ES --> PS[Proximity
-    Selection]:::newGC
-
-    PS --> ICS[Uniform Random
-    Insertion
-    Case Selection]
-
-    ICS --> SC[Source
-    Connection]
-
-    URC --> SC
-
-classDef newGC fill:#444,stroke:#333,stroke-width:4px
-```
-
-
+ 1. Select the scope to search
+ 2. Select the type of match
+ 3. Build a list of candidates
+ 4. Randomly select one
 
 ### Insertion Stability
 

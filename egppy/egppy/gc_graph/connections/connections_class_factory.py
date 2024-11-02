@@ -50,4 +50,4 @@ class ListConnections(list, ConnectionsMixin, ConnectionsABC):  # type: ignore
         super().__init__(conns)
 
 
-EMPTY_CONNECTIONS: TupleConnections = TupleConnections(tuple(tuple()))
+EMPTY_CONNECTIONS: TupleConnections = TupleConnections(tuple())

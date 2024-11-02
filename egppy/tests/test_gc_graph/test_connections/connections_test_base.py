@@ -4,7 +4,11 @@ import unittest
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.connections.connections_class_factory import ListConnections, TupleConnections
+from egppy.gc_graph.connections.connections_class_factory import (
+    EMPTY_CONNECTIONS,
+    ListConnections,
+    TupleConnections,
+)
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, SrcEndPointRef
 from egppy.gc_graph.typing import DestinationRow, SourceRow
 
@@ -92,6 +96,26 @@ class ConnectionsTestBase(unittest.TestCase):
                 [[SrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)]
             )
             conns.verify()
+
+    def test_has_unconnected_eps(self):
+        """Test has_unconnected_eps method."""
+        if self.running_in_test_base_class():
+            return
+        self.assertFalse(self.connections.has_unconnected_eps())
+        self.connections = self.connections_type([[]])
+        self.assertTrue(self.connections.has_unconnected_eps())
+        self.connections = EMPTY_CONNECTIONS
+        self.assertFalse(self.connections.has_unconnected_eps())
+
+    def test_get_unconnected_idx(self):
+        """Test get_unconnected_idx method."""
+        if self.running_in_test_base_class():
+            return
+        self.assertEqual(self.connections.get_unconnected_idx(), [])
+        self.connections = self.connections_type([[]])
+        self.assertEqual(self.connections.get_unconnected_idx(), [0])
+        self.connections = EMPTY_CONNECTIONS
+        self.assertEqual(self.connections.get_unconnected_idx(), [])
 
 
 class MutableConnectionsTestBase(ConnectionsTestBase):

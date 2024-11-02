@@ -132,7 +132,18 @@ class EGCDirtyDict(GCBase, CacheableDirtyDict, EGCMixin, GCProtocol, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Constructor for DirtyDictEGC"""
+        """Constructor for DirtyDictEGC
+
+        gcabc -- the genetic code object or dictionary to set the attributes.
+
+        Valid keys for the genetic code object are:
+            graph:GCGraphABC -- the genetic code graph object (optional)
+            gca:bytes|GCABC -- the genetic code A object (optional)
+            gcb:bytes|GCABC -- the genetic code B object (optional)
+            ancestora:bytes|GCABC -- the genetic code A ancestor object (optional)
+            ancestorb:bytes|GCABC -- the genetic code B ancestor object (optional)
+            pgc:bytes|GCABC -- the parent genetic code object (optional)
+        """
         super().__init__()
         self.set_members(gcabc if gcabc is not None else {})
 
@@ -153,7 +164,18 @@ class EGCDict(GCBase, CacheableDict, EGCMixin, GCProtocol, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Constructor for DirtyDictEGC"""
+        """Constructor for DictEGC
+
+        gcabc -- the genetic code object or dictionary to set the attributes.
+
+        Valid keys for the genetic code object are:
+            graph:GCGraphABC -- the genetic code graph object (optional)
+            gca:bytes|GCABC -- the genetic code A object (optional)
+            gcb:bytes|GCABC -- the genetic code B object (optional)
+            ancestora:bytes|GCABC -- the genetic code A ancestor object (optional)
+            ancestorb:bytes|GCABC -- the genetic code B ancestor object (optional)
+            pgc:bytes|GCABC -- the parent genetic code object (optional)
+        """
         super().__init__()
         self.set_members(gcabc if gcabc is not None else {})
 

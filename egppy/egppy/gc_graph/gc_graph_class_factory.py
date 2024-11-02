@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from random import choice, shuffle
 from typing import Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -12,7 +13,7 @@ from egppy.gc_graph.connections.connections_class_factory import (
     ListConnections,
     TupleConnections,
 )
-from egppy.gc_graph.end_point.end_point import EndPoint
+from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.gc_graph_mixin import GCGraphMixin, key2parts
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
@@ -21,7 +22,7 @@ from egppy.gc_graph.interface.interface_class_factory import (
     ListInterface,
     TupleInterface,
 )
-from egppy.gc_graph.typing import ROW_CLS_INDEXED
+from egppy.gc_graph.typing import ROW_CLS_INDEXED, DestinationRow, EPClsPostfix, SourceRow
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -176,9 +177,22 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
         """Return True if the graph is conditional i.e. has row F."""
         return self._interfaces["Fd"] is not EMPTY_INTERFACE
 
+    def is_stable(self) -> bool:
+        """Return True if the GC Graph is stable, i.e. all destinations are connected."""
+        return not (
+            self._connections["Fdc"].has_unconnected_eps()
+            or self._connections["Adc"].has_unconnected_eps()
+            or self._connections["Bdc"].has_unconnected_eps()
+            or self._connections["Odc"].has_unconnected_eps()
+        )
+
     def modified(self) -> tuple[str | int, ...] | bool:
         """Return the modification status of the GC Graph."""
         return tuple(self._dirty_ics)
+
+    def stabilize(self, empty: bool = True) -> GCGraphABC:
+        """Frozen graphs cannot change so just return self."""
+        return self
 
 
 class MutableGCGraph(FrozenGCGraph):
@@ -191,6 +205,37 @@ class MutableGCGraph(FrozenGCGraph):
         """Initialize the GC graph."""
         super().__init__(gc_graph)
         self._lock = False
+
+    def stabilize(self, empty: bool = True) -> GCGraphABC:
+        """Stablization involves connecting all the unconnected destination endpoints."""
+        # Make a list of unconnected endpoints and shuffle it
+        unconnected: list[tuple[DestinationRow, int]] = (
+            [(DestinationRow.F, idx) for idx in self._connections["Fdc"].get_unconnected_idx()]
+            + [(DestinationRow.A, idx) for idx in self._connections["Adc"].get_unconnected_idx()]
+            + [(DestinationRow.B, idx) for idx in self._connections["Bdc"].get_unconnected_idx()]
+            + [(DestinationRow.O, idx) for idx in self._connections["Odc"].get_unconnected_idx()]
+        )
+        shuffle(unconnected)
+
+        # Connect the unconnected endpoints in a random order
+        for drow, didx in unconnected:
+            typ = self._interfaces[drow + EPClsPostfix.DST][didx]
+            # Find the valid sources for the destination row and endpoint type
+            vsrcs = self.valid_srcs(drow, typ)
+            # If the interface of the GC is not fixed (i.e. it is not an empty GC) then
+            # a new input interface endpoint is an option.
+            if not empty:
+                vsrcs.append((SourceRow.I, len(self._interfaces["Is"])))
+            if vsrcs:
+                # Randomly choose a valid source endpoint
+                srow, sidx = choice(vsrcs)
+                # If it is a new input interface endpoint then add it to input interface
+                if srow == SourceRow.I:
+                    self._interfaces["Is"].append(typ)
+                    self._connections["Isc"].append([])
+                self._connections[drow + EPClsPostfix.DST][didx] = SrcEndPointRef(srow, sidx)
+                self._connections[srow + EPClsPostfix.SRC][sidx] = DstEndPointRef(drow, didx)
+        return self
 
 
 # The empty graph

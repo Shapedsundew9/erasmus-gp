@@ -12,10 +12,12 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egppy.gc_graph.ep_type import INVALID_EP_TYPE_VALUE, ep_type_lookup
 from egppy.gc_graph.gc_graph_class_factory import FrozenGCGraph, MutableGCGraph
 from egppy.gc_graph.typing import (
+    DESTINATION_ROWS,
     SOURCE_ROWS,
     VALID_ROW_SOURCES,
     DestinationRow,
     EndPointType,
+    EPClsPostfix,
     Row,
     SourceRow,
 )
@@ -45,7 +47,6 @@ def next_idx(
     typa: EndPointType,
 ) -> int:
     """Get the next index for a source endpoint."""
-    # HERE & NEEDS FIXING
     if row != "U":
         key = f"{row}{typa}"
         src_positions.setdefault(key, [])
@@ -142,6 +143,13 @@ class GCGraphTestBase(unittest.TestCase):
         gcg2 = self.gcg_type(gcg1)
         self.assertEqual(gcg1, gcg2)
 
+    def test_is_stable(self):
+        """Test the is_stable method."""
+        if self.running_in_test_base_class():
+            return
+        gcg = self.gcg_type(self.jgcg_list[0])
+        self.assertTrue(gcg.is_stable())
+
 
 class MutableGCGraphTestBase(GCGraphTestBase):
     """Extends the static graph test cases with dynamic graph tests."""
@@ -219,3 +227,18 @@ class MutableGCGraphTestBase(GCGraphTestBase):
             self.assertEqual(ep1.get_refs(), ep2.get_refs())
             self.assertEqual(ep1.get_typ(), ep2.get_typ())
             self.assertEqual(ep1.get_row(), ep2.get_row())
+
+    def test_is_stable2(self):
+        """Test the is_stable method."""
+        if self.running_in_test_base_class():
+            return
+        gcg = self.gcg_type(self.jgcg_list[0])
+        # Find a destination row and remove any references to it
+        for drow in DESTINATION_ROWS:
+            if drow in gcg and len(gcg[drow + EPClsPostfix.DST]) > 0:
+                ref = gcg[drow + EPClsPostfix.DST + "c"][0]
+                gcg[drow + EPClsPostfix.DST + "c"][0] = []
+                gcg[ref.row + EPClsPostfix.SRC + "c"][ref.idx] = []
+                break
+        # Check that the graph is not stable
+        self.assertFalse(gcg.is_stable())

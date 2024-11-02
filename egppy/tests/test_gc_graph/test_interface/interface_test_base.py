@@ -87,6 +87,23 @@ class InterfaceTestBase(unittest.TestCase):
             iface = self.interface_type([INVALID_EP_TYPE_VALUE] * 4)
             iface.verify()
 
+    def test_find(self):
+        """Test the find method of the interface."""
+        if self.running_in_test_base_class():
+            return
+        idx = self.interface.find(ep_type_lookup["n2v"]["bool"])
+        self.assertEqual(idx, [0, 1, 2, 3])
+        iface = self.interface_type(
+            [
+                ep_type_lookup["n2v"]["bool"],
+                ep_type_lookup["n2v"]["int"],
+                ep_type_lookup["n2v"]["str"],
+                ep_type_lookup["n2v"]["float"],
+            ]
+        )
+        idx = iface.find(ep_type_lookup["n2v"]["int"])
+        self.assertEqual(idx, [1])
+
 
 class MutableInterfaceTestBase(InterfaceTestBase):
     """Extends the static interface test cases with dynamic interface tests."""

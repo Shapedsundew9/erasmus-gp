@@ -117,7 +117,9 @@ class GCGraphMixin(CacheableObjMixin):
                 self[key + "c"] = gc_graph.get(key + "c", EMPTY_CONNECTIONS)
         else:
             src_if_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
-            src_if_refs: dict[SourceRow, dict[int, list[tuple]]] = {r: {} for r in SOURCE_ROWS}
+            src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {
+                r: {} for r in SOURCE_ROWS
+            }
             for row, jeps in gc_graph.items():
                 # Row U only exists in the JSON GC Graph to identify unconnected src endpoints
                 # Otherwise it is a valid destination row
@@ -129,7 +131,9 @@ class GCGraphMixin(CacheableObjMixin):
                     )
                     # Convert each dst endpoint into a dst reference for a src endpoint
                     for idx, jep in enumerate(jeps):
-                        src_if_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX], []).append((row, idx))
+                        src_if_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX], []).append(
+                            DstEndPointRef(cast(DestinationRow, row), idx)
+                        )
                 # Collect the references to the source interfaces
                 for jep in jeps:
                     src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], jep[CPI.TYP]))
@@ -141,7 +145,7 @@ class GCGraphMixin(CacheableObjMixin):
             for row, idx_refs in src_if_refs.items():
                 src_refs = [tuple()] * len(self[row + EPClsPostfix.SRC])
                 for idx, refs in idx_refs.items():
-                    src_refs[idx] = tuple(DstEndPointRef(r[0], r[1]) for r in refs)
+                    src_refs[idx] = tuple(DstEndPointRef(r.get_row(), r.get_idx()) for r in refs)
                 self[row + EPClsPostfix.SRC + "c"] = src_refs
 
         if _LOG_VERIFY:
@@ -283,6 +287,13 @@ class GCGraphMixin(CacheableObjMixin):
         Endpoint types are returned in the order of lowest value to highest.
         """
         return (typ for typ in sorted({typ for typ in self.get(ikey, EMPTY_INTERFACE)}))
+
+    def valid_srcs(
+        self: GCGraphProtocol, row: DestinationRow, typ: EndPointType
+    ) -> list[tuple[SourceRow, int]]:
+        """Return a list of valid source row endpoint indexes."""
+        srows = VALID_ROW_SOURCES["F" in self][row]
+        return [(srow, sidx) for srow in srows for sidx in self[srow + EPClsPostfix.SRC].find(typ)]
 
     def verify(self: GCGraphProtocol) -> None:
         """Verify the GC graph."""

@@ -74,3 +74,13 @@ class ConnectionsABC(CommonObjABC):
     def append(self, value: Iterable[XEndPointRefABC]) -> None:
         """Append the connection."""
         raise NotImplementedError("Connections.append must be overridden")
+
+    @abstractmethod
+    def get_unconnected_idx(self) -> list[int]:
+        """Return a list of unconnected endpoints."""
+        raise NotImplementedError("Connections.get_unconnected_idx must be overridden")
+
+    @abstractmethod
+    def has_unconnected_eps(self) -> bool:
+        """Check if any of the connections are unconnected."""
+        raise NotImplementedError("Connections.has_unconnected_eps must be overridden")

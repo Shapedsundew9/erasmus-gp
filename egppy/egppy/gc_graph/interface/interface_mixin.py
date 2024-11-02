@@ -5,7 +5,7 @@ from typing import Any, Protocol
 from egpcommon.common_obj_mixin import CommonObjMixin, CommonObjProtocol
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.ep_type import validate
+from egppy.gc_graph.ep_type import EndPointType, validate
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -46,6 +46,10 @@ class InterfaceMixin(CommonObjMixin):
     The InterfaceBase class is a subclass of InterfaceABC.
     It is the base class for all interface objects.
     """
+
+    def find(self: InterfaceProtocol, typ: EndPointType) -> list[int]:
+        """Return the indices of each endpoint with type typ."""
+        return [idx for idx, ept in enumerate(self) if ept == typ]
 
     def verify(self: InterfaceProtocol) -> None:
         """Verify the interface."""
