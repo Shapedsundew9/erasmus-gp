@@ -130,6 +130,8 @@ Pre-cursor GC's are first formed by spontaneous assembly reducing the difference
 |-----------|------|---------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 | sse_limit | int  | 100     | 1 to 2**31-1 | The maximum number of stead state exceptions permitted in the construction of a pre-cursor GC before it is discarded from consideration.   |
 | tolerence | int  | 100     | 1 to 2**31-1 | The number of consecutive pre-cursor GC fitness evaluations to try before giving up on being able to build a GC randomly for this problem. |
+| minimum_generation | int | 0 | 0 to 2**31-1 | The minimum generation of Insertion GC's selected for ISA. Must be <= *maximum_generation*. |
+| maximum_generation | int | 0 | 0 to 2**31-1 | The maximum generation of Insertion GC's selected for ISA. Must be >= *minimum_generation*. |
 
 ### Fitness Queue
 

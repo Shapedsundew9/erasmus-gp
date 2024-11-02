@@ -20,11 +20,11 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class ConnectionsABC(CommonObjABC):
     """Abstract Base Class for Genetic Code Graph Connections between Interface Endpoints.
 
-    ConnectionsABC does not inherent from CacheableObjABC because the connections are
+    ConnectionsABC does not inherit from CacheableObjABC because the connections are
     stored within the graph object and are not cached separately.
 
     Connections are read-only once created. Modifying connections (and interfaces) is
-    done by manipluating endpoints which are written to the read-only connections object
+    done by manipulating endpoints which are written to the read-only connections object
     when complete.
 
     Connections can be considered as a tuple-like of tuple-likes of endpoint references.

@@ -25,16 +25,16 @@ class TupleConnections(tuple, ConnectionsMixin, ConnectionsProtocol, Connections
     def __init__(self, conns: Iterable[Iterable[XEndPointRefABC]] | ConnectionsABC) -> None:
         """Initialize the connections."""
 
-    def __delitem__(self, index: int) -> None:
-        """Delete the endpoint type."""
+    def __delitem__(self, _) -> None:
+        """Deletion of endpoint types is not supported for TupleConnections."""
         raise RuntimeError("TupleConnections.__delitem__ is not supported")
 
-    def __setitem__(self, index: int, value: Iterable[XEndPointRefABC]) -> None:
-        """Set the endpoint type."""
+    def __setitem__(self, _index: int, _value: Iterable[XEndPointRefABC]) -> None:
+        """Setting an item is not supported for TupleConnections."""
         raise RuntimeError("TupleConnections.__setitem__ is not supported")
 
-    def append(self, value: Iterable[XEndPointRefABC]) -> None:
-        """Append the endpoint type."""
+    def append(self, value) -> None:
+        """Appending endpoint types is not supported for TupleConnections."""
         raise RuntimeError("TupleConnections.append is not supported")
 
 

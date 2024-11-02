@@ -9,6 +9,7 @@ from egpcommon.common import EGP_EPOCH, DictTypeAccessor
 from egpcommon.validator import Validator
 
 # The beginning
+# Acybergenesis: https://g.co/gemini/share/101495090943
 ACYBERGENESIS_PROBLEM = sha256(b"Acybergenesis Problem").digest()
 
 
@@ -20,8 +21,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
     The to_json() method returns the JSON types.
     """
 
-    git_repo_regex_str: str = r"[a-zA-Z0-9_\\.-]{1,256}"
-    git_repo_regex: Pattern[str] = regex_compile(git_repo_regex_str)
+    git_repo_regex_str: str = (
+        r"[a-zA-Z0-9_\.-]{1,256}"  # Alphanumeric characters, underscores, dots, and hyphens
+    )
+    git_repo_regex: Pattern = regex_compile(git_repo_regex_str)
 
     def __init__(
         self,
@@ -38,11 +41,35 @@ class ProblemConfig(Validator, DictTypeAccessor):
         root_path: str = ".",
     ) -> None:
         """Initialize the class."""
+        self._set_git_attributes(git_hash, git_repo, git_url)
+        self._set_interface_hashes(ordered_interface_hash, unordered_interface_hash)
+        self._set_optional_attributes(
+            description, ff_code_file, last_verified_live, name, requirements_file_name, root_path
+        )
+
+    def _set_git_attributes(self, git_hash: bytes | str, git_repo: str, git_url: str) -> None:
+        """Set git-related attributes."""
         setattr(self, "git_hash", git_hash)
         setattr(self, "git_repo", git_repo)
         setattr(self, "git_url", git_url)
+
+    def _set_interface_hashes(
+        self, ordered_interface_hash: bytes | str, unordered_interface_hash: bytes | str
+    ) -> None:
+        """Set interface hashes."""
         setattr(self, "ordered_interface_hash", ordered_interface_hash)
         setattr(self, "unordered_interface_hash", unordered_interface_hash)
+
+    def _set_optional_attributes(
+        self,
+        description: str,
+        ff_code_file: str,
+        last_verified_live: datetime | str,
+        name: str,
+        requirements_file_name: str,
+        root_path: str,
+    ) -> None:
+        """Set optional attributes."""
         setattr(self, "description", description)
         setattr(self, "ff_code_file", ff_code_file)
         setattr(self, "last_verified_live", last_verified_live)
@@ -61,7 +88,7 @@ class ProblemConfig(Validator, DictTypeAccessor):
         NOTE: Older git hashes may be 160 bit SHA1. These are extended
         to 256 bit SHA256 by prefixing zeros.
         """
-        assert value is not None, "git_hash must be a string"
+        assert value is not None, "git_hash must be a bytes or string"
         if isinstance(value, bytes) and len(value) == 20:
             value = b"0" * 12 + value
         elif isinstance(value, str) and len(value) == 40:
@@ -130,7 +157,8 @@ class ProblemConfig(Validator, DictTypeAccessor):
 
     @description.setter
     def description(self, value: str) -> None:
-        """User defined arbitary string. Not used by Erasmus."""
+        """User defined arbitrary string. Not used by Erasmus for any
+        internal processing or logic."""
         self._is_printable_string("description", value)
         self._is_length("description", value, 0, 1024)
         self._description = value
@@ -166,9 +194,8 @@ class ProblemConfig(Validator, DictTypeAccessor):
 
     @name.setter
     def name(self, value: str) -> None:
-        """User defined name for the problem. Not used by Erasmus."""
+        """User defined name for the problem. This field is not utilized by the Erasmus system."""
         self._is_printable_string("name", value)
-        self._is_length("name", value, 0, 64)
         self._name = value
 
     @property

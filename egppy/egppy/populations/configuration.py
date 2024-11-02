@@ -61,7 +61,7 @@ class SourceConfig(Validator, DictTypeAccessor):
         - {'minimum_distance', 'fitness_threshold', 'novelty_threshold'}  # DIVERSE
         - {'maximum_problem_distance', 'minimum_distance', 'tolerence'}  # RELATED
         - {'minimum_problem_distance', 'minimum_distance', 'tolerence'}  # UNRELATED
-        - {'sse_limit', 'tolerence'}  # SPONTANEOUS
+        - {'sse_limit', 'tolerence', 'min_generation', 'max_generation'}  # SPONTANEOUS
         """
         if self.source == "BEST":
             assert len(kwargs) == 0, f"Additional keys not allowed for BEST. {kwargs} specified."
@@ -84,6 +84,8 @@ class SourceConfig(Validator, DictTypeAccessor):
             assert len(kwargs) == 2, "Invalid number of keys for SPONTANEOUS."
             assert "sse_limit" in kwargs, "Missing sse_limit key."
             assert "tolerence" in kwargs, "Missing tolerence key"
+            assert "minimum_generation" in kwargs, "Missing minimum_generation key."
+            assert "maximum_generation" in kwargs, "Missing maximum_generation key."
         else:
             assert False, "Invalid source type."
 
@@ -117,7 +119,7 @@ class SourceConfig(Validator, DictTypeAccessor):
 
     @limit.setter
     def limit(self, value: int) -> None:
-        """The limit of the source."""
+        """The maximum number of GC's allowed from this source."""
         self._is_int("limit", value)
         self._in_range("limit", value, 1, 2**31 - 1)
         self._limit = value
@@ -217,6 +219,30 @@ class SourceConfig(Validator, DictTypeAccessor):
         self._in_range("sse_limit", value, 1, 2**31 - 1)
         self._sse_limit = value
 
+    @property
+    def minimum_generation(self) -> int:
+        """Get the minimum_generation."""
+        return self._minimum_generation
+
+    @minimum_generation.setter
+    def minimum_generation(self, value: int) -> None:
+        """The minimum generation."""
+        self._is_int("minimum_generation", value)
+        self._in_range("minimum_generation", value, 0, 2**31 - 1)
+        self._minimum_generation = value
+
+    @property
+    def maximum_generation(self) -> int:
+        """Get the maximum_generation."""
+        return self._maximum_generation
+
+    @maximum_generation.setter
+    def maximum_generation(self, value: int) -> None:
+        """The maximum generation."""
+        self._is_int("maximum_generation", value)
+        self._in_range("maximum_generation", value, 0, 2**31 - 1)
+        self._maximum_generation = value
+
     def to_json(self) -> dict[str, Any]:
         """Return the JSON representation of the configuration."""
         common = {
@@ -247,7 +273,13 @@ class SourceConfig(Validator, DictTypeAccessor):
                 "tolerence": self.tolerence,
             }
         elif self.source == "SPONTANEOUS":
-            return {**common, "sse_limit": self.sse_limit, "tolerence": self.tolerence}
+            return {
+                **common,
+                "sse_limit": self.sse_limit,
+                "tolerence": self.tolerence,
+                "minimum_generation": self.minimum_generation,
+                "maximum_generation": self.maximum_generation,
+            }
         else:
             return common
 

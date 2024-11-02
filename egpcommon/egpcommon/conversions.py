@@ -9,13 +9,15 @@ The need for type conversions is driven by:
 from json import dumps, loads
 from zlib import compress, decompress
 
-from numpy import frombuffer, uint8
+from numpy import frombuffer, ndarray, uint8
 from numpy.typing import NDArray
 
 from egpcommon.common import NULL_SHA256, PROPERTIES
 
 
-def compress_json(obj: dict | list | None) -> bytes | memoryview | bytearray | None:
+def compress_json(
+    obj: dict | list | memoryview | bytearray | bytes | None,
+) -> bytes | memoryview | bytearray | None:
     """Compress a JSON dict object.
 
     Args
@@ -77,7 +79,7 @@ def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
     return None if obj is None else frombuffer(obj, dtype=uint8, count=32)
 
 
-def ndarray_to_memoryview(obj: NDArray | None) -> memoryview | None:
+def ndarray_to_memoryview(obj: NDArray | bytes | None) -> memoryview | None:
     """Convert a numpy 32 uint8 ndarray to a memory view.
 
     Args
@@ -88,12 +90,16 @@ def ndarray_to_memoryview(obj: NDArray | None) -> memoryview | None:
     -------
     (memoryview or NoneType)
     """
-    if isinstance(obj, bytes):
+    if isinstance(obj, ndarray):
+        return obj.data
+    if isinstance(obj, memoryview) or obj is None:
+        return obj
+    if isinstance(obj, (bytes, bytearray)):
         return memoryview(obj)
-    return None if obj is None else obj.data
+    assert False, f"Un-encodeable type '{type(obj)}': Expected 'ndarray' or byte type."
 
 
-def ndarray_to_bytes(obj: NDArray | None) -> bytes | None:
+def ndarray_to_bytes(obj: NDArray | bytes | None) -> bytes | None:
     """Convert a numpy 32 uint8 ndarray to a bytes object.
 
     Args
@@ -104,9 +110,11 @@ def ndarray_to_bytes(obj: NDArray | None) -> bytes | None:
     -------
     (bytes or NoneType)
     """
-    if isinstance(obj, bytes):
+    if isinstance(obj, ndarray):
+        return obj.tobytes()
+    if isinstance(obj, bytes) or obj is None:
         return obj
-    return None if obj is None else obj.tobytes()
+    assert False, "Un-encodeable type"
 
 
 def encode_properties(obj: dict[str, bool] | int | None) -> int:

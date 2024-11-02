@@ -73,8 +73,8 @@ def parse_cmdline_args(args: list[str]) -> Namespace:
 def init_db_manager(args: Namespace) -> None:
     """Initialize the DB Manager."""
     # Erasmus header to stdout and logfile
-    print(header())
     print(_HEADER)
+    print(header())
     for line in header_lines(attr="bw"):
         _logger.info(line)
 

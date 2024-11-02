@@ -1,11 +1,13 @@
 # GC Insertion
+
 Insertion of a GC into another GC falls into one of three categories:
 
 - **Stacking**.Stacking one GC on top of the other and wrapping it in a new resultant GC.
-- **Wrapping**. The graph of a GChas its IO interface replaced with that of an Empty GC.
+- **Wrapping**. The graph of a GC has its IO interface replaced with that of an Empty GC.
 - **Restructuring**: A Resultant GC and a Fetal GC will be required.
 
 ## Limitations
+
 There are limitations as to which GC's may be stacked, wrapped or restructured. This is determined by the type of graph they have.
 
 | Graph Type | Stack | Wrap | Restructure |
@@ -27,12 +29,12 @@ There are limitations as to which GC's may be stacked, wrapped or restructured. 
 | IGC  | Inerstion GC. The GC inserted into TGC to make RGC. |
 | FGC  | The fetal GC. A secondary GC created as part of the insertion. |
 | xGC[y] | A specific row where x is one of RTIF and y is a row letter. |
-| xGC[yc] | Used in an I or O row definition. x & y defined as above. 'c' identifies that only connected endpoints of the original row are part of the interface. See section below.
-| xGC[y] + wGC[z] | Used in an I or O row deinition. x & y defined as above. w & z defined the same as x & y. Interface row is the concatenation, in order, of the specified rows.
-| `#001000` | Background color for the RGC.
-| `#604000` | Background color for a row created from an existing interface.
-| `#300000` | Background color for new row definition.
-| `#000000` | Background color for unchanged row or interface.
+| xGC[yc] | Used in an I or O row definition. x & y defined as above. 'c' identifies that only connected endpoints of the original row are part of the interface. See section below. |
+| xGC[y] + wGC[z] | Used in an I or O row deinition. x & y defined as above. w & z defined the same as x & y. Interface row is the concatenation, in order, of the specified rows. |
+| `#001000` | Background color for the RGC.|
+| `#604000` | Background color for a row created from an existing interface. |
+| `#300000` | Background color for new row definition. |
+| `#000000` | Background color for unchanged row or interface. |
 
 In any insertion event TGC and IGC are not modified RGC and any FGC are new GC's with copies of TGC & IGC data as specified in the following sections.
 
@@ -49,6 +51,7 @@ In this way existing connections from the original TGC are guaranteed and IGC ha
 NB: IGC[O] is appended to TGC[GCA] source endpoints to make FGC[O] to maximise the exposure of IGC outputs.
 
 ## Stacking
+
 There are 2 stacking cases: Stack and Inverse Stack. Stacking cases are symmetrical TGC:IGC or (inverse) IGC:TGC.
 
 ### Case 0: Stack
@@ -98,8 +101,10 @@ class RGC newGC
 class GCA modified
 class GCB modified
 ```
+
 ## Wrapping
-There is only one wrapping case. An Empty TGC can wrap the graph of a Standard IGC by replacing its input and output interface with its own. 
+
+There is only one wrapping case. An Empty TGC can wrap the graph of a Standard IGC by replacing its input and output interface with its own.
 
 ### Case 2
 
@@ -128,7 +133,8 @@ class GCB modified
 ## Restructuring
 
 ### Case 3
-Insert IGC above A 
+
+Insert IGC above A
 
 ```mermaid
 %% Insertion Case 3
@@ -169,7 +175,8 @@ class O2 newRow
 ```
 
 ### Case 4
-Insert IGC above B 
+
+Insert IGC above B
 
 ```mermaid
 %% Insertion Case 4
@@ -210,6 +217,7 @@ class O2 newRow
 ```
 
 ### Case 5
+
 Insert IGC above O
 
 ```mermaid
