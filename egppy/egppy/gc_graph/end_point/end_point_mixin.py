@@ -65,8 +65,14 @@ class EndPointRefMixin(CommonObjMixin):
 
     def __eq__(self, other: object) -> bool:
         """Compare two end points."""
-        if not isinstance(other, self.__class__):
-            return False
+        if not isinstance(other, (self.__class__, DstEndPointRefMixin, SrcEndPointRefMixin)):
+            if not isinstance(other, (tuple, list)):
+                return False
+            if len(other) != 2:
+                return False
+            if not isinstance(other[0], Row) or not isinstance(other[1], int):
+                return False
+            return self.get_row() == other[0] and self.get_idx() == other[1]
         return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:
@@ -98,8 +104,14 @@ class DstEndPointRefMixin(CommonObjMixin):
 
     def __eq__(self, other: object) -> bool:
         """Compare two end points."""
-        if not isinstance(other, self.__class__):
-            return False
+        if not isinstance(other, (self.__class__, SrcEndPointRefMixin)):
+            if not isinstance(other, (tuple, list)):
+                return False
+            if len(other) != 2:
+                return False
+            if not isinstance(other[0], Row) or not isinstance(other[1], int):
+                return False
+            return self.get_row() == other[0] and self.get_idx() == other[1]
         return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:
@@ -149,8 +161,14 @@ class SrcEndPointRefMixin(CommonObjMixin):
 
     def __eq__(self, other: object) -> bool:
         """Compare two end points."""
-        if not isinstance(other, self.__class__):
-            return False
+        if not isinstance(other, (self.__class__, DstEndPointRefMixin)):
+            if not isinstance(other, (tuple, list)):
+                return False
+            if len(other) != 2:
+                return False
+            if not isinstance(other[0], Row) or not isinstance(other[1], int):
+                return False
+            return self.get_row() == other[0] and self.get_idx() == other[1]
         return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:

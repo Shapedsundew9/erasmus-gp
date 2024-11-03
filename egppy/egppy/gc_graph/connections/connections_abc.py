@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Iterable
+from collections.abc import MutableSequence
+from typing import Iterable
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -17,7 +18,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class ConnectionsABC(CommonObjABC):
+class ConnectionsABC(MutableSequence, CommonObjABC):
     """Abstract Base Class for Genetic Code Graph Connections between Interface Endpoints.
 
     ConnectionsABC does not inherit from CacheableObjABC because the connections are
@@ -43,44 +44,18 @@ class ConnectionsABC(CommonObjABC):
         """Initialize the connections."""
         raise NotImplementedError("Connections.__init__ must be overridden")
 
+    @classmethod
     @abstractmethod
-    def __delitem__(self, index: int) -> None:
-        """Delete the connection."""
-        raise NotImplementedError("Connections.__delitem__ must be overridden")
-
-    @abstractmethod
-    def __getitem__(self, index: int) -> Any:
-        """Return the list of connections."""
-        raise NotImplementedError("Connections.__getitem__ must be overridden")
-
-    @abstractmethod
-    def __iter__(self) -> Any:
-        """Iterate over the connections."""
-        raise NotImplementedError("Connections.__iter__ must be overridden")
-
-    @abstractmethod
-    def __len__(self) -> int:
-        """Return the number of endpoints (connections).
-        NOTE: An endpoint may have no connections but still be valid.
-        """
-        raise NotImplementedError("Connections.__len__ must be overridden")
-
-    @abstractmethod
-    def __setitem__(self, index: int, value: Any) -> None:
-        """Set the connection."""
-        raise NotImplementedError("Connections.__setitem__ must be overridden")
-
-    @abstractmethod
-    def append(self, value: Iterable[XEndPointRefABC]) -> None:
-        """Append the connection."""
-        raise NotImplementedError("Connections.append must be overridden")
+    def get_ref_iterable_type(cls) -> type:
+        """Get the reference iterable type."""
+        raise NotImplementedError("Connections.get_ref_iterable_type must be overridden")
 
     @abstractmethod
     def get_unconnected_idx(self) -> list[int]:
-        """Return a list of unconnected endpoints."""
+        """Get a list of unconnected endpoints."""
         raise NotImplementedError("Connections.get_unconnected_idx must be overridden")
 
     @abstractmethod
     def has_unconnected_eps(self) -> bool:
-        """Check if any of the connections are unconnected."""
+        """Check if there are any unconnected endpoints."""
         raise NotImplementedError("Connections.has_unconnected_eps must be overridden")

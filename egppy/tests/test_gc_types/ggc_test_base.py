@@ -233,9 +233,9 @@ class GGCTestBase(unittest.TestCase):
         self.assertEqual(first=value, second="value")
         self.assertFalse(expr=self.ggc.is_dirty())
 
-        value = self.ggc.setdefault(
+        value = self.ggc.setdefault(  # pylint: disable=assignment-from-no-return
             "new_key", "default"
-        )  # pylint: disable=assignment-from-no-return
+        )
         self.assertEqual(first=value, second="default")
         self.assertTrue(expr=self.ggc.is_dirty())
 

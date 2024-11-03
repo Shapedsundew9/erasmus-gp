@@ -91,6 +91,8 @@ class TestSourceConfig(TestCase):
             underflow="NEXT",
             sse_limit=100,
             tolerence=100,
+            minimum_generation=0,
+            maximum_generation=0,
         )
         self.assertEqual(config.source, "SPONTANEOUS")
         self.assertEqual(config.scope, 127)
@@ -147,6 +149,8 @@ class TestSourceConfig(TestCase):
                 "underflow": "NEXT",
                 "sse_limit": 100,
                 "tolerence": 100,
+                "minimum_generation": 0,
+                "maximum_generation": 0,
             },
         ]
 

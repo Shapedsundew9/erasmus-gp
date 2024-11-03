@@ -57,6 +57,9 @@ def key2parts(key: str) -> tuple[Row, int, EndPointClass]:
 class GCGraphProtocol(CacheableObjProtocol, Protocol):
     """Genetic Code Graph Protocol."""
 
+    _TI: type[InterfaceABC]
+    _TC: type[ConnectionsABC]
+
     def __contains__(self, key: str) -> bool:
         """Return True if the endpoint exists."""
         ...  # pylint: disable=unnecessary-ellipsis
@@ -116,6 +119,8 @@ class GCGraphMixin(CacheableObjMixin):
                 self[key] = gc_graph.get(key, EMPTY_INTERFACE)
                 self[key + "c"] = gc_graph.get(key + "c", EMPTY_CONNECTIONS)
         else:
+            # The type of the endpoint reference list
+            rtype = self._TC.get_ref_iterable_type()
             src_if_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
             src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {
                 r: {} for r in SOURCE_ROWS
@@ -125,9 +130,11 @@ class GCGraphMixin(CacheableObjMixin):
                 # Otherwise it is a valid destination row
                 if row != "U":
                     rowd = row + EPClsPostfix.DST
-                    self[rowd] = [jep[CPI.TYP] for jep in jeps]
-                    self[rowd + "c"] = (
-                        (SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),) for jep in jeps
+                    # Interface
+                    self[rowd] = self._TI(jep[CPI.TYP] for jep in jeps)
+                    # Connections
+                    self[rowd + "c"] = self._TC(
+                        rtype((SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),)) for jep in jeps
                     )
                     # Convert each dst endpoint into a dst reference for a src endpoint
                     for idx, jep in enumerate(jeps):
@@ -140,13 +147,13 @@ class GCGraphMixin(CacheableObjMixin):
 
             # Create the source interfaces from the references collected above
             for row, sif in src_if_typs.items():
-                self[row + EPClsPostfix.SRC] = (t for _, t in sorted(sif, key=skey))
+                self[row + EPClsPostfix.SRC] = self._TI(t for _, t in sorted(sif, key=skey))
             # Add the references to the destinations from the sources
             for row, idx_refs in src_if_refs.items():
-                src_refs = [tuple()] * len(self[row + EPClsPostfix.SRC])
+                src_refs = [rtype()] * len(self[row + EPClsPostfix.SRC])
                 for idx, refs in idx_refs.items():
-                    src_refs[idx] = tuple(DstEndPointRef(r.get_row(), r.get_idx()) for r in refs)
-                self[row + EPClsPostfix.SRC + "c"] = src_refs
+                    src_refs[idx] = rtype(DstEndPointRef(r.get_row(), r.get_idx()) for r in refs)
+                self[row + EPClsPostfix.SRC + "c"] = self._TC(src_refs)
 
         if _LOG_VERIFY:
             self.verify()

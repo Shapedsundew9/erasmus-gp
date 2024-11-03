@@ -76,7 +76,7 @@ class ConnectionsTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             conns = TupleConnections(
-                [[SrcEndPointRef(DestinationRow.O, 0), DstEndPointRef(SourceRow.I, 0)] * 4]
+                [(SrcEndPointRef(DestinationRow.O, 0), DstEndPointRef(SourceRow.I, 0)) * 4]
             )
             conns.consistency()
 

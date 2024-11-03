@@ -81,7 +81,7 @@ class SourceConfig(Validator, DictTypeAccessor):
             assert "minimum_distance" in kwargs, "Missing minimum_distance key."
             assert "tolerence" in kwargs, "Missing tolerence key."
         elif self.source == "SPONTANEOUS":
-            assert len(kwargs) == 2, "Invalid number of keys for SPONTANEOUS."
+            assert len(kwargs) == 4, "Invalid number of keys for SPONTANEOUS."
             assert "sse_limit" in kwargs, "Missing sse_limit key."
             assert "tolerence" in kwargs, "Missing tolerence key"
             assert "minimum_generation" in kwargs, "Missing minimum_generation key."
@@ -319,7 +319,11 @@ class PopulationConfig(Validator, DictTypeAccessor):
             source="UNRELATED", minimum_problem_distance=5, minimum_distance=4, tolerence=10
         ),
         spontaneous_source: SourceConfig | dict[str, Any] = SourceConfig(
-            source="SPONTANEOUS", sse_limit=100, tolerence=100
+            source="SPONTANEOUS",
+            sse_limit=100,
+            tolerence=100,
+            minimum_generation=0,
+            maximum_generation=2**31 - 1,
         ),
     ) -> None:
         """Initialize the class."""

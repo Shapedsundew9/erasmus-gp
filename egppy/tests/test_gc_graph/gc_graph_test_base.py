@@ -4,7 +4,7 @@ import unittest
 from itertools import count, permutations, product
 from json import dump, load
 from os.path import dirname, exists, join
-from random import randint
+from random import choice, randint
 from typing import cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -232,13 +232,20 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         """Test the is_stable method."""
         if self.running_in_test_base_class():
             return
-        gcg = self.gcg_type(self.jgcg_list[0])
-        # Find a destination row and remove any references to it
-        for drow in DESTINATION_ROWS:
-            if drow in gcg and len(gcg[drow + EPClsPostfix.DST]) > 0:
-                ref = gcg[drow + EPClsPostfix.DST + "c"][0]
-                gcg[drow + EPClsPostfix.DST + "c"][0] = []
-                gcg[ref.row + EPClsPostfix.SRC + "c"][ref.idx] = []
-                break
-        # Check that the graph is not stable
-        self.assertFalse(gcg.is_stable())
+        for jgcg in self.jgcg_list:
+            gcg = self.gcg_type(jgcg)
+            # The maximum number of endpoints to remove
+            count = randint(1, 4)
+            # Find a destination row that has 1 or more endpoints
+            for drow in DESTINATION_ROWS:
+                if drow in gcg and len(gcg[drow + EPClsPostfix.DST]) > 0:
+                    # Choose a random endpoint in the row
+                    idx = randint(0, len(gcg[drow + EPClsPostfix.DST]) - 1)
+                    ref = gcg[drow + EPClsPostfix.DST + "c"][idx][0]
+                    # Its a destination so only has one reference which we remove
+                    gcg[drow + EPClsPostfix.DST + "c"][0] = []
+                    # Need to find the reference in the source row reference list and remove it
+                    gcg[ref.get_row() + EPClsPostfix.SRC + "c"][ref.get_idx()].remove((drow, idx))
+                    break
+            # Check that the graph is not stable
+            self.assertFalse(gcg.is_stable())

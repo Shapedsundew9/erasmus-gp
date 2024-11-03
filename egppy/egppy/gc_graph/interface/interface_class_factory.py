@@ -15,7 +15,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):
+class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):  # type: ignore
     """A tuple interface object.
 
     The TupleInterface class is a subclass of tuple and InterfaceMixin.
@@ -25,17 +25,17 @@ class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):
     def __init__(self, iface: Iterable[EndPointType] | InterfaceABC) -> None:
         """Initialize the interface."""
 
-    def __delitem__(self, index: int) -> None:
+    def __delitem__(self, index: slice | int) -> None:
         """Delete the endpoint type."""
         raise RuntimeError("TupleInterface.__delitem__ is not supported")
 
-    def __setitem__(self, index: int, value: EndPointType) -> None:
+    def __setitem__(self, index: slice | int, value: EndPointType | Iterable[EndPointType]) -> None:
         """Set the endpoint type."""
         raise RuntimeError("TupleInterface.__setitem__ is not supported")
 
-    def append(self, value: EndPointType) -> None:
-        """Append the endpoint type."""
-        raise RuntimeError("TupleInterface.append is not supported")
+    def insert(self, index: int, value: EndPointType) -> None:
+        """Insert the endpoint type."""
+        raise RuntimeError("TupleInterface.insert is not supported")
 
 
 class ListInterface(list[EndPointType], InterfaceMixin, InterfaceABC):  # type: ignore

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Iterable
+from collections.abc import MutableSequence
+from typing import Iterable
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -17,11 +18,11 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class InterfaceABC(CommonObjABC):
+class InterfaceABC(MutableSequence, CommonObjABC):
     """Interface Abstract Base Class.
 
     The Interface Abstract Base Class, InterfaceABC, is the base class for all interface objects.
-    Interface objects define the properties of an interface. It is a tuple-like object of integers
+    Interface objects define the properties of an interface. It is a list-like object of integers
     representing endpoint types.
 
     Interfaces and connections are closely related but archiecturally distinct to allow storage
@@ -35,33 +36,3 @@ class InterfaceABC(CommonObjABC):
     def __init__(self, iface: Iterable[EndPointType] | InterfaceABC) -> None:
         """Initialize the interface."""
         raise NotImplementedError("Interface.__init__ must be overridden")
-
-    @abstractmethod
-    def __delitem__(self, index: int) -> None:
-        """Delete the endpoint type."""
-        raise NotImplementedError("Interface.__delitem__ must be overridden")
-
-    @abstractmethod
-    def __getitem__(self, index: int) -> EndPointType:
-        """Return the endpoint type."""
-        raise NotImplementedError("Interface.__getitem__ must be overridden")
-
-    @abstractmethod
-    def __iter__(self) -> Any:
-        """Iterate over the endpoints."""
-        raise NotImplementedError("Interface.__iter__ must be overridden")
-
-    @abstractmethod
-    def __len__(self) -> int:
-        """Return the number of endpoints."""
-        raise NotImplementedError("Interface.__len__ must be overridden")
-
-    @abstractmethod
-    def __setitem__(self, index: int, value: EndPointType) -> None:
-        """Set the endpoint type."""
-        raise NotImplementedError("Interface.__setitem__ must be overridden")
-
-    @abstractmethod
-    def append(self, value: EndPointType) -> None:
-        """Append the endpoint type."""
-        raise NotImplementedError("Interface.append must be overridden")
