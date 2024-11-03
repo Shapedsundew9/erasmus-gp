@@ -2,6 +2,7 @@
 
 from typing import Iterable
 
+from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
@@ -22,7 +23,9 @@ class TupleConnections(tuple, ConnectionsMixin, ConnectionsProtocol, Connections
     It is a tuple-like object of tuples of end point references.
     """
 
-    def __init__(self, conns: Iterable[tuple[XEndPointRefABC, ...]] | ConnectionsABC) -> None:
+    def __init__(
+        self, conns: Iterable[tuple[XEndPointRefABC, ...]] | ConnectionsABC = NULL_TUPLE
+    ) -> None:
         """Initialize the connections."""
         if _LOG_VERIFY:
             for conn in conns:
@@ -53,7 +56,9 @@ class ListConnections(list, ConnectionsMixin, ConnectionsABC):  # type: ignore
     It is a list-like object of lists of end point references.
     """
 
-    def __init__(self, conns: Iterable[list[XEndPointRefABC]] | ConnectionsABC) -> None:
+    def __init__(
+        self, conns: Iterable[list[XEndPointRefABC]] | ConnectionsABC = NULL_TUPLE
+    ) -> None:
         """Initialize the connections."""
         if _LOG_VERIFY:
             for conn in conns:
@@ -66,4 +71,4 @@ class ListConnections(list, ConnectionsMixin, ConnectionsABC):  # type: ignore
         return list
 
 
-EMPTY_CONNECTIONS: TupleConnections = TupleConnections(tuple())
+EMPTY_CONNECTIONS: TupleConnections = TupleConnections()

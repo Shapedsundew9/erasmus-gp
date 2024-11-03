@@ -15,6 +15,7 @@ EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, 
 NULL_SHA256: bytes = b"\x00" * 32
 NULL_SHA256_STR = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
+NULL_TUPLE = tuple()
 
 
 # PROPERTIES must define the bit position of all the properties listed in

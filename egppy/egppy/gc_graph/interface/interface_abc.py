@@ -6,6 +6,7 @@ from abc import abstractmethod
 from collections.abc import MutableSequence
 from typing import Iterable
 
+from egpcommon.common import NULL_TUPLE
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
@@ -33,6 +34,6 @@ class InterfaceABC(MutableSequence, CommonObjABC):
     """
 
     @abstractmethod
-    def __init__(self, iface: Iterable[EndPointType] | InterfaceABC) -> None:
+    def __init__(self, iface: Iterable[EndPointType] | InterfaceABC = NULL_TUPLE) -> None:
         """Initialize the interface."""
         raise NotImplementedError("Interface.__init__ must be overridden")

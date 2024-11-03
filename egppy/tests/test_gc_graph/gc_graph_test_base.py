@@ -4,7 +4,8 @@ import unittest
 from itertools import count, permutations, product
 from json import dump, load
 from os.path import dirname, exists, join
-from random import choice, randint
+from random import randint
+from re import M
 from typing import cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -156,6 +157,25 @@ class MutableGCGraphTestBase(GCGraphTestBase):
 
     gcgtype: type = MutableGCGraph
 
+    def destablize_graph(self, gcg: MutableGCGraph) -> MutableGCGraph:
+        """Destabilize the graph by removing destination endpoint connections."""
+        # The maximum number of endpoints to remove
+        num_eps = randint(1, 4)
+        # Find a destination row that has 1 or more endpoints
+        for drow in DESTINATION_ROWS:
+            if drow in gcg and len(gcg[drow + EPClsPostfix.DST]) > 0:
+                # Choose a random endpoint in the row
+                idx = randint(0, len(gcg[drow + EPClsPostfix.DST]) - 1)
+                ref = gcg[drow + EPClsPostfix.DST + "c"][idx][0]
+                # Its a destination so only has one reference which we remove
+                gcg[drow + EPClsPostfix.DST + "c"][0] = []
+                # Need to find the reference in the source row reference list and remove it
+                gcg[ref.get_row() + EPClsPostfix.SRC + "c"][ref.get_idx()].remove((drow, idx))
+                num_eps -= 1
+                if not num_eps:
+                    break
+        return gcg  # Unstable graph
+
     def test_equal_to_static(self) -> None:
         """Test building a graph from endpoints."""
         if self.running_in_test_base_class():
@@ -233,19 +253,14 @@ class MutableGCGraphTestBase(GCGraphTestBase):
         if self.running_in_test_base_class():
             return
         for jgcg in self.jgcg_list:
-            gcg = self.gcg_type(jgcg)
-            # The maximum number of endpoints to remove
-            count = randint(1, 4)
-            # Find a destination row that has 1 or more endpoints
-            for drow in DESTINATION_ROWS:
-                if drow in gcg and len(gcg[drow + EPClsPostfix.DST]) > 0:
-                    # Choose a random endpoint in the row
-                    idx = randint(0, len(gcg[drow + EPClsPostfix.DST]) - 1)
-                    ref = gcg[drow + EPClsPostfix.DST + "c"][idx][0]
-                    # Its a destination so only has one reference which we remove
-                    gcg[drow + EPClsPostfix.DST + "c"][0] = []
-                    # Need to find the reference in the source row reference list and remove it
-                    gcg[ref.get_row() + EPClsPostfix.SRC + "c"][ref.get_idx()].remove((drow, idx))
-                    break
-            # Check that the graph is not stable
+            gcg = self.destablize_graph(self.gcg_type(jgcg))
             self.assertFalse(gcg.is_stable())
+
+    def test_stabilize(self):
+        """Test the stabilize method."""
+        if self.running_in_test_base_class():
+            return
+        for jgcg in self.jgcg_list:
+            gcg = self.destablize_graph(self.gcg_type(jgcg))
+            gcg.stabilize()
+            self.assertTrue(gcg.is_stable())

@@ -218,6 +218,7 @@ class MutableGCGraph(FrozenGCGraph):
         shuffle(unconnected)
 
         # Connect the unconnected endpoints in a random order
+        rtype = self._TC.get_ref_iterable_type()
         for drow, didx in unconnected:
             typ = self._interfaces[drow + EPClsPostfix.DST][didx]
             # Find the valid sources for the destination row and endpoint type
@@ -232,9 +233,13 @@ class MutableGCGraph(FrozenGCGraph):
                 # If it is a new input interface endpoint then add it to input interface
                 if srow == SourceRow.I:
                     self._interfaces["Is"].append(typ)
-                    self._connections["Isc"].append([])
-                self._connections[drow + EPClsPostfix.DST][didx] = SrcEndPointRef(srow, sidx)
-                self._connections[srow + EPClsPostfix.SRC][sidx] = DstEndPointRef(drow, didx)
+                    self._connections["Isc"].append(rtype())
+                self._connections[drow + EPClsPostfix.DST + "c"][didx].append(
+                    SrcEndPointRef(srow, sidx)
+                )
+                self._connections[srow + EPClsPostfix.SRC + "c"][sidx].append(
+                    DstEndPointRef(drow, didx)
+                )
         return self
 
 

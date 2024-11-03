@@ -4,6 +4,7 @@ from collections.abc import MutableMapping, MutableSequence, MutableSet, Sequenc
 from copy import deepcopy
 from typing import Any, Iterable, Iterator
 
+from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -160,7 +161,7 @@ class CacheableTuple(Sequence, CacheableObjMixin, CacheableObjABC):
         if iterable is not None:
             self.data: tuple = tuple(deepcopy(v) for v in iterable)
         else:
-            self.data: tuple = tuple()
+            self.data: tuple = NULL_TUPLE
         super().__init__()
 
     def __eq__(self, other: object) -> bool:

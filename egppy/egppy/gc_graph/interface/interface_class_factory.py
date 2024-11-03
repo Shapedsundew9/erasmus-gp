@@ -2,6 +2,7 @@
 
 from typing import Iterable
 
+from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
@@ -22,7 +23,7 @@ class TupleInterface(tuple[EndPointType, ...], InterfaceMixin, InterfaceABC):  #
     It is a tuple-like object of integers representing endpoint types.
     """
 
-    def __init__(self, iface: Iterable[EndPointType] | InterfaceABC) -> None:
+    def __init__(self, iface: Iterable[EndPointType] | InterfaceABC = NULL_TUPLE) -> None:
         """Initialize the interface."""
 
     def __delitem__(self, index: slice | int) -> None:
@@ -45,10 +46,10 @@ class ListInterface(list[EndPointType], InterfaceMixin, InterfaceABC):  # type: 
     It is a list-like object of integers representing endpoint types.
     """
 
-    def __init__(self, iface: Iterable[EndPointType]) -> None:
+    def __init__(self, iface: Iterable[EndPointType] = NULL_TUPLE) -> None:
         """Initialize the interface."""
         super().__init__(iface)
 
 
 # To be used for all empty interface references
-EMPTY_INTERFACE: TupleInterface = TupleInterface(tuple())
+EMPTY_INTERFACE: TupleInterface = TupleInterface()
