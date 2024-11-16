@@ -55,6 +55,7 @@ from sys import modules
 from typing import Any
 
 from cerberus import Validator
+
 # pylint: disable=unused-import
 from egppy.gc_graph.ep_type import (  # , fully_qualified_name
     _EGP_REAL_TYPE_LIMIT, asstr)
@@ -474,8 +475,10 @@ def python_generator(key, operators, input_types, exceptions):
                 operator,
             )
         raise RuntimeError("Unrecognised exception.") from excptn
-    # FIXME: Hack for now. Need to fix unique import name and fully qualified name.
+
+    # Hack for now. Need to fix unique import name and fully qualified name.
     rtype = result.__class__.__qualname__
+    # deepcode ignore AttributeLoadOnNone: None is not a valid type
     none_str = None.__class__.__qualname__
     typ = "None" if rtype == none_str else rtype
     operator["output_types"] = [typ]  # [fully_qualified_name(result)]

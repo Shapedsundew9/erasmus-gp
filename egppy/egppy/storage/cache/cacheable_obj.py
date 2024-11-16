@@ -18,7 +18,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
-    """Cacheable Dictionary  Class.
+    """Cacheable Dictionary Class.
     The CacheableDict uses a builtin dictionary for storage but wraps the __setitem__
     and update methods to mark the object as dirty when modified. This makes it slightly
     slower but relieves the user from having to keep track of the object's state.

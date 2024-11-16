@@ -16,7 +16,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.ep_type import validate
 from egppy.gc_types.egc_class_factory import EGCMixin
-from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, GCBase, GCProtocol
+from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -27,14 +27,16 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GGCMixin(EGCMixin, GCProtocol):
+# pylint: disable=abstract-method
+class GGCMixin(EGCMixin):
     """General Genetic Code Mixin Class."""
 
     GC_KEY_TYPES: dict[str, dict[str, str | bool]] = GGC_KVT
 
-    def consistency(self: GCProtocol) -> None:
+    def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         super().consistency()
+        assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert (
             self["e_count"] >= self["_e_count"]
         ), "Evolvability count must be greater than or equal to the higher layer count."
@@ -112,7 +114,7 @@ class GGCMixin(EGCMixin, GCProtocol):
             self["updated"] <= datetime.now()
         ), "updated time must be less than or equal to the current time."
 
-    def set_members(self: GCProtocol, gcabc: GCABC | dict[str, Any]) -> None:
+    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the GGC.
 
         Note that no type checking of signatures is performed.
@@ -123,6 +125,7 @@ class GGCMixin(EGCMixin, GCProtocol):
             gcabc: The genetic code object or dictionary to set the attributes.
         """
         super().set_members(gcabc)
+        assert isinstance(self, GCABC), "GGC must be a GCABC object."
         self["_e_count"] = gcabc.get("_e_count", 1)
         self["_e_total"] = gcabc.get("_e_total", 0.0)
         self["_evolvability"] = self["_e_total"] / self["_e_count"]
@@ -187,9 +190,10 @@ class GGCMixin(EGCMixin, GCProtocol):
                 "num_outputs", self["num_outputs"]
             ), "num_outputs must be the number of outputs."
 
-    def verify(self: GCProtocol) -> None:
+    def verify(self) -> None:
         """Verify the genetic code object."""
         super().verify()
+        assert isinstance(self, GCABC), "GGC must be a GCABC object."
 
         # The evolvability update count when the genetic code was copied from the higher layer.
         assert self["_e_count"] >= 0, "Evolvability count must be greater than or equal to 0."
@@ -375,12 +379,13 @@ class GGCMixin(EGCMixin, GCProtocol):
         assert self["updated"].tzinfo == UTC, "Updated must be in the UTC time zone."
 
 
-class GGCDirtyDict(GCBase, CacheableDirtyDict, GGCMixin, GCProtocol, GCABC):
+class GGCDirtyDict(GGCMixin, CacheableDirtyDict, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Constructor for DirtyDictGGC"""
         super().__init__()
+        CacheableDirtyDict.__init__(self)
         self.set_members(gcabc if gcabc is not None else {})
 
     def consistency(self) -> None:
@@ -396,12 +401,13 @@ class GGCDirtyDict(GCBase, CacheableDirtyDict, GGCMixin, GCProtocol, GCABC):
         GGCMixin.verify(self)
 
 
-class GGCDict(GCBase, CacheableDict, GGCMixin, GCProtocol, GCABC):
+class GGCDict(GGCMixin, CacheableDict, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Constructor for DirtyDictGGC"""
         super().__init__()
+        # CacheableDict.__init__(self)
         self.set_members(gcabc if gcabc is not None else {})
 
     def consistency(self) -> None:

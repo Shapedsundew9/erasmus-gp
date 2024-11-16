@@ -10,14 +10,18 @@ from egppy.gc_graph.end_point.end_point_abc import (
     GenericEndPointABC,
     XEndPointRefABC,
 )
-from egppy.gc_graph.end_point.end_point_mixin import (
-    DstEndPointRefMixin,
-    EndPointMixin,
-    EndPointRefMixin,
-    GenericEndPointMixin,
-    SrcEndPointRefMixin,
+from egppy.gc_graph.end_point.end_point_mixin import EndPointMixin, GenericEndPointMixin
+from egppy.gc_graph.typing import (
+    DESTINATION_ROWS,
+    EP_CLS_STR_TUPLE,
+    ROWS,
+    SOURCE_ROWS,
+    DestinationRow,
+    EndPointClass,
+    EndPointHash,
+    EndPointType,
+    Row,
 )
-from egppy.gc_graph.typing import EndPointClass, EndPointType, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -51,16 +55,99 @@ class GenericEndPoint(GenericEndPointMixin, GenericEndPointABC):
         self._row = row
 
 
-class EndPointRef(GenericEndPoint, EndPointRefMixin, EndPointRefABC):
+class EndPointRef(GenericEndPoint, EndPointRefABC):
     """Refers to an end point."""
 
+    def __eq__(self, other: object) -> bool:
+        """Compare two end points."""
+        if not isinstance(other, (EndPointRef, DstEndPointRef, SrcEndPointRef)):
+            return self._eq_to_seq(other)
+        return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
 
-class DstEndPointRef(EndPointRef, DstEndPointRefMixin, XEndPointRefABC):
+    def _eq_to_seq(self, other: object) -> bool:
+        """Compare the end point to a sequence."""
+        if not isinstance(other, (tuple, list)):
+            return False
+        if len(other) != 2:
+            return False
+        if not isinstance(other[0], Row) or not isinstance(other[1], int):
+            return False
+        return self.get_row() == other[0] and self.get_idx() == other[1]
+
+    def force_key(self, cls: EndPointClass) -> EndPointHash:
+        """Create a unique key to use in the internal graph."""
+        return self.key_base() + EP_CLS_STR_TUPLE[cls]
+
+    def verify(self) -> None:
+        """Verify the end point."""
+        assert self.get_row() in ROWS, f"Invalid row: {self.get_row()}"
+        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
+        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
+        super().verify()
+
+
+class DstEndPointRef(EndPointRef, XEndPointRefABC):
     """Refers to a destination end point."""
 
+    def copy(self) -> XEndPointRefABC:
+        """Return a copy of the end point."""
+        return self.cls()(self._row, self._idx)
 
-class SrcEndPointRef(EndPointRef, SrcEndPointRefMixin, XEndPointRefABC):
+    def key(self) -> EndPointHash:
+        """Return the key of the end point."""
+        return self.key_base() + "d"
+
+    def invert_key(self) -> EndPointHash:
+        """Invert hash. Return a hash for the source/destination endpoint equivilent."""
+        return self.key_base() + "s"
+
+    def is_dst(self) -> bool:
+        """Return True if the end point is a destination."""
+        return True
+
+    def is_src(self) -> bool:
+        """Return True if the end point is a source."""
+        return False
+
+    def verify(self) -> None:
+        """Verify the end point."""
+        assert self.get_row() in DESTINATION_ROWS, f"Invalid destination row: {self.get_row()}"
+        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
+        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
+        if self.get_row() == DestinationRow.F:
+            assert self.get_idx() == 0, f"Invalid index for row F: {self.get_idx()}"
+        super().verify()
+
+
+class SrcEndPointRef(EndPointRef, XEndPointRefABC):
     """Refers to a source end point."""
+
+    def copy(self) -> XEndPointRefABC:
+        """Return a copy of the end point."""
+        return self.cls()(self._row, self._idx)
+
+    def key(self) -> EndPointHash:
+        """Return the key of the end point."""
+        return self.key_base() + "s"
+
+    def invert_key(self) -> EndPointHash:
+        """Invert hash. Return a hash for the source/destination endpoint equivilent."""
+        return self.key_base() + "d"
+
+    def is_dst(self) -> bool:
+        """Return True if the end point is a destination."""
+        return False
+
+    def is_src(self) -> bool:
+        """Return True if the end point is a source."""
+        return True
+
+    def verify(self) -> None:
+        """Verify the end point."""
+        assert self.get_row() in SOURCE_ROWS, f"Invalid source row: {self.get_row()}"
+        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
+        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
+        super().verify()
 
 
 class EndPoint(EndPointRef, EndPointMixin, EndPointABC):

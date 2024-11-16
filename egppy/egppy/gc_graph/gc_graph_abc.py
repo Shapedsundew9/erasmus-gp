@@ -54,11 +54,6 @@ class GCGraphABC(CacheableObjABC):
         raise NotImplementedError("GCGraphABC.__delitem__ must be overridden")
 
     @abstractmethod
-    def __eq__(self, value: object) -> bool:
-        """Check if two objects are equal."""
-        raise NotImplementedError("GCGraphABC.__eq__ must be overridden")
-
-    @abstractmethod
     def __getitem__(self, key: str) -> Any:
         """Get the endpoint with the given key."""
         raise NotImplementedError("GCGraphABC.__getitem__ must be overridden")
@@ -84,6 +79,6 @@ class GCGraphABC(CacheableObjABC):
         raise NotImplementedError("GCGraphABC.is_stable must be overridden")
 
     @abstractmethod
-    def stabilize(self, empty: bool = True):
+    def stabilize(self, fixed_interface: bool = True):
         """Stabilize the genetic code object."""
         raise NotImplementedError("GCABC.stabilize must be overridden")

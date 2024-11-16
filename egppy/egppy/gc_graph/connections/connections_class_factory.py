@@ -39,6 +39,10 @@ class TupleConnections(tuple, ConnectionsMixin, ConnectionsProtocol, Connections
         """Setting an item is not supported for TupleConnections."""
         raise RuntimeError("TupleConnections.__setitem__ is not supported")
 
+    def copy(self) -> ConnectionsABC:
+        """Return a copy of the connections."""
+        return self
+
     @classmethod
     def get_ref_iterable_type(cls) -> type:  # pylint: disable=arguments-differ
         """Get the reference iterable type."""
@@ -64,6 +68,10 @@ class ListConnections(list, ConnectionsMixin, ConnectionsABC):  # type: ignore
             for conn in conns:
                 assert isinstance(conn, list), "ListConnections must be a list of lists."
         super().__init__(conns)
+
+    def copy(self) -> ConnectionsABC:  # type: ignore
+        """Return a copy of the connections."""
+        return ListConnections([epr.copy() for epr in conn] for conn in self)
 
     @classmethod
     def get_ref_iterable_type(cls) -> type:  # pylint: disable=arguments-differ

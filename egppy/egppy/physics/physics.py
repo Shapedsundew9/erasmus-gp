@@ -1,6 +1,7 @@
 """The physics module.
 
-Physics in Erasmus GP defines how GCA & GCB of a GC are selected and the GC graph connections are made.
+Physics in Erasmus GP defines how GCA & GCB of a GC are selected and the GC graph connections
+are made.
 """
 
 from random import randint
@@ -18,7 +19,16 @@ def insert_gc_case_0(tgc: GCABC, igc: GCABC, gp: GenePoolInterface, empty: bool 
     gp -- the gene pool
     empty -- whether the interface of the resultant GC is defined (i.e cannot be changed)
     """
+    graph = {
+        "Is": igc["Is"],
+        "Ad": igc["Is"],
+        "As": igc["Od"],
+        "Bd": tgc["Is"],
+        "Bs": tgc["Od"],
+        "Od": tgc["Od"],
+    }
     rgc = EGCDirtyDict({"gca": tgc, "gcb": igc, "ancestora": tgc, "ancestorb": igc})
+
     return rgc.stablize(gp, empty)
 
 

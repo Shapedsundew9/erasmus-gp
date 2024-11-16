@@ -13,7 +13,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.gc_graph_class_factory import EMPTY_GC_GRAPH, FrozenGCGraph
-from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCBase, GCMixin, GCProtocol
+from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCMixin
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -24,7 +24,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class EGCMixin(GCMixin, GCProtocol):
+class EGCMixin(GCMixin):
     """Embryonic Genetic Code Mixin Class."""
 
     # The types are used for perising the genetic code object to a database.
@@ -33,12 +33,14 @@ class EGCMixin(GCMixin, GCProtocol):
     # Keys that reference other GC's
     REFERENCE_KEYS: set[str] = {"gca", "gcb", "ancestora", "ancestorb", "pgc"}
 
-    def consistency(self: GCProtocol) -> None:
+    def consistency(self) -> None:
         """Check the genetic code object for consistency.
 
         Raises:
             ValueError: If the genetic code object is inconsistent.
         """
+        assert isinstance(self, GCABC), "EGC must be a GCABC object."
+
         # Only codons can have GCA, PGC or Ancestor A NULL. Then all must be NULL.
         if self["gca"] is NULL_GC or self["pgc"] is NULL_GC or self["ancestora"] is NULL_GC:
             if (
@@ -64,23 +66,25 @@ class EGCMixin(GCMixin, GCProtocol):
         if self["signature"] is not NULL_SIGNATURE:
             assert self.signature() == self["signature"], "Signature is incorrect."
 
-    def resolve_references(self: GCProtocol, mapping: Mapping[bytes, GCABC]) -> None:
+    def resolve_references(self, mapping: Mapping[bytes, GCABC]) -> None:
         """Resolve the genetic code object references.
 
         All the reference values must be in the mapping provided. The reference values
         may be a hex string of the sha256 hash or a bytes object of the sha256 hash.
         """
+        assert isinstance(self, GCABC), "EGC must be a GCABC object."
         for key in EGCMixin.REFERENCE_KEYS:
             if not isinstance(self[key], GCABC):
                 ref = bytes.fromhex(self[key]) if isinstance(self[key], str) else self[key]
                 self[key] = mapping[ref] if ref != NULL_GC else NULL_GC
 
-    def set_members(self: GCProtocol, gcabc: GCABC | dict[str, Any]) -> None:
+    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
 
         Args:
             gcabc: The genetic code object or dictionary to set the attributes.
         """
+        assert isinstance(self, GCABC), "EGC must be a GCABC object."
         tmp = gcabc.get("graph", EMPTY_GC_GRAPH)
         self["graph"] = FrozenGCGraph(tmp) if not isinstance(tmp, GCGraphABC) else tmp
         tmp = gcabc.get("gca", NULL_GC) if gcabc.get("gca") is not None else NULL_GC
@@ -98,8 +102,9 @@ class EGCMixin(GCMixin, GCProtocol):
             tmp = NULL_SIGNATURE
         self["signature"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)  # type: ignore
 
-    def verify(self: GCProtocol) -> None:
+    def verify(self) -> None:
         """Verify the genetic code object."""
+        assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self["graph"], GCGraphABC), "graph must be a GC graph object"
         assert isinstance(self["gca"], (bytes, GCABC)), "gca must be a bytes or genetic code object"
         if isinstance(self["gca"], bytes):
@@ -128,7 +133,7 @@ class EGCMixin(GCMixin, GCProtocol):
                 self[key].verify()
 
 
-class EGCDirtyDict(GCBase, CacheableDirtyDict, EGCMixin, GCProtocol, GCABC):
+class EGCDirtyDict(EGCMixin, CacheableDirtyDict, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
@@ -160,7 +165,7 @@ class EGCDirtyDict(GCBase, CacheableDirtyDict, EGCMixin, GCProtocol, GCABC):
         EGCMixin.verify(self)
 
 
-class EGCDict(GCBase, CacheableDict, EGCMixin, GCProtocol, GCABC):
+class EGCDict(EGCMixin, CacheableDict, GCABC):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:

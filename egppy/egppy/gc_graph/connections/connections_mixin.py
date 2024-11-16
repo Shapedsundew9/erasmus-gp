@@ -5,6 +5,7 @@ from typing import Any, Protocol
 from egpcommon.common_obj_mixin import CommonObjMixin, CommonObjProtocol
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.interface.interface_mixin import INTERFACE_MAX_LENGTH
 
 # Standard EGP logging pattern
@@ -44,6 +45,17 @@ class ConnectionsMixin(CommonObjMixin):
     of an interface. It ensures that all connections are either source or destination
     references and that the number of connections does not exceed the maximum allowed length.
     """
+
+    def __eq__(self: ConnectionsProtocol, other: object) -> bool:
+        """Return True if the connections are equal."""
+        if not isinstance(other, ConnectionsABC):
+            return False
+        if len(self) != len(other):
+            return False
+        for x, y in zip(self, other):
+            if len(x) != len(y) or not all(a == b for a, b in zip(x, y)):
+                return False
+        return True
 
     def consistency(self: ConnectionsProtocol) -> None:
         """Check the consistency of the interface."""

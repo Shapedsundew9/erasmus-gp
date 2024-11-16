@@ -82,6 +82,11 @@ class XEndPointRefABC(EndPointRefABC):
     """Specializes EndPointRefABC for Source and Destination variants."""
 
     @abstractmethod
+    def copy(self) -> XEndPointRefABC:
+        """Return a copy of the end point."""
+        raise NotImplementedError
+
+    @abstractmethod
     def key(self) -> EndPointHash:
         """Create a unique key to use in the internal graph."""
         raise NotImplementedError

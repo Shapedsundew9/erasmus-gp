@@ -9,11 +9,10 @@ NoneType == 0
 All other types values are > 0
 """
 
-
 from enum import IntEnum
 from hashlib import blake2b
 from json import load
-from logging import Logger, NullHandler, getLogger, DEBUG
+from logging import DEBUG, Logger, NullHandler, getLogger
 from os.path import dirname, join
 from typing import Any, Iterable, Literal
 
@@ -21,8 +20,8 @@ from egppy.gc_graph.typing import (
     EndPointType,
     EndPointTypeLookup,
     EndPointTypeLookupFile,
-    isInstanciationValue,
     InstanciationType,
+    isInstanciationValue,
 )
 
 _logger: Logger = getLogger(__name__)
@@ -37,7 +36,8 @@ ep_type_lookup: EndPointTypeLookup = {"v2n": {}, "n2v": {}, "instanciation": {}}
 ep_type_lookup["v2n"] = {int(k): v for k, v in data["v2n"].items()}
 ep_type_lookup["n2v"] = {k: int(v) for k, v in data["n2v"].items()}
 ep_type_lookup["instanciation"] = {
-    int(k): v for k, v in data["instanciation"].items() if isInstanciationValue(v)}
+    int(k): v for k, v in data["instanciation"].items() if isInstanciationValue(v)
+}
 
 
 _EGP_SPECIAL_TYPE_LIMIT: Literal[-32767] = -32767
@@ -59,11 +59,14 @@ def _real_type_filter(v) -> bool:
 
 
 SPECIAL_EP_TYPE_VALUES: tuple[int, ...] = tuple(
-    (v for v in filter(_special_type_filter, ep_type_lookup["v2n"])))
+    (v for v in filter(_special_type_filter, ep_type_lookup["v2n"]))
+)
 PHYSICAL_EP_TYPE_VALUES: tuple[int, ...] = tuple(
-    (v for v in filter(_physical_type_filter, ep_type_lookup["v2n"])))
+    (v for v in filter(_physical_type_filter, ep_type_lookup["v2n"]))
+)
 REAL_EP_TYPE_VALUES: tuple[int, ...] = tuple(
-    (v for v in filter(_real_type_filter, ep_type_lookup["v2n"])))
+    (v for v in filter(_real_type_filter, ep_type_lookup["v2n"]))
+)
 _EP_TYPE_VALUES: tuple[int, ...] = (*PHYSICAL_EP_TYPE_VALUES, *REAL_EP_TYPE_VALUES)
 MIN_EP_TYPE_VALUE: int = min(_EP_TYPE_VALUES)
 MAX_EP_TYPE_VALUE: int = max(_EP_TYPE_VALUES)
@@ -138,8 +141,13 @@ def object_name(i11n: InstanciationType) -> str:
         return str(i11n[InstanceIndex.NAME])
     if i11n[InstanceIndex.MODULE] is None:
         return "_".join((str(i11n[InstanceIndex.PACKAGE]), str(i11n[InstanceIndex.NAME])))
-    return "_".join((str(i11n[InstanceIndex.PACKAGE]), str(
-        i11n[InstanceIndex.MODULE]), str(i11n[InstanceIndex.NAME])))
+    return "_".join(
+        (
+            str(i11n[InstanceIndex.PACKAGE]),
+            str(i11n[InstanceIndex.MODULE]),
+            str(i11n[InstanceIndex.NAME]),
+        )
+    )
 
 
 def import_str(ep_type_i: int) -> str:
@@ -177,8 +185,11 @@ for _ep_type_int, instn in tuple(filter(func1, ep_type_lookup["instanciation"].i
     try:
         exec(import_str(_ep_type_int))  # pylint: disable=exec-used
     except ModuleNotFoundError:
-        _logger.warning("Module '%s' was not found. '%s' will be treated as an INVALID type.",
-                        instn[InstanceIndex.MODULE], instn[InstanceIndex.NAME])
+        _logger.warning(
+            "Module '%s' was not found. '%s' will be treated as an INVALID type.",
+            instn[InstanceIndex.MODULE],
+            instn[InstanceIndex.NAME],
+        )
         del ep_type_lookup["n2v"][ep_type_lookup["v2n"][_ep_type_int]]
         del ep_type_lookup["instanciation"][_ep_type_int]
         del ep_type_lookup["v2n"][_ep_type_int]
@@ -375,9 +386,8 @@ def instance_str(ep_type_i: int, param_str: str = "") -> str:
 
 
 def interface_definition(
-        xputs: Iterable[Any],
-        value_t: VType = VType.TYPE_OBJECT
-        ) -> tuple[tuple[int, ...], list[int], bytes]:
+    xputs: Iterable[Any], value_t: VType = VType.TYPE_OBJECT
+) -> tuple[tuple[int, ...], list[int], bytes]:
     """Create an interface definition from xputs.
 
     Used to define the inputs or outputs of a GC from an iterable
@@ -493,18 +503,28 @@ def validate_value(value_str: str, ep_type_int: int) -> bool:
             try:
                 typ: str = eval(f"type({value_str})")  # pylint: disable=eval-used
             except (NameError, SyntaxError):
-                _logger.debug("isinstance(%s, %s) is False. %s is not a valid object.",
-                              value_str, tstr, value_str)
+                _logger.debug(
+                    "isinstance(%s, %s) is False. %s is not a valid object.",
+                    value_str,
+                    tstr,
+                    value_str,
+                )
             else:
-                _logger.debug("isinstance(%s, %s) is False. %s is of type %s",
-                              value_str, tstr, value_str, typ)
+                _logger.debug(
+                    "isinstance(%s, %s) is False. %s is of type %s", value_str, tstr, value_str, typ
+                )
         return False
     if _LOG_DEBUG:
         if retval:
             _logger.debug("retval = isinstance(%s, %s) is True", value_str, tstr)
         else:
             typ: str = eval(f"type({value_str})")  # pylint: disable=eval-used
-            _logger.debug("retval = isinstance(%s, %s) is False. %s is of type %s.",
-                          value_str, tstr, value_str, typ)
+            _logger.debug(
+                "retval = isinstance(%s, %s) is False. %s is of type %s.",
+                value_str,
+                tstr,
+                value_str,
+                typ,
+            )
 
     return retval

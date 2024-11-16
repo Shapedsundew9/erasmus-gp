@@ -5,7 +5,6 @@ from itertools import count, permutations, product
 from json import dump, load
 from os.path import dirname, exists, join
 from random import randint
-from re import M
 from typing import cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger

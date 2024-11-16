@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Iterator, Protocol
+from typing import Any, Iterator
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.conversions import decode_properties
@@ -36,11 +36,6 @@ class GCABC(CacheableObjABC):
     """
 
     @abstractmethod
-    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Initialize the genetic code object."""
-        raise NotImplementedError("GCABC.__init__ must be overridden")
-
-    @abstractmethod
     def __delitem__(self, key: str) -> None:
         """Delete a key and value."""
         raise NotImplementedError("GCABC.__delitem__ must be overridden")
@@ -66,7 +61,7 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.get must be overridden")
 
     @abstractmethod
-    def setdefault(self, key: str, default: Any) -> Any:
+    def setdefault(self, key: str, default: Any = None) -> Any:
         """Set the value of a key if it does not exist and return the set value."""
         raise NotImplementedError("GCABC.setdefault must be overridden")
 
@@ -81,73 +76,10 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.signature must be overridden")
 
 
-class GCProtocol(Protocol):
-    """Genetic Code Protocol."""
-
-    GC_KEY_TYPES: dict[str, dict[str, str | bool]]
-    REFERENCE_KEYS: set[str]
-
-    def __contains__(self, key: str) -> bool:
-        """Delete a key and value."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def __delitem__(self, key: str) -> None:
-        """Delete a key and value."""
-
-    def __getitem__(self, key: str) -> Any:
-        """Get the value of a key."""
-
-    def __iter__(self) -> Iterator:
-        """Iterate over the keys."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set the value of a key."""
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get the value of a key or return the default."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def setdefault(self, key: str, default: Any) -> Any:
-        """Set the value of a key if it does not exist and return the set value."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
-        """Set the data members of the GCABC."""
-
-    def signature(self) -> bytes:
-        """Return the signature of the genetic code."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-
 class GCMixin:
-    """Genetic Code Mixin Class.
+    """Genetic Code Mixin Class."""
 
-    This class should be inhereted low in the MRO so that more efficient standard access
-    methods are used first.
-    """
-
-    def set_members(self: GCProtocol, gcabc: GCABC | dict[str, Any]) -> None:
-        """Set the data members of the GCABC."""
-        for key in gcabc:
-            self[key] = gcabc[key]
-
-    def signature(self: GCProtocol) -> bytes:
-        """Return the signature of the genetic code object."""
-        if self["signature"] is NULL_SIGNATURE:
-            self["signature"] = sha256_signature(
-                self["gca"] if isinstance(self["gca"], bytes) else self["gca"].signature(),
-                self["gcb"] if isinstance(self["gcb"], bytes) else self["gcb"].signature(),
-                self["graph"].to_json(),
-                self["meta_data"] if self["meta_data"] is not None else {},
-            )
-        return self["signature"]
-
-
-class GCBase(GCProtocol):
-    """Genetic Code Base Class."""
-
-    def __eq__(self: GCProtocol, other: object) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Return True if the genetic code objects have the same signature."""
         if isinstance(other, GCABC):
             return self.signature() == other.signature()
@@ -157,9 +89,28 @@ class GCBase(GCProtocol):
                 return self.signature().hex() == other_signature
         return False
 
-    def to_json(self: GCProtocol) -> dict[str, int | str | float | list | dict]:
+    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
+        """Set the data members of the GCABC."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        for key in gcabc:
+            self[key] = gcabc[key]
+
+    def signature(self) -> bytes:
+        """Return the signature of the genetic code object."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        if self["signature"] is NULL_SIGNATURE:
+            self["signature"] = sha256_signature(
+                self["gca"] if isinstance(self["gca"], bytes) else self["gca"].signature(),
+                self["gcb"] if isinstance(self["gcb"], bytes) else self["gcb"].signature(),
+                self["graph"].to_json(),
+                self["meta_data"] if self["meta_data"] is not None else {},
+            )
+        return self["signature"]
+
+    def to_json(self) -> dict[str, int | str | float | list | dict]:
         """Return a JSON serializable dictionary."""
         retval = {}
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
         for key in self:
             value = self[key]
             if key == "properties":
