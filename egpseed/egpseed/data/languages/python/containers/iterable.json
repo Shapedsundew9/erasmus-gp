@@ -1,0 +1,11 @@
+{
+    "operators": {
+        "iter": {
+            "inline": "iter({i0})",
+            "name": "iter({t0})",
+            "properties": {
+                "iterable": true
+            }
+        }
+    }
+}

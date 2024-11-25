@@ -222,21 +222,8 @@ class MutableGCGraph(FrozenGCGraph):
         super().__init__(gc_graph)
         self._lock = False
 
-    def stabilize(self, fixed_interface: bool = True) -> GCGraphABC:
-        """Stablization involves making all the mandatory connections and
-        connecting all the remaining unconnected destination endpoints.
-        Destinations are connected to sources in a random order.
-        Stabilization is not guaranteed to be successful.
-        """
-        missing = self.check_required_connections()
-        for connection in missing:
-            ### TO HERE:
-            ### Need to try and make the missing mandatory connections
-            ### if we cannot then we know what steady state exceptions to raise and
-            ### what the criteria are for a successful stabilization.
-            ### NEED TO THINK ABOUT RETURN TYPE!!!!
-            pass
-
+    def connect_all(self, fixed_interface: bool = True) -> None:
+        """Connect all the unconnected destination endpoints in the GC graph."""
         # Make a list of unconnected endpoints and shuffle it
         unconnected: list[tuple[DestinationRow, int]] = (
             [(DestinationRow.F, idx) for idx in self._connections["Fdc"].get_unconnected_idx()]
@@ -268,11 +255,23 @@ class MutableGCGraph(FrozenGCGraph):
                 self._connections[drow + _DST_CONN_POSTFIX][didx].append(SrcEndPointRef(srow, sidx))
                 self._connections[srow + SRC_CONN_POSTFIX][sidx].append(DstEndPointRef(drow, didx))
 
-        ### TO HERE:
-        ### Need to check if the stabilization was successful
-        ### If not then we know what steady state exception to raise with what parameters
-        ### NEED TO THINK ABOUT RETURN TYPE!!!!
-        return self
+    def stabilize(self, fixed_interface: bool = True) -> None:
+        """Stablization involves making all the mandatory connections and
+        connecting all the remaining unconnected destination endpoints.
+        Destinations are connected to sources in a random order.
+        Stabilization is not guaranteed to be successful.
+        """
+        missing_connections = self.check_required_connections()
+        for connection in missing_connections:
+            ### TO HERE:
+            ### Need to try and make the missing mandatory connections
+            ### if we cannot then we know what steady state exceptions to raise and
+            ### what the criteria are for a successful stabilization.
+            ### NEED TO THINK ABOUT RETURN TYPE!!!!
+            pass
+
+        # Connect any remaining unconnected destination endpoints
+        self.connect_all(fixed_interface)
 
 
 # The empty graph

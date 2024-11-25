@@ -1,0 +1,84 @@
+{
+    "bitlength": {
+        "inline": "{i0}.bitlength()",
+        "name": "the bit length of {t0}",
+        "output_types": [
+            "integral"
+        ]
+    },
+    "bitcount": {
+        "inline": "{i0}.bitcount()",
+        "name": "the number of 1's in {t0}",
+        "output_types": [
+            "integral"
+        ]
+    },
+    "to_bytes1": {
+        "inline": "{i0}.to_bytes({i1}, 'big', True)",
+        "name": "convert {t0} to bytes with length {t1}, big endian, signed",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "to_bytes2": {
+        "inline": "{i0}.to_bytes({i1}, 'little', True)",
+        "name": "convert {t0} to bytes with length {t1}, little endian, signed",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "to_bytes3": {
+        "inline": "{i0}.to_bytes({i1}, 'big', False)",
+        "name": "convert {t0} to bytes with length {t1}, big endian, unsigned",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "to_bytes4": {
+        "inline": "{i0}.to_bytes({i1}, 'little', False)",
+        "name": "convert {t0} to bytes with length {t1}, little endian, unsigned",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "from_bytes1": {
+        "inline": "int.from_bytes({i0}, 'big', True)",
+        "name": "convert bytes {t0} to signed integer, big endian",
+        "input_types": [
+            "bytes-like"
+        ],
+        "output_types": [
+            "integral"
+        ]
+    },
+    "from_bytes2": {
+        "inline": "int.from_bytes({i0}, 'little', True)",
+        "name": "convert bytes {t0} to signed integer, little endian",
+        "input_types": [
+            "bytes-like"
+        ],
+        "output_types": [
+            "integral"
+        ]
+    },
+    "from_bytes3": {
+        "inline": "int.from_bytes({i0}, 'big', False)",
+        "name": "convert bytes {t0} to unsigned integer, big endian",
+        "input_types": [
+            "bytes-like"
+        ],
+        "output_types": [
+            "integral"
+        ]
+    },
+    "from_bytes4": {
+        "inline": "int.from_bytes({i0}, 'little', False)",
+        "name": "convert bytes {t0} to unsigned integer, little endian",
+        "input_types": [
+            "bytes-like"
+        ],
+        "output_types": [
+            "integral"
+        ]
+    }
+}

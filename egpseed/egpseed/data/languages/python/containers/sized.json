@@ -1,0 +1,11 @@
+{
+    "operators": {
+        "len": {
+            "inline": "len({i0})",
+            "name": "len({t0})",
+            "properties": {
+                "sized": true
+            }
+        }
+    }
+}

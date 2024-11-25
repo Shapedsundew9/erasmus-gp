@@ -1,92 +1,182 @@
 {
     "XGCType": {
         "default": "XGCType()",
-        "num_inputs": 1,
-        "uid": -1,
-        "output_types": ["XGCType"],
-        "constructor": {
-            "inline": "XGCType()"
-        },
-        "instanciation": {
-            "package": "egppy",
-            "version": null,
-            "module": "gc_types.ggc_class_factory",
-            "param": true
-        }
-    },
-    "None": {
-        "default": "None",
-        "num_inputs": 0,
-        "constructor": {
-            "inline": "None"
-        },
-        "uid": 0,
-        "instanciation": {
-            "package": null,
-            "version": null,
-            "module": null,
-            "param": false
-        }
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_types",
+                    "ggc_class_factory"
+                ],
+                "name": "XGCType"
+            }
+        ],
+        "uid": 3
     },
     "bool": {
         "default": "True",
-        "num_inputs": 1,
-        "uid": 1,
-        "output_types": ["bool"],
-        "instanciation": {
-            "package": null,
-            "version": null,
-            "module": null,
-            "param": true
-        }
+        "inherits": [
+            "int"
+        ],
+        "uid": 4
     },
-    "int": {
-        "default": "2",
-        "num_inputs": 1,
-        "uid": 2,
-        "output_types": ["int"],
-        "instanciation": {
-            "package": null,
-            "version": null,
-            "module": null,
-            "param": true
-        }
+    "callable": {
+        "inherits": [
+            "object"
+        ],
+        "uid": 5
     },
-    "float": {
-        "default": "2.0",
-        "num_inputs": 1,
-        "uid": 3,
-        "output_types": ["float"],
-        "instanciation": {
-            "package": null,
-            "version": null,
-            "module": null,
-            "param": true
-        }
+    "collection": {
+        "inherits": [
+            "sized",
+            "iterable",
+            "container"
+        ],
+        "uid": 6
     },
     "complex": {
         "default": "complex(2.0,-2.0)",
-        "constructor": {
-            "inline": "complex({i0}, {i1})"
-        },
-        "uid": 4,
-        "instanciation": {
-            "package": null,
-            "version": null,
-            "module": null,
-            "param": true
-        }
+        "inherits": [
+            "numbers"
+        ],
+        "uid": 7
+    },
+    "container": {
+        "inherits": [
+            "object"
+        ],
+        "uid": 8
+    },
+    "dict": {
+        "default": "{}",
+        "inherits": [
+            "mutablemapping"
+        ],
+        "uid": 9
+    },
+    "float": {
+        "default": "2.0",
+        "inherits": [
+            "real"
+        ],
+        "uid": 10
+    },
+    "generator": {
+        "inherits": [
+            "object"
+        ],
+        "uid": 11
+    },
+    "hashable": {
+        "inherits": [
+            "object"
+        ],
+        "uid": 12
+    },
+    "hetrobject": {
+        "uid": 1
+    },
+    "homobject": {
+        "uid": 2
+    },
+    "int": {
+        "default": "2",
+        "inherits": [
+            "integral"
+        ],
+        "uid": 13
+    },
+    "integral": {
+        "inherits": [
+            "rational"
+        ],
+        "uid": 27
+    },
+    "iterable": {
+        "inherits": [
+            "object"
+        ],
+        "uid": 14
+    },
+    "iterator": {
+        "inherits": [
+            "iterable"
+        ],
+        "uid": 15
+    },
+    "list": {
+        "inherits": [
+            "mutablesequence"
+        ],
+        "uid": 16
+    },
+    "none": {
+        "default": "None",
+        "inherits": [
+            "object"
+        ],
+        "uid": 17
+    },
+    "numbers": {
+        "inherits": [
+            "hashable"
+        ],
+        "uid": 24
+    },
+    "object": {
+        "default": "object()",
+        "uid": 0
+    },
+    "rational": {
+        "inherits": [
+            "real"
+        ],
+        "uid": 26
+    },
+    "real": {
+        "inherits": [
+            "complex"
+        ],
+        "uid": 25
+    },
+    "reversible": {
+        "inherits": [
+            "iterable"
+        ],
+        "uid": 18
+    },
+    "sequence": {
+        "inherits": [
+            "reversible",
+            "collection"
+        ],
+        "uid": 19
+    },
+    "set": {
+        "default": null,
+        "inherits": [
+            "collection"
+        ],
+        "uid": 20
+    },
+    "sized": {
+        "inherits": [
+            "object"
+        ],
+        "uid": 21
     },
     "str": {
         "default": "'two'",
-        "num_inputs": 1,
-        "uid": 5,
-        "output_types": ["str"],
-        "instanciation": {
-            "package": null,
-            "version": null,
-            "module": null,
-            "param": true
-        }
+        "inherits": [
+            "sequence"
+        ],
+        "uid": 22
+    },
+    "tuple": {
+        "default": "tuple()",
+        "inherits": [
+            "sequence"
+        ],
+        "uid": 23
     }
 }

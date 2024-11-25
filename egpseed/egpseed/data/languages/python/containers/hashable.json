@@ -1,0 +1,11 @@
+{
+    "operators": {
+        "hash": {
+            "inline": "hash({i0})",
+            "name": "hash({t0})",
+            "properties": {
+                "hashable": true
+            }
+        }
+    }
+}

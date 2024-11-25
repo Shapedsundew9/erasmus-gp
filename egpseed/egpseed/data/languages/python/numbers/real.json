@@ -1,0 +1,115 @@
+{
+    "%": {
+        "inline": "{i0} % {i1}",
+        "name": "modulo {t0} with {t1}"
+    },
+    "//": {
+        "inline": "{i0} // {i1}",
+        "name": "floor divide {t0} by {t1}"
+    },
+    "<": {
+        "inline": "{i0} < {i1}",
+        "name": "less than {t0} with {t1}",
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "conditional": true
+        }
+    },
+    "<=": {
+        "inline": "{i0} <= {i1}",
+        "name": "less than equal {t0} with {t1}",
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "conditional": true
+        }
+    },
+    ">": {
+        "inline": "{i0} > {i1}",
+        "name": "greater than {t0} with {t1}",
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "conditional": true
+        }
+    },
+    ">=": {
+        "inline": "{i0} >= {i1}",
+        "name": "greater than equal {t0} with {t1}",
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "conditional": true
+        }
+    },
+    "ceil": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "ceil"
+            }
+        ],
+        "inline": "ceil({i0})",
+        "name": "find the ceiling of {t0}",
+        "num_inputs": 1,
+        "output_types": [
+            "integral"
+        ]
+    },
+    "divmod": {
+        "inline": "divmod({i0}, {i1})",
+        "name": "return the quotient and remainder of {t0} divided by {t1}",
+        "output_types": [
+            "tuple[real]"
+        ]
+    },
+    "floor": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "floor"
+            }
+        ],
+        "inline": "floor({i0})",
+        "name": "find the floor of {t0}",
+        "num_inputs": 1,
+        "output_types": [
+            "integral"
+        ]
+    },
+    "round1": {
+        "inline": "round({i0})",
+        "name": "round to nearest integer {t0}",
+        "num_inputs": 1,
+        "output_types": [
+            "integral"
+        ]
+    },
+    "round2": {
+        "inline": "round({i0}, {i1})",
+        "input_types": [
+            "real",
+            "integral"
+        ],
+        "name": "round {t0} to {t1} decimal places"
+    },
+    "trunc": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "trunc"
+            }
+        ],
+        "inline": "trunc({i0})",
+        "name": "truncate {t0}",
+        "num_inputs": 1,
+        "output_types": [
+            "integral"
+        ]
+    }
+}

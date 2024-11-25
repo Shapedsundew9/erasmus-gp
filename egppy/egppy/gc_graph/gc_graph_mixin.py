@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any, Generator, cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -37,7 +38,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Type of the GC Graph dictionary
-GCGraphDict = dict[str, list[list[Any] | InterfaceABC | ConnectionsABC]]
+GCGraphDict = Mapping[str, Sequence[Sequence[Any] | InterfaceABC | ConnectionsABC]]
 
 
 # Sort key function
@@ -121,7 +122,7 @@ class GCGraphMixin(CacheableObjMixin):
     def _process_json_row(
         self,
         row: str,
-        jeps: list[list[Any] | InterfaceABC | ConnectionsABC],
+        jeps: Sequence[Sequence[Any] | InterfaceABC | ConnectionsABC],
         src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]],
     ) -> None:
         """Process a row in the JSON GC graph."""
@@ -138,7 +139,7 @@ class GCGraphMixin(CacheableObjMixin):
 
     def _collect_src_references(
         self,
-        jeps: list[list[Any] | InterfaceABC | ConnectionsABC],
+        jeps: Sequence[Sequence[Any] | InterfaceABC | ConnectionsABC],
         src_if_typs: dict[SourceRow, set[tuple]],
     ) -> None:
         """Collect references to the source interfaces."""

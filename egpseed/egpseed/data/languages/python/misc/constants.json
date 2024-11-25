@@ -1,0 +1,108 @@
+{
+    "+inf": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "inf"
+            }
+        ],
+        "inline": "inf",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "constant": true
+        }
+    },
+    "-inf": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "inf"
+            }
+        ],
+        "inline": "-inf",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "constant": true
+        }
+    },
+    "e": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "e"
+            }
+        ],
+        "inline": "e",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "constant": true
+        }
+    },
+    "nan": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "nan"
+            }
+        ],
+        "inline": "nan",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "constant": true
+        }
+    },
+    "pi": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "pi"
+            }
+        ],
+        "inline": "pi",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "constant": true
+        }
+    },
+    "sqrt(-1)": {
+        "inline": "complex(0.0, 1.0)",
+        "num_inputs": 0,
+        "output_types": [
+            "complex"
+        ],
+        "properties": {
+            "constant": true
+        }
+    },
+    "tau": {
+        "imports": [
+            {
+                "module": "math",
+                "object": "tau"
+            }
+        ],
+        "inline": "tau",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "constant": true
+        }
+    }
+}

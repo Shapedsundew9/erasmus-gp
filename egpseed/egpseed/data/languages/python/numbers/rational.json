@@ -1,0 +1,18 @@
+{
+    "numerator": {
+        "inline": "{i0}.numerator",
+        "name": "numerator of {t0}",
+        "num_inputs": 1,
+        "output_types": [
+            "integral"
+        ]
+    },
+    "denominator": {
+        "inline": "{i0}.denominator",
+        "name": "denominator of {t0}",
+        "num_inputs": 1,
+        "output_types": [
+            "integral"
+        ]
+    }
+}

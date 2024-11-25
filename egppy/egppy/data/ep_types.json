@@ -1,5 +1,13 @@
 {
     "instanciation": {
+        "-2": [
+            null,
+            null,
+            null,
+            "Any",
+            false,
+            null
+        ],
         "-1": [
             "egppy",
             null,
@@ -58,6 +66,7 @@
         ]
     },
     "n2v": {
+        "Any": -2,
         "None": 0,
         "XGCType": -1,
         "bool": 1,
@@ -67,6 +76,7 @@
         "str": 5
     },
     "v2n": {
+        "-2": "Any",
         "-1": "XGCType",
         "0": "None",
         "1": "bool",

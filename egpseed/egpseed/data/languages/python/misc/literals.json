@@ -1,0 +1,112 @@
+{
+    "-1": {
+        "inline": "-1",
+        "num_inputs": 0,
+        "output_types": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "-1.0": {
+        "inline": "-1.0",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "0": {
+        "inline": "0",
+        "num_inputs": 0,
+        "output_types": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "0.0": {
+        "inline": "0.0",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "1": {
+        "inline": "1",
+        "num_inputs": 0,
+        "output_types": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "1.0": {
+        "inline": "1.0",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "2": {
+        "inline": "2",
+        "num_inputs": 0,
+        "output_types": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "2.0": {
+        "inline": "2.0",
+        "num_inputs": 0,
+        "output_types": [
+            "float"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "False": {
+        "inline": "False",
+        "num_inputs": 0,
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "None": {
+        "inline": "None",
+        "num_inputs": 0,
+        "output_types": [
+            "none"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "True": {
+        "inline": "True",
+        "num_inputs": 0,
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "literal": true
+        }
+    }
+}

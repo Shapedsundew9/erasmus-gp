@@ -16,13 +16,9 @@ from logging import DEBUG, Logger, NullHandler, getLogger
 from os.path import dirname, join
 from typing import Any, Iterable, Literal
 
-from egppy.gc_graph.typing import (
-    EndPointType,
-    EndPointTypeLookup,
-    EndPointTypeLookupFile,
-    InstanciationType,
-    isInstanciationValue,
-)
+from egppy.gc_graph.typing import (EndPointType, EndPointTypeLookup,
+                                   EndPointTypeLookupFile, InstanciationType,
+                                   isInstanciationValue)
 
 _logger: Logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
@@ -44,6 +40,10 @@ _EGP_SPECIAL_TYPE_LIMIT: Literal[-32767] = -32767
 _EGP_PHYSICAL_TYPE_LIMIT: Literal[-32369] = -32369
 _EGP_REAL_TYPE_LIMIT: Literal[0] = 0
 _EGP_TYPE_LIMIT: Literal[32769] = 32769
+
+EGP_ANY_TYPE: Literal[-2] = -2
+EGP_SCALAR_TYPE_LIMIT: Literal[1023] = 1023
+EGP_BASE_CONTAINER_TYPE_LIMIT: Literal[1535] = 1535
 
 
 def _special_type_filter(v) -> bool:

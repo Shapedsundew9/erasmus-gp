@@ -1,0 +1,67 @@
+{
+    "!=": {
+        "inline": "{i0} != {i1}",
+        "name": "{t0} not equal to {t1}",
+        "properties": {
+            "conditional": true
+        },
+        "output_types": [
+            "bool"
+        ]
+    },
+    "*": {
+        "inline": "{i0} * {i1}",
+        "name": "multiply {t0} and {t1}"
+    },
+    "**": {
+        "inline": "{i0} ** {i1}",
+        "name": "{t0} to the power of {t1}"
+    },
+    "+": {
+        "inline": "{i0} + {i1}",
+        "name": "add {t0} to {t1}"
+    },
+    "-": {
+        "inline": "{i0} - {i1}",
+        "name": "subtract {t1} from {t0}"
+    },
+    "/": {
+        "inline": "{i0} / {i1}",
+        "name": "true divide {t0} by {t1}"
+    },
+    "==": {
+        "inline": "{i0} == {i1}",
+        "name": "{t0} equal to {t1}",
+        "properties": {
+            "conditional": true
+        },
+        "output_types": [
+            "bool"
+        ]
+    },
+    "abs": {
+        "inline": "abs({i0})",
+        "name": "absolute value or magnitude of {t0}",
+        "num_inputs": 1
+    },
+    "conjugate": {
+        "inline": "{i0}.conjugate()",
+        "name": "conjugate of {t0}",
+        "num_inputs": 1
+    },
+    "imag": {
+        "inline": "{i0}.imag",
+        "name": "imaginary part of {t0}",
+        "num_inputs": 1
+    },
+    "negate": {
+        "inline": "-{i0}",
+        "name": "negate {t0}",
+        "num_inputs": 1
+    },
+    "real": {
+        "inline": "{i0}.real",
+        "name": "real part of {t0}",
+        "num_inputs": 1
+    }
+}

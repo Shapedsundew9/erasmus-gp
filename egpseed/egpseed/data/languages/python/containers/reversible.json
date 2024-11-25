@@ -1,0 +1,14 @@
+{
+    "inherits": [
+        "iterable"
+    ],
+    "operators": {
+        "reversed": {
+            "inline": "reversed({i0})",
+            "name": "reversed({t0})",
+            "properties": {
+                "reversible": true
+            }
+        }
+    }
+}

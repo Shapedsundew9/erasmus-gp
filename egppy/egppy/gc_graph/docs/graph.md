@@ -1,28 +1,32 @@
 # GC Graphs
 
 A Genetic Code graph defines how values from the GC input are passed to sub-GC's and outputs from sub-GC's
-(and directly from the input) are connected to the GC's outputs. There are 4 types of GC Graph.
+(and directly from the input) are connected to the GC's outputs. There are 6 types of GC Graph.
 
 | Type | Comments |
 |------|------------|
-| Standard | Connects two sub-GC's together to make a new GC. This is by far the most common type.|
+| Codon | Defines an interface & represents a primitive operator such addition or logical OR. Has no sub-GC's. |
 | Conditional | Chooses an execution path through one of the sub-GCs based on an input boolean. |
-| Codon | Defines an interface & represents a primitive operator such addition or a constant. Has no sub-GC's. |
 | Empty | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
+| Standard | Connects two sub-GC's together to make a new GC. This is by far the most common type.|
 
 ## Row Requirements
 
 Note that both GCA and GCB are present or neither are present. This simplifies the rules for insertion.
+All GC graphs may have either an input interface or an output interface or both but cannot have neither.
+GC's with just inputs store data in memory, more presistant storage or send it to an output port. GC's that
+just have an output interface are constants, read from memory, storage or input ports.
 
 | Type | I | F | A | B | O | P |
 |------|---|---| ---|---|---|---|
-| Standard | X | - | X | X | X | - |
-| Conditional | X | X | X | X | X | X |
-| Codon | X | - | - | - | X | - |
-| Empty | X | - | - | - | X | - |
+| Codon | o | - | - | - | o | - |
+| Conditional | o | X | X | X | o | o |
+| Empty | o | - | - | - | o | - |
+| Standard | o | - | X | X | o | - |
 
-- **X** = Must be present i.e. have at least 1 endpoint.
+- **X** = Must be present i.e. have at least 1 endpoint for that row.
 - **-** = Must _not_ be present
+- **o** = Must have at least 1 endpoint in the set of rows.
 
 ## Connectivity Requirements
 
@@ -31,23 +35,20 @@ Codons and Empty graphs have no connections only Input and Output row definition
 | Dst | I | F | A | B | O | P |
 |------|---|---|---|---|---|---|
 |  I  | - | - | - | - | - | - |
-| F | <u>C</u> | - | - | - | - | - |
-|  A  | <u>SC</u> | - |  - | - | - | - |
-|  B  | S<u>C</u> | - | S | - | - | - |
-|  O  | SC | - | S<u>C</u> | <u>S</u> | - | - |
-|  P  | C | - | - | <u>C</u> | - | - |
+| F | **C** | - | - | - | - | - |
+|  A  | SC | - |  - | - | - | - |
+|  B  | SC | - | S | - | - | - |
+|  O  | SC | - | SC | S | - | - |
+|  P  | C | - | - | C | - | - |
 
-- **S** = Allowed in a Standard graph
-- **C** = Allowed in a Conditional graph
-- **-** = Not allowed in any case
-- **<u>X</u>** = Required connection
+- S = Allowed in a Standard graph
+- C = Allowed in a Conditional graph
+- \- = Not allowed in any case
+- **bold** = Required
 
 Note that the required connections are a consequence of the rule that an interface must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist.
 
 Flow charts of the allowed connectivity standard and conditional graphs are below.
-
-- Solid arrow links are required.
-- Dashed arrow links are allowed.
 
 ### Standard Connectivity Graph
 
@@ -58,11 +59,10 @@ flowchart TB
     A["GC[A]"]
     B["GC[B]"]
     O["[O]utputs"]
-    A -.-> O
-    I --> A -.-> B --> O
-    I -.-> B
-    I -.-> O
-    
+    A --> O
+    I --> A --> B --> O
+    I --> B
+    I --> O
     
 classDef Icd fill:#999,stroke:#333,stroke-width:1px
 classDef Acd fill:#900,stroke:#333,stroke-width:1px
@@ -90,8 +90,8 @@ flowchart TB
     I --> A --> O
     B --> P
     I --> B
-    I -.-> O
-    I -.-> P
+    I --> O
+    I --> P
     
 classDef Icd fill:#999,stroke:#333,stroke-width:1px
 classDef Acd fill:#900,stroke:#333,stroke-width:1px
@@ -107,8 +107,6 @@ class P Pcd
 ```
 
 ### Codon & Empty Connectivity Graphs
-
-There are no connections.
 
 ```mermaid
 %% Codon & Empty GC
@@ -145,3 +143,7 @@ only one connection to the same destination endpoint).
 ### Destination Interfaces
 
 All destination interface endpoints must be connected to one (and only one) source interface endpoint.
+
+## Types
+
+Types are represented by a signed integer.  

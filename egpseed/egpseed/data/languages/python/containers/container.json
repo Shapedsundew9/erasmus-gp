@@ -1,0 +1,30 @@
+{
+    "in": {
+        "inline": "{i1} in {i0}",
+        "input_types": [
+            "container",
+            "object"
+        ],
+        "name": "{t0} in {t1}",
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "container": true
+        }
+    },
+    "not in": {
+        "inline": "{i1} not in {i0}",
+        "input_types": [
+            "container",
+            "object"
+        ],
+        "name": "{t0} not in {t1}",
+        "output_types": [
+            "bool"
+        ],
+        "properties": {
+            "container": true
+        }
+    }
+}

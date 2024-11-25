@@ -55,10 +55,10 @@ from sys import modules
 from typing import Any
 
 from cerberus import Validator
-
 # pylint: disable=unused-import
 from egppy.gc_graph.ep_type import (  # , fully_qualified_name
-    _EGP_REAL_TYPE_LIMIT, asstr)
+    _EGP_REAL_TYPE_LIMIT, EGP_ANY_TYPE, EGP_BASE_CONTAINER_TYPE_LIMIT,
+    EGP_SCALAR_TYPE_LIMIT, asstr)
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
@@ -213,7 +213,11 @@ def _load_types(type_file, operators, validator):
     with open(type_file, "r", encoding="utf8") as file_ptr:
         _types: dict[str, dict[str, Any]] = load(file_ptr)
     types: list[str] = []
-    for key, typ in tuple(_types.items()):
+
+    # Any is special and is not a real type. It is used to match any type.
+    # Container types live above 1024
+    for key, typ in tuple(x for x in _types.items()
+                          if x[1]["uid"] != -2 and x[1]["uid"] <= EGP_SCALAR_TYPE_LIMIT):
         _logger.debug("Current type: %s %s", key, typ)
         # obj: Any | None = eval(f"{key}()") if key != "None" else None  # pylint: disable=eval-used
         # name: str = fully_qualified_name(obj)
@@ -238,7 +242,7 @@ def _load_types(type_file, operators, validator):
         # A default value of '(*)' where * is wildcard is an instanciation of the object.
         # All objects are
         # imported as the fully qualified name and so this is appended.
-        default: str | None = typ["default"]
+        default: str | None = typ.get("default")
         if (
             default is not None
             and len(default) > 1
@@ -250,7 +254,7 @@ def _load_types(type_file, operators, validator):
 
         # Only real types in the type list as it is used with the operators.
         # Physical types construction operator gets the physical property set.
-        if typ["uid"] >= _EGP_REAL_TYPE_LIMIT:
+        if _EGP_REAL_TYPE_LIMIT <= typ["uid"] <= EGP_SCALAR_TYPE_LIMIT:
             types.append(name)
         else:
             operators[name]["properties"]["physical"] = True
@@ -330,8 +334,10 @@ def _create_mcodon(operator, type_dict):
 def _index_types(types):
     """Create a bi-directional mapping of type name <-> UID."""
     type_dict = {
-        "n2v": {v["fully_qualified_type"]: v["uid"] for v in types.values()},
-        "v2n": {v["uid"]: v["fully_qualified_type"] for v in types.values()},
+        "n2v": {v["fully_qualified_type"]: v["uid"]
+                for v in types.values() if v["uid"] <= EGP_SCALAR_TYPE_LIMIT},
+        "v2n": {v["uid"]: v["fully_qualified_type"]
+                for v in types.values() if v["uid"] <= EGP_SCALAR_TYPE_LIMIT},
         "instanciation": {
             v["uid"]: [
                 v["instanciation"]["package"],
@@ -341,9 +347,11 @@ def _index_types(types):
                 v["instanciation"]["param"],
                 v["default"],
             ]
-            for k, v in types.items()
+            for k, v in types.items() if v["uid"] <= EGP_SCALAR_TYPE_LIMIT
         },
     }
+
+    ### All list container type generation here.
 
     # For convenience map all built in unqualified names to the UIDs of the fully qualified names
     type_dict["n2v"].update(

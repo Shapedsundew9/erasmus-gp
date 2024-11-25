@@ -1,19 +1,9 @@
 {
+    "inherits": [
+        "collection",
+        "reversible"
+    ],
     "operators": {
-        "in": {
-            "inline": "{i1} in {i0}",
-            "name": "{t0} in {t1}",
-            "properties": {
-                "sequence": true
-            }
-        },
-        "not in": {
-            "inline": "{i1} not in {i0}",
-            "name": "{t0} not in {t1}",
-            "properties": {
-                "sequence": true
-            }
-        },
         "get element": {
             "inline": "{i0}[{i1}]",
             "properties": {
@@ -64,7 +54,9 @@
             "properties": {
                 "sequence": true
             },
-            "output_types": ["int"]
+            "output_types": [
+                "int"
+            ]
         },
         "index1": {
             "inline": "{i0}.index({i1})",
@@ -72,7 +64,9 @@
             "properties": {
                 "sequence": true
             },
-            "output_types": ["int"]
+            "output_types": [
+                "int"
+            ]
         },
         "index2": {
             "inline": "{i0}.index({i1}, {i2})",
@@ -81,7 +75,9 @@
                 "sequence": true
             },
             "num_inputs": 3,
-            "output_types": ["int"]
+            "output_types": [
+                "int"
+            ]
         },
         "index3": {
             "inline": "{i0}.index({i1}, {i2}, {i3})",
@@ -90,7 +86,9 @@
                 "sequence": true
             },
             "num_inputs": 4,
-            "output_types": ["int"]
+            "output_types": [
+                "int"
+            ]
         },
         "set element": {
             "inline": "{i0}[{i1}] = {i2}",

@@ -8,7 +8,9 @@ Erasmus GP can be thought of as an artificial universe in which artificial life 
 
 ## Types
 
-Types are analogous to fundamental particles in the real world. There no sub-types they can be created from or operation to make them they just are. These select python objects, the basic types such as *int*, *str* and *float* but also EGP specific classes like *GGC* and *Selector* (more on these below).
+Types are python objects such as *int*, *str* and *float*, compound containers like *list[list[str]]* and also EGP specific classes like *GGC* and *Selector* (more on these below). There is the *any* type which can match any other type as well as two meta-types *hoany*, the "homogeneous any" type, and *heany*, the "heterogeneous any" type. These are meta-types because they do not exist as types themselves only as types in a container type e.g. list[hoany] or tuple[heany] where the types in the containers are homogeneous and hetrogeneous respectively.
+
+EGP is strongly typed in that GC's interfaces are statically defined, the type of the output is set when the GC is created. The three ambiguous types become strongly typed by the series of 'isinstance_of_*' codons.
 
 ## Codons
 

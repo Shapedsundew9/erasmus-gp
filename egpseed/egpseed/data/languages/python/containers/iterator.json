@@ -1,0 +1,14 @@
+{
+    "inherits": [
+        "iterable"
+    ],
+    "operators": {
+        "next": {
+            "inline": "next({i0})",
+            "name": "next({t0})",
+            "properties": {
+                "iterator": true
+            }
+        }
+    }
+}

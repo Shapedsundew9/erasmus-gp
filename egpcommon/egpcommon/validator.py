@@ -27,6 +27,9 @@ class Validator:
     - attr: The name of the attribute being validated.
     - value: The value of the attribute being validated.
     - _assert: If True, the function will raise an AssertionError if the conditions are not met.
+
+    Validator is usually inherited with DictTypeAccessor to provide a simple get/set dictionary
+    like access to an object's members with validation.
     """
 
     _hostname_regex_str: str = r"^(?!-)[A-Z\d-]{1,63}(?<!-)$"
@@ -251,7 +254,11 @@ class Validator:
     def _is_printable_string(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a printable string."""
         result = self._is_string(attr, value, _assert)
-        result = result and self._is_regex(attr, value, self._printable_string_regex, _assert)
+        result = (
+            result
+            and bool(value)
+            and self._is_regex(attr, value, self._printable_string_regex, _assert)
+        )
         return result
 
     def _is_sha256(self, attr: str, value: Any, _assert: bool = True) -> bool:

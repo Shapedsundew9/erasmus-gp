@@ -1,0 +1,42 @@
+{
+    "as_integer_ratio": {
+        "inline": "{i0}.as_integer_ratio()",
+        "name": "the lowest ratio of integers == {t0}",
+        "input_types": [
+            "float"
+        ],
+        "output_types": [
+            "tuple[integral]"
+        ]
+    },
+    "is_integer": {
+        "inline": "{i0}.is_integer()",
+        "name": "true if {t0} is exactly an integer",
+        "input_types": [
+            "float"
+        ],
+        "output_types": [
+            "bool"
+        ]
+    },
+    "hex": {
+        "inline": "{i0}.hex()",
+        "name": "convert {t0} to a hex string",
+        "input_types": [
+            "float"
+        ],
+        "output_types": [
+            "str"
+        ]
+    },
+    "from_hex": {
+        "inline": "float.from_hex({i0})",
+        "name": "convert hex string {t0} to a float",
+        "input_types": [
+            "str"
+        ],
+        "output_types": [
+            "float"
+        ]
+    }
+}
