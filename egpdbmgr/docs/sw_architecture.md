@@ -4,7 +4,7 @@
 
 ```mermaid
 ---
-title: EGP DBM Architercture
+title: EGP DBM Architecture
 ---
 flowchart TD
     db1[(Postgres
@@ -144,6 +144,28 @@ flowchart TD
 ### REST API Process
 
 ### Analytics Process
+
+### File Archive
+
+The file archive created from the EGP DBM is an unordered, size limited, encrypted, signed, binary, compressed file that is
+background transfered to the Universal Archive Queue (a remote process that queues archive files for indexed storage).
+
+## The Universal Archive
+
+The Universal Archive, UA, is a centralized archive of GC's stored in files. The archive files are binary, in order, fixed size
+records keyed by the GC signature. Archive files are required to be limited to 2**24 entries. When an archive file reaches its
+entry limit it splits into two files one covering the lower signature range and the other the upper signature range. This means
+the two files are unlikely to have the same number of entries but should be similar. e.g. The first archive files contains
+signatures in the range 0x000...000 to 0xFFF...FFF. When it reaches its size limit it splits into two archives one holding
+signatures in the range 0x000...000 to 0x7FF...FFF and the other 0x800...000 to 0xFFF...FFF. By convention archive files are named
+with the lower bound significant hexadecimal characters followed by a hyphen and the upper bound significant hexadecimal characters
+with the .bin extension e.g.
+
+- 0-F.bin for the 1st archive file covering all signatures (0x000...000 to 0xFFF...FFF).
+- 0-7.bin and 8-F.bin when the 1st archive file exceeds 2**24 entries and is split into two.
+- 107-10F.bin for the signature range 0x10700...000 to 0x10FFF...FFF
+
+All files are signed but not encrypted to enable storage based direct record access.
 
 ## Database Auxillary Tables
 

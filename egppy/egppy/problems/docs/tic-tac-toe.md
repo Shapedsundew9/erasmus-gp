@@ -7,6 +7,8 @@
 3. Implicit player grid positions i.e. a container of positions for player **O** and a container of positions for player **X**
 4. Grid memory i.e. a single position input identifying the position of the other players play which requires a record of plays to be stored.
 
+Below a total of 65 designs - but there are many more more subtle variants.
+
 ## Full Grid State
 
 There are several sub-design options:
@@ -25,7 +27,7 @@ There are several sub-design options:
 The key in the dict type can also be represented an infinite number of ways. In this case:
 
 - str as a letter A - I represented a specific cell on the grid
-- int as a index 0 to 8 where (column, row) = divmod(index, 3)
+- int as an index 0 to 8 where (column, row) = divmod(index, 3)
 - tuple[int, int] coordinates as (column, row)
 
 So that gives us 3 \* 2 \* 4 + 3 \* 4 = 36 different TTT grid state representation designs. There is also a special case for 1 where the linear grid state can be implemented as a string of "O", "-" and "X".
@@ -41,25 +43,38 @@ The implicit empty grid interface only specifies the occupied positions of the g
 
 1 can be implemented as a list, tuple or set and there is a special str case too (see below), 2 can be implemented with a dict. position-states can be implemented:
 
-- The characters A to I in uppercase for one player and lower case for the other.
+- The characters A to I, specifiying the position, in uppercase for one player and lower case for the other.
 - A tuple[str, bool] where str is a letter A to I specifying the position and bool is the player.
+- A tuple [int, bool] where int is an index 0 to 8 where (column, row) = divmod(index, 3)
 - A tuple [int, int, bool] = (column, row, player)
 
 position:states can be implemented:
 
 - str:bool where str is a letter A to I specifying the position and bool is the player.
+- int:bool where int is an index 0 to 8 where (column, row) = divmod(index, 3) 
 - tuple[int, int]:bool where the key is (column, row) and the value the player.
 
 The special case is a 0 to 9 length string with the characters A to I in uppercase for one player and lower case for the other. The order of the letters does not matter (and randomising the order should be part of the fitness function.)
 
-In total that makes 3 \* 3 + 1 \* 2 + 1 = 12
+In total that makes 4 \* 3 + 1 \* 3 + 1 = 16
 
 ## Implicit Empty Grid & Player
 
-TBD
+Rather than passing in a single container object where each players grid positions are defined and the players are identified by some boolean. This design utilizes two seperate containers, one for each player, aleviating the need for the boolean and thus the 12 designs in the "Implicit Empty Grid" section can be modified to be:
+
+- The characters A to I to specify the position in two strings, one for each player.
+- A single character str for each position (A to I again) in a list, tuple or set container for each player.
+- A single int as an index 0 to 8 where (column, row) = divmod(index, 3)
+- A tuple[int, int] speciftying (column, row) for each position in a container per player.
+
+In total that makes another 1 + 4 + 4 = 9 designs
 
 ## Memory
 
-TBD
+In the memory design a single position is input specifying the move of the other player. The TTT agent has an internal model of the grid state and modifies it with this input and then outputs its move (position of its play). All other information is implicit with the exception of the start of the game where the agent must be passed a null move of some sort to clear its internal state and make the first move. In all cases the design assumes a 'None' starts the game, otherwise the positions played are specified as either:
 
+- An A to I character
+- An int as an index 0 to 8 where (column, row) = divmod(index, 3)
+- tuple[int, int] of (column, position)
 
+This gives an additional 3 designs.

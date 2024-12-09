@@ -144,6 +144,49 @@ only one connection to the same destination endpoint).
 
 All destination interface endpoints must be connected to one (and only one) source interface endpoint.
 
-## Types
+## End Point Types
 
-Types are represented by a signed integer.  
+End Point, EP, types are represented by signed 32 bit integer unique identifiers and a unique name string
+of no more than 64 characters, for example 0x1, "bool" for the builtin python type bool. The integer UIDs are
+for efficient storage and look up, the strings for import names. As well as concrete types (like bool, int,
+list etc.) there are _abstract_ types and _meta_ types which differ by the scopes in which they can be resolved
+into concrete types.
+
+| Class        | **Runtime** | **Buildtime** | **In Storage** |
+|--------------|:-----------:|:-------------:|:--------------:|
+| **Meta**     |     Yes     |       -       |        -       |
+| **Abstract** |     Yes     |      Yes      |        -       |
+| **Concrete** |     Yes     |      Yes      |       Yes      |
+
+Where _runtime_ is when the GC is executed, _buildtime_ is when the GC is being modified / mutated and _in storage_
+is when the GC is persisted in the Gene Pool or Genomic Library caches or databases.
+
+### Meta-Types
+
+There are two meta-types:
+
+- **hoany**: Homogeneous any type. This meta type is used to show that a container holds only one type of object that will be resolved at runtime. It means that an 'is_instance_of' codon can confirm the type of one element and the container type can become more concrete.
+- **heany**: Hetrogeneous any type. This meta type means that the objects in a container cannot be assumed to be the same and must individually by made more concrete is 'is_instance_of' codons.
+
+_hoany_ can be thought of as an optimisation of _heany_. In both cases the type(s) they represent can only be resolved at runtime.
+
+### Abstract Types
+
+Abstract types are like abstract classes in python, they cannot be instanciated themselves but may represent any type that conforms to thier
+protocol. Abstract types get resolved at build time when a GC with compatible types is instanciated. Abstract EP types enable Abstract GC's which are a key optimisation for EGP. Examples of abstract EP types are the [python numbers abstract base classes](https://docs.python.org/3/library/numbers.html).
+
+There is a group of special abstract types call _wildcard_ types. Wildcard types are numbered from 0 to 63 in thier names i.e. 'wildcard0', 'wildcard1', ... 'wildcard63'. These abstract types define output types from input types, the number of the wildcard is the index of the input type in the GC input types array (which has a maximum of 64 elements). The use case for this type is identifying the type of an element extracted from a container e.g. if the input type type to a list.pop() codon was list\[float\] the output type would be float as identfied by the appropriate wildcard type.
+
+### Concrete types
+
+Concrete types are always known and can be any sort of python concrete class. The majority of EP types are concrete types.
+
+### Integer UID Format
+
+The EP Type integer UID value Has the following format:
+
+|    31    | 30:28 |   27:16  | 15:0 |
+|:--------:|:-----:|:--------:|:----:|
+| Reserved |   TT  | Reserved | XUID |
+
+The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_. A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined by the input/output types array in the GC definition.
