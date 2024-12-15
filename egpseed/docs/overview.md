@@ -61,7 +61,9 @@ The *[types.json](../egpseed/data/languages/python/types.json)* file contains ty
 
 1. Every type name has an equivilent [type name].json file in a subdirectory containing method/function definitions.
 2. If the type has no default i.e. default is None, then the type is not instanciable.
-3. If deafult is not None then the default is not a literal e.g. an int default cannot be "7" it must be "(7)" or "int(7)"
+3. If default is not None then the default is not a literal e.g. an int default cannot be "7" it must be "(7)" or "int(7)"
 4. With the exception of "object" if a type does not inherit i.e. inherits is None, then it is an EGP meta-type.
 5. All instanciable types have a zero-argument constructor defined in thier codon *.json* file.
 6. UID are, in fact, unique and within a signed 32 bit twos complement range.
+7. Type names are unique.
+

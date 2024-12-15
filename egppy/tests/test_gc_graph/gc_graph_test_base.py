@@ -9,14 +9,13 @@ from typing import cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.ep_type import INVALID_EP_TYPE_VALUE, ep_type_lookup
+from egppy.gc_graph.end_point.types_def import EndPointType, types_db
 from egppy.gc_graph.gc_graph_class_factory import FrozenGCGraph, MutableGCGraph
 from egppy.gc_graph.typing import (
     DESTINATION_ROWS,
     SOURCE_ROWS,
     VALID_ROW_SOURCES,
     DestinationRow,
-    EndPointType,
     EPClsPostfix,
     Row,
     SourceRow,
@@ -30,13 +29,13 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 _FOUR_EP_TYPES: tuple[EndPointType, ...] = (
-    ep_type_lookup["n2v"]["bool"],
-    ep_type_lookup["n2v"]["int"],
-    ep_type_lookup["n2v"]["float"],
-    ep_type_lookup["n2v"]["str"],
+    (types_db["bool"],),
+    (types_db["int"],),
+    (types_db["float"],),
+    (types_db["str"],),
 )
 _TYPE_COMBINATIONS: tuple[tuple[EndPointType, ...], ...] = tuple(
-    product(_FOUR_EP_TYPES, _FOUR_EP_TYPES + (INVALID_EP_TYPE_VALUE,))
+    product(_FOUR_EP_TYPES, _FOUR_EP_TYPES + ((types_db["egp_invalid"],),))
 )
 
 
@@ -75,7 +74,7 @@ def generate_valid_json_gc_graphs() -> list[dict[str, list[list]]]:
                     dst_row = DestinationRow.O if row == "U" else cast(Row, row)
                     for src in VALID_ROW_SOURCES[False][dst_row]:
                         if row == "U":
-                            typ = ep_type_lookup["n2v"]["complex"]
+                            typ = (types_db["complex"],)
                             idx = next_idx(src_next_idx, src_positions, src, typ)
                             jgcg.setdefault(row, []).append([src, idx, typ])
                         else:

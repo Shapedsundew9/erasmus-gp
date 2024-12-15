@@ -10,7 +10,7 @@ from egpcommon.common import NULL_TUPLE
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.typing import EndPointType
+from egppy.gc_graph.end_point.types_def import EndPointType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

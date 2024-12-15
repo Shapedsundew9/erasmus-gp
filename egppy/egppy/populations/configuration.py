@@ -2,15 +2,14 @@
 
 from datetime import datetime
 from itertools import count
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 from uuid import UUID
 
 from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.validator import Validator
 
-from egppy.gc_graph.ep_type import asint, asstr, validate
-from egppy.gc_graph.typing import EndPointType
+from egppy.gc_graph.end_point.types_def import EndPointType, types_db
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -297,8 +296,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
         uid: int,
         problem: str | bytes,
         worker_id: str | UUID,
-        inputs: tuple[EndPointType, ...] | list[str],
-        outputs: tuple[EndPointType, ...] | list[str],
+        inputs: Sequence[int | str],
+        outputs: Sequence[int | str],
         ordered_interface_hash: bytes | str,
         unordered_interface_hash: bytes | str,
         name: str,
@@ -393,15 +392,10 @@ class PopulationConfig(Validator, DictTypeAccessor):
         return self._inputs
 
     @inputs.setter
-    def inputs(self, value: tuple[EndPointType, ...] | list[str]) -> None:
+    def inputs(self, value: Sequence[int | str | Sequence]) -> None:
         """The inputs."""
-        if isinstance(value, tuple):
-            assert all(validate(item) for item in value), "Invalid input type."
-            self._inputs = value
-        elif isinstance(value, list):
-            self._inputs = tuple(asint(item) for item in value)
-        else:
-            assert False, "Invalid input type."
+        self._is_sequence("inputs", value)
+        self._inputs = tuple(asint(item) for item in value)
 
     @property
     def outputs(self) -> tuple[EndPointType, ...]:
@@ -409,7 +403,7 @@ class PopulationConfig(Validator, DictTypeAccessor):
         return self._outputs
 
     @outputs.setter
-    def outputs(self, value: tuple[EndPointType, ...] | list[str]) -> None:
+    def outputs(self, value: Sequence[int | str]) -> None:
         """The outputs."""
         if isinstance(value, tuple):
             assert all(validate(item) for item in value), "Invalid output type."

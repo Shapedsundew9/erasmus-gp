@@ -1,0 +1,59 @@
+{
+    "get0": {
+        "inline": "{i0}.get({i1})",
+        "properties": {
+            "mapping": true
+        },
+        "input_types": [
+            "dict",
+            "hashable"
+        ],
+        "output_types": [
+            "object"
+        ]
+    },
+    "get1": {
+        "inline": "{i0}.get({i1}, {i2})",
+        "properties": {
+            "mapping": true
+        },
+        "num_inputs": 3
+    },
+    "items": {
+        "inline": "{i0}.items()",
+        "properties": {
+            "mapping": true
+        },
+        "num_inputs": 1
+    },
+    "keys": {
+        "inline": "{i0}.keys()",
+        "properties": {
+            "mapping": true
+        },
+        "num_inputs": 1
+    },
+    "values": {
+        "inline": "{i0}.values()",
+        "properties": {
+            "mapping": true
+        },
+        "num_inputs": 1
+    },
+    "popitem": {
+        "inline": "{i0}.popitem()",
+        "properties": {
+            "mapping": true
+        },
+        "num_inputs": 1,
+        "object_modify": true
+    },
+    "update": {
+        "inline": "{i0}.update({i1})",
+        "properties": {
+            "mapping": true,
+            "object_modify": true
+        },
+        "num_outputs": 0
+    }
+}

@@ -5,7 +5,7 @@ from ipaddress import ip_address
 from os.path import normpath, splitext
 from re import IGNORECASE, Pattern
 from re import compile as regex_compile
-from typing import Any
+from typing import Any, Sequence
 from urllib.parse import urlparse, urlunparse
 from uuid import UUID
 
@@ -254,11 +254,14 @@ class Validator:
     def _is_printable_string(self, attr: str, value: str, _assert: bool = True) -> bool:
         """Validate a printable string."""
         result = self._is_string(attr, value, _assert)
-        result = (
-            result
-            and bool(value)
-            and self._is_regex(attr, value, self._printable_string_regex, _assert)
-        )
+        result = value.isprintable()
+        return result
+
+    def _is_sequence(self, attr: str, value: Any, _assert: bool = True) -> bool:
+        """Check if the value is a sequence."""
+        result = isinstance(value, Sequence)
+        if _assert:
+            assert result, f"{attr} must be a sequence but is {type(value)}"
         return result
 
     def _is_sha256(self, attr: str, value: Any, _assert: bool = True) -> bool:

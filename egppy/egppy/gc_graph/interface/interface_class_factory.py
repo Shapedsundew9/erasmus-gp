@@ -5,9 +5,9 @@ from typing import Iterable
 from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.gc_graph.end_point.types_def import EndPointType
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.interface.interface_mixin import InterfaceMixin
-from egppy.gc_graph.typing import EndPointType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -53,3 +53,15 @@ class ListInterface(list[EndPointType], InterfaceMixin, InterfaceABC):  # type: 
 
 # To be used for all empty interface references
 EMPTY_INTERFACE: TupleInterface = TupleInterface()
+
+
+# Efficient storage for tuple interfaces by sharing the same object
+_interface_store: dict[tuple[EndPointType, ...], tuple[EndPointType, ...]] = {}
+
+
+def tuple_interface(
+    iface: Iterable[EndPointType] | InterfaceABC = NULL_TUPLE,
+) -> tuple[EndPointType, ...]:
+    """Return the shared tuple interface object."""
+    interface = tuple(iface)
+    return _interface_store.setdefault(interface, interface)

@@ -121,32 +121,9 @@ class I Icd
 class O Ocd
 ```
 
-## JSON Format
+## Types
 
-TO DO: Explain more
-In row U the connections are stored in alphabetical order, then index order. This is specified for reproducablility.
-
-## Rows, Interfaces & Connections
-
-An interface is an array of endpoints with 0 to 256 elements each defining the endpoint type.
-A Genetic Code has two interfaces, the input and the output interface. When viewed from within the
-GC Graph the input interface is a source interface i.e. it is a source of connections
-to other rows, and the output interface a destination interface. Row A and row B represent the input
-and output interfaces to GCA and GCB reprectively. Within the graph though GCA's input interface is
-a destination and its output a source.
-
-### Source Interfaces
-
-Source interface endpoints may have 0, 1 or many connections to destination interface endpoints (but
-only one connection to the same destination endpoint).
-
-### Destination Interfaces
-
-All destination interface endpoints must be connected to one (and only one) source interface endpoint.
-
-## End Point Types
-
-End Point, EP, types are represented by signed 32 bit integer unique identifiers and a unique name string
+Types are represented by signed 32 bit integer unique identifiers and a unique name string
 of no more than 64 characters, for example 0x1, "bool" for the builtin python type bool. The integer UIDs are
 for efficient storage and look up, the strings for import names. As well as concrete types (like bool, int,
 list etc.) there are _abstract_ types and _meta_ types which differ by the scopes in which they can be resolved
@@ -163,10 +140,16 @@ is when the GC is persisted in the Gene Pool or Genomic Library caches or databa
 
 ### Meta-Types
 
-There are two meta-types:
+There are several meta-types:
 
-- **hoany**: Homogeneous any type. This meta type is used to show that a container holds only one type of object that will be resolved at runtime. It means that an 'is_instance_of' codon can confirm the type of one element and the container type can become more concrete.
-- **heany**: Hetrogeneous any type. This meta type means that the objects in a container cannot be assumed to be the same and must individually by made more concrete is 'is_instance_of' codons.
+- **egp_hoany**: Homogeneous any type. This meta type is used to show that a container holds only one type of object that will be resolved at runtime. It means that an 'is_instance_of' codon can confirm the type of one element and the container type can become more concrete.
+- **egp_heany**: Hetrogeneous any type. This meta type means that the objects in a container cannot be assumed to be the same and must individually by made more concrete is 'is_instance_of' codons. Sometimes referred to as an 'unknown' type.
+- **egp_invalid**: The invalid type. Used for error conditions and testing.
+- **egp_number**: A base type that defines the numeric operators which can be inherited by all builtin python and custom numeric types.
+- **egp_complex**: Similar to number but for complex types.
+- **egp_rational**: Similar to number but for rational types.
+- **egp_real**: Similar to number but for rational types.
+- **egp_integral**: Similar to number but for rational types.
 
 _hoany_ can be thought of as an optimisation of _heany_. In both cases the type(s) they represent can only be resolved at runtime.
 
@@ -189,4 +172,47 @@ The EP Type integer UID value Has the following format:
 |:--------:|:-----:|:--------:|:----:|
 | Reserved |   TT  | Reserved | XUID |
 
-The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_. A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined by the input/output types array in the GC definition.
+The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using the _heany_ meta-type). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined in the End Point Type.
+
+### End Point Types
+
+End Point Types , EPTs, are complete types defined by a sequence (usually a tuple) of types with the format:
+
+(type[0], template_type[1], ..., template_type[n])
+
+where _n_ is the value of TT in the type[0] type UID. For scalar types type[0] == scalar_type UID_ and _n == 0_ i.e. _(scalar_type,)_ is the EPT for a scalar type. For container types the template types are EPTs defined in the order of the container definition which permits nested containers of almost arbitary depth to be supported (limited by the number of types that may be defined in an interface). For example:
+
+- list[str]: (list_type, (str_type, ))
+- dict[str, float]: (dict_type, (str_type,) , (float_type, ))
+- dict[str, list[int]]: (dict_type, (str_type, ), (list_type, (int_type, )))
+- dict[tuple[int, ...], list[list[any]]]: (dict_type, (tuple_type, (int_type,)), (list_type, (list_type, (heany_type,))))
+
+Note that the TT bit format of the UID means that the EPT sub-groupings do not have to be explicit in the implementation i.e. an array of types without grouping for an EPT is uniquely decodable which in turn enables an interface (see later) to be defined as a single array of types. This is efficient for
+database storage.
+
+### Interfaces
+
+An interface is an ordered sequence (usually an array or tuple) of 0 or more End Point Types but with no more
+than a total of 256 types elements i.e. sum(len(ept for ept in interface)) <= 256. The EPTs are stored in lexicographical ascending order which puts scalar types first.
+
+## JSON Format
+
+TO DO: Explain more
+In row U the connections are stored in alphabetical order, then index order. This is specified for reproducablility.
+
+## Rows, Interfaces & Connections
+
+A Genetic Code has two interfaces, the input and the output interface. When viewed from within the
+GC Graph the input interface is a source interface i.e. it is a source of connections
+to other rows, and the output interface a destination interface. Row A and row B represent the input
+and output interfaces to GCA and GCB reprectively. Within the graph though GCA's input interface is
+a destination and its output a source.
+
+### Source Interfaces
+
+Source interface endpoints may have 0, 1 or many connections to destination interface endpoints (but
+only one connection to the same destination endpoint).
+
+### Destination Interfaces
+
+All destination interface endpoints must be connected to one (and only one) source interface endpoint.

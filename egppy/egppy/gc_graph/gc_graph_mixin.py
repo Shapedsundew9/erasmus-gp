@@ -10,7 +10,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
-from egppy.gc_graph.ep_type import ep_type_lookup
+from egppy.gc_graph.end_point.types_def import EndPointType, types_db
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.interface.interface_abc import InterfaceABC
 from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
@@ -22,7 +22,6 @@ from egppy.gc_graph.typing import (
     VALID_ROW_SOURCES,
     DestinationRow,
     EndPointClass,
-    EndPointType,
     EPClsPostfix,
     Row,
     SourceRow,
@@ -42,8 +41,8 @@ GCGraphDict = Mapping[str, Sequence[Sequence[Any] | InterfaceABC | ConnectionsAB
 
 
 # Sort key function
-def skey(x: tuple[int, EndPointType]) -> EndPointType:
-    """Return the second element of tuple."""
+def skey(x: tuple[int, EndPointType]) -> int:
+    """Return the index."""
     return x[0]
 
 
@@ -108,7 +107,12 @@ class GCGraphMixin(CacheableObjMixin):
                 self[ckey] = self._TC(rtype() for _ in gc_graph[key])
 
     def _init_from_json(self, gc_graph: GCGraphDict) -> None:
-        """Initialize from a JSON formatted GC graph."""
+        """Initialize from a JSON formatted GC graph.
+        {
+            "DSTROW":[[SRCROW, IDX, TYP],...]
+            ...
+        }
+        """
         src_if_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
         src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {r: {} for r in SOURCE_ROWS}
         for row, jeps in gc_graph.items():
@@ -122,7 +126,7 @@ class GCGraphMixin(CacheableObjMixin):
     def _process_json_row(
         self,
         row: str,
-        jeps: Sequence[Sequence[Any] | InterfaceABC | ConnectionsABC],
+        jeps: Sequence[Sequence[Any]],
         src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]],
     ) -> None:
         """Process a row in the JSON GC graph."""
@@ -249,7 +253,7 @@ class GCGraphMixin(CacheableObjMixin):
         if self.conditional_graph():
             fdi: InterfaceABC = self[DestinationRow.F + EPClsPostfix.DST]
             assert len(fdi) == 1, f"Row F must only have one end point: {len(fdi)}"
-            assert fdi[0] == ep_type_lookup["n2v"]["bool"], f"F EP must be bool: {fdi[0]}"
+            assert fdi[0] == types_db["bool"].ept(), f"F EP must be bool: {fdi[0]}"
             fdc: ConnectionsABC = self[DestinationRow.F + EPClsPostfix.DST + "c"]
             assert len(fdc) == 1, f"Row F must only have one connection: {len(fdc)}"
             assert fdc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fdc[0][0].get_row()}"

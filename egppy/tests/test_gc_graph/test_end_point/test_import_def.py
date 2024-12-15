@@ -2,7 +2,7 @@
 
 import unittest
 
-from egpcommon.import_def import ImportDef
+from egppy.gc_graph.end_point.import_def import ImportDef
 
 
 class TestImportDef(unittest.TestCase):
@@ -11,14 +11,14 @@ class TestImportDef(unittest.TestCase):
     def test_initialization(self) -> None:
         """Test the initialization of ImportDef."""
         import_def = ImportDef(["egpcommon", "module"], "MyClass", "Alias")
-        self.assertEqual(import_def.aip, ["egpcommon", "module"])
+        self.assertEqual(import_def.aip, ("egpcommon", "module"))
         self.assertEqual(import_def.name, "MyClass")
         self.assertEqual(import_def.as_name, "Alias")
 
     def test_initialization_without_as_name(self) -> None:
         """Test the initialization of ImportDef without as_name."""
         import_def = ImportDef(["egpcommon", "module"], "MyClass")
-        self.assertEqual(import_def.aip, ["egpcommon", "module"])
+        self.assertEqual(import_def.aip, ("egpcommon", "module"))
         self.assertEqual(import_def.name, "MyClass")
         self.assertEqual(import_def.as_name, "")
 
@@ -26,7 +26,7 @@ class TestImportDef(unittest.TestCase):
         """Test the aip setter."""
         import_def = ImportDef(["egpcommon", "module"], "MyClass")
         import_def.aip = ["new", "module"]
-        self.assertEqual(import_def.aip, ["new", "module"])
+        self.assertEqual(import_def.aip, ("new", "module"))
 
         with self.assertRaises(AssertionError):
             import_def.aip = []
@@ -78,7 +78,7 @@ class TestImportDef(unittest.TestCase):
     def test_from_json(self) -> None:
         """Test the from_json method."""
         import_def = ImportDef(**ImportDef(["egpcommon", "module"], "MyClass", "Alias").to_json())
-        self.assertEqual(import_def.aip, ["egpcommon", "module"])
+        self.assertEqual(import_def.aip, ("egpcommon", "module"))
         self.assertEqual(import_def.name, "MyClass")
         self.assertEqual(import_def.as_name, "Alias")
 

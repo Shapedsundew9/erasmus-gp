@@ -1,49 +1,4 @@
-"""Generate codons.
-
-Overview
-========
-Operators e.g. +, -, ~ etc. but also including functions/methods, are defined in the language folder
-along with supported types. All combinations of type & operator are executed, catching the
-exceptions and identifying which operator-type combinations are valid and what the type of the
-results are (characterisation). From this information gc_types.json & codons.json are generated.
-
-Structure
-=========
-In the languages folder there is a folder for each language that codons will be generated for.
-Currently this is only python.
-There is also operator_format.json which is a python Cerberus Validator schema used to validate
-and normalise the the operators defined by the language.
-
-In each language folder there is an operators folder and 2 files:
-    types.json: Defines the types supported. Key:Value pairs common with the operator format
-                are used to define cast operators.
-    exceptions.json: Defines which exceptions merit which action
-
-In the operators folder there is one or more .json files defining the operators for the language.
-Operators will be aggregated in a single dictionary so the operator_key mujst be unique across
-files. The breakdown of operators across files is a user organisation choice.
-
-Operator Assumptions
---------------------
-In general the following assumptions are made about all operator JSON data files. Each
-assumption may be overridden in the definition. Assumptions are defined in operator_format.json.
-    * Operations take 2 inputs
-    * Operations are deterministic
-    * Operations return a single output that is not an input object
-    * i0 is the sequence object operated on.
-    * If num_outputs = 0 then i0 has been modified.
-
-NOTE: Containers are not yet supported for python
-    "tuple": {
-        "default": "(True, 2, 2.0, complex(2.0,-2.0))"
-    },
-    "list": {
-        "default": "[True, 2, 2.0, complex(2.0,-2.0)]"
-    },
-    "dict": {
-        "default": "{True:True, 2:2, 2.0:2.0, complex(2.0,-2.0):complex(2.0,-2.0)}"
-    }
-"""
+"""Generate codons."""
 from copy import deepcopy
 from datetime import UTC, datetime
 from itertools import product
@@ -55,10 +10,6 @@ from sys import modules
 from typing import Any
 
 from cerberus import Validator
-# pylint: disable=unused-import
-from egppy.gc_graph.ep_type import (  # , fully_qualified_name
-    _EGP_REAL_TYPE_LIMIT, EGP_ANY_TYPE, EGP_BASE_CONTAINER_TYPE_LIMIT,
-    EGP_SCALAR_TYPE_LIMIT, asstr)
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
@@ -196,7 +147,7 @@ def _load_mutations(mutation_files, validator) -> dict[str, dict[str, Any]]:
     return mutations
 
 
-def _load_types(type_file, operators, validator):
+def _load_types(type_file):
     """Load types, create type conversion/cast operators & cross-reference mapping.
 
     The 'operators' dictionary is modified: Type cast operators are added.

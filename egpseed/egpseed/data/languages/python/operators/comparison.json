@@ -1,0 +1,36 @@
+{
+    "operators": {
+        "is not": {
+            "inline": "{i0} is not {i1}",
+            "name": "is not"
+        },
+        "is": {
+            "inline": "{i0} is {i1}",
+            "name": "is"
+        },
+        "<": {
+            "inline": "{i0} < {i1}",
+            "name": "less than"
+        },
+        "<=": {
+            "inline": "{i0} <= {i1}",
+            "name": "less than equal"
+        },
+        "!=": {
+            "inline": "{i0} != {i1}",
+            "name": "not equal"
+        },
+        "==": {
+            "inline": "{i0} == {i1}",
+            "name": "equal"
+        },
+        ">": {
+            "inline": "{i0} > {i1}",
+            "name": "greater than"
+        },
+        ">=": {
+            "inline": "{i0} >= {i1}",
+            "name": "greater than equal"
+        }
+    }
+}

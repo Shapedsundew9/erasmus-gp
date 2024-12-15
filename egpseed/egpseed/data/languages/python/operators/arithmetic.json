@@ -1,0 +1,46 @@
+{
+    "operators": {
+        "%": {
+            "inline": "{i0} % {i1}",
+            "name": "modulo"
+        },
+        "*": {
+            "inline": "{i0} * {i1}",
+            "name": "multiply"
+        },
+        "**": {
+            "inline": "{i0} ** {i1}",
+            "name": "exponent"
+        },
+        "+": {
+            "inline": "{i0} + {i1}",
+            "name": "add"
+        },
+        "-": {
+            "inline": "{i0} - {i1}",
+            "name": "subtract"
+        },
+        "/": {
+            "inline": "{i0} / {i1}",
+            "name": "divide"
+        },
+        "//": {
+            "inline": "{i0} // {i1}",
+            "name": "floor divide"
+        },
+        "@": {
+            "inline": "{i0} @ {i1}",
+            "name": "matrix multiply"
+        },
+        "negate": {
+            "inline": "-{i0}",
+            "name": "negate",
+            "num_inputs": 1
+        },
+        "abs": {
+            "inline": "abs({i0})",
+            "name": "absolute",
+            "num_inputs": 1
+        }
+    }
+}

@@ -4,7 +4,7 @@ import unittest
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.ep_type import INVALID_EP_TYPE_VALUE, ep_type_lookup
+from egppy.gc_graph.end_point.types_def import types_db
 from egppy.gc_graph.interface.interface_class_factory import ListInterface, TupleInterface
 
 # Standard EGP logging pattern
@@ -41,7 +41,7 @@ class InterfaceTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.interface_type = self.get_interface_cls()
-        self.interface = self.interface_type([ep_type_lookup["n2v"]["bool"]] * 4)
+        self.interface = self.interface_type([types_db["bool"].uid] * 4)
 
     def test_len(self) -> None:
         """Test the length of the interface."""
@@ -54,8 +54,8 @@ class InterfaceTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         for idx, ept in enumerate(self.interface):
-            self.assertEqual(ept, ep_type_lookup["n2v"]["bool"])
-            self.assertEqual(self.interface[idx], ep_type_lookup["n2v"]["bool"])
+            self.assertEqual(ept, types_db["bool"].uid)
+            self.assertEqual(self.interface[idx], types_db["bool"].uid)
 
     def test_consistency(self) -> None:
         """Test the consistency of the interface."""
@@ -75,7 +75,7 @@ class InterfaceTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
-            iface = self.interface_type([ep_type_lookup["n2v"]["bool"]] * 257)
+            iface = self.interface_type([types_db["bool"].uid] * 257)
             iface.verify()
 
     def test_verify_assert2(self) -> None:
@@ -84,24 +84,24 @@ class InterfaceTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
-            iface = self.interface_type([INVALID_EP_TYPE_VALUE] * 4)
+            iface = self.interface_type([types_db["egp_invalid"].uid] * 4)
             iface.verify()
 
     def test_find(self):
         """Test the find method of the interface."""
         if self.running_in_test_base_class():
             return
-        idx = self.interface.find(ep_type_lookup["n2v"]["bool"])
+        idx = self.interface.find(types_db["bool"].uid)
         self.assertEqual(idx, [0, 1, 2, 3])
         iface = self.interface_type(
             [
-                ep_type_lookup["n2v"]["bool"],
-                ep_type_lookup["n2v"]["int"],
-                ep_type_lookup["n2v"]["str"],
-                ep_type_lookup["n2v"]["float"],
+                types_db["bool"].uid,
+                types_db["int"].uid,
+                types_db["str"].uid,
+                types_db["float"].uid,
             ]
         )
-        idx = iface.find(ep_type_lookup["n2v"]["int"])
+        idx = iface.find(types_db["int"].uid)
         self.assertEqual(idx, [1])
 
 
@@ -114,9 +114,9 @@ class MutableInterfaceTestBase(InterfaceTestBase):
         """Test setting an endpoint type."""
         if self.running_in_test_base_class():
             return
-        iface = self.interface_type([ep_type_lookup["n2v"]["bool"]] * 4)
-        iface[0] = ep_type_lookup["n2v"]["int"]
-        self.assertEqual(iface[0], ep_type_lookup["n2v"]["int"])
+        iface = self.interface_type([types_db["bool"].uid] * 4)
+        iface[0] = types_db["int"].uid
+        self.assertEqual(iface[0], types_db["int"].uid)
 
     def test_delitem(self) -> None:
         """Test deleting an endpoint type."""
@@ -124,21 +124,21 @@ class MutableInterfaceTestBase(InterfaceTestBase):
             return
         iface = self.interface_type(
             [
-                ep_type_lookup["n2v"]["bool"],
-                ep_type_lookup["n2v"]["int"],
-                ep_type_lookup["n2v"]["str"],
-                ep_type_lookup["n2v"]["float"],
+                types_db["bool"].uid,
+                types_db["int"].uid,
+                types_db["str"].uid,
+                types_db["float"].uid,
             ]
         )
         del iface[1]
         self.assertEqual(len(iface), 3)
-        self.assertEqual(iface[1], ep_type_lookup["n2v"]["str"])
+        self.assertEqual(iface[1], types_db["str"].uid)
 
     def test_append(self) -> None:
         """Test appending an endpoint type."""
         if self.running_in_test_base_class():
             return
-        iface = self.interface_type([ep_type_lookup["n2v"]["bool"]] * 4)
-        iface.append(ep_type_lookup["n2v"]["int"])
+        iface = self.interface_type([types_db["bool"].uid] * 4)
+        iface.append(types_db["int"].uid)
         self.assertEqual(len(iface), 5)
-        self.assertEqual(iface[4], ep_type_lookup["n2v"]["int"])
+        self.assertEqual(iface[4], types_db["int"].uid)

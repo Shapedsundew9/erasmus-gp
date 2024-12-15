@@ -1,0 +1,29 @@
+{
+    "operators": {
+        "&": {
+            "inline": "{i0} & {i1}",
+            "name": "bitwise AND"
+        },
+        "<<": {
+            "inline": "{i0} << {i1}",
+            "name": "left shift"
+        },
+        ">>": {
+            "inline": "{i0} >> {i1}",
+            "name": "right shift"
+        },
+        "^": {
+            "inline": "{i0} ^ {i1}",
+            "name": "bitwise XOR"
+        },
+        "|": {
+            "inline": "{i0} | {i1}",
+            "name": "bitwise OR"
+        },
+        "~": {
+            "inline": "~{i0}",
+            "name": "bitwise NOT",
+            "num_inputs": 1
+        }
+    }
+}

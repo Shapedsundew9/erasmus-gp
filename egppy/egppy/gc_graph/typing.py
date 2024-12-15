@@ -50,7 +50,6 @@ Row = SourceRow | DestinationRow
 SrcEndPointHash = str
 DstEndPointHash = str
 EndPointIndex = int
-EndPointType = int
 EndPointHash = SrcEndPointHash | DstEndPointHash | str
 
 

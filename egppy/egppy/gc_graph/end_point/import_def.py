@@ -5,7 +5,7 @@ a way to define imports in a way that is easy to use and understand. End point
 type definitions use imports as do codons.
 """
 
-from typing import Any
+from typing import Any, Sequence
 
 from egpcommon.common import DictTypeAccessor
 from egpcommon.validator import Validator
@@ -17,12 +17,12 @@ EMPTY_STRING = ""
 class ImportDef(Validator, DictTypeAccessor):
     """Class to define an import."""
 
-    def __init__(self, aip: list[str], name: str, as_name: str = EMPTY_STRING) -> None:
+    def __init__(self, aip: Sequence[str], name: str, as_name: str = EMPTY_STRING) -> None:
         """Initialize the ImportDef class
 
         Args
         ----
-        aip: list[str]: The Absolute Import Path of the import.
+        aip: Sequence[str]: The Absolute Import Path of the import.
         name: str: The name of the import.
         as_name: str: The name to use for the import. This must be globally unique.
         """
@@ -31,18 +31,22 @@ class ImportDef(Validator, DictTypeAccessor):
         setattr(self, "name", name)
         setattr(self, "as_name", as_name)
 
+    def __hash__(self) -> int:
+        """Globally unique hash for the object."""
+        return id(self)
+
     @property
-    def aip(self) -> list[str]:
+    def aip(self) -> tuple[str, ...]:
         """Return the Absolute Import Path."""
         return self._aip
 
     @aip.setter
-    def aip(self, value: list[str]) -> None:
+    def aip(self, value: Sequence[str]) -> None:
         """Set the Absolute Import Path."""
-        self._is_list("aip", value)
+        self._is_sequence("aip", value)
         assert len(value) > 0, "The aip must have at least one element."
         assert all(isinstance(x, str) for x in value), "All elements of aip must be strings."
-        self._aip = value
+        self._aip = tuple(value)
 
     @property
     def name(self) -> str:
@@ -77,4 +81,4 @@ class ImportDef(Validator, DictTypeAccessor):
 
     def to_json(self) -> dict[str, Any]:
         """Return the object as a JSON serializable dictionary."""
-        return {"aip": self.aip, "name": self.name, "as_name": self.as_name}
+        return {"aip": list(self.aip), "name": self.name, "as_name": self.as_name}

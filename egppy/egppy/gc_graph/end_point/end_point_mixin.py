@@ -8,11 +8,11 @@ from egpcommon.common_obj_mixin import CommonObjMixin
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
-from egppy.gc_graph.ep_type import validate
+from egppy.gc_graph.end_point.types_def import EndPointType
 from egppy.gc_graph.typing import DESTINATION_ROWS, EP_CLS_STR_TUPLE, ROWS, SOURCE_ROWS
 from egppy.gc_graph.typing import VALID_ROW_DESTINATIONS as VRD
 from egppy.gc_graph.typing import VALID_ROW_SOURCES as VRS
-from egppy.gc_graph.typing import DestinationRow, EndPointClass, EndPointHash, EndPointType, Row
+from egppy.gc_graph.typing import DestinationRow, EndPointClass, EndPointHash, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -192,7 +192,6 @@ class EndPointMixin(CommonObjMixin):
         """Verify the end point."""
         assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
-        assert validate(self.get_typ()), f"Invalid type: {self.get_typ()}"
         if self.is_dst():
             assert self.get_row() in DESTINATION_ROWS, f"Invalid destination row: {self.get_row()}"
             if self.get_row() == DestinationRow.F:

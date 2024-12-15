@@ -37,7 +37,8 @@
     "complex": {
         "default": "complex(2.0,-2.0)",
         "inherits": [
-            "numbers"
+            "number",
+            "egp_complex"
         ],
         "uid": 7
     },
@@ -52,10 +53,34 @@
         "inherits": [
             "mutablemapping"
         ],
-        "uid": 9
+        "uid": 536870912
+    },
+    "egp_heany": {
+        "uid": 65535
+    },
+    "egp_hoany": {
+        "uid": 65534
+    },
+    "egp_invalid": {
+        "uid": 65533
+    },
+    "egp_number": {
+        "uid": 65532
+    },
+    "egp_complex": {
+        "uid": 65531
+    },
+    "egp_rational": {
+        "uid": 65530
+    },
+    "egp_real": {
+        "uid": 65529
+    },
+    "egp_integral": {
+        "uid": 65528
     },
     "float": {
-        "default": "2.0",
+        "default": "(2.0)",
         "inherits": [
             "real"
         ],
@@ -73,14 +98,8 @@
         ],
         "uid": 12
     },
-    "hetrobject": {
-        "uid": 1
-    },
-    "homobject": {
-        "uid": 2
-    },
     "int": {
-        "default": "2",
+        "default": "(2)",
         "inherits": [
             "integral"
         ],
@@ -88,7 +107,8 @@
     },
     "integral": {
         "inherits": [
-            "rational"
+            "rational",
+            "egp_integral"
         ],
         "uid": 27
     },
@@ -96,19 +116,39 @@
         "inherits": [
             "object"
         ],
-        "uid": 14
+        "uid": 268435456
     },
     "iterator": {
         "inherits": [
             "iterable"
         ],
-        "uid": 15
+        "uid": 14
     },
     "list": {
+        "default": "[]",
         "inherits": [
             "mutablesequence"
         ],
-        "uid": 16
+        "uid": 268435457
+    },
+    "mapping": {
+        "default": "{}",
+        "inherits": [
+            "collection"
+        ],
+        "uid": 536870914
+    },
+    "mutablemapping": {
+        "inherits": [
+            "mapping"
+        ],
+        "uid": 536870913
+    },
+    "mutablesequence": {
+        "inherits": [
+            "sequence"
+        ],
+        "uid": 268435473
     },
     "none": {
         "default": "None",
@@ -117,9 +157,10 @@
         ],
         "uid": 17
     },
-    "numbers": {
+    "number": {
         "inherits": [
-            "hashable"
+            "hashable",
+            "egp_number"
         ],
         "uid": 24
     },
@@ -129,13 +170,15 @@
     },
     "rational": {
         "inherits": [
-            "real"
+            "real",
+            "egp_rational"
         ],
         "uid": 26
     },
     "real": {
         "inherits": [
-            "complex"
+            "complex",
+            "egp_real"
         ],
         "uid": 25
     },
@@ -143,27 +186,27 @@
         "inherits": [
             "iterable"
         ],
-        "uid": 18
+        "uid": 268435458
     },
     "sequence": {
         "inherits": [
             "reversible",
             "collection"
         ],
-        "uid": 19
+        "uid": 268435459
     },
     "set": {
-        "default": null,
+        "default": "set()",
         "inherits": [
             "collection"
         ],
-        "uid": 20
+        "uid": 268435470
     },
     "sized": {
         "inherits": [
             "object"
         ],
-        "uid": 21
+        "uid": 268435471
     },
     "str": {
         "default": "'two'",
@@ -177,6 +220,6 @@
         "inherits": [
             "sequence"
         ],
-        "uid": 23
+        "uid": 268435472
     }
 }

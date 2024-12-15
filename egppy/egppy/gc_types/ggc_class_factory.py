@@ -14,7 +14,6 @@ from egpcommon.common import EGP_EPOCH, GGC_KVT, PROPERTIES
 from egpcommon.conversions import encode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.ep_type import validate
 from egppy.gc_types.egc_class_factory import EGCMixin
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
@@ -285,9 +284,6 @@ class GGCMixin(EGCMixin):
         ), "input_types must have a length less than or equal to 256."
         assert len(set(itypes)) == len(itypes), "input_types must be unique."
         assert all(
-            validate(x) for x in self["input_types"]
-        ), "input_types must all be valid end point types."
-        assert all(
             itypes[i] < itypes[i + 1] for i in range(len(itypes) - 1)
         ), "input_types must be in ascending order."
 
@@ -328,9 +324,6 @@ class GGCMixin(EGCMixin):
             len(otypes := self["output_types"]) <= 256
         ), "output_types must have a length less than or equal to 256."
         assert len(set(otypes)) == len(otypes), "output_types must be unique."
-        assert all(
-            validate(x) for x in self["output_types"]
-        ), "output_types must all be valid end point types."
         assert all(
             otypes[i] < otypes[i + 1] for i in range(len(otypes) - 1)
         ), "output_types must be in ascending order."
