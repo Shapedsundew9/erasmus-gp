@@ -24,3 +24,9 @@ Selectors are a type of GC too.
 Much to think out here.
 Most simple is a random selector.
 What is the selector interface?
+
+## Behaviors
+
+- [Insertion](insertion.md)
+- [Steady State Exceptions](sse.md)
+- [Mutation](mutation.md)
