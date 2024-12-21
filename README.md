@@ -9,8 +9,8 @@ Erasmus Genetic Programming , Erasmsus GP or just EGP, emulates the principles o
 - [Introduction to Genetic Programming](docs/background.md)
 - [An Alternate View "Evolution: A Synthetic Approach"](docs/alternate.md)
 - How EGP Works
-  - [Genetic Codes](egppy/docs/gcs.md)
-  - [Populations](egppy/docs/populations.md)
+  - [Genetic Codes](egppy/egppy/gc_types/docs/gcs.md)
+  - [Populations](egppy/egppy/populations/docs/populations.md)
     - [EGP Seed](egpseed/docs/overview.md)
   - [Problems](egppy/egppy/problems/docs/problems.md)
     - [Genesis](egppy/egppy/problems/docs/genesis.md)
