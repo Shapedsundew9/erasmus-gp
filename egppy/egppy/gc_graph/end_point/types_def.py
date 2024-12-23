@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Container
 from os.path import dirname, join
 
@@ -241,7 +242,13 @@ class TypesDB(Container):
 
     def validate(self):
         """Validate the types database."""
-        assert len(self._name_key) == len(self._uid_key), "Name and UID keys must be unique."
+        if len(self._name_key) != len(self._uid_key):
+            counts = Counter([types_def.uid for types_def in self._name_key.values()])
+            for uid, count in ((k, v) for k, v in counts.items() if v > 1):
+                _logger.error("Type UID %d is not unique. There are %d occurances.", uid, count)
+                for types_def in (td for td in self._name_key.values() if td.uid == uid):
+                    _logger.error("\t\tType='%s' uid=%d", types_def.name, types_def.uid)
+            raise ValueError("Type UID's are not unique. See logs.")
 
 
 types_db = TypesDB(join(dirname(__file__), "..", "..", "data", "types.json"))

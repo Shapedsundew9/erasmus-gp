@@ -13,6 +13,12 @@
         ],
         "uid": 3
     },
+    "Set": {
+        "inherits": [
+            "Collection"
+        ],
+        "uid": 268435477
+    },
     "bool": {
         "default": "True",
         "inherits": [
@@ -20,29 +26,44 @@
         ],
         "uid": 4
     },
-    "callable": {
+    "bytearray": {
+        "default": "bytearray(b'two')",
+        "inherits": [
+            "MutableSequence"
+        ],
+        "uid": 29
+    },
+    "bytes": {
+        "default": "b'two'",
+        "inherits": [
+            "Sequence",
+            "Hashable"
+        ],
+        "uid": 28
+    },
+    "Callable": {
         "inherits": [
             "object"
         ],
         "uid": 5
     },
-    "collection": {
+    "Collection": {
         "inherits": [
-            "sized",
-            "iterable",
-            "container"
+            "Sized",
+            "Iterable",
+            "Container"
         ],
         "uid": 6
     },
     "complex": {
         "default": "complex(2.0,-2.0)",
         "inherits": [
-            "number",
+            "numbers",
             "egp_complex"
         ],
         "uid": 7
     },
-    "container": {
+    "Container": {
         "inherits": [
             "object"
         ],
@@ -51,7 +72,7 @@
     "dict": {
         "default": "{}",
         "inherits": [
-            "mutablemapping"
+            "MutableMapping"
         ],
         "uid": 536870912
     },
@@ -86,13 +107,21 @@
         ],
         "uid": 10
     },
-    "generator": {
+    "frozenset": {
+        "default": "frozenset()",
+        "inherits": [
+            "Set",
+            "Hashable"
+        ],
+        "uid": 268435476
+    },
+    "Generator": {
         "inherits": [
             "object"
         ],
         "uid": 11
     },
-    "hashable": {
+    "Hashable": {
         "inherits": [
             "object"
         ],
@@ -112,54 +141,60 @@
         ],
         "uid": 27
     },
-    "iterable": {
+    "Iterable": {
         "inherits": [
             "object"
         ],
         "uid": 268435456
     },
-    "iterator": {
+    "Iterator": {
         "inherits": [
-            "iterable"
+            "Iterable"
         ],
-        "uid": 14
+        "uid": 268435479
     },
     "list": {
         "default": "[]",
         "inherits": [
-            "mutablesequence"
+            "MutableSequence"
         ],
         "uid": 268435457
     },
-    "mapping": {
+    "Mapping": {
         "default": "{}",
         "inherits": [
-            "collection"
+            "Collection"
         ],
         "uid": 536870914
     },
-    "mutablemapping": {
+    "MutableMapping": {
         "inherits": [
-            "mapping"
+            "Mapping"
         ],
         "uid": 536870913
     },
-    "mutablesequence": {
+    "MutableSet": {
         "inherits": [
-            "sequence"
+            "Set"
+        ],
+        "uid": 268435478
+    },
+    "MutableSequence": {
+        "inherits": [
+            "Sequence"
         ],
         "uid": 268435473
     },
-    "none": {
+    "None": {
         "default": "None",
         "inherits": [
             "object"
         ],
         "uid": 17
     },
-    "number": {
+    "numbers": {
         "inherits": [
-            "hashable",
+            "Hashable",
             "egp_number"
         ],
         "uid": 24
@@ -182,27 +217,27 @@
         ],
         "uid": 25
     },
-    "reversible": {
+    "Reversible": {
         "inherits": [
-            "iterable"
+            "Iterable"
         ],
         "uid": 268435458
     },
-    "sequence": {
+    "Sequence": {
         "inherits": [
-            "reversible",
-            "collection"
+            "Reversible",
+            "Collection"
         ],
         "uid": 268435459
     },
     "set": {
         "default": "set()",
         "inherits": [
-            "collection"
+            "MutableSet"
         ],
         "uid": 268435470
     },
-    "sized": {
+    "Sized": {
         "inherits": [
             "object"
         ],
@@ -211,14 +246,16 @@
     "str": {
         "default": "'two'",
         "inherits": [
-            "sequence"
+            "Sequence",
+            "Hashable"
         ],
         "uid": 22
     },
     "tuple": {
         "default": "tuple()",
         "inherits": [
-            "sequence"
+            "Sequence",
+            "Hashable"
         ],
         "uid": 268435472
     }

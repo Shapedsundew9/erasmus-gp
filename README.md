@@ -14,8 +14,7 @@ Erasmus Genetic Programming , Erasmsus GP or just EGP, emulates the principles o
     - [EGP Seed](egpseed/docs/overview.md)
   - [Problems](egppy/egppy/problems/docs/problems.md)
     - [Genesis](egppy/egppy/problems/docs/genesis.md)
-    - [Tic-Tac-Toe](egppy/egppy/problems/tic_tac_toe.md)
-  - Scopes
+    - [Tic-Tac-Toe](egppy/egppy/problems/docs/tic-tac-toe.md)
   - [EGP Physics](egppy/egppy/physics/docs/physics.md)
 - EGP Application
   - Quick Start Guide
