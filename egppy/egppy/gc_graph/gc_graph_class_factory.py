@@ -22,7 +22,7 @@ Example:
 from __future__ import annotations
 
 from random import choice, shuffle
-from typing import Any
+from typing import Any, Callable, MutableSequence
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
@@ -35,11 +35,12 @@ from egppy.gc_graph.connections.connections_class_factory import (
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.gc_graph_mixin import GCGraphDict, GCGraphMixin, key2parts
-from egppy.gc_graph.interface.interface_abc import InterfaceABC
-from egppy.gc_graph.interface.interface_class_factory import (
+from egppy.gc_graph.interface import (
     EMPTY_INTERFACE,
-    ListInterface,
-    TupleInterface,
+    Interface,
+    MutableInterface,
+    interface,
+    mutable_interface,
 )
 from egppy.gc_graph.typing import ROW_CLS_INDEXED, DestinationRow, EPClsPostfix, SourceRow
 
@@ -59,7 +60,7 @@ SRC_CONN_POSTFIX: str = EPClsPostfix.SRC + "c"
 
 
 # Empty GC Graph templates
-_EMPTY_INTERFACES: dict[str, InterfaceABC] = {r: EMPTY_INTERFACE for r in ROW_CLS_INDEXED}
+_EMPTY_INTERFACES: dict[str, Interface] = {r: EMPTY_INTERFACE for r in ROW_CLS_INDEXED}
 _EMPTY_CONNECTIONS: dict[str, ConnectionsABC] = {
     r + "c": EMPTY_CONNECTIONS for r in ROW_CLS_INDEXED
 }
@@ -71,14 +72,14 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
     Frozen graphs are created once and then never modified.
     """
 
-    _TI: type[InterfaceABC] = TupleInterface
+    _TI: Callable = lambda _, y: interface(y)
     _TC: type[ConnectionsABC] = TupleConnections
 
     def __init__(self, gc_graph: GCGraphDict | GCGraphABC) -> None:
         """Initialize the GC graph.
         Construct the internal representation of the graph from the JSON graph.
         """
-        self._interfaces: dict[str, InterfaceABC] = _EMPTY_INTERFACES.copy()
+        self._interfaces: dict[str, Interface] = _EMPTY_INTERFACES.copy()
         self._connections: dict[str, ConnectionsABC] = _EMPTY_CONNECTIONS.copy()
         self._dirty_ics: set[str] = set()  # Interface and connection keys
         self._lock = False  # Modifiable during initialization
@@ -122,6 +123,7 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
         # use -1 (pop the last element).
         # Otherwise, convert the substring key[1:4] to an integer index.
         i = -1 if key[2] == "-" else int(key[1:4])
+        assert isinstance(iface, MutableSequence), "Interface must be mutable."
         del iface[i], conns[i]
         self._dirty_ics.add(ikey)
         self._dirty_ics.add(ckey)
@@ -171,6 +173,7 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
             iface = self._interfaces[ikey := key[0] + key[4]]
             conns = self._connections[ckey := ikey + "c"]
             assert isinstance(value, EndPoint), "Value must be an EndPoint."
+            assert isinstance(iface, MutableSequence), "Interface must be mutable."
             if key[1] == "+":
                 iface.append(value.get_typ())
                 conns.append(value.get_refs())
@@ -214,7 +217,7 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
 class MutableGCGraph(FrozenGCGraph):
     """Mutable graph class for the GC graph."""
 
-    _TI: type = ListInterface
+    _TI: Callable = lambda _, y: mutable_interface(y)
     _TC: type = ListConnections
 
     def __init__(self, gc_graph: GCGraphDict | GCGraphABC) -> None:
@@ -249,6 +252,9 @@ class MutableGCGraph(FrozenGCGraph):
                 srow, sidx = choice(vsrcs)
                 # If it is a new input interface endpoint then add it to input interface
                 if not fixed_interface and sidx == len_is and srow == SourceRow.I:
+                    assert isinstance(
+                        self._interfaces["Is"], MutableSequence
+                    ), "Interface must be mutable."
                     self._interfaces["Is"].append(typ)
                     self._connections["Isc"].append(rtype())
                 self._connections[drow + DST_CONN_POSTFIX][didx].append(SrcEndPointRef(srow, sidx))

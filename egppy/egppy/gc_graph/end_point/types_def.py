@@ -146,7 +146,7 @@ class TypesDef(Validator, DictTypeAccessor):
             _inherits.append(inherit)
         self._inherits = tuple(_inherits)
 
-    def ept(self) -> EndPointType:
+    def ept(self) -> tuple[TypesDef, ...]:
         """Return the End Point Type as a tuple of TypesDef objects."""
         return (self,)
 
@@ -184,10 +184,6 @@ class TypesDef(Validator, DictTypeAccessor):
     def xuid(self) -> int:
         """Return the Type XUID."""
         return (self.uid & XUID_MASK) >> XUID_POS
-
-
-# The End Point Type type definition is recursive
-EndPointType = tuple[TypesDef | tuple[TypesDef, ...] | tuple, ...]
 
 
 class TypesDB(Container):

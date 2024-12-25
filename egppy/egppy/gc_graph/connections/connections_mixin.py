@@ -6,7 +6,7 @@ from egpcommon.common_obj_mixin import CommonObjMixin, CommonObjProtocol
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
-from egppy.gc_graph.interface.interface_mixin import INTERFACE_MAX_LENGTH
+from egppy.gc_graph.interface import INTERFACE_MAX_LENGTH
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

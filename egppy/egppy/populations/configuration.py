@@ -9,7 +9,7 @@ from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.validator import Validator
 
-from egppy.gc_graph.end_point.types_def import EndPointType, types_db
+from egppy.gc_graph.interface import Interface, interface, interface_to_list_str
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -387,31 +387,30 @@ class PopulationConfig(Validator, DictTypeAccessor):
         self._worker_id = value
 
     @property
-    def inputs(self) -> tuple[EndPointType, ...]:
+    def inputs(self) -> Interface:
         """Get the inputs."""
         return self._inputs
 
     @inputs.setter
-    def inputs(self, value: Sequence[int | str | Sequence]) -> None:
+    def inputs(
+        self, value: Sequence[Sequence[int]] | Sequence[Sequence[str] | Sequence[str]]
+    ) -> None:
         """The inputs."""
         self._is_sequence("inputs", value)
-        self._inputs = tuple(asint(item) for item in value)
+        self._inputs = interface(value)
 
     @property
-    def outputs(self) -> tuple[EndPointType, ...]:
+    def outputs(self) -> Interface:
         """Get the outputs."""
         return self._outputs
 
     @outputs.setter
-    def outputs(self, value: Sequence[int | str]) -> None:
-        """The outputs."""
-        if isinstance(value, tuple):
-            assert all(validate(item) for item in value), "Invalid output type."
-            self._outputs = value
-        elif isinstance(value, list):
-            self._outputs = tuple(asint(item) for item in value)
-        else:
-            assert False, "Invalid output type."
+    def outputs(
+        self, value: Sequence[Sequence[int]] | Sequence[Sequence[str] | Sequence[str]]
+    ) -> None:
+        """The inputs."""
+        self._is_sequence("inputs", value)
+        self._outputs = interface(value)
 
     @property
     def ordered_interface_hash(self) -> bytes:
@@ -619,8 +618,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
             "uid": self.uid,
             "problem": self.problem.hex(),
             "worker_id": str(self.worker_id),
-            "inputs": [asstr(item) for item in self.inputs],
-            "outputs": [asstr(item) for item in self.outputs],
+            "inputs": interface_to_list_str(self.inputs),
+            "outputs": interface_to_list_str(self.outputs),
             "ordered_interface_hash": self.ordered_interface_hash.hex(),
             "unordered_interface_hash": self.unordered_interface_hash.hex(),
             "name": self.name,

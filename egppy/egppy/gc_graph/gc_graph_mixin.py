@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any, Generator, cast
+from pprint import pformat
+from typing import Any, Callable, Generator, cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
-from egppy.gc_graph.end_point.types_def import EndPointType, types_db
+from egppy.gc_graph.end_point.end_point_type import EndPointType, end_point_type
+from egppy.gc_graph.end_point.types_def import types_db
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
-from egppy.gc_graph.interface.interface_abc import InterfaceABC
-from egppy.gc_graph.interface.interface_class_factory import EMPTY_INTERFACE
+from egppy.gc_graph.interface import (
+    EMPTY_INTERFACE,
+    AnyInterface,
+    MutableInterface,
+    RawInterface,
+    verify_interface,
+)
 from egppy.gc_graph.typing import (
     CPI,
     ROW_CLS_INDEXED,
@@ -37,7 +44,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Type of the GC Graph dictionary
-GCGraphDict = Mapping[str, Sequence[Sequence[Any] | InterfaceABC | ConnectionsABC]]
+GCGraphDict = Mapping[str, Sequence[Sequence[Any] | MutableInterface | ConnectionsABC]]
 
 
 # Sort key function
@@ -61,7 +68,7 @@ class GCGraphMixin(CacheableObjMixin):
     """Base class for GC graph objects."""
 
     # Must be defined by the derived class
-    _TI: type[InterfaceABC]
+    _TI: Callable[[RawInterface], AnyInterface]  # interface() or mutable_interface()
     _TC: type[ConnectionsABC]
 
     def __init__(self, gc_graph: GCGraphDict | GCGraphABC) -> None:
@@ -113,7 +120,9 @@ class GCGraphMixin(CacheableObjMixin):
             ...
         }
         """
-        src_if_typs: dict[SourceRow, set[tuple]] = {r: set() for r in SOURCE_ROWS}
+        src_if_typs: dict[SourceRow, set[tuple[int, EndPointType]]] = {
+            r: set() for r in SOURCE_ROWS
+        }
         src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {r: {} for r in SOURCE_ROWS}
         for row, jeps in gc_graph.items():
             if row != "U":
@@ -143,14 +152,16 @@ class GCGraphMixin(CacheableObjMixin):
 
     def _collect_src_references(
         self,
-        jeps: Sequence[Sequence[Any] | InterfaceABC | ConnectionsABC],
-        src_if_typs: dict[SourceRow, set[tuple]],
+        jeps: Sequence[Any],
+        src_if_typs: dict[SourceRow, set[tuple[int, EndPointType]]],
     ) -> None:
         """Collect references to the source interfaces."""
         for jep in jeps:
-            src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], jep[CPI.TYP]))
+            src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], end_point_type(jep[CPI.TYP])))
 
-    def _create_source_interfaces(self, src_if_typs: dict[SourceRow, set[tuple]]) -> None:
+    def _create_source_interfaces(
+        self, src_if_typs: dict[SourceRow, set[tuple[int, EndPointType]]]
+    ) -> None:
         """Create source interfaces from collected references."""
         for row, sif in src_if_typs.items():
             self[row + EPClsPostfix.SRC] = self._TI(t for _, t in sorted(sif, key=skey))
@@ -202,6 +213,10 @@ class GCGraphMixin(CacheableObjMixin):
         for key in self.epkeys():
             yield self[key]
 
+    def __repr__(self) -> str:
+        """Return a string representation of the GC graph."""
+        return pformat(self.to_json(), indent=4, width=120)
+
     def check_required_connections(self) -> list[tuple[SourceRow, DestinationRow]]:
         """Return a list of required connections that are missing."""
         retval = []
@@ -229,11 +244,13 @@ class GCGraphMixin(CacheableObjMixin):
         if self.standard_graph():
             # B must connect to O
             odc: ConnectionsABC = self["Odc"]
+            _logger.debug("Odc: %s", odc)
             if len(odc) == 0 or all(ep[0].get_row() != SourceRow.B for ep in odc):
                 retval.append((SourceRow.B, DestinationRow.O))
 
         # In all cases I must be connected to A
         adc: ConnectionsABC = self["Adc"]
+        _logger.debug("Adc: %s", adc)
         if len(adc) == 0 or all(ep[0].get_row() != SourceRow.I for ep in adc):
             retval.append((SourceRow.I, DestinationRow.A))
 
@@ -251,7 +268,7 @@ class GCGraphMixin(CacheableObjMixin):
         """Check the consistency of the GC graph."""
 
         if self.conditional_graph():
-            fdi: InterfaceABC = self[DestinationRow.F + EPClsPostfix.DST]
+            fdi: AnyInterface = self[DestinationRow.F + EPClsPostfix.DST]
             assert len(fdi) == 1, f"Row F must only have one end point: {len(fdi)}"
             assert fdi[0] == types_db["bool"].ept(), f"F EP must be bool: {fdi[0]}"
             fdc: ConnectionsABC = self[DestinationRow.F + EPClsPostfix.DST + "c"]
@@ -259,26 +276,25 @@ class GCGraphMixin(CacheableObjMixin):
             assert fdc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fdc[0][0].get_row()}"
 
         if self.standard_graph() or self.conditional_graph():
-            adi: InterfaceABC = self[DestinationRow.A + EPClsPostfix.DST]
+            adi: AnyInterface = self[DestinationRow.A + EPClsPostfix.DST]
             assert len(adi) >= 1, f"Row A must have at least one end point: {len(adi)}"
-            bdi: InterfaceABC = self[DestinationRow.B + EPClsPostfix.DST]
+            bdi: AnyInterface = self[DestinationRow.B + EPClsPostfix.DST]
             assert len(bdi) >= 1, f"Row B must have at least one end point: {len(bdi)}"
-            asi: InterfaceABC = self[SourceRow.A + EPClsPostfix.SRC]
+            asi: AnyInterface = self[SourceRow.A + EPClsPostfix.SRC]
             assert len(asi) >= 1, f"Row A must have at least one end point: {len(asi)}"
-            bsi: InterfaceABC = self[SourceRow.B + EPClsPostfix.SRC]
+            bsi: AnyInterface = self[SourceRow.B + EPClsPostfix.SRC]
             assert len(bsi) >= 1, f"Row B must have at least one end point: {len(bsi)}"
 
         # All graphs
-        isi: InterfaceABC = self[SourceRow.I + EPClsPostfix.SRC]
+        isi: AnyInterface = self[SourceRow.I + EPClsPostfix.SRC]
         assert len(isi) >= 1, f"Row I must have at least one end point: {len(isi)}"
-        odi: InterfaceABC = self[DestinationRow.O + EPClsPostfix.DST]
+        odi: AnyInterface = self[DestinationRow.O + EPClsPostfix.DST]
         assert len(odi) >= 1, f"Row O must have at least one end point: {len(odi)}"
 
         # Check connections
         for key in ROW_CLS_INDEXED:
             iface = self.get(key, EMPTY_INTERFACE)
             conns = self.get(key + "c", EMPTY_CONNECTIONS)
-            iface.consistency()
             conns.consistency()
             assert len(iface) == len(conns), f"Length mismatch: {len(iface)} != {len(conns)}"
 
@@ -355,15 +371,24 @@ class GCGraphMixin(CacheableObjMixin):
         """Return a JSON GC Graph."""
         jgcg: dict[str, list[list[Any]]] = {}
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST and k in self):
-            iface: InterfaceABC = self[key]
+            iface: AnyInterface = self[key]
             conns: ConnectionsABC = self[key + "c"]
-            jgcg[key[0]] = [[str(r[0].get_row()), r[0].get_idx(), t] for r, t in zip(conns, iface)]
+            jgcg[key[0]] = [
+                [str(r[0].get_row()), r[0].get_idx(), [td.uid for td in ept]]
+                for r, ept in zip(conns, iface)
+            ]
         ucn: list[list[Any]] = []
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.SRC and k in self):
-            iface: InterfaceABC = self[key]
+            iface: AnyInterface = self[key]
             conns: ConnectionsABC = self[key + "c"]
             row = cast(Row, key[0])
-            ucn.extend([[row, i, t] for i, (r, t) in enumerate(zip(conns, iface)) if not r])
+            ucn.extend(
+                [
+                    [row, i, [td.uid for td in ept]]
+                    for i, (r, ept) in enumerate(zip(conns, iface))
+                    if not r
+                ]
+            )
         if ucn:
             jgcg["U"] = sorted(ucn, key=lambda x: x[0] + f"{x[1]:03d}")
         return jgcg
@@ -385,6 +410,11 @@ class GCGraphMixin(CacheableObjMixin):
 
     def verify(self) -> None:
         """Verify the GC graph."""
-        for key in ROW_CLS_INDEXED:
-            self.get(key, EMPTY_INTERFACE).verify()
-        super().verify()
+        key = "Null"
+        try:
+            for key in ROW_CLS_INDEXED:
+                verify_interface(self.get(key, EMPTY_INTERFACE))
+            super().verify()
+        except AssertionError as e:
+            _logger.error("Interface %s verification failed", key)
+            raise AssertionError(f"GC Graph verification failed: {e} for graph\n{self}") from e

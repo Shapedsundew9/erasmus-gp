@@ -8,7 +8,7 @@ from egpcommon.common_obj_mixin import CommonObjMixin
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
-from egppy.gc_graph.end_point.types_def import EndPointType
+from egppy.gc_graph.end_point.end_point_type import EndPointType
 from egppy.gc_graph.typing import DESTINATION_ROWS, EP_CLS_STR_TUPLE, ROWS, SOURCE_ROWS
 from egppy.gc_graph.typing import VALID_ROW_DESTINATIONS as VRD
 from egppy.gc_graph.typing import VALID_ROW_SOURCES as VRS

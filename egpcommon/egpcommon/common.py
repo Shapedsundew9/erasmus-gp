@@ -7,6 +7,15 @@ from pprint import pformat
 from typing import Any, Self
 from uuid import UUID
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
+
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)
 

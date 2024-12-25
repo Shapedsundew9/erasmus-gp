@@ -178,14 +178,14 @@ The Template Types bits, TT, define the number of templated types that need to b
 
 End Point Types , EPTs, are complete types defined by a sequence (usually a tuple) of types with the format:
 
-(type[0], template_type[1], ..., template_type[n])
+(type[0], \*template_type[1], ..., \*template_type[n])
 
 where _n_ is the value of TT in the type[0] type UID. For scalar types type[0] == scalar_type UID_ and _n == 0_ i.e. _(scalar_type,)_ is the EPT for a scalar type. For container types the template types are EPTs defined in the order of the container definition which permits nested containers of almost arbitary depth to be supported (limited by the number of types that may be defined in an interface). For example:
 
-- list[str]: (list_type, (str_type, ))
-- dict[str, float]: (dict_type, (str_type,) , (float_type, ))
-- dict[str, list[int]]: (dict_type, (str_type, ), (list_type, (int_type, )))
-- dict[tuple[int, ...], list[list[any]]]: (dict_type, (tuple_type, (int_type,)), (list_type, (list_type, (heany_type,))))
+- list[str]: (list_type, str_type, )
+- dict[str, float]: (dict_type, str_type, float_type)
+- dict[str, list[int]]: (dict_type, str_type, list_type, int_type)
+- dict[tuple[int, ...], list[list[any]]]: (dict_type, tuple_type, int_type, list_type, list_type, heany_type)
 
 Note that the TT bit format of the UID means that the EPT sub-groupings do not have to be explicit in the implementation i.e. an array of types without grouping for an EPT is uniquely decodable which in turn enables an interface (see later) to be defined as a single array of types. This is efficient for
 database storage.

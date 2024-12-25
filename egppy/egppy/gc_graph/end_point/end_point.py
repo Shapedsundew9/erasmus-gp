@@ -11,7 +11,7 @@ from egppy.gc_graph.end_point.end_point_abc import (
     XEndPointRefABC,
 )
 from egppy.gc_graph.end_point.end_point_mixin import EndPointMixin, GenericEndPointMixin
-from egppy.gc_graph.end_point.types_def import EndPointType
+from egppy.gc_graph.end_point.end_point_type import EndPointType
 from egppy.gc_graph.typing import (
     DESTINATION_ROWS,
     EP_CLS_STR_TUPLE,

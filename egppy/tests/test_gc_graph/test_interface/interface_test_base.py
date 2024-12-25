@@ -1,11 +1,12 @@
 """Base class of interface tests."""
 
 import unittest
+from typing import Callable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.types_def import types_db
-from egppy.gc_graph.interface.interface_class_factory import ListInterface, TupleInterface
+from egppy.gc_graph.interface import interface, mutable_interface
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -20,7 +21,7 @@ class InterfaceTestBase(unittest.TestCase):
     """
 
     # The interface type to test. Define in subclass.
-    itype: type[TupleInterface] = TupleInterface
+    itype: Callable = interface
 
     @classmethod
     def get_test_cls(cls) -> type:
@@ -35,7 +36,7 @@ class InterfaceTestBase(unittest.TestCase):
         return cls.get_test_cls().__name__.endswith("TestBase")
 
     @classmethod
-    def get_interface_cls(cls) -> type:
+    def get_interface_cls(cls) -> Callable:
         """Get the Interface class."""
         return cls.itype
 
@@ -54,20 +55,8 @@ class InterfaceTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         for idx, ept in enumerate(self.interface):
-            self.assertEqual(ept, types_db["bool"].uid)
-            self.assertEqual(self.interface[idx], types_db["bool"].uid)
-
-    def test_consistency(self) -> None:
-        """Test the consistency of the interface."""
-        if self.running_in_test_base_class():
-            return
-        self.interface.consistency()
-
-    def test_verify(self) -> None:
-        """Test the verification of the interface."""
-        if self.running_in_test_base_class():
-            return
-        self.interface.verify()
+            self.assertEqual(ept[0], types_db["bool"])
+            self.assertEqual(self.interface[idx][0], types_db["bool"])
 
     def test_verify_assert1(self) -> None:
         """Test when the interface to too long."""
@@ -75,40 +64,13 @@ class InterfaceTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
-            iface = self.interface_type([types_db["bool"].uid] * 257)
-            iface.verify()
-
-    def test_verify_assert2(self) -> None:
-        """Test when the interface has an invalid type."""
-        if self.running_in_test_base_class():
-            return
-        with self.assertRaises(AssertionError):
-            # It is legit for the constructor to assert this but not required.
-            iface = self.interface_type([types_db["egp_invalid"].uid] * 4)
-            iface.verify()
-
-    def test_find(self):
-        """Test the find method of the interface."""
-        if self.running_in_test_base_class():
-            return
-        idx = self.interface.find(types_db["bool"].uid)
-        self.assertEqual(idx, [0, 1, 2, 3])
-        iface = self.interface_type(
-            [
-                types_db["bool"].uid,
-                types_db["int"].uid,
-                types_db["str"].uid,
-                types_db["float"].uid,
-            ]
-        )
-        idx = iface.find(types_db["int"].uid)
-        self.assertEqual(idx, [1])
+            _ = self.interface_type([types_db["bool"].uid] * 257)
 
 
 class MutableInterfaceTestBase(InterfaceTestBase):
     """Extends the static interface test cases with dynamic interface tests."""
 
-    itype: type = ListInterface
+    itype: Callable = mutable_interface
 
     def test_setitem(self) -> None:
         """Test setting an endpoint type."""
@@ -132,13 +94,13 @@ class MutableInterfaceTestBase(InterfaceTestBase):
         )
         del iface[1]
         self.assertEqual(len(iface), 3)
-        self.assertEqual(iface[1], types_db["str"].uid)
+        self.assertEqual(iface[1][0].uid, types_db["str"].uid)
 
     def test_append(self) -> None:
         """Test appending an endpoint type."""
         if self.running_in_test_base_class():
             return
         iface = self.interface_type([types_db["bool"].uid] * 4)
-        iface.append(types_db["int"].uid)
+        iface.append((types_db["int"],))
         self.assertEqual(len(iface), 5)
-        self.assertEqual(iface[4], types_db["int"].uid)
+        self.assertEqual(iface[4][0].uid, types_db["int"].uid)

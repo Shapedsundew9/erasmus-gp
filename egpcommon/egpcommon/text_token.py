@@ -3,11 +3,15 @@
 This module is used to map tokens to user text.
 """
 
-from logging import Logger, NullHandler, getLogger
 from typing import Any, Literal
 
-_logger: Logger = getLogger(__name__)
-_logger.addHandler(NullHandler())
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Valid token code prefixes
