@@ -1,25 +1,26 @@
 
                 {
                   "int": {
-                    "uid": 1,
+                    "xuid": 1,
                     "default": "0",
                     "imports": [],
                     "inherits": []
                   },
                   "float": {
-                    "uid": 2,
+                    "xuid": 2,
                     "default": "0.0",
                     "imports": [],
                     "inherits": []
                   },
                   "str": {
-                    "uid": 4,
+                    "xuid": 4,
                     "default": "''",
                     "imports": [],
                     "inherits": []
                   },
                    "list[int]": {
-                    "uid": 268435457,
+                    "xuid": 4,
+                    "tt": 1,
                     "default": "[]",
                     "imports": [],
                     "inherits": []

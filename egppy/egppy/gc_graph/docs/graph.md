@@ -6,7 +6,7 @@ A Genetic Code graph defines how values from the GC input are passed to sub-GC's
 | Type | Comments |
 |------|------------|
 | Codon | Defines an interface & represents a primitive operator such addition or logical OR. Has no sub-GC's. |
-| Conditional | Chooses an execution path through one of the sub-GCs based on an input boolean. |
+| Conditional | Chooses an execution path through one of the sub-GCs based the inputs. |
 | Empty | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
 | Standard | Connects two sub-GC's together to make a new GC. This is by far the most common type.|
 
@@ -142,23 +142,22 @@ is when the GC is persisted in the Gene Pool or Genomic Library caches or databa
 
 There are several meta-types:
 
-- **egp_hoany**: Homogeneous any type. This meta type is used to show that a container holds only one type of object that will be resolved at runtime. It means that an 'is_instance_of' codon can confirm the type of one element and the container type can become more concrete.
-- **egp_heany**: Hetrogeneous any type. This meta type means that the objects in a container cannot be assumed to be the same and must individually by made more concrete is 'is_instance_of' codons. Sometimes referred to as an 'unknown' type.
 - **egp_invalid**: The invalid type. Used for error conditions and testing.
 - **egp_number**: A base type that defines the numeric operators which can be inherited by all builtin python and custom numeric types.
 - **egp_complex**: Similar to number but for complex types.
 - **egp_rational**: Similar to number but for rational types.
 - **egp_real**: Similar to number but for rational types.
 - **egp_integral**: Similar to number but for rational types.
+- **egp_highest**: Is an output type that matches the highest (closest to 'object') type of the inputs. Useful in arithmetic operations.
+- **egp_wc_X_Y**: Output wildcard types. These define output types based on the input types. See below for more details.
 
-_hoany_ can be thought of as an optimisation of _heany_. In both cases the type(s) they represent can only be resolved at runtime.
+In addition, meta-types (except egp_highest and egp_wc_*) or abstract types (see below) have a corresponding 'any' meta-type e.g. egp_number_any, object_any.
+_egp_any_ can be thought of as an optimisation of _object_. In both cases the type(s) they represent can only be resolved at runtime.
 
 ### Abstract Types
 
 Abstract types are like abstract classes in python, they cannot be instanciated themselves but may represent any type that conforms to thier
 protocol. Abstract types get resolved at build time when a GC with compatible types is instanciated. Abstract EP types enable Abstract GC's which are a key optimisation for EGP. Examples of abstract EP types are the [python numbers abstract base classes](https://docs.python.org/3/library/numbers.html).
-
-There is a group of special abstract types call _wildcard_ types. Wildcard types are numbered from 0 to 63 in thier names i.e. 'wildcard0', 'wildcard1', ... 'wildcard63'. These abstract types define output types from input types, the number of the wildcard is the index of the input type in the GC input types array (which has a maximum of 64 elements). The use case for this type is identifying the type of an element extracted from a container e.g. if the input type type to a list.pop() codon was list\[float\] the output type would be float as identfied by the appropriate wildcard type.
 
 ### Concrete types
 
@@ -168,11 +167,21 @@ Concrete types are always known and can be any sort of python concrete class. Th
 
 The EP Type integer UID value Has the following format:
 
-|    31    | 30:28 |   27:16  | 15:0 |
-|:--------:|:-----:|:--------:|:----:|
-| Reserved |   TT  | Reserved | XUID |
+|    31    | 30:28 | 27 | 26:24 |   23:16  | 15:0 |
+|:--------:|:-----:|:--:|:-----:|:--------:|:----:|
+| Reserved |   TT  | IO |  FX   | Reserved | XUID |
 
-The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using the _heany_ meta-type). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined in the End Point Type.
+When IO = 1, TT = b'000, FX = b'000 and XUID is is split as follows:
+
+|   15:14  | 13:8 |    7:4   | 3:0 |
+|:--------:|:----:|:--------:|:---:|
+| Reserved |   X  | Reserved |  Y  |
+
+The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using an abstract type such as _object_ or _Number_ abstract types). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined in the End Point Type.
+
+The IO bit defines a set of meta-types call _wildcard_ types. Wildcard types are numbered from X = 0 to 63 and Y = 0 to 15 in thier names i.e. 'egp_wc_0_0', 'egp_wc_0_1', ... 'egp_wc_63_15' i.e. 64 * 16 = 1024 different types. These meta-types define output types from input types, X is the index of the input type in the GC input type array (which has a maximum of 64 elements) and Y the depth of type definition. The use case for this type is identifying the type of an element extracted from a container or returned from a conditional e.g. if the single input type to a list.pop() codon was list\[float\] the output type would be float as identfied by the wildcard type egp_wc_0_1 (egp_wc_0_0 is 'list', egp_wc_0_1 is 'float').
+
+The FX or 'fixed' bits expand the set of abstract and meta-types. Each value of FX creates another instance of the type as defined by the other bits in the UID. The purpose is to be able to define input types where the type can be abstract (and thus one of many) but each reference is to the same concrete type.  For example if 'object' is the abstract type then there are 8 object types represented by the stings 'object', 'object1', 'object2' ... 'object7'. The base 'object' type can match any derived type at any position in the input interface, however 'object1' to 'object7' may match any concrete object type but it must be the **same** concrete object type in all positions where the number object type appears. This enables codons to represent functions like 'max([1, 2, 3, 4], default=3)' with a known output type by defining the abstract fixed types e.g. max(Iterable[Number1], default=Number1).
 
 ### End Point Types
 

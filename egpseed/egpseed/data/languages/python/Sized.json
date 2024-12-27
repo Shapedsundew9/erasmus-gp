@@ -1,0 +1,10 @@
+{
+    "len": {
+        "inline": "len({i0})",
+        "name": "length of",
+        "num_inputs": 1,
+        "output_types": [
+            "int"
+        ]
+    }
+}

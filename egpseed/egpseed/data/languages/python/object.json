@@ -1,0 +1,62 @@
+{
+    "and1": {
+        "inline": "{i0} and {i1}",
+        "name": "logical AND"
+    },
+    "and2": {
+        "inline": "bool({i0} and {i1})",
+        "name": "logical AND",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "ascii": {
+        "inline": "ascii({i0})",
+        "num_inputs": 1,
+        "name": "ASCII representation",
+        "output_types": [
+            "str"
+        ]
+    },
+    "is": {
+        "inline": "{i0} is {i1}",
+        "name": "is",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "is not": {
+        "inline": "{i0} is not {i1}",
+        "name": "is not",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "not": {
+        "inline": "not {i0}",
+        "name": "logical NOT",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "or1": {
+        "inline": "{i0} or {i1}",
+        "name": "logical OR"
+    },
+    "or2": {
+        "inline": "bool({i0} or {i1})",
+        "name": "logical OR",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "repr": {
+        "inline": "repr({i0})",
+        "num_inputs": 1,
+        "name": "string representation",
+        "output_types": [
+            "str"
+        ]
+    }
+}

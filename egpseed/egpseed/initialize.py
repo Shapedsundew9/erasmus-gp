@@ -21,7 +21,7 @@ _path: str = dirname(__file__)
 _template_file: str = join(_path, "data/languages/template.json")
 _logger.debug("template_file: %s", _template_file)
 _codon_file: str = join(_path, "../../egpdbmgr/egpdbmgr/data/codons.json")
-_ep_type_file: str = join(_path, "../../egppy/egppy/data/ep_types.json")
+_ep_type_file: str = join(_path, "../../egppy/egppy/data/types.json")
 
 
 _GC_MCODON_TEMPLATE: dict[str, Any] = {

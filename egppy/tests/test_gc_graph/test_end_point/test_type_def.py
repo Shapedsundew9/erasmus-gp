@@ -14,7 +14,7 @@ class TestTypesDef(unittest.TestCase):
         """Test the TypesDef class."""
         types_def = TypesDef(
             name="type1",
-            uid=1,
+            xuid=1,
             default="default_value",
             imports=[ImportDef(aip=["module1"], name="func1")],
             inherits=["parent_type"],
@@ -32,6 +32,12 @@ class TestTypesDef(unittest.TestCase):
         types_def_json = {
             "name": "type1",
             "uid": 1,
+            "xuid": 1,
+            "fx": 0,
+            "io": 0,
+            "tt": 0,
+            "abstract": False,
+            "meta": False,
             "default": "default_value",
             "imports": [{"aip": ["module1"], "name": "func1", "as_name": ""}],
             "inherits": ["parent_type"],
@@ -52,25 +58,26 @@ class TestTypesDB(unittest.TestCase):
                 """
                 {
                   "int": {
-                    "uid": 1,
+                    "xuid": 1,
                     "default": "0",
                     "imports": [],
                     "inherits": []
                   },
                   "float": {
-                    "uid": 2,
+                    "xuid": 2,
                     "default": "0.0",
                     "imports": [],
                     "inherits": []
                   },
                   "str": {
-                    "uid": 4,
+                    "xuid": 4,
                     "default": "''",
                     "imports": [],
                     "inherits": []
                   },
                    "list[int]": {
-                    "uid": 268435457,
+                    "xuid": 4,
+                    "tt": 1,
                     "default": "[]",
                     "imports": [],
                     "inherits": []

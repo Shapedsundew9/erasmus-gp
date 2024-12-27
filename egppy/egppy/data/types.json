@@ -10,42 +10,38 @@
                 ],
                 "name": "XGCType"
             }
-        ],
-        "uid": 3
+        ]
     },
     "Set": {
         "inherits": [
             "Collection"
         ],
-        "uid": 268435477
+        "tt": 1,
+        "abstract": true
     },
     "bool": {
         "default": "True",
         "inherits": [
             "int"
-        ],
-        "uid": 4
+        ]
     },
     "bytearray": {
-        "default": "bytearray(b'two')",
+        "default": "bytearray('btwo')",
         "inherits": [
             "MutableSequence"
-        ],
-        "uid": 29
+        ]
     },
     "bytes": {
-        "default": "b'two'",
+        "default": "bytes('btwo')",
         "inherits": [
             "Sequence",
             "Hashable"
-        ],
-        "uid": 28
+        ]
     },
     "Callable": {
         "inherits": [
             "object"
-        ],
-        "uid": 5
+        ]
     },
     "Collection": {
         "inherits": [
@@ -53,59 +49,62 @@
             "Iterable",
             "Container"
         ],
-        "uid": 6
+        "tt": 1,
+        "abstract": true
     },
     "complex": {
         "default": "complex(2.0,-2.0)",
         "inherits": [
-            "numbers",
+            "Complex"
+        ]
+    },
+    "Complex": {
+        "inherits": [
+            "Number",
             "egp_complex"
         ],
-        "uid": 7
+        "abstract": true
     },
     "Container": {
         "inherits": [
             "object"
         ],
-        "uid": 8
+        "tt": 1,
+        "abstract": true
     },
     "dict": {
         "default": "{}",
         "inherits": [
             "MutableMapping"
         ],
-        "uid": 536870912
-    },
-    "egp_heany": {
-        "uid": 65535
-    },
-    "egp_hoany": {
-        "uid": 65534
+        "tt": 2
     },
     "egp_invalid": {
-        "uid": 65533
+        "meta": true
     },
     "egp_number": {
-        "uid": 65532
+        "meta": true
     },
     "egp_complex": {
-        "uid": 65531
+        "meta": true
     },
     "egp_rational": {
-        "uid": 65530
+        "meta": true
     },
     "egp_real": {
-        "uid": 65529
+        "meta": true
     },
     "egp_integral": {
-        "uid": 65528
+        "meta": true
+    },
+    "egp_highest": {
+        "meta": true
     },
     "float": {
         "default": "(2.0)",
         "inherits": [
-            "real"
-        ],
-        "uid": 10
+            "Real"
+        ]
     },
     "frozenset": {
         "default": "frozenset()",
@@ -113,143 +112,148 @@
             "Set",
             "Hashable"
         ],
-        "uid": 268435476
+        "tt": 1
     },
     "Generator": {
         "inherits": [
             "object"
         ],
-        "uid": 11
+        "tt": 1
     },
     "Hashable": {
         "inherits": [
             "object"
         ],
-        "uid": 12
+        "abstract": true
     },
     "int": {
         "default": "(2)",
         "inherits": [
-            "integral"
-        ],
-        "uid": 13
+            "Integral"
+        ]
     },
-    "integral": {
+    "Integral": {
         "inherits": [
-            "rational",
+            "Rational",
             "egp_integral"
         ],
-        "uid": 27
+        "abstract": true
     },
     "Iterable": {
         "inherits": [
             "object"
         ],
-        "uid": 268435456
+        "tt": 1,
+        "abstract": true
     },
     "Iterator": {
         "inherits": [
             "Iterable"
         ],
-        "uid": 268435479
+        "tt": 1,
+        "abstract": true
     },
     "list": {
         "default": "[]",
         "inherits": [
             "MutableSequence"
         ],
-        "uid": 268435457
+        "tt": 1
     },
     "Mapping": {
         "default": "{}",
         "inherits": [
             "Collection"
         ],
-        "uid": 536870914
+        "tt": 2,
+        "abstract": true
     },
     "MutableMapping": {
         "inherits": [
             "Mapping"
         ],
-        "uid": 536870913
+        "tt": 2,
+        "abstract": true
     },
     "MutableSet": {
         "inherits": [
             "Set"
         ],
-        "uid": 268435478
+        "tt": 1,
+        "abstract": true
     },
     "MutableSequence": {
         "inherits": [
             "Sequence"
         ],
-        "uid": 268435473
+        "tt": 1,
+        "abstract": true
     },
     "None": {
         "default": "None",
         "inherits": [
             "object"
-        ],
-        "uid": 17
+        ]
     },
-    "numbers": {
+    "Number": {
         "inherits": [
             "Hashable",
             "egp_number"
         ],
-        "uid": 24
+        "abstract": true
     },
     "object": {
-        "default": "object()",
-        "uid": 0
+        "default": "object()"
     },
-    "rational": {
+    "Rational": {
         "inherits": [
-            "real",
+            "Real",
             "egp_rational"
         ],
-        "uid": 26
+        "abstract": true
     },
-    "real": {
+    "Real": {
         "inherits": [
-            "complex",
+            "Complex",
             "egp_real"
         ],
-        "uid": 25
+        "abstract": true
     },
     "Reversible": {
         "inherits": [
             "Iterable"
         ],
-        "uid": 268435458
+        "tt": 1,
+        "abstract": true
     },
     "Sequence": {
         "inherits": [
             "Reversible",
             "Collection"
         ],
-        "uid": 268435459
+        "tt": 1,
+        "abstract": true
     },
     "set": {
         "default": "set()",
         "inherits": [
             "MutableSet"
         ],
-        "uid": 268435470
+        "tt": 1
     },
     "Sized": {
         "inherits": [
             "object"
         ],
-        "uid": 268435471
+        "tt": 1,
+        "abstract": true
     },
     "str": {
-        "default": "'two'",
+        "default": "two",
         "inherits": [
             "Sequence",
             "Hashable"
-        ],
-        "uid": 22
+        ]
     },
     "tuple": {
         "default": "tuple()",
@@ -257,6 +261,6 @@
             "Sequence",
             "Hashable"
         ],
-        "uid": 268435472
+        "tt": 1
     }
 }
