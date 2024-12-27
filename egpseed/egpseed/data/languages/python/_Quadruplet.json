@@ -1,0 +1,65 @@
+{
+    "item0": {
+        "input_types": [
+            "Quadruplet[object1, object2, object3, object4]"
+        ],
+        "output_types": [
+            "object1"
+        ],
+        "inline": "{i0}[0]",
+        "name": "first item"
+    },
+    "item1": {
+        "input_types": [
+            "Quadruplet[object1, object2, object3, object4]"
+        ],
+        "output_types": [
+            "object2"
+        ],
+        "inline": "{i0}[1]",
+        "name": "second item"
+    },
+    "item2": {
+        "input_types": [
+            "Quadruplet[object1, object2, object3, object4]"
+        ],
+        "output_types": [
+            "object3"
+        ],
+        "inline": "{i0}[2]",
+        "name": "third item"
+    },
+    "item3": {
+        "input_types": [
+            "Quadruplet[object1, object2, object3, object4]"
+        ],
+        "output_types": [
+            "object4"
+        ],
+        "inline": "{i0}[3]",
+        "name": "fourth item"
+    },
+    "Quadruplet": {
+        "input_types": [
+            "object1",
+            "object2",
+            "object3",
+            "object4"
+        ],
+        "output_types": [
+            "Quadruplet[object1, object2, object3, object4]"
+        ],
+        "inline": "({i0}, {i1}, {i2}, {i3})",
+        "name": "Quadruplet"
+    },
+    "to_any": {
+        "input_types": [
+            "Quadruplet[object1, object2, object3, object4]"
+        ],
+        "output_types": [
+            "object"
+        ],
+        "inline": "{i0}",
+        "name": "to any"
+    }
+}

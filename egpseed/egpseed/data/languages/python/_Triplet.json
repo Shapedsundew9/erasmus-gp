@@ -1,0 +1,54 @@
+{
+    "item0": {
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "output_types": [
+            "object1"
+        ],
+        "inline": "{i0}[0]",
+        "name": "first item"
+    },
+    "item1": {
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "output_types": [
+            "object2"
+        ],
+        "inline": "{i0}[1]",
+        "name": "second item"
+    },
+    "item2": {
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "output_types": [
+            "object3"
+        ],
+        "inline": "{i0}[2]",
+        "name": "third item"
+    },
+    "Triplet": {
+        "input_types": [
+            "object1",
+            "object2",
+            "object3"
+        ],
+        "output_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "inline": "({i0}, {i1}, {i2})",
+        "name": "Triplet"
+    },
+    "to_any": {
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "output_types": [
+            "tuple[object, ...]"
+        ],
+        "inline": "{i0}",
+        "name": "to any"
+    }
+}

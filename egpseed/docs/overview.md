@@ -80,3 +80,9 @@ All a types methods (codons) are defined in their respective .json file.
     - Requires no import(s)
     - Has the following properties set True (all others are set False)
         - Deterministic
+
+## Special Cases
+
+1. Code and detailed class introspection and manipluation builtins are not implemented: e.g. 'dir', 'exec', 'compile', 'var', 'delattr' etc. However, simple tests like 'callable' are implemented.
+2. 'Sequence' concatentation and repitition (+ and * operators) are not implemented due to the special case with 'range' etc. and the performance overhead. See [Common Sequence Operations](https://docs.python.org/3/library/stdtypes.html#typesseq-common) notes 6 & 7.
+3. _Bytes.json has the common methods for bytes and bytearray objects. Python does not have a common abstract type for these methods.

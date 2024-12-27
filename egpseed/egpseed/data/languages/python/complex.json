@@ -1,1 +1,23 @@
-{}
+{
+    "complex1": {
+        "input_types": [
+            "egp_number"
+        ],
+        "inline": "complex({i0})",
+        "name": "complex",
+        "output_types": [
+            "complex"
+        ]
+    },
+    "complex2": {
+        "input_types": [
+            "egp_number",
+            "egp_number"
+        ],
+        "inline": "complex({i0}, {i1})",
+        "name": "complex",
+        "output_types": [
+            "complex"
+        ]
+    }
+}

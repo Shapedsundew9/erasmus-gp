@@ -1,1 +1,50 @@
-{}
+{
+    "bytes1": {
+        "input_types": [
+            "bytes"
+        ],
+        "inline": "bytes({i0})",
+        "name": "bytes from bytes",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "bytes2": {
+        "input_types": [
+            "Iterable[egp_integral]"
+        ],
+        "inline": "bytes({i0})",
+        "name": "bytes from integers",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "fromhex1": {
+        "input_types": [
+            "str"
+        ],
+        "inline": "bytes.fromhex({i0})",
+        "name": "bytes from hex string",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "fromhex2": {
+        "input_types": [
+            "str"
+        ],
+        "inline": "bytes.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
+        "name": "bytes from hex bytes",
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "hex": {
+        "num_inputs": 1,
+        "inline": "{i0}.hex()",
+        "name": "hex string",
+        "output_types": [
+            "str"
+        ]
+    }
+}

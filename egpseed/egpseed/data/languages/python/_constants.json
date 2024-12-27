@@ -2,8 +2,10 @@
     "+inf": {
         "imports": [
             {
-                "module": "math",
-                "object": "inf"
+                "aip": [
+                    "math"
+                ],
+                "name": "inf"
             }
         ],
         "inline": "inf",
@@ -18,8 +20,10 @@
     "-inf": {
         "imports": [
             {
-                "module": "math",
-                "object": "inf"
+                "aip": [
+                    "math"
+                ],
+                "name": "inf"
             }
         ],
         "inline": "-inf",
@@ -34,8 +38,10 @@
     "e": {
         "imports": [
             {
-                "module": "math",
-                "object": "e"
+                "aip": [
+                    "math"
+                ],
+                "name": "e"
             }
         ],
         "inline": "e",
@@ -50,8 +56,10 @@
     "nan": {
         "imports": [
             {
-                "module": "math",
-                "object": "nan"
+                "aip": [
+                    "math"
+                ],
+                "name": "nan"
             }
         ],
         "inline": "nan",
@@ -66,8 +74,10 @@
     "pi": {
         "imports": [
             {
-                "module": "math",
-                "object": "pi"
+                "aip": [
+                    "math"
+                ],
+                "name": "pi"
             }
         ],
         "inline": "pi",
@@ -92,8 +102,10 @@
     "tau": {
         "imports": [
             {
-                "module": "math",
-                "object": "tau"
+                "aip": [
+                    "math"
+                ],
+                "name": "tau"
             }
         ],
         "inline": "tau",

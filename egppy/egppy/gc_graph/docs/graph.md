@@ -151,8 +151,9 @@ There are several meta-types:
 - **egp_highest**: Is an output type that matches the highest (closest to 'object') type of the inputs. Useful in arithmetic operations.
 - **egp_wc_X_Y**: Output wildcard types. These define output types based on the input types. See below for more details.
 
-In addition, meta-types (except egp_highest and egp_wc_*) or abstract types (see below) have a corresponding 'any' meta-type e.g. egp_number_any, object_any.
-_egp_any_ can be thought of as an optimisation of _object_. In both cases the type(s) they represent can only be resolved at runtime.
+In addition, meta-types (except egp_highest and egp_wc_*) or abstract types (see below) have a corresponding homogeneous any meta-type e.g. egp_number1, object7.
+where all reference to the homogeneous any meta-type refer to the same runtime type. The unextended type name e.g. 'egp_number' or 'object' is the heterogeneous any meta-type i.e. each reference to it in an interface may be referencing a different concrete type.
+
 
 ### Abstract Types
 

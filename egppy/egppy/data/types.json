@@ -1,4 +1,424 @@
 {
+    "Callable": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Callable"
+            }
+        ],
+        "inherits": [
+            "object"
+        ]
+    },
+    "Collection": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Collection"
+            }
+        ],
+        "inherits": [
+            "Sized",
+            "Iterable",
+            "Container"
+        ],
+        "tt": 1
+    },
+    "Complex": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Complex"
+            }
+        ],
+        "inherits": [
+            "Number",
+            "egp_complex"
+        ]
+    },
+    "Container": {
+        "abstract": true,
+        "inherits": [
+            "object"
+        ],
+        "tt": 1
+    },
+    "Generator": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Generator"
+            }
+        ],
+        "inherits": [
+            "object"
+        ],
+        "tt": 1
+    },
+    "Hashable": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Hashable"
+            }
+        ],
+        "inherits": [
+            "object"
+        ]
+    },
+    "Integral": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Intergral"
+            }
+        ],
+        "inherits": [
+            "Rational",
+            "egp_integral"
+        ]
+    },
+    "Iterable": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Iterable"
+            }
+        ],
+        "inherits": [
+            "object"
+        ],
+        "tt": 1
+    },
+    "Iterator": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Iterator"
+            }
+        ],
+        "inherits": [
+            "Iterable"
+        ],
+        "tt": 1
+    },
+    "Mapping": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Mapping"
+            }
+        ],
+        "inherits": [
+            "Collection"
+        ],
+        "tt": 2
+    },
+    "MutableMapping": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MutableMapping"
+            }
+        ],
+        "inherits": [
+            "Mapping"
+        ],
+        "tt": 2
+    },
+    "MutableSequence": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MutableSequence"
+            }
+        ],
+        "inherits": [
+            "Sequence"
+        ],
+        "tt": 1
+    },
+    "MutableSet": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MutableSet"
+            }
+        ],
+        "inherits": [
+            "Set"
+        ],
+        "tt": 1
+    },
+    "None": {
+        "default": "None",
+        "inherits": [
+            "object"
+        ]
+    },
+    "Number": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Number"
+            }
+        ],
+        "inherits": [
+            "Hashable",
+            "egp_number"
+        ]
+    },
+    "Pair": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Pair"
+            }
+        ],
+        "inherits": [
+            "tuple"
+        ],
+        "tt": 2
+    },
+    "Quadruplet": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Quadruplet"
+            }
+        ],
+        "inherits": [
+            "tuple"
+        ],
+        "tt": 4
+    },
+    "Quintuplet": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Quintuplet"
+            }
+        ],
+        "inherits": [
+            "tuple"
+        ],
+        "tt": 5
+    },
+    "Rational": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Rational"
+            }
+        ],
+        "inherits": [
+            "Real",
+            "egp_rational"
+        ]
+    },
+    "Real": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Real"
+            }
+        ],
+        "inherits": [
+            "Complex",
+            "egp_real"
+        ]
+    },
+    "Reversible": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Reversible"
+            }
+        ],
+        "inherits": [
+            "Iterable"
+        ],
+        "tt": 1
+    },
+    "Septuplet": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Septuplet"
+            }
+        ],
+        "inherits": [
+            "tuple"
+        ],
+        "tt": 7
+    },
+    "Sequence": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Sequence"
+            }
+        ],
+        "inherits": [
+            "Reversible",
+            "Collection"
+        ],
+        "tt": 1
+    },
+    "Set": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Set"
+            }
+        ],
+        "inherits": [
+            "Collection"
+        ],
+        "tt": 1
+    },
+    "Sextuplet": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Sextuplet"
+            }
+        ],
+        "inherits": [
+            "tuple"
+        ],
+        "tt": 6
+    },
+    "Sized": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Sized"
+            }
+        ],
+        "inherits": [
+            "object"
+        ],
+        "tt": 1
+    },
+    "Triplet": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Triplet"
+            }
+        ],
+        "inherits": [
+            "tuple"
+        ],
+        "tt": 3
+    },
+    "type": {
+        "default": "type('two')",
+        "inherits": [
+            "object"
+        ]
+    },
     "XGCType": {
         "default": "XGCType()",
         "imports": [
@@ -12,13 +432,6 @@
             }
         ]
     },
-    "Set": {
-        "inherits": [
-            "Collection"
-        ],
-        "tt": 1,
-        "abstract": true
-    },
     "bool": {
         "default": "True",
         "inherits": [
@@ -28,49 +441,37 @@
     "bytearray": {
         "default": "bytearray('btwo')",
         "inherits": [
-            "MutableSequence"
+            "MutableSequence",
+            "Bytes"
         ]
     },
     "bytes": {
         "default": "bytes('btwo')",
         "inherits": [
             "Sequence",
-            "Hashable"
+            "Hashable",
+            "Bytes"
         ]
     },
-    "Callable": {
-        "inherits": [
-            "object"
+    "Bytes": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Bytes"
+            }
         ]
-    },
-    "Collection": {
-        "inherits": [
-            "Sized",
-            "Iterable",
-            "Container"
-        ],
-        "tt": 1,
-        "abstract": true
     },
     "complex": {
         "default": "complex(2.0,-2.0)",
         "inherits": [
             "Complex"
         ]
-    },
-    "Complex": {
-        "inherits": [
-            "Number",
-            "egp_complex"
-        ],
-        "abstract": true
-    },
-    "Container": {
-        "inherits": [
-            "object"
-        ],
-        "tt": 1,
-        "abstract": true
     },
     "dict": {
         "default": "{}",
@@ -79,25 +480,25 @@
         ],
         "tt": 2
     },
+    "egp_complex": {
+        "meta": true
+    },
+    "egp_highest": {
+        "meta": true
+    },
+    "egp_integral": {
+        "meta": true
+    },
     "egp_invalid": {
         "meta": true
     },
     "egp_number": {
         "meta": true
     },
-    "egp_complex": {
-        "meta": true
-    },
     "egp_rational": {
         "meta": true
     },
     "egp_real": {
-        "meta": true
-    },
-    "egp_integral": {
-        "meta": true
-    },
-    "egp_highest": {
         "meta": true
     },
     "float": {
@@ -114,44 +515,11 @@
         ],
         "tt": 1
     },
-    "Generator": {
-        "inherits": [
-            "object"
-        ],
-        "tt": 1
-    },
-    "Hashable": {
-        "inherits": [
-            "object"
-        ],
-        "abstract": true
-    },
     "int": {
         "default": "(2)",
         "inherits": [
             "Integral"
         ]
-    },
-    "Integral": {
-        "inherits": [
-            "Rational",
-            "egp_integral"
-        ],
-        "abstract": true
-    },
-    "Iterable": {
-        "inherits": [
-            "object"
-        ],
-        "tt": 1,
-        "abstract": true
-    },
-    "Iterator": {
-        "inherits": [
-            "Iterable"
-        ],
-        "tt": 1,
-        "abstract": true
     },
     "list": {
         "default": "[]",
@@ -160,79 +528,8 @@
         ],
         "tt": 1
     },
-    "Mapping": {
-        "default": "{}",
-        "inherits": [
-            "Collection"
-        ],
-        "tt": 2,
-        "abstract": true
-    },
-    "MutableMapping": {
-        "inherits": [
-            "Mapping"
-        ],
-        "tt": 2,
-        "abstract": true
-    },
-    "MutableSet": {
-        "inherits": [
-            "Set"
-        ],
-        "tt": 1,
-        "abstract": true
-    },
-    "MutableSequence": {
-        "inherits": [
-            "Sequence"
-        ],
-        "tt": 1,
-        "abstract": true
-    },
-    "None": {
-        "default": "None",
-        "inherits": [
-            "object"
-        ]
-    },
-    "Number": {
-        "inherits": [
-            "Hashable",
-            "egp_number"
-        ],
-        "abstract": true
-    },
     "object": {
         "default": "object()"
-    },
-    "Rational": {
-        "inherits": [
-            "Real",
-            "egp_rational"
-        ],
-        "abstract": true
-    },
-    "Real": {
-        "inherits": [
-            "Complex",
-            "egp_real"
-        ],
-        "abstract": true
-    },
-    "Reversible": {
-        "inherits": [
-            "Iterable"
-        ],
-        "tt": 1,
-        "abstract": true
-    },
-    "Sequence": {
-        "inherits": [
-            "Reversible",
-            "Collection"
-        ],
-        "tt": 1,
-        "abstract": true
     },
     "set": {
         "default": "set()",
@@ -240,13 +537,6 @@
             "MutableSet"
         ],
         "tt": 1
-    },
-    "Sized": {
-        "inherits": [
-            "object"
-        ],
-        "tt": 1,
-        "abstract": true
     },
     "str": {
         "default": "two",

@@ -58,5 +58,35 @@
         "output_types": [
             "str"
         ]
+    },
+    "callable": {
+        "inline": "callable({i0})",
+        "num_inputs": 1,
+        "name": "callable",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isinstance1": {
+        "inline": "isinstance({i0}, {i1})",
+        "input_types": [
+            "object",
+            "type"
+        ],
+        "name": "is instance",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isinstance2": {
+        "inline": "isinstance({i0}, {i1})",
+        "input_types": [
+            "object",
+            "tuple[type, ...]"
+        ],
+        "name": "is instance",
+        "output_types": [
+            "bool"
+        ]
     }
 }

@@ -1,0 +1,10 @@
+{
+    "ord": {
+        "num_inputs": 1,
+        "name": "ASCII value",
+        "output_types": [
+            "int"
+        ],
+        "inline": "ord({i0}[0])"
+    }
+}

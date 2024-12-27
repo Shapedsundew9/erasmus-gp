@@ -93,7 +93,7 @@
         "inline": "None",
         "num_inputs": 0,
         "output_types": [
-            "none"
+            "None"
         ],
         "properties": {
             "literal": true

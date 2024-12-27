@@ -1,0 +1,97 @@
+{
+    "item0": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object1"
+        ],
+        "inline": "{i0}[0]",
+        "name": "first item"
+    },
+    "item1": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object2"
+        ],
+        "inline": "{i0}[1]",
+        "name": "second item"
+    },
+    "item2": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object3"
+        ],
+        "inline": "{i0}[2]",
+        "name": "third item"
+    },
+    "item3": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object4"
+        ],
+        "inline": "{i0}[3]",
+        "name": "fourth item"
+    },
+    "item4": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object5"
+        ],
+        "inline": "{i0}[4]",
+        "name": "fifth item"
+    },
+    "item5": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object6"
+        ],
+        "inline": "{i0}[5]",
+        "name": "sixth item"
+    },
+    "item6": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object7"
+        ],
+        "inline": "{i0}[6]",
+        "name": "seventh item"
+    },
+    "Septuplet": {
+        "input_types": [
+            "object1",
+            "object2",
+            "object3",
+            "object4",
+            "object5",
+            "object6",
+            "object7"
+        ],
+        "output_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "inline": "({i0}, {i1}, {i2}, {i3}, {i4}, {i5}, {i6})",
+        "name": "Septuplet"
+    },
+    "to_any": {
+        "input_types": [
+            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+        ],
+        "output_types": [
+            "object"
+        ],
+        "inline": "{i0}"
+    }
+}

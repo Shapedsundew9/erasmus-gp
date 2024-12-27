@@ -1,14 +1,12 @@
 {
-    "inherits": [
-        "iterable"
-    ],
-    "operators": {
-        "reversed": {
-            "inline": "reversed({i0})",
-            "name": "reversed({t0})",
-            "properties": {
-                "reversible": true
-            }
-        }
+    "reversed": {
+        "input_types": [
+            "iterable[object1]"
+        ],
+        "inline": "reversed({i0})",
+        "name": "reversed",
+        "output_types": [
+            "iterator[object1]"
+        ]
     }
 }

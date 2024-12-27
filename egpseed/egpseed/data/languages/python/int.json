@@ -1,14 +1,40 @@
 {
+    "bin": {
+        "inline": "bin({i0})",
+        "num_inputs": 1,
+        "name": "binary representation",
+        "output_types": [
+            "str"
+        ]
+    },
+    "hex": {
+        "inline": "hex({i0})",
+        "num_inputs": 1,
+        "name": "hexadecimal representation",
+        "output_types": [
+            "str"
+        ]
+    },
+    "oct": {
+        "inline": "oct({i0})",
+        "num_inputs": 1,
+        "name": "octal representation",
+        "output_types": [
+            "str"
+        ]
+    },
     "bitlength": {
         "inline": "{i0}.bitlength()",
-        "name": "the bit length of {t0}",
+        "num_inputs": 1,
+        "name": "the bit length",
         "output_types": [
             "integral"
         ]
     },
     "bitcount": {
         "inline": "{i0}.bitcount()",
-        "name": "the number of 1's in {t0}",
+        "num_inputs": 1,
+        "name": "the number of 1's",
         "output_types": [
             "integral"
         ]

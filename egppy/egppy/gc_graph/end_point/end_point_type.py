@@ -23,6 +23,9 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # The End Point Type type definition is recursive
 EndPointType = tuple[TypesDef, ...]
 
+# The generic tuple type UID
+_TUPLE_UID: int = types_db["tuple"].uid
+
 
 # The EPT global store
 # EPT's are constant and can be shared between interfaces
@@ -85,16 +88,24 @@ def end_point_type(
 
 
 def ept_to_str(ept: EndPointType, _marker: list[int] | None = None) -> str:
-    """Return the EPT as a python type style string."""
+    """Return the EPT as a python type style string.
+
+    Args:
+        ept: The EPT as a tuple of TypesDef objects.
+        _marker: A list of one integer to keep track of the current position in the EPT.
+    """
     assert len(ept) > 0, "The EPT must have at least one type."
     assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
     _marker = _marker or [0]
     idx = _marker[0]
     _marker[0] += 1
-    tt: int = ept[idx].tt()
+    td = ept[idx]
+    tt: int = td.tt()
     if not tt:
-        return ept[idx].name
-    return f"{ept[idx].name}[{', '.join(ept_to_str(ept, _marker) for _ in range(tt))}]"
+        return td.name
+    # Tuples require a special case
+    ext = ", ..." if td.uid == _TUPLE_UID else ""
+    return f"{td.name}[{', '.join(ept_to_str(ept, _marker) for _ in range(tt))}{ext}]"
 
 
 def ept_to_uids(ept: EndPointType) -> tuple[int, ...]:
@@ -105,6 +116,7 @@ def ept_to_uids(ept: EndPointType) -> tuple[int, ...]:
 def str_to_ept(type_str: str) -> EndPointType:
     """Return the EPT from a python type style string."""
     # Split out the types into a list of names and push through the end_point_type function
+    # NB: Split will remove any spaces, periods (including tuple ... notation) and commas
     return end_point_type([s for s in split(r"\W+", type_str) if s])
 
 

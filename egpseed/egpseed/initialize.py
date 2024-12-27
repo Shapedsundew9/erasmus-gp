@@ -10,7 +10,8 @@ from sys import modules
 from typing import Any
 
 from cerberus import Validator
-from egppy.gc_types.ggc_class_factory import GGCDirtyDict, XGCType
+from egppy.gc_graph.end_point.types_def import types_db
+from egppy.gc_types.ggc_class_factory import GGCDirtyDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
 _logger: Logger = getLogger(__name__)
@@ -21,7 +22,6 @@ _path: str = dirname(__file__)
 _template_file: str = join(_path, "data/languages/template.json")
 _logger.debug("template_file: %s", _template_file)
 _codon_file: str = join(_path, "../../egpdbmgr/egpdbmgr/data/codons.json")
-_ep_type_file: str = join(_path, "../../egppy/egppy/data/types.json")
 
 
 _GC_MCODON_TEMPLATE: dict[str, Any] = {
@@ -46,7 +46,6 @@ def _set_language(language):
 
     Returns:
         list(str): List of operator files with relative path.
-        str: types.json file with relative path
         str: exceptions.json file with relative path
         list(str): List of mutation files with relative path.
     """
@@ -61,8 +60,7 @@ def _set_language(language):
         join(mutation_path, filename) for filename in listdir(mutation_path)
     ]
     exceptions_file: str = join(_path, "data/languages", language, "exceptions.json")
-    types_file: str = join(_path, "data/languages", language, "types.json")
-    return operator_files, types_file, exceptions_file, mutation_files
+    return operator_files, exceptions_file, mutation_files
 
 
 def _load_operators(operator_files, validator) -> dict[str, dict[str, Any]]:
@@ -147,71 +145,6 @@ def _load_mutations(mutation_files, validator) -> dict[str, dict[str, Any]]:
     return mutations
 
 
-def _load_types(type_file):
-    """Load types, create type conversion/cast operators & cross-reference mapping.
-
-    The 'operators' dictionary is modified: Type cast operators are added.
-
-    Args:
-        type_file (str): JSON file with the type definitions.
-        operators (dict(dict)): Dictionary of normalised operator definitions to be appended.
-        validator (Validator): Cerberus operator format validator.
-
-    Returns:
-        list(str): The list of fully qualified defined type names.
-        dict(dict): Bi-directional mapping of fully qualified type name to UID
-    """
-    with open(type_file, "r", encoding="utf8") as file_ptr:
-        _types: dict[str, dict[str, Any]] = load(file_ptr)
-    types: list[str] = []
-
-    # Any is special and is not a real type. It is used to match any type.
-    # Container types live above 1024
-    for key, typ in tuple(x for x in _types.items()
-                          if x[1]["uid"] != -2 and x[1]["uid"] <= EGP_SCALAR_TYPE_LIMIT):
-        _logger.debug("Current type: %s %s", key, typ)
-        # obj: Any | None = eval(f"{key}()") if key != "None" else None  # pylint: disable=eval-used
-        # name: str = fully_qualified_name(obj)
-        name = key
-        _types[key]["fully_qualified_type"] = name
-
-        # Type casts use operator defaults then explicitly override as needed.
-        constructor: dict[str, str] = typ.get(
-            "constructor", {"inline": f"{key}({{i0}})"}
-        )
-        operators[name] = validator.normalized(constructor)
-        operators[name]["num_inputs"] = typ.get(
-            "num_inputs", operators[name]["num_inputs"]
-        )
-        operators[name]["num_outputs"] = typ.get(
-            "num_outputs", operators[name]["num_outputs"]
-        )
-        if "output_types" in typ:
-            operators[name]["output_types"] = typ["output_types"]
-            # [fully_qualified_name(eval(f"{typ['output_types'][0]}()"))  # pylint: disable=eval-used]
-
-        # A default value of '(*)' where * is wildcard is an instanciation of the object.
-        # All objects are
-        # imported as the fully qualified name and so this is appended.
-        default: str | None = typ.get("default")
-        if (
-            default is not None
-            and len(default) > 1
-            and default[0] == "("
-            and default[-1] == ")"
-        ):
-            typ["default"] = name + default
-        operators[name]["default"] = typ["default"]
-
-        # Only real types in the type list as it is used with the operators.
-        # Physical types construction operator gets the physical property set.
-        if _EGP_REAL_TYPE_LIMIT <= typ["uid"] <= EGP_SCALAR_TYPE_LIMIT:
-            types.append(name)
-        else:
-            operators[name]["properties"]["physical"] = True
-    return types, _index_types(_types)
-
-
 def _load(language):
     """Load the language definition.
 
@@ -223,13 +156,11 @@ def _load(language):
 
     Returns:
         dict(dict): Dictionary of operator definitions.
-        dict(dict): Dictionary of type definitions.
         dict(list(str)): Exception identifiers for info, warning & error levels.
-        dict(dict): Bi-directional mapping of fully qualified type name to UID
         dict(dict): Dictionary of mutuation definitions.
     """
     print(f"Loading language: {language}")
-    (operator_files, type_file, exceptions_file, mutation_files) = _set_language(
+    (operator_files, exceptions_file, mutation_files) = _set_language(
         language
     )
     with open(
@@ -238,7 +169,6 @@ def _load(language):
         validator = Validator(load(file_ptr), purge_unknown=True)  # type: ignore
 
     operators = _load_operators(operator_files, validator)
-    types, indexed_types = _load_types(type_file, operators, validator)
 
     with open(
         join(_path, "data/languages/mutation_format.json"), "r", encoding="utf-8"
@@ -249,7 +179,7 @@ def _load(language):
     with open(exceptions_file, "r", encoding="utf-8") as file_ptr:
         exceptions = load(file_ptr)
 
-    return operators, types, exceptions, indexed_types, mutations
+    return operators, exceptions, mutations
 
 
 def _create_mcodon(operator, type_dict):
@@ -282,44 +212,6 @@ def _create_mcodon(operator, type_dict):
     return codon
 
 
-def _index_types(types):
-    """Create a bi-directional mapping of type name <-> UID."""
-    type_dict = {
-        "n2v": {v["fully_qualified_type"]: v["uid"]
-                for v in types.values() if v["uid"] <= EGP_SCALAR_TYPE_LIMIT},
-        "v2n": {v["uid"]: v["fully_qualified_type"]
-                for v in types.values() if v["uid"] <= EGP_SCALAR_TYPE_LIMIT},
-        "instanciation": {
-            v["uid"]: [
-                v["instanciation"]["package"],
-                v["instanciation"]["version"],
-                v["instanciation"]["module"],
-                k,
-                v["instanciation"]["param"],
-                v["default"],
-            ]
-            for k, v in types.items() if v["uid"] <= EGP_SCALAR_TYPE_LIMIT
-        },
-    }
-
-    ### All list container type generation here.
-
-    # For convenience map all built in unqualified names to the UIDs of the fully qualified names
-    type_dict["n2v"].update(
-        {
-            k.replace("builtins_", ""): v
-            for k, v in type_dict["n2v"].items()
-            if "builtins_" in k
-        }
-    )
-    # type_dict["n2v"]["None"] = type_dict["n2v"]["NoneType"]
-    # del type_dict["n2v"]["NoneType"]
-
-    with open(_ep_type_file, "w", encoding="utf-8") as file_ptr:
-        dump(type_dict, file_ptr, indent=4, sort_keys=True)
-    return type_dict
-
-
 def _generate(language):
     """Generate codon.json & gc_types.json for the specified language.
 
@@ -329,7 +221,7 @@ def _generate(language):
     Args:
         language (string): Name of a language folder under data/languages.
     """
-    operators, types, exceptions, type_dict, mutations = _load(language)
+    operators, exceptions, mutations = _load(language)
     # Only python supported at this stage.
     generator = python_generator
     codon_list = []

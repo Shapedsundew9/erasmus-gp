@@ -1,14 +1,23 @@
 {
-    "inherits": [
-        "iterable"
-    ],
-    "operators": {
-        "next": {
-            "inline": "next({i0})",
-            "name": "next({t0})",
-            "properties": {
-                "iterator": true
-            }
-        }
+    "next1": {
+        "input_types": [
+            "iterator[object1]"
+        ],
+        "inline": "next({i0})",
+        "name": "next",
+        "output_types": [
+            "object1"
+        ]
+    },
+    "next2": {
+        "input_types": [
+            "iterator[object1]",
+            "object1"
+        ],
+        "inline": "next({i0}, default={i1})",
+        "name": "next",
+        "output_types": [
+            "object1"
+        ]
     }
 }
