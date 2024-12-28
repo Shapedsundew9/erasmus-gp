@@ -1,10 +1,665 @@
 {
-    "ord": {
-        "num_inputs": 1,
-        "name": "ASCII value",
+    "capitalize": {
+        "inline": "{i0}.capitalize()",
+        "name": "capitalize",
+        "num_inputs": 1
+    },
+    "casefold": {
+        "inline": "{i0}.casefold()",
+        "name": "casefold",
+        "num_inputs": 1
+    },
+    "center1": {
+        "inline": "{i0}.center({i1})",
+        "input_types": [
+            "str",
+            "egp_integral"
+        ],
+        "name": "center"
+    },
+    "center2": {
+        "inline": "{i0}.center({i1}, {i2})",
+        "input_types": [
+            "str",
+            "egp_integral",
+            "str"
+        ],
+        "name": "center with fill character"
+    },
+    "count1": {
+        "inline": "{i0}.count({i1})",
+        "name": "count",
         "output_types": [
             "int"
+        ]
+    },
+    "count2": {
+        "inline": "{i0}.count({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
         ],
-        "inline": "ord({i0}[0])"
+        "name": "count from",
+        "output_types": [
+            "int"
+        ]
+    },
+    "count3": {
+        "inline": "{i0}.count({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral",
+            "egp_integral"
+        ],
+        "name": "count from to",
+        "output_types": [
+            "int"
+        ]
+    },
+    "encode": {
+        "inline": "{i0}.encode()",
+        "name": "encode",
+        "num_inputs": 1,
+        "output_types": [
+            "bytes"
+        ]
+    },
+    "endswith1": {
+        "inline": "{i0}.endswith({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "ends with",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "endswith2": {
+        "inline": "{i0}.endswith({i1}, 0, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "ends with from",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "endswith3": {
+        "inline": "{i0}.endswith({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral",
+            "egp_integral"
+        ],
+        "name": "ends with from to",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "expandtabs0": {
+        "inline": "{i0}.expandtabs()",
+        "name": "expand tabs size 8",
+        "num_inputs": 1
+    },
+    "expandtabs1": {
+        "inline": "{i0}.expandtabs({i1})",
+        "input_types": [
+            "str",
+            "egp_integral"
+        ],
+        "name": "expand tabs"
+    },
+    "find1": {
+        "inline": "{i0}.find({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "find",
+        "output_types": [
+            "int"
+        ]
+    },
+    "find2": {
+        "inline": "{i0}.find({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "find from",
+        "output_types": [
+            "int"
+        ]
+    },
+    "find3": {
+        "inline": "{i0}.find({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral",
+            "egp_integral"
+        ],
+        "name": "find from to",
+        "output_types": [
+            "int"
+        ]
+    },
+    "isalnum": {
+        "inline": "{i0}.isalnum()",
+        "name": "is alphanumeric",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isalpha": {
+        "inline": "{i0}.isalpha()",
+        "name": "is alphabetic",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isascii": {
+        "inline": "{i0}.isascii()",
+        "name": "is ASCII",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isdecimal": {
+        "inline": "{i0}.isdecimal()",
+        "name": "is decimal",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isdigit": {
+        "inline": "{i0}.isdigit()",
+        "name": "is digit",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isidentifier": {
+        "inline": "{i0}.isidentifier()",
+        "name": "is identifier",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "islower": {
+        "inline": "{i0}.islower()",
+        "name": "is lower case",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isnumeric": {
+        "inline": "{i0}.isnumeric()",
+        "name": "is numeric",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isprintable": {
+        "inline": "{i0}.isprintable()",
+        "name": "is printable",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isspace": {
+        "inline": "{i0}.isspace()",
+        "name": "is whitespace",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "istitle": {
+        "inline": "{i0}.istitle()",
+        "name": "is title case",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isupper": {
+        "inline": "{i0}.isupper()",
+        "name": "is upper case",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
+        ]
+    },
+    "join": {
+        "inline": "{i0}.join({i1})",
+        "input_types": [
+            "str",
+            "Iterable[str]"
+        ],
+        "name": "join"
+    },
+    "ljust1": {
+        "inline": "{i0}.ljust({i1})",
+        "input_types": [
+            "str",
+            "egp_integral"
+        ],
+        "name": "left justify space"
+    },
+    "ljust2": {
+        "inline": "{i0}.ljust({i1}, {i2})",
+        "input_types": [
+            "str",
+            "egp_integral",
+            "str"
+        ],
+        "name": "left justify with fill character"
+    },
+    "lower": {
+        "inline": "{i0}.lower()",
+        "name": "lower case",
+        "num_inputs": 1
+    },
+    "lstrip1": {
+        "inline": "{i0}.lstrip()",
+        "name": "left strip space",
+        "num_inputs": 1
+    },
+    "lstrip2": {
+        "inline": "{i0}.lstrip({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "left strip chars"
+    },
+    "ord": {
+        "inline": "ord({i0}[0])",
+        "name": "ASCII value",
+        "num_inputs": 1,
+        "output_types": [
+            "int"
+        ]
+    },
+    "partition": {
+        "inline": "{i0}.partition({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "partition",
+        "output_types": [
+            "Triplet[str, str, str]"
+        ]
+    },
+    "removeprefix": {
+        "inline": "{i0}.removeprefix({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "remove prefix"
+    },
+    "removesuffix": {
+        "inline": "{i0}.removesuffix({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "remove suffix"
+    },
+    "replace1": {
+        "inline": "{i0}.replace({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "str"
+        ],
+        "name": "replace"
+    },
+    "replace2": {
+        "inline": "{i0}.replace({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "replace count"
+    },
+    "rfind1": {
+        "inline": "{i0}.rfind({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "rfind",
+        "output_types": [
+            "int"
+        ]
+    },
+    "rfind2": {
+        "inline": "{i0}.rfind({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "rfind from",
+        "output_types": [
+            "int"
+        ]
+    },
+    "rfind3": {
+        "inline": "{i0}.rfind({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral",
+            "egp_integral"
+        ],
+        "name": "rfind from to",
+        "output_types": [
+            "int"
+        ]
+    },
+    "rindex1": {
+        "inline": "{i0}.rindex({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "rindex",
+        "output_types": [
+            "int"
+        ]
+    },
+    "rindex2": {
+        "inline": "{i0}.rindex({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "rindex from",
+        "output_types": [
+            "int"
+        ]
+    },
+    "rindex3": {
+        "inline": "{i0}.rindex({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral",
+            "egp_integral"
+        ],
+        "name": "rindex from to",
+        "output_types": [
+            "int"
+        ]
+    },
+    "rjust1": {
+        "inline": "{i0}.rjust({i1})",
+        "input_types": [
+            "str",
+            "egp_integral"
+        ],
+        "name": "right justify space"
+    },
+    "rjust2": {
+        "inline": "{i0}.rjust({i1}, {i2})",
+        "input_types": [
+            "str",
+            "egp_integral",
+            "str"
+        ],
+        "name": "right justify with fill character"
+    },
+    "rpartition": {
+        "inline": "{i0}.rpartition({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "rpartition",
+        "output_types": [
+            "Triplet[str, str, str]"
+        ]
+    },
+    "rsplit1": {
+        "inline": "{i0}.rsplit()",
+        "name": "right split space",
+        "num_inputs": 1,
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "rsplit2": {
+        "inline": "{i0}.rsplit({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "right split",
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "rsplit3": {
+        "inline": "{i0}.rsplit({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "right split max",
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "rstrip1": {
+        "inline": "{i0}.rstrip()",
+        "name": "right strip space",
+        "num_inputs": 1
+    },
+    "rstrip2": {
+        "inline": "{i0}.rstrip({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "right strip chars"
+    },
+    "split1": {
+        "inline": "{i0}.split()",
+        "name": "split space",
+        "num_inputs": 1,
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "split2": {
+        "inline": "{i0}.split({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "split",
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "split3": {
+        "inline": "{i0}.split({i1}, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "split max",
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "splitlines1": {
+        "inline": "{i0}.splitlines()",
+        "name": "split lines",
+        "num_inputs": 1,
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "splitlines2": {
+        "inline": "{i0}.splitlines({i1})",
+        "input_types": [
+            "str",
+            "bool"
+        ],
+        "name": "split lines keepends",
+        "output_types": [
+            "List[str]"
+        ]
+    },
+    "startswith1": {
+        "inline": "{i0}.startswith({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "starts with",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "startswith2": {
+        "inline": "{i0}.startswith({i1}, 0, {i2})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral"
+        ],
+        "name": "starts with from",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "startswith3": {
+        "inline": "{i0}.startswith({i1}, {i2}, {i3})",
+        "input_types": [
+            "str",
+            "str",
+            "egp_integral",
+            "egp_integral"
+        ],
+        "name": "starts with from to",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "str0": {
+        "inline": "str()",
+        "name": "str",
+        "num_inputs": 1,
+        "output_types": [
+            "str"
+        ]
+    },
+    "str1": {
+        "inline": "str({i0})",
+        "input_types": [
+            "object"
+        ],
+        "name": "str",
+        "output_types": [
+            "str"
+        ]
+    },
+    "strip1": {
+        "inline": "{i0}.strip()",
+        "name": "strip space",
+        "num_inputs": 1,
+        "output_types": [
+            "str"
+        ]
+    },
+    "strip2": {
+        "inline": "{i0}.strip({i1})",
+        "input_types": [
+            "str",
+            "str"
+        ],
+        "name": "strip chars",
+        "output_types": [
+            "str"
+        ]
+    },
+    "swapcase": {
+        "inline": "{i0}.swapcase()",
+        "name": "swap case",
+        "num_inputs": 1
+    },
+    "title": {
+        "inline": "{i0}.title()",
+        "name": "title case",
+        "num_inputs": 1
+    },
+    "translate1": {
+        "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
+        "input_types": [
+            "str1",
+            "str",
+            "str"
+        ],
+        "name": "translate",
+        "output_types": [
+            "str1"
+        ]
+    },
+    "translate2": {
+        "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
+        "input_types": [
+            "str1",
+            "str",
+            "str",
+            "str"
+        ],
+        "name": "translate",
+        "output_types": [
+            "str1"
+        ]
+    },
+    "upper": {
+        "inline": "{i0}.upper()",
+        "name": "upper case",
+        "num_inputs": 1
+    },
+    "zfill": {
+        "inline": "{i0}.zfill({i1})",
+        "input_types": [
+            "str",
+            "egp_integral"
+        ],
+        "name": "zero fill",
+        "output_types": [
+            "str"
+        ]
     }
 }

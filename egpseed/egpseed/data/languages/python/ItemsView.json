@@ -1,0 +1,46 @@
+{
+    "in": {
+        "inline": "{i1} in {i0}",
+        "input_types": [
+            "ItemsView[Hashable, object]",
+            "Pair[Hashable, object]"
+        ],
+        "name": "in",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "iter": {
+        "inline": "iter({i0})",
+        "input_types": [
+            "ItemsView[Hashable1, object1]"
+        ],
+        "name": "iterator",
+        "num_inputs": 1,
+        "output_types": [
+            "Iterator[Pair[Hashable1, object1]]"
+        ]
+    },
+    "not in": {
+        "inline": "{i1} not in {i0}",
+        "input_types": [
+            "ItemsView[Hashable, object]",
+            "Pair[Hashable, object]"
+        ],
+        "name": "not in",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "reversed": {
+        "inline": "reversed({i0})",
+        "input_types": [
+            "ItemsView[Hashable1, object1]"
+        ],
+        "name": "reversed",
+        "num_inputs": 1,
+        "output_types": [
+            "Iterator[Pair[Hashable1, object1]]"
+        ]
+    }
+}

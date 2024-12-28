@@ -1,11 +1,4 @@
 {
-    "!=": {
-        "inline": "{i0} != {i1}",
-        "name": "not equal to",
-        "output_types": [
-            "bool"
-        ]
-    },
     "*": {
         "inline": "{i0} * {i1}",
         "name": "multiply",
@@ -41,13 +34,6 @@
             "egp_highest"
         ]
     },
-    "==": {
-        "inline": "{i0} == {i1}",
-        "name": "equal to",
-        "output_types": [
-            "bool"
-        ]
-    },
     "abs": {
         "inline": "abs({i0})",
         "name": "absolute value or magnitude",
@@ -74,19 +60,19 @@
         "name": "negate",
         "num_inputs": 1
     },
+    "pow": {
+        "inline": "pow({i0}, {i1})",
+        "name": "raise to the power of",
+        "output_types": [
+            "egp_highest"
+        ]
+    },
     "real": {
         "inline": "{i0}.real",
         "name": "real part",
         "num_inputs": 1,
         "output_types": [
             "Real"
-        ]
-    },
-    "pow": {
-        "inline": "pow({i0}, {i1})",
-        "name": "raise to the power of",
-        "output_types": [
-            "egp_highest"
         ]
     }
 }

@@ -1,9 +1,9 @@
 {
     "reversed": {
+        "inline": "reversed({i0})",
         "input_types": [
             "iterable[object1]"
         ],
-        "inline": "reversed({i0})",
         "name": "reversed",
         "output_types": [
             "iterator[object1]"

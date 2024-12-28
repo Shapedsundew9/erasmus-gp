@@ -1,4 +1,18 @@
 {
+    "!=": {
+        "inline": "{i0} != {i1}",
+        "name": "not equal to",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "==": {
+        "inline": "{i0} == {i1}",
+        "name": "equal to",
+        "output_types": [
+            "bool"
+        ]
+    },
     "and1": {
         "inline": "{i0} and {i1}",
         "name": "logical AND"
@@ -12,10 +26,18 @@
     },
     "ascii": {
         "inline": "ascii({i0})",
-        "num_inputs": 1,
         "name": "ASCII representation",
+        "num_inputs": 1,
         "output_types": [
             "str"
+        ]
+    },
+    "callable": {
+        "inline": "callable({i0})",
+        "name": "callable",
+        "num_inputs": 1,
+        "output_types": [
+            "bool"
         ]
     },
     "is": {
@@ -28,6 +50,28 @@
     "is not": {
         "inline": "{i0} is not {i1}",
         "name": "is not",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isinstance1": {
+        "inline": "isinstance({i0}, {i1})",
+        "input_types": [
+            "object",
+            "type"
+        ],
+        "name": "is instance",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "isinstance2": {
+        "inline": "isinstance({i0}, {i1})",
+        "input_types": [
+            "object",
+            "tuple[type, ...]"
+        ],
+        "name": "is instance",
         "output_types": [
             "bool"
         ]
@@ -53,40 +97,10 @@
     },
     "repr": {
         "inline": "repr({i0})",
-        "num_inputs": 1,
         "name": "string representation",
+        "num_inputs": 1,
         "output_types": [
             "str"
-        ]
-    },
-    "callable": {
-        "inline": "callable({i0})",
-        "num_inputs": 1,
-        "name": "callable",
-        "output_types": [
-            "bool"
-        ]
-    },
-    "isinstance1": {
-        "inline": "isinstance({i0}, {i1})",
-        "input_types": [
-            "object",
-            "type"
-        ],
-        "name": "is instance",
-        "output_types": [
-            "bool"
-        ]
-    },
-    "isinstance2": {
-        "inline": "isinstance({i0}, {i1})",
-        "input_types": [
-            "object",
-            "tuple[type, ...]"
-        ],
-        "name": "is instance",
-        "output_types": [
-            "bool"
         ]
     }
 }

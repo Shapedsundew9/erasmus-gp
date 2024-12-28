@@ -1,126 +1,126 @@
 {
     "all": {
+        "inline": "all({i0})",
         "input_types": [
             "iterable[object]"
         ],
-        "inline": "all({i0})",
         "name": "all true",
         "output_types": [
             "bool"
         ]
     },
     "any": {
+        "inline": "any({i0})",
         "input_types": [
             "iterable[object]"
         ],
-        "inline": "any({i0})",
         "name": "any true",
         "output_types": [
             "bool"
         ]
     },
-    "iter": {
+    "enumerate": {
+        "inline": "enumerate({i0})",
         "input_types": [
             "iterable[object1]"
         ],
+        "name": "enumerate",
+        "output_types": [
+            "iterator[Pair[int, object1]]"
+        ]
+    },
+    "iter": {
         "inline": "iter({i0})",
+        "input_types": [
+            "iterable[object1]"
+        ],
         "name": "create iterator",
         "output_types": [
             "iterator[object1]"
         ]
     },
     "max1": {
+        "inline": "max({i0})",
         "input_types": [
             "iterable[egp_number1]"
         ],
-        "inline": "max({i0})",
         "name": "maximum value",
         "output_types": [
             "egp_number1"
         ]
     },
     "max2": {
+        "inline": "max({i0}, default={i1})",
         "input_types": [
             "iterable[egp_number1]",
             "egp_number1"
         ],
-        "inline": "max({i0}, default={i1})",
         "name": "maximum value with default",
         "output_types": [
             "egp_number1"
         ]
     },
     "max3": {
+        "inline": "max({i0}, key=len)",
         "input_types": [
             "iterable[Sized1]"
         ],
-        "inline": "max({i0}, key=len)",
         "name": "maximum length",
         "output_types": [
             "Sized1"
         ]
     },
     "max4": {
+        "inline": "max({i0}, default={i1}, key=len)",
         "input_types": [
             "iterable[Sized1]",
             "Sized1"
         ],
-        "inline": "max({i0}, default={i1}, key=len)",
         "name": "maximum length with default",
         "output_types": [
             "Sized1"
         ]
     },
     "min1": {
+        "inline": "min({i0})",
         "input_types": [
             "iterable[egp_number1]"
         ],
-        "inline": "min({i0})",
         "name": "minimum value",
         "output_types": [
             "egp_number1"
         ]
     },
     "min2": {
+        "inline": "min({i0}, default={i1})",
         "input_types": [
             "iterable[egp_number1]",
             "egp_number1"
         ],
-        "inline": "min({i0}, default={i1})",
         "name": "minimum value with default",
         "output_types": [
             "egp_number1"
         ]
     },
     "min3": {
+        "inline": "min({i0}, key=len)",
         "input_types": [
             "iterable[Sized1]"
         ],
-        "inline": "min({i0}, key=len)",
         "name": "minimum length",
         "output_types": [
             "Sized1"
         ]
     },
     "min4": {
+        "inline": "min({i0}, default={i1}, key=len)",
         "input_types": [
             "iterable[Sized1]",
             "Sized1"
         ],
-        "inline": "min({i0}, default={i1}, key=len)",
         "name": "minimum value with default",
         "output_types": [
             "Sized1"
-        ]
-    },
-    "enumerate": {
-        "input_types": [
-            "iterable[object1]"
-        ],
-        "inline": "enumerate({i0})",
-        "name": "enumerate",
-        "output_types": [
-            "iterator[Pair[int, object1]]"
         ]
     }
 }

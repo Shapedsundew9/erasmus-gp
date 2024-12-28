@@ -1,42 +1,61 @@
 {
     "as_integer_ratio": {
         "inline": "{i0}.as_integer_ratio()",
-        "name": "the lowest ratio of integers == {t0}",
         "input_types": [
             "float"
         ],
+        "name": "the lowest ratio of integers",
         "output_types": [
-            "tuple[integral]"
+            "Pair[int, int]"
         ]
     },
-    "is_integer": {
-        "inline": "{i0}.is_integer()",
-        "name": "true if {t0} is exactly an integer",
+    "float0": {
+        "inline": "float()",
+        "name": "float",
+        "num_inputs": 0
+    },
+    "float1": {
+        "inline": "float({i0})",
         "input_types": [
-            "float"
+            "egp_number"
         ],
+        "name": "float"
+    },
+    "float2": {
+        "inline": "float({i0})",
+        "input_types": [
+            "str"
+        ],
+        "name": "float"
+    },
+    "from_hex": {
+        "inline": "float.from_hex({i0})",
+        "input_types": [
+            "str"
+        ],
+        "name": "convert hex string {t0} to a float",
         "output_types": [
-            "bool"
+            "float"
         ]
     },
     "hex": {
         "inline": "{i0}.hex()",
-        "name": "convert {t0} to a hex string",
         "input_types": [
             "float"
         ],
+        "name": "convert {t0} to a hex string",
         "output_types": [
             "str"
         ]
     },
-    "from_hex": {
-        "inline": "float.from_hex({i0})",
-        "name": "convert hex string {t0} to a float",
+    "is_integer": {
+        "inline": "{i0}.is_integer()",
         "input_types": [
-            "str"
-        ],
-        "output_types": [
             "float"
+        ],
+        "name": "true if is exactly an integer",
+        "output_types": [
+            "bool"
         ]
     }
 }

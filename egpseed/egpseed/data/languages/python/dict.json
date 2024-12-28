@@ -1,1 +1,30 @@
-{}
+{
+    "copy": {
+        "inline": "{i0}.copy()",
+        "input_types": [
+            "dict[Hashable, object]"
+        ],
+        "name": "copy",
+        "output_types": [
+            "dict[Hashable, object]"
+        ]
+    },
+    "dict": {
+        "inline": "dict({i0})",
+        "input_types": [
+            "Iterable[Pair[Hashable1, object1]]"
+        ],
+        "name": "dict",
+        "output_types": [
+            "dict[Hashable1, object1]"
+        ]
+    },
+    "{}": {
+        "inline": "{}",
+        "name": "dict",
+        "num_inputs": 0,
+        "output_types": [
+            "dict[Hashable, object]"
+        ]
+    }
+}

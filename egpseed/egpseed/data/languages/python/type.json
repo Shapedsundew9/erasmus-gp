@@ -1,0 +1,9 @@
+{
+    "type": {
+        "inline": "type({i0})",
+        "input_types": [
+            "object"
+        ],
+        "name": "type"
+    }
+}

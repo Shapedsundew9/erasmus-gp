@@ -1,43 +1,43 @@
 {
-    "item0": {
-        "input_types": [
-            "Pair[object1, object2]"
-        ],
-        "output_types": [
-            "object1"
-        ],
-        "inline": "{i0}[0]",
-        "name": "first item"
-    },
-    "item1": {
-        "input_types": [
-            "Pair[object1, object2]"
-        ],
-        "output_types": [
-            "object2"
-        ],
-        "inline": "{i0}[1]",
-        "name": "second item"
-    },
     "Pair": {
+        "inline": "({i0}, {i1})",
         "input_types": [
             "object1",
             "object2"
         ],
+        "name": "Pair",
         "output_types": [
             "Pair[object1, object2]"
-        ],
-        "inline": "({i0}, {i1})",
-        "name": "Pair"
+        ]
     },
-    "to_any": {
+    "item0": {
+        "inline": "{i0}[0]",
         "input_types": [
             "Pair[object1, object2]"
         ],
+        "name": "first item",
+        "output_types": [
+            "object1"
+        ]
+    },
+    "item1": {
+        "inline": "{i0}[1]",
+        "input_types": [
+            "Pair[object1, object2]"
+        ],
+        "name": "second item",
+        "output_types": [
+            "object2"
+        ]
+    },
+    "to_any": {
+        "inline": "{i0}",
+        "input_types": [
+            "Pair[object1, object2]"
+        ],
+        "name": "to any",
         "output_types": [
             "tuple[object, ...]"
-        ],
-        "inline": "{i0}",
-        "name": "to any"
+        ]
     }
 }

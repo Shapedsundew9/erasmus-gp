@@ -1,23 +1,34 @@
 {
     "next1": {
+        "inline": "next({i0})",
         "input_types": [
             "iterator[object1]"
         ],
-        "inline": "next({i0})",
         "name": "next",
         "output_types": [
             "object1"
         ]
     },
     "next2": {
+        "inline": "next({i0}, default={i1})",
         "input_types": [
             "iterator[object1]",
             "object1"
         ],
-        "inline": "next({i0}, default={i1})",
         "name": "next",
         "output_types": [
             "object1"
+        ]
+    },
+    "next3": {
+        "inline": "next({i0}, default={i1})",
+        "input_types": [
+            "iterator[object]",
+            "object"
+        ],
+        "name": "next",
+        "output_types": [
+            "object"
         ]
     }
 }

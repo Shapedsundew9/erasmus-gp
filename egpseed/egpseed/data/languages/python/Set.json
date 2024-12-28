@@ -1,1 +1,125 @@
-{}
+{
+    "&1": {
+        "inline": "{i0} & {i1}",
+        "input_types": [
+            "Set[Hashable]",
+            "Set[Hashable]"
+        ],
+        "name": "intersection",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "&2": {
+        "inline": "{i0} & {i1}",
+        "input_types": [
+            "Set[Hashable1]",
+            "Set[Hashable1]"
+        ],
+        "name": "intersection",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    },
+    "-1": {
+        "inline": "{i0} - {i1}",
+        "input_types": [
+            "Set[Hashable]",
+            "Set[Hashable]"
+        ],
+        "name": "difference",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "-2": {
+        "inline": "{i0} - {i1}",
+        "input_types": [
+            "Set[Hashable1]",
+            "Set[Hashable1]"
+        ],
+        "name": "difference",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    },
+    "<": {
+        "inline": "{i0} < {i1}",
+        "name": "less than",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "<=": {
+        "inline": "{i0} <= {i1}",
+        "name": "less than or equal to",
+        "output_types": [
+            "bool"
+        ]
+    },
+    ">": {
+        "inline": "{i0} > {i1}",
+        "name": "greater than",
+        "output_types": [
+            "bool"
+        ]
+    },
+    ">=": {
+        "inline": "{i0} >= {i1}",
+        "name": "greater than or equal to",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "^1": {
+        "inline": "{i0} ^ {i1}",
+        "input_types": [
+            "Set[Hashable]",
+            "Set[Hashable]"
+        ],
+        "name": "symmetric difference",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "^2": {
+        "inline": "{i0} ^ {i1}",
+        "input_types": [
+            "Set[Hashable1]",
+            "Set[Hashable1]"
+        ],
+        "name": "symmetric difference",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    },
+    "isdisjoint": {
+        "inline": "{i0}.isdisjoint({i1})",
+        "name": "isdisjoint",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "|1": {
+        "inline": "{i0} | {i1}",
+        "input_types": [
+            "Set[Hashable]",
+            "Set[Hashable]"
+        ],
+        "name": "union operator",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "|2": {
+        "inline": "{i0} | {i1}",
+        "input_types": [
+            "Set[Hashable1]",
+            "Set[Hashable1]"
+        ],
+        "name": "union operator",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    }
+}

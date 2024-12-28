@@ -1,1 +1,15 @@
-{}
+{
+    "tuple0": {
+        "inline": "tuple()",
+        "num_inputs": 0
+    },
+    "tuple1": {
+        "inline": "tuple({i0})",
+        "input_types": [
+            "Iterable[object1]"
+        ],
+        "output_types": [
+            "tuple[object1, ...]"
+        ]
+    }
+}

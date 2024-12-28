@@ -1,4 +1,18 @@
 {
+    "Bytes": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Bytes"
+            }
+        ]
+    },
     "Callable": {
         "imports": [
             {
@@ -99,6 +113,23 @@
             "egp_integral"
         ]
     },
+    "ItemsView": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "ItemsView"
+            }
+        ],
+        "inherits": [
+            "MappingView",
+            "Set",
+            "Reversible"
+        ],
+        "tt": 2
+    },
     "Iterable": {
         "abstract": true,
         "imports": [
@@ -131,6 +162,23 @@
         ],
         "tt": 1
     },
+    "KeysView": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "KeysView"
+            }
+        ],
+        "inherits": [
+            "MappingView",
+            "Set",
+            "Reversible"
+        ],
+        "tt": 1
+    },
     "Mapping": {
         "abstract": true,
         "imports": [
@@ -146,6 +194,21 @@
             "Collection"
         ],
         "tt": 2
+    },
+    "MappingView": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MappingView"
+            }
+        ],
+        "inherits": [
+            "Sized"
+        ]
     },
     "MutableMapping": {
         "abstract": true,
@@ -413,11 +476,22 @@
         ],
         "tt": 3
     },
-    "type": {
-        "default": "type('two')",
+    "ValuesView": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "ValuesView"
+            }
+        ],
         "inherits": [
-            "object"
-        ]
+            "MappingView",
+            "Collection",
+            "Reversible"
+        ],
+        "tt": 1
     },
     "XGCType": {
         "default": "XGCType()",
@@ -451,20 +525,6 @@
             "Sequence",
             "Hashable",
             "Bytes"
-        ]
-    },
-    "Bytes": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "gc_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Bytes"
-            }
         ]
     },
     "complex": {
@@ -531,6 +591,13 @@
     "object": {
         "default": "object()"
     },
+    "range": {
+        "default": "range(2)",
+        "inherits": [
+            "Sequence",
+            "Hashable"
+        ]
+    },
     "set": {
         "default": "set()",
         "inherits": [
@@ -552,5 +619,11 @@
             "Hashable"
         ],
         "tt": 1
+    },
+    "type": {
+        "default": "type('two')",
+        "inherits": [
+            "object"
+        ]
     }
 }

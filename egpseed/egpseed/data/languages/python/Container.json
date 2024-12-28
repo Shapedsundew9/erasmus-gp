@@ -2,7 +2,7 @@
     "in": {
         "inline": "{i1} in {i0}",
         "input_types": [
-            "container",
+            "Container",
             "object"
         ],
         "name": "in",
@@ -13,7 +13,7 @@
     "not in": {
         "inline": "{i1} not in {i0}",
         "input_types": [
-            "container",
+            "Container",
             "object"
         ],
         "name": "not in",

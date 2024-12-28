@@ -1,0 +1,132 @@
+{
+    "copy": {
+        "inline": "{i0}.copy()",
+        "name": "copy",
+        "num_inputs": 1,
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "difference1": {
+        "inline": "{i0}.difference({i1})",
+        "input_types": [
+            "Set[Hashable]",
+            "Iterable[Hashable]"
+        ],
+        "name": "difference",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "difference2": {
+        "inline": "{i0}.difference({i1})",
+        "input_types": [
+            "Set[Hashable1]",
+            "Iterable[Hashable1]"
+        ],
+        "name": "difference",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    },
+    "frozenset0": {
+        "inline": "frozenset()",
+        "name": "frozenset",
+        "num_inputs": 0
+    },
+    "frozenset1": {
+        "inline": "frozenset({i0})",
+        "input_types": [
+            "Iterable[Hashable]"
+        ],
+        "name": "frozenset"
+    },
+    "intersection1": {
+        "inline": "{i0}.intersection({i1})",
+        "input_types": [
+            "Set[Hashable]",
+            "Iterable[Hashable]"
+        ],
+        "name": "intersection",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "intersection2": {
+        "inline": "{i0}.intersection({i1})",
+        "input_types": [
+            "Set[Hashable1]",
+            "Iterable[Hashable1]"
+        ],
+        "name": "intersection",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    },
+    "issubset": {
+        "inline": "{i0}.issubset({i1})",
+        "input_types": [
+            "Set[Hashable]",
+            "Iterable[Hashable]"
+        ],
+        "name": "issubset",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "issuperset": {
+        "inline": "{i0}.issuperset({i1})",
+        "input_types": [
+            "Set[Hashable]",
+            "Iterable[Hashable]"
+        ],
+        "name": "issuperset",
+        "output_types": [
+            "bool"
+        ]
+    },
+    "symmetric_difference1": {
+        "inline": "{i0}.symmetric_difference({i1})",
+        "input_types": [
+            "Set[Hashable]",
+            "Iterable[Hashable]"
+        ],
+        "name": "symmetric difference",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "symmetric_difference2": {
+        "inline": "{i0}.symmetric_difference({i1})",
+        "input_types": [
+            "Set[Hashable1]",
+            "Iterable[Hashable1]"
+        ],
+        "name": "symmetric difference",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    },
+    "union1": {
+        "inline": "{i0}.union({i1})",
+        "input_types": [
+            "Set[Hashable]",
+            "Iterable[Hashable]"
+        ],
+        "name": "union",
+        "output_types": [
+            "Set[Hashable]"
+        ]
+    },
+    "union2": {
+        "inline": "{i0}.union({i1})",
+        "input_types": [
+            "Set[Hashable1]",
+            "Iterable[Hashable1]"
+        ],
+        "name": "union",
+        "output_types": [
+            "Set[Hashable1]"
+        ]
+    }
+}

@@ -1,9 +1,9 @@
 {
     "bool": {
+        "inline": "bool({i0})",
         "input_types": [
             "object"
         ],
-        "inline": "bool({i0})",
         "name": "boolean value"
     }
 }

@@ -1,55 +1,6 @@
 {
-    "item0": {
-        "input_types": [
-            "Quintuplet[object1, object2, object3, object4, object5]"
-        ],
-        "output_types": [
-            "object1"
-        ],
-        "inline": "{i0}[0]",
-        "name": "first item"
-    },
-    "item1": {
-        "input_types": [
-            "Quintuplet[object1, object2, object3, object4, object5]"
-        ],
-        "output_types": [
-            "object2"
-        ],
-        "inline": "{i0}[1]",
-        "name": "second item"
-    },
-    "item2": {
-        "input_types": [
-            "Quintuplet[object1, object2, object3, object4, object5]"
-        ],
-        "output_types": [
-            "object3"
-        ],
-        "inline": "{i0}[2]",
-        "name": "third item"
-    },
-    "item3": {
-        "input_types": [
-            "Quintuplet[object1, object2, object3, object4, object5]"
-        ],
-        "output_types": [
-            "object4"
-        ],
-        "inline": "{i0}[3]",
-        "name": "fourth item"
-    },
-    "item4": {
-        "input_types": [
-            "Quintuplet[object1, object2, object3, object4, object5]"
-        ],
-        "output_types": [
-            "object5"
-        ],
-        "inline": "{i0}[4]",
-        "name": "fifth item"
-    },
     "Quintuplet": {
+        "inline": "({i0}, {i1}, {i2}, {i3}, {i4})",
         "input_types": [
             "object1",
             "object2",
@@ -57,20 +8,69 @@
             "object4",
             "object5"
         ],
+        "name": "Quintuplet",
         "output_types": [
             "Quintuplet[object1, object2, object3, object4, object5]"
-        ],
-        "inline": "({i0}, {i1}, {i2}, {i3}, {i4})",
-        "name": "Quintuplet"
+        ]
     },
-    "to_any": {
+    "item0": {
+        "inline": "{i0}[0]",
         "input_types": [
             "Quintuplet[object1, object2, object3, object4, object5]"
         ],
+        "name": "first item",
+        "output_types": [
+            "object1"
+        ]
+    },
+    "item1": {
+        "inline": "{i0}[1]",
+        "input_types": [
+            "Quintuplet[object1, object2, object3, object4, object5]"
+        ],
+        "name": "second item",
+        "output_types": [
+            "object2"
+        ]
+    },
+    "item2": {
+        "inline": "{i0}[2]",
+        "input_types": [
+            "Quintuplet[object1, object2, object3, object4, object5]"
+        ],
+        "name": "third item",
+        "output_types": [
+            "object3"
+        ]
+    },
+    "item3": {
+        "inline": "{i0}[3]",
+        "input_types": [
+            "Quintuplet[object1, object2, object3, object4, object5]"
+        ],
+        "name": "fourth item",
+        "output_types": [
+            "object4"
+        ]
+    },
+    "item4": {
+        "inline": "{i0}[4]",
+        "input_types": [
+            "Quintuplet[object1, object2, object3, object4, object5]"
+        ],
+        "name": "fifth item",
+        "output_types": [
+            "object5"
+        ]
+    },
+    "to_any": {
+        "inline": "{i0}",
+        "input_types": [
+            "Quintuplet[object1, object2, object3, object4, object5]"
+        ],
+        "name": "to any",
         "output_types": [
             "object"
-        ],
-        "inline": "{i0}",
-        "name": "to any"
+        ]
     }
 }

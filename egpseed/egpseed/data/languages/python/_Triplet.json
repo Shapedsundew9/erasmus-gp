@@ -1,54 +1,54 @@
 {
-    "item0": {
-        "input_types": [
-            "Triplet[object1, object2, object3]"
-        ],
-        "output_types": [
-            "object1"
-        ],
-        "inline": "{i0}[0]",
-        "name": "first item"
-    },
-    "item1": {
-        "input_types": [
-            "Triplet[object1, object2, object3]"
-        ],
-        "output_types": [
-            "object2"
-        ],
-        "inline": "{i0}[1]",
-        "name": "second item"
-    },
-    "item2": {
-        "input_types": [
-            "Triplet[object1, object2, object3]"
-        ],
-        "output_types": [
-            "object3"
-        ],
-        "inline": "{i0}[2]",
-        "name": "third item"
-    },
     "Triplet": {
+        "inline": "({i0}, {i1}, {i2})",
         "input_types": [
             "object1",
             "object2",
             "object3"
         ],
+        "name": "Triplet",
         "output_types": [
             "Triplet[object1, object2, object3]"
-        ],
-        "inline": "({i0}, {i1}, {i2})",
-        "name": "Triplet"
+        ]
     },
-    "to_any": {
+    "item0": {
+        "inline": "{i0}[0]",
         "input_types": [
             "Triplet[object1, object2, object3]"
         ],
+        "name": "first item",
+        "output_types": [
+            "object1"
+        ]
+    },
+    "item1": {
+        "inline": "{i0}[1]",
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "name": "second item",
+        "output_types": [
+            "object2"
+        ]
+    },
+    "item2": {
+        "inline": "{i0}[2]",
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "name": "third item",
+        "output_types": [
+            "object3"
+        ]
+    },
+    "to_any": {
+        "inline": "{i0}",
+        "input_types": [
+            "Triplet[object1, object2, object3]"
+        ],
+        "name": "to any",
         "output_types": [
             "tuple[object, ...]"
-        ],
-        "inline": "{i0}",
-        "name": "to any"
+        ]
     }
 }

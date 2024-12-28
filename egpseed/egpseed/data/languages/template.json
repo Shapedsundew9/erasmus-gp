@@ -1,4 +1,6 @@
 {
+    "alpha_class": 0,
+    "beta_class": 0,
     "graph": {
         "A": [],
         "O": [
@@ -9,17 +11,15 @@
             ]
         ]
     },
-    "alpha_class": 0,
-    "beta_class": 0,
-    "properties": {},
     "meta_data": {
-        "name": "To Be Defined",
         "function": {
             "python3": {
                 "0": {
                     "inline": "To Be Defined"
                 }
             }
-        }
-    }
+        },
+        "name": "To Be Defined"
+    },
+    "properties": {}
 }

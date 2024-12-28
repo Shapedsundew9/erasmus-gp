@@ -1,115 +1,70 @@
 {
     "%": {
         "inline": "{i0} % {i1}",
-        "name": "modulo {t0} with {t1}"
+        "name": "modulo",
+        "output_types": [
+            "egp_highest"
+        ]
     },
     "//": {
         "inline": "{i0} // {i1}",
-        "name": "floor divide {t0} by {t1}"
+        "name": "floor divide",
+        "output_types": [
+            "egp_highest"
+        ]
     },
     "<": {
         "inline": "{i0} < {i1}",
-        "name": "less than {t0} with {t1}",
+        "name": "less than",
         "output_types": [
             "bool"
-        ],
-        "properties": {
-            "conditional": true
-        }
+        ]
     },
     "<=": {
         "inline": "{i0} <= {i1}",
-        "name": "less than equal {t0} with {t1}",
+        "name": "less than equal",
         "output_types": [
             "bool"
-        ],
-        "properties": {
-            "conditional": true
-        }
+        ]
     },
     ">": {
         "inline": "{i0} > {i1}",
-        "name": "greater than {t0} with {t1}",
+        "name": "greater than",
         "output_types": [
             "bool"
-        ],
-        "properties": {
-            "conditional": true
-        }
+        ]
     },
     ">=": {
         "inline": "{i0} >= {i1}",
-        "name": "greater than equal {t0} with {t1}",
+        "name": "greater than equal",
         "output_types": [
             "bool"
-        ],
-        "properties": {
-            "conditional": true
-        }
-    },
-    "ceil": {
-        "imports": [
-            {
-                "module": "math",
-                "object": "ceil"
-            }
-        ],
-        "inline": "ceil({i0})",
-        "name": "find the ceiling of {t0}",
-        "num_inputs": 1,
-        "output_types": [
-            "integral"
         ]
     },
     "divmod": {
         "inline": "divmod({i0}, {i1})",
-        "name": "return the quotient and remainder of {t0} divided by {t1}",
+        "name": "quotient and remainder",
         "output_types": [
-            "tuple[real]"
-        ]
-    },
-    "floor": {
-        "imports": [
-            {
-                "module": "math",
-                "object": "floor"
-            }
-        ],
-        "inline": "floor({i0})",
-        "name": "find the floor of {t0}",
-        "num_inputs": 1,
-        "output_types": [
-            "integral"
+            "Pair[egp_highest, egp_highest]"
         ]
     },
     "round1": {
         "inline": "round({i0})",
-        "name": "round to nearest integer {t0}",
+        "name": "round to nearest integer",
         "num_inputs": 1,
         "output_types": [
-            "integral"
+            "int"
         ]
     },
     "round2": {
         "inline": "round({i0}, {i1})",
         "input_types": [
-            "real",
-            "integral"
+            "Real",
+            "egp_integral"
         ],
-        "name": "round {t0} to {t1} decimal places"
-    },
-    "trunc": {
-        "imports": [
-            {
-                "module": "math",
-                "object": "trunc"
-            }
-        ],
-        "inline": "trunc({i0})",
-        "name": "truncate {t0}",
-        "num_inputs": 1,
+        "name": "round to decimal places",
         "output_types": [
-            "integral"
+            "egp_wc_0_0"
         ]
     }
 }

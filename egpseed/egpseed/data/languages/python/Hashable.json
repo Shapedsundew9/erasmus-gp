@@ -1,11 +1,12 @@
 {
-    "operators": {
-        "hash": {
-            "inline": "hash({i0})",
-            "name": "hash({t0})",
-            "properties": {
-                "hashable": true
-            }
-        }
+    "hash": {
+        "inline": "hash({i0})",
+        "input_types": [
+            "Hashable"
+        ],
+        "name": "hash",
+        "output_types": [
+            "int"
+        ]
     }
 }
