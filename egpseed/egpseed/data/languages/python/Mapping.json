@@ -1,109 +1,109 @@
 {
     "get1": {
         "inline": "{i0}.get({i1})",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]",
             "Hashable1"
         ],
-        "name": "get",
-        "output_types": [
+        "description": "get",
+        "outputs": [
             "object1"
         ]
     },
     "get2": {
         "inline": "{i0}.get({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]",
             "Hashable1",
             "object1"
         ],
-        "name": "get",
-        "output_types": [
+        "description": "get",
+        "outputs": [
             "object1"
         ]
     },
     "getitem": {
         "inline": "{i0}[{i1}]",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]",
             "Hashable1"
         ],
-        "name": "getitem",
-        "output_types": [
+        "description": "getitem",
+        "outputs": [
             "object1"
         ]
     },
     "in": {
         "inline": "{i1} in {i0}",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable, object]",
             "Hashable"
         ],
-        "name": "in",
-        "output_types": [
+        "description": "in",
+        "outputs": [
             "bool"
         ]
     },
     "items": {
         "inline": "{i0}.items()",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]"
         ],
-        "name": "items",
-        "output_types": [
+        "description": "items",
+        "outputs": [
             "ItemsView[Hashable1, object1]"
         ]
     },
     "iter": {
         "inline": "{i0}.keys()",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]"
         ],
-        "name": "iter",
+        "description": "iter",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "KeysView[Hashable1]"
         ]
     },
     "keys": {
         "inline": "{i0}.keys()",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object]"
         ],
-        "name": "keys",
-        "output_types": [
+        "description": "keys",
+        "outputs": [
             "KeysView[Hashable1]"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable, object]",
             "Hashable"
         ],
-        "name": "not in",
-        "output_types": [
+        "description": "not in",
+        "outputs": [
             "bool"
         ]
     },
     "reversed": {
         "inline": "reversed({i0}.keys())",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]"
         ],
-        "name": "reversed",
+        "description": "reversed",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "KeysView[Hashable1]"
         ]
     },
     "values": {
         "inline": "{i0}.values()",
-        "input_types": [
+        "inputs": [
             "Mapping[Hashable1, object1]"
         ],
-        "name": "values",
-        "output_types": [
+        "description": "values",
+        "outputs": [
             "ValuesView[object1]"
         ]
     }

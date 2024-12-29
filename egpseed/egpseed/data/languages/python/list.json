@@ -1,10 +1,7 @@
 {
     "copy": {
         "inline": "{i0}.copy()",
-        "num_inputs": 1,
-        "properties": {
-            "sequence": true
-        }
+        "num_inputs": 1
     },
     "list0": {
         "inline": "list()",
@@ -12,10 +9,10 @@
     },
     "list1": {
         "inline": "list({i0})",
-        "input_types": [
+        "inputs": [
             "Iterable[object1]"
         ],
-        "output_types": [
+        "outputs": [
             "list[object1]"
         ]
     },
@@ -26,7 +23,7 @@
     },
     "sort1": {
         "inline": "{i0}.sort(reverse={i1})",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "bool"
         ],

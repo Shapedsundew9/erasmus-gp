@@ -1,42 +1,42 @@
 {
     "Pair": {
         "inline": "({i0}, {i1})",
-        "input_types": [
+        "inputs": [
             "object1",
             "object2"
         ],
-        "name": "Pair",
-        "output_types": [
+        "description": "Pair",
+        "outputs": [
             "Pair[object1, object2]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
-        "input_types": [
+        "inputs": [
             "Pair[object1, object2]"
         ],
-        "name": "first item",
-        "output_types": [
+        "description": "first item",
+        "outputs": [
             "object1"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
-        "input_types": [
+        "inputs": [
             "Pair[object1, object2]"
         ],
-        "name": "second item",
-        "output_types": [
+        "description": "second item",
+        "outputs": [
             "object2"
         ]
     },
     "to_any": {
         "inline": "{i0}",
-        "input_types": [
+        "inputs": [
             "Pair[object1, object2]"
         ],
-        "name": "to any",
-        "output_types": [
+        "description": "to any",
+        "outputs": [
             "tuple[object, ...]"
         ]
     }

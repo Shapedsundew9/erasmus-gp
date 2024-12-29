@@ -1,8 +1,19 @@
 """Common logging tools & configurations for EGP."""
+
 # pylint: disable=unused-import
 # Logging levels are imported from this module in other EGP modules
-from logging import (CRITICAL, DEBUG, ERROR, FATAL, INFO,  # type: ignore
-                     WARNING, Logger, NullHandler, getLogger)
+from logging import (
+    CRITICAL,
+    DEBUG,
+    ERROR,
+    FATAL,
+    INFO,  # type: ignore
+    WARNING,
+    Logger,
+    NullHandler,
+    getLogger,
+    basicConfig,
+)
 
 # Custom log levels
 # Verify the correctness of values and types of data. e.g. right type, range, length etc.
@@ -19,6 +30,11 @@ def egp_logger(name: str) -> Logger:
     _logger: Logger = getLogger(name=name)
     _logger.addHandler(hdlr=NullHandler())
     return _logger
+
+
+def enable_debug_logging():
+    """Enable debug logging."""
+    basicConfig(level=DEBUG, filename="egp.log")
 
 
 _logger: Logger = egp_logger(name=__name__)

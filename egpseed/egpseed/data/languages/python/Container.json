@@ -1,23 +1,23 @@
 {
     "in": {
         "inline": "{i1} in {i0}",
-        "input_types": [
-            "Container",
-            "object"
+        "inputs": [
+            "Container[object1]",
+            "object1"
         ],
-        "name": "in",
-        "output_types": [
+        "description": "in",
+        "outputs": [
             "bool"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
-        "input_types": [
-            "Container",
-            "object"
+        "inputs": [
+            "Container[object1]",
+            "object1"
         ],
-        "name": "not in",
-        "output_types": [
+        "description": "not in",
+        "outputs": [
             "bool"
         ]
     }

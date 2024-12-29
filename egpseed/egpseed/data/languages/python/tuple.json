@@ -5,10 +5,10 @@
     },
     "tuple1": {
         "inline": "tuple({i0})",
-        "input_types": [
+        "inputs": [
             "Iterable[object1]"
         ],
-        "output_types": [
+        "outputs": [
             "tuple[object1, ...]"
         ]
     }

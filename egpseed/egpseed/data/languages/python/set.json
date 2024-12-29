@@ -1,156 +1,156 @@
 {
     "copy": {
         "inline": "{i0}.copy()",
-        "name": "copy",
+        "description": "copy",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "Set[Hashable]"
         ]
     },
     "difference1": {
         "inline": "{i0}.difference({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "difference",
-        "output_types": [
+        "description": "difference",
+        "outputs": [
             "Set[Hashable]"
         ]
     },
     "difference2": {
         "inline": "{i0}.difference({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Iterable[Hashable1]"
         ],
-        "name": "difference",
-        "output_types": [
+        "description": "difference",
+        "outputs": [
             "Set[Hashable1]"
         ]
     },
     "difference_update": {
         "inline": "{i0}.difference_update({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "difference update",
+        "description": "difference update",
         "num_outputs": 0
     },
     "intersection1": {
         "inline": "{i0}.intersection({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "intersection",
-        "output_types": [
+        "description": "intersection",
+        "outputs": [
             "Set[Hashable]"
         ]
     },
     "intersection2": {
         "inline": "{i0}.intersection({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Iterable[Hashable1]"
         ],
-        "name": "intersection",
-        "output_types": [
+        "description": "intersection",
+        "outputs": [
             "Set[Hashable1]"
         ]
     },
     "intersection_update": {
         "inline": "{i0}.intersection_update({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "intersection update",
+        "description": "intersection update",
         "num_outputs": 0
     },
     "issubset": {
         "inline": "{i0}.issubset({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "issubset",
-        "output_types": [
+        "description": "issubset",
+        "outputs": [
             "bool"
         ]
     },
     "issuperset": {
         "inline": "{i0}.issuperset({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "issuperset",
-        "output_types": [
+        "description": "issuperset",
+        "outputs": [
             "bool"
         ]
     },
     "symmetric_difference1": {
         "inline": "{i0}.symmetric_difference({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "symmetric difference",
-        "output_types": [
+        "description": "symmetric difference",
+        "outputs": [
             "Set[Hashable]"
         ]
     },
     "symmetric_difference2": {
         "inline": "{i0}.symmetric_difference({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Iterable[Hashable1]"
         ],
-        "name": "symmetric difference",
-        "output_types": [
+        "description": "symmetric difference",
+        "outputs": [
             "Set[Hashable1]"
         ]
     },
     "symmetric_difference_update": {
         "inline": "{i0}.symmetric_difference_update({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "symmetric difference update",
+        "description": "symmetric difference update",
         "num_outputs": 0
     },
     "union1": {
         "inline": "{i0}.union({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "union",
-        "output_types": [
+        "description": "union",
+        "outputs": [
             "Set[Hashable]"
         ]
     },
     "union2": {
         "inline": "{i0}.union({i1})",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Iterable[Hashable1]"
         ],
-        "name": "union",
-        "output_types": [
+        "description": "union",
+        "outputs": [
             "Set[Hashable1]"
         ]
     },
     "update": {
         "inline": "{i0}.update({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Iterable[Hashable]"
         ],
-        "name": "update",
+        "description": "update",
         "num_outputs": 0
     }
 }

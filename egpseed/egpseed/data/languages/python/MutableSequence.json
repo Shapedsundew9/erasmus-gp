@@ -1,7 +1,7 @@
 {
     "append": {
         "inline": "{i0}.append({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "object1"
         ],
@@ -14,7 +14,7 @@
     },
     "del element": {
         "inline": "del {i0}[{i1}]",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object]",
             "egp_integral"
         ],
@@ -22,7 +22,7 @@
     },
     "del slice": {
         "inline": "del {i0}[{i1}:{i2}]",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object]",
             "egp_integral",
             "egp_integral"
@@ -31,7 +31,7 @@
     },
     "del slice step": {
         "inline": "del {i0}[{i1}:{i2}:{i3}]",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object]",
             "egp_integral",
             "egp_integral",
@@ -41,7 +41,7 @@
     },
     "extend": {
         "inline": "{i0}.extend({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "Iterable[object1]"
         ],
@@ -49,7 +49,7 @@
     },
     "insert": {
         "inline": "{i0}.insert({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "egp_integral",
             "object1"
@@ -58,26 +58,26 @@
     },
     "pop0": {
         "inline": "{i0}.pop()",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]"
         ],
-        "output_types": [
+        "outputs": [
             "object1"
         ]
     },
     "pop1": {
         "inline": "{i0}.pop({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "egp_integral"
         ],
-        "output_types": [
+        "outputs": [
             "object1"
         ]
     },
     "remove": {
         "inline": "{i0}.remove({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "object1"
         ],
@@ -85,7 +85,7 @@
     },
     "set element": {
         "inline": "{i0}[{i1}] = {i2}",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "egp_integral",
             "object1"
@@ -94,7 +94,7 @@
     },
     "set slice": {
         "inline": "{i0}[{i1}:{i2}] = {i3}",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "egp_integral",
             "egp_integral",
@@ -104,7 +104,7 @@
     },
     "set slice step": {
         "inline": "{i0}[{i1}:{i2}:{i3}] = {i4}",
-        "input_types": [
+        "inputs": [
             "MutableSequence[object1]",
             "egp_integral",
             "egp_integral",

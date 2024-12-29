@@ -1,49 +1,49 @@
 {
     "bytearray1": {
         "inline": "bytearray({i0})",
-        "input_types": [
+        "inputs": [
             "bytes"
         ],
-        "name": "bytearray from bytes",
-        "output_types": [
+        "description": "bytearray from bytes",
+        "outputs": [
             "bytearray"
         ]
     },
     "bytearray2": {
         "inline": "bytearray({i0})",
-        "input_types": [
+        "inputs": [
             "Iterable[egp_integral]"
         ],
-        "name": "bytearray from integers",
-        "output_types": [
+        "description": "bytearray from integers",
+        "outputs": [
             "bytearray"
         ]
     },
     "fromhex1": {
         "inline": "bytearray.fromhex({i0})",
-        "input_types": [
+        "inputs": [
             "str"
         ],
-        "name": "bytearray from hex string",
-        "output_types": [
+        "description": "bytearray from hex string",
+        "outputs": [
             "bytearray"
         ]
     },
     "fromhex2": {
         "inline": "bytearray.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
-        "input_types": [
+        "inputs": [
             "str"
         ],
-        "name": "bytearray from hex bytes",
-        "output_types": [
+        "description": "bytearray from hex bytes",
+        "outputs": [
             "bytearray"
         ]
     },
     "hex": {
         "inline": "{i0}.hex()",
-        "name": "hex string",
+        "description": "hex string",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     }

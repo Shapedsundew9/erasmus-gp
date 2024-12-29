@@ -1,9 +1,9 @@
 {
     "len": {
         "inline": "len({i0})",
-        "name": "length of",
+        "description": "length of",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     }

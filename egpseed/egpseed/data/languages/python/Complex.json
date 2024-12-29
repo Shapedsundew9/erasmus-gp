@@ -1,77 +1,77 @@
 {
     "*": {
         "inline": "{i0} * {i1}",
-        "name": "multiply",
-        "output_types": [
+        "description": "multiply",
+        "outputs": [
             "egp_highest"
         ]
     },
     "**": {
         "inline": "{i0} ** {i1}",
-        "name": "to the power of",
-        "output_types": [
+        "description": "to the power of",
+        "outputs": [
             "egp_highest"
         ]
     },
     "+": {
         "inline": "{i0} + {i1}",
-        "name": "add",
-        "output_types": [
+        "description": "add",
+        "outputs": [
             "egp_highest"
         ]
     },
     "-": {
         "inline": "{i0} - {i1}",
-        "name": "subtract",
-        "output_types": [
+        "description": "subtract",
+        "outputs": [
             "egp_highest"
         ]
     },
     "/": {
         "inline": "{i0} / {i1}",
-        "name": "true divide",
-        "output_types": [
+        "description": "true divide",
+        "outputs": [
             "egp_highest"
         ]
     },
     "abs": {
         "inline": "abs({i0})",
-        "name": "absolute value or magnitude",
+        "description": "absolute value or magnitude",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "egp_wc_0_0"
         ]
     },
     "conjugate": {
         "inline": "{i0}.conjugate()",
-        "name": "conjugate of",
+        "description": "conjugate of",
         "num_inputs": 1
     },
     "imag": {
         "inline": "{i0}.imag",
-        "name": "imaginary part of",
+        "description": "imaginary part of",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "Real"
         ]
     },
     "negate": {
         "inline": "-{i0}",
-        "name": "negate",
+        "description": "negate",
         "num_inputs": 1
     },
     "pow": {
         "inline": "pow({i0}, {i1})",
-        "name": "raise to the power of",
-        "output_types": [
+        "description": "raise to the power of",
+        "outputs": [
             "egp_highest"
         ]
     },
     "real": {
         "inline": "{i0}.real",
-        "name": "real part",
+        "description": "real part",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "Real"
         ]
     }

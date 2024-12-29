@@ -5,12 +5,12 @@
                 "aip": [
                     "math"
                 ],
-                "name": "inf"
+                "description": "inf"
             }
         ],
         "inline": "inf",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "float"
         ],
         "properties": {
@@ -23,12 +23,12 @@
                 "aip": [
                     "math"
                 ],
-                "name": "inf"
+                "description": "inf"
             }
         ],
         "inline": "-inf",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "float"
         ],
         "properties": {
@@ -41,12 +41,12 @@
                 "aip": [
                     "math"
                 ],
-                "name": "e"
+                "description": "e"
             }
         ],
         "inline": "e",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "float"
         ],
         "properties": {
@@ -59,12 +59,12 @@
                 "aip": [
                     "math"
                 ],
-                "name": "nan"
+                "description": "nan"
             }
         ],
         "inline": "nan",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "float"
         ],
         "properties": {
@@ -77,12 +77,12 @@
                 "aip": [
                     "math"
                 ],
-                "name": "pi"
+                "description": "pi"
             }
         ],
         "inline": "pi",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "float"
         ],
         "properties": {
@@ -92,7 +92,7 @@
     "sqrt(-1)": {
         "inline": "complex(0.0, 1.0)",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "complex"
         ],
         "properties": {
@@ -105,12 +105,12 @@
                 "aip": [
                     "math"
                 ],
-                "name": "tau"
+                "description": "tau"
             }
         ],
         "inline": "tau",
         "num_inputs": 0,
-        "output_types": [
+        "outputs": [
             "float"
         ],
         "properties": {

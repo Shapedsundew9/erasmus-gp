@@ -55,12 +55,16 @@ EndPointHash = SrcEndPointHash | DstEndPointHash | str
 
 # Constants
 DESTINATION_ROWS: tuple[DestinationRow, ...] = tuple(sorted(DestinationRow))
+DESTINATION_ROW_SET: set[DestinationRow] = set(DestinationRow)
+DESTINATION_ROW_SET_AND_U: set[str] = DESTINATION_ROW_SET | {"U"}
 SOURCE_ROWS: tuple[SourceRow, ...] = tuple(sorted(SourceRow))
+SOURCE_ROW_SET: set[SourceRow] = set(SourceRow)
 DST_ONLY_ROWS: tuple[DestinationRow, ...] = tuple(
     sorted({DestinationRow.F, DestinationRow.O, DestinationRow.P})
 )
 SRC_ONLY_ROWS: tuple[SourceRow, ...] = tuple(sorted({SourceRow.I}))
 ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
+ROW_SET: set[Row] = set(ROWS)
 EP_CLS_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
 ALL_ROWS_STR: str = "".join(ROWS)
 GRAPH_ORDER: str = "IFABOP"

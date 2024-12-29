@@ -1,136 +1,136 @@
 {
     "bin": {
         "inline": "bin({i0})",
-        "name": "binary representation",
+        "description": "binary representation",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     },
     "bitcount": {
         "inline": "{i0}.bitcount()",
-        "name": "the number of 1's",
+        "description": "the number of 1's",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     },
     "bitlength": {
         "inline": "{i0}.bitlength()",
-        "name": "the bit length",
+        "description": "the bit length",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     },
     "from_bytes1": {
         "inline": "int.from_bytes({i0}, 'big', True)",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "convert bytes to signed integer, big endian",
-        "output_types": [
+        "description": "convert bytes to signed integer, big endian",
+        "outputs": [
             "int"
         ]
     },
     "from_bytes2": {
         "inline": "int.from_bytes({i0}, 'little', True)",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "convert bytes to signed integer, little endian",
-        "output_types": [
+        "description": "convert bytes to signed integer, little endian",
+        "outputs": [
             "int"
         ]
     },
     "from_bytes3": {
         "inline": "int.from_bytes({i0}, 'big', False)",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "convert bytes to unsigned integer, big endian",
-        "output_types": [
+        "description": "convert bytes to unsigned integer, big endian",
+        "outputs": [
             "int"
         ]
     },
     "from_bytes4": {
         "inline": "int.from_bytes({i0}, 'little', False)",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "convert bytes to unsigned integer, little endian",
-        "output_types": [
+        "description": "convert bytes to unsigned integer, little endian",
+        "outputs": [
             "int"
         ]
     },
     "hex": {
         "inline": "hex({i0})",
-        "name": "hexadecimal representation",
+        "description": "hexadecimal representation",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     },
     "int0": {
         "inline": "int()",
-        "name": "int",
+        "description": "int",
         "num_inputs": 0
     },
     "int1": {
         "inline": "int({i0})",
-        "input_types": [
+        "inputs": [
             "egp_number"
         ],
-        "name": "int"
+        "description": "int"
     },
     "int2": {
         "inline": "int({i0}, {i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral"
         ],
-        "name": "int"
+        "description": "int"
     },
     "int3": {
         "inline": "int({i0})",
-        "input_types": [
+        "inputs": [
             "str"
         ],
-        "name": "int"
+        "description": "int"
     },
     "oct": {
         "inline": "oct({i0})",
-        "name": "octal representation",
+        "description": "octal representation",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     },
     "to_bytes1": {
         "inline": "{i0}.to_bytes({i1}, 'big', True)",
-        "name": "convert to bytes with length, big endian, signed",
-        "output_types": [
+        "description": "convert to bytes with length, big endian, signed",
+        "outputs": [
             "bytes"
         ]
     },
     "to_bytes2": {
         "inline": "{i0}.to_bytes({i1}, 'little', True)",
-        "name": "convert to bytes with length, little endian, signed",
-        "output_types": [
+        "description": "convert to bytes with length, little endian, signed",
+        "outputs": [
             "bytes"
         ]
     },
     "to_bytes3": {
         "inline": "{i0}.to_bytes({i1}, 'big', False)",
-        "name": "convert to bytes with length, big endian, unsigned",
-        "output_types": [
+        "description": "convert to bytes with length, big endian, unsigned",
+        "outputs": [
             "bytes"
         ]
     },
     "to_bytes4": {
         "inline": "{i0}.to_bytes({i1}, 'little', False)",
-        "name": "convert to bytes with length, little endian, unsigned",
-        "output_types": [
+        "description": "convert to bytes with length, little endian, unsigned",
+        "outputs": [
             "bytes"
         ]
     }

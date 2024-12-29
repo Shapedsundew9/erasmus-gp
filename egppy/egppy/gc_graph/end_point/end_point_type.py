@@ -70,6 +70,7 @@ def end_point_type(
     to be efficiently defined.
     """
     assert len(type_sequence) > 0, "The type sequence must have at least one type."
+    assert not isinstance(type_sequence, str), "The type sequence must not be a str."
     ts = list(type_sequence) if not _pop else type_sequence
     assert isinstance(ts, list), f"Expected list but found {type(ts)}"
     elmt = ts.pop(0)
@@ -78,9 +79,10 @@ def end_point_type(
     ), f"The first element must be a UID or name but found {type(elmt)}"
     # If the element is a UID (or TypesDef) then get the TypesDef object
     # If it is a str it may be a python type string rather than just a name
-    if isinstance(elmt, str) and elmt not in types_db:
+    if isinstance(elmt, str) and elmt not in types_db and "[" in elmt:
         return ept_store.add(str_to_ept(elmt))
     typ = types_db[elmt]
+    assert typ.tt() <= len(ts), f"Expected at least {typ.tt()} types but found {len(ts)}."
     list_ept: list[TypesDef] = [typ]
     list_ept.extend(td for tt in range(typ.tt()) for td in end_point_type(ts, True))
     ept = tuple(list_ept)
@@ -117,7 +119,7 @@ def str_to_ept(type_str: str) -> EndPointType:
     """Return the EPT from a python type style string."""
     # Split out the types into a list of names and push through the end_point_type function
     # NB: Split will remove any spaces, periods (including tuple ... notation) and commas
-    return end_point_type([s for s in split(r"\W+", type_str) if s])
+    return end_point_type([s for s in split(r"\W+", type_str) if s], True)
 
 
 def ept_to_const(ept: EndPointType) -> str:

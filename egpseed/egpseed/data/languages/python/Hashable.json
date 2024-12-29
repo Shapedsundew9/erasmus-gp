@@ -1,11 +1,11 @@
 {
     "hash": {
         "inline": "hash({i0})",
-        "input_types": [
+        "inputs": [
             "Hashable"
         ],
-        "name": "hash",
-        "output_types": [
+        "description": "hash",
+        "outputs": [
             "int"
         ]
     }

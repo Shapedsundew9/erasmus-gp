@@ -16,6 +16,7 @@ from egppy.gc_graph.end_point.types_def import types_db
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.interface import (
     EMPTY_INTERFACE,
+    INTERFACE_MAX_LENGTH,
     AnyInterface,
     MutableInterface,
     RawInterface,
@@ -24,7 +25,9 @@ from egppy.gc_graph.interface import (
 from egppy.gc_graph.typing import (
     CPI,
     ROW_CLS_INDEXED,
+    DESTINATION_ROW_SET_AND_U,
     SOURCE_ROWS,
+    SOURCE_ROW_SET,
     VALID_ROW_DESTINATIONS,
     VALID_ROW_SOURCES,
     DestinationRow,
@@ -32,7 +35,7 @@ from egppy.gc_graph.typing import (
     EPClsPostfix,
     Row,
     SourceRow,
-    str2epcls,
+    str2epcls
 )
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
 
@@ -116,15 +119,18 @@ class GCGraphMixin(CacheableObjMixin):
     def _init_from_json(self, gc_graph: GCGraphDict) -> None:
         """Initialize from a JSON formatted GC graph.
         {
-            "DSTROW":[[SRCROW, IDX, TYP],...]
+            "DSTROW":[[SRCROW, IDX, [TYP, ...]],...]
             ...
         }
         """
         src_if_typs: dict[SourceRow, set[tuple[int, EndPointType]]] = {
             r: set() for r in SOURCE_ROWS
         }
-        src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {r: {} for r in SOURCE_ROWS}
+        src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {}
         for row, jeps in gc_graph.items():
+            if row not in DESTINATION_ROW_SET_AND_U:
+                raise ValueError(f"Invalid row in JSON GC Graph. "
+                                 f"Expected a destination row but got: {row}")
             if row != "U":
                 self._process_json_row(row, jeps, src_if_refs)
             self._collect_src_references(jeps, src_if_typs)
@@ -139,6 +145,13 @@ class GCGraphMixin(CacheableObjMixin):
         src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]],
     ) -> None:
         """Process a row in the JSON GC graph."""
+        # Some sanity to start with
+        if not isinstance(jeps, list):
+            raise ValueError(f"Invalid row in JSON GC Graph. Expected a list but got: {type(jeps)}")
+        if not all(isinstance(jep, list) for jep in jeps):
+            typs = [type(jep) for jep in jeps]
+            raise ValueError(f"Invalid row in JSON GC Graph. Expected a list[list] but got: {typs}")
+
         rowd = row + EPClsPostfix.DST
         self[rowd] = self._TI(jep[CPI.TYP] for jep in jeps)
         self[rowd + "c"] = self._TC(
@@ -146,7 +159,22 @@ class GCGraphMixin(CacheableObjMixin):
             for jep in jeps
         )
         for idx, jep in enumerate(jeps):
-            src_if_refs[jep[CPI.ROW]].setdefault(jep[CPI.IDX], []).append(
+            # Some sanity on the endpoint
+            if jep[CPI.ROW] not in SOURCE_ROW_SET:
+                raise ValueError(f"Invalid source row in JSON GC Graph. "
+                                 f"Expected a row but got: {jep[CPI.ROW]}")
+            if not 0 <= jep[CPI.IDX] < INTERFACE_MAX_LENGTH:
+                raise ValueError(f"Invalid index in JSON GC Graph. Expected 0 <= IDX"
+                                 f" < {INTERFACE_MAX_LENGTH} but got: {jep[CPI.IDX]}")
+            if not isinstance(jep[CPI.TYP], list):
+                raise ValueError(f"Invalid type in JSON GC Graph. Expected a list but"
+                                 f" got: {type(jep[CPI.TYP])}")
+            if not all(isinstance(t, str | int) for t in jep[CPI.TYP]):
+                raise ValueError(f"Invalid type in JSON GC Graph. Expected a list of str | int"
+                                 f" but got: {[type(t) for t in jep[CPI.TYP]]}")
+
+            # Collect the source row references
+            src_if_refs.setdefault(jep[CPI.ROW], {}).setdefault(jep[CPI.IDX], []).append(
                 DstEndPointRef(cast(DestinationRow, row), idx)
             )
 

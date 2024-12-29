@@ -1,12 +1,12 @@
 {
     "reversed": {
         "inline": "reversed({i0})",
-        "input_types": [
-            "iterable[object1]"
+        "inputs": [
+            "Iterable[object1]"
         ],
-        "name": "reversed",
-        "output_types": [
-            "iterator[object1]"
+        "description": "reversed",
+        "outputs": [
+            "Iterator[object1]"
         ]
     }
 }

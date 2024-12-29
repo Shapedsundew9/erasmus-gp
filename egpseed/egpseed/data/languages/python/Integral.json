@@ -1,39 +1,39 @@
 {
     "&": {
         "inline": "{i0} & {i1}",
-        "name": "bitwise AND"
+        "description": "bitwise AND"
     },
     "<<": {
         "inline": "{i0} << {i1}",
-        "name": "left shift"
+        "description": "left shift"
     },
     ">>": {
         "inline": "{i0} >> {i1}",
-        "name": "right shift"
+        "description": "right shift"
     },
     "^": {
         "inline": "{i0} ^ {i1}",
-        "name": "bitwise XOR"
+        "description": "bitwise XOR"
     },
     "chr": {
         "inline": "chr({i0})",
-        "name": "character of the unicode",
-        "output_types": [
+        "description": "character of the unicode",
+        "outputs": [
             "str"
         ]
     },
     "pow3": {
         "inline": "pow({i0}, {i1}, {i2})",
-        "name": "raise to the power and modulo",
+        "description": "raise to the power and modulo",
         "num_inputs": 3
     },
     "|": {
         "inline": "{i0} | {i1}",
-        "name": "bitwise OR"
+        "description": "bitwise OR"
     },
     "~": {
         "inline": "~{i0}",
-        "name": "bitwise NOT",
+        "description": "bitwise NOT",
         "num_inputs": 1
     }
 }

@@ -1,7 +1,7 @@
 {
     "Sextuplet": {
         "inline": "({i0}, {i1}, {i2}, {i3}, {i4}, {i5})",
-        "input_types": [
+        "inputs": [
             "object1",
             "object2",
             "object3",
@@ -9,78 +9,78 @@
             "object5",
             "object6"
         ],
-        "name": "Sextuplet",
-        "output_types": [
+        "description": "Sextuplet",
+        "outputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "first item",
-        "output_types": [
+        "description": "first item",
+        "outputs": [
             "object1"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "second item",
-        "output_types": [
+        "description": "second item",
+        "outputs": [
             "object2"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "third item",
-        "output_types": [
+        "description": "third item",
+        "outputs": [
             "object3"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "fourth item",
-        "output_types": [
+        "description": "fourth item",
+        "outputs": [
             "object4"
         ]
     },
     "item4": {
         "inline": "{i0}[4]",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "fifth item",
-        "output_types": [
+        "description": "fifth item",
+        "outputs": [
             "object5"
         ]
     },
     "item5": {
         "inline": "{i0}[5]",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "sixth item",
-        "output_types": [
+        "description": "sixth item",
+        "outputs": [
             "object6"
         ]
     },
     "to_any": {
         "inline": "{i0}",
-        "input_types": [
+        "inputs": [
             "Sextuplet[object1, object2, object3, object4, object5, object6]"
         ],
-        "name": "to any",
-        "output_types": [
+        "description": "to any",
+        "outputs": [
             "object"
         ]
     }

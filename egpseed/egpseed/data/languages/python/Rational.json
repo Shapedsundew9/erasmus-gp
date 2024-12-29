@@ -1,17 +1,17 @@
 {
     "denominator": {
         "inline": "{i0}.denominator",
-        "name": "denominator",
+        "description": "denominator",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     },
     "numerator": {
         "inline": "{i0}.numerator",
-        "name": "numerator",
+        "description": "numerator",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     }

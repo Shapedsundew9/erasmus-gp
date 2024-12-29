@@ -1,49 +1,49 @@
 {
     "bytes1": {
         "inline": "bytes({i0})",
-        "input_types": [
+        "inputs": [
             "bytes"
         ],
-        "name": "bytes from bytes",
-        "output_types": [
+        "description": "bytes from bytes",
+        "outputs": [
             "bytes"
         ]
     },
     "bytes2": {
         "inline": "bytes({i0})",
-        "input_types": [
+        "inputs": [
             "Iterable[egp_integral]"
         ],
-        "name": "bytes from integers",
-        "output_types": [
+        "description": "bytes from integers",
+        "outputs": [
             "bytes"
         ]
     },
     "fromhex1": {
         "inline": "bytes.fromhex({i0})",
-        "input_types": [
+        "inputs": [
             "str"
         ],
-        "name": "bytes from hex string",
-        "output_types": [
+        "description": "bytes from hex string",
+        "outputs": [
             "bytes"
         ]
     },
     "fromhex2": {
         "inline": "bytes.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
-        "input_types": [
+        "inputs": [
             "str"
         ],
-        "name": "bytes from hex bytes",
-        "output_types": [
+        "description": "bytes from hex bytes",
+        "outputs": [
             "bytes"
         ]
     },
     "hex": {
         "inline": "{i0}.hex()",
-        "name": "hex string",
+        "description": "hex string",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     }

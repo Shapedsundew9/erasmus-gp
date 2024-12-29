@@ -1,53 +1,53 @@
 {
     "Triplet": {
         "inline": "({i0}, {i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "object1",
             "object2",
             "object3"
         ],
-        "name": "Triplet",
-        "output_types": [
+        "description": "Triplet",
+        "outputs": [
             "Triplet[object1, object2, object3]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
-        "input_types": [
+        "inputs": [
             "Triplet[object1, object2, object3]"
         ],
-        "name": "first item",
-        "output_types": [
+        "description": "first item",
+        "outputs": [
             "object1"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
-        "input_types": [
+        "inputs": [
             "Triplet[object1, object2, object3]"
         ],
-        "name": "second item",
-        "output_types": [
+        "description": "second item",
+        "outputs": [
             "object2"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
-        "input_types": [
+        "inputs": [
             "Triplet[object1, object2, object3]"
         ],
-        "name": "third item",
-        "output_types": [
+        "description": "third item",
+        "outputs": [
             "object3"
         ]
     },
     "to_any": {
         "inline": "{i0}",
-        "input_types": [
+        "inputs": [
             "Triplet[object1, object2, object3]"
         ],
-        "name": "to any",
-        "output_types": [
+        "description": "to any",
+        "outputs": [
             "tuple[object, ...]"
         ]
     }

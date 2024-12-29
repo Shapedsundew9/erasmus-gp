@@ -1,146 +1,146 @@
 {
     "&1": {
         "inline": "{i0} &= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Set[Hashable]"
         ],
-        "name": "intersection",
+        "description": "intersection",
         "num_outputs": 0
     },
     "&2": {
         "inline": "{i0} &= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Set[Hashable1]"
         ],
-        "name": "intersection",
+        "description": "intersection",
         "num_outputs": 0
     },
     "-1": {
         "inline": "{i0} -= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Set[Hashable]"
         ],
-        "name": "difference",
+        "description": "difference",
         "num_outputs": 0
     },
     "-2": {
         "inline": "{i0} -= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Set[Hashable1]"
         ],
-        "name": "difference",
+        "description": "difference",
         "num_outputs": 0
     },
     "^1": {
         "inline": "{i0} ^= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Set[Hashable]"
         ],
-        "name": "symmetric difference",
+        "description": "symmetric difference",
         "num_outputs": 0
     },
     "^2": {
         "inline": "{i0} ^= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Set[Hashable1]"
         ],
-        "name": "symmetric difference",
+        "description": "symmetric difference",
         "num_outputs": 0
     },
     "add1": {
         "inline": "{i0}.add({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Hashable"
         ],
-        "name": "add",
+        "description": "add",
         "num_outputs": 0
     },
     "add2": {
         "inline": "{i0}.add({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable1]",
             "Hashable1"
         ],
-        "name": "add",
+        "description": "add",
         "num_outputs": 0
     },
     "clear": {
         "inline": "{i0}.clear()",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]"
         ],
-        "name": "clear",
+        "description": "clear",
         "num_outputs": 0
     },
     "discard1": {
         "inline": "{i0}.discard({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Hashable"
         ],
-        "name": "discard",
+        "description": "discard",
         "num_outputs": 0
     },
     "discard2": {
         "inline": "{i0}.discard({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable1]",
             "Hashable1"
         ],
-        "name": "discard",
+        "description": "discard",
         "num_outputs": 0
     },
     "pop": {
         "inline": "{i0}.pop()",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable1]"
         ],
-        "name": "pop",
-        "output_types": [
+        "description": "pop",
+        "outputs": [
             "Hashable1"
         ]
     },
     "remove1": {
         "inline": "{i0}.remove({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable]",
             "Hashable"
         ],
-        "name": "remove",
+        "description": "remove",
         "num_outputs": 0
     },
     "remove2": {
         "inline": "{i0}.remove({i1})",
-        "input_types": [
+        "inputs": [
             "MutableSet[Hashable1]",
             "Hashable1"
         ],
-        "name": "remove",
+        "description": "remove",
         "num_outputs": 0
     },
     "|=1": {
         "inline": "{i0} |= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable]",
             "Set[Hashable]"
         ],
-        "name": "union operator",
+        "description": "union operator",
         "num_outputs": 0
     },
     "|=2": {
         "inline": "{i0} |= {i1}",
-        "input_types": [
+        "inputs": [
             "Set[Hashable1]",
             "Set[Hashable1]"
         ],
-        "name": "union operator",
+        "description": "union operator",
         "num_outputs": 0
     }
 }

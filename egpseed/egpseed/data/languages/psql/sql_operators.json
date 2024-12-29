@@ -1,7 +1,7 @@
 {
     "#": {
         "inline": "{i0} # {i1}",
-        "name": "SQL bitwise XOR {t0} and {t1}",
+        "description": "SQL bitwise XOR {t0} and {t1}",
         "properties": {
             "bitwise": true,
             "deterministic": true
@@ -9,7 +9,7 @@
     },
     "%": {
         "inline": "{i0} % {i1}",
-        "name": "SQL modulo {t0} by {t1}",
+        "description": "SQL modulo {t0} by {t1}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -17,7 +17,7 @@
     },
     "&": {
         "inline": "{i0} & {i1}",
-        "name": "SQL bitwise AND {t0} and {t1}",
+        "description": "SQL bitwise AND {t0} and {t1}",
         "properties": {
             "bitwise": true,
             "deterministic": true
@@ -25,7 +25,7 @@
     },
     "&&": {
         "inline": "{i0} && {i1}",
-        "name": "SQL overlap {t0} by {t1}",
+        "description": "SQL overlap {t0} by {t1}",
         "properties": {
             "array": true,
             "deterministic": true
@@ -33,7 +33,7 @@
     },
     "*": {
         "inline": "{i0} * {i1}",
-        "name": "SQL multiply {t0} and {t1}",
+        "description": "SQL multiply {t0} and {t1}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -41,7 +41,7 @@
     },
     "+": {
         "inline": "{i0} + {i1}",
-        "name": "SQL add {t0} to {t1}",
+        "description": "SQL add {t0} to {t1}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -49,7 +49,7 @@
     },
     "-": {
         "inline": "{i0} - {i1}",
-        "name": "SQL subtract {t1} from {t0}",
+        "description": "SQL subtract {t1} from {t0}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -57,7 +57,7 @@
     },
     "/": {
         "inline": "{i0} / {i1}",
-        "name": "SQL divide  {t0} by {t1}",
+        "description": "SQL divide  {t0} by {t1}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -65,7 +65,7 @@
     },
     "<": {
         "inline": "{i0} < {i1}",
-        "name": "SQL less than {t0} with {t1}",
+        "description": "SQL less than {t0} with {t1}",
         "properties": {
             "conditional": true,
             "deterministic": true
@@ -73,7 +73,7 @@
     },
     "<<": {
         "inline": "{i0} << {i1}",
-        "name": "left shift {t0} by {t1}",
+        "description": "left shift {t0} by {t1}",
         "properties": {
             "bitwise": true,
             "deterministic": true
@@ -81,7 +81,7 @@
     },
     "<=": {
         "inline": "{i0} <= {i1}",
-        "name": "SQL less than equal {t0} with {t1}",
+        "description": "SQL less than equal {t0} with {t1}",
         "properties": {
             "conditional": true,
             "deterministic": true
@@ -89,7 +89,7 @@
     },
     "<>": {
         "inline": "{i0} <> {i1}",
-        "name": "SQL not equal {t0} with {t1}",
+        "description": "SQL not equal {t0} with {t1}",
         "properties": {
             "conditional": true,
             "deterministic": true
@@ -97,7 +97,7 @@
     },
     "<@": {
         "inline": "{i0} <@ {i1}",
-        "name": "SQL is contained by {t0} by {t1}",
+        "description": "SQL is contained by {t0} by {t1}",
         "properties": {
             "array": true,
             "deterministic": true
@@ -105,7 +105,7 @@
     },
     "=": {
         "inline": "{i0} = {i1}",
-        "name": "SQL equal {t0} with {t1}",
+        "description": "SQL equal {t0} with {t1}",
         "properties": {
             "conditional": true,
             "deterministic": true
@@ -113,7 +113,7 @@
     },
     ">": {
         "inline": "{i0} > {i1}",
-        "name": "SQL greater than {t0} with {t1}",
+        "description": "SQL greater than {t0} with {t1}",
         "properties": {
             "conditional": true,
             "deterministic": true
@@ -121,7 +121,7 @@
     },
     ">=": {
         "inline": "{i0} >= {i1}",
-        "name": "SQL greater than equal {t0} with {t1}",
+        "description": "SQL greater than equal {t0} with {t1}",
         "properties": {
             "conditional": true,
             "deterministic": true
@@ -129,7 +129,7 @@
     },
     ">>": {
         "inline": "{i0} >> {i1}",
-        "name": "right shift {t0} by {t1}",
+        "description": "right shift {t0} by {t1}",
         "properties": {
             "bitwise": true,
             "deterministic": true
@@ -137,7 +137,7 @@
     },
     "@": {
         "inline": "@{i1}",
-        "name": "SQL absolute {t0}",
+        "description": "SQL absolute {t0}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -145,7 +145,7 @@
     },
     "@>": {
         "inline": "{i0} @> {i1}",
-        "name": "SQL contains {t0} by {t1}",
+        "description": "SQL contains {t0} by {t1}",
         "properties": {
             "array": true,
             "deterministic": true
@@ -153,7 +153,7 @@
     },
     "AND": {
         "inline": "{i0} AND {i1}",
-        "name": "SQL logical AND {t0} with {t1}",
+        "description": "SQL logical AND {t0} with {t1}",
         "properties": {
             "deterministic": true,
             "logical": true
@@ -161,7 +161,7 @@
     },
     "NOT": {
         "inline": "NOT {i1}",
-        "name": "SQL logical NOT {t0}",
+        "description": "SQL logical NOT {t0}",
         "properties": {
             "deterministic": true,
             "logical": true
@@ -170,7 +170,7 @@
     },
     "OR": {
         "inline": "{i0} OR {i1}",
-        "name": "SQL logical OR {t0} with {t1}",
+        "description": "SQL logical OR {t0} with {t1}",
         "properties": {
             "deterministic": true,
             "logical": true
@@ -178,7 +178,7 @@
     },
     "^": {
         "inline": "{i0} ^ {i1}",
-        "name": "SQL {t0} to the power of {t1}",
+        "description": "SQL {t0} to the power of {t1}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -186,7 +186,7 @@
     },
     "cbrt": {
         "inline": "||/{i1}",
-        "name": "SQL cube root {t0}",
+        "description": "SQL cube root {t0}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -195,7 +195,7 @@
     },
     "negate": {
         "inline": "-{i1}",
-        "name": "SQL negate {t0}",
+        "description": "SQL negate {t0}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -204,7 +204,7 @@
     },
     "sqrt": {
         "inline": "|/{i1}",
-        "name": "SQL square root {t0}",
+        "description": "SQL square root {t0}",
         "properties": {
             "arithmetic": true,
             "deterministic": true
@@ -213,7 +213,7 @@
     },
     "|": {
         "inline": "{i0} | {i1}",
-        "name": "SQL bitwise OR {t0} and {t1}",
+        "description": "SQL bitwise OR {t0} and {t1}",
         "properties": {
             "bitwise": true,
             "deterministic": true
@@ -221,7 +221,7 @@
     },
     "~": {
         "inline": "~{i0}",
-        "name": "SQL bitwise NOT {t0}",
+        "description": "SQL bitwise NOT {t0}",
         "properties": {
             "bitwise": true,
             "deterministic": true

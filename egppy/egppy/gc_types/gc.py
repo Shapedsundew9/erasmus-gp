@@ -10,6 +10,7 @@ from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.conversions import decode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -115,6 +116,8 @@ class GCMixin:
             value = self[key]
             if key == "properties":
                 retval[key] = decode_properties(value)
+            elif key.endswith("_types"):
+                retval[key] = [ept_to_str(ept) for ept in value]
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.

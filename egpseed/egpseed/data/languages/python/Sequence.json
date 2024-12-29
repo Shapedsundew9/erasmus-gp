@@ -1,39 +1,39 @@
 {
     "count": {
         "inline": "{i0}.count({i1})",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "object"
         ],
-        "name": "total number of occurances",
-        "output_types": [
+        "description": "total number of occurances",
+        "outputs": [
             "int"
         ]
     },
     "get element": {
         "inline": "{i0}[{i1}]",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "int"
         ],
-        "name": "element at index",
-        "output_types": [
+        "description": "element at index",
+        "outputs": [
             "object"
         ]
     },
     "get slice": {
         "inline": "{i0}[{i1}:{i2}]",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "int",
             "int"
         ],
-        "name": "slice of a sequence"
+        "description": "slice of a sequence"
     },
     "get slice step": {
         "inline": "{i0}[{i1}:{i2}:{i3}]",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "int",
             "int",
             "int"
@@ -41,37 +41,37 @@
     },
     "index1": {
         "inline": "{i0}.index({i1})",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "object"
         ],
-        "name": "Index of the first occurance",
-        "output_types": [
+        "description": "Index of the first occurance",
+        "outputs": [
             "int"
         ]
     },
     "index2": {
         "inline": "{i0}.index({i1}, {i2})",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "object",
             "int"
         ],
-        "name": "Index of the first occurance from an offset",
-        "output_types": [
+        "description": "Index of the first occurance from an offset",
+        "outputs": [
             "int"
         ]
     },
     "index3": {
         "inline": "{i0}.index({i1}, {i2}, {i3})",
-        "input_types": [
-            "sequence[object]",
+        "inputs": [
+            "Sequence[object]",
             "object",
             "int",
             "int"
         ],
-        "name": "Index of the first occurance from an offset to a limit",
-        "output_types": [
+        "description": "Index of the first occurance from an offset to a limit",
+        "outputs": [
             "int"
         ]
     }

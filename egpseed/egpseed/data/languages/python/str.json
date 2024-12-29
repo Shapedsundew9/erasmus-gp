@@ -1,664 +1,664 @@
 {
     "capitalize": {
         "inline": "{i0}.capitalize()",
-        "name": "capitalize",
+        "description": "capitalize",
         "num_inputs": 1
     },
     "casefold": {
         "inline": "{i0}.casefold()",
-        "name": "casefold",
+        "description": "casefold",
         "num_inputs": 1
     },
     "center1": {
         "inline": "{i0}.center({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral"
         ],
-        "name": "center"
+        "description": "center"
     },
     "center2": {
         "inline": "{i0}.center({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral",
             "str"
         ],
-        "name": "center with fill character"
+        "description": "center with fill character"
     },
     "count1": {
         "inline": "{i0}.count({i1})",
-        "name": "count",
-        "output_types": [
+        "description": "count",
+        "outputs": [
             "int"
         ]
     },
     "count2": {
         "inline": "{i0}.count({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "count from",
-        "output_types": [
+        "description": "count from",
+        "outputs": [
             "int"
         ]
     },
     "count3": {
         "inline": "{i0}.count({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "count from to",
-        "output_types": [
+        "description": "count from to",
+        "outputs": [
             "int"
         ]
     },
     "encode": {
         "inline": "{i0}.encode()",
-        "name": "encode",
+        "description": "encode",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bytes"
         ]
     },
     "endswith1": {
         "inline": "{i0}.endswith({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "ends with",
-        "output_types": [
+        "description": "ends with",
+        "outputs": [
             "bool"
         ]
     },
     "endswith2": {
         "inline": "{i0}.endswith({i1}, 0, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "ends with from",
-        "output_types": [
+        "description": "ends with from",
+        "outputs": [
             "bool"
         ]
     },
     "endswith3": {
         "inline": "{i0}.endswith({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "ends with from to",
-        "output_types": [
+        "description": "ends with from to",
+        "outputs": [
             "bool"
         ]
     },
     "expandtabs0": {
         "inline": "{i0}.expandtabs()",
-        "name": "expand tabs size 8",
+        "description": "expand tabs size 8",
         "num_inputs": 1
     },
     "expandtabs1": {
         "inline": "{i0}.expandtabs({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral"
         ],
-        "name": "expand tabs"
+        "description": "expand tabs"
     },
     "find1": {
         "inline": "{i0}.find({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "find",
-        "output_types": [
+        "description": "find",
+        "outputs": [
             "int"
         ]
     },
     "find2": {
         "inline": "{i0}.find({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "find from",
-        "output_types": [
+        "description": "find from",
+        "outputs": [
             "int"
         ]
     },
     "find3": {
         "inline": "{i0}.find({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "find from to",
-        "output_types": [
+        "description": "find from to",
+        "outputs": [
             "int"
         ]
     },
     "isalnum": {
         "inline": "{i0}.isalnum()",
-        "name": "is alphanumeric",
+        "description": "is alphanumeric",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isalpha": {
         "inline": "{i0}.isalpha()",
-        "name": "is alphabetic",
+        "description": "is alphabetic",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isascii": {
         "inline": "{i0}.isascii()",
-        "name": "is ASCII",
+        "description": "is ASCII",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isdecimal": {
         "inline": "{i0}.isdecimal()",
-        "name": "is decimal",
+        "description": "is decimal",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isdigit": {
         "inline": "{i0}.isdigit()",
-        "name": "is digit",
+        "description": "is digit",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isidentifier": {
         "inline": "{i0}.isidentifier()",
-        "name": "is identifier",
+        "description": "is identifier",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "islower": {
         "inline": "{i0}.islower()",
-        "name": "is lower case",
+        "description": "is lower case",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isnumeric": {
         "inline": "{i0}.isnumeric()",
-        "name": "is numeric",
+        "description": "is numeric",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isprintable": {
         "inline": "{i0}.isprintable()",
-        "name": "is printable",
+        "description": "is printable",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isspace": {
         "inline": "{i0}.isspace()",
-        "name": "is whitespace",
+        "description": "is whitespace",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "istitle": {
         "inline": "{i0}.istitle()",
-        "name": "is title case",
+        "description": "is title case",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "isupper": {
         "inline": "{i0}.isupper()",
-        "name": "is upper case",
+        "description": "is upper case",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "bool"
         ]
     },
     "join": {
         "inline": "{i0}.join({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "Iterable[str]"
         ],
-        "name": "join"
+        "description": "join"
     },
     "ljust1": {
         "inline": "{i0}.ljust({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral"
         ],
-        "name": "left justify space"
+        "description": "left justify space"
     },
     "ljust2": {
         "inline": "{i0}.ljust({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral",
             "str"
         ],
-        "name": "left justify with fill character"
+        "description": "left justify with fill character"
     },
     "lower": {
         "inline": "{i0}.lower()",
-        "name": "lower case",
+        "description": "lower case",
         "num_inputs": 1
     },
     "lstrip1": {
         "inline": "{i0}.lstrip()",
-        "name": "left strip space",
+        "description": "left strip space",
         "num_inputs": 1
     },
     "lstrip2": {
         "inline": "{i0}.lstrip({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "left strip chars"
+        "description": "left strip chars"
     },
     "ord": {
         "inline": "ord({i0}[0])",
-        "name": "ASCII value",
+        "description": "ASCII value",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     },
     "partition": {
         "inline": "{i0}.partition({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "partition",
-        "output_types": [
+        "description": "partition",
+        "outputs": [
             "Triplet[str, str, str]"
         ]
     },
     "removeprefix": {
         "inline": "{i0}.removeprefix({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "remove prefix"
+        "description": "remove prefix"
     },
     "removesuffix": {
         "inline": "{i0}.removesuffix({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "remove suffix"
+        "description": "remove suffix"
     },
     "replace1": {
         "inline": "{i0}.replace({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "str"
         ],
-        "name": "replace"
+        "description": "replace"
     },
     "replace2": {
         "inline": "{i0}.replace({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "replace count"
+        "description": "replace count"
     },
     "rfind1": {
         "inline": "{i0}.rfind({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "rfind",
-        "output_types": [
+        "description": "rfind",
+        "outputs": [
             "int"
         ]
     },
     "rfind2": {
         "inline": "{i0}.rfind({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "rfind from",
-        "output_types": [
+        "description": "rfind from",
+        "outputs": [
             "int"
         ]
     },
     "rfind3": {
         "inline": "{i0}.rfind({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rfind from to",
-        "output_types": [
+        "description": "rfind from to",
+        "outputs": [
             "int"
         ]
     },
     "rindex1": {
         "inline": "{i0}.rindex({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "rindex",
-        "output_types": [
+        "description": "rindex",
+        "outputs": [
             "int"
         ]
     },
     "rindex2": {
         "inline": "{i0}.rindex({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "rindex from",
-        "output_types": [
+        "description": "rindex from",
+        "outputs": [
             "int"
         ]
     },
     "rindex3": {
         "inline": "{i0}.rindex({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rindex from to",
-        "output_types": [
+        "description": "rindex from to",
+        "outputs": [
             "int"
         ]
     },
     "rjust1": {
         "inline": "{i0}.rjust({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral"
         ],
-        "name": "right justify space"
+        "description": "right justify space"
     },
     "rjust2": {
         "inline": "{i0}.rjust({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral",
             "str"
         ],
-        "name": "right justify with fill character"
+        "description": "right justify with fill character"
     },
     "rpartition": {
         "inline": "{i0}.rpartition({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "rpartition",
-        "output_types": [
+        "description": "rpartition",
+        "outputs": [
             "Triplet[str, str, str]"
         ]
     },
     "rsplit1": {
         "inline": "{i0}.rsplit()",
-        "name": "right split space",
+        "description": "right split space",
         "num_inputs": 1,
-        "output_types": [
-            "List[str]"
+        "outputs": [
+            "list[str]"
         ]
     },
     "rsplit2": {
         "inline": "{i0}.rsplit({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "right split",
-        "output_types": [
-            "List[str]"
+        "description": "right split",
+        "outputs": [
+            "list[str]"
         ]
     },
     "rsplit3": {
         "inline": "{i0}.rsplit({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "right split max",
-        "output_types": [
-            "List[str]"
+        "description": "right split max",
+        "outputs": [
+            "list[str]"
         ]
     },
     "rstrip1": {
         "inline": "{i0}.rstrip()",
-        "name": "right strip space",
+        "description": "right strip space",
         "num_inputs": 1
     },
     "rstrip2": {
         "inline": "{i0}.rstrip({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "right strip chars"
+        "description": "right strip chars"
     },
     "split1": {
         "inline": "{i0}.split()",
-        "name": "split space",
+        "description": "split space",
         "num_inputs": 1,
-        "output_types": [
-            "List[str]"
+        "outputs": [
+            "list[str]"
         ]
     },
     "split2": {
         "inline": "{i0}.split({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "split",
-        "output_types": [
-            "List[str]"
+        "description": "split",
+        "outputs": [
+            "list[str]"
         ]
     },
     "split3": {
         "inline": "{i0}.split({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "split max",
-        "output_types": [
-            "List[str]"
+        "description": "split max",
+        "outputs": [
+            "list[str]"
         ]
     },
     "splitlines1": {
         "inline": "{i0}.splitlines()",
-        "name": "split lines",
+        "description": "split lines",
         "num_inputs": 1,
-        "output_types": [
-            "List[str]"
+        "outputs": [
+            "list[str]"
         ]
     },
     "splitlines2": {
         "inline": "{i0}.splitlines({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "bool"
         ],
-        "name": "split lines keepends",
-        "output_types": [
-            "List[str]"
+        "description": "split lines keepends",
+        "outputs": [
+            "list[str]"
         ]
     },
     "startswith1": {
         "inline": "{i0}.startswith({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "starts with",
-        "output_types": [
+        "description": "starts with",
+        "outputs": [
             "bool"
         ]
     },
     "startswith2": {
         "inline": "{i0}.startswith({i1}, 0, {i2})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral"
         ],
-        "name": "starts with from",
-        "output_types": [
+        "description": "starts with from",
+        "outputs": [
             "bool"
         ]
     },
     "startswith3": {
         "inline": "{i0}.startswith({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "str",
             "str",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "starts with from to",
-        "output_types": [
+        "description": "starts with from to",
+        "outputs": [
             "bool"
         ]
     },
     "str0": {
         "inline": "str()",
-        "name": "str",
+        "description": "str",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     },
     "str1": {
         "inline": "str({i0})",
-        "input_types": [
+        "inputs": [
             "object"
         ],
-        "name": "str",
-        "output_types": [
+        "description": "str",
+        "outputs": [
             "str"
         ]
     },
     "strip1": {
         "inline": "{i0}.strip()",
-        "name": "strip space",
+        "description": "strip space",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "str"
         ]
     },
     "strip2": {
         "inline": "{i0}.strip({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "str"
         ],
-        "name": "strip chars",
-        "output_types": [
+        "description": "strip chars",
+        "outputs": [
             "str"
         ]
     },
     "swapcase": {
         "inline": "{i0}.swapcase()",
-        "name": "swap case",
+        "description": "swap case",
         "num_inputs": 1
     },
     "title": {
         "inline": "{i0}.title()",
-        "name": "title case",
+        "description": "title case",
         "num_inputs": 1
     },
     "translate1": {
         "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
-        "input_types": [
-            "str1",
+        "inputs": [
+            "str",
             "str",
             "str"
         ],
-        "name": "translate",
-        "output_types": [
-            "str1"
+        "description": "translate",
+        "outputs": [
+            "str"
         ]
     },
     "translate2": {
         "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
-        "input_types": [
-            "str1",
+        "inputs": [
+            "str",
             "str",
             "str",
             "str"
         ],
-        "name": "translate",
-        "output_types": [
-            "str1"
+        "description": "translate",
+        "outputs": [
+            "str"
         ]
     },
     "upper": {
         "inline": "{i0}.upper()",
-        "name": "upper case",
+        "description": "upper case",
         "num_inputs": 1
     },
     "zfill": {
         "inline": "{i0}.zfill({i1})",
-        "input_types": [
+        "inputs": [
             "str",
             "egp_integral"
         ],
-        "name": "zero fill",
-        "output_types": [
+        "description": "zero fill",
+        "outputs": [
             "str"
         ]
     }

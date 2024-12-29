@@ -1,26 +1,26 @@
 {
     "range1": {
         "inline": "range({i0}, {i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "range(start, stop, step)"
+        "description": "range(start, stop, step)"
     },
     "range2": {
         "inline": "range({i0}, {i1})",
-        "input_types": [
+        "inputs": [
             "egp_integral",
             "egp_integral"
         ],
-        "name": "range(start, stop)"
+        "description": "range(start, stop)"
     },
     "range3": {
         "inline": "range({i0})",
-        "input_types": [
+        "inputs": [
             "egp_integral"
         ],
-        "name": "range(stop)"
+        "description": "range(stop)"
     }
 }

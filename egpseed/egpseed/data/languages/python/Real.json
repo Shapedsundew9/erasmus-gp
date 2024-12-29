@@ -1,69 +1,69 @@
 {
     "%": {
         "inline": "{i0} % {i1}",
-        "name": "modulo",
-        "output_types": [
+        "description": "modulo",
+        "outputs": [
             "egp_highest"
         ]
     },
     "//": {
         "inline": "{i0} // {i1}",
-        "name": "floor divide",
-        "output_types": [
+        "description": "floor divide",
+        "outputs": [
             "egp_highest"
         ]
     },
     "<": {
         "inline": "{i0} < {i1}",
-        "name": "less than",
-        "output_types": [
+        "description": "less than",
+        "outputs": [
             "bool"
         ]
     },
     "<=": {
         "inline": "{i0} <= {i1}",
-        "name": "less than equal",
-        "output_types": [
+        "description": "less than equal",
+        "outputs": [
             "bool"
         ]
     },
     ">": {
         "inline": "{i0} > {i1}",
-        "name": "greater than",
-        "output_types": [
+        "description": "greater than",
+        "outputs": [
             "bool"
         ]
     },
     ">=": {
         "inline": "{i0} >= {i1}",
-        "name": "greater than equal",
-        "output_types": [
+        "description": "greater than equal",
+        "outputs": [
             "bool"
         ]
     },
     "divmod": {
         "inline": "divmod({i0}, {i1})",
-        "name": "quotient and remainder",
-        "output_types": [
+        "description": "quotient and remainder",
+        "outputs": [
             "Pair[egp_highest, egp_highest]"
         ]
     },
     "round1": {
         "inline": "round({i0})",
-        "name": "round to nearest integer",
+        "description": "round to nearest integer",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "int"
         ]
     },
     "round2": {
         "inline": "round({i0}, {i1})",
-        "input_types": [
+        "inputs": [
             "Real",
             "egp_integral"
         ],
-        "name": "round to decimal places",
-        "output_types": [
+        "description": "round to decimal places",
+        "outputs": [
             "egp_wc_0_0"
         ]
     }

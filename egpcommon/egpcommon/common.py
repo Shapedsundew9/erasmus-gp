@@ -30,18 +30,10 @@ NULL_TUPLE = tuple()
 # PROPERTIES must define the bit position of all the properties listed in
 # the "properties" field of the entry_format.json definition.
 PROPERTIES: dict[str, int] = {
-    "extended": 1 << 0,
-    "constant": 1 << 1,
-    "conditional": 1 << 2,
-    "deterministic": 1 << 3,
-    "memory_modify": 1 << 4,
-    "object_modify": 1 << 5,
-    "physical": 1 << 6,
-    "arithmetic": 1 << 16,
-    "logical": 1 << 17,
-    "bitwise": 1 << 18,
-    "boolean": 1 << 19,
-    "sequence": 1 << 20,
+    "constant": 1 << 0,
+    "deterministic": 1 << 1,
+    "simplification": 1 << 2,
+    "literal": 1 << 3,
 }
 
 

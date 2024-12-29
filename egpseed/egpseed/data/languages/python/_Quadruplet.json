@@ -1,64 +1,64 @@
 {
     "Quadruplet": {
         "inline": "({i0}, {i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "object1",
             "object2",
             "object3",
             "object4"
         ],
-        "name": "Quadruplet",
-        "output_types": [
+        "description": "Quadruplet",
+        "outputs": [
             "Quadruplet[object1, object2, object3, object4]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
-        "input_types": [
+        "inputs": [
             "Quadruplet[object1, object2, object3, object4]"
         ],
-        "name": "first item",
-        "output_types": [
+        "description": "first item",
+        "outputs": [
             "object1"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
-        "input_types": [
+        "inputs": [
             "Quadruplet[object1, object2, object3, object4]"
         ],
-        "name": "second item",
-        "output_types": [
+        "description": "second item",
+        "outputs": [
             "object2"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
-        "input_types": [
+        "inputs": [
             "Quadruplet[object1, object2, object3, object4]"
         ],
-        "name": "third item",
-        "output_types": [
+        "description": "third item",
+        "outputs": [
             "object3"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
-        "input_types": [
+        "inputs": [
             "Quadruplet[object1, object2, object3, object4]"
         ],
-        "name": "fourth item",
-        "output_types": [
+        "description": "fourth item",
+        "outputs": [
             "object4"
         ]
     },
     "to_any": {
         "inline": "{i0}",
-        "input_types": [
+        "inputs": [
             "Quadruplet[object1, object2, object3, object4]"
         ],
-        "name": "to any",
-        "output_types": [
+        "description": "to any",
+        "outputs": [
             "object"
         ]
     }

@@ -38,7 +38,6 @@ from egppy.gc_graph.gc_graph_mixin import GCGraphDict, GCGraphMixin, key2parts
 from egppy.gc_graph.interface import (
     EMPTY_INTERFACE,
     Interface,
-    MutableInterface,
     interface,
     mutable_interface,
 )

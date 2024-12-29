@@ -1,125 +1,125 @@
 {
     "all": {
         "inline": "all({i0})",
-        "input_types": [
-            "iterable[object]"
+        "inputs": [
+            "Iterable[object]"
         ],
-        "name": "all true",
-        "output_types": [
+        "description": "all true",
+        "outputs": [
             "bool"
         ]
     },
     "any": {
         "inline": "any({i0})",
-        "input_types": [
-            "iterable[object]"
+        "inputs": [
+            "Iterable[object]"
         ],
-        "name": "any true",
-        "output_types": [
+        "description": "any true",
+        "outputs": [
             "bool"
         ]
     },
     "enumerate": {
         "inline": "enumerate({i0})",
-        "input_types": [
-            "iterable[object1]"
+        "inputs": [
+            "Iterable[object1]"
         ],
-        "name": "enumerate",
-        "output_types": [
-            "iterator[Pair[int, object1]]"
+        "description": "enumerate",
+        "outputs": [
+            "Iterator[Pair[int, object1]]"
         ]
     },
     "iter": {
         "inline": "iter({i0})",
-        "input_types": [
-            "iterable[object1]"
+        "inputs": [
+            "Iterable[object1]"
         ],
-        "name": "create iterator",
-        "output_types": [
-            "iterator[object1]"
+        "description": "create iterator",
+        "outputs": [
+            "Iterator[object1]"
         ]
     },
     "max1": {
         "inline": "max({i0})",
-        "input_types": [
-            "iterable[egp_number1]"
+        "inputs": [
+            "Iterable[egp_number1]"
         ],
-        "name": "maximum value",
-        "output_types": [
+        "description": "maximum value",
+        "outputs": [
             "egp_number1"
         ]
     },
     "max2": {
         "inline": "max({i0}, default={i1})",
-        "input_types": [
-            "iterable[egp_number1]",
+        "inputs": [
+            "Iterable[egp_number1]",
             "egp_number1"
         ],
-        "name": "maximum value with default",
-        "output_types": [
+        "description": "maximum value with default",
+        "outputs": [
             "egp_number1"
         ]
     },
     "max3": {
         "inline": "max({i0}, key=len)",
-        "input_types": [
-            "iterable[Sized1]"
+        "inputs": [
+            "Iterable[Sized1]"
         ],
-        "name": "maximum length",
-        "output_types": [
+        "description": "maximum length",
+        "outputs": [
             "Sized1"
         ]
     },
     "max4": {
         "inline": "max({i0}, default={i1}, key=len)",
-        "input_types": [
-            "iterable[Sized1]",
+        "inputs": [
+            "Iterable[Sized1]",
             "Sized1"
         ],
-        "name": "maximum length with default",
-        "output_types": [
+        "description": "maximum length with default",
+        "outputs": [
             "Sized1"
         ]
     },
     "min1": {
         "inline": "min({i0})",
-        "input_types": [
-            "iterable[egp_number1]"
+        "inputs": [
+            "Iterable[egp_number1]"
         ],
-        "name": "minimum value",
-        "output_types": [
+        "description": "minimum value",
+        "outputs": [
             "egp_number1"
         ]
     },
     "min2": {
         "inline": "min({i0}, default={i1})",
-        "input_types": [
-            "iterable[egp_number1]",
+        "inputs": [
+            "Iterable[egp_number1]",
             "egp_number1"
         ],
-        "name": "minimum value with default",
-        "output_types": [
+        "description": "minimum value with default",
+        "outputs": [
             "egp_number1"
         ]
     },
     "min3": {
         "inline": "min({i0}, key=len)",
-        "input_types": [
-            "iterable[Sized1]"
+        "inputs": [
+            "Iterable[Sized1]"
         ],
-        "name": "minimum length",
-        "output_types": [
+        "description": "minimum length",
+        "outputs": [
             "Sized1"
         ]
     },
     "min4": {
         "inline": "min({i0}, default={i1}, key=len)",
-        "input_types": [
-            "iterable[Sized1]",
+        "inputs": [
+            "Iterable[Sized1]",
             "Sized1"
         ],
-        "name": "minimum value with default",
-        "output_types": [
+        "description": "minimum value with default",
+        "outputs": [
             "Sized1"
         ]
     }

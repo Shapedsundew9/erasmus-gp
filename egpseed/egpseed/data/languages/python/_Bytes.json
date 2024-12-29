@@ -1,1003 +1,1003 @@
 {
     "capitalize": {
         "inline": "{i0}.capitalize()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "capitalize",
-        "output_types": [
+        "description": "capitalize",
+        "outputs": [
             "Bytes1"
         ]
     },
     "center1": {
         "inline": "{i0}.center({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral"
         ],
-        "name": "center with space",
-        "output_types": [
+        "description": "center with space",
+        "outputs": [
             "Bytes1"
         ]
     },
     "center2": {
         "inline": "{i0}.center({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "center with fill byte",
-        "output_types": [
+        "description": "center with fill byte",
+        "outputs": [
             "Bytes1"
         ]
     },
     "count1": {
         "inline": "{i0}.count({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral"
         ],
-        "name": "count",
-        "output_types": [
+        "description": "count",
+        "outputs": [
             "int"
         ]
     },
     "count2": {
         "inline": "{i0}.count({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "count from",
-        "output_types": [
+        "description": "count from",
+        "outputs": [
             "int"
         ]
     },
     "count3": {
         "inline": "{i0}.count({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "count from to",
-        "output_types": [
+        "description": "count from to",
+        "outputs": [
             "int"
         ]
     },
     "count4": {
         "inline": "{i0}.count({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "count",
-        "output_types": [
+        "description": "count",
+        "outputs": [
             "int"
         ]
     },
     "count5": {
         "inline": "{i0}.count({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "count from",
-        "output_types": [
+        "description": "count from",
+        "outputs": [
             "int"
         ]
     },
     "count6": {
         "inline": "{i0}.count({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "count from to",
-        "output_types": [
+        "description": "count from to",
+        "outputs": [
             "int"
         ]
     },
     "decode1": {
         "inline": "{i0}.decode({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "str"
         ],
-        "name": "decode",
-        "output_types": [
+        "description": "decode",
+        "outputs": [
             "str"
         ]
     },
     "endswith1": {
         "inline": "{i0}.endswith({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "ends with",
-        "output_types": [
+        "description": "ends with",
+        "outputs": [
             "bool"
         ]
     },
     "endswith2": {
         "inline": "{i0}.endswith({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "ends with after",
-        "output_types": [
+        "description": "ends with after",
+        "outputs": [
             "bool"
         ]
     },
     "endswith3": {
         "inline": "{i0}.endswith({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "ends with between",
-        "output_types": [
+        "description": "ends with between",
+        "outputs": [
             "bool"
         ]
     },
     "endswith4": {
         "inline": "{i0}.endswith({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "tuple[Bytes, ...]"
         ],
-        "name": "ends with one of",
-        "output_types": [
+        "description": "ends with one of",
+        "outputs": [
             "bool"
         ]
     },
     "endswith5": {
         "inline": "{i0}.endswith({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
             "egp_integral"
         ],
-        "name": "ends with one of after",
-        "output_types": [
+        "description": "ends with one of after",
+        "outputs": [
             "bool"
         ]
     },
     "endswith6": {
         "inline": "{i0}.endswith({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "ends with one of between",
-        "output_types": [
+        "description": "ends with one of between",
+        "outputs": [
             "bool"
         ]
     },
     "expandtabs1": {
         "inline": "{i0}.expandtabs()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "expand tabs",
-        "output_types": [
+        "description": "expand tabs",
+        "outputs": [
             "Bytes1"
         ]
     },
     "expandtabs2": {
         "inline": "{i0}.expandtabs({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral"
         ],
-        "name": "expand tabs",
-        "output_types": [
+        "description": "expand tabs",
+        "outputs": [
             "Bytes1"
         ]
     },
     "find1": {
         "inline": "{i0}.find({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "find",
-        "output_types": [
+        "description": "find",
+        "outputs": [
             "int"
         ]
     },
     "find2": {
         "inline": "{i0}.find({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "find after",
-        "output_types": [
+        "description": "find after",
+        "outputs": [
             "int"
         ]
     },
     "find3": {
         "inline": "{i0}.find({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "find between",
-        "output_types": [
+        "description": "find between",
+        "outputs": [
             "int"
         ]
     },
     "find4": {
         "inline": "{i0}.find({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral"
         ],
-        "name": "find one of",
-        "output_types": [
+        "description": "find one of",
+        "outputs": [
             "int"
         ]
     },
     "find5": {
         "inline": "{i0}.find({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "find one of after",
-        "output_types": [
+        "description": "find one of after",
+        "outputs": [
             "int"
         ]
     },
     "find6": {
         "inline": "{i0}.find({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "find one of between",
-        "output_types": [
+        "description": "find one of between",
+        "outputs": [
             "int"
         ]
     },
     "index1": {
         "inline": "{i0}.index({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "index",
-        "output_types": [
+        "description": "index",
+        "outputs": [
             "int"
         ]
     },
     "index2": {
         "inline": "{i0}.index({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "index after",
-        "output_types": [
+        "description": "index after",
+        "outputs": [
             "int"
         ]
     },
     "index3": {
         "inline": "{i0}.index({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "index between",
-        "output_types": [
+        "description": "index between",
+        "outputs": [
             "int"
         ]
     },
     "index4": {
         "inline": "{i0}.index({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral"
         ],
-        "name": "index one of",
-        "output_types": [
+        "description": "index one of",
+        "outputs": [
             "int"
         ]
     },
     "index5": {
         "inline": "{i0}.index({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "index one of after",
-        "output_types": [
+        "description": "index one of after",
+        "outputs": [
             "int"
         ]
     },
     "index6": {
         "inline": "{i0}.index({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "index one of between",
-        "output_types": [
+        "description": "index one of between",
+        "outputs": [
             "int"
         ]
     },
     "isalnum": {
         "inline": "{i0}.isalnum()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is alphanumeric",
-        "output_types": [
+        "description": "is alphanumeric",
+        "outputs": [
             "bool"
         ]
     },
     "isalpha": {
         "inline": "{i0}.isalpha()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is alphabetic",
-        "output_types": [
+        "description": "is alphabetic",
+        "outputs": [
             "bool"
         ]
     },
     "isascii": {
         "inline": "{i0}.isascii()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is ascii",
-        "output_types": [
+        "description": "is ascii",
+        "outputs": [
             "bool"
         ]
     },
     "isdigit": {
         "inline": "{i0}.isdigit()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is digit",
-        "output_types": [
+        "description": "is digit",
+        "outputs": [
             "bool"
         ]
     },
     "islower": {
         "inline": "{i0}.islower()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is lower",
-        "output_types": [
+        "description": "is lower",
+        "outputs": [
             "bool"
         ]
     },
     "isspace": {
         "inline": "{i0}.isspace()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is space",
-        "output_types": [
+        "description": "is space",
+        "outputs": [
             "bool"
         ]
     },
     "istitle": {
         "inline": "{i0}.istitle()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is title",
-        "output_types": [
+        "description": "is title",
+        "outputs": [
             "bool"
         ]
     },
     "isupper": {
         "inline": "{i0}.isupper()",
-        "input_types": [
+        "inputs": [
             "Bytes"
         ],
-        "name": "is upper",
-        "output_types": [
+        "description": "is upper",
+        "outputs": [
             "bool"
         ]
     },
     "join": {
         "inline": "{i0}.join({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Iterable[Bytes, ...]"
         ],
-        "name": "join",
-        "output_types": [
+        "description": "join",
+        "outputs": [
             "Bytes1"
         ]
     },
     "ljust1": {
         "inline": "{i0}.ljust({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral"
         ],
-        "name": "left justify with space",
-        "output_types": [
+        "description": "left justify with space",
+        "outputs": [
             "Bytes1"
         ]
     },
     "ljust2": {
         "inline": "{i0}.ljust({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "left justify with fill byte",
-        "output_types": [
+        "description": "left justify with fill byte",
+        "outputs": [
             "Bytes1"
         ]
     },
     "lower": {
         "inline": "{i0}.lower()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "lower",
-        "output_types": [
+        "description": "lower",
+        "outputs": [
             "Bytes1"
         ]
     },
     "lstrip1": {
         "inline": "{i0}.lstrip()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "left strip",
-        "output_types": [
+        "description": "left strip",
+        "outputs": [
             "Bytes1"
         ]
     },
     "lstrip2": {
         "inline": "{i0}.lstrip({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "left strip",
-        "output_types": [
+        "description": "left strip",
+        "outputs": [
             "Bytes1"
         ]
     },
     "partition": {
         "inline": "{i0}.partition({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "partition",
-        "output_types": [
+        "description": "partition",
+        "outputs": [
             "Triplet[Bytes1, Bytes1, Bytes1]"
         ]
     },
     "removeprefix": {
         "inline": "{i0}.removeprefix({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes2"
         ],
-        "name": "remove prefix",
-        "output_types": [
+        "description": "remove prefix",
+        "outputs": [
             "Bytes1"
         ]
     },
     "removesuffix": {
         "inline": "{i0}.removesuffix({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes2"
         ],
-        "name": "remove suffix",
-        "output_types": [
+        "description": "remove suffix",
+        "outputs": [
             "Bytes1"
         ]
     },
     "replace1": {
         "inline": "{i0}.replace({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes",
             "Bytes"
         ],
-        "name": "replace",
-        "output_types": [
+        "description": "replace",
+        "outputs": [
             "Bytes1"
         ]
     },
     "replace2": {
         "inline": "{i0}.replace({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "replace",
-        "output_types": [
+        "description": "replace",
+        "outputs": [
             "Bytes1"
         ]
     },
     "rfind1": {
         "inline": "{i0}.rfind({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "rfind",
-        "output_types": [
+        "description": "rfind",
+        "outputs": [
             "int"
         ]
     },
     "rfind2": {
         "inline": "{i0}.rfind({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "rfind after",
-        "output_types": [
+        "description": "rfind after",
+        "outputs": [
             "int"
         ]
     },
     "rfind3": {
         "inline": "{i0}.rfind({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rfind between",
-        "output_types": [
+        "description": "rfind between",
+        "outputs": [
             "int"
         ]
     },
     "rfind4": {
         "inline": "{i0}.rfind({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral"
         ],
-        "name": "rfind one of",
-        "output_types": [
+        "description": "rfind one of",
+        "outputs": [
             "int"
         ]
     },
     "rfind5": {
         "inline": "{i0}.rfind({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rfind one of after",
-        "output_types": [
+        "description": "rfind one of after",
+        "outputs": [
             "int"
         ]
     },
     "rfind6": {
         "inline": "{i0}.rfind({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rfind one of between",
-        "output_types": [
+        "description": "rfind one of between",
+        "outputs": [
             "int"
         ]
     },
     "rindex1": {
         "inline": "{i0}.rindex({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "rindex",
-        "output_types": [
+        "description": "rindex",
+        "outputs": [
             "int"
         ]
     },
     "rindex2": {
         "inline": "{i0}.rindex({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "rindex after",
-        "output_types": [
+        "description": "rindex after",
+        "outputs": [
             "int"
         ]
     },
     "rindex3": {
         "inline": "{i0}.rindex({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rindex between",
-        "output_types": [
+        "description": "rindex between",
+        "outputs": [
             "int"
         ]
     },
     "rindex4": {
         "inline": "{i0}.rindex({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral"
         ],
-        "name": "rindex one of",
-        "output_types": [
+        "description": "rindex one of",
+        "outputs": [
             "int"
         ]
     },
     "rindex5": {
         "inline": "{i0}.rindex({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rindex one of after",
-        "output_types": [
+        "description": "rindex one of after",
+        "outputs": [
             "int"
         ]
     },
     "rindex6": {
         "inline": "{i0}.rindex({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "egp_integral",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "rindex one of between",
-        "output_types": [
+        "description": "rindex one of between",
+        "outputs": [
             "int"
         ]
     },
     "rjust1": {
         "inline": "{i0}.rjust({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral"
         ],
-        "name": "right justify with space",
-        "output_types": [
+        "description": "right justify with space",
+        "outputs": [
             "Bytes1"
         ]
     },
     "rjust2": {
         "inline": "{i0}.rjust({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "right justify with fill byte",
-        "output_types": [
+        "description": "right justify with fill byte",
+        "outputs": [
             "Bytes1"
         ]
     },
     "rpartition": {
         "inline": "{i0}.rpartition({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "rpartition",
-        "output_types": [
+        "description": "rpartition",
+        "outputs": [
             "Triplet[Bytes1, Bytes1, Bytes1]"
         ]
     },
     "rsplit1": {
         "inline": "{i0}.rsplit()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "right split",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "right split",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "rsplit2": {
         "inline": "{i0}.rsplit({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "right split",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "right split",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "rsplit3": {
         "inline": "{i0}.rsplit({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes",
             "egp_integral"
         ],
-        "name": "right split",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "right split",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "rstrip1": {
         "inline": "{i0}.rstrip()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "right strip",
-        "output_types": [
+        "description": "right strip",
+        "outputs": [
             "Bytes1"
         ]
     },
     "rstrip2": {
         "inline": "{i0}.rstrip({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "right strip",
-        "output_types": [
+        "description": "right strip",
+        "outputs": [
             "Bytes1"
         ]
     },
     "split1": {
         "inline": "{i0}.split()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "split",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "split",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "split2": {
         "inline": "{i0}.split({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "split",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "split",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "split3": {
         "inline": "{i0}.split({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes",
             "egp_integral"
         ],
-        "name": "split",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "split",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "splitlines1": {
         "inline": "{i0}.splitlines()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "split lines",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "split lines",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "splitlines2": {
         "inline": "{i0}.splitlines({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "bool"
         ],
-        "name": "split lines",
-        "output_types": [
-            "List[Bytes1]"
+        "description": "split lines",
+        "outputs": [
+            "list[Bytes1]"
         ]
     },
     "startswith1": {
         "inline": "{i0}.startswith({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes"
         ],
-        "name": "starts with",
-        "output_types": [
+        "description": "starts with",
+        "outputs": [
             "bool"
         ]
     },
     "startswith2": {
         "inline": "{i0}.startswith({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral"
         ],
-        "name": "starts with after",
-        "output_types": [
+        "description": "starts with after",
+        "outputs": [
             "bool"
         ]
     },
     "startswith3": {
         "inline": "{i0}.startswith({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "Bytes",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "starts with between",
-        "output_types": [
+        "description": "starts with between",
+        "outputs": [
             "bool"
         ]
     },
     "startswith4": {
         "inline": "{i0}.startswith({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "tuple[Bytes, ...]"
         ],
-        "name": "starts with one of",
-        "output_types": [
+        "description": "starts with one of",
+        "outputs": [
             "bool"
         ]
     },
     "startswith5": {
         "inline": "{i0}.startswith({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
             "egp_integral"
         ],
-        "name": "starts with one of after",
-        "output_types": [
+        "description": "starts with one of after",
+        "outputs": [
             "bool"
         ]
     },
     "startswith6": {
         "inline": "{i0}.startswith({i1}, {i2}, {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
             "egp_integral",
             "egp_integral"
         ],
-        "name": "starts with one of between",
-        "output_types": [
+        "description": "starts with one of between",
+        "outputs": [
             "bool"
         ]
     },
     "strip1": {
         "inline": "{i0}.strip()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "strip",
-        "output_types": [
+        "description": "strip",
+        "outputs": [
             "Bytes1"
         ]
     },
     "strip2": {
         "inline": "{i0}.strip({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes"
         ],
-        "name": "strip",
-        "output_types": [
+        "description": "strip",
+        "outputs": [
             "Bytes1"
         ]
     },
     "swapcase": {
         "inline": "{i0}.swapcase()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "swap case",
-        "output_types": [
+        "description": "swap case",
+        "outputs": [
             "Bytes1"
         ]
     },
     "title": {
         "inline": "{i0}.title()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "title",
-        "output_types": [
+        "description": "title",
+        "outputs": [
             "Bytes1"
         ]
     },
     "translate1": {
         "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes",
             "Bytes"
         ],
-        "name": "translate",
-        "output_types": [
+        "description": "translate",
+        "outputs": [
             "Bytes1"
         ]
     },
     "translate2": {
         "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "Bytes",
             "Bytes",
             "Bytes"
         ],
-        "name": "translate",
-        "output_types": [
+        "description": "translate",
+        "outputs": [
             "Bytes1"
         ]
     },
     "upper": {
         "inline": "{i0}.upper()",
-        "input_types": [
+        "inputs": [
             "Bytes1"
         ],
-        "name": "upper",
-        "output_types": [
+        "description": "upper",
+        "outputs": [
             "Bytes1"
         ]
     },
     "zfill": {
         "inline": "{i0}.zfill({i1})",
-        "input_types": [
+        "inputs": [
             "Bytes1",
             "egp_integral"
         ],
-        "name": "zfill",
-        "output_types": [
+        "description": "zfill",
+        "outputs": [
             "Bytes1"
         ]
     }

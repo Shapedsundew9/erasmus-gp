@@ -456,8 +456,7 @@
         ],
         "inherits": [
             "object"
-        ],
-        "tt": 1
+        ]
     },
     "Triplet": {
         "imports": [
@@ -589,6 +588,7 @@
         "tt": 1
     },
     "object": {
+        "abstract": true,
         "default": "object()"
     },
     "range": {

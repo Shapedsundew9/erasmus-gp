@@ -6,7 +6,7 @@ from collections import Counter
 from collections.abc import Container
 from itertools import count
 from os.path import dirname, join
-from typing import Iterable
+from typing import Iterator, Iterable
 
 from egpcommon.common import NULL_TUPLE, DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -281,7 +281,7 @@ class TypesDB(Container):
         self._name_key: dict[str, TypesDef] = {k: TypesDef(name=k, **v) for k, v in data.items()}
 
         # Generate the abstract type fixed versions
-        for types_def in tuple(td for td in self._name_key.values() if td.abstract):
+        for types_def in tuple(td for td in self._name_key.values() if td.abstract or td.meta):
             for fx in range(1, FX_MAX + 1):
                 if fx != types_def.fx():
                     name = f"{types_def.name}{fx}"
@@ -299,8 +299,8 @@ class TypesDB(Container):
                     )
 
         # Generate the output wildcard meta-types
-        for x in range(1, X_MAX + 1):
-            for y in range(1, Y_MAX + 1):
+        for x in range(X_MAX + 1):
+            for y in range(Y_MAX + 1):
                 name = f"egp_wc_{x}_{y}"
                 self._name_key[name] = TypesDef(
                     name=name,
@@ -348,13 +348,28 @@ class TypesDB(Container):
             return key
         raise ValueError("Invalid key type.")
 
-    def __iter__(self) -> Iterable[TypesDef]:
+    def __iter__(self) -> Iterator[TypesDef]:
         """Return an iterator over the types database."""
         return iter(self._name_key.values())
 
     def __len__(self) -> int:
         """Return the number of types in the types database."""
         return len(self._name_key)
+
+    def get(self, key: str | int | TypesDef, default: str = "object") -> TypesDef:
+        """Return Types Definition by name or uid or the default type.
+        If the default type does not exist either return 'object' type.
+        """
+        default = "object" if default not in self else default
+        return self[key] if key in self else self[default]
+
+    def keys(self) -> list[str]:
+        """Return the keys of the types database."""
+        return list(self._name_key.keys())
+
+    def values(self) -> list[TypesDef]:
+        """Return the values of the types database."""
+        return list(self._name_key.values())
 
     def to_json(self) -> dict:
         """Return Types Database as a JSON serializable dictionary."""

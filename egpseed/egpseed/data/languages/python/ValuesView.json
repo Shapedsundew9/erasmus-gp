@@ -1,45 +1,45 @@
 {
     "in": {
         "inline": "{i1} in {i0}",
-        "input_types": [
+        "inputs": [
             "ValuesView[object]",
             "object"
         ],
-        "name": "in",
-        "output_types": [
+        "description": "in",
+        "outputs": [
             "bool"
         ]
     },
     "iter": {
         "inline": "iter({i0})",
-        "input_types": [
+        "inputs": [
             "ValuesView[object1]"
         ],
-        "name": "iterator",
+        "description": "iterator",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "Iterator[object1]"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
-        "input_types": [
+        "inputs": [
             "ValuesView[object]",
             "object"
         ],
-        "name": "not in",
-        "output_types": [
+        "description": "not in",
+        "outputs": [
             "bool"
         ]
     },
     "reversed": {
         "inline": "reversed({i0})",
-        "input_types": [
+        "inputs": [
             "ValuesView[object1]"
         ],
-        "name": "reversed",
+        "description": "reversed",
         "num_inputs": 1,
-        "output_types": [
+        "outputs": [
             "Iterator[object1]"
         ]
     }

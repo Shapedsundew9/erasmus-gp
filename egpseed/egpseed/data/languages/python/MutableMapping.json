@@ -1,109 +1,109 @@
 {
     "clear": {
         "inline": "{i0}.clear()",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]"
         ],
-        "name": "clear",
+        "description": "clear",
         "num_outputs": 0
     },
     "delitem": {
         "inline": "del {i0}[{i1}]",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]",
             "Hashable1"
         ],
-        "name": "delitem",
+        "description": "delitem",
         "num_outputs": 0
     },
     "pop": {
         "inline": "{i0}.pop({i1})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]",
             "Hashable1"
         ],
-        "name": "pop",
-        "output_types": [
+        "description": "pop",
+        "outputs": [
             "object1"
         ]
     },
     "popitem": {
         "inline": "{i0}.popitem()",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]"
         ],
-        "name": "popitem",
-        "output_types": [
+        "description": "popitem",
+        "outputs": [
             "Pair[Hashable1, object1]"
         ]
     },
     "setdefault1": {
         "inline": "{i0}.setdefault({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]",
             "Hashable1",
             "object1"
         ],
-        "name": "setdefault",
-        "output_types": [
+        "description": "setdefault",
+        "outputs": [
             "object1"
         ]
     },
     "setdefault2": {
         "inline": "{i0}.setdefault({i1})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object]",
             "Hashable1"
         ],
-        "name": "setdefault",
-        "output_types": [
+        "description": "setdefault",
+        "outputs": [
             "object"
         ]
     },
     "setitem": {
         "inline": "{i0}[{i1}] = {i2}",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]",
             "Hashable1",
             "object1"
         ],
-        "name": "setitem",
+        "description": "setitem",
         "num_outputs": 0
     },
     "update1": {
         "inline": "{i0}.update({i1})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]",
             "Mapping[Hashable1, object1]"
         ],
-        "name": "update",
+        "description": "update",
         "num_outputs": 0
     },
     "update2": {
         "inline": "{i0}.update({i1})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable1, object1]",
             "Iterable[Pair[Hashable1, object1]]"
         ],
-        "name": "update",
+        "description": "update",
         "num_outputs": 0
     },
     "update3": {
         "inline": "{i0}.update({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable, object]",
             "Mapping[Hashable, object]"
         ],
-        "name": "update",
+        "description": "update",
         "num_outputs": 0
     },
     "update4": {
         "inline": "{i0}.update({i1}, {i2})",
-        "input_types": [
+        "inputs": [
             "MutableMapping[Hashable, object]",
             "Iterable[Pair[Hashable, object]]"
         ],
-        "name": "update",
+        "description": "update",
         "num_outputs": 0
     }
 }
