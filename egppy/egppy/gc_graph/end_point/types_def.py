@@ -275,8 +275,7 @@ class TypesDB(Container):
     def __init__(self, types_filename: str) -> None:
         """Initialize Types Database."""
         self._types_filename = types_filename
-        with open(types_filename, "r", encoding="ascii") as types_file:
-            data = load_signed_json(types_file)
+        data = load_signed_json(types_filename)
         assert isinstance(data, dict), "Types Database must be a dictionary."
         self._name_key: dict[str, TypesDef] = {k: TypesDef(name=k, **v) for k, v in data.items()}
 

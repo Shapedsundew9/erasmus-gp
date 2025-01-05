@@ -3,11 +3,11 @@
 from copy import deepcopy
 from datetime import UTC, datetime
 from glob import glob
-from json import dump, load
 from os.path import basename, dirname, join, splitext
 from typing import Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.security import load_signed_json_dict, dump_signed_json
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.gc_graph.end_point.types_def import TypesDef, types_db
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict
@@ -102,14 +102,10 @@ def generate_codons() -> None:
     """
     codons: list[dict[str, Any]] = []
     for json_file in sorted(glob(join(dirname(__file__), "data", "languages", "python", "*.json"))):
-        name = splitext(basename(json_file))[0].removeprefix("_")
-        td = types_db.get(name)
-        with open(json_file, "r", encoding="utf-8") as f:
-            data = load(f)
-            for name, method in data.items():
-                codons.append(GGCDirtyDict(MethodExpander(td, name, method).to_json()).to_json())
-    with open(join(dirname(__file__), *CODON_PATH), "w", encoding="utf-8") as f:
-        dump(codons, f, indent=4, sort_keys=True)
+        td: TypesDef = types_db.get(splitext(basename(json_file))[0].removeprefix("_"))
+        for name, definition in load_signed_json_dict(json_file).items():  # Methods
+            codons.append(GGCDirtyDict(MethodExpander(td, name, definition).to_json()).to_json())
+    dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
 
 
 if __name__ == "__main__":
