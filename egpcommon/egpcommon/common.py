@@ -34,6 +34,7 @@ PROPERTIES: dict[str, int] = {
     "deterministic": 1 << 1,
     "simplification": 1 << 2,
     "literal": 1 << 3,
+    "abstract": 1 << 4,
 }
 
 

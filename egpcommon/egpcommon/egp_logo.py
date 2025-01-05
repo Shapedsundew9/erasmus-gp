@@ -196,7 +196,7 @@ def header_lines(text_tree: str = "wide3", attr: str = "color") -> list[str]:
     A list of strings, one for each line in the header.
     """
     str_list: list[str] = [""]
-    for line, _header in zip(EGP_TEXT_TREE[text_tree + "_" + attr], _HEADER):
+    for line, _header in zip(EGP_TEXT_TREE[text_tree + "_" + attr], _HEADER, strict=True):
         str_list.append(" " + line + "   " + _header)
     str_list.append("")
     return str_list

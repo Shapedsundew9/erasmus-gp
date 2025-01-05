@@ -403,7 +403,7 @@ class GCGraphMixin(CacheableObjMixin):
             conns: ConnectionsABC = self[key + "c"]
             jgcg[key[0]] = [
                 [str(r[0].get_row()), r[0].get_idx(), [td.uid for td in ept]]
-                for r, ept in zip(conns, iface)
+                for r, ept in zip(conns, iface, strict=True)
             ]
         ucn: list[list[Any]] = []
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.SRC and k in self):
@@ -413,7 +413,7 @@ class GCGraphMixin(CacheableObjMixin):
             ucn.extend(
                 [
                     [row, i, [td.uid for td in ept]]
-                    for i, (r, ept) in enumerate(zip(conns, iface))
+                    for i, (r, ept) in enumerate(zip(conns, iface, strict=True))
                     if not r
                 ]
             )

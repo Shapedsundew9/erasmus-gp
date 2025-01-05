@@ -130,14 +130,12 @@ class WorkerConfig(Validator, DictTypeAccessor):
 
     def dump_config(self) -> None:
         """Dump the configuration to disk."""
-        with open("./config.json", "w", encoding="utf8") as fileptr:
-            dump_signed_json(self.to_json(), fileptr)
+        dump_signed_json(self.to_json(), "./config.json")
         print("Configuration written to ./config.json")
 
     def load_config(self, config_file: str) -> None:
         """Load the configuration from disk."""
-        with open(config_file, "r", encoding="utf8") as fileptr:
-            config = load_signed_json(fileptr)
+        config = load_signed_json(config_file)
         assert isinstance(config, dict), "Configuration must be a dictionary"
         self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
         self.gene_pool = config["gene_pool"]

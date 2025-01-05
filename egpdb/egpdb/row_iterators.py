@@ -52,6 +52,8 @@ class GenIter(BaseIter):
 
     def __next__(self) -> Any:
         """Return next value."""
+        # No strict because pk may be tagged on the end of the values but not in the columns
+        # deepcode ignore unguarded~next~call: next() is guarded by the outer next() call
         return (v if f is None else f(v) for f, v in zip(self.conversions, next(self.values)))
 
 
@@ -61,6 +63,8 @@ class TupleIter(BaseIter):
     def __next__(self) -> Any:
         """Return next value."""
         return tuple(
+            # No strict because pk may be tagged on the end of the values but not in the columns
+            # deepcode ignore unguarded~next~call: next() is guarded by the outer next() call
             (v if f is None else f(v) for f, v in zip(self.conversions, next(self.values)))
         )
 
@@ -75,8 +79,10 @@ class NamedTupleIter(BaseIter):
     def __next__(self) -> Any:
         """Return next value."""
         return self.namedtuple(
-            (v if f is None else f(v) for f, v in zip(self.conversions, next(self.values)))
-        )
+            # No strict because pk may be tagged on the end of the values but not in the columns
+            # deepcode ignore unguarded~next~call: next() is guarded by the outer next() call
+            (v if f is None else f(v) for f, v in zip(self.conversions, next(self.values))
+        ))
 
 
 class DictIter(BaseIter):
@@ -86,6 +92,8 @@ class DictIter(BaseIter):
         """Return next value."""
         return {
             c: v if f is None else f(v)
+            # No strict because pk may be tagged on the end of the values but not in the columns
+            # deepcode ignore unguarded~next~call: next() is guarded by the outer next() call
             for c, f, v in zip(self.columns, self.conversions, next(self.values))
         }
 

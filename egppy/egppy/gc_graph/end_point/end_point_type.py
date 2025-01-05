@@ -65,6 +65,8 @@ def end_point_type(
 ) -> EndPointType:
     """Return the EPT as a recursive tuple of TypesDef objects.
 
+    If the endpoint type is valid and not in the store then it is added.
+
     NOTE: If _pop is True type_sequence is a ssumed to be a list that will be modified
     by popping off the first EndPointType. This facility is provided to enable interfaces
     to be efficiently defined.

@@ -52,8 +52,8 @@ class ConnectionsMixin(CommonObjMixin):
             return False
         if len(self) != len(other):
             return False
-        for x, y in zip(self, other):
-            if len(x) != len(y) or not all(a == b for a, b in zip(x, y)):
+        for x, y in zip(self, other, strict=True):
+            if len(x) != len(y) or not all(a == b for a, b in zip(x, y, strict=True)):
                 return False
         return True
 

@@ -190,7 +190,7 @@ class TestEndPointType(TestCase):
 
     def test_end_point_type(self):
         """Test the end_point_type function."""
-        for type_hint, type_def in zip(type_hints, type_defs):
+        for type_hint, type_def in zip(type_hints, type_defs, strict=True):
             ept1 = str_to_ept(type_hint)
             ept2 = end_point_type(type_def)
             self.assertIs(ept1, ept2)

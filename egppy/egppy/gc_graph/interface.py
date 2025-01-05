@@ -122,7 +122,7 @@ def types_idx_to_interface(ordered_types: Sequence[Sequence[int]], indices: byte
 
 def mutable_interface(iface: RawInterface) -> MutableInterface:
     """Return the interface as a list of EndPointType objects."""
-    # If could be an interface in the store then return the list of EPT's.
+    # It could be an interface in the store then return the list of EPT's.
     # This is a common pattern in the code and so is more efficient to handle here.
     if isinstance(iface, Hashable) and iface in interface_store:
         return list(iface)  # type: ignore

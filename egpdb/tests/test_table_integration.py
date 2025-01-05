@@ -191,7 +191,7 @@ class TableIntegrationTest(TestCase):
         t[22] = setitem
         result = t[22]
         # deepcode ignore unguarded~next~call: test case
-        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = -978"))))
+        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = -978")), strict=True))
         self.assertTrue(all(result[k] == v for k, v in expected_decoded.items()))
         self.assertTrue(all(raw_result[k] == v for k, v in expected_raw.items()))
 
@@ -229,7 +229,7 @@ class TableIntegrationTest(TestCase):
         t[22] = setitem
         result = t[22]
         # deepcode ignore unguarded~next~call: test case
-        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = 22"))))
+        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = 22")), strict=True))
         self.assertTrue(all(result[k] == v for k, v in expected_decoded.items()))
         self.assertTrue(all(raw_result[k] == v for k, v in expected_raw.items()))
 
@@ -268,7 +268,7 @@ class TableIntegrationTest(TestCase):
         t[28] = setitem
         result = t[28]
         # deepcode ignore unguarded~next~call: test case
-        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = 28"))))
+        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = 28")), strict=True))
         self.assertTrue(all(result[k] == v for k, v in expected_decoded.items()))
         self.assertTrue(all(raw_result[k] == v for k, v in expected_raw.items()))
         with self.assertRaises(KeyError):

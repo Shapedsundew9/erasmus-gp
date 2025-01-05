@@ -87,7 +87,7 @@ def init_generation(config: WorkerConfig) -> None:
     # Population lists of valid GC's meeting population interface definition and
     # a valid fitness score (0.0 to 1.0 inclusive)
     igp_list = [[] for _ in config.populations.configs]
-    for pconfig, igp in zip(config.populations.configs, igp_list):
+    for pconfig, igp in zip(config.populations.configs, igp_list, strict=True):
         size = sum(
             (
                 pconfig.best_source.limit,
@@ -115,7 +115,7 @@ def init_generation(config: WorkerConfig) -> None:
     # If the population is not full, fill it with new individuals
     # The new individuals are created from a stabilized empty genetic code meeting
     # the population interface requirements.
-    # for igp, pconfig in zip(igps, config.populations.configs):
+    # for igp, pconfig in zip(igps, config.populations.configs, strict=True):
     #    igp.extend([new_gc(pconfig, gene_pool) for _ in range(pconfig.size - len(igp))])
     evolution_queue()
     fitness_queue()

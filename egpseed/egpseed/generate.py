@@ -73,6 +73,8 @@ class MethodExpander:
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
 
+        # If a 
+
     def to_json(self) -> dict[str, Any]:
         """Convert to json."""
         json_dict = deepcopy(CODON_TEMPLATE)
