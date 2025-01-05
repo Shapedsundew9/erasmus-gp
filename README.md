@@ -1,8 +1,10 @@
 # Erasmus Meta Genetic Programming: Generation III
 
-**EGP is under construction: Feel free to browse but don't hope to find organised documentation & a usable application (yet).**
+:warning: **EGP is under construction: Feel free to browse but don't hope to find organised documentation & a usable application (yet).** :warning:
 
-Erasmus Meta Genetic Programming, Erasmsus GP or just EGP, emulates the principles of natural evolution through a synthetic framework, using functional primitives to create a dynamic and adaptive artificial ecosystem to solve problems.
+![EGP Logo: The tree of life with the milkyway shining through its branches](https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fdrive.google.com/uc?id=1LZw7Nx6I5xUcmb48fVw0Zq3L2H2k4Hia)
+
+Erasmus Meta Genetic Programming, Erasmsus GP or just EGP, emulates the principles of evolution through a synthetic framework, using functional primitives creating a dynamic and adaptive artificial ecosystem to solve problems.
 
 ## Index
 
