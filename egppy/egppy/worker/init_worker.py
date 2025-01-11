@@ -14,12 +14,6 @@ from uuid import UUID, uuid4
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.egp_logo import gallery, header, header_lines
 
-from egppy.gc_graph.ep_type import (
-    VType,
-    interface_definition,
-    ordered_interface_hash,
-    unordered_interface_hash,
-)
 from egppy.populations.configuration import PopulationConfig
 from egppy.problems.genesis import EGP_PROBLEM_CONFIG
 from egppy.worker.configuration import WorkerConfig
@@ -118,8 +112,6 @@ def init_worker(args: Namespace) -> None:
     # FIXME: For now we will hardcode all the values regardless of the configuration file
     # EGP_PROBLEM_CONFIG should be parsed as a problem configuration structure
     # but only where it is needed. This information is not needed here.
-    ieps, itypes, iidx = interface_definition(EGP_PROBLEM_CONFIG["inputs"], VType.EP_TYPE_STR)
-    oeps, otypes, oidx = interface_definition(EGP_PROBLEM_CONFIG["outputs"], VType.EP_TYPE_STR)
     config.populations.configs = [
         PopulationConfig(
             uid=0,
@@ -127,8 +119,6 @@ def init_worker(args: Namespace) -> None:
             worker_id=worker_id,
             inputs=EGP_PROBLEM_CONFIG["inputs"],
             outputs=EGP_PROBLEM_CONFIG["outputs"],
-            ordered_interface_hash=ordered_interface_hash(itypes, otypes, iidx, oidx),
-            unordered_interface_hash=unordered_interface_hash(ieps, oeps),
             name=EGP_PROBLEM_CONFIG["name"],
             description=EGP_PROBLEM_CONFIG["description"],
             meta_data=None,

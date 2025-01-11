@@ -298,8 +298,6 @@ class PopulationConfig(Validator, DictTypeAccessor):
         worker_id: str | UUID,
         inputs: Sequence[int | str],
         outputs: Sequence[int | str],
-        ordered_interface_hash: bytes | str,
-        unordered_interface_hash: bytes | str,
         name: str,
         description: str | None,
         meta_data: str | None,
@@ -331,8 +329,6 @@ class PopulationConfig(Validator, DictTypeAccessor):
         setattr(self, "worker_id", worker_id)
         setattr(self, "inputs", inputs)
         setattr(self, "outputs", outputs)
-        setattr(self, "ordered_interface_hash", ordered_interface_hash)
-        setattr(self, "unordered_interface_hash", unordered_interface_hash)
         setattr(self, "name", name)
         setattr(self, "description", description)
         setattr(self, "meta_data", meta_data)
@@ -411,36 +407,6 @@ class PopulationConfig(Validator, DictTypeAccessor):
         """The inputs."""
         self._is_sequence("inputs", value)
         self._outputs = interface(value)
-
-    @property
-    def ordered_interface_hash(self) -> bytes:
-        """Get the ordered_interface_hash."""
-        return self._ordered_interface_hash
-
-    @ordered_interface_hash.setter
-    def ordered_interface_hash(self, value: bytes | str) -> None:
-        """The ordered interface hash."""
-        if isinstance(value, str):
-            value = bytes.fromhex(value)
-        else:
-            self._is_bytes("ordered_interface_hash", value)
-        self._is_length("ordered_interface_hash", value, 8, 8)
-        self._ordered_interface_hash = value
-
-    @property
-    def unordered_interface_hash(self) -> bytes:
-        """Get the unordered_interface_hash."""
-        return self._unordered_interface_hash
-
-    @unordered_interface_hash.setter
-    def unordered_interface_hash(self, value: bytes | str) -> None:
-        """The unordered interface hash."""
-        if isinstance(value, str):
-            value = bytes.fromhex(value)
-        else:
-            self._is_bytes("unordered_interface_hash", value)
-        self._is_length("unordered_interface_hash", value, 8, 8)
-        self._unordered_interface_hash = value
 
     @property
     def name(self) -> str:
@@ -620,8 +586,6 @@ class PopulationConfig(Validator, DictTypeAccessor):
             "worker_id": str(self.worker_id),
             "inputs": interface_to_list_str(self.inputs),
             "outputs": interface_to_list_str(self.outputs),
-            "ordered_interface_hash": self.ordered_interface_hash.hex(),
-            "unordered_interface_hash": self.unordered_interface_hash.hex(),
             "name": self.name,
             "description": self.description,
             "meta_data": self.meta_data,
@@ -686,8 +650,6 @@ class PopulationsConfig(Validator, DictTypeAccessor):
                         worker_id=item["worker_id"],
                         inputs=item["inputs"],
                         outputs=item["outputs"],
-                        ordered_interface_hash=item["ordered_interface_hash"],
-                        unordered_interface_hash=item["unordered_interface_hash"],
                         name=item["name"],
                         description=item["description"],
                         meta_data=item["meta_data"],

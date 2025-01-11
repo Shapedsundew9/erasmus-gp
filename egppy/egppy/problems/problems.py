@@ -64,8 +64,7 @@ def load_problems(config: WorkerConfig) -> dict[bytes, ProblemConfig]:
             _logger.warning("Failed to download the file. Status code: %s.", response.status_code)
 
     # Load the problems definitions file if it exists
-    with open(prob_defs_file, "r", encoding="utf8") as file_ptr:
-        prob_defs_json = load_signed_json(file_ptr)
+    prob_defs_json = load_signed_json(prob_defs_file)
     assert isinstance(prob_defs_json, list), "Problem definitions file is not a list."
     assert prob_defs_json, "Problem definitions file is empty."
     assert all(

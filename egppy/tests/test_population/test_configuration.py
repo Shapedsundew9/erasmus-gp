@@ -170,8 +170,6 @@ class TestPopulationConfig(TestCase):
             worker_id=str(uuid4()),
             inputs=["int", "str", "bool"],
             outputs=["int", "str", "bool"],
-            ordered_interface_hash="1" * 16,
-            unordered_interface_hash="e" * 16,
             name="test",
             description="test",
             meta_data='{"test": "test"}',
@@ -185,8 +183,6 @@ class TestPopulationConfig(TestCase):
         self.assertIsInstance(config.worker_id, UUID)
         self.assertEqual(config.inputs, tuple((types_db[x],) for x in ["int", "str", "bool"]))
         self.assertEqual(config.outputs, tuple((types_db[x],) for x in ["int", "str", "bool"]))
-        self.assertEqual(config.ordered_interface_hash, bytes.fromhex("1" * 16))
-        self.assertEqual(config.unordered_interface_hash, bytes.fromhex("e" * 16))
         self.assertEqual(config.name, "test")
         self.assertEqual(config.description, "test")
         self.assertEqual(config.meta_data, '{"test": "test"}')
@@ -203,8 +199,6 @@ class TestPopulationConfig(TestCase):
             worker_id=str(uuid4()),
             inputs=["int", "str", "bool"],
             outputs=["int", "str", "bool"],
-            ordered_interface_hash="1" * 16,
-            unordered_interface_hash="e" * 16,
             name="test",
             description="test",
             meta_data='{"test": "test"}',
@@ -233,8 +227,6 @@ class TestPopulationsConfig(TestCase):
                     worker_id=str(uuid4()),
                     inputs=["int", "str", "bool"],
                     outputs=["int", "str", "bool"],
-                    ordered_interface_hash="1" * 16,
-                    unordered_interface_hash="e" * 16,
                     name="test",
                     description="test",
                     meta_data='{"test = "test"}',

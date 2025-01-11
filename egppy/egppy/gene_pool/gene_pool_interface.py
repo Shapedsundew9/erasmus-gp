@@ -25,7 +25,13 @@ class GenePoolInterface(GPIABC):
         """Initialize the Gene Pool Interface."""
         self.config = config.copy()
 
+    def consistency(self) -> None:
+        """Check the consistency of the Gene Pool."""
+
     def initial_generation_query(self, pconfig: PopulationConfig) -> list[bytes]:
         """Query the Gene Pool for the initial generation of this population."""
         # Place holder for the actual implementation
         return []
+
+    def verify(self) -> None:
+        """Verify the Gene Pool."""

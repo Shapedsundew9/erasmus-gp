@@ -260,14 +260,14 @@ class MutableGCGraph(FrozenGCGraph):
                 self._connections[drow + _DST_CONN_POSTFIX][didx].append(SrcEndPointRef(srow, sidx))
                 self._connections[srow + SRC_CONN_POSTFIX][sidx].append(DstEndPointRef(drow, didx))
 
-    def stabilize(self, fixed_interface: bool = True) -> None:
+    def stabilize(self, fixed_interface: bool = True) -> GCGraphABC:
         """Stablization involves making all the mandatory connections and
         connecting all the remaining unconnected destination endpoints.
         Destinations are connected to sources in a random order.
         Stabilization is not guaranteed to be successful.
         """
         missing_connections = self.check_required_connections()
-        for connection in missing_connections:
+        for _ in missing_connections:
             ### TO HERE:
             ### Need to try and make the missing mandatory connections
             ### if we cannot then we know what steady state exceptions to raise and
@@ -277,6 +277,9 @@ class MutableGCGraph(FrozenGCGraph):
 
         # Connect any remaining unconnected destination endpoints
         self.connect_all(fixed_interface)
+
+        # FIXME: This is a temporary solution to avoid the linting error distraction
+        return self
 
 
 # The empty graph

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, MutableSequence, Sequence
+from hashlib import sha256
 from typing import Generator
 
 from egpcommon.common import NULL_TUPLE
@@ -107,19 +108,6 @@ def interface_to_uids(iface: AnyInterface) -> list[int]:
     return [uid for ept in iface for uid in ept_to_uids(ept)]
 
 
-def interface_to_types_idx(iface: AnyInterface) -> tuple[tuple[int, ...], bytes]:
-    """Return the interface as an ordered tuple of endpoint types and indices into it."""
-    ordered_types = tuple(sorted(set(interface_uids := interface_to_uids(iface))))
-    return ordered_types, bytes(ordered_types.index(uid) for uid in interface_uids)
-
-
-def types_idx_to_interface(ordered_types: Sequence[Sequence[int]], indices: bytes) -> Interface:
-    """Return the interface from an ordered tuple of endpoint types and indices into it."""
-    # The ordered_types is a tuple of tuples of endpoint type UIDs == an interface
-    ordered_epts = interface(ordered_types)
-    return tuple(ordered_epts[idx] for idx in indices)
-
-
 def mutable_interface(iface: RawInterface) -> MutableInterface:
     """Return the interface as a list of EndPointType objects."""
     # It could be an interface in the store then return the list of EPT's.
@@ -144,6 +132,36 @@ def mutable_interface(iface: RawInterface) -> MutableInterface:
         len(_interface) <= INTERFACE_MAX_LENGTH
     ), f"Interface has too many endpoints: {len(_interface)}."
     return [end_point_type(ept) for ept in _interface if isinstance(ept, Sequence)]
+
+
+def interface_hash(iface: AnyInterface) -> bytes:
+    """Return the sha256 of the interface endpoint type UIDs in the order they are
+    defined for the interface."""
+    return sha256(
+        b"".join(uid.to_bytes(4, "big", signed=True) for uid in interface_to_uids(iface))
+    ).digest()
+
+
+def interface_to_types_idx(iface: AnyInterface) -> tuple[tuple[tuple[int, ...], ...], bytes]:
+    """Return the interface as an ordered tuple of endpoint types and indices into it."""
+    ordered_types = tuple(sorted(set(tuple(td.uid for td in ept) for ept in iface)))
+    return ordered_types, bytes(ordered_types.index(ept) for ept in iface)
+
+
+def types_idx_to_interface(ordered_types: Sequence[Sequence[int]], indices: bytes) -> Interface:
+    """Return the interface from an ordered tuple of endpoint types and indices into it."""
+    # The ordered_types is a tuple of tuples of endpoint type UIDs == an interface
+    # (but not *the* interface)
+    ordered_epts = interface(ordered_types)
+    return tuple(ordered_epts[idx] for idx in indices)
+
+
+def interface_type_hash(iface: AnyInterface) -> bytes:
+    """Return the sha256 of the ordered unique interface endpoint type UIDs."""
+    ordered_types, _ = interface_to_types_idx(iface)
+    return sha256(
+        b"".join(uid.to_bytes(4, "big", signed=True) for ept in ordered_types for uid in ept)
+    ).digest()
 
 
 def verify_interface(iface: AnyInterface) -> None:

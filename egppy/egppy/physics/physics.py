@@ -27,9 +27,11 @@ def insert_gc_case_0(tgc: GCABC, igc: GCABC, gp: GenePoolInterface, empty: bool 
         "Bs": tgc["Od"],
         "Od": tgc["Od"],
     }
-    rgc = EGCDirtyDict({"gca": tgc, "gcb": igc, "ancestora": tgc, "ancestorb": igc})
+    rgc = EGCDirtyDict(
+        {"gca": tgc, "gcb": igc, "ancestora": tgc, "ancestorb": igc, "gc_graph": graph}
+    )
 
-    return rgc.stablize(gp, empty)
+    return rgc["gc_graph"].stablize(gp, empty)
 
 
 def insert_gc_case_1(tgc: GCABC, igc: GCABC, gp: GenePoolInterface, empty: bool = True) -> GCABC:
@@ -41,7 +43,7 @@ def insert_gc_case_1(tgc: GCABC, igc: GCABC, gp: GenePoolInterface, empty: bool 
     empty -- whether the interface of the resultant GC is defined (i.e cannot be changed)
     """
     rgc = EGCDirtyDict({"gca": igc, "gcb": tgc, "ancestora": igc, "ancestorb": tgc})
-    return rgc.stablize(gp, empty)
+    return rgc["gc_graph"].stablize(gp, empty)
 
 
 # Interation case aliases
