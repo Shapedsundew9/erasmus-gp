@@ -20,17 +20,18 @@ just have an output interface are constants, read from memory, storage or input 
 | Type | I | F | A | B | O | P |
 |------|---|---| ---|---|---|---|
 | Codon | o | - | - | - | o | - |
-| Conditional | o | X | X | X | o | o |
+| Conditional | X | X | X | X | m | m |
 | Empty | o | - | - | - | o | - |
 | Standard | o | - | X | X | o | - |
 
 - **X** = Must be present i.e. have at least 1 endpoint for that row.
 - **-** = Must _not_ be present
 - **o** = Must have at least 1 endpoint in the set of rows.
+- **m** = May be present and must be the same on each row.
 
 ## Connectivity Requirements
 
-Codons and Empty graphs have no connections only Input and Output row definitions i.e. an IO interface definition. Standard and Conditional graphs have connections between row interfaces but not all combinations are permitted. In the matrix below the source of the connection is the column label and the destination of the connection is the row label.
+Codons and Empty graphs have no connections only Input and Output row definitions i.e. an IO interface definition. Standard, Hardened and Conditional graphs have connections between row interfaces but not all combinations are permitted. In the matrix below the source of the connection is the column label and the destination of the connection is the row label.
 
 | Dst | I | F | A | B | O | P |
 |------|---|---|---|---|---|---|
@@ -153,7 +154,6 @@ There are several meta-types:
 
 In addition, meta-types (except egp_highest and egp_wc_*) or abstract types (see below) have a corresponding homogeneous any meta-type e.g. egp_number1, object7.
 where all reference to the homogeneous any meta-type refer to the same runtime type. The unextended type name e.g. 'egp_number' or 'object' is the heterogeneous any meta-type i.e. each reference to it in an interface may be referencing a different concrete type.
-
 
 ### Abstract Types
 

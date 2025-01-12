@@ -68,6 +68,7 @@ class TypesDef(Validator, DictTypeAccessor):
         "_inherits",
         "abstract",
         "meta",
+        "derived",
     )
 
     def __init__(
@@ -116,6 +117,7 @@ class TypesDef(Validator, DictTypeAccessor):
         setattr(self, "default", default)
         setattr(self, "imports", imports)
         setattr(self, "inherits", inherits)
+        self.derived: tuple[TypesDef, ...] = NULL_TUPLE
 
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
@@ -210,6 +212,30 @@ class TypesDef(Validator, DictTypeAccessor):
                 self._is_printable_string("inherits", inherit)
             _inherits.append(inherit)
         self._inherits = tuple(_inherits)
+
+    def all_derived_types(self) -> set[TypesDef]:
+        """Return the set of types that are derived from this type."""
+        children = set()
+        for derived in self.derived:
+            assert isinstance(
+                derived, TypesDef
+            ), "Derived must be a TypesDef object to search inheritence graph."
+            if derived not in children:
+                children.add(derived)
+                children.update(derived.all_derived_types())
+        return children
+
+    def all_inherited_types(self) -> set[TypesDef]:
+        """Return the set of all types this type inherits from."""
+        parents = set()
+        for ancestor in self.inherits:
+            assert isinstance(
+                ancestor, TypesDef
+            ), "Inherits must be a TypesDef object to search inheritence graph."
+            if ancestor not in parents:
+                parents.add(ancestor)
+                parents.update(ancestor.all_inherited_types())
+        return parents
 
     def ept(self) -> tuple[TypesDef, ...]:
         """Return the End Point Type as a tuple of TypesDef objects."""
@@ -315,6 +341,7 @@ class TypesDB(Container):
         # The object set ensures that the same object is used for the same inheritence list.
         # There are many duplicates in the types database.
         inherits_set = ObjectSet("Inherit")
+        derived_dict = {}
         for types_def in self._name_key.values():
             inherits = []
             for inherit in types_def.inherits:
@@ -322,7 +349,12 @@ class TypesDB(Container):
                     inherits.append(self._name_key[inherit])
                 else:
                     inherits.append(inherit)
+                derived_dict.setdefault(inherits[-1].uid, []).append(types_def)
             types_def.inherits = inherits_set.add(tuple(inherits))
+
+        # Create the derived set of types for each type (reverse link to inherits)
+        for types_def in self._name_key.values():
+            types_def.derived = inherits_set.add(tuple(derived_dict.get(types_def.uid, [])))
 
         # Create the uid_key dict with the new TypesDef objects
         self._uid_key = {v.uid: v for v in self._name_key.values()}

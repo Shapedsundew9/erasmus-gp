@@ -29,6 +29,11 @@ NULL_PROBLEM: bytes = NULL_SHA256
 NULL_PROBLEM_SET: bytes = NULL_SHA256
 
 
+def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
+    """The Null Exectuable. Should never be executed."""
+    raise RuntimeError("NULL_EXECUTABLE should never be executed.")
+
+
 class GCABC(CacheableObjABC):
     """Genetic Code Abstract Base Class.
 
@@ -143,6 +148,8 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Initialize the genetic code object."""
         super().__init__(gcabc if gcabc is not None else {})
+        self["num_lines"] = 0  # No code lines in a NullGC
+        self["executable"] = NULL_EXECUTABLE
 
     def __delitem__(self, key: str) -> None:
         """Cannot modifiy a NullGC."""

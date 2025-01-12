@@ -191,7 +191,7 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
         self._dirty_ics.clear()
         super().clean()
 
-    def conditional_graph(self) -> bool:
+    def is_conditional_graph(self) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
         return self._interfaces["Fd"] is not EMPTY_INTERFACE
 

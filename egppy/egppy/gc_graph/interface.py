@@ -16,6 +16,7 @@ from egppy.gc_graph.end_point.end_point_type import (
     ept_store,
     ept_to_str,
     ept_to_uids,
+    is_abstract_endpoint,
 )
 from egppy.gc_graph.end_point.types_def import TypesDef
 
@@ -106,6 +107,11 @@ def interface_to_list_str(iface: AnyInterface) -> list[str]:
 def interface_to_uids(iface: AnyInterface) -> list[int]:
     """Return the interface as a list of endpoint type UIDs."""
     return [uid for ept in iface for uid in ept_to_uids(ept)]
+
+
+def is_abstract_interface(iface: AnyInterface) -> bool:
+    """Return True if the interface is abstract."""
+    return any(is_abstract_endpoint(ept) for ept in iface)
 
 
 def mutable_interface(iface: RawInterface) -> MutableInterface:

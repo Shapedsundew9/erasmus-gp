@@ -91,6 +91,15 @@ def end_point_type(
     return ept_store.add(ept)
 
 
+def ept_to_const(ept: EndPointType) -> str:
+    """Return the EPT as a python type style string."""
+    assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
+    if len(ept) == 1:
+        return f"types_db['{ept[0].name}']"
+    return f"types_db['{ept[0].name}'], {
+        ', '.join(ept_to_const(tt) for tt in ept[1:] if isinstance(tt, tuple))}"
+
+
 def ept_to_str(ept: EndPointType, _marker: list[int] | None = None) -> str:
     """Return the EPT as a python type style string.
 
@@ -117,17 +126,13 @@ def ept_to_uids(ept: EndPointType) -> tuple[int, ...]:
     return tuple(tt.uid for tt in ept)
 
 
+def is_abstract_endpoint(ept: EndPointType) -> bool:
+    """Return True if the EPT contains an abstract type."""
+    return any(tt.abstract for tt in ept)
+
+
 def str_to_ept(type_str: str) -> EndPointType:
     """Return the EPT from a python type style string."""
     # Split out the types into a list of names and push through the end_point_type function
     # NB: Split will remove any spaces, periods (including tuple ... notation) and commas
     return end_point_type([s for s in split(r"\W+", type_str) if s], True)
-
-
-def ept_to_const(ept: EndPointType) -> str:
-    """Return the EPT as a python type style string."""
-    assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
-    if len(ept) == 1:
-        return f"types_db['{ept[0].name}']"
-    return f"types_db['{ept[0].name}'], {
-        ', '.join(ept_to_const(tt) for tt in ept[1:] if isinstance(tt, tuple))}"

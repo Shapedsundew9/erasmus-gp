@@ -64,11 +64,6 @@ class GCGraphABC(CacheableObjABC):
         raise NotImplementedError("GCGraphABC.__setitem__ must be overridden")
 
     @abstractmethod
-    def conditional_graph(self) -> bool:
-        """Return True if the graph is conditional i.e. has row F."""
-        raise NotImplementedError("GCGraphABC.conditional_graph must be overridden")
-
-    @abstractmethod
     def get(self, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key or return the default."""
         raise NotImplementedError("GCGraphABC.get must be overridden")

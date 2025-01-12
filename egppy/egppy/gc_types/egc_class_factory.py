@@ -13,7 +13,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.gc_graph_abc import GCGraphABC
 from egppy.gc_graph.gc_graph_class_factory import EMPTY_GC_GRAPH, FrozenGCGraph
-from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCMixin
+from egppy.gc_types.gc import GCABC, NULL_EXECUTABLE, NULL_GC, NULL_SIGNATURE, GCMixin
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -100,7 +100,10 @@ class EGCMixin(GCMixin):
         tmp = gcabc.get("signature", NULL_SIGNATURE)
         if tmp is None:
             tmp = NULL_SIGNATURE
-        self["signature"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)  # type: ignore
+        assert isinstance(tmp, (bytes, str)), "Signature must be a bytes or hex string."
+        self["signature"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
+        self["num_lines"] = 0  # The number of code lines in the implementation of the GC function
+        self["executable"] = NULL_EXECUTABLE
 
     def verify(self) -> None:
         """Verify the genetic code object."""
@@ -127,6 +130,10 @@ class EGCMixin(GCMixin):
             assert len(self["pgc"]) == 32, "pgc must be 32 bytes"
         assert isinstance(self["signature"], bytes), "signature must be a bytes object"
         assert len(self["signature"]) == 32, "signature must be 32 bytes"
+        assert isinstance(self["num_lines"], int), "num_lines must be an integer"
+        assert self["num_lines"] >= 0, "num_lines must be greater than or equal to 0"
+        if isinstance(self["gca"], GCABC) and isinstance(self["gcb"], GCABC):
+            assert self["num_lines"] <= self["gca"]["num_lines"] + self["gcb"]["num_lines"]
         for key in self:
             assert key in self.GC_KEY_TYPES, f"Invalid key: {key}"
             if getattr(self[key], "verify", None) is not None:

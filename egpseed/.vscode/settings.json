@@ -16,5 +16,6 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         
-    }
+    },
+    "snyk.advanced.additionalParameters": "--all-projects"
 }

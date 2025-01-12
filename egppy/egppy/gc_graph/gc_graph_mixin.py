@@ -35,7 +35,7 @@ from egppy.gc_graph.typing import (
     EPClsPostfix,
     Row,
     SourceRow,
-    str2epcls
+    str2epcls,
 )
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
 
@@ -129,8 +129,9 @@ class GCGraphMixin(CacheableObjMixin):
         src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]] = {}
         for row, jeps in gc_graph.items():
             if row not in DESTINATION_ROW_SET_AND_U:
-                raise ValueError(f"Invalid row in JSON GC Graph. "
-                                 f"Expected a destination row but got: {row}")
+                raise ValueError(
+                    f"Invalid row in JSON GC Graph. " f"Expected a destination row but got: {row}"
+                )
             if row != "U":
                 self._process_json_row(row, jeps, src_if_refs)
             self._collect_src_references(jeps, src_if_typs)
@@ -161,17 +162,25 @@ class GCGraphMixin(CacheableObjMixin):
         for idx, jep in enumerate(jeps):
             # Some sanity on the endpoint
             if jep[CPI.ROW] not in SOURCE_ROW_SET:
-                raise ValueError(f"Invalid source row in JSON GC Graph. "
-                                 f"Expected a row but got: {jep[CPI.ROW]}")
+                raise ValueError(
+                    f"Invalid source row in JSON GC Graph. "
+                    f"Expected a row but got: {jep[CPI.ROW]}"
+                )
             if not 0 <= jep[CPI.IDX] < INTERFACE_MAX_LENGTH:
-                raise ValueError(f"Invalid index in JSON GC Graph. Expected 0 <= IDX"
-                                 f" < {INTERFACE_MAX_LENGTH} but got: {jep[CPI.IDX]}")
+                raise ValueError(
+                    f"Invalid index in JSON GC Graph. Expected 0 <= IDX"
+                    f" < {INTERFACE_MAX_LENGTH} but got: {jep[CPI.IDX]}"
+                )
             if not isinstance(jep[CPI.TYP], list):
-                raise ValueError(f"Invalid type in JSON GC Graph. Expected a list but"
-                                 f" got: {type(jep[CPI.TYP])}")
+                raise ValueError(
+                    f"Invalid type in JSON GC Graph. Expected a list but"
+                    f" got: {type(jep[CPI.TYP])}"
+                )
             if not all(isinstance(t, str | int) for t in jep[CPI.TYP]):
-                raise ValueError(f"Invalid type in JSON GC Graph. Expected a list of str | int"
-                                 f" but got: {[type(t) for t in jep[CPI.TYP]]}")
+                raise ValueError(
+                    f"Invalid type in JSON GC Graph. Expected a list of str | int"
+                    f" but got: {[type(t) for t in jep[CPI.TYP]]}"
+                )
 
             # Collect the source row references
             src_if_refs.setdefault(jep[CPI.ROW], {}).setdefault(jep[CPI.IDX], []).append(
@@ -248,10 +257,10 @@ class GCGraphMixin(CacheableObjMixin):
     def check_required_connections(self) -> list[tuple[SourceRow, DestinationRow]]:
         """Return a list of required connections that are missing."""
         retval = []
-        if self.codon_or_empty():
+        if self.is_codon_or_empty():
             return retval
 
-        if self.conditional_graph():
+        if self.is_conditional_graph():
             # I must connect to F
             fdc: ConnectionsABC = self["Fdc"]
             if len(fdc) == 0 or len(fdc[0]) == 0 or fdc[0][0].get_row() != SourceRow.I:
@@ -269,7 +278,7 @@ class GCGraphMixin(CacheableObjMixin):
             if len(pdc) == 0 or all(ep[0].get_row() != SourceRow.B for ep in pdc):
                 retval.append((SourceRow.B, DestinationRow.P))
 
-        if self.standard_graph():
+        if self.is_standard_graph():
             # B must connect to O
             odc: ConnectionsABC = self["Odc"]
             _logger.debug("Odc: %s", odc)
@@ -284,18 +293,10 @@ class GCGraphMixin(CacheableObjMixin):
 
         return retval
 
-    def codon_or_empty(self) -> bool:
-        """Return True if the graph is a codon or empty."""
-        return DestinationRow.A not in self
-
-    def conditional_graph(self) -> bool:
-        """Return True if the graph is conditional i.e. has row F."""
-        return DestinationRow.F in self
-
     def consistency(self) -> None:
         """Check the consistency of the GC graph."""
 
-        if self.conditional_graph():
+        if self.is_conditional_graph():
             fdi: AnyInterface = self[DestinationRow.F + EPClsPostfix.DST]
             assert len(fdi) == 1, f"Row F must only have one end point: {len(fdi)}"
             assert fdi[0] == types_db["bool"].ept(), f"F EP must be bool: {fdi[0]}"
@@ -303,7 +304,13 @@ class GCGraphMixin(CacheableObjMixin):
             assert len(fdc) == 1, f"Row F must only have one connection: {len(fdc)}"
             assert fdc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fdc[0][0].get_row()}"
 
-        if self.standard_graph() or self.conditional_graph():
+        if self.is_hardened_graph():
+            adi: AnyInterface = self[DestinationRow.A + EPClsPostfix.DST]
+            assert len(adi) >= 1, f"Row A must have at least one end point: {len(adi)}"
+            asi: AnyInterface = self[SourceRow.A + EPClsPostfix.SRC]
+            assert len(asi) >= 1, f"Row A must have at least one end point: {len(asi)}"
+
+        if self.is_standard_graph() or self.is_conditional_graph():
             adi: AnyInterface = self[DestinationRow.A + EPClsPostfix.DST]
             assert len(adi) >= 1, f"Row A must have at least one end point: {len(adi)}"
             bdi: AnyInterface = self[DestinationRow.B + EPClsPostfix.DST]
@@ -332,7 +339,7 @@ class GCGraphMixin(CacheableObjMixin):
                     assert len(refs) == 1, f"Dst EPs must have one reference: {len(refs)}"
                     srow = refs[0].get_row()
                     assert (
-                        srow in VALID_ROW_SOURCES[self.conditional_graph()]
+                        srow in VALID_ROW_SOURCES[self.is_conditional_graph()]
                     ), f"Invalid src row: {srow}"
                     styp = self[srow + EPClsPostfix.SRC][refs[0].get_idx()]
                     assert iface[idx] == styp, f"Dst EP type mismatch: {iface[idx]} != {styp}"
@@ -346,7 +353,7 @@ class GCGraphMixin(CacheableObjMixin):
                     for ref in refs:
                         drow = ref.get_row()
                         assert (
-                            drow in VALID_ROW_DESTINATIONS[self.conditional_graph()]
+                            drow in VALID_ROW_DESTINATIONS[self.is_conditional_graph()]
                         ), f"Invalid dst row: {drow}"
                         dtyp = self[drow + EPClsPostfix.DST][ref.get_idx()]
                         assert iface[idx] == dtyp, f"Src typ mismatch: {iface[idx]} != {dtyp}"
@@ -374,6 +381,28 @@ class GCGraphMixin(CacheableObjMixin):
         """Return an iterator over the GC graph interface keys."""
         for key in (r for r in ROW_CLS_INDEXED if r in self):
             yield key
+
+    def is_codon_or_empty(self) -> bool:
+        """Return True if the graph is a codon or empty."""
+        return DestinationRow.A not in self
+
+    def is_conditional_graph(self) -> bool:
+        """Return True if the graph is conditional i.e. has row F."""
+        return DestinationRow.F in self
+
+    def is_hardened_graph(self) -> bool:
+        """Check if the graph is a hardened graph."""
+        return (
+            DestinationRow.F not in self
+            and DestinationRow.A in self
+            and DestinationRow.B not in self
+        )
+
+    def is_standard_graph(self) -> bool:
+        """Return True if the graph is a standard graph."""
+        return (
+            DestinationRow.F not in self and DestinationRow.A in self and DestinationRow.B in self
+        )
 
     def itypes(self) -> tuple[list[EndPointType], list[int]]:
         """Return the input types and input row indices into them."""
@@ -420,10 +449,6 @@ class GCGraphMixin(CacheableObjMixin):
         if ucn:
             jgcg["U"] = sorted(ucn, key=lambda x: x[0] + f"{x[1]:03d}")
         return jgcg
-
-    def standard_graph(self) -> bool:
-        """Return True if the graph is a standard graph."""
-        return DestinationRow.F not in self and DestinationRow.A in self
 
     def types(self, ikey: str) -> Generator[EndPointType, None, None]:
         """Return an iterator over the ordered interface endpoint types.
