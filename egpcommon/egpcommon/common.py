@@ -6,6 +6,7 @@ from hashlib import sha256
 from pprint import pformat
 from typing import Any, Self
 from uuid import UUID
+from json import dumps
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
@@ -47,6 +48,8 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     "ancestorb": {"db_type": "BYTEA", "nullable": True},
     "pgc": {"db_type": "BYTEA", "nullable": True},
     "signature": {"db_type": "BYTEA", "nullable": False},
+    "num_lines": {},
+    "executable": {}
 }
 GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_e_count": {"db_type": "INT", "nullable": False},
@@ -172,9 +175,13 @@ def sha256_signature(
     hash_obj.update(gcb)
     hash_obj.update(pformat(graph, compact=True).encode())
     if meta_data is not None and "function" in meta_data:
-        hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
-        if "code" in meta_data["function"]["python3"]["0"]:
-            hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
+        definition =  meta_data["function"]["python3"]["0"]
+        hash_obj.update(definition["inline"].encode())
+        if "code" in definition:
+            hash_obj.update(definition["code"].encode())
+        if "imports" in definition:
+            for import_def in definition["imports"]:
+                hash_obj.update(dumps(import_def.to_json()).encode())
     return hash_obj.digest()
 
 

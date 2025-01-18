@@ -69,6 +69,9 @@ class MethodExpander:
             self.num_outputs = len(method["outputs"])
             self.outputs = method["outputs"]
 
+        # Methof imports if there are any
+        self.imports = method.get("imports", [])
+
         # Other members
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
@@ -79,6 +82,7 @@ class MethodExpander:
         json_dict["meta_data"]["function"]["python3"]["0"]["inline"] = self.inline
         json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
         json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
+        json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
         json_dict["properties"].update(self.properties)
         json_dict["graph"]["A"] = [["I", idx, [typ]] for idx, typ in enumerate(self.inputs)]
         json_dict["graph"]["O"] = [["A", idx, [typ]] for idx, typ in enumerate(self.outputs)]
@@ -106,6 +110,13 @@ def generate_codons() -> None:
         for name, definition in load_signed_json_dict(json_file).items():  # Methods
             codons.append(GGCDirtyDict(MethodExpander(td, name, definition).to_json()).to_json())
     dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
+
+    # Verify the signatures are unique
+    # This check picks up any errors in sigurature generation or type defintions
+    signature_set = set()
+    for codon in codons:
+        assert codon["signature"] not in signature_set, f"Duplicate signature: {codon['signature']}"
+        signature_set.add(codon["signature"])
 
 
 if __name__ == "__main__":

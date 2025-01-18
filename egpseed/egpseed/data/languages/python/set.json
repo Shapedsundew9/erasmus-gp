@@ -1,38 +1,8 @@
 {
-    "copy": {
-        "inline": "{i0}.copy()",
-        "description": "copy",
-        "num_inputs": 1,
-        "outputs": [
-            "Set[Hashable]"
-        ]
-    },
-    "difference1": {
-        "inline": "{i0}.difference({i1})",
-        "inputs": [
-            "Set[Hashable]",
-            "Iterable[Hashable]"
-        ],
-        "description": "difference",
-        "outputs": [
-            "Set[Hashable]"
-        ]
-    },
-    "difference2": {
-        "inline": "{i0}.difference({i1})",
-        "inputs": [
-            "Set[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "difference",
-        "outputs": [
-            "Set[Hashable1]"
-        ]
-    },
     "difference_update": {
         "inline": "{i0}.difference_update({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "difference update",
@@ -41,29 +11,29 @@
     "intersection1": {
         "inline": "{i0}.intersection({i1})",
         "inputs": [
-            "Set[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "intersection",
         "outputs": [
-            "Set[Hashable]"
+            "set[Hashable]"
         ]
     },
     "intersection2": {
         "inline": "{i0}.intersection({i1})",
         "inputs": [
-            "Set[Hashable1]",
+            "set[Hashable1]",
             "Iterable[Hashable1]"
         ],
         "description": "intersection",
         "outputs": [
-            "Set[Hashable1]"
+            "set[Hashable1]"
         ]
     },
     "intersection_update": {
         "inline": "{i0}.intersection_update({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "intersection update",
@@ -72,7 +42,7 @@
     "issubset": {
         "inline": "{i0}.issubset({i1})",
         "inputs": [
-            "Set[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "issubset",
@@ -83,7 +53,7 @@
     "issuperset": {
         "inline": "{i0}.issuperset({i1})",
         "inputs": [
-            "Set[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "issuperset",
@@ -94,29 +64,29 @@
     "symmetric_difference1": {
         "inline": "{i0}.symmetric_difference({i1})",
         "inputs": [
-            "Set[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "symmetric difference",
         "outputs": [
-            "Set[Hashable]"
+            "set[Hashable]"
         ]
     },
     "symmetric_difference2": {
         "inline": "{i0}.symmetric_difference({i1})",
         "inputs": [
-            "Set[Hashable1]",
+            "set[Hashable1]",
             "Iterable[Hashable1]"
         ],
         "description": "symmetric difference",
         "outputs": [
-            "Set[Hashable1]"
+            "set[Hashable1]"
         ]
     },
     "symmetric_difference_update": {
         "inline": "{i0}.symmetric_difference_update({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "symmetric difference update",
@@ -125,29 +95,29 @@
     "union1": {
         "inline": "{i0}.union({i1})",
         "inputs": [
-            "Set[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "union",
         "outputs": [
-            "Set[Hashable]"
+            "set[Hashable]"
         ]
     },
     "union2": {
         "inline": "{i0}.union({i1})",
         "inputs": [
-            "Set[Hashable1]",
+            "set[Hashable1]",
             "Iterable[Hashable1]"
         ],
         "description": "union",
         "outputs": [
-            "Set[Hashable1]"
+            "set[Hashable1]"
         ]
     },
     "update": {
         "inline": "{i0}.update({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
+            "set[Hashable]",
             "Iterable[Hashable]"
         ],
         "description": "update",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from copy import deepcopy
 from datetime import datetime
 from typing import Any, Iterator
 
@@ -27,6 +28,10 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 NULL_SIGNATURE: bytes = NULL_SHA256
 NULL_PROBLEM: bytes = NULL_SHA256
 NULL_PROBLEM_SET: bytes = NULL_SHA256
+
+
+# Transient or runtime support GC key:values that do not go into store
+EXCLUDED_KEYS: frozenset[str] = frozenset(["executable", "num_lines"])
 
 
 def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
@@ -117,10 +122,22 @@ class GCMixin:
         """Return a JSON serializable dictionary."""
         retval = {}
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        for key in self:
+        for key in (included for included in self if included not in EXCLUDED_KEYS):
             value = self[key]
             if key == "properties":
                 retval[key] = decode_properties(value)
+            elif key == "meta_data":
+                md = deepcopy(value)
+                if (
+                    "function" in md
+                    and "python3" in md["function"]
+                    and "0" in md["function"]["python3"]
+                    and "imports" in md["function"]["python3"]["0"]
+                ):
+                    md["function"]["python3"]["0"]["imports"] = [
+                        imp.to_json() for imp in md["function"]["python3"]["0"]["imports"]
+                    ]
+                retval[key] = md
             elif key.endswith("_types"):
                 retval[key] = [ept_to_str(ept) for ept in value]
             elif isinstance(value, GCABC):
@@ -137,7 +154,7 @@ class GCMixin:
                 retval[key] = value
                 if _LOG_DEBUG:
                     assert isinstance(
-                        value, (int, str, float, list, dict)
+                        value, (int, str, float, list, dict, tuple)
                     ), f"Invalid type: {type(value)}"
         return retval
 
@@ -148,8 +165,8 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Initialize the genetic code object."""
         super().__init__(gcabc if gcabc is not None else {})
-        self["num_lines"] = 0  # No code lines in a NullGC
-        self["executable"] = NULL_EXECUTABLE
+        super().__setitem__("num_lines", 0)  # No code lines in a NullGC
+        super().__setitem__("executable", NULL_EXECUTABLE)
 
     def __delitem__(self, key: str) -> None:
         """Cannot modifiy a NullGC."""

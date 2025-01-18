@@ -5,7 +5,7 @@
                 "aip": [
                     "math"
                 ],
-                "description": "inf"
+                "name": "inf"
             }
         ],
         "inline": "inf",
@@ -23,7 +23,7 @@
                 "aip": [
                     "math"
                 ],
-                "description": "inf"
+                "name": "inf"
             }
         ],
         "inline": "-inf",
@@ -41,7 +41,7 @@
                 "aip": [
                     "math"
                 ],
-                "description": "e"
+                "name": "e"
             }
         ],
         "inline": "e",
@@ -59,7 +59,7 @@
                 "aip": [
                     "math"
                 ],
-                "description": "nan"
+                "name": "nan"
             }
         ],
         "inline": "nan",
@@ -77,7 +77,7 @@
                 "aip": [
                     "math"
                 ],
-                "description": "pi"
+                "name": "pi"
             }
         ],
         "inline": "pi",
@@ -105,7 +105,7 @@
                 "aip": [
                     "math"
                 ],
-                "description": "tau"
+                "name": "tau"
             }
         ],
         "inline": "tau",

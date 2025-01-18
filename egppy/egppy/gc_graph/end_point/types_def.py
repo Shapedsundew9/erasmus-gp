@@ -14,7 +14,7 @@ from egpcommon.object_set import ObjectSet
 from egpcommon.security import load_signed_json
 from egpcommon.validator import Validator
 
-from egppy.gc_graph.end_point.import_def import ImportDef
+from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -167,7 +167,7 @@ class TypesDef(Validator, DictTypeAccessor):
     @property
     def imports(self) -> tuple[ImportDef, ...]:
         """Return list of import definitions of the type template definition."""
-        return tuple(self._imports) if self._imports is not None else NULL_TUPLE
+        return self._imports
 
     @imports.setter
     def imports(self, imports: list[ImportDef] | dict | None) -> None:
@@ -177,13 +177,19 @@ class TypesDef(Validator, DictTypeAccessor):
             return
         # If it is already a tuple no need to copy it. Saves memory.
         if isinstance(imports, tuple) and isinstance(imports[0], ImportDef):
+            assert all(
+                impt in import_def_store for impt in imports
+            ), "ImportDef must be in the import store."
             self._imports = imports
             return
         _imports = []
         for import_def in imports:
             if isinstance(import_def, dict):
-                _imports.append(ImportDef(**import_def))
+                # The import store will ensure that the same import is not duplicated.
+                idef = import_def_store.add(ImportDef(**import_def))
+                _imports.append(idef)
             elif isinstance(import_def, ImportDef):
+                assert import_def in import_def_store, "ImportDef must be in the import store."
                 _imports.append(import_def)
             else:
                 raise ValueError("Invalid imports definition.")

@@ -15,9 +15,10 @@ from egpcommon.conversions import encode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_types.egc_class_factory import EGCMixin
-from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET
+from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
+from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -148,6 +149,16 @@ class GGCMixin(EGCMixin):
         self["input_types"], self["inputs"] = self["graph"].itypes()
         self["lost_descendants"] = gcabc.get("lost_descendants", 0)
         self["meta_data"] = gcabc.get("meta_data", {})
+        if (
+            "function" in self["meta_data"]
+            and "python3" in self["meta_data"]["function"]
+            and "0" in self["meta_data"]["function"]["python3"]
+        ):
+
+            base = self["meta_data"]["function"]["python3"]["0"]
+            if "imports" in base and not isinstance(base["imports"], tuple):
+                mds = base["imports"]
+                base["imports"] = tuple(import_def_store.add(ImportDef(**md)) for md in mds)
         self["num_codes"] = gcabc.get("num_codes", 1)
         self["num_codons"] = gcabc.get("num_codons", 1)
         self["num_inputs"] = len(self["inputs"])
@@ -164,6 +175,11 @@ class GGCMixin(EGCMixin):
         tmp = gcabc.get("properties", 0)
         self["properties"] = tmp if isinstance(tmp, int) else encode_properties(tmp)
         self["reference_count"] = gcabc.get("reference_count", 0)
+        assert (
+            self["signature"] is NULL_SIGNATURE if self["signature"] == NULL_SIGNATURE else True
+        ), "Signature must be NULL_SIGNATURE object if NULL."
+        if self["signature"] is NULL_SIGNATURE:
+            self["signature"] = self.signature()
         self["survivability"] = gcabc.get("survivability", 0.0)
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)

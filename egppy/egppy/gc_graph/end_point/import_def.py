@@ -9,6 +9,8 @@ from typing import Any, Sequence
 
 from egpcommon.common import DictTypeAccessor
 from egpcommon.validator import Validator
+from egpcommon.object_set import ObjectSet
+
 
 # Constants
 EMPTY_STRING = ""
@@ -32,8 +34,8 @@ class ImportDef(Validator, DictTypeAccessor):
         setattr(self, "as_name", as_name)
 
     def __hash__(self) -> int:
-        """Globally unique hash for the object."""
-        return id(self)
+        """Unique hash for the import def."""
+        return hash(self.aip) ^ hash((self.name, self.as_name))
 
     @property
     def aip(self) -> tuple[str, ...]:
@@ -82,3 +84,10 @@ class ImportDef(Validator, DictTypeAccessor):
     def to_json(self) -> dict[str, Any]:
         """Return the object as a JSON serializable dictionary."""
         return {"aip": list(self.aip), "name": self.name, "as_name": self.as_name}
+
+
+class ImportDefStore(ObjectSet):
+    """Class to store ImportDef objects."""
+
+
+import_def_store: ImportDefStore = ImportDefStore("Import Def Store")

@@ -108,5 +108,75 @@
         "properties": {
             "literal": true
         }
+    },
+    "4": {
+        "inline": "4",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "8": {
+        "inline": "8",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "16": {
+        "inline": "16",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "32": {
+        "inline": "32",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "64": {
+        "inline": "64",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "128": {
+        "inline": "128",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
+    },
+    "256": {
+        "inline": "256",
+        "num_inputs": 0,
+        "outputs": [
+            "int"
+        ],
+        "properties": {
+            "literal": true
+        }
     }
 }

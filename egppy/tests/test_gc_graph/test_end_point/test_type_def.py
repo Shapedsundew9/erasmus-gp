@@ -3,7 +3,7 @@
 import unittest
 from os.path import dirname, join
 
-from egppy.gc_graph.end_point.import_def import ImportDef
+from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
 from egppy.gc_graph.end_point.types_def import TypesDB, TypesDef
 
 
@@ -16,7 +16,7 @@ class TestTypesDef(unittest.TestCase):
             name="type1",
             xuid=1,
             default="default_value",
-            imports=[ImportDef(aip=["module1"], name="func1")],
+            imports=[import_def_store.add(ImportDef(aip=["module1"], name="func1"))],
             inherits=["parent_type"],
         )
         self.assertEqual(types_def.name, "type1")
