@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from copy import deepcopy
 from datetime import datetime
+from itertools import count
 from typing import Any, Iterator
 
 from egpcommon.common import NULL_SHA256, sha256_signature
@@ -34,9 +35,40 @@ NULL_PROBLEM_SET: bytes = NULL_SHA256
 EXCLUDED_KEYS: frozenset[str] = frozenset(["executable", "num_lines"])
 
 
+# For GC's with no executable (yet)
 def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
     """The Null Exectuable. Should never be executed."""
     raise RuntimeError("NULL_EXECUTABLE should never be executed.")
+
+
+# Mermaid Chart header and footer
+_MERMAID_HEADER: list[str] = ["flowchart TD"]
+_MERMAID_FOOTER: list[str] = [
+    "classDef grey fill:#444444,stroke:#333,stroke-width:1px",
+    "classDef red fill:#FF0000,stroke:#333,stroke-width:1px",
+    "classDef blue fill:#0000FF,stroke:#333,stroke-width:1px",
+]
+
+
+# Mermaid Chart creation helper function
+def _mc_gcabc_str(gcabc: GCABC, prefix: str, color: str = "blue") -> str:
+    """Return a Mermaid Chart string representation of the GCABC node in the logical structure."""
+    return f"    {prefix}{gcabc.signature().hex()[-8:]}[{prefix}{gcabc.signature().hex()[-8:]}]:::{color}"
+
+
+# Mermaid Chart creation helper function
+def _mc_bytes_str(gcabc: bytes, prefix: str) -> str:
+    """Return a Mermaid Chart string representation of the unknown structure
+    GCABC in the logical structure."""
+    return f"    {prefix}{gcabc.hex()[-8:]}({prefix}{gcabc.hex()[-8:]}):::red"
+
+
+# Mermaid Chart creation helper function
+def _mc_connection_str(gca: GCABC | bytes, prefixa: str, gcb: GCABC | bytes, prefixb: str) -> str:
+    """Return a Mermaid Chart string representation of the connection between two nodes."""
+    _gca: str = gca.signature().hex()[-8:] if isinstance(gca, GCABC) else gca.hex()[-8:]
+    _gcb: str = gcb.signature().hex()[-8:] if isinstance(gcb, GCABC) else gcb.hex()[-8:]
+    return f"    {prefixa}{_gca} --> {prefixb}{_gcb}"
 
 
 class GCABC(CacheableObjABC):
@@ -72,6 +104,11 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.get must be overridden")
 
     @abstractmethod
+    def logical_mermaid_chart(self) -> str:
+        """Return a Mermaid chart of the logical genetic code structure."""
+        raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
+
+    @abstractmethod
     def setdefault(self, key: str, default: Any = None) -> Any:
         """Set the value of a key if it does not exist and return the set value."""
         raise NotImplementedError("GCABC.setdefault must be overridden")
@@ -99,6 +136,34 @@ class GCMixin:
             if isinstance(other_signature, str) and len(other_signature) == 64:
                 return self.signature().hex() == other_signature
         return False
+
+    def logical_mermaid_chart(self) -> str:
+        """Return a Mermaid chart of the logical genetic code structure."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        work_queue: list[tuple[GCABC, GCABC | bytes, GCABC | bytes, str]] = [
+            (self, self["gca"], self["gcb"], "0")
+        ]
+        chart_txt: list[str] = [_mc_gcabc_str(self, "0", "grey")]
+        # Each instance of the same GC must have a unique id in the chart
+        counter = count(1)
+        while work_queue:
+            gc, gca, gcb, cts = work_queue.pop(0)
+            nct = str(next(counter))
+            if isinstance(gca, GCABC) and gca is not NULL_GC:
+                work_queue.append((gca, gca["gca"], gca["gcb"], "a" + nct))
+                chart_txt.append(_mc_gcabc_str(gca, "a" + nct))
+                chart_txt.append(_mc_connection_str(gc, cts, gca, "a" + nct))
+            if isinstance(gca, bytes) and gca != NULL_SIGNATURE:
+                chart_txt.append(_mc_bytes_str(gca, "a" + nct))
+                chart_txt.append(_mc_connection_str(gc, cts, gca, "a" + nct))
+            if isinstance(gcb, GCABC) and gcb is not NULL_GC:
+                work_queue.append((gcb, gcb["gca"], gcb["gcb"], "b" + nct))
+                chart_txt.append(_mc_gcabc_str(gcb, "b" + nct))
+                chart_txt.append(_mc_connection_str(gc, cts, gcb, "b" + nct))
+            if isinstance(gcb, bytes) and gcb != NULL_SIGNATURE:
+                chart_txt.append(_mc_bytes_str(gcb, "b" + nct))
+                chart_txt.append(_mc_connection_str(gc, cts, gcb, "b" + nct))
+        return "\n".join(_MERMAID_HEADER + chart_txt + _MERMAID_FOOTER)
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""

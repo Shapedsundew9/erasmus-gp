@@ -146,8 +146,7 @@ classDef red fill:#FF0000,stroke:#333,stroke-width:1px
 classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
 ```
 
-Since codons are the minimum functional unit, which is typically a single operation or line of code, we can state that a GC of 
-depth N has - N < lines of code <= 2<sup>N</sup>
+Since codons are the minimum functional unit, which is typically a single operation or line of code, we can state that a GC of depth _n_ has - _n_ < lines of code <= 2ⁿ
 
 ```mermaid
 flowchart TD

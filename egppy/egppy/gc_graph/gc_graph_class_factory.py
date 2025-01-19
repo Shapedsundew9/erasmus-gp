@@ -130,17 +130,11 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
     def __getitem__(self, key: str) -> Any:
         """Get the endpoint with the given key."""
         if (keylen := len(key)) == 2:  # Its an interface
-            iface = self._interfaces.get(key, EMPTY_INTERFACE)
-            if iface is EMPTY_INTERFACE:
-                raise KeyError(f"Interface {key} does not exist.")
             self.touch()
-            return iface
+            return self._interfaces.get(key, EMPTY_INTERFACE)
         if keylen == 3:  # Its connections
-            conns = self._connections.get(key, EMPTY_CONNECTIONS)
-            if conns is EMPTY_CONNECTIONS:
-                raise KeyError(f"Connections {key} does not exist.")
             self.touch()
-            return conns
+            return self._connections.get(key, EMPTY_CONNECTIONS)
         if keylen == 5:  # Its an endpoint
             iface = self._interfaces.get(ikey := key[0] + key[4], EMPTY_INTERFACE)
             if iface is EMPTY_INTERFACE:
