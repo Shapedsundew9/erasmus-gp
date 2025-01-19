@@ -162,10 +162,8 @@ class GCMixin:
                         gca_sig: bytes = gca.signature()
                         gcb_sig: bytes = gcb.signature()
                 else:
-                    assert isinstance(gca, GCABC), "GC must be a GCABC object."
-                    assert isinstance(gcb, GCABC), "GC must be a GCABC object."
-                    gca_sig = gca.signature()
-                    gcb_sig = gcb.signature()
+                    gca_sig = gca.signature() if isinstance(gca, GCABC) else gca
+                    gcb_sig = gcb.signature() if isinstance(gcb, GCABC) else gcb
 
                 self["signature"] = sha256_signature(
                     gca_sig,  # type: ignore Guaranteed to be a bytes objects

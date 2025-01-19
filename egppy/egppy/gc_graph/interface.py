@@ -150,8 +150,9 @@ def interface_hash(iface: AnyInterface) -> bytes:
 
 def interface_to_types_idx(iface: AnyInterface) -> tuple[tuple[tuple[int, ...], ...], bytes]:
     """Return the interface as an ordered tuple of endpoint types and indices into it."""
-    ordered_types = tuple(sorted(set(tuple(td.uid for td in ept) for ept in iface)))
-    return ordered_types, bytes(ordered_types.index(ept) for ept in iface)
+    tuple_iface = tuple(tuple(td.uid for td in ept) for ept in iface)
+    ordered_types = tuple(sorted(set(tuple_iface)))
+    return ordered_types, bytes(ordered_types.index(ept) for ept in tuple_iface)
 
 
 def types_idx_to_interface(ordered_types: Sequence[Sequence[int]], indices: bytes) -> Interface:
