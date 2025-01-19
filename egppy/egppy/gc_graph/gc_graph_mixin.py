@@ -20,6 +20,7 @@ from egppy.gc_graph.interface import (
     AnyInterface,
     MutableInterface,
     RawInterface,
+    interface_to_types_idx,
     verify_interface,
 )
 from egppy.gc_graph.typing import (
@@ -404,19 +405,15 @@ class GCGraphMixin(CacheableObjMixin):
             DestinationRow.F not in self and DestinationRow.A in self and DestinationRow.B in self
         )
 
-    def itypes(self) -> tuple[list[EndPointType], list[int]]:
+    def itypes(self) -> tuple[tuple[tuple[int, ...], ...], bytes]:
         """Return the input types and input row indices into them."""
         ikey = SourceRow.I + EPClsPostfix.SRC
-        itypes = list(self.types(ikey))
-        ilu = {t: i for i, t in enumerate(itypes)}
-        return itypes, [ilu[i] for i in self.get(ikey, EMPTY_INTERFACE)]
+        return interface_to_types_idx(self.get(ikey, EMPTY_INTERFACE))
 
-    def otypes(self) -> tuple[list[EndPointType], list[int]]:
+    def otypes(self) -> tuple[tuple[tuple[int, ...], ...], bytes]:
         """Return the output types and output row indices into them."""
         okey = DestinationRow.O + EPClsPostfix.DST
-        otypes = list(self.types(okey))
-        olu = {t: o for o, t in enumerate(otypes)}
-        return otypes, [olu[i] for i in self.get(okey, EMPTY_INTERFACE)]
+        return interface_to_types_idx(self.get(okey, EMPTY_INTERFACE))
 
     def setdefault(self, key: str, default: Any) -> Any:
         """Set the endpoint with the given key to the default if it does not exist."""
@@ -449,12 +446,6 @@ class GCGraphMixin(CacheableObjMixin):
         if ucn:
             jgcg["U"] = sorted(ucn, key=lambda x: x[0] + f"{x[1]:03d}")
         return jgcg
-
-    def types(self, ikey: str) -> Generator[EndPointType, None, None]:
-        """Return an iterator over the ordered interface endpoint types.
-        Endpoint types are returned in the order of lowest value to highest.
-        """
-        return (typ for typ in sorted({typ for typ in self.get(ikey, EMPTY_INTERFACE)}))
 
     def valid_srcs(self, row: DestinationRow, typ: EndPointType) -> list[tuple[SourceRow, int]]:
         """Return a list of valid source row endpoint indexes."""

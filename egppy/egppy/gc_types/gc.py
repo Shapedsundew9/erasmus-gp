@@ -82,7 +82,7 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.set_members must be overridden")
 
     @abstractmethod
-    def signature(self) -> bytes:
+    def signature(self, field: str = "signature") -> bytes:
         """Return the signature of the genetic code."""
         raise NotImplementedError("GCABC.signature must be overridden")
 
@@ -106,17 +106,84 @@ class GCMixin:
         for key in gcabc:
             self[key] = gcabc[key]
 
-    def signature(self) -> bytes:
-        """Return the signature of the genetic code object."""
+    def signature(self, field: str = "signature") -> bytes:
+        """Return the signature of the genetic code field.
+
+        Note that gc[field] can be either bytes or GCABC objects. bytes are used
+        when the GC is not in the cache. GCABC objects are used when the GC is in the cache.
+        This saves 97 bytes per field in the cache (a 32 byte bytes object = 97 bytes). With
+        a GC having 6 fields this saves 582 bytes per GC. With 1,000,000 GCs this saves 582 MB.
+        """
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        if self["signature"] is NULL_SIGNATURE:
-            self["signature"] = sha256_signature(
-                self["gca"] if isinstance(self["gca"], bytes) else self["gca"].signature(),
-                self["gcb"] if isinstance(self["gcb"], bytes) else self["gcb"].signature(),
-                self["graph"].to_json(),
-                self["meta_data"] if self["meta_data"] is not None else {},
-            )
-        return self["signature"]
+        value: GCABC | bytes = self[field]
+        if field == "signature":
+            if value is NULL_SIGNATURE:
+                gca: GCABC | bytes = self["gca"]
+                gcb: GCABC | bytes = self["gcb"]
+
+                # An optimisation is to avoid going through all the work stack logic
+                # if gca and gcb have defined signatures in the immediate GCs.
+                if (
+                    gca is not NULL_GC
+                    and isinstance(gca, GCABC)
+                    and gca["signature"] is NULL_SIGNATURE
+                ) or (
+                    gcb is not NULL_GC
+                    and isinstance(gcb, GCABC)
+                    and gcb["signature"] is NULL_SIGNATURE
+                ):
+                    # To avoid the stack popping with deep recurision, as may happen if we get
+                    # succesive steady state exceptions or evolve a very complex PGC, we build a
+                    # work stack of GC's to calaculate the signatures of.
+                    work_stack = [(gca, gcb)]
+                    work_items = 0
+                    while work_items < len(work_stack):
+                        work_items = len(work_stack)
+                        gca, gcb = work_stack[-1]
+                        if (
+                            gca is not NULL_GC
+                            and isinstance(gca, GCABC)
+                            and gca["signature"] is NULL_SIGNATURE
+                        ):
+                            work_stack.append((gca["gca"], gca["gcb"]))
+                        if (
+                            gcb is not NULL_GC
+                            and isinstance(gcb, GCABC)
+                            and gcb["signature"] is NULL_SIGNATURE
+                        ):
+                            work_stack.append((gcb["gca"], gcb["gcb"]))
+
+                    # Once we have the stack we can iteratively calaculate signatures
+                    # from the bottom up.
+                    # NOTE: There will always be at least one iteration
+                    for gca, gcb in reversed(work_stack):
+                        assert isinstance(gca, GCABC), "GC must be a GCABC object."
+                        assert isinstance(gcb, GCABC), "GC must be a GCABC object."
+                        gca_sig: bytes = gca.signature()
+                        gcb_sig: bytes = gcb.signature()
+                else:
+                    assert isinstance(gca, GCABC), "GC must be a GCABC object."
+                    assert isinstance(gcb, GCABC), "GC must be a GCABC object."
+                    gca_sig = gca.signature()
+                    gcb_sig = gcb.signature()
+
+                self["signature"] = sha256_signature(
+                    gca_sig,  # type: ignore Guaranteed to be a bytes objects
+                    gcb_sig,  # type: ignore Guaranteed to be a bytes objects
+                    self["graph"].to_json(),
+                    self["meta_data"] if self["meta_data"] is not None else {},
+                )
+            return self["signature"]
+        elif field.startswith("problem"):
+            assert isinstance(value, bytes), "Problem signatures must be bytes."
+            return value
+        else:
+            # The assert below addresses a peculiarity of pylance to insist something declared
+            # as bytes is not bytes. Is this a bug in pylance?
+            assert not isinstance(
+                value, (bytearray, memoryview)
+            ), "Invalid type for signature field."
+            return value if isinstance(value, bytes) else value.signature()
 
     def to_json(self) -> dict[str, int | str | float | list | dict]:
         """Return a JSON serializable dictionary."""
@@ -180,7 +247,7 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):
         """Set the data members of the GCABC."""
         raise RuntimeError("Cannot modify a NullGC")
 
-    def signature(self) -> bytes:
+    def signature(self, field: str = "signature") -> bytes:
         """Return the signature of the genetic code object."""
         return NULL_SIGNATURE
 

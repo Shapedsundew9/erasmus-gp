@@ -46,8 +46,6 @@ sixtyfour_gc = GGC_CACHE[
 custom_pgc = GGC_CACHE[
     bytes.fromhex("52b66afd16a31021917c90706449376957220434642bfc32c260bf947e7fd869")
 ]
-
-
 random_long_gc = GGCDict(
     {
         "ancestora": sixtyfour_gc["signature"],

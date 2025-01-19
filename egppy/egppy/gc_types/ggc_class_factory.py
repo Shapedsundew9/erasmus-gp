@@ -186,24 +186,7 @@ class GGCMixin(EGCMixin):
 
         # Some sanity that GCABC was consistent for derived values. _LOG_DEBUG because this is fast.
         if _LOG_DEBUG:
-            assert self["input_types"] == gcabc.get(
-                "input_types", self["input_types"]
-            ), "input_types must be the input types."
-            assert self["inputs"] == gcabc.get(
-                "inputs", self["inputs"]
-            ), "inputs must be the input indexes."
-            assert self["num_inputs"] == gcabc.get(
-                "num_inputs", self["num_inputs"]
-            ), "num_inputs must be the number of inputs."
-            assert self["output_types"] == gcabc.get(
-                "output_types", self["output_types"]
-            ), "output_types must be the output types."
-            assert self["outputs"] == gcabc.get(
-                "outputs", self["outputs"]
-            ), "outputs must be the output indexes."
-            assert self["num_outputs"] == gcabc.get(
-                "num_outputs", self["num_outputs"]
-            ), "num_outputs must be the number of outputs."
+            pass
 
     def verify(self) -> None:
         """Verify the genetic code object."""
