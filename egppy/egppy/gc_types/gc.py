@@ -6,13 +6,14 @@ from abc import abstractmethod
 from copy import deepcopy
 from datetime import datetime
 from itertools import count
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.conversions import decode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
+from egppy.gc_graph.interface import interface
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -57,10 +58,10 @@ def _mc_gcabc_str(gcabc: GCABC, prefix: str, color: str = "blue") -> str:
 
 
 # Mermaid Chart creation helper function
-def _mc_bytes_str(gcabc: bytes, prefix: str) -> str:
+def _mc_bytes_str(gcabc: bytes, prefix: str, color: str = "red") -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCABC in the logical structure."""
-    return f"    {prefix}{gcabc.hex()[-8:]}({prefix}{gcabc.hex()[-8:]}):::red"
+    return f"    {prefix}{gcabc.hex()[-8:]}(({prefix}{gcabc.hex()[-8:]})):::{color}"
 
 
 # Mermaid Chart creation helper function
@@ -146,19 +147,20 @@ class GCMixin:
         chart_txt: list[str] = [_mc_gcabc_str(self, "0", "grey")]
         # Each instance of the same GC must have a unique id in the chart
         counter = count(1)
+        color: Callable[[GCABC], str] = lambda x: "blue" if x["num_codons"] != 1 else "red"
         while work_queue:
             gc, gca, gcb, cts = work_queue.pop(0)
             nct = str(next(counter))
             if isinstance(gca, GCABC) and gca is not NULL_GC:
                 work_queue.append((gca, gca["gca"], gca["gcb"], "a" + nct))
-                chart_txt.append(_mc_gcabc_str(gca, "a" + nct))
+                chart_txt.append(_mc_gcabc_str(gca, "a" + nct, color(gca)))
                 chart_txt.append(_mc_connection_str(gc, cts, gca, "a" + nct))
             if isinstance(gca, bytes) and gca != NULL_SIGNATURE:
                 chart_txt.append(_mc_bytes_str(gca, "a" + nct))
                 chart_txt.append(_mc_connection_str(gc, cts, gca, "a" + nct))
             if isinstance(gcb, GCABC) and gcb is not NULL_GC:
                 work_queue.append((gcb, gcb["gca"], gcb["gcb"], "b" + nct))
-                chart_txt.append(_mc_gcabc_str(gcb, "b" + nct))
+                chart_txt.append(_mc_gcabc_str(gcb, "b" + nct, color(gcb)))
                 chart_txt.append(_mc_connection_str(gc, cts, gcb, "b" + nct))
             if isinstance(gcb, bytes) and gcb != NULL_SIGNATURE:
                 chart_txt.append(_mc_bytes_str(gcb, "b" + nct))
@@ -269,7 +271,7 @@ class GCMixin:
                     ]
                 retval[key] = md
             elif key.endswith("_types"):
-                retval[key] = [ept_to_str(ept) for ept in value]
+                retval[key] = [ept_to_str(ept) for ept in interface(value)]
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.

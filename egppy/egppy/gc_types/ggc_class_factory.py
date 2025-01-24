@@ -162,7 +162,7 @@ class GGCMixin(EGCMixin):
         self["num_codes"] = gcabc.get("num_codes", 1)
         self["num_codons"] = gcabc.get("num_codons", 1)
         self["num_inputs"] = len(self["inputs"])
-        self["num_outputs"] = 0  # To keep alaphabetical ordering in keys.
+        self["num_outputs"] = 0  # To keep alphabetical ordering in keys.
         self["output_types"], self["outputs"] = self["graph"].otypes()
         self["num_outputs"] = len(self["outputs"])
         self["population_uid"] = gcabc.get("population_uid", 0)

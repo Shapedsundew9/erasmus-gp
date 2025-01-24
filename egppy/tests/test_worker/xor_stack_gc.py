@@ -17,8 +17,10 @@ relationship between inputs and outputs. The random ints are chosen because they
 deterministic with a seed and require correct order execution to produce the correct output.
 """
 
+from json import dump
 from random import choice, random, randrange, seed, shuffle
 import tempfile
+from typing import Counter
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
@@ -67,6 +69,7 @@ random_long_gc = GGCDict(
         },
         "pgc": custom_pgc["signature"],
         "problem": ACYBERGENESIS_PROBLEM,
+        "num_codons": 2,
     }
 )
 gene_pool: list[GCABC] = [xor_gc, random_long_gc]
@@ -147,6 +150,7 @@ def glue(gca: GCABC, gcb: GCABC) -> GCABC:
             },
             "pgc": xor_gc["signature"],
             "problem": ACYBERGENESIS_PROBLEM,
+            "num_codons": gca["num_codons"] + gcb["num_codons"],
         }
     )
 
@@ -160,8 +164,9 @@ def build_gene_pool(max_num: int = 1024, limit: int = 256) -> None:
     max_io_len = 0
     num = 2
     while num < max_num and max_io_len < limit:
-        gca: GCABC = choice(gene_pool) if random() < 0.5 else choice((xor_gc, random_long_gc))
-        gcb: GCABC = choice(gene_pool) if random() < 0.5 else choice((xor_gc, random_long_gc))
+        gca: GCABC = choice(gene_pool) if random() < 0.75 else choice((xor_gc, random_long_gc))
+        gcb: GCABC = choice(gene_pool)
+        gca, gcb = (gca, gcb) if random() < 0.5 else (gcb, gca)
         gene_pool.append(glue(gca, gcb))
         num = len(gene_pool)
         max_io_len = max(gene_pool[-1]["num_inputs"], gene_pool[-1]["num_outputs"])
@@ -175,8 +180,13 @@ if __name__ == "__main__":
     # A temporary file is created in the default temp directory
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write("# Genetic Codes\n\n")
+        f.write(f"Num codons distribution:\n{Counter([gc['num_codons'] for gc in gene_pool])}\n\n")
         for gc in gene_pool[:10] + gene_pool[-10:]:
             f.write(f"## GC {gc['signature'].hex()}\n\n")
             f.write("```mermaid\n")
             f.write(gc.logical_mermaid_chart())
             f.write("\n```\n\n")
+
+    # Dump as JSON so we can take a deeper look at the GC's
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)

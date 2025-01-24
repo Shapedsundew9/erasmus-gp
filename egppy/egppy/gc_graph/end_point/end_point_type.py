@@ -67,7 +67,7 @@ def end_point_type(
 
     If the endpoint type is valid and not in the store then it is added.
 
-    NOTE: If _pop is True type_sequence is a ssumed to be a list that will be modified
+    NOTE: If _pop is True type_sequence is assumed to be a list that will be modified
     by popping off the first EndPointType. This facility is provided to enable interfaces
     to be efficiently defined.
     """
