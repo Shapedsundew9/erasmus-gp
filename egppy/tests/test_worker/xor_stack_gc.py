@@ -20,14 +20,15 @@ deterministic with a seed and require correct order execution to produce the cor
 from json import dump
 from random import choice, random, randrange, seed, shuffle
 import tempfile
-from typing import Counter
+from collections import Counter
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_types.gc import GCABC
+from egppy.gc_types.gc import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.gc_store import GGC_CACHE
+from egppy.worker.executor import node_graph, line_count, code_graph
 from egppy.gc_graph.interface import AnyInterface
 
 
@@ -44,34 +45,43 @@ INT_T = ["int"]
 
 
 # This is the Integral type XOR but it does not matter for this
+# b'\x00\xaf\x97\xc8\x88\xef\x12\xa4V\xda\xad\x80!\xf2\x1cpLBY\xa6\xe9TiY\x83\xb3\xf9=I\xdd\x82\x90'
 xor_gc = GGC_CACHE[
     bytes.fromhex("00af97c888ef12a456daad8021f21c704c4259a6e954695983b3f93d49dd8290")
 ]
+# b'e\x864d\xea\xc5\x14!a>pS)\xddv\xfczs\xfb\xdbI\xbe\xa1\x18f!\xc5\xd2\xe00\xd5<'
 getrandbits_gc = GGC_CACHE[
     bytes.fromhex("65863464eac51421613e705329dd76fc7a73fbdb49bea1186621c5d2e030d53c")
 ]
+# b'\xb3Y\x86s\x01J\x84\xbc\xca\xa4!\xa8\xebx\xe4\x10\x9b\x07\x8f,s\x98\xefO:\xec\x1e\x1d\xef\x8cu.'
 sixtyfour_gc = GGC_CACHE[
     bytes.fromhex("b3598673014a84bccaa421a8eb78e4109b078f2c7398ef4f3aec1e1def8c752e")
 ]
+# b'R\xb6j\xfd\x16\xa3\x10!\x91|\x90pdI7iW"\x044d+\xfc2\xc2`\xbf\x94~\x7f\xd8i'
 custom_pgc = GGC_CACHE[
     bytes.fromhex("52b66afd16a31021917c90706449376957220434642bfc32c260bf947e7fd869")
 ]
+
+# random_long_gc signature:
+# b'\xd1d\xb9=\x0b\xbeB\x97Go\xea<\x9c\xd6\xbc-\xa4\x8cn\xcc|C\xe8\xa7\x03Z\x15\xfa\xb2\xf3\x1c\n'
+# 'd164b93d0bbe4297476fea3c9cd6bc2da48c6ecc7c43e8a7035a15fab2f31c0a'
 random_long_gc = GGCDict(
     {
-        "ancestora": sixtyfour_gc["signature"],
-        "ancestorb": getrandbits_gc["signature"],
-        "gca": sixtyfour_gc["signature"],
-        "gcb": getrandbits_gc["signature"],
+        "ancestora": sixtyfour_gc,
+        "ancestorb": getrandbits_gc,
+        "gca": sixtyfour_gc["signature"],  # This makes the structure of the GC "unknown"
+        "gcb": getrandbits_gc,
         "graph": {
             "A": [],
             "B": [["A", 0, ["int"]]],
             "O": [["B", 0, ["int"]]],
         },
-        "pgc": custom_pgc["signature"],
+        "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
         "num_codons": 2,
     }
 )
+GGC_CACHE[random_long_gc["signature"]] = random_long_gc
 gene_pool: list[GCABC] = [xor_gc, random_long_gc]
 
 
@@ -155,38 +165,66 @@ def glue(gca: GCABC, gcb: GCABC) -> GCABC:
     )
 
 
-def build_gene_pool(max_num: int = 1024, limit: int = 256) -> None:
+def build_gene_pool(max_num: int = 1024, limit: int = 256, _seed=42) -> None:
     """Randomly generate a pool of genetic codes based on
     the 64 bit random int GC and the XOR codon. A maximum
     of 1024 new GC's will be created or as many as possible
     before the limit of number of input or output endpoints is
     reached 3 times in a row."""
+    seed(_seed)
     max_io_len = 0
     num = 2
     while num < max_num and max_io_len < limit:
         gca: GCABC = choice(gene_pool) if random() < 0.75 else choice((xor_gc, random_long_gc))
         gcb: GCABC = choice(gene_pool)
         gca, gcb = (gca, gcb) if random() < 0.5 else (gcb, gca)
-        gene_pool.append(glue(gca, gcb))
-        num = len(gene_pool)
-        max_io_len = max(gene_pool[-1]["num_inputs"], gene_pool[-1]["num_outputs"])
+        new_gc = glue(gca, gcb)
+        if not new_gc["signature"] in GGC_CACHE:
+            gene_pool.append(new_gc)
+            GGC_CACHE[gene_pool[-1]["signature"]] = gene_pool[-1]
+            num = len(gene_pool)
+            max_io_len = max(gene_pool[-1]["num_inputs"], gene_pool[-1]["num_outputs"])
 
 
 if __name__ == "__main__":
-    seed(0)
     build_gene_pool()
+    line_limit = 4
 
     # Create a markdown formated file with mermaid diagrams of the GC's in the gene pool
     # A temporary file is created in the default temp directory
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write("# Genetic Codes\n\n")
+        f.write(
+            "Be aware that GC's may have the same GC graph (structure) but the top level "
+            "GC my have a different connectivity resulting in a different signature.\n\n"
+        )
+        f.write(f"Num GC's: {len(gene_pool)}\n\n")
         f.write(f"Num codons distribution:\n{Counter([gc['num_codons'] for gc in gene_pool])}\n\n")
-        for gc in gene_pool[:10] + gene_pool[-10:]:
-            f.write(f"## GC {gc['signature'].hex()}\n\n")
+        f.write("## GC Logical Structure Mermaid Diagrams Key\n\n")
+        f.write(mermaid_key())
+        f.write("\n\n")
+        gcs = tuple(enumerate(gene_pool))
+        for idx, gc in gcs[:10] + gcs[-10:]:
+            f.write(f"## GC #{idx}\n\n")
+            f.write("### Details\n\n")
+            f.write(f"- Num codons: {gc['num_codons']}\n")
+            f.write(f"- Binary signature: {gc['signature']}\n")
+            f.write(f"- Hex signature: {gc['signature'].hex()}\n\n")
+            f.write("### Logical Structure\n\n")
             f.write("```mermaid\n")
             f.write(gc.logical_mermaid_chart())
+            f.write("\n```\n\n")
+            f.write(f"### GC Node Graph Structure with Line Limit = {line_limit}\n\n")
+            f.write("```mermaid\n")
+            ng = node_graph(gc, line_limit)
+            line_count(ng, line_limit)
+            f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
 
     # Dump as JSON so we can take a deeper look at the GC's
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)
+else:
+    # gene_pool is used for testing the exectutor
+    build_gene_pool()
+    _logger.debug("Loaded %d genetic codes", len(gene_pool))

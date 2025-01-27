@@ -43,33 +43,89 @@ def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
 
 
 # Mermaid Chart header and footer
-_MERMAID_HEADER: list[str] = ["flowchart TD"]
-_MERMAID_FOOTER: list[str] = [
-    "classDef grey fill:#444444,stroke:#333,stroke-width:1px",
-    "classDef red fill:#FF0000,stroke:#333,stroke-width:1px",
-    "classDef blue fill:#0000FF,stroke:#333,stroke-width:1px",
+MERMAID_GC_COLOR = "blue"
+MERMAID_CODON_COLOR = "green"
+MERMAID_UNKNOWN_COLOR = "red"
+MERMAID_HEADER: list[str] = ["flowchart TD"]
+MERMAID_FOOTER: list[str] = [
+    "classDef grey fill:#444444,stroke:#333333,stroke-width:2px",
+    "classDef red fill:#A74747,stroke:#996666,stroke-width:2px",
+    "classDef blue fill:#336699,stroke:#556688,stroke-width:2px",
+    "classDef green fill:#576457,stroke:#667766,stroke-width:2px",
+    "linkStyle default stroke:#AAAAAA,stroke-width:2px",
 ]
 
 
-# Mermaid Chart creation helper function
-def _mc_gcabc_str(gcabc: GCABC, prefix: str, color: str = "blue") -> str:
-    """Return a Mermaid Chart string representation of the GCABC node in the logical structure."""
-    return f"    {prefix}{gcabc.signature().hex()[-8:]}[{prefix}{gcabc.signature().hex()[-8:]}]:::{color}"
+def mc_rectangle_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a rectangle."""
+    return f"    {name}({label}):::{color}"
+
+
+def mc_connect_str(namea: str, nameb: str, connection: str = "-->") -> str:
+    """Return a Mermaid Chart string representation of the connection between two nodes."""
+    return f"    {namea} {connection} {nameb}"
+
+
+def mc_circle_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a circle."""
+    return f"    {name}(({label})):::{color}"
 
 
 # Mermaid Chart creation helper function
-def _mc_bytes_str(gcabc: bytes, prefix: str, color: str = "red") -> str:
+def mc_gc_str(gcabc: GCABC, prefix: str, color: str = "") -> str:
+    """Return a Mermaid Chart string representation of the GCABC node in the logical structure.
+    By default a blue rectangle is used for a GC unless it is a codon which is a green circle.
+    If a color is specified then that color rectangle is used.
+    """
+    if color == "":
+        color = MERMAID_GC_COLOR
+        if gcabc["num_codons"] == 1:
+            return mc_codon_str(gcabc, prefix)
+    return mc_rectangle_str(
+        prefix + gcabc.signature().hex()[-8:], gcabc.signature().hex()[-8:], color
+    )
+
+
+# Mermaid Chart creation helper function
+def mc_unknown_str(gcabc: bytes, prefix: str, color: str = MERMAID_UNKNOWN_COLOR) -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCABC in the logical structure."""
-    return f"    {prefix}{gcabc.hex()[-8:]}(({prefix}{gcabc.hex()[-8:]})):::{color}"
+    return mc_circle_str(prefix + gcabc.hex()[-8:], gcabc.hex()[-8:], color)
 
 
 # Mermaid Chart creation helper function
-def _mc_connection_str(gca: GCABC | bytes, prefixa: str, gcb: GCABC | bytes, prefixb: str) -> str:
+def mc_codon_str(gcabc: GCABC, prefix: str, color: str = MERMAID_CODON_COLOR) -> str:
+    """Return a Mermaid Chart string representation of the codon structure
+    GCABC in the logical structure."""
+    return mc_circle_str(prefix + gcabc.signature().hex()[-8:], gcabc.signature().hex()[-8:], color)
+
+
+# Mermaid Chart creation helper function
+def mc_connection_str(gca: GCABC | bytes, prefixa: str, gcb: GCABC | bytes, prefixb: str) -> str:
     """Return a Mermaid Chart string representation of the connection between two nodes."""
     _gca: str = gca.signature().hex()[-8:] if isinstance(gca, GCABC) else gca.hex()[-8:]
     _gcb: str = gcb.signature().hex()[-8:] if isinstance(gcb, GCABC) else gcb.hex()[-8:]
-    return f"    {prefixa}{_gca} --> {prefixb}{_gcb}"
+    return mc_connect_str(prefixa + _gca, prefixb + _gcb)
+
+
+# Mermaid Chart key to node shape and color mapping
+_MERMAID_KEY: list[str] = (
+    [
+        "```mermaid\n",
+        "flowchart TD\n",
+        mc_rectangle_str("GC", "Non-codon GC", MERMAID_GC_COLOR),
+        mc_circle_str("Codon", "Codon GC", MERMAID_CODON_COLOR),
+        mc_circle_str("Unknown", "Unknown", MERMAID_UNKNOWN_COLOR),
+        '    text["Signature[:8]"]\n',
+    ]
+    + MERMAID_FOOTER
+    + ["```"]
+)
+
+
+def mermaid_key() -> str:
+    """Return a Mermaid chart key."""
+    return "\n".join(_MERMAID_KEY)
 
 
 class GCABC(CacheableObjABC):
@@ -144,28 +200,28 @@ class GCMixin:
         work_queue: list[tuple[GCABC, GCABC | bytes, GCABC | bytes, str]] = [
             (self, self["gca"], self["gcb"], "0")
         ]
-        chart_txt: list[str] = [_mc_gcabc_str(self, "0", "grey")]
+        chart_txt: list[str] = [mc_gc_str(self, "0")]
         # Each instance of the same GC must have a unique id in the chart
         counter = count(1)
-        color: Callable[[GCABC], str] = lambda x: "blue" if x["num_codons"] != 1 else "red"
         while work_queue:
             gc, gca, gcb, cts = work_queue.pop(0)
+            # deepcode ignore unguarded~next~call: This is an infinite generator
             nct = str(next(counter))
             if isinstance(gca, GCABC) and gca is not NULL_GC:
                 work_queue.append((gca, gca["gca"], gca["gcb"], "a" + nct))
-                chart_txt.append(_mc_gcabc_str(gca, "a" + nct, color(gca)))
-                chart_txt.append(_mc_connection_str(gc, cts, gca, "a" + nct))
-            if isinstance(gca, bytes) and gca != NULL_SIGNATURE:
-                chart_txt.append(_mc_bytes_str(gca, "a" + nct))
-                chart_txt.append(_mc_connection_str(gc, cts, gca, "a" + nct))
+                chart_txt.append(mc_gc_str(gca, "a" + nct))
+                chart_txt.append(mc_connection_str(gc, cts, gca, "a" + nct))
+            if isinstance(gca, bytes) and gca is not NULL_SIGNATURE:
+                chart_txt.append(mc_unknown_str(gca, "a" + nct))
+                chart_txt.append(mc_connection_str(gc, cts, gca, "a" + nct))
             if isinstance(gcb, GCABC) and gcb is not NULL_GC:
                 work_queue.append((gcb, gcb["gca"], gcb["gcb"], "b" + nct))
-                chart_txt.append(_mc_gcabc_str(gcb, "b" + nct, color(gcb)))
-                chart_txt.append(_mc_connection_str(gc, cts, gcb, "b" + nct))
-            if isinstance(gcb, bytes) and gcb != NULL_SIGNATURE:
-                chart_txt.append(_mc_bytes_str(gcb, "b" + nct))
-                chart_txt.append(_mc_connection_str(gc, cts, gcb, "b" + nct))
-        return "\n".join(_MERMAID_HEADER + chart_txt + _MERMAID_FOOTER)
+                chart_txt.append(mc_gc_str(gcb, "b" + nct))
+                chart_txt.append(mc_connection_str(gc, cts, gcb, "b" + nct))
+            if isinstance(gcb, bytes) and gcb is not NULL_SIGNATURE:
+                chart_txt.append(mc_unknown_str(gcb, "b" + nct))
+                chart_txt.append(mc_connection_str(gc, cts, gcb, "b" + nct))
+        return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
