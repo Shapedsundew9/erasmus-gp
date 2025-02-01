@@ -44,6 +44,14 @@ _logger.setLevel(DEBUG)
 INT_T = ["int"]
 
 
+# Right shift codon
+rshift_gc = GGC_CACHE[
+    bytes.fromhex("3ba3b63560abc42aa8088d5655a53d973c50fa0d3edacdfc801053b7a26e6923")
+]
+# Literal 1 codon
+literal_1_gc = GGC_CACHE[
+    bytes.fromhex("ebba2a300e27e8b73a8e4c2807ad43273534ad9ae385e9a21cc1e7d9c3d8abd0")
+]
 # This is the Integral type XOR but it does not matter for this
 # b'\x00\xaf\x97\xc8\x88\xef\x12\xa4V\xda\xad\x80!\xf2\x1cpLBY\xa6\xe9TiY\x83\xb3\xf9=I\xdd\x82\x90'
 xor_gc = GGC_CACHE[
@@ -69,7 +77,7 @@ random_long_gc = GGCDict(
     {
         "ancestora": sixtyfour_gc,
         "ancestorb": getrandbits_gc,
-        "gca": sixtyfour_gc["signature"],  # This makes the structure of the GC "unknown"
+        "gca": sixtyfour_gc,
         "gcb": getrandbits_gc,
         "graph": {
             "A": [],
@@ -82,7 +90,52 @@ random_long_gc = GGCDict(
     }
 )
 GGC_CACHE[random_long_gc["signature"]] = random_long_gc
-gene_pool: list[GCABC] = [xor_gc, random_long_gc]
+
+
+# Shift right by one GC
+rshift_1_gc = GGCDict(
+    {
+        "ancestora": literal_1_gc,
+        "ancestorb": rshift_gc,
+        "gca": literal_1_gc["signature"],  # Makes the structure of this GC unknown
+        "gcb": rshift_gc,
+        "graph": {
+            "A": [],
+            "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
+            "O": [["B", 0, ["int"]]],
+        },
+        "pgc": custom_pgc,
+        "problem": ACYBERGENESIS_PROBLEM,
+        "num_codons": 2,
+        # Pre-defined executable. GC will not be pulled from storage.
+        "executable": lambda a: a >> 1,
+        "num_lines": 2,
+    }
+)
+GGC_CACHE[rshift_1_gc["signature"]] = rshift_1_gc
+
+
+rshift_xor_gc = GGCDict(
+    {
+        "ancestora": rshift_1_gc,
+        "ancestorb": xor_gc,
+        "gca": rshift_1_gc,
+        "gcb": xor_gc,
+        "graph": {
+            "A": [["I", 1, ["int"]]],
+            "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
+            "O": [["B", 0, ["int"]]],
+        },
+        "pgc": custom_pgc,
+        "problem": ACYBERGENESIS_PROBLEM,
+        "num_codons": 3,
+    }
+)
+GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
+
+
+# Initialize the gene pool wiht the building blocks
+gene_pool: list[GCABC] = [rshift_xor_gc, random_long_gc]
 
 
 def glue(gca: GCABC, gcb: GCABC) -> GCABC:
@@ -188,7 +241,8 @@ def build_gene_pool(max_num: int = 1024, limit: int = 256, _seed=42) -> None:
 
 if __name__ == "__main__":
     build_gene_pool()
-    line_limit = 4
+    LINE_LIMIT_X = 3
+    LINE_LIMIT_Y = 5
 
     # Create a markdown formated file with mermaid diagrams of the GC's in the gene pool
     # A temporary file is created in the default temp directory
@@ -214,10 +268,16 @@ if __name__ == "__main__":
             f.write("```mermaid\n")
             f.write(gc.logical_mermaid_chart())
             f.write("\n```\n\n")
-            f.write(f"### GC Node Graph Structure with Line Limit = {line_limit}\n\n")
+            f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_X}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(gc, line_limit)
-            line_count(ng, line_limit)
+            ng = node_graph(gc, LINE_LIMIT_X)
+            line_count(ng, LINE_LIMIT_X)
+            f.write(ng.mermaid_chart())
+            f.write("\n```\n\n")
+            f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_Y}\n\n")
+            f.write("```mermaid\n")
+            ng = node_graph(gc, LINE_LIMIT_Y)
+            line_count(ng, LINE_LIMIT_Y)
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
 

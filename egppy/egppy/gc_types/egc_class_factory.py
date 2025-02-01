@@ -102,8 +102,10 @@ class EGCMixin(GCMixin):
             tmp = NULL_SIGNATURE
         assert isinstance(tmp, (bytes, str)), "Signature must be a bytes or hex string."
         self["signature"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
-        self["num_lines"] = 0  # The number of code lines in the implementation of the GC function
-        self["executable"] = NULL_EXECUTABLE
+        self["num_lines"] = gcabc.get("num_lines", 0)
+        self["executable"] = (
+            NULL_EXECUTABLE if gcabc.get("executable") is None else gcabc["executable"]
+        )
 
     def verify(self) -> None:
         """Verify the genetic code object."""

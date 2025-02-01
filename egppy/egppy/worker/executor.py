@@ -114,6 +114,11 @@ class GCNode:
 
     def _mermaid_body(self, gc_node: GCNode) -> list[str]:
         """Return the Mermaid chart for the GC node graph."""
+        # If the GC executable exists then return a green node
+        if gc_node.exists:
+            return [mc_gc_node_str(gc_node, "green")]
+
+        # Build up the GC structure chart
         work_queue: list[tuple[GCNode, GCNode, GCNode]] = [
             (gc_node, gc_node.gca_node, gc_node.gcb_node)
         ]
@@ -171,7 +176,9 @@ def node_graph(gc: GCABC, limit: int) -> GCNode:
     Returns:
         GCNode: The graph root node.
     """
-    assert 4 <= limit <= 2**15 - 1, f"Invalid function maximum lines limit: {limit}"
+    assert (
+        2 <= limit <= 2**15 - 1
+    ), f"Invalid function maximum lines limit: {limit} must be 2 <= limit <= 32767"
 
     half_limit: int = limit // 2
     node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None)]

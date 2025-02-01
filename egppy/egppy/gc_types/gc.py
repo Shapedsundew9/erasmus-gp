@@ -6,7 +6,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from datetime import datetime
 from itertools import count
-from typing import Any, Callable, Iterator
+from typing import Any, Iterator
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.conversions import decode_properties
@@ -116,7 +116,7 @@ _MERMAID_KEY: list[str] = (
         mc_rectangle_str("GC", "Non-codon GC", MERMAID_GC_COLOR),
         mc_circle_str("Codon", "Codon GC", MERMAID_CODON_COLOR),
         mc_circle_str("Unknown", "Unknown", MERMAID_UNKNOWN_COLOR),
-        '    text["Signature[:8]"]\n',
+        '    text["Signature[-8:]"]\n',
     ]
     + MERMAID_FOOTER
     + ["```"]
