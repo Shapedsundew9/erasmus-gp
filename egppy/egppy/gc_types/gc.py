@@ -12,6 +12,7 @@ from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.conversions import decode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.gc_graph.typing import Row, SourceRow
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.gc_graph.interface import interface
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
@@ -58,7 +59,7 @@ MERMAID_FOOTER: list[str] = [
 
 def mc_rectangle_str(name: str, label: str, color: str) -> str:
     """Return a Mermaid Chart string representation of a rectangle."""
-    return f"    {name}({label}):::{color}"
+    return f'    {name}("{label}"):::{color}'
 
 
 def mc_connect_str(namea: str, nameb: str, connection: str = "-->") -> str:
@@ -68,11 +69,11 @@ def mc_connect_str(namea: str, nameb: str, connection: str = "-->") -> str:
 
 def mc_circle_str(name: str, label: str, color: str) -> str:
     """Return a Mermaid Chart string representation of a circle."""
-    return f"    {name}(({label})):::{color}"
+    return f'    {name}(("{label}")):::{color}'
 
 
 # Mermaid Chart creation helper function
-def mc_gc_str(gcabc: GCABC, prefix: str, color: str = "") -> str:
+def mc_gc_str(gcabc: GCABC, prefix: str, row: Row, color: str = "") -> str:
     """Return a Mermaid Chart string representation of the GCABC node in the logical structure.
     By default a blue rectangle is used for a GC unless it is a codon which is a green circle.
     If a color is specified then that color rectangle is used.
@@ -80,24 +81,25 @@ def mc_gc_str(gcabc: GCABC, prefix: str, color: str = "") -> str:
     if color == "":
         color = MERMAID_GC_COLOR
         if gcabc["num_codons"] == 1:
-            return mc_codon_str(gcabc, prefix)
-    return mc_rectangle_str(
-        prefix + gcabc.signature().hex()[-8:], gcabc.signature().hex()[-8:], color
-    )
+            return mc_codon_str(gcabc, prefix, row)
+    label = f"{row}<br>{gcabc.signature().hex()[-8:]}"
+    return mc_rectangle_str(prefix + gcabc.signature().hex()[-8:], label, color)
 
 
 # Mermaid Chart creation helper function
-def mc_unknown_str(gcabc: bytes, prefix: str, color: str = MERMAID_UNKNOWN_COLOR) -> str:
+def mc_unknown_str(gcabc: bytes, prefix: str, row: Row, color: str = MERMAID_UNKNOWN_COLOR) -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCABC in the logical structure."""
-    return mc_circle_str(prefix + gcabc.hex()[-8:], gcabc.hex()[-8:], color)
+    label = f"{row}<br>{gcabc.hex()[-8:]}"
+    return mc_circle_str(prefix + gcabc.hex()[-8:], label, color)
 
 
 # Mermaid Chart creation helper function
-def mc_codon_str(gcabc: GCABC, prefix: str, color: str = MERMAID_CODON_COLOR) -> str:
+def mc_codon_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_CODON_COLOR) -> str:
     """Return a Mermaid Chart string representation of the codon structure
     GCABC in the logical structure."""
-    return mc_circle_str(prefix + gcabc.signature().hex()[-8:], gcabc.signature().hex()[-8:], color)
+    label = f"{row}<br>{gcabc.signature().hex()[-8:]}"
+    return mc_circle_str(prefix + gcabc.signature().hex()[-8:], label, color)
 
 
 # Mermaid Chart creation helper function
@@ -161,6 +163,11 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.get must be overridden")
 
     @abstractmethod
+    def is_codon(self) -> bool:
+        """Return True if the genetic code is a codon."""
+        raise NotImplementedError("GCABC.is_codon must be overridden")
+
+    @abstractmethod
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
@@ -194,33 +201,32 @@ class GCMixin:
                 return self.signature().hex() == other_signature
         return False
 
+    def is_codon(self) -> bool:
+        """Return True if the genetic code is a codon."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        return self["pgc"] is NULL_GC
+
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         work_queue: list[tuple[GCABC, GCABC | bytes, GCABC | bytes, str]] = [
             (self, self["gca"], self["gcb"], "0")
         ]
-        chart_txt: list[str] = [mc_gc_str(self, "0")]
+        chart_txt: list[str] = [mc_gc_str(self, "0", SourceRow.I)]
         # Each instance of the same GC must have a unique id in the chart
         counter = count(1)
         while work_queue:
             gc, gca, gcb, cts = work_queue.pop(0)
             # deepcode ignore unguarded~next~call: This is an infinite generator
             nct = str(next(counter))
-            if isinstance(gca, GCABC) and gca is not NULL_GC:
-                work_queue.append((gca, gca["gca"], gca["gcb"], "a" + nct))
-                chart_txt.append(mc_gc_str(gca, "a" + nct))
-                chart_txt.append(mc_connection_str(gc, cts, gca, "a" + nct))
-            if isinstance(gca, bytes) and gca is not NULL_SIGNATURE:
-                chart_txt.append(mc_unknown_str(gca, "a" + nct))
-                chart_txt.append(mc_connection_str(gc, cts, gca, "a" + nct))
-            if isinstance(gcb, GCABC) and gcb is not NULL_GC:
-                work_queue.append((gcb, gcb["gca"], gcb["gcb"], "b" + nct))
-                chart_txt.append(mc_gc_str(gcb, "b" + nct))
-                chart_txt.append(mc_connection_str(gc, cts, gcb, "b" + nct))
-            if isinstance(gcb, bytes) and gcb is not NULL_SIGNATURE:
-                chart_txt.append(mc_unknown_str(gcb, "b" + nct))
-                chart_txt.append(mc_connection_str(gc, cts, gcb, "b" + nct))
+            for gcx, prefix, row in [(gca, "a" + nct, SourceRow.A), (gcb, "b" + nct, SourceRow.B)]:
+                if isinstance(gcx, GCABC) and gcx is not NULL_GC:
+                    work_queue.append((gcx, gcx["gca"], gcx["gcb"], prefix))
+                    chart_txt.append(mc_gc_str(gcx, prefix, row))
+                    chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
+                if isinstance(gcx, bytes) and gcx is not NULL_SIGNATURE:
+                    chart_txt.append(mc_unknown_str(gcx, prefix, row))
+                    chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
         return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:

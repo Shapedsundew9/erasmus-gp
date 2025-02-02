@@ -148,17 +148,20 @@ class GGCMixin(EGCMixin):
         self["generation"] = gcabc.get("generation", 0)
         self["input_types"], self["inputs"] = self["graph"].itypes()
         self["lost_descendants"] = gcabc.get("lost_descendants", 0)
+        # TODO: Need to resolve the meta_data references. Too deep.
+        # Need to pull relevant data in and then destroy the meta data dictionary.
         self["meta_data"] = gcabc.get("meta_data", {})
         if (
             "function" in self["meta_data"]
             and "python3" in self["meta_data"]["function"]
             and "0" in self["meta_data"]["function"]["python3"]
         ):
-
             base = self["meta_data"]["function"]["python3"]["0"]
             if "imports" in base and not isinstance(base["imports"], tuple):
-                mds = base["imports"]
-                base["imports"] = tuple(import_def_store.add(ImportDef(**md)) for md in mds)
+                self["imports"] = tuple(
+                    import_def_store.add(ImportDef(**md)) for md in base["imports"]
+                )
+                self["inline"] = base["inline"]
         self["num_codes"] = gcabc.get("num_codes", 1)
         self["num_codons"] = gcabc.get("num_codons", 1)
         self["num_inputs"] = len(self["inputs"])

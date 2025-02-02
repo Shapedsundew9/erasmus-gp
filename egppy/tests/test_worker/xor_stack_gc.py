@@ -28,7 +28,7 @@ from egppy.gc_types.gc import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.gc_store import GGC_CACHE
-from egppy.worker.executor import node_graph, line_count, code_graph
+from egppy.worker.executor import GCNode, node_graph, line_count, ExecutionContext
 from egppy.gc_graph.interface import AnyInterface
 
 
@@ -92,7 +92,16 @@ random_long_gc = GGCDict(
 GGC_CACHE[random_long_gc["signature"]] = random_long_gc
 
 
-# Shift right by one GC
+# Shift right by one GC function. Note that this function needs to
+# be defined with the format and naming convention of the GC function
+# i.e. inputs are encapsulated in a tuple (even if there is only one)
+# and the output is a tuple (even if there is only one). The function
+# name must end in an 8 character unsigned hexadecimal value.
+def f_ffffffff(i: tuple[int]) -> tuple[int]:
+    """Shift right by one."""
+    return (i[0] >> 1,)
+
+
 rshift_1_gc = GGCDict(
     {
         "ancestora": literal_1_gc,
@@ -108,7 +117,7 @@ rshift_1_gc = GGCDict(
         "problem": ACYBERGENESIS_PROBLEM,
         "num_codons": 2,
         # Pre-defined executable. GC will not be pulled from storage.
-        "executable": lambda a: a >> 1,
+        "executable": f_ffffffff,
         "num_lines": 2,
     }
 )
@@ -243,6 +252,7 @@ if __name__ == "__main__":
     build_gene_pool()
     LINE_LIMIT_X = 3
     LINE_LIMIT_Y = 5
+    ec = ExecutionContext()
 
     # Create a markdown formated file with mermaid diagrams of the GC's in the gene pool
     # A temporary file is created in the default temp directory
@@ -258,7 +268,7 @@ if __name__ == "__main__":
         f.write(mermaid_key())
         f.write("\n\n")
         gcs = tuple(enumerate(gene_pool))
-        for idx, gc in gcs[:10] + gcs[-10:]:
+        for idx, gc in gcs[:10]:
             f.write(f"## GC #{idx}\n\n")
             f.write("### Details\n\n")
             f.write(f"- Num codons: {gc['num_codons']}\n")
@@ -270,16 +280,22 @@ if __name__ == "__main__":
             f.write("\n```\n\n")
             f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_X}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(gc, LINE_LIMIT_X)
+            ng = node_graph(ec, gc, LINE_LIMIT_X)
             line_count(ng, LINE_LIMIT_X)
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
             f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_Y}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(gc, LINE_LIMIT_Y)
+            ng = node_graph(ec, gc, LINE_LIMIT_Y)
             line_count(ng, LINE_LIMIT_Y)
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
+            f.write(f"### GC Code Connection Graphs with Line Limit = {LINE_LIMIT_Y}\n\n")
+            ntw: list[GCNode] = ng.create_code_graphs()
+            for node in ntw:
+                f.write("```mermaid\n")
+                f.write(node.code_mermaid_chart())
+                f.write("\n```\n\n")
 
     # Dump as JSON so we can take a deeper look at the GC's
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
