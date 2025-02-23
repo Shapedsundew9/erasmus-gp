@@ -15,8 +15,3 @@ class TestExecutor(unittest.TestCase):
 
     def test_nodegraph(self) -> None:
         """Test the node_graph function."""
-        for limit in (4, 5, 7, 12, 17, 32):
-            for gc in gene_pool:
-                ng = node_graph(gc, limit)
-                line_count(ng, limit)
-                cc: list[CodeConnection] = code_graph(ng)

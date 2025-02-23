@@ -115,6 +115,23 @@ def mc_connection_node_str(gcnodea: GCNode, gcnodeb: GCNode) -> str:
     return mc_connect_str(gcnodea.uid, gcnodeb.uid)
 
 
+# Mermaid Chart creation helper function
+def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str:
+    """Return a Mermaid Chart string representation of the connection between two nodes."""
+    src = connection.src
+    dst = connection.dst
+    arrow = f"-- {src.idx}:{dst.idx} -->"
+    namea = (
+        src.node.uid if src.node is not root and src.row is not SourceRow.I else src.node.uid + "I"
+    )
+    nameb = (
+        dst.node.uid
+        if dst.node is not root and dst.row is not DestinationRow.O
+        else dst.node.uid + "O"
+    )
+    return mc_connect_str(namea, nameb, arrow)
+
+
 class ExecutionContext:
     """An execution context is a virtual python namespace where GC functions are defined.
     Some additional information is also stored in the context to keep track of global
@@ -222,7 +239,14 @@ class GCNodeCodeIterator(Iterator):
     def _traverse(self, parent: GCNode) -> None:
         """Traverse the GCNode graph to the limit of the GCA nodes."""
         node = parent.gca_node
-        while not (parent.write or parent.exists) and (node is not NULL_GC_NODE):
+        root = self.stack[0]
+        # If a parent exists or is to be written then there is no need to go any further
+        # as the parent will become a single line executable in this code. The exception
+        # is if the parent is the root which by definition is being written and this code is
+        # figuring out how.
+        while (parent is root or not (parent.write or parent.exists)) and (
+            node is not NULL_GC_NODE
+        ):
             parent = node
             self.stack.append(node)
             node = node.gca_node
@@ -247,48 +271,68 @@ class GCNode(Iterable, Hashable):
     def __init__(self, ec: ExecutionContext, gc: GCABC, parent: GCNode | None) -> None:
         self.ec: ExecutionContext = ec  # The execution context for this work dictionary
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
-        if gc is not NULL_GC:
-            # It is inefficient to pull the GC's that were not present in the cache (i.e.
-            # are not GCABC objects) into the cache here as they may already have an executable
-            # and be unchanging. The solution is to check for an executable here,
-            # set GCA & GCB to NULL_GC and treat like the GC like a codon.
-            gca: GCABC | bytes = gc["gca"]
-            gcb: GCABC | bytes = gc["gcb"]
-            # True if the function already exists
-            self.exists: bool = gc["executable"] is not NULL_EXECUTABLE
-            if not self.exists:
-                # The GC may have an unknown structure but there is no existing executable
-                # Need to pull the GC sub-GC's into cache to assess it
-                if isinstance(gca, bytes):
-                    gca = GGC_CACHE[gca]
-                if isinstance(gcb, bytes):
-                    gcb = GGC_CACHE[gcb]
-            self.gca: GCABC = gca if isinstance(gca, GCABC) else NULL_GC
-            self.gcb: GCABC = gcb if isinstance(gcb, GCABC) else NULL_GC
-            self.iam: Row = SourceRow.I  # The row this GC is in the parent
-            # The parent work dictionary i.e. the GC that called this GC
-            self.parent: GCNode = parent if parent is not None else NULL_GC_NODE
-            self.assess: bool = True  # True if the number of lines has not been determined
-            # True if ready to be written (only functions are written)
-            self.write: bool = False
-            # Mark if the GC is unknown i.e. not in the cache
-            self.unknown: bool = (self.gca is NULL_GC or self.gcb is NULL_GC) and not gc.is_codon()
-            # or self.exists: True if connections cannot thread through
-            self.terminal: bool = self.write or gc.is_codon()
-            self.num_lines: int = gc["num_lines"] if self.exists else 0
-            # Set to True if the GC is conditional and row F needs a connection
-            self.f_connection = False
-            # Will be defined if gca/b is not NULL_GC referring to a work dictionary
-            self.gca_node: GCNode = NULL_GC_NODE
-            self.gcb_node: GCNode = NULL_GC_NODE
-            # Uniquely identify the node in the graph
-            self.uid = f"uid{next(self._counter):04x}"
-            # The code connection end points if this node is to be written
-            self.terminal_connections: list[CodeConnection] = []
-            # Node to be written need a unique global index in the execution context
-            # Valid indices are >= 0. If the executabel exists then the global index is set
-            # and can be retrieved from the executable name.
-            self.global_index = int(self.gc["executable"].__name__[-8:], 16) if self.exists else -1
+        if gc is NULL_GC:  # The NULL_GC_NODE
+            # Note that we do not bother to define other attributes for the NULL_GC_NODE
+            # as a handy way of flagging logic errors in the code.
+            return
+
+        # Defaults. These may be changed depending on the GC structure and what
+        # is found in the cache.
+        self.is_codon: bool = False  # Is this node for a codon?
+        self.unknown: bool = False  # Is this node for an unknown executable?
+        self.exists: bool = gc["executable"] is not NULL_EXECUTABLE
+        self.write: bool = False  # True if the node is to be written as a function
+        self.assess: bool = True  # True if the number of lines has not been determined
+        self.gca: GCABC | bytes = gc["gca"]
+        self.gcb: GCABC | bytes = gc["gcb"]
+        self.terminal: bool = False  # A terminal node is where a connection ends
+        self.num_lines: int = gc["num_lines"] if self.exists else 0  # # lines in the function
+        self.f_connection: bool = gc.is_conditional()
+        self.gca_node: GCNode = NULL_GC_NODE
+        self.gcb_node: GCNode = NULL_GC_NODE
+        # Uniquely identify the node in the graph
+        self.uid: str = f"uid{next(self._counter):04x}"
+        # The code connection end points if this node is to be written
+        self.terminal_connections: list[CodeConnection] = []
+        # Node to be written need a unique global index in the execution context
+        # Valid indices are >= 0. If the executabel exists then the global index is set
+        # and can be retrieved from the executable name.
+        self.global_index: int = int(self.gc["executable"].__name__[-8:], 16) if self.exists else -1
+
+        # Context within the GC Node graph not known from within the GC
+        if parent is None:
+            # This is the top level GC that is being analysed to create a function
+            # It has no parent.
+            self.iam = SourceRow.I
+            self.parent = NULL_GC_NODE
+        else:
+            self.iam = DestinationRow.B if parent.gcb is gc else DestinationRow.A
+            assert parent.gcb is gc or parent.gca is gc, "GC is neither GCA or GCB"
+            self.parent = parent
+
+        if gc.is_codon():
+            self.is_codon = True  # Set is_codon to True if gc indicates a codon
+            assert self.gca is NULL_GC, "GCA must be NULL_GC for a codon"
+            assert self.gcb is NULL_GC, "GCB must be NULL_GC for a codon"
+            self.assess = False  # No need to assess a codon. We know what it is.
+            self.terminal = True  # A codon is a terminal node
+            self.num_lines = 1  # A codon is a single line of code
+
+        if not self.exists and not self.is_codon:
+            # The GC may have an unknown structure but there is no existing executable
+            # Need to pull the GC sub-GC's into cache to assess it
+            if isinstance(self.gca, bytes):
+                self.gca = GGC_CACHE[self.gca]
+            if isinstance(self.gcb, bytes):
+                self.gcb = GGC_CACHE[self.gcb]
+
+        if self.exists and (isinstance(self.gca, bytes) or isinstance(self.gcb, bytes)):
+            # This is a unknown executable (treated like a codon in many respects)
+            assert not self.is_codon, "A codon cannot be an unknown executable"
+            self.terminal = True
+            self.assess = False
+            self.num_lines = 1
+            self.unknown = True
 
     def __hash__(self) -> int:
         """Return the hash of the GCNode instance."""
@@ -318,14 +362,20 @@ class GCNode(Iterable, Hashable):
             return ""
         title_txt: list[str] = [
             "---",
-            f"title: \"{gc_function_call_cstr(self)}<br>{self.gc['signature'].hex()[-8:]}\"",
+            f"title: \"{self.gc['signature'].hex()[-8:]} = {gc_function_call_cstr(self)}\"",
             "---",
         ]
         chart_txt: list[str] = []
+        if self.gc["num_inputs"] > 0:
+            chart_txt.append(f'    {self.uid}I["inputs"]')
+        if self.gc["num_outputs"] > 0:
+            chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
         for node in (tn for tn in GCNodeCodeIterable(self) if tn.terminal):
             chart_txt.append(mc_code_node_str(node))
+        for connection in self.terminal_connections:
+            chart_txt.append(mc_code_connection_node_str(connection, self))
         return "\n".join(title_txt + MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
     def create_code_graphs(self) -> list[GCNode]:
@@ -341,7 +391,7 @@ class GCNode(Iterable, Hashable):
         for node in nwcg:
             node.global_index = next(node.ec.global_index)
         assert all(
-            all(c.src.terminal and c.dest.terminal for c in gcng.terminal_connections)
+            all(c.src.terminal and c.dst.terminal for c in gcng.terminal_connections)
             for gcng in nwcg
         ), "All source connections endpoints must be terminal for a GC to be written."
         print(self)
@@ -404,9 +454,7 @@ def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
     Returns:
         GCNode: The graph root node.
     """
-    assert (
-        2 <= limit <= 2**15 - 1
-    ), f"Invalid function maximum lines limit: {limit} must be 2 <= limit <= 32767"
+    assert 2 <= limit <= 2**15 - 1, f"Invalid lines limit: {limit} must be 2 <= limit <= 32767"
 
     half_limit: int = limit // 2
     node_stack: list[GCNode] = [gc_node_graph := GCNode(ec, gc, None)]
@@ -415,18 +463,21 @@ def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
     while node_stack:
         # See [Assessing a GC for Function Creation](docs/executor.md) for more information.
         node: GCNode = node_stack.pop(0)
-        for row, xgc in (x for x in (("A", node.gca), ("B", node.gcb)) if x[1] is not NULL_GC):
+        if node.is_codon or node.unknown:
+            continue
+        child_nodes: tuple[
+            tuple[DestinationRow, GCABC | bytes], tuple[DestinationRow, GCABC | bytes]
+        ] = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
+        for row, xgc in (x for x in child_nodes):
+            assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
             gc_node_graph_entry: GCNode = GCNode(ec, xgc, node)
-            node.f_connection = xgc["graph"].is_conditional_graph()
-            if row == "A":
+            if row == DestinationRow.A:
                 node.gca_node = gc_node_graph_entry
-                gc_node_graph_entry.iam = DestinationRow.A
             else:
                 node.gcb_node = gc_node_graph_entry
-                gc_node_graph_entry.iam = DestinationRow.B
             lines = xgc["num_lines"]
             assert lines <= limit, f"Number of lines in function exceeds limit: {lines} > {limit}"
-            if xgc["executable"] is not NULL_EXECUTABLE:
+            if xgc["executable"] is not NULL_EXECUTABLE:  # A known executable
                 assert lines > 0, f"The # lines cannot be <= 0 when there is an executable: {lines}"
                 if lines < half_limit:
                     node_stack.append(gc_node_graph_entry)
@@ -440,11 +491,6 @@ def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
                     gc_node_graph_entry.num_lines = 1
             else:
                 node_stack.append(gc_node_graph_entry)
-        if node.gca is NULL_GC and node.gcb is NULL_GC:
-            # This is a leaf GC i.e. a codon
-            node.num_lines = 1
-            node.assess = False
-            node.terminal = True
     return gc_node_graph
 
 
@@ -529,19 +575,30 @@ class CodeEndPoint:
 class CodeConnection:
     """A connection between terminal end points in the GC node graph."""
 
-    def __init__(self, src: CodeEndPoint, dest: CodeEndPoint) -> None:
+    def __init__(self, src: CodeEndPoint, dst: CodeEndPoint) -> None:
         """Create a connection between code end points in the GC node graph."""
         self.src: CodeEndPoint = src
-        self.dest: CodeEndPoint = dest
+        self.dst: CodeEndPoint = dst
 
 
 def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
     """Create a list of code connections from the interface of a node."""
 
+    # Map the destination row in the node to the row in the destination node
+    match row:
+        case DestinationRow.A:
+            dst_node = node.gca_node
+            dst_row = SourceRow.I
+        case DestinationRow.B:
+            dst_node = node.gcb_node
+            dst_row = SourceRow.I
+        case _:
+            dst_node = node
+            dst_row = DestinationRow.O
     return [
         CodeConnection(
             CodeEndPoint(node, r[0].get_row(), r[0].get_idx()),
-            CodeEndPoint(node, row, i, True),
+            CodeEndPoint(dst_node, dst_row, i, True),
         )
         for i, r in enumerate(node.gc["graph"][row + "dc"])
     ]
@@ -568,23 +625,16 @@ def code_graph(function: GCNode) -> GCNode:
     if node.gca is NULL_GC and node.gcb is NULL_GC:
         return node
     connection_stack: list[CodeConnection] = code_connection_from_iface(node, DestinationRow.O)
+    terminal_connections: list[CodeConnection] = node.terminal_connections
+
+    # Make sure we are not processing the same interface more than once.
+    visited_nodes: set[GCNode] = {node}
 
     # Work through the connections until they all have terminal sources and destinations
     while connection_stack:
         connection: CodeConnection = connection_stack[-1]
         src: CodeEndPoint = connection.src
         node: GCNode = src.node
-        terminal_connections: list[CodeConnection] = node.terminal_connections
-
-        # If this node is conditional a connection to row F must be made
-        if node.f_connection:
-            node.f_connection = False
-            connection_stack.append(
-                CodeConnection(
-                    CodeEndPoint(node, SourceRow.I, node.gc["graph"]["Fdc"][0].get_idx()),
-                    CodeEndPoint(node, DestinationRow.F, 0, True),
-                )
-            )
 
         # If the source is not terminal then find what it is connected to
         if not src.terminal:
@@ -604,6 +654,8 @@ def code_graph(function: GCNode) -> GCNode:
                     if parent is not NULL_GC_NODE:
                         src.node = parent
                         src.terminal = parent.terminal
+                        # In the case where a GC is written in more than one function i.e. sub-GC
+                        # functions need to be created, a parent node may be terminal
                         refs = src.node.gc["graph"][node.iam + "dc"]
                     else:
                         refs = []
@@ -616,20 +668,28 @@ def code_graph(function: GCNode) -> GCNode:
                 ref: XEndPointRefABC = refs[src.idx][0]
                 src.row = ref.get_row()
                 src.idx = ref.get_idx()
+            else:
+                # If the source is terminal then add its destination interface within the node
+                # to the connection stack if it has not already been added (visited).
+                # node.iam tells us which row defines the interface within the node.
+                assert connection.dst.terminal, "Destination must be terminal."
+                terminal_connections.append(connection)
+                connection_stack.pop()
+                if src.node not in visited_nodes:
+                    visited_nodes.add(src.node)
+                    connection_stack.extend(code_connection_from_iface(node, src.node.iam))
         else:
-            # If the source is terminal then we are only done if the parent node does not exist
-            # i.e. the root of the graph. If the parent node exists then we need to find the
-            # input interface and make sure that is connected.
-            # node.iam tells us which row defines the interface.
-            parent: GCNode = node.parent
-            if parent is not NULL_GC_NODE:
-                connection_stack.extend(code_connection_from_iface(parent, node.iam))
+            assert False, "Source must not be terminal."
 
-        # Is this connection completed?
-        if src.terminal:
-            assert connection.dest.terminal, "Destination must be terminal."
-            terminal_connections.append(connection)
-            connection_stack.pop()
+        # If this node is conditional a connection to row F must be made
+        if node.f_connection:
+            node.f_connection = False
+            connection_stack.append(
+                CodeConnection(
+                    CodeEndPoint(node, SourceRow.I, node.gc["graph"]["Fdc"][0].get_idx()),
+                    CodeEndPoint(node, DestinationRow.F, 0, True),
+                )
+            )
 
     # Return the original node with the connections made
     return function

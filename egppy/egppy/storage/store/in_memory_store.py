@@ -15,7 +15,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class InMemoryStore(dict, StoreBase, StoreABC):
+class InMemoryStore(dict, StoreBase, StoreABC):  # type: ignore
     """An in memory store class that can be used for testing."""
 
     def __init__(self, flavor: type[StorableObjABC]) -> None:

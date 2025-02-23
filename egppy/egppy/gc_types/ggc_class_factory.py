@@ -6,16 +6,17 @@ for simplicity. The UGC allows any values to be stored in the genetic code objec
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
 
+from curses.ascii import EM
 from datetime import UTC, datetime
 from math import isclose
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, GGC_KVT, PROPERTIES
-from egpcommon.conversions import encode_properties
+from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_TUPLE, NULL_STR
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_types.egc_class_factory import EGCMixin
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
+from egppy.gc_types.properties import PropertiesBD
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
@@ -146,6 +147,8 @@ class GGCMixin(EGCMixin):
         self["f_total"] = gcabc.get("f_total", self["_f_total"])
         self["fitness"] = self["f_total"] / self["f_count"]
         self["generation"] = gcabc.get("generation", 0)
+        self["imports"] = NULL_TUPLE
+        self["inline"] = NULL_STR
         self["input_types"], self["inputs"] = self["graph"].itypes()
         self["lost_descendants"] = gcabc.get("lost_descendants", 0)
         # TODO: Need to resolve the meta_data references. Too deep.
@@ -175,8 +178,8 @@ class GGCMixin(EGCMixin):
         tmp = gcabc.get("problem_set") if gcabc.get("problem_set") is not None else NULL_PROBLEM_SET
         assert not isinstance(tmp, (bytearray, memoryview)) and tmp is not None
         self["problem_set"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
-        tmp = gcabc.get("properties", 0)
-        self["properties"] = tmp if isinstance(tmp, int) else encode_properties(tmp)
+        props = gcabc.get("properties", 0)
+        self["properties"] = props if isinstance(props, int) else PropertiesBD(props).to_int()
         self["reference_count"] = gcabc.get("reference_count", 0)
         assert (
             self["signature"] is NULL_SIGNATURE if self["signature"] == NULL_SIGNATURE else True
@@ -350,9 +353,6 @@ class GGCMixin(EGCMixin):
         # The properties of the genetic code.
         assert self["properties"] >= -(2**63), "properties must be greater than or equal to -2**63."
         assert self["properties"] <= 2**63 - 1, "properties must be less than or equal to 2**63-1."
-        assert not (
-            ~sum(PROPERTIES.values()) & self["properties"]
-        ), "Reserved property bits are set."
 
         # The reference count of the genetic code.
         assert (
@@ -374,7 +374,7 @@ class GGCMixin(EGCMixin):
         assert self["updated"].tzinfo == UTC, "Updated must be in the UTC time zone."
 
 
-class GGCDirtyDict(GGCMixin, CacheableDirtyDict, GCABC):
+class GGCDirtyDict(GGCMixin, CacheableDirtyDict, GCABC):  # type: ignore
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
@@ -396,7 +396,7 @@ class GGCDirtyDict(GGCMixin, CacheableDirtyDict, GCABC):
         GGCMixin.verify(self)
 
 
-class GGCDict(GGCMixin, CacheableDict, GCABC):
+class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:

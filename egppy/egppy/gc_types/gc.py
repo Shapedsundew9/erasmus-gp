@@ -9,12 +9,12 @@ from itertools import count
 from typing import Any, Iterator
 
 from egpcommon.common import NULL_SHA256, sha256_signature
-from egpcommon.conversions import decode_properties
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.typing import Row, SourceRow
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.gc_graph.interface import interface
+from egppy.gc_types.properties import PropertiesBD, GraphType
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -25,7 +25,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# GC signatre None type management
+# GC signature None type management
 # It is space efficient to have None types in the DB for signatures but not in the cache.
 # In the GPC a None type is represented by a 0 SHA256
 NULL_SIGNATURE: bytes = NULL_SHA256
@@ -168,6 +168,21 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_codon must be overridden")
 
     @abstractmethod
+    def is_conditional(self) -> bool:
+        """Return True if the genetic code is conditional."""
+        raise NotImplementedError("GCABC.is_conditional must be overridden")
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """Return True if the genetic code graph type is 'empty'."""
+        raise NotImplementedError("GCABC.is_empty must be overridden")
+
+    @abstractmethod
+    def is_standard(self) -> bool:
+        """Return True if the genetic code graph type is 'standard'."""
+        raise NotImplementedError("GCABC.is_standard must be overridden")
+
+    @abstractmethod
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
@@ -204,7 +219,40 @@ class GCMixin:
     def is_codon(self) -> bool:
         """Return True if the genetic code is a codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
+        assert (
+            self["pgc"] is NULL_GC
+            and PropertiesBD(self["properties"])["graph_type"] == GraphType.CODON
+            and self["gca"] is NULL_GC
+            and self["gcb"] is NULL_GC
+            and self["ancestora"] is NULL_GC
+            and self["ancestorb"] is NULL_GC
+        ) or (
+            PropertiesBD(self["properties"])["graph_type"] != GraphType.CODON
+        ), "Codon inconsistent!"
         return self["pgc"] is NULL_GC
+
+    def is_conditional(self) -> bool:
+        """Return True if the genetic code is conditional."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        assert (
+            (
+                PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
+                and self["graph"].is_conditional()
+            )
+            or PropertiesBD(self["properties"])["graph_type"] != GraphType.CONDITIONAL
+            and not self["graph"].is_conditional_graph()
+        ), "Conditional inconsistent!"
+        return PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
+
+    def is_empty(self) -> bool:
+        """Return True if the genetic code graph type is 'empty'."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        return PropertiesBD(self["properties"])["graph_type"] == GraphType.EMPTY
+
+    def is_standard(self) -> bool:
+        """Return True if the genetic code graph type is 'standard'."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        return PropertiesBD(self["properties"])["graph_type"] == GraphType.STANDARD
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
@@ -318,9 +366,7 @@ class GCMixin:
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         for key in (included for included in self if included not in EXCLUDED_KEYS):
             value = self[key]
-            if key == "properties":
-                retval[key] = decode_properties(value)
-            elif key == "meta_data":
+            if key == "meta_data":
                 md = deepcopy(value)
                 if (
                     "function" in md
@@ -353,7 +399,7 @@ class GCMixin:
         return retval
 
 
-class NullGC(CacheableDirtyDict, GCMixin, GCABC):
+class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
     """Genetic Code Protocol."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
@@ -367,6 +413,10 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):
         raise RuntimeError("Cannot modify a NullGC")
 
     def __setitem__(self, key: str, value: Any) -> None:
+        """Cannot modifiy a NullGC."""
+        raise RuntimeError("Cannot modify a NullGC")
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
         """Cannot modifiy a NullGC."""
         raise RuntimeError("Cannot modify a NullGC")
 

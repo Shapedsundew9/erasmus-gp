@@ -36,6 +36,8 @@ class ObjectSet(Collection, CommonObjMixin, CommonObjABC):
 
     def __init__(self, name) -> None:
         """Initialize a ObjectSet object."""
+        # NOTE: Considered using a WeakRefValueDictionary to store the objects, but
+        # cannot because not all objects can be weakly referenced i.e. tuples
         self._objects: dict = {}
         self._dupes = 0
         self.name = name

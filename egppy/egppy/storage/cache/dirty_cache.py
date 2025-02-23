@@ -21,11 +21,13 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 _KEY: Callable[[tuple[Any, int]], int] = lambda x: x[1]
 
 
-class DirtyDictCache(dict[Hashable, CacheableObjABC], CacheBase, CacheMixin, CacheABC):
+class DirtyDictCache(  # type: ignore
+    dict[Hashable, CacheableObjABC], CacheBase, CacheMixin, CacheABC
+):
     """An builtin python dictionary based dirty cache.
 
     Cache is a bit of a misnomer. A DirtyDictCache is a "one-way cache", like a temporary
-    store with some convinient configuration to push data to the next level. It cannot
+    store with some convenient configuration to push data to the next level. It cannot
     pull data from the next level.
     In order to use all the optimized builtin dict methods, a DirtyDictCache
     does not track access order or dirty state, it cannot support automatic

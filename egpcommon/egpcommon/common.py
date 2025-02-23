@@ -26,17 +26,7 @@ NULL_SHA256: bytes = b"\x00" * 32
 NULL_SHA256_STR = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
 NULL_TUPLE = tuple()
-
-
-# PROPERTIES must define the bit position of all the properties listed in
-# the "properties" field of the entry_format.json definition.
-PROPERTIES: dict[str, int] = {
-    "constant": 1 << 0,
-    "deterministic": 1 << 1,
-    "simplification": 1 << 2,
-    "literal": 1 << 3,
-    "abstract": 1 << 4,
-}
+NULL_STR = ""
 
 
 # GC Fields with Postgres definitions
@@ -49,7 +39,7 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     "pgc": {"db_type": "BYTEA", "nullable": True},
     "signature": {"db_type": "BYTEA", "nullable": False},
     "num_lines": {},  # Not persisted in the database but needed for execution
-    "executable": {}  # Not persisted in the database but needed for execution
+    "executable": {},  # Not persisted in the database but needed for execution
 }
 GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_e_count": {"db_type": "INT", "nullable": False},
@@ -71,6 +61,8 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "f_total": {"db_type": "FLOAT", "nullable": False},
     "fitness": {"db_type": "FLOAT", "nullable": False},
     "generation": {"db_type": "BIGINT", "nullable": False},
+    "imports": {},  # Not persisted in the database but needed for execution
+    "inline": {},  # Not persisted in the database but needed for execution
     "input_types": {"db_type": "SMALLINT[]", "nullable": False},
     "inputs": {"db_type": "BYTEA", "nullable": False},
     "lost_descendants": {"db_type": "BIGINT", "nullable": False},
@@ -175,7 +167,7 @@ def sha256_signature(
     hash_obj.update(gcb)
     hash_obj.update(pformat(graph, compact=True).encode())
     if meta_data is not None and "function" in meta_data:
-        definition =  meta_data["function"]["python3"]["0"]
+        definition = meta_data["function"]["python3"]["0"]
         hash_obj.update(definition["inline"].encode())
         if "code" in definition:
             hash_obj.update(definition["code"].encode())

@@ -1,7 +1,7 @@
 """Common Erasmus GP Types."""
 
 from enum import IntEnum, StrEnum
-from typing import TypedDict, TypeGuard  # pylint: disable=import-self
+from typing import TypedDict  # pylint: disable=import-self
 
 from egpcommon.common import NULL_TUPLE
 
@@ -138,19 +138,6 @@ class EndPointTypeLookupFile(TypedDict):
     n2v: dict[str, int]
     v2n: dict[str, str]
     instanciation: dict[str, list[str | bool | None]]
-
-
-def isInstanciationValue(
-    obj,
-) -> TypeGuard[tuple[str | None, str | None, str | None, str | None, bool, str]]:
-    """Is obj an instance of an instanciation definition."""
-    if not isinstance(obj, (tuple, list)):
-        return False
-    if not len(obj) == 6:
-        return False
-    if not all((isinstance(element, str) or element is None for element in obj[:4])):
-        return False
-    return isinstance(obj[4], bool) and isinstance(obj[5], str)
 
 
 InstanciationType = tuple[str | None, str | None, str | None, str | None, bool, str]

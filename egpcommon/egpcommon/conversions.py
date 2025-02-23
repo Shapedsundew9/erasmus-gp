@@ -12,7 +12,7 @@ from zlib import compress, decompress
 from numpy import frombuffer, ndarray, uint8
 from numpy.typing import NDArray
 
-from egpcommon.common import NULL_SHA256, PROPERTIES
+from egpcommon.common import NULL_SHA256
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -122,57 +122,6 @@ def ndarray_to_bytes(obj: NDArray | bytes | None) -> bytes | None:
     if isinstance(obj, bytes) or obj is None:
         return obj
     assert False, "Un-encodeable type"
-
-
-def encode_properties(obj: dict[str, bool] | int | None) -> int:
-    """Encode the properties dictionary into its integer representation.
-
-    The properties field is a dictionary of properties to boolean values. Each
-    property maps to a specific bit of a 64 bit value as defined
-    by the _PROPERTIES dictionary.
-
-    Args
-    ----
-    obj(dict): Properties dictionary.
-
-    Returns
-    -------
-    (int): Integer representation of the properties dictionary.
-    """
-    if isinstance(obj, dict):
-        bitfield: int = 0
-        for k in (x[0] for x in obj.items() if x[1]):
-            bitfield |= PROPERTIES[k]
-        return bitfield
-    if isinstance(obj, int):
-        return obj
-    if obj is None:
-        return 0
-    raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or integer type.")
-
-
-def decode_properties(obj: int | dict[str, bool] | None) -> dict[str, bool]:
-    """Decode the properties dictionary from its integer representation.
-
-    The properties field is a dictionary of properties to boolean values. Each
-    property maps to a specific bit of a 64 bit value as defined
-    by the _PROPERTIES dictionary.
-
-    Args
-    ----
-    obj(int): Integer representation of the properties dictionary.
-
-    Returns
-    -------
-    (dict): Properties dictionary.
-    """
-    if isinstance(obj, dict):
-        return obj
-    if isinstance(obj, int):
-        return {b: bool(f & obj) for b, f in PROPERTIES.items()}
-    if obj is None:
-        return {b: False for b, f in PROPERTIES.items()}
-    raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or integer type.")
 
 
 def list_int_to_bytes(obj: list[int] | None) -> bytes | None:

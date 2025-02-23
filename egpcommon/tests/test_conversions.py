@@ -5,13 +5,11 @@ import unittest
 from numpy import array, uint8
 from numpy.testing import assert_array_equal
 
-from egpcommon.common import NULL_SHA256, PROPERTIES
+from egpcommon.common import NULL_SHA256
 from egpcommon.conversions import (
     bytes_to_list_int,
     compress_json,
-    decode_properties,
     decompress_json,
-    encode_properties,
     list_int_to_bytes,
     memoryview_to_bytes,
     memoryview_to_ndarray,
@@ -93,36 +91,6 @@ class TestConversions(unittest.TestCase):
         b = b"test"
         result = ndarray_to_bytes(b)
         self.assertEqual(result, b)
-
-    def test_encode_properties(self):
-        """Test the encode_properties function."""
-        properties_dict = {key: True for key in PROPERTIES}
-        encoded = encode_properties(properties_dict)
-        self.assertIsInstance(encoded, int)
-
-        self.assertEqual(encode_properties(None), 0)
-
-        with self.assertRaises(TypeError):
-            encode_properties("string")  # type: ignore
-
-        encoded = encode_properties(12345)
-        self.assertIsInstance(encoded, int)
-        self.assertEqual(encoded, 12345)
-
-    def test_decode_properties(self):
-        """Test the decode_properties function."""
-        properties_dict = {key: True for key in PROPERTIES}
-        encoded = encode_properties(properties_dict)
-        decoded = decode_properties(encoded)
-        self.assertEqual(decoded, properties_dict)
-
-        self.assertEqual(decode_properties(None), {key: False for key in PROPERTIES})
-
-        with self.assertRaises(TypeError):
-            decode_properties("string")  # type: ignore
-
-        decoded = decode_properties(properties_dict)
-        self.assertEqual(decoded, properties_dict)
 
     def test_list_int_to_bytes(self):
         """Test the list_int_to_bytes function."""

@@ -142,7 +142,7 @@ class EGCMixin(GCMixin):
                 self[key].verify()
 
 
-class EGCDirtyDict(EGCMixin, CacheableDirtyDict, GCABC):
+class EGCDirtyDict(EGCMixin, CacheableDirtyDict, GCABC):  # type: ignore
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
@@ -174,7 +174,7 @@ class EGCDirtyDict(EGCMixin, CacheableDirtyDict, GCABC):
         EGCMixin.verify(self)
 
 
-class EGCDict(EGCMixin, CacheableDict, GCABC):
+class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:

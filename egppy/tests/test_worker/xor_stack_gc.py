@@ -18,7 +18,7 @@ deterministic with a seed and require correct order execution to produce the cor
 """
 
 from json import dump
-from random import choice, random, randrange, seed, shuffle
+from random import choice, randint, random, randrange, seed, shuffle
 import tempfile
 from collections import Counter
 
@@ -86,7 +86,8 @@ random_long_gc = GGCDict(
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "num_codons": 2,
+        "properties": 3,
+        "num_codons": sixtyfour_gc["num_codons"] + getrandbits_gc["num_codons"],
     }
 )
 GGC_CACHE[random_long_gc["signature"]] = random_long_gc
@@ -115,7 +116,8 @@ rshift_1_gc = GGCDict(
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "num_codons": 2,
+        "properties": 3,
+        "num_codons": literal_1_gc["num_codons"] + rshift_gc["num_codons"],
         # Pre-defined executable. GC will not be pulled from storage.
         "executable": f_ffffffff,
         "num_lines": 2,
@@ -137,14 +139,164 @@ rshift_xor_gc = GGCDict(
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "num_codons": 3,
+        "properties": 3,
+        "num_codons": rshift_1_gc["num_codons"] + xor_gc["num_codons"],
     }
 )
 GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
 
 
-# Initialize the gene pool wiht the building blocks
-gene_pool: list[GCABC] = [rshift_xor_gc, random_long_gc]
+one_to_two = GGCDict(
+    {
+        "ancestora": random_long_gc,
+        "ancestorb": rshift_xor_gc,
+        "gca": random_long_gc,
+        "gcb": rshift_xor_gc,
+        "graph": {
+            "A": [],
+            "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
+            "O": [["B", 0, ["int"]], ["A", 0, ["int"]]],
+        },
+        "pgc": custom_pgc,
+        "problem": ACYBERGENESIS_PROBLEM,
+        "properties": 3,
+        "num_codons": random_long_gc["num_codons"] + rshift_xor_gc["num_codons"],
+    }
+)
+GGC_CACHE[one_to_two["signature"]] = one_to_two
+two_to_one = rshift_xor_gc
+
+
+def randomrange(a: int) -> list[int]:
+    """Return a randomly ordered range between a and b."""
+    rr = list(range(a))
+    shuffle(rr)
+    return rr
+
+
+def expand_gc_outputs(gc: GCABC) -> GCABC:
+    """Expand the GC.
+
+    Create a new GC where GCA and GCB = gc.
+    The inputs to the new GC are the same as the inputs to gc and
+    are connected directly to the inputs of GCA & GCB. The outputs
+    of the new GC are the concatenation of the outputs of GCA & GCB.
+    """
+    gca: GCABC = gc
+    gcb: GCABC = gc
+    return GGCDict(
+        {
+            "ancestora": gca,
+            "ancestorb": gcb,
+            "gca": gca,
+            "gcb": gcb,
+            "graph": {
+                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
+                "B": [["I", i, INT_T] for i in randomrange(gcb["num_inputs"])],
+                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
+                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": 3,
+            "num_codons": gca["num_codons"] + gcb["num_codons"],
+        }
+    )
+
+
+def expand_gc_inputs(gc: GCABC) -> GCABC:
+    """Expand the GC.
+
+    Create a new GC where GCA and GCB = gc.
+    The inputs to the new GC are the concatenation of the inputs to gc.
+    The outputs of the new GC are the concatenation of the outputs GCA & GCB.
+
+    NOTE: It is assumed gc has less outputs than inputs.
+    """
+    assert gc["num_outputs"] < gc["num_inputs"], "gc >= # outputs than # inputs"
+    gca: GCABC = gc
+    gcb: GCABC = gc
+    return GGCDict(
+        {
+            "ancestora": gca,
+            "ancestorb": gcb,
+            "gca": gca,
+            "gcb": gcb,
+            "graph": {
+                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
+                "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
+                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
+                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": 3,
+            "num_codons": gca["num_codons"] + gcb["num_codons"],
+        }
+    )
+
+
+def diamond_gc(gca: GCABC, gcb: GCABC) -> GCABC:
+    """Mesh two GC's together to form a diamond graph shape.
+
+    Create a new GC where GCA = gca and GCB = gcb.
+    The inputs to the new GC are those of GCA.
+    The outputs of the new GC are those of GCB.
+    It is assumed that GCA has the same number of outputs as GCB has inputs.
+    GCA's outputs are randomly connected to GCB's inputs.
+    """
+    assert gca["num_outputs"] == gcb["num_inputs"], "gca # outputs != gcb # inputs"
+    return GGCDict(
+        {
+            "ancestora": gca,
+            "ancestorb": gcb,
+            "gca": gca,
+            "gcb": gcb,
+            "graph": {
+                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
+                "B": [["A", i, INT_T] for i in randomrange(gcb["num_inputs"])],
+                "O": [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": 3,
+            "num_codons": gca["num_codons"] + gcb["num_codons"],
+        }
+    )
+
+
+def input_expansion_list(gc: GCABC) -> list[GCABC]:
+    """Return a list of GC's that are expansions of gc inputs"""
+    a: GCABC = gc
+    expansion_list: list[GCABC] = []
+    for _ in range(8):
+        if a["num_inputs"] <= 128:
+            a = expand_gc_inputs(a)
+            expansion_list.append(a)
+        else:
+            break
+    return expansion_list
+
+
+def output_expansion_list(gc: GCABC) -> list[GCABC]:
+    """Return a list of GC's that are expansions of gc outputs"""
+    a: GCABC = gc
+    expansion_list: list[GCABC] = []
+    for _ in range(8):
+        if a["num_outputs"] <= 128:
+            a = expand_gc_outputs(a)
+            expansion_list.append(a)
+        else:
+            break
+    return expansion_list
+
+
+diamond_sets = {
+    1: diamond_set(one_to_two, two_to_one),
+}
+
+# Initialize the gene pool with the building blocks
+gene_pool: list[GCABC] = [one_to_two, two_to_one]
 
 
 def glue(gca: GCABC, gcb: GCABC) -> GCABC:
@@ -162,7 +314,7 @@ def glue(gca: GCABC, gcb: GCABC) -> GCABC:
     # 1
     bdface: AnyInterface = gcb["graph"]["Is"]
     adface: AnyInterface = gca["graph"]["Is"]
-    numbi = int(random() / 2.0 * len(bdface))
+    numbi = max(int(random() / 2.0 * len(bdface)), 1)
     numai = len(adface)
     iface = [["I", i, INT_T] for i in range(numbi + numai)]
 
@@ -222,12 +374,13 @@ def glue(gca: GCABC, gcb: GCABC) -> GCABC:
             },
             "pgc": xor_gc["signature"],
             "problem": ACYBERGENESIS_PROBLEM,
+            "properties": 3,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
         }
     )
 
 
-def build_gene_pool(max_num: int = 1024, limit: int = 256, _seed=42) -> None:
+def build_gene_pool(max_num: int = 1024, limit: int = 256, _seed=1) -> None:
     """Randomly generate a pool of genetic codes based on
     the 64 bit random int GC and the XOR codon. A maximum
     of 1024 new GC's will be created or as many as possible
@@ -236,22 +389,29 @@ def build_gene_pool(max_num: int = 1024, limit: int = 256, _seed=42) -> None:
     seed(_seed)
     max_io_len = 0
     num = 2
+    xor_only = [xor_gc]
     while num < max_num and max_io_len < limit:
-        gca: GCABC = choice(gene_pool) if random() < 0.75 else choice((xor_gc, random_long_gc))
-        gcb: GCABC = choice(gene_pool)
+        if num > 10:
+            gca: GCABC = choice(gene_pool) if random() < 0.75 else choice((xor_gc, random_long_gc))
+            gcb: GCABC = choice(gene_pool)
+        else:
+            gca: GCABC = choice(xor_only)
+            gcb: GCABC = choice(xor_only)
         gca, gcb = (gca, gcb) if random() < 0.5 else (gcb, gca)
         new_gc = glue(gca, gcb)
         if not new_gc["signature"] in GGC_CACHE:
             gene_pool.append(new_gc)
-            GGC_CACHE[gene_pool[-1]["signature"]] = gene_pool[-1]
+            GGC_CACHE[gene_pool[-1]["signature"]] = new_gc
+            if num <= 10:
+                xor_only.append(new_gc)
             num = len(gene_pool)
-            max_io_len = max(gene_pool[-1]["num_inputs"], gene_pool[-1]["num_outputs"])
+            max_io_len = max(new_gc["num_inputs"], new_gc["num_outputs"])
 
 
 if __name__ == "__main__":
     build_gene_pool()
     LINE_LIMIT_X = 3
-    LINE_LIMIT_Y = 5
+    LINE_LIMIT_Y = 50
     ec = ExecutionContext()
 
     # Create a markdown formated file with mermaid diagrams of the GC's in the gene pool
@@ -268,25 +428,25 @@ if __name__ == "__main__":
         f.write(mermaid_key())
         f.write("\n\n")
         gcs = tuple(enumerate(gene_pool))
-        for idx, gc in gcs[:10]:
+        for idx, gpgc in gcs[:20]:
             f.write(f"## GC #{idx}\n\n")
             f.write("### Details\n\n")
-            f.write(f"- Num codons: {gc['num_codons']}\n")
-            f.write(f"- Binary signature: {gc['signature']}\n")
-            f.write(f"- Hex signature: {gc['signature'].hex()}\n\n")
+            f.write(f"- Num codons: {gpgc['num_codons']}\n")
+            f.write(f"- Binary signature: {gpgc['signature']}\n")
+            f.write(f"- Hex signature: {gpgc['signature'].hex()}\n\n")
             f.write("### Logical Structure\n\n")
             f.write("```mermaid\n")
-            f.write(gc.logical_mermaid_chart())
+            f.write(gpgc.logical_mermaid_chart())
             f.write("\n```\n\n")
             f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_X}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(ec, gc, LINE_LIMIT_X)
+            ng = node_graph(ec, gpgc, LINE_LIMIT_X)
             line_count(ng, LINE_LIMIT_X)
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
             f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_Y}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(ec, gc, LINE_LIMIT_Y)
+            ng = node_graph(ec, gpgc, LINE_LIMIT_Y)
             line_count(ng, LINE_LIMIT_Y)
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
