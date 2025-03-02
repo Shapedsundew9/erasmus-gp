@@ -5,7 +5,7 @@ from pprint import pformat
 from typing import Any
 from unittest import TestCase
 
-from egpcommon.common import NULL_SHA256, sha256_signature
+from egpcommon.common import NULL_SHA256, sha256_signature, bin_counts
 
 
 class TestCommon(TestCase):
@@ -106,3 +106,72 @@ class TestCommon(TestCase):
         )
         signature1: bytes = hash_obj.digest()
         self.assertNotEqual(signature, signature1)
+
+    def test_bin_counts(self) -> None:
+        """Test the bin_counts function."""
+        # Test with empty data
+        self.assertEqual(bin_counts([]), [])
+
+        # Test with single element data
+        self.assertEqual(bin_counts([5]), [1])
+
+        # Test with multiple elements in the same bin
+        self.assertEqual(bin_counts([1, 2, 3, 4, 5]), [5])
+
+        # Test with elements in different bins
+        self.assertEqual(bin_counts([1, 11, 21, 31, 41]), [1, 1, 1, 1, 1])
+
+        # Test with elements in different bins and custom bin width
+        self.assertEqual(bin_counts([1, 11, 21, 31, 41], bin_width=20), [2, 2, 1])
+
+        # Test with elements in different bins and custom bin width
+        self.assertEqual(bin_counts([1, 11, 21, 31, 41], bin_width=10), [1, 1, 1, 1, 1])
+
+        # Test with elements in different bins and custom bin width
+        self.assertEqual(
+            bin_counts([1, 11, 21, 31, 41], bin_width=1),
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+            ],
+        )

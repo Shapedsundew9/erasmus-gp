@@ -11,6 +11,7 @@ from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
+from egppy.gc_graph.typing import Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -62,3 +63,8 @@ class ConnectionsABC(MutableSequence, CommonObjABC):
     def has_unconnected_eps(self) -> bool:
         """Check if there are any unconnected endpoints."""
         raise NotImplementedError("Connections.has_unconnected_eps must be overridden")
+
+    @abstractmethod
+    def row_in(self, row: Row):
+        """Check if a row is in the connections."""
+        raise NotImplementedError("Connections.row_in must be overridden")

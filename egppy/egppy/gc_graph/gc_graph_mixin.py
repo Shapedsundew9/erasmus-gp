@@ -91,22 +91,16 @@ class GCGraphMixin(CacheableObjMixin):
             assert self.to_json() == gc_graph, "JSON GC Graph consistency failure."
         super().__init__()
 
-    def __getitem__(self, key: str) -> Any:
-        """Get the endpoint with the given key."""
-        raise NotImplementedError("GCGraphMixin.__getitem__ must be overridden")
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set the endpoint with the given key."""
-        raise NotImplementedError("GCGraphMixin.__setitem__ must be overridden")
-
     def _init_from_gc_graph(self, gc_graph: GCGraphABC | GCGraphDict) -> None:
         """Initialize from a GCGraphABC or empty dictionary."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for key in ROW_CLS_INDEXED:
             self[key] = gc_graph.get(key, EMPTY_INTERFACE)
             self[key + "c"] = gc_graph.get(key + "c", EMPTY_CONNECTIONS)
 
     def _init_from_dict(self, gc_graph: GCGraphDict) -> None:
         """Initialize from a dictionary with keys and values like a GCGraphABC."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         rtype = self._TC.get_ref_iterable_type()
         for key in ROW_CLS_INDEXED:
             ckey = key + "c"
@@ -148,6 +142,7 @@ class GCGraphMixin(CacheableObjMixin):
     ) -> None:
         """Process a row in the JSON GC graph."""
         # Some sanity to start with
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         if not isinstance(jeps, list):
             raise ValueError(f"Invalid row in JSON GC Graph. Expected a list but got: {type(jeps)}")
         if not all(isinstance(jep, list) for jep in jeps):
@@ -194,6 +189,7 @@ class GCGraphMixin(CacheableObjMixin):
         src_if_typs: dict[SourceRow, set[tuple[int, EndPointType]]],
     ) -> None:
         """Collect references to the source interfaces."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for jep in jeps:
             src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], end_point_type(jep[CPI.TYP])))
 
@@ -201,6 +197,7 @@ class GCGraphMixin(CacheableObjMixin):
         self, src_if_typs: dict[SourceRow, set[tuple[int, EndPointType]]]
     ) -> None:
         """Create source interfaces from collected references."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for row, sif in src_if_typs.items():
             self[row + EPClsPostfix.SRC] = self._TI(t for _, t in sorted(sif, key=skey))
 
@@ -208,6 +205,7 @@ class GCGraphMixin(CacheableObjMixin):
         self, src_if_refs: dict[SourceRow, dict[int, list[DstEndPointRef]]]
     ) -> None:
         """Add references to the destinations from the sources."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for row, idx_refs in src_if_refs.items():
             src_refs = [self._TC.get_ref_iterable_type()()] * len(self[row + EPClsPostfix.SRC])
             for idx, refs in idx_refs.items():
@@ -236,6 +234,7 @@ class GCGraphMixin(CacheableObjMixin):
 
     def __eq__(self, other: object) -> bool:
         """Check if two objects are equal."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         if not isinstance(other, GCGraphABC):
             return False
         for key in ROW_CLS_INDEXED:
@@ -248,6 +247,7 @@ class GCGraphMixin(CacheableObjMixin):
 
     def __iter__(self) -> Generator[EndPoint, None, None]:
         """Return an iterator over the GC graph end points."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for key in self.epkeys():
             yield self[key]
 
@@ -257,6 +257,7 @@ class GCGraphMixin(CacheableObjMixin):
 
     def check_required_connections(self) -> list[tuple[SourceRow, DestinationRow]]:
         """Return a list of required connections that are missing."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         retval = []
         if self.is_codon_or_empty():
             return retval
@@ -296,6 +297,7 @@ class GCGraphMixin(CacheableObjMixin):
 
     def consistency(self) -> None:
         """Check the consistency of the GC graph."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
 
         if self.is_conditional_graph():
             fdi: AnyInterface = self[DestinationRow.F + EPClsPostfix.DST]
@@ -367,12 +369,14 @@ class GCGraphMixin(CacheableObjMixin):
 
     def epkeys(self) -> Generator[str, None, None]:
         """Return an iterator over the GC graph endpoint keys."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for key in self.ikeys():
             for idx in range(len(self[key])):
                 yield f"{key[0]}{idx:03d}{key[1]}"
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get the endpoint with the given key."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         try:
             return self[key]
         except KeyError:
@@ -380,19 +384,23 @@ class GCGraphMixin(CacheableObjMixin):
 
     def ikeys(self) -> Generator[str, None, None]:
         """Return an iterator over the GC graph interface keys."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         for key in (r for r in ROW_CLS_INDEXED if r in self):
             yield key
 
     def is_codon_or_empty(self) -> bool:
         """Return True if the graph is a codon or empty."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         return DestinationRow.A not in self
 
     def is_conditional_graph(self) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         return DestinationRow.F in self
 
     def is_hardened_graph(self) -> bool:
         """Check if the graph is a hardened graph."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         return (
             DestinationRow.F not in self
             and DestinationRow.A in self
@@ -401,28 +409,33 @@ class GCGraphMixin(CacheableObjMixin):
 
     def is_standard_graph(self) -> bool:
         """Return True if the graph is a standard graph."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         return (
             DestinationRow.F not in self and DestinationRow.A in self and DestinationRow.B in self
         )
 
     def itypes(self) -> tuple[tuple[tuple[int, ...], ...], bytes]:
         """Return the input types and input row indices into them."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         ikey = SourceRow.I + EPClsPostfix.SRC
         return interface_to_types_idx(self.get(ikey, EMPTY_INTERFACE))
 
     def otypes(self) -> tuple[tuple[tuple[int, ...], ...], bytes]:
         """Return the output types and output row indices into them."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         okey = DestinationRow.O + EPClsPostfix.DST
         return interface_to_types_idx(self.get(okey, EMPTY_INTERFACE))
 
     def setdefault(self, key: str, default: Any) -> Any:
         """Set the endpoint with the given key to the default if it does not exist."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         if key not in self:
             self[key] = default
         return self[key]
 
     def to_json(self) -> dict[str, Any]:
         """Return a JSON GC Graph."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         jgcg: dict[str, list[list[Any]]] = {}
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST and k in self):
             iface: AnyInterface = self[key]
@@ -449,11 +462,13 @@ class GCGraphMixin(CacheableObjMixin):
 
     def valid_srcs(self, row: DestinationRow, typ: EndPointType) -> list[tuple[SourceRow, int]]:
         """Return a list of valid source row endpoint indexes."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         srows = VALID_ROW_SOURCES[DestinationRow.F in self][row]
         return [(srow, sidx) for srow in srows for sidx in self[srow + EPClsPostfix.SRC].find(typ)]
 
     def verify(self) -> None:
         """Verify the GC graph."""
+        assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         key = "Null"
         try:
             for key in ROW_CLS_INDEXED:

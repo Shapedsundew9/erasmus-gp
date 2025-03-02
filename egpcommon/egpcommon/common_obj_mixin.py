@@ -1,7 +1,5 @@
 """Common Object Mixin Class."""
 
-from typing import Protocol
-
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -9,16 +7,6 @@ _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
-
-
-class CommonObjProtocol(Protocol):
-    """Common Object Protocol Class."""
-
-    def consistency(self) -> None:
-        """Check the consistency of the CommonObjProtocol."""
-
-    def verify(self) -> None:
-        """Verify the CommonObjProtocol object."""
 
 
 class CommonObjMixin:

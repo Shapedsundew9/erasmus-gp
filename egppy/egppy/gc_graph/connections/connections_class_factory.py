@@ -6,7 +6,7 @@ from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
-from egppy.gc_graph.connections.connections_mixin import ConnectionsMixin, ConnectionsProtocol
+from egppy.gc_graph.connections.connections_mixin import ConnectionsMixin
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
 
 # Standard EGP logging pattern
@@ -16,7 +16,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class TupleConnections(tuple, ConnectionsMixin, ConnectionsProtocol, ConnectionsABC):  # type: ignore
+class TupleConnections(tuple, ConnectionsMixin, ConnectionsABC):  # type: ignore
     """A tuple connections object.
 
     The TupleConnections class is a subclass of tuple and ConnectionsMixin.

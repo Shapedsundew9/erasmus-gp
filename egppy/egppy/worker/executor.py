@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 from itertools import count
 from collections.abc import Hashable, Iterable, Iterator
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egppy.gc_graph.typing import DestinationRow
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
 from egppy.gc_graph.typing import SourceRow, Row
@@ -25,6 +26,13 @@ from egppy.gc_types.gc import (
     MERMAID_HEADER,
 )
 from egppy.worker.gc_store import GGC_CACHE
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Code string templates
@@ -148,7 +156,8 @@ class ExecutionContext:
     def __init__(self) -> None:
         self.namespace: dict[str, Any] = {}
         # Used to uniquely name objects in this context
-        self.global_index = count()
+        self._global_index = count()
+        self._global_index_map: dict[bytes, int] = {}
 
     def define(self, code: str) -> None:
         """Define a function in the execution context."""
@@ -158,6 +167,12 @@ class ExecutionContext:
         """Destroy objects in the execution context."""
         for obj in (o for o in objects if o in self.namespace):
             del self.namespace[obj]
+
+    def global_index(self, signature: bytes) -> int:
+        """Return the global index for a GCNode."""
+        if signature not in self._global_index_map:
+            self._global_index_map[signature] = next(self._global_index)
+        return self._global_index_map[signature]
 
 
 class GCNodeIterator(Iterator):
@@ -225,6 +240,12 @@ class GCNodeCodeIterator(Iterator):
 
         node: GCNode = self.stack[-1]
 
+        # If the node is a terminal node then return it unless
+        # it is the root node in which case we continue to explore
+        # the graph to the next terminal node.
+        if node.terminal and node is not self.stack[0]:
+            return self.stack.pop()
+
         # The GCA path of the graph has been explored to the end
         # If this node has a GCB it must be explored down its
         # GCA path to its furthest limit as this is the next
@@ -268,7 +289,7 @@ class GCNode(Iterable, Hashable):
     # For generating UIDs for GCNode instances
     _counter = count()
 
-    def __init__(self, ec: ExecutionContext, gc: GCABC, parent: GCNode | None) -> None:
+    def __init__(self, ec: ExecutionContext, gc: GCABC, parent: GCNode | None, row: Row) -> None:
         self.ec: ExecutionContext = ec  # The execution context for this work dictionary
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
         if gc is NULL_GC:  # The NULL_GC_NODE
@@ -306,7 +327,7 @@ class GCNode(Iterable, Hashable):
             self.iam = SourceRow.I
             self.parent = NULL_GC_NODE
         else:
-            self.iam = DestinationRow.B if parent.gcb is gc else DestinationRow.A
+            self.iam = row
             assert parent.gcb is gc or parent.gca is gc, "GC is neither GCA or GCB"
             self.parent = parent
 
@@ -342,6 +363,10 @@ class GCNode(Iterable, Hashable):
         """Return an iterator for the entire GCNode graph."""
         return GCNodeIterator(self)
 
+    def __repr__(self) -> str:
+        """Return the representation of the GCNode instance."""
+        return f"GCNode({self.uid}(0x{self.gc['signature'].hex()[-8:]}), {self.iam})"
+
     def __str__(self) -> str:
         """Return the representation of the GCNode instance."""
         str_list: list[str] = [f"GCNode root: {self.gc['signature'].hex()}"]
@@ -372,7 +397,7 @@ class GCNode(Iterable, Hashable):
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
-        for node in (tn for tn in GCNodeCodeIterable(self) if tn.terminal):
+        for node in (tn for tn in GCNodeCodeIterable(self) if tn.terminal and tn is not self):
             chart_txt.append(mc_code_node_str(node))
         for connection in self.terminal_connections:
             chart_txt.append(mc_code_connection_node_str(connection, self))
@@ -382,19 +407,19 @@ class GCNode(Iterable, Hashable):
         """Return the list of GCNode instances that need to be written. i.e. that need code graphs.
         If a node (function) is not yet written it has not been assigned a global index.
         """
-        print("Pre-node-write:\n", [gcng.gc["signature"].hex() for gcng in self if gcng.write])
-        print(self)
         nwcg: list[GCNode] = [code_graph(gcng) for gcng in self if gcng.write]
         assert all(
             node.global_index == -1 for node in nwcg
         ), "Global index must not already be set."
         for node in nwcg:
-            node.global_index = next(node.ec.global_index)
+            # Set the global index for the node in execution context
+            # A node will use the same index as an identical node in the same context
+            # for code reuse.
+            node.global_index = node.ec.global_index(node.gc["signature"])
         assert all(
             all(c.src.terminal and c.dst.terminal for c in gcng.terminal_connections)
             for gcng in nwcg
         ), "All source connections endpoints must be terminal for a GC to be written."
-        print(self)
         return nwcg
 
     def mermaid_chart(self) -> str:
@@ -433,7 +458,7 @@ class GCNode(Iterable, Hashable):
 
 # The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node but
 # if bot GCA and GCB are NULL_GC_NODE then it is a leaf node.
-NULL_GC_NODE = GCNode(ExecutionContext(), NULL_GC, None)
+NULL_GC_NODE = GCNode(ExecutionContext(), NULL_GC, None, DestinationRow.O)
 
 
 def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
@@ -457,7 +482,7 @@ def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
     assert 2 <= limit <= 2**15 - 1, f"Invalid lines limit: {limit} must be 2 <= limit <= 32767"
 
     half_limit: int = limit // 2
-    node_stack: list[GCNode] = [gc_node_graph := GCNode(ec, gc, None)]
+    node_stack: list[GCNode] = [gc_node_graph := GCNode(ec, gc, None, SourceRow.I)]
 
     # Define the GCNode data
     while node_stack:
@@ -470,7 +495,7 @@ def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
         ] = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
         for row, xgc in (x for x in child_nodes):
             assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
-            gc_node_graph_entry: GCNode = GCNode(ec, xgc, node)
+            gc_node_graph_entry: GCNode = GCNode(ec, xgc, node, row)
             if row == DestinationRow.A:
                 node.gca_node = gc_node_graph_entry
             else:
@@ -571,6 +596,13 @@ class CodeEndPoint:
         self.idx: int = idx
         self.terminal: bool = terminal
 
+    def __repr__(self) -> str:
+        """Return the representation of the CodeEndPoint instance."""
+        return (
+            f"CodeEndPoint({self.node.uid}(0x{self.node.gc['signature'].hex()[-8:]}), "
+            f"{self.row}, {self.idx}, {self.terminal})"
+        )
+
 
 class CodeConnection:
     """A connection between terminal end points in the GC node graph."""
@@ -579,6 +611,15 @@ class CodeConnection:
         """Create a connection between code end points in the GC node graph."""
         self.src: CodeEndPoint = src
         self.dst: CodeEndPoint = dst
+
+    def __repr__(self) -> str:
+        """Return the representation of the CodeConnection instance."""
+        return (
+            f"CodeConnection({self.src.node.uid}(0x{self.src.node.gc['signature'].hex()[-8:]}), "
+            f"{self.src.row}, {self.src.idx}, "
+            f"{self.dst.node.uid}(0x{self.dst.node.gc['signature'].hex()[-8:]}), "
+            f"{self.dst.row}, {self.dst.idx})"
+        )
 
 
 def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
@@ -651,12 +692,23 @@ def code_graph(function: GCNode) -> GCNode:
                     refs = src.node.gc["graph"]["Odc"]
                 case SourceRow.I:
                     parent: GCNode = node.parent
-                    if parent is not NULL_GC_NODE:
-                        src.node = parent
-                        src.terminal = parent.terminal
-                        # In the case where a GC is written in more than one function i.e. sub-GC
-                        # functions need to be created, a parent node may be terminal
-                        refs = src.node.gc["graph"][node.iam + "dc"]
+                    # Function is the root node. Going to its parent is moving
+                    # out of the scope of this function.
+                    if node is not function:
+                        # When moving into the parent the src context needs
+                        # to change to that of src within the parent.
+                        refs = parent.gc["graph"][node.iam + "dc"]
+                        ref: XEndPointRefABC = refs[src.idx][0]
+                        src.row = ref.get_row()
+                        if src.row == SourceRow.I:
+                            src.node = parent
+                            node = parent.parent
+                        else:
+                            src.node = parent.gca_node
+                            refs = src.node.gc["graph"]["Odc"]
+                            src.idx = ref.get_idx()
+                            node = parent
+                        src.terminal = src.node.terminal
                     else:
                         refs = []
                         src.terminal = True
@@ -682,7 +734,7 @@ def code_graph(function: GCNode) -> GCNode:
             assert False, "Source must not be terminal."
 
         # If this node is conditional a connection to row F must be made
-        if node.f_connection:
+        if node is not NULL_GC_NODE and node.f_connection:
             node.f_connection = False
             connection_stack.append(
                 CodeConnection(

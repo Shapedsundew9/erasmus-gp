@@ -18,18 +18,18 @@ deterministic with a seed and require correct order execution to produce the cor
 """
 
 from json import dump
-from random import choice, randint, random, randrange, seed, shuffle
+from random import choice, random, randint, seed, shuffle
 import tempfile
-from collections import Counter
+from time import time
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.common import bin_counts
 
 from egppy.gc_types.gc import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.gc_store import GGC_CACHE
 from egppy.worker.executor import GCNode, node_graph, line_count, ExecutionContext
-from egppy.gc_graph.interface import AnyInterface
 
 
 # Standard EGP logging pattern
@@ -103,6 +103,9 @@ def f_ffffffff(i: tuple[int]) -> tuple[int]:
     return (i[0] >> 1,)
 
 
+# rshift_1_gc signature:
+# b'\x94\xedS\xe0/Kr*\x14\xcf\xb7\xe8"d\xa1\x98\xf11\xfa\xfe\xb6\xc6\xc7w)\x1e\xac*\xfb\xads\xd9'
+# 94ed53e02f4b722a14cfb7e82264a198f131fafeb6c6c777291eac2afbad73d9
 rshift_1_gc = GGCDict(
     {
         "ancestora": literal_1_gc,
@@ -125,7 +128,9 @@ rshift_1_gc = GGCDict(
 )
 GGC_CACHE[rshift_1_gc["signature"]] = rshift_1_gc
 
-
+# rshift_xor_gc signature:
+# b'\x17\x01\x9dk\xb5\xc6\x90G\xd1\xce\xee\xbaO@<>\xec\xab=\x8e\xdaefV:\x83\xbc\x16Wy\xcfa'
+# 17019d6bb5c69047d1ceeeba4f403c3eecab3d8eda6566563a83bc165779cf61
 rshift_xor_gc = GGCDict(
     {
         "ancestora": rshift_1_gc,
@@ -145,7 +150,9 @@ rshift_xor_gc = GGCDict(
 )
 GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
 
-
+# one_to_two signature:
+# b'\xc3\xef\xa5\xf3N\x034<\xd6\xef\xd9o\xedh\xe60\x9eH\xfd\x9b}8\x8f\x12\x85\x1b\x04\xc2T\x83\xe8\x85'
+# c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885
 one_to_two = GGCDict(
     {
         "ancestora": random_long_gc,
@@ -167,23 +174,28 @@ GGC_CACHE[one_to_two["signature"]] = one_to_two
 two_to_one = rshift_xor_gc
 
 
-def randomrange(a: int) -> list[int]:
+def randomrange(a: int, num: int = 0) -> list[int]:
     """Return a randomly ordered range between a and b."""
     rr = list(range(a))
+    if num > 0 and num < a:
+        rr = rr[:num]
+    if num > 0 and num > a:
+        rr.extend(rr * (num // a) + rr[: num % a])
     shuffle(rr)
+    assert len(rr) == num or num == 0, f"len(rr) = {len(rr)} != num = {num}"
     return rr
 
 
-def expand_gc_outputs(gc: GCABC) -> GCABC:
+def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """Expand the GC.
 
-    Create a new GC where GCA and GCB = gc.
+    Create a new GC where GCA = gc1 and GCB = gc2.
     The inputs to the new GC are the same as the inputs to gc and
     are connected directly to the inputs of GCA & GCB. The outputs
     of the new GC are the concatenation of the outputs of GCA & GCB.
     """
-    gca: GCABC = gc
-    gcb: GCABC = gc
+    gca: GCABC = gc1
+    gcb: GCABC = gc2
     return GGCDict(
         {
             "ancestora": gca,
@@ -192,7 +204,7 @@ def expand_gc_outputs(gc: GCABC) -> GCABC:
             "gcb": gcb,
             "graph": {
                 "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
-                "B": [["I", i, INT_T] for i in randomrange(gcb["num_inputs"])],
+                "B": [["I", i, INT_T] for i in randomrange(gca["num_inputs"], gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
             },
@@ -204,18 +216,15 @@ def expand_gc_outputs(gc: GCABC) -> GCABC:
     )
 
 
-def expand_gc_inputs(gc: GCABC) -> GCABC:
-    """Expand the GC.
+def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
+    """Create a new GC with # of input & outputs = gc1 + gc2.
 
-    Create a new GC where GCA and GCB = gc.
-    The inputs to the new GC are the concatenation of the inputs to gc.
-    The outputs of the new GC are the concatenation of the outputs GCA & GCB.
-
-    NOTE: It is assumed gc has less outputs than inputs.
+    Create a GC where GCA = gc1 and GCB = gc2.
+    The inputs to the GC are the concatenation of the inputs to gc.
+    The outputs of the GC are the concatenation of the outputs GCA & GCB.
     """
-    assert gc["num_outputs"] < gc["num_inputs"], "gc >= # outputs than # inputs"
-    gca: GCABC = gc
-    gcb: GCABC = gc
+    gca: GCABC = gc1
+    gcb: GCABC = gc2
     return GGCDict(
         {
             "ancestora": gca,
@@ -236,182 +245,164 @@ def expand_gc_inputs(gc: GCABC) -> GCABC:
     )
 
 
-def diamond_gc(gca: GCABC, gcb: GCABC) -> GCABC:
-    """Mesh two GC's together to form a diamond graph shape.
+def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
+    """Expand the GC.
 
-    Create a new GC where GCA = gca and GCB = gcb.
+    Append gc2 to gc1 as per append_gcs then stack it on the narrow to
+    reduce the number of outputs back to the original number of outputs.
+
+    This asserts that the number of inputs to the narrow GC is
+    # gc1 outputs + # gc2 outputs and the number of outputs is
+    # gc1 outputs.
+    Connections on each interface are randomly assigned.
+    """
+    assert (
+        gc1["num_outputs"] + gc2["num_outputs"] == narrow_gc["num_inputs"]
+    ), "gc1 + gc2 outputs != narrow_gc # inputs."
+    assert gc1["num_outputs"] == narrow_gc["num_outputs"], "gc1 outputs != narrow_gc outputs."
+    gca: GCABC = append_gcs(gc1, gc2)
+    gcb: GCABC = narrow_gc
+    return stack_gcs(gca, gcb)
+
+
+def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
+    """Stack two GC's gc1 on top of gc2.
+
+    Create a new GC where GCA = gc1 and GCB = gc2.
     The inputs to the new GC are those of GCA.
     The outputs of the new GC are those of GCB.
     It is assumed that GCA has the same number of outputs as GCB has inputs.
     GCA's outputs are randomly connected to GCB's inputs.
     """
-    assert gca["num_outputs"] == gcb["num_inputs"], "gca # outputs != gcb # inputs"
+    assert gc1["num_outputs"] == gc2["num_inputs"], "gc1 # outputs != gc2 # inputs"
     return GGCDict(
         {
-            "ancestora": gca,
-            "ancestorb": gcb,
-            "gca": gca,
-            "gcb": gcb,
+            "ancestora": gc1,
+            "ancestorb": gc2,
+            "gca": gc1,
+            "gcb": gc2,
             "graph": {
-                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
-                "B": [["A", i, INT_T] for i in randomrange(gcb["num_inputs"])],
-                "O": [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(gc1["num_inputs"])],
+                "B": [["A", i, INT_T] for i in randomrange(gc2["num_inputs"])],
+                "O": [["B", i, INT_T] for i in randomrange(gc2["num_outputs"])],
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": 3,
-            "num_codons": gca["num_codons"] + gcb["num_codons"],
+            "num_codons": gc1["num_codons"] + gc2["num_codons"],
         }
     )
 
 
-def input_expansion_list(gc: GCABC) -> list[GCABC]:
-    """Return a list of GC's that are expansions of gc inputs"""
-    a: GCABC = gc
-    expansion_list: list[GCABC] = []
-    for _ in range(8):
-        if a["num_inputs"] <= 128:
-            a = expand_gc_inputs(a)
-            expansion_list.append(a)
-        else:
-            break
-    return expansion_list
+def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
+    """Create a matrix of GC's.
 
+    Create a matrix of GC's where the maxim number of inputs and outputs
+    is determined by max_epc. The matrix is a dictionary of
+    dictionaries where the key is the number of inputs and the value
+    is a dictionary of the number of outputs and a set of GC's.
 
-def output_expansion_list(gc: GCABC) -> list[GCABC]:
-    """Return a list of GC's that are expansions of gc outputs"""
-    a: GCABC = gc
-    expansion_list: list[GCABC] = []
-    for _ in range(8):
-        if a["num_outputs"] <= 128:
-            a = expand_gc_outputs(a)
-            expansion_list.append(a)
-        else:
-            break
-    return expansion_list
+    GC's will be created for all combinations of inputs and outputs
+    1 to max_epc.
 
+    max_epc must be >= 2
 
-diamond_sets = {
-    1: diamond_set(one_to_two, two_to_one),
-}
-
-# Initialize the gene pool with the building blocks
-gene_pool: list[GCABC] = [one_to_two, two_to_one]
-
-
-def glue(gca: GCABC, gcb: GCABC) -> GCABC:
-    """Glue two GC's together.
-
-    1. Aggregate 0% to 50% of B's destination endpoints with all of A's.
-        a. At least one of B's destination endpoints must not be aggregated.
-    2. Randomly determine if one input is also a pass-through to output
-    3. Randomly shuffle the endpoints.
-    4. Randomly connect A's sources to B's unconnected destinations (one to many is allowed)
-    5. Randomly connect 0% to 50% of A's sources to outputs
-    6. Randomly connect 50% to 100% of B's destinations to outputs
-    7. Populate row U with unconnected sources
+    matrix[#inputs][#outputs] = {GC1, GC2, ...}
     """
-    # 1
-    bdface: AnyInterface = gcb["graph"]["Is"]
-    adface: AnyInterface = gca["graph"]["Is"]
-    numbi = max(int(random() / 2.0 * len(bdface)), 1)
-    numai = len(adface)
-    iface = [["I", i, INT_T] for i in range(numbi + numai)]
+    assert max_epc >= 2, "max_epc < 2"
+    max_epc = max_epc + 1
+    _gcm: dict[int, dict[int, list[GCABC]]] = {
+        1: {1: [stack_gcs(one_to_two, two_to_one)], 2: [one_to_two]},
+        2: {1: [two_to_one]},
+    }
 
-    # 2
-    passthru = False
-    if random() < 0.5:
-        iface.append(["I", len(iface), INT_T])
-        passthru = True
+    # Create GC's with 1 input
+    for no in range(3, max_epc):
+        _gcm[1][no] = [expand_gc_outputs(_gcm[1][no - 1][0], _gcm[1][1][0])]
 
-    # 3
-    shuffle(iface)
-    aface = iface[numbi : numbi + numai]
-    oface = [iface[-1]] if passthru else []
-    bface = iface[:numbi] if numbi > 0 else []
+    # Create GC's with 1 output
+    for num_inputs in range(2, max_epc):
+        _gcm.setdefault(num_inputs, {})[1] = [
+            # Previous GC with 1 output, +1 input & +1 output, then narrow to 1 output
+            expand_gc_inputs(_gcm[num_inputs - 1][1][0], _gcm[1][1][0], _gcm[2][1][0])
+        ]
 
-    # 4
-    asface: AnyInterface = gca["graph"]["Od"]
-    numab = max(len(bdface) - numbi, 1)
-    bface.extend([["A", randrange(len(asface)), INT_T] for _ in range(numab)])
-    shuffle(bface)
+    # Create GC's with >2 inputs or outputs
+    for num_inputs in range(2, max_epc):
+        for num_outputs in range(2, max_epc):
+            target_set: list[GCABC] = _gcm.setdefault(num_inputs, {}).setdefault(num_outputs, [])
+            if target_set:
+                continue
+            num_a = randint(1, num_inputs - 1)
+            num_b = num_inputs - num_a
 
-    # 5
-    numao = int(random() / 2.0 * len(asface))
-    oface.extend([["A", randrange(len(asface)), INT_T] for _ in range(numao)])
-
-    # 6
-    bsface = gcb["graph"]["Od"]
-    numbo = max(int((random() / 2.0 + 0.5) * len(bsface)), 1)
-    oface.extend([["B", randrange(len(bsface)), INT_T] for _ in range(numbo)])
-    shuffle(oface)
-
-    # 7
-    all_srcs = aface + bface + oface
-    ui: set[int] = set(range(len(iface))) - {ept[1] for ept in all_srcs if ept[0] == "I"}
-    ua: set[int] = set(range(len(asface))) - {ept[1] for ept in all_srcs if ept[0] == "A"}
-    ub: set[int] = set(range(len(bsface))) - {ept[1] for ept in all_srcs if ept[0] == "B"}
-    uface = (
-        [["I", i, INT_T] for i in ui]
-        + [["A", i, INT_T] for i in ua]
-        + [["B", i, INT_T] for i in ub]
-    )
-
-    # Basic sanity checks
-    assert len(oface) > 0, "No outputs"
-
-    return GGCDict(
-        {
-            "ancestora": gca["signature"],
-            "ancestorb": gcb["signature"],
-            "gca": gca,
-            "gcb": gcb,
-            "graph": {
-                "A": aface,
-                "B": bface,
-                "O": oface,
-                "U": uface,
-            },
-            "pgc": xor_gc["signature"],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": 3,
-            "num_codons": gca["num_codons"] + gcb["num_codons"],
-        }
-    )
+            # Randomly choose a GCA with the right number of inputs and less than maximum
+            # allowed outputs so that there is the possibility of finding an output
+            # solution that meets the constraint.
+            gca = choice([gc for no in _gcm[num_a] for gc in _gcm[num_a][no] if no < num_outputs])
+            gcb = choice(tuple(_gcm[num_b][num_outputs - gca["num_outputs"]]))
+            ngc = append_gcs(gca, gcb)
+            target_set.append(ngc)
+            GGC_CACHE[ngc["signature"]] = ngc
+            assert ngc["num_inputs"] == num_inputs, f"ngx # inputs != {num_inputs}"
+            assert ngc["num_outputs"] == num_outputs, f"ngx # outputs != {num_outputs}"
+    return _gcm
 
 
-def build_gene_pool(max_num: int = 1024, limit: int = 256, _seed=1) -> None:
-    """Randomly generate a pool of genetic codes based on
-    the 64 bit random int GC and the XOR codon. A maximum
-    of 1024 new GC's will be created or as many as possible
-    before the limit of number of input or output endpoints is
-    reached 3 times in a row."""
-    seed(_seed)
-    max_io_len = 0
-    num = 2
-    xor_only = [xor_gc]
-    while num < max_num and max_io_len < limit:
-        if num > 10:
-            gca: GCABC = choice(gene_pool) if random() < 0.75 else choice((xor_gc, random_long_gc))
-            gcb: GCABC = choice(gene_pool)
-        else:
-            gca: GCABC = choice(xor_only)
-            gcb: GCABC = choice(xor_only)
-        gca, gcb = (gca, gcb) if random() < 0.5 else (gcb, gca)
-        new_gc = glue(gca, gcb)
-        if not new_gc["signature"] in GGC_CACHE:
-            gene_pool.append(new_gc)
-            GGC_CACHE[gene_pool[-1]["signature"]] = new_gc
-            if num <= 10:
-                xor_only.append(new_gc)
-            num = len(gene_pool)
-            max_io_len = max(new_gc["num_inputs"], new_gc["num_outputs"])
+def expand_gc_matrix(
+    matrix: dict[int, dict[int, list[GCABC]]], limit: int
+) -> dict[int, dict[int, list[GCABC]]]:
+    """Expand the GC matrix with randomly constructed GC's until every ratio has limit GC's.
+    Assumes that the passed GCM has at least one GC for every ratio of inputs to outputs.
+    The GC's get more complex as the number of GC's for a ratio increases.
+    """
+    # Makesure the matrix is properly formed.
+    # Use create_gc_matrix() to create a matrix.
+    assert len(matrix) > 0, "gcm is empty."
+    assert all(len(matrix) == len(row) for row in matrix.values()), "gcm is missing sets."
+    assert all(len(s) for row in matrix.values() for s in row.values()), "gcm has empty sets."
+
+    # The most endpoints an input or output interface can have
+    max_xputs = max(matrix)
+    for num_inputs in matrix:
+        for num_outputs in matrix[num_inputs]:
+            while len(matrix[num_inputs][num_outputs]) < limit:
+                if random() < 0.5 and not (num_inputs == 1 or num_outputs == 1):
+                    # Append GCs to make a new one
+                    # Split the inputs and outputs to define two GC's that can be appended
+                    # to make one of the size required.
+                    num_ia = randint(1, num_inputs - 1)
+                    num_ib = num_inputs - num_ia
+                    num_oa = randint(1, num_outputs - 1)
+                    num_ob = num_outputs - num_oa
+                    gca = choice(matrix[num_ia][num_oa])
+                    gcb = choice(matrix[num_ib][num_ob])
+                    ngc = append_gcs(gca, gcb)
+                else:
+                    # Stack GCs to make a new one
+                    # Randomly choose two GC's to stack. The number of outputs of the first
+                    # GC must be the same as the number of inputs of the second GC. The
+                    # number of inputs of the new GC is the number of inputs of the first GC
+                    # and the number of outputs is the number of outputs of the second GC.
+                    num_ia = randint(1, max_xputs)
+                    gca = choice(matrix[num_inputs][num_ia])
+                    gcb = choice(matrix[num_ia][num_outputs])
+                    ngc = stack_gcs(gca, gcb)
+                matrix[num_inputs][num_outputs].append(ngc)
+                GGC_CACHE[ngc["signature"]] = ngc
+    return matrix
 
 
 if __name__ == "__main__":
-    build_gene_pool()
+    # Seed the random number generator for reproducibility
+    seed(0)
+    start = time()
+    gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
+    print(f"GCM Elapsed time: {time() - start:.2f} seconds")
+    gene_pool: list[GCABC] = [gc for ni in gcm.values() for rs in ni.values() for gc in rs]
     LINE_LIMIT_X = 3
     LINE_LIMIT_Y = 50
+    CBS = 40
     ec = ExecutionContext()
 
     # Create a markdown formated file with mermaid diagrams of the GC's in the gene pool
@@ -423,12 +414,25 @@ if __name__ == "__main__":
             "GC my have a different connectivity resulting in a different signature.\n\n"
         )
         f.write(f"Num GC's: {len(gene_pool)}\n\n")
-        f.write(f"Num codons distribution:\n{Counter([gc['num_codons'] for gc in gene_pool])}\n\n")
+        f.write("```mermaid\n")
+        f.write("---\n")
+        f.write("config:\n")
+        f.write("  xyChart:\n")
+        f.write("    width: 1400\n")
+        f.write("---\n")
+        f.write("xychart-beta\n")
+        f.write('  title "Codon Count Distribution"\n')
+        codon_bin_counts = bin_counts([gc["num_codons"] for gc in gene_pool], CBS)
+        f.write(f'  x-axis "Codon Count Bins" {[x * CBS for x in range(len(codon_bin_counts))]}\n')
+        f.write('  y-axis "GC Count"\n')
+        f.write(f"  bar {codon_bin_counts}\n")
+        f.write("```\n\n")
         f.write("## GC Logical Structure Mermaid Diagrams Key\n\n")
         f.write(mermaid_key())
         f.write("\n\n")
         gcs = tuple(enumerate(gene_pool))
-        for idx, gpgc in gcs[:20]:
+        global_idx_set = set()
+        for idx, gpgc in gcs[:10]:
             f.write(f"## GC #{idx}\n\n")
             f.write("### Details\n\n")
             f.write(f"- Num codons: {gpgc['num_codons']}\n")
@@ -444,6 +448,14 @@ if __name__ == "__main__":
             line_count(ng, LINE_LIMIT_X)
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
+            f.write(f"### GC Code Connection Graphs with Line Limit = {LINE_LIMIT_X}\n\n")
+            ntw: list[GCNode] = ng.create_code_graphs()
+            for node in ntw:
+                if node.global_index not in global_idx_set:
+                    f.write("```mermaid\n")
+                    f.write(node.code_mermaid_chart())
+                    f.write("\n```\n\n")
+                    global_idx_set.add(node.global_index)
             f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_Y}\n\n")
             f.write("```mermaid\n")
             ng = node_graph(ec, gpgc, LINE_LIMIT_Y)
@@ -453,14 +465,12 @@ if __name__ == "__main__":
             f.write(f"### GC Code Connection Graphs with Line Limit = {LINE_LIMIT_Y}\n\n")
             ntw: list[GCNode] = ng.create_code_graphs()
             for node in ntw:
-                f.write("```mermaid\n")
-                f.write(node.code_mermaid_chart())
-                f.write("\n```\n\n")
+                if node.global_index not in global_idx_set:
+                    f.write("```mermaid\n")
+                    f.write(node.code_mermaid_chart())
+                    f.write("\n```\n\n")
+                    global_idx_set.add(node.global_index)
 
     # Dump as JSON so we can take a deeper look at the GC's
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)
-else:
-    # gene_pool is used for testing the exectutor
-    build_gene_pool()
-    _logger.debug("Loaded %d genetic codes", len(gene_pool))

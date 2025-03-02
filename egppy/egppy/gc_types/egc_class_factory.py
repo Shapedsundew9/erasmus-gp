@@ -86,7 +86,12 @@ class EGCMixin(GCMixin):
         """
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
         tmp = gcabc.get("graph", EMPTY_GC_GRAPH)
-        self["graph"] = FrozenGCGraph(tmp) if not isinstance(tmp, GCGraphABC) else tmp
+        # Seems to by a pylint bug. pylance is happy.
+        self["graph"] = (
+            FrozenGCGraph(tmp)  # pylint: disable=abstract-class-instantiated
+            if not isinstance(tmp, GCGraphABC)
+            else tmp
+        )
         tmp = gcabc.get("gca", NULL_GC) if gcabc.get("gca") is not None else NULL_GC
         self["gca"] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
         tmp = gcabc.get("gcb", NULL_GC) if gcabc.get("gcb") is not None else NULL_GC

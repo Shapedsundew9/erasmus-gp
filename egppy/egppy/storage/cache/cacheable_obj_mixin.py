@@ -1,11 +1,10 @@
 """Cacheable Dictionary Base Class module."""
 
 from itertools import count
-from typing import Protocol
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.storage.store.storable_obj_mixin import StorableObjMixin, StorableObjProtocol
+from egppy.storage.store.storable_obj_mixin import StorableObjMixin
 
 # Universal sequence number generator
 SEQUENCE_NUMBER_GENERATOR = count(start=-(2**63))
@@ -16,29 +15,6 @@ _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
-
-
-class CacheableObjProtocol(StorableObjProtocol, Protocol):
-    """Cacheable Mixin Protocol Class.
-    Used to add cacheable functionality to a class.
-    """
-
-    def clean(self) -> None:
-        """Mark the object as clean."""
-
-    def dirty(self) -> None:
-        """Mark the object as dirty."""
-
-    def is_dirty(self) -> bool:
-        """Check if the object is dirty."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def seq_num(self) -> int:
-        """Dirty dicts do not track sequence numbers."""
-        ...  # pylint: disable=unnecessary-ellipsis
-
-    def touch(self) -> None:
-        """Dirty dict objects cannot be touched."""
 
 
 class CacheableObjMixin(StorableObjMixin):

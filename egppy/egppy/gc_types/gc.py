@@ -216,6 +216,12 @@ class GCMixin:
                 return self.signature().hex() == other_signature
         return False
 
+    def __hash__(self) -> int:
+        """Return the hash of the genetic code object.
+        Signature is guaranteed unique for a given genetic code.
+        """
+        return hash(self.signature())
+
     def is_codon(self) -> bool:
         """Return True if the genetic code is a codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."

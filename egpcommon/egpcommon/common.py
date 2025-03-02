@@ -7,6 +7,7 @@ from pprint import pformat
 from typing import Any, Self
 from uuid import UUID
 from json import dumps
+from collections.abc import Sequence
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
@@ -212,3 +213,28 @@ class DictTypeAccessor:
             return getattr(self, key)
         setattr(self, key, default)
         return default
+
+
+def bin_counts(data: Sequence[int], bin_width: int = 10) -> list[int]:
+    """
+    Calculates the bin counts for a list of integers, starting at 0.
+
+    Args:
+        data: A list of integers.
+        bin_width: The width of each bin.
+
+    Returns:
+        A list of bin counts.
+    """
+    if not data:
+        return []
+
+    max_value = max(data)
+    num_bins = (max_value // bin_width) + 1  # Calculate the number of bins needed
+    bin_counts_list = [0] * num_bins  # Initialize bin counts to 0
+
+    for value in data:
+        bin_index = value // bin_width  # Determine the bin index for each value
+        bin_counts_list[bin_index] += 1
+
+    return bin_counts_list
