@@ -22,14 +22,14 @@ from random import choice, random, randint, seed, shuffle
 import tempfile
 from time import time
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import bin_counts
 
 from egppy.gc_types.gc import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.gc_store import GGC_CACHE
-from egppy.worker.executor import GCNode, node_graph, line_count, ExecutionContext
+from egppy.worker.executor.executor import FunctionInfo, GCNode, ExecutionContext
 
 
 # Standard EGP logging pattern
@@ -37,8 +37,11 @@ _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
-_logger.setLevel(DEBUG)
 
+enable_debug_logging()
+print("This is a test file and should not be imported into the main codebase.")
+print(_logger.getEffectiveLevel())
+print(_LOG_DEBUG)
 
 # Python int type as an EGP type
 INT_T = ["int"]
@@ -98,7 +101,7 @@ GGC_CACHE[random_long_gc["signature"]] = random_long_gc
 # i.e. inputs are encapsulated in a tuple (even if there is only one)
 # and the output is a tuple (even if there is only one). The function
 # name must end in an 8 character unsigned hexadecimal value.
-def f_ffffffff(i: tuple[int]) -> tuple[int]:
+def f_7fffffff(i: tuple[int]) -> tuple[int]:
     """Shift right by one."""
     return (i[0] >> 1,)
 
@@ -121,9 +124,6 @@ rshift_1_gc = GGCDict(
         "problem": ACYBERGENESIS_PROBLEM,
         "properties": 3,
         "num_codons": literal_1_gc["num_codons"] + rshift_gc["num_codons"],
-        # Pre-defined executable. GC will not be pulled from storage.
-        "executable": f_ffffffff,
-        "num_lines": 2,
     }
 )
 GGC_CACHE[rshift_1_gc["signature"]] = rshift_1_gc
@@ -400,18 +400,24 @@ if __name__ == "__main__":
     gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
     print(f"GCM Elapsed time: {time() - start:.2f} seconds")
     gene_pool: list[GCABC] = [gc for ni in gcm.values() for rs in ni.values() for gc in rs]
-    LINE_LIMIT_X = 3
-    LINE_LIMIT_Y = 50
-    CBS = 40
-    ec = ExecutionContext()
 
-    # Create a markdown formated file with mermaid diagrams of the GC's in the gene pool
+    # Codon bin size for the histogram of generated GC sizes
+    CBS = 40
+
+    # 2 different execution contexts
+    ec1 = ExecutionContext(3)
+    ec2 = ExecutionContext(50)
+    # Hack in pre-defined function
+    ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(f_7fffffff, 0x7FFFFFFF, 2)
+    ec2.function_map[rshift_1_gc["signature"]] = FunctionInfo(f_7fffffff, 0x7FFFFFFF, 2)
+
+    # Create a markdown formatted file with mermaid diagrams of the GC's in the gene pool
     # A temporary file is created in the default temp directory
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write("# Genetic Codes\n\n")
         f.write(
             "Be aware that GC's may have the same GC graph (structure) but the top level "
-            "GC my have a different connectivity resulting in a different signature.\n\n"
+            "GC may have a different connectivity resulting in a different signature.\n\n"
         )
         f.write(f"Num GC's: {len(gene_pool)}\n\n")
         f.write("```mermaid\n")
@@ -431,7 +437,8 @@ if __name__ == "__main__":
         f.write(mermaid_key())
         f.write("\n\n")
         gcs = tuple(enumerate(gene_pool))
-        global_idx_set = set()
+        global_idx_set1 = set()
+        global_idx_set2 = set()
         for idx, gpgc in gcs[:10]:
             f.write(f"## GC #{idx}\n\n")
             f.write("### Details\n\n")
@@ -442,34 +449,39 @@ if __name__ == "__main__":
             f.write("```mermaid\n")
             f.write(gpgc.logical_mermaid_chart())
             f.write("\n```\n\n")
-            f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_X}\n\n")
+            f.write(f"### GC Node Graph Structure with Line Limit = {ec1.line_limit()}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(ec, gpgc, LINE_LIMIT_X)
-            line_count(ng, LINE_LIMIT_X)
+            ng = ec1.node_graph(gpgc)
+            ng.line_count()
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
-            f.write(f"### GC Code Connection Graphs with Line Limit = {LINE_LIMIT_X}\n\n")
+            f.write(f"### GC Code Connection Graphs with Line Limit = {ec1.line_limit()}\n")
             ntw: list[GCNode] = ng.create_code_graphs()
             for node in ntw:
-                if node.global_index not in global_idx_set:
-                    f.write("```mermaid\n")
+                if node.function_info.global_index not in global_idx_set1:
+                    f.write("\n```mermaid\n")
                     f.write(node.code_mermaid_chart())
-                    f.write("\n```\n\n")
-                    global_idx_set.add(node.global_index)
-            f.write(f"### GC Node Graph Structure with Line Limit = {LINE_LIMIT_Y}\n\n")
+                    f.write("\n```\n")
+                    global_idx_set1.add(node.function_info.global_index)
+                else:
+                    f.write(f"Duplicate global index: {node.function_info.global_index}\n")
+            f.write(f"### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
             f.write("```mermaid\n")
-            ng = node_graph(ec, gpgc, LINE_LIMIT_Y)
-            line_count(ng, LINE_LIMIT_Y)
+            ng = ec2.node_graph(gpgc)
+            ng.line_count()
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
-            f.write(f"### GC Code Connection Graphs with Line Limit = {LINE_LIMIT_Y}\n\n")
+            f.write(f"### GC Code Connection Graphs with Line Limit = {ec2.line_limit()}\n")
             ntw: list[GCNode] = ng.create_code_graphs()
             for node in ntw:
-                if node.global_index not in global_idx_set:
-                    f.write("```mermaid\n")
+                if node.function_info.global_index not in global_idx_set2:
+                    f.write("\n```mermaid\n")
                     f.write(node.code_mermaid_chart())
-                    f.write("\n```\n\n")
-                    global_idx_set.add(node.global_index)
+                    f.write("\n```\n")
+                    global_idx_set2.add(node.function_info.global_index)
+                else:
+                    f.write(f"Duplicate global index: {node.function_info.global_index}\n")
+            f.write("\n")
 
     # Dump as JSON so we can take a deeper look at the GC's
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:

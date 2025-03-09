@@ -1,11 +1,21 @@
 # The Genetic Code Executor
 
+- Creates an execution context in which to execute GC code.
 - Creates the GC code to execute (including imports)
 - Executes genetic codes and handles exceptions
 
-## Writing GC Functions
+## The Execution Context
 
-GC functions are written to be between _limit/2_ and _limit_ functional lines in length where _limit_ is >= 4 and <= 2**15-1. The higher limit is pseudo arbitary (signed 16 bit max for efficient storage). In reality memory is the only limit but such large function sizes which may only differ by a few lines of code within them are ineffcient. The lower limit is to ensure at least 2 functional lines exist preventing a chain of functions calling just one function and the stack popping with no work being done. Sensible values of _limit_ trade off the overhead of function calling, readability and the stack depth. The default is 20 lines.
+The execution context contains the execution environment for a specific configuration. The encapsulation the context provides has two uses:
+
+1. It enables complete & definitive clean up of the dynamically created state.
+2. Multiple contexts can exist which is useful in proving different configuration result in the same functional behaviour.
+
+The execution context can be thought of as a dictionary of functions where each function is a GC executable. Depending on the configuration of the context not all GC's will become and executable. Unless the size of each function is set very low (the line limit) most GC's will be "inlined" for efficient execution.
+
+## Creating GC Functions
+
+GC functions are written to be between _limit/2_ and _limit_ functional lines in length where _limit_ is >= 4 and <= 2**15-1. The higher limit is pseudo arbitary (signed 16 bit max for efficient storage). In reality memory is the only limit but such large function sizes which may only differ by a few lines of code within them are ineffcient. The lower limit is to ensure at least 2 functional lines exist preventing a chain of functions calling just one function and the stack popping with no work being done. Sensible values of _limit_ trade off the overhead of function calling, readability and the stack depth. The default is 64 lines.
 
 When a GC is written EGP breaks it down into sub-GC's as close to _limit_ as possible. The top level GC function may be < _limit/2_ lines long with a minimum of 2 lines when its GCA and GCB both are functions > _limit/2_ lines each. As evolution occurs what was a top level GC may get wrapped to be a sub-GC. If that, now sub, GC's executable was below the _limit/2_ minimum length then it will be assessed for merger in the top level GC and a new executable, not involving the existing one, may be created. The previous executable remains in the execution scope until the GC will no longer be used as an individual at which point it is deleted.
 
@@ -25,7 +35,7 @@ Assessing a GC is done recursively (it is actaully implemented as a stack to all
 
 ### Dead Code
 
-When travesing the GC graph it is not possible to determine what code will not be executed, "Dead Code". Only when the codon graph with all the connection are resolved is it possible to know the actual number of lines a function will take.
+When travesing the GC graph it is not possible to determine what code will not be executed, "Dead Code". Only when the codon graph with all the connection are resolved is it possible to know the actual number of lines a function will not take.
 
 ### Method
 

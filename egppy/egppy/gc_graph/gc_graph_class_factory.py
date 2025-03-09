@@ -280,4 +280,4 @@ class MutableGCGraph(FrozenGCGraph):
 # NOTE: pylint is spuriously saying that the inherited CacheableObjMixin methods
 # are not implemented. This is incorrect as they are implemented in the mixin.
 # pylance seems able to figure this out.
-EMPTY_GC_GRAPH = FrozenGCGraph({})  # pylint: disable=abstract-class-instantiated
+NULL_GC_GRAPH = FrozenGCGraph({})  # pylint: disable=abstract-class-instantiated

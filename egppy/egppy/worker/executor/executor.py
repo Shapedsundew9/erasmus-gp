@@ -5,28 +5,30 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 """
 
 from __future__ import annotations
-from typing import Any
-from itertools import count
+
 from collections.abc import Hashable, Iterable, Iterator
+from dataclasses import dataclass
+from itertools import count
+from typing import Any, Callable
+
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egppy.gc_graph.typing import DestinationRow
+
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.gc_graph.typing import SourceRow, Row
+from egppy.gc_graph.typing import DestinationRow, Row, SourceRow
 from egppy.gc_types.gc import (
     GCABC,
+    MERMAID_CODON_COLOR,
+    MERMAID_FOOTER,
+    MERMAID_GC_COLOR,
+    MERMAID_HEADER,
+    MERMAID_UNKNOWN_COLOR,
     NULL_GC,
-    NULL_EXECUTABLE,
+    NULL_SIGNATURE,
     mc_circle_str,
     mc_connect_str,
     mc_rectangle_str,
-    MERMAID_CODON_COLOR,
-    MERMAID_GC_COLOR,
-    MERMAID_UNKNOWN_COLOR,
-    MERMAID_FOOTER,
-    MERMAID_HEADER,
 )
 from egppy.worker.gc_store import GGC_CACHE
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -35,17 +37,11 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# Code string templates
-def gc_function_call_cstr(gcnode: GCNode) -> str:
-    """Return the code string for the GC function call."""
-    assert gcnode.global_index >= 0, "Global index must be >= 0"
-    return f"f_{gcnode.global_index:08x}(i)"
-
-
-def gc_inline_cstr(gcnode: GCNode) -> str:
-    """Return the code string for the GC inline code."""
-    # TODO: Need to add parameter elabotation here
-    return gcnode.gc["inline"]
+# Constants
+# For GC's with no executable (yet)
+def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
+    """The Null Exectuable. Should never be executed."""
+    raise RuntimeError("NULL_EXECUTABLE should never be executed.")
 
 
 def i_cstr(n: int) -> str:
@@ -108,12 +104,12 @@ def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_CODON_COLOR
 def mc_code_node_str(gcnode: GCNode) -> str:
     """Return a Mermaid Chart string representation of the code (terminal GCNode)."""
     if gcnode.exists or gcnode.write:
-        label = f"{gc_function_call_cstr(gcnode)}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        label = f"{gcnode.function_info.call_str()}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_rectangle_str(gcnode.uid, label, "green")
     assert (
         gcnode.gc.is_codon()
     ), "If the GC function does not exist and is not going to, it must be a codon."
-    label = f"{gcnode.gc["inline"]}<br>{gcnode.gc['signature'].hex()[-8:]}"
+    label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
     return mc_circle_str(gcnode.uid, label, "green")
 
 
@@ -140,6 +136,26 @@ def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str
     return mc_connect_str(namea, nameb, arrow)
 
 
+@dataclass
+class FunctionInfo:
+    """The information for a function in the execution context."""
+
+    executable: Callable
+    global_index: int
+    line_count: int
+
+    def name(self) -> str:
+        """Return the function name."""
+        return f"f_{self.global_index:08x}"
+
+    def call_str(self) -> str:
+        """Return the function call string."""
+        return f"{self.name()}(i)"
+
+
+NULL_FUNCTION_MAP: FunctionInfo = FunctionInfo(NULL_EXECUTABLE, -1, 0)
+
+
 class ExecutionContext:
     """An execution context is a virtual python namespace where GC functions are defined.
     Some additional information is also stored in the context to keep track of global
@@ -153,26 +169,127 @@ class ExecutionContext:
     persistent data structures that are not easy to track.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, line_limit: int = 64) -> None:
+        # The globals passed to exec() when defining objects in the context
         self.namespace: dict[str, Any] = {}
         # Used to uniquely name objects in this context
         self._global_index = count()
-        self._global_index_map: dict[bytes, int] = {}
+        # Map signatures to functions, global index & line count
+        self.function_map: dict[bytes, FunctionInfo] = {}
+        # The maximum number of lines in a function
+        self._line_limit: int = line_limit
 
     def define(self, code: str) -> None:
         """Define a function in the execution context."""
         exec(code, self.namespace)  # pylint: disable=exec-used
 
-    def destroy(self, objects: Iterable[str]) -> None:
-        """Destroy objects in the execution context."""
-        for obj in (o for o in objects if o in self.namespace):
-            del self.namespace[obj]
+    def function_def_str(self, _: GCNode) -> str:
+        """Return the code string for the GC."""
+        return ""
 
-    def global_index(self, signature: bytes) -> int:
-        """Return the global index for a GCNode."""
-        if signature not in self._global_index_map:
-            self._global_index_map[signature] = next(self._global_index)
-        return self._global_index_map[signature]
+    def line_limit(self) -> int:
+        """Return the maximum number of lines in a function."""
+        return self._line_limit
+
+    def new_function(self, node: GCNode) -> FunctionInfo:
+        """Create a new function in the execution context."""
+        signature = node.gc["signature"]
+        self.function_map[signature] = newf = FunctionInfo(
+            NULL_EXECUTABLE, next(self._global_index), node.num_lines
+        )
+        self.define(self.function_def_str(node))
+        # TODO: newf.executable = self.namespace[newf.name()]
+        newf.executable = lambda x: x  # Placeholder for now
+        node.function_info = newf
+        return newf
+
+    def node_graph(self, gc: GCABC) -> GCNode:
+        """Build the bi-directional graph of GC's.
+
+        The graph is a graph of GCNode objects. A GCNode object for a GC references nodes
+        for each of its GCA & GCB if they exist. Note that the graph is a representation
+        of the GC implementation and so each node is an instance of a GC not a definition.
+        i.e. the same GC may appear multiple times in the graph. This matters because each
+        instance may be implemented differently depending on what other GC's are local to
+        it in the GC structure graph.
+
+        Args:
+            gc: Is the root of the graph.
+
+        Returns:
+            GCNode: The graph root node.
+        """
+        assert (
+            2 <= self._line_limit <= 2**15 - 1
+        ), f"Invalid lines limit: {self._line_limit} must be 2 <= limit <= 32767"
+
+        half_limit: int = self._line_limit // 2
+        node_stack: list[GCNode] = [gc_node_graph := GCNode(self, gc, None, SourceRow.I)]
+
+        # Define the GCNode data
+        while node_stack:
+            # See [Assessing a GC for Function Creation](docs/executor.md) for more information.
+            node: GCNode = node_stack.pop(0)
+            # if _LOG_DEBUG:
+            _logger.debug("Assessing node: %s", node)
+            if node.is_codon or node.unknown:
+                continue
+            child_nodes = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
+            for row, xgc in (x for x in child_nodes):
+                assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
+                gc_node_graph_entry: GCNode = GCNode(self, xgc, node, row)
+                if row == DestinationRow.A:
+                    node.gca_node = gc_node_graph_entry
+                else:
+                    node.gcb_node = gc_node_graph_entry
+                fmap: FunctionInfo = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
+                assert (
+                    fmap.line_count <= self._line_limit
+                ), f"# lines in function exceeds limit: {fmap.line_count} > {self._line_limit}"
+                if fmap.executable is not NULL_EXECUTABLE:  # A known executable
+                    assert (
+                        fmap.line_count > 0
+                    ), f"The # lines cannot be <= 0 when there is an executable: {fmap.line_count}"
+                    if fmap.line_count < half_limit:
+                        node_stack.append(gc_node_graph_entry)
+                    else:
+                        # Existing executable is suitable (so no need to assess or write it)
+                        # For the purposes of this execution context the node is 1 line
+                        # (the function call)
+                        gc_node_graph_entry.assess = False
+                        gc_node_graph_entry.exists = True
+                        gc_node_graph_entry.terminal = True
+                        gc_node_graph_entry.function_info.line_count = 1
+                else:
+                    node_stack.append(gc_node_graph_entry)
+        return gc_node_graph
+
+    def write_executable(self, gc: GCABC | bytes) -> tuple[list[str], list[str]]:
+        """Write the code for the GC.
+
+        Sub-GC's are looked up in the gc_store.
+        The returned lists are the imports and functions.
+        Note that functions will be between limit/2 and limit lines long.
+
+        1. Graph bi-directional graph of GC's
+
+        Args:
+            gc_store (CacheABC): The cache of GC's.
+            gc (GCABC | bytes): The Genetic Code.
+            limit (int, optional): The maximum number of lines per function. Defaults to 20.
+        """
+        sig: bytes = gc.signature() if isinstance(gc, GCABC) else gc
+        assert isinstance(sig, bytes), f"Invalid signature type: {type(sig)}"
+        _gc: GCABC = gc if isinstance(gc, GCABC) else GGC_CACHE[sig]
+
+        # The GC may have been assessed as part of another GC but not an executable in its own right
+        # The GC node graph is needed to determine connectivity and so we reset the num_lines
+        # and re-assess
+        gc_node_graph: GCNode = self.node_graph(_gc)
+        gc_node_graph.line_count()
+        gcs_to_write: list[GCNode] = gc_node_graph.create_code_graphs()
+
+        return [], []
 
 
 class GCNodeIterator(Iterator):
@@ -261,13 +378,12 @@ class GCNodeCodeIterator(Iterator):
         """Traverse the GCNode graph to the limit of the GCA nodes."""
         node = parent.gca_node
         root = self.stack[0]
-        # If a parent exists or is to be written then there is no need to go any further
+        # If a is to be written then there is no need to go any further
         # as the parent will become a single line executable in this code. The exception
         # is if the parent is the root which by definition is being written and this code is
         # figuring out how.
-        while (parent is root or not (parent.write or parent.exists)) and (
-            node is not NULL_GC_NODE
-        ):
+        # NB: If a parent exists it does not mean it will be used (it may have too few lines)
+        while (parent is root or not parent.write) and (node is not NULL_GC_NODE):
             parent = node
             self.stack.append(node)
             node = node.gca_node
@@ -292,40 +408,34 @@ class GCNode(Iterable, Hashable):
     def __init__(self, ec: ExecutionContext, gc: GCABC, parent: GCNode | None, row: Row) -> None:
         self.ec: ExecutionContext = ec  # The execution context for this work dictionary
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
-        if gc is NULL_GC:  # The NULL_GC_NODE
-            # Note that we do not bother to define other attributes for the NULL_GC_NODE
-            # as a handy way of flagging logic errors in the code.
-            return
 
         # Defaults. These may be changed depending on the GC structure and what
         # is found in the cache.
         self.is_codon: bool = False  # Is this node for a codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
-        self.exists: bool = gc["executable"] is not NULL_EXECUTABLE
+        self.exists: bool = gc["signature"] in self.ec.function_map
+        self.function_info = self.ec.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
         self.write: bool = False  # True if the node is to be written as a function
         self.assess: bool = True  # True if the number of lines has not been determined
         self.gca: GCABC | bytes = gc["gca"]
         self.gcb: GCABC | bytes = gc["gcb"]
         self.terminal: bool = False  # A terminal node is where a connection ends
-        self.num_lines: int = gc["num_lines"] if self.exists else 0  # # lines in the function
         self.f_connection: bool = gc.is_conditional()
-        self.gca_node: GCNode = NULL_GC_NODE
-        self.gcb_node: GCNode = NULL_GC_NODE
+        self.gca_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
+        self.gcb_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         # Uniquely identify the node in the graph
         self.uid: str = f"uid{next(self._counter):04x}"
         # The code connection end points if this node is to be written
         self.terminal_connections: list[CodeConnection] = []
-        # Node to be written need a unique global index in the execution context
-        # Valid indices are >= 0. If the executabel exists then the global index is set
-        # and can be retrieved from the executable name.
-        self.global_index: int = int(self.gc["executable"].__name__[-8:], 16) if self.exists else -1
+        # Calculated number of lines in the *potential* function
+        self.num_lines = self.function_info.line_count
 
         # Context within the GC Node graph not known from within the GC
         if parent is None:
             # This is the top level GC that is being analysed to create a function
             # It has no parent.
             self.iam = SourceRow.I
-            self.parent = NULL_GC_NODE
+            self.parent = NULL_GC_NODE if gc is not NULL_GC else self
         else:
             self.iam = row
             assert parent.gcb is gc or parent.gca is gc, "GC is neither GCA or GCB"
@@ -333,8 +443,12 @@ class GCNode(Iterable, Hashable):
 
         if gc.is_codon():
             self.is_codon = True  # Set is_codon to True if gc indicates a codon
-            assert self.gca is NULL_GC, "GCA must be NULL_GC for a codon"
-            assert self.gcb is NULL_GC, "GCB must be NULL_GC for a codon"
+            assert (
+                self.gca is NULL_GC or self.gca is NULL_SIGNATURE
+            ), "GCA must be NULL_GC for a codon"
+            assert (
+                self.gcb is NULL_GC or self.gcb is NULL_SIGNATURE
+            ), "GCB must be NULL_GC for a codon"
             self.assess = False  # No need to assess a codon. We know what it is.
             self.terminal = True  # A codon is a terminal node
             self.num_lines = 1  # A codon is a single line of code
@@ -352,8 +466,8 @@ class GCNode(Iterable, Hashable):
             assert not self.is_codon, "A codon cannot be an unknown executable"
             self.terminal = True
             self.assess = False
-            self.num_lines = 1
             self.unknown = True
+            self.num_lines = 1
 
     def __hash__(self) -> int:
         """Return the hash of the GCNode instance."""
@@ -369,15 +483,13 @@ class GCNode(Iterable, Hashable):
 
     def __str__(self) -> str:
         """Return the representation of the GCNode instance."""
-        str_list: list[str] = [f"GCNode root: {self.gc['signature'].hex()}"]
-        for node in self:
-            str_list.append(f"\tsignature: {node.gc['signature'].hex()}")
-            for k, v in vars(node).items():
-                if not isinstance(v, GCNode):
-                    str_list.append(f"\t{k}: {v}")
-                else:
-                    str_list.append(f"\t{k}: {repr(v)}")
-            str_list.append("\n")
+        str_list: list[str] = [f"GCNode: {self.gc['signature'].hex()}"]
+        for k, v in vars(self).items():
+            if not isinstance(v, GCNode):
+                str_list.append(f"\t{k}: {v}")
+            else:
+                str_list.append(f"\t{k}: {repr(v)}")
+        str_list.append("\n")
         return "\n".join(str_list)
 
     def code_mermaid_chart(self) -> str:
@@ -387,7 +499,7 @@ class GCNode(Iterable, Hashable):
             return ""
         title_txt: list[str] = [
             "---",
-            f"title: \"{self.gc['signature'].hex()[-8:]} = {gc_function_call_cstr(self)}\"",
+            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.function_info.call_str()}\"",
             "---",
         ]
         chart_txt: list[str] = []
@@ -409,18 +521,78 @@ class GCNode(Iterable, Hashable):
         """
         nwcg: list[GCNode] = [code_graph(gcng) for gcng in self if gcng.write]
         assert all(
-            node.global_index == -1 for node in nwcg
+            node.function_info.global_index == -1 for node in nwcg
         ), "Global index must not already be set."
         for node in nwcg:
             # Set the global index for the node in execution context
             # A node will use the same index as an identical node in the same context
             # for code reuse.
-            node.global_index = node.ec.global_index(node.gc["signature"])
+            self.ec.new_function(node)
         assert all(
             all(c.src.terminal and c.dst.terminal for c in gcng.terminal_connections)
             for gcng in nwcg
         ), "All source connections endpoints must be terminal for a GC to be written."
         return nwcg
+
+    def inline_cstr(self) -> str:
+        """Return the code string for the GC inline code."""
+        # TODO: Need to add parameter elaboration here
+        return self.gc["inline"]
+
+    def line_count(self) -> None:
+        """Calculate the best number of lines for each function and
+        mark the ones that should be written. This function traverses the graph
+        starting at the root and working down to the leaves (codons) and then
+        back up to the root accumulating line counts.
+
+        When a node that meets the criteria to be written is found then the node is marked
+        as to be written, terminal and the line count is set. The node is then marked as
+        no longer needing assessment.
+        """
+        node: GCNode = self
+        limit = node.ec.line_limit()
+        node.write = not node.exists
+        while node.assess:
+
+            # If GCA exists and needs assessing then assess it
+            gca_node: GCNode = node.gca_node
+            if gca_node.assess:
+                node = gca_node
+                continue
+
+            # If GCB exists and needs assessing then assess it
+            num_lines_gca: int = gca_node.num_lines
+            if node.gcb_node is not NULL_GC_NODE:
+                gcb_node: GCNode = node.gcb_node
+                if gcb_node.assess:
+                    node = gcb_node
+                    continue
+
+                # If both GCA & GCB have been assessed then determine the best number of lines
+                # and mark the one to be written (if it does not already exist)
+                num_lines_gcb: int = gcb_node.num_lines
+                if num_lines_gca == num_lines_gcb == limit:
+                    gca_node.write = not gca_node.exists
+
+                    gca_node.terminal = True
+                    gcb_node.write = not gcb_node.exists
+                    gcb_node.terminal = True
+                    node.num_lines = 2
+                elif num_lines_gca + num_lines_gcb > limit:
+                    bi_gcx: GCNode = gcb_node if num_lines_gca < num_lines_gcb else gca_node
+                    bi_gcx.write = not bi_gcx.exists
+                    bi_gcx.terminal = True
+                    node.num_lines = 1 + (num_lines_gcb if bi_gcx is gca_node else num_lines_gca)
+                else:
+                    node.num_lines = num_lines_gca + num_lines_gcb
+            else:
+                node.num_lines = num_lines_gca
+
+            # Mark the node as assessed and move to the parent
+            # If the parent is empty then the bigraph line count is complete
+            node.assess = False
+            if node.parent is not NULL_GC_NODE:
+                node = node.parent
 
     def mermaid_chart(self) -> str:
         """Return the Mermaid chart for the GC node graph."""
@@ -459,119 +631,6 @@ class GCNode(Iterable, Hashable):
 # The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node but
 # if bot GCA and GCB are NULL_GC_NODE then it is a leaf node.
 NULL_GC_NODE = GCNode(ExecutionContext(), NULL_GC, None, DestinationRow.O)
-
-
-def node_graph(ec: ExecutionContext, gc: GCABC, limit: int) -> GCNode:
-    """Build the bi-directional graph of GC's.
-
-    The graph is a graph of GCNode objects. A GCNode object for a GC references nodes
-    for each of its GCA & GCB if they exist. Note that the graph is a representation
-    of the GC implementation and so each node is an instance of a GC not a definition.
-    i.e. the same GC may appear multiple times in the graph. This matters because each instance
-    may be implemented differently depending on what other GC's are local to it in the GC structure
-    graph.
-
-    Args:
-        ec: The execution context in which the code will be defined.
-        gc: Is the root of the graph.
-        limit: The maximum number of lines per function
-
-    Returns:
-        GCNode: The graph root node.
-    """
-    assert 2 <= limit <= 2**15 - 1, f"Invalid lines limit: {limit} must be 2 <= limit <= 32767"
-
-    half_limit: int = limit // 2
-    node_stack: list[GCNode] = [gc_node_graph := GCNode(ec, gc, None, SourceRow.I)]
-
-    # Define the GCNode data
-    while node_stack:
-        # See [Assessing a GC for Function Creation](docs/executor.md) for more information.
-        node: GCNode = node_stack.pop(0)
-        if node.is_codon or node.unknown:
-            continue
-        child_nodes: tuple[
-            tuple[DestinationRow, GCABC | bytes], tuple[DestinationRow, GCABC | bytes]
-        ] = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
-        for row, xgc in (x for x in child_nodes):
-            assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
-            gc_node_graph_entry: GCNode = GCNode(ec, xgc, node, row)
-            if row == DestinationRow.A:
-                node.gca_node = gc_node_graph_entry
-            else:
-                node.gcb_node = gc_node_graph_entry
-            lines = xgc["num_lines"]
-            assert lines <= limit, f"Number of lines in function exceeds limit: {lines} > {limit}"
-            if xgc["executable"] is not NULL_EXECUTABLE:  # A known executable
-                assert lines > 0, f"The # lines cannot be <= 0 when there is an executable: {lines}"
-                if lines < half_limit:
-                    node_stack.append(gc_node_graph_entry)
-                else:
-                    # Existing executable is suitable (so no need to assess or write it)
-                    # For the purposes of this execution context the node is 1 line
-                    # (the function call)
-                    gc_node_graph_entry.assess = False
-                    gc_node_graph_entry.exists = True
-                    gc_node_graph_entry.terminal = True
-                    gc_node_graph_entry.num_lines = 1
-            else:
-                node_stack.append(gc_node_graph_entry)
-    return gc_node_graph
-
-
-def line_count(gc_node_graph: GCNode, limit: int) -> None:
-    """Calculate the best number of lines for each function and
-    mark the ones that should be written. This function traverses the graph
-    starting at the root and working down to the leaves (codons) and then
-    back up to the root accumulating line counts.
-
-    When a node that meets the criteria to be written is found then the node is marked
-    as to be written, terminal and the line count is set. The node is then marked as
-    no longer needing assessment.
-    """
-    node: GCNode = gc_node_graph
-    node.write = not node.exists
-    while node.assess:
-
-        # If GCA exists and needs assessing then assess it
-        gca_node: GCNode = node.gca_node
-        if gca_node.assess:
-            node = gca_node
-            continue
-
-        # If GCB exists and needs assessing then assess it
-        num_lines_gca: int = gca_node.num_lines
-        if node.gcb_node is not NULL_GC_NODE:
-            gcb_node: GCNode = node.gcb_node
-            if gcb_node.assess:
-                node = gcb_node
-                continue
-
-            # If both GCA & GCB have been assessed then determine the best number of lines
-            # and mark the one to be written (if it does not already exist)
-            num_lines_gcb: int = gcb_node.num_lines
-            if num_lines_gca == num_lines_gcb == limit:
-                gca_node.write = not gca_node.exists
-
-                gca_node.terminal = True
-                gcb_node.write = not gcb_node.exists
-                gcb_node.terminal = True
-                node.num_lines = 2
-            elif num_lines_gca + num_lines_gcb > limit:
-                bi_gcx: GCNode = gcb_node if num_lines_gca < num_lines_gcb else gca_node
-                bi_gcx.write = not bi_gcx.exists
-                bi_gcx.terminal = True
-                node.num_lines = 1 + (num_lines_gcb if bi_gcx is gca_node else num_lines_gca)
-            else:
-                node.num_lines = num_lines_gca + num_lines_gcb
-        else:
-            node.num_lines = num_lines_gca
-
-        # Mark the node as assessed and move to the parent
-        # If the parent is empty then the bigraph line count is complete
-        node.assess = False
-        if node.parent is not NULL_GC_NODE:
-            node = node.parent
 
 
 class CodeEndPoint:
@@ -662,6 +721,9 @@ def code_graph(function: GCNode) -> GCNode:
     """
     node: GCNode = function  # This is the root of the graph for the GC function to be written
 
+    # Debugging
+    _logger.debug("Creating code graph for: %s", node)
+
     # If the GC is a codon then there are no connections to make
     if node.gca is NULL_GC and node.gcb is NULL_GC:
         return node
@@ -745,37 +807,3 @@ def code_graph(function: GCNode) -> GCNode:
 
     # Return the original node with the connections made
     return function
-
-
-def write_gc_executable(
-    ec: ExecutionContext, gc: GCABC | bytes, limit: int = 20
-) -> tuple[list[str], list[str]]:
-    """Write the code for the GC.
-
-    Sub-GC's are looked up in the gc_store.
-    The returned lists are the imports and functions.
-    Note that functions will be between limit/2 and limit lines long.
-
-    1. Graph bi-directional graph of GC's
-
-    Args:
-        gc_store (CacheABC): The cache of GC's.
-        gc (GCABC | bytes): The Genetic Code.
-        limit (int, optional): The maximum number of lines per function. Defaults to 20.
-    """
-    sig: bytes = gc.signature() if isinstance(gc, GCABC) else gc
-    assert isinstance(sig, bytes), f"Invalid signature type: {type(sig)}"
-    _gc: GCABC = gc if isinstance(gc, GCABC) else GGC_CACHE[sig]
-
-    # If the GC executable has already been written then return
-    if _gc["executable"] is not NULL_EXECUTABLE:
-        return [], []
-
-    # The GC may have been assessed as part of another GC but not an executable in its own right
-    # The GC node graph is needed to determine connectivity and so we reset the num_lines
-    # and re-assess
-    gc_node_graph: GCNode = node_graph(ec, _gc, limit)
-    line_count(gc_node_graph, limit)
-    gcs_to_write: list[GCNode] = gc_node_graph.create_code_graphs()
-
-    return [], []

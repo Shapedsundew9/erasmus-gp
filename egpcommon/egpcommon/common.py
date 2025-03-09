@@ -39,8 +39,6 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     "ancestorb": {"db_type": "BYTEA", "nullable": True},
     "pgc": {"db_type": "BYTEA", "nullable": True},
     "signature": {"db_type": "BYTEA", "nullable": False},
-    "num_lines": {},  # Not persisted in the database but needed for execution
-    "executable": {},  # Not persisted in the database but needed for execution
 }
 GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_e_count": {"db_type": "INT", "nullable": False},

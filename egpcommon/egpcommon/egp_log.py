@@ -34,7 +34,7 @@ def egp_logger(name: str) -> Logger:
 
 def enable_debug_logging():
     """Enable debug logging."""
-    basicConfig(level=DEBUG, filename="egp.log")
+    basicConfig(level=DEBUG, filename="egp.log", filemode="w")
 
 
 _logger: Logger = egp_logger(name=__name__)

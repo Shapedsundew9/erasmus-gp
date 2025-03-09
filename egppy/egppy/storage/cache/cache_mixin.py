@@ -45,9 +45,7 @@ class CacheMixin:
         """Flush the cache to the next level."""
         assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
         self.copyback()
-        _super = super()
-        assert isinstance(_super, StoreABC), "CacheMixin method called on non-StoreABC object."
-        _super.clear()
+        self.clear()
 
     def purge(self, num: int) -> None:
         """Purge num items from the cache."""

@@ -11,6 +11,7 @@ from typing import Any, Iterator
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH
 from egppy.gc_graph.typing import Row, SourceRow
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.gc_graph.interface import interface
@@ -31,16 +32,6 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 NULL_SIGNATURE: bytes = NULL_SHA256
 NULL_PROBLEM: bytes = NULL_SHA256
 NULL_PROBLEM_SET: bytes = NULL_SHA256
-
-
-# Transient or runtime support GC key:values that do not go into store
-EXCLUDED_KEYS: frozenset[str] = frozenset(["executable", "num_lines"])
-
-
-# For GC's with no executable (yet)
-def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
-    """The Null Exectuable. Should never be executed."""
-    raise RuntimeError("NULL_EXECUTABLE should never be executed.")
 
 
 # Mermaid Chart header and footer
@@ -226,16 +217,16 @@ class GCMixin:
         """Return True if the genetic code is a codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         assert (
-            self["pgc"] is NULL_GC
+            (self["pgc"] is NULL_GC or self["pgc"] is NULL_SIGNATURE)
             and PropertiesBD(self["properties"])["graph_type"] == GraphType.CODON
-            and self["gca"] is NULL_GC
-            and self["gcb"] is NULL_GC
-            and self["ancestora"] is NULL_GC
-            and self["ancestorb"] is NULL_GC
+            and (self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE)
+            and (self["gcb"] is NULL_GC or self["gcb"] is NULL_SIGNATURE)
+            and (self["ancestora"] is NULL_GC or self["ancestora"] is NULL_SIGNATURE)
+            and (self["ancestorb"] is NULL_GC or self["ancestorb"] is NULL_SIGNATURE)
         ) or (
             PropertiesBD(self["properties"])["graph_type"] != GraphType.CODON
         ), "Codon inconsistent!"
-        return self["pgc"] is NULL_GC
+        return self["pgc"] is NULL_GC or self["pgc"] is NULL_SIGNATURE
 
     def is_conditional(self) -> bool:
         """Return True if the genetic code is conditional."""
@@ -370,7 +361,7 @@ class GCMixin:
         """Return a JSON serializable dictionary."""
         retval = {}
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        for key in (included for included in self if included not in EXCLUDED_KEYS):
+        for key in self:
             value = self[key]
             if key == "meta_data":
                 md = deepcopy(value)
@@ -408,22 +399,33 @@ class GCMixin:
 class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
     """Genetic Code Protocol."""
 
-    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
+    def __init__(self, _: GCABC | dict[str, Any] | None = None) -> None:
         """Initialize the genetic code object."""
-        super().__init__(gcabc if gcabc is not None else {})
-        super().__setitem__("num_lines", 0)  # No code lines in a NullGC
-        super().__setitem__("executable", NULL_EXECUTABLE)
+        super().__init__(
+            {
+                "signature": NULL_SIGNATURE,
+                "problem": NULL_PROBLEM,
+                "problem_set": NULL_PROBLEM_SET,
+                "gca": NULL_SIGNATURE,
+                "gcb": NULL_SIGNATURE,
+                "pgc": NULL_SIGNATURE,
+                "ancestora": NULL_SIGNATURE,
+                "ancestorb": NULL_SIGNATURE,
+                "properties": 0,
+                "graph": NULL_GC_GRAPH,
+            }
+        )
 
     def __delitem__(self, key: str) -> None:
-        """Cannot modifiy a NullGC."""
+        """Cannot modify a NullGC."""
         raise RuntimeError("Cannot modify a NullGC")
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """Cannot modifiy a NullGC."""
+        """Cannot modify a NullGC."""
         raise RuntimeError("Cannot modify a NullGC")
 
     def setdefault(self, key: str, default: Any = None) -> Any:
-        """Cannot modifiy a NullGC."""
+        """Cannot modify a NullGC."""
         raise RuntimeError("Cannot modify a NullGC")
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
