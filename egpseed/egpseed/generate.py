@@ -8,6 +8,7 @@ from typing import Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.security import load_signed_json_dict, dump_signed_json
+from egpcommon.properties import GCType, GraphType
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.gc_graph.end_point.types_def import TypesDef, types_db
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict
@@ -23,17 +24,23 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
+    "code_depth": 1,
     "graph": {"A": None, "O": None},
     "gca": None,
     "gcb": None,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
     "created": datetime.now(UTC).isoformat(),
+    "generation": 1,
+    "num_codes": 1,
+    "num_codons": 1,
     "problem": ACYBERGENESIS_PROBLEM,
     "properties": {
+        "gc_type": GCType.CODON,
+        "graph_type": GraphType.STANDARD,
         "constant": False,
         "deterministic": True,
         "simplification": False,
-        "literal": False,
+        "gctsp": {"literal": False},
     },
     "meta_data": {"function": {"python3": {"0": {}}}},
 }
@@ -108,7 +115,9 @@ def generate_codons() -> None:
     for json_file in sorted(glob(join(dirname(__file__), "data", "languages", "python", "*.json"))):
         td: TypesDef = types_db.get(splitext(basename(json_file))[0].removeprefix("_"))
         for name, definition in load_signed_json_dict(json_file).items():  # Methods
-            codons.append(GGCDirtyDict(MethodExpander(td, name, definition).to_json()).to_json())
+            new_codon = GGCDirtyDict(MethodExpander(td, name, definition).to_json())
+            new_codon.consistency()
+            codons.append(new_codon.to_json())
     dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
 
     # Verify the signatures are unique

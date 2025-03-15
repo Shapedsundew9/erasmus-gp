@@ -38,7 +38,7 @@ from egppy.genotype.genotype import INT64_ZERO, Genotype
 
 # Constants
 TIME_COST = int64(10) # Energy decrement per tick
-THE_END_OF_TIME = 10000 # Maximum number of ticks to run the simulation
+THE_END_OF_TIME = 50000 # Maximum number of ticks to run the simulation
 MOVEMENT_COST = int64(1000) # Energy decrement per movement
 ENV_SIZE = 1000 # Environment size in pixels
 LIFEFORM_SIZE = 10 # Life form size in pixels

@@ -21,11 +21,10 @@ from copy import deepcopy
 from os.path import dirname, join
 
 from egpcommon.common import GGC_KVT
+from egpcommon.properties import PropertiesBD
 from egpcommon.conversions import (
     compress_json,
-    decode_properties,
     decompress_json,
-    encode_properties,
     list_int_to_bytes,
 )
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -46,6 +45,16 @@ GP_SCHEMA = deepcopy(GGC_KVT)
 GP_SCHEMA["signature"] = GP_SCHEMA["signature"] | {"primary_key": True}
 SCHEMAS = {"pool": GP_SCHEMA, "library": GP_SCHEMA, "archive": GGC_KVT}
 assert set(SCHEMAS.keys()) == set(TABLE_TYPES)
+
+
+def encode_properties(properties: dict) -> int:
+    """Encode properties."""
+    return PropertiesBD(properties).to_int()
+
+
+def decode_properties(properties: int) -> dict:
+    """Decode properties."""
+    return PropertiesBD(properties).to_json()
 
 
 def initialize(config: DBManagerConfig) -> bool:

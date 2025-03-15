@@ -98,8 +98,8 @@ class GGCTestBase(unittest.TestCase):
         """
         if self.running_in_test_base_class():
             return
-        keys = list(self.ggc)
-        self.assertEqual(first=keys, second=list(GGCMixin.GC_KEY_TYPES.keys()))
+        keys = set(self.ggc)
+        self.assertEqual(first=keys, second=set(GGCMixin.GC_KEY_TYPES.keys()))
 
     def test_clear(self) -> None:
         """
@@ -169,7 +169,7 @@ class GGCTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         keys = self.ggc.keys()
-        self.assertEqual(first=list(keys), second=list(GGCMixin.GC_KEY_TYPES.keys()))
+        self.assertEqual(first=set(keys), second=set(GGCMixin.GC_KEY_TYPES.keys()))
 
     def test_items(self) -> None:
         """

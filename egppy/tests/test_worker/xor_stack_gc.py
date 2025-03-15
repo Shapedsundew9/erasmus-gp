@@ -24,6 +24,7 @@ from time import time
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import bin_counts
+from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 
 from egppy.gc_types.gc import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
@@ -37,15 +38,16 @@ _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
-
 enable_debug_logging()
-print("This is a test file and should not be imported into the main codebase.")
-print(_logger.getEffectiveLevel())
-print(_LOG_DEBUG)
+
 
 # Python int type as an EGP type
 INT_T = ["int"]
 
+# New GC consistency assessment sample rate
+# Slows down the code but is useful for debugging
+# Set to 0.0 to disable or a fractional value for random sampling.
+CONSISTENCY_SAMPLE = 1.0
 
 # Right shift codon
 rshift_gc = GGC_CACHE[
@@ -89,10 +91,10 @@ random_long_gc = GGCDict(
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "properties": 3,
-        "num_codons": sixtyfour_gc["num_codons"] + getrandbits_gc["num_codons"],
+        "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
+random_long_gc.consistency()
 GGC_CACHE[random_long_gc["signature"]] = random_long_gc
 
 
@@ -113,19 +115,23 @@ rshift_1_gc = GGCDict(
     {
         "ancestora": literal_1_gc,
         "ancestorb": rshift_gc,
+        "code_depth": 2,
         "gca": literal_1_gc["signature"],  # Makes the structure of this GC unknown
         "gcb": rshift_gc,
+        "generation": 2,
         "graph": {
             "A": [],
             "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
             "O": [["B", 0, ["int"]]],
         },
+        "num_codes": 3,
+        "num_codons": 2,
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "properties": 3,
-        "num_codons": literal_1_gc["num_codons"] + rshift_gc["num_codons"],
+        "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
+rshift_1_gc.consistency()
 GGC_CACHE[rshift_1_gc["signature"]] = rshift_1_gc
 
 # rshift_xor_gc signature:
@@ -144,10 +150,10 @@ rshift_xor_gc = GGCDict(
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "properties": 3,
-        "num_codons": rshift_1_gc["num_codons"] + xor_gc["num_codons"],
+        "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
+rshift_xor_gc.consistency()
 GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
 
 # one_to_two signature:
@@ -166,10 +172,10 @@ one_to_two = GGCDict(
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
-        "properties": 3,
-        "num_codons": random_long_gc["num_codons"] + rshift_xor_gc["num_codons"],
+        "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
+one_to_two.consistency()
 GGC_CACHE[one_to_two["signature"]] = one_to_two
 two_to_one = rshift_xor_gc
 
@@ -196,7 +202,7 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """
     gca: GCABC = gc1
     gcb: GCABC = gc2
-    return GGCDict(
+    gcx = GGCDict(
         {
             "ancestora": gca,
             "ancestorb": gcb,
@@ -210,10 +216,13 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,
-            "properties": 3,
+            "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
         }
     )
+    if random() < CONSISTENCY_SAMPLE:
+        gcx.consistency()
+    return gcx
 
 
 def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
@@ -225,7 +234,7 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """
     gca: GCABC = gc1
     gcb: GCABC = gc2
-    return GGCDict(
+    gcx = GGCDict(
         {
             "ancestora": gca,
             "ancestorb": gcb,
@@ -239,10 +248,13 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,
-            "properties": 3,
+            "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
         }
     )
+    if random() < CONSISTENCY_SAMPLE:
+        gcx.consistency()
+    return gcx
 
 
 def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
@@ -275,7 +287,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     GCA's outputs are randomly connected to GCB's inputs.
     """
     assert gc1["num_outputs"] == gc2["num_inputs"], "gc1 # outputs != gc2 # inputs"
-    return GGCDict(
+    gcx = GGCDict(
         {
             "ancestora": gc1,
             "ancestorb": gc2,
@@ -288,10 +300,13 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,
-            "properties": 3,
+            "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gc1["num_codons"] + gc2["num_codons"],
         }
     )
+    if random() < CONSISTENCY_SAMPLE:
+        gcx.consistency()
+    return gcx
 
 
 def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:

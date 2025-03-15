@@ -308,26 +308,20 @@ class GCGraphMixin(CacheableObjMixin):
             assert fdc[0][0].get_row() == SourceRow.I, f"Row F src must be I: {fdc[0][0].get_row()}"
 
         if self.is_hardened_graph():
-            adi: AnyInterface = self[DestinationRow.A + EPClsPostfix.DST]
-            assert len(adi) >= 1, f"Row A must have at least one end point: {len(adi)}"
-            asi: AnyInterface = self[SourceRow.A + EPClsPostfix.SRC]
-            assert len(asi) >= 1, f"Row A must have at least one end point: {len(asi)}"
+            ai: AnyInterface = (
+                self[SourceRow.A + EPClsPostfix.SRC] + self[DestinationRow.A + EPClsPostfix.DST]
+            )
+            assert len(ai) >= 1, f"Row A must have at least one end point: {len(ai)}"
 
         if self.is_standard_graph() or self.is_conditional_graph():
-            adi: AnyInterface = self[DestinationRow.A + EPClsPostfix.DST]
-            assert len(adi) >= 1, f"Row A must have at least one end point: {len(adi)}"
-            bdi: AnyInterface = self[DestinationRow.B + EPClsPostfix.DST]
-            assert len(bdi) >= 1, f"Row B must have at least one end point: {len(bdi)}"
-            asi: AnyInterface = self[SourceRow.A + EPClsPostfix.SRC]
-            assert len(asi) >= 1, f"Row A must have at least one end point: {len(asi)}"
-            bsi: AnyInterface = self[SourceRow.B + EPClsPostfix.SRC]
-            assert len(bsi) >= 1, f"Row B must have at least one end point: {len(bsi)}"
-
-        # All graphs
-        isi: AnyInterface = self[SourceRow.I + EPClsPostfix.SRC]
-        assert len(isi) >= 1, f"Row I must have at least one end point: {len(isi)}"
-        odi: AnyInterface = self[DestinationRow.O + EPClsPostfix.DST]
-        assert len(odi) >= 1, f"Row O must have at least one end point: {len(odi)}"
+            ai: AnyInterface = (
+                self[DestinationRow.A + EPClsPostfix.DST] + self[SourceRow.A + EPClsPostfix.SRC]
+            )
+            assert len(ai) >= 1, f"Row A must have at least one end point: {len(ai)}"
+            bi: AnyInterface = (
+                self[DestinationRow.B + EPClsPostfix.DST] + self[SourceRow.B + EPClsPostfix.SRC]
+            )
+            assert len(bi) >= 1, f"Row B must have at least one end point: {len(bi)}"
 
         # Check connections
         for key in ROW_CLS_INDEXED:

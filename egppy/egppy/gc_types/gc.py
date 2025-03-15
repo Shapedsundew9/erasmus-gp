@@ -10,12 +10,12 @@ from typing import Any, Iterator
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.properties import GCType, GraphType, PropertiesBD
 
-from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH
-from egppy.gc_graph.typing import Row, SourceRow
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
+from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH
 from egppy.gc_graph.interface import interface
-from egppy.gc_types.properties import PropertiesBD, GraphType
+from egppy.gc_graph.typing import Row, SourceRow
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -128,6 +128,8 @@ class GCABC(CacheableObjABC):
     setting members. All GC keys are strings from a frozen set of keys.
     """
 
+    GC_KEY_TYPES: dict[str, dict[str, str | bool]]
+
     @abstractmethod
     def __delitem__(self, key: str) -> None:
         """Delete a key and value."""
@@ -218,25 +220,22 @@ class GCMixin:
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         assert (
             (self["pgc"] is NULL_GC or self["pgc"] is NULL_SIGNATURE)
-            and PropertiesBD(self["properties"])["graph_type"] == GraphType.CODON
+            and PropertiesBD(self["properties"])["gc_type"] == GCType.CODON
             and (self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE)
             and (self["gcb"] is NULL_GC or self["gcb"] is NULL_SIGNATURE)
             and (self["ancestora"] is NULL_GC or self["ancestora"] is NULL_SIGNATURE)
             and (self["ancestorb"] is NULL_GC or self["ancestorb"] is NULL_SIGNATURE)
-        ) or (
-            PropertiesBD(self["properties"])["graph_type"] != GraphType.CODON
-        ), "Codon inconsistent!"
+        ) or (PropertiesBD(self["properties"])["gc_type"] != GCType.CODON), "Codon inconsistent!"
         return self["pgc"] is NULL_GC or self["pgc"] is NULL_SIGNATURE
 
     def is_conditional(self) -> bool:
         """Return True if the genetic code is conditional."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         assert (
-            (
-                PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
-                and self["graph"].is_conditional()
-            )
-            or PropertiesBD(self["properties"])["graph_type"] != GraphType.CONDITIONAL
+            PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
+            and self["graph"].is_conditional_graph()
+        ) or (
+            PropertiesBD(self["properties"])["graph_type"] != GraphType.CONDITIONAL
             and not self["graph"].is_conditional_graph()
         ), "Conditional inconsistent!"
         return PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
@@ -361,7 +360,8 @@ class GCMixin:
         """Return a JSON serializable dictionary."""
         retval = {}
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        for key in self:
+        # Only keys that are persisted in the DB are included in the JSON.
+        for key in (k for k in self if self.GC_KEY_TYPES.get(k, {})):
             value = self[key]
             if key == "meta_data":
                 md = deepcopy(value)
@@ -411,8 +411,14 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
                 "pgc": NULL_SIGNATURE,
                 "ancestora": NULL_SIGNATURE,
                 "ancestorb": NULL_SIGNATURE,
-                "properties": 0,
+                "properties": PropertiesBD(
+                    {"gc_type": GCType.CODON, "graph_type": GraphType.EMPTY}
+                ).to_int(),
                 "graph": NULL_GC_GRAPH,
+                "code_depth": 0,
+                "num_codons": 0,
+                "num_codes": 0,
+                "generation": 0,
             }
         )
 

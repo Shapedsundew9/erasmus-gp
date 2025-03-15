@@ -50,7 +50,6 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_lost_descendants": {"db_type": "BIGINT", "nullable": False},
     "_reference_count": {"db_type": "BIGINT", "nullable": False},
     "code_depth": {"db_type": "INT", "nullable": False},
-    "codon_depth": {"db_type": "INT", "nullable": False},
     "created": {"db_type": "TIMESTAMP", "nullable": False},
     "descendants": {"db_type": "BIGINT", "nullable": False},
     "e_count": {"db_type": "INT", "nullable": False},

@@ -6,20 +6,19 @@ for simplicity. The UGC allows any values to be stored in the genetic code objec
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
 
-from curses.ascii import EM
 from datetime import UTC, datetime
 from math import isclose
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_TUPLE, NULL_STR
+from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_STR, NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.properties import PropertiesBD
 
+from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
 from egppy.gc_types.egc_class_factory import EGCMixin
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
-from egppy.gc_types.properties import PropertiesBD
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
-from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -44,9 +43,6 @@ class GGCMixin(EGCMixin):
         assert (
             self["e_total"] >= self["_e_total"]
         ), "Evolvability total must be greater than or equal to the higher layer total."
-        assert (
-            self["_e_total"] >= self["_e_count"]
-        ), "Evolvability total must be greater than or equal to the evolvability count."
         assert isclose(
             self["_evolvability"], self["_e_total"] / self["_e_count"]
         ), "Evolvability must be the total evolvability divided by the count."
@@ -56,9 +52,6 @@ class GGCMixin(EGCMixin):
         assert (
             self["f_total"] >= self["_f_total"]
         ), "Fitness total must be greater than or equal to the higher layer total."
-        assert (
-            self["_f_total"] >= self["_f_count"]
-        ), "Fitness total must be greater than or equal to the fitness count."
         assert isclose(
             self["_fitness"], self["_f_total"] / self["_f_count"]
         ), "Fitness must be the total fitness divided by the count."
@@ -68,51 +61,51 @@ class GGCMixin(EGCMixin):
         assert (
             self["_reference_count"] <= self["reference_count"]
         ), "_reference_count must be less than or equal to reference_count."
-        assert (
-            self["code_depth"] == 1 and self["gca"] is NULL_GC
-        ), "A code depth of 1 is a codon or empty GC and must have a NULL GCA."
-        assert (
-            self["code_depth"] > 1 and self["gca"] is not NULL_GC
-        ), "A code depth greater than 1 must have a non-NULL GCA."
-        assert (
-            self["codon_depth"] == 0 and self["gca"] is NULL_GC
-        ), "A codon depth of 0 is an empty GC must have a NULL GCA."
-        assert (
-            self["codon_depth"] == 1 and self["gca"] is NULL_GC
-        ), "A codon depth of 1 is a codon and  must have a NULL GCA."
-        assert (
-            self["codon_depth"] > 1 and self["gca"] is not NULL_GC
-        ), "A codon depth greater than 1 must have a non-NULL GCA."
+
+        assert self["code_depth"] >= 0, "code_depth must be greater than or equal to zero."
+        if self["code_depth"] == 1:
+            assert (
+                self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE
+            ), "A code depth of 1 is a codon or empty GC and must have a NULL GCA."
+
+        if self["code_depth"] > 1:
+            assert (
+                self["gca"] is not NULL_GC and self["gca"] is not NULL_SIGNATURE
+            ), "A code depth greater than 1 must have a non-NULL GCA."
+
         assert self["created"] <= self["updated"], "created time must be less than updated time."
-        assert (
-            self["generation"] == 0 and self["gca"] is NULL_GC
-        ), "A generation of 0 is a codon or empty GC and must have a NULL GCA."
-        assert (
-            self["generation"] > 0 and self["gca"] is not NULL_GC
-        ), "A generation greater than 0 must have a non-NULL GCA."
-        assert (not self["input_types"]) == (
-            not self["inputs"]
-        ), "input_types and inputs both be 0 length or both be > 0 length."
-        assert len(self["inputs"]) <= len(
-            self["input_types"]
-        ), "The number of inputs must be less than or equal to the number of input_types."
+
+        if self["generation"] == 0:
+            assert self is NULL_GC, "A generation of 0 can only be the NULL_GC."
+
+        if self["generation"] == 1:
+            assert (
+                self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE
+            ), "A generation of 1 is a codon and can only have a NULL GCA."
+
+        if len(self["inputs"]) == 0:
+            assert len(self["input_types"]) == 0, "No inputs must have no input types."
+
+        assert len(self["input_types"]) <= len(
+            self["inputs"]
+        ), "The number of input types must be less than or equal to the number of inputs."
         assert (
             self["lost_descendants"] <= self["reference_count"]
         ), "lost_descendants must be less than or equal to reference_count."
         assert (
             self["num_codes"] >= self["code_depth"]
         ), "num_codes must be greater than or equal to code_depth."
-        assert (
-            self["num_codons"] >= self["codon_depth"]
-        ), "num_codons must be greater than or equal to codon_depth."
-        assert (not self["output_types"]) == (
-            not self["outputs"]
-        ), "output_types and outputs both be 0 length or both be > 0 length."
-        assert len(self["outputs"]) <= len(
-            self["output_types"]
-        ), "The number of outputs must be less than or equal to the number of output_types."
-        assert (
-            self["updated"] <= datetime.now()
+
+        if len(self["outputs"]) == 0:
+            assert len(self["output_types"]) == 0, "No outputs must have no output types."
+
+        if len(self["output_types"]) > 0:
+            assert len(self["output_types"]) <= len(
+                self["outputs"]
+            ), "The number of output types must be less than or equal to the number of outputs."
+
+        assert self["updated"] <= datetime.now(
+            UTC
         ), "updated time must be less than or equal to the current time."
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
@@ -127,6 +120,25 @@ class GGCMixin(EGCMixin):
         """
         super().set_members(gcabc)
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
+        gca: GCABC | bytes = self["gca"]
+        gcb: GCABC | bytes = self["gcb"]
+        unknown = isinstance(gca, bytes) or isinstance(gcb, bytes)
+
+        # If one or both of the sub-GC's are unknown then some fields cannot be derived.
+        if unknown:
+            self["code_depth"] = gcabc["code_depth"]
+            self["generation"] = gcabc["generation"]
+            self["num_codes"] = gcabc["num_codes"]
+            self["num_codons"] = gcabc["num_codons"]
+        else:
+            # Can derive some values from the sub-GC's.
+            assert isinstance(gca, GCABC) and isinstance(gcb, GCABC), "GCA and GCB must be GCABC."
+            self["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
+            self["generation"] = max(gca["generation"], gcb["generation"]) + 1
+            self["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
+            self["num_codons"] = max(gca["num_codons"] + gcb["num_codons"], 1)
+
+        # Other values do not depend on the sub-GC's being known.
         self["_e_count"] = gcabc.get("_e_count", 1)
         self["_e_total"] = gcabc.get("_e_total", 0.0)
         self["_evolvability"] = self["_e_total"] / self["_e_count"]
@@ -135,8 +147,6 @@ class GGCMixin(EGCMixin):
         self["_fitness"] = self["_f_total"] / self["_f_count"]
         self["_lost_descendants"] = gcabc.get("_lost_descendants", 0)
         self["_reference_count"] = gcabc.get("_reference_count", 0)
-        self["code_depth"] = gcabc.get("code_depth", 1)
-        self["codon_depth"] = gcabc.get("codon_depth", 1)
         tmp = gcabc.get("created", datetime.now(UTC))
         self["created"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
         self["descendants"] = gcabc.get("descendants", 0)
@@ -146,7 +156,6 @@ class GGCMixin(EGCMixin):
         self["f_count"] = gcabc.get("f_count", self["_f_count"])
         self["f_total"] = gcabc.get("f_total", self["_f_total"])
         self["fitness"] = self["f_total"] / self["f_count"]
-        self["generation"] = gcabc.get("generation", 0)
         self["imports"] = NULL_TUPLE
         self["inline"] = NULL_STR
         self["input_types"], self["inputs"] = self["graph"].itypes()
@@ -161,12 +170,10 @@ class GGCMixin(EGCMixin):
         ):
             base = self["meta_data"]["function"]["python3"]["0"]
             if "imports" in base and not isinstance(base["imports"], tuple):
-                self["imports"] = tuple(
+                base["imports"] = self["imports"] = tuple(
                     import_def_store.add(ImportDef(**md)) for md in base["imports"]
                 )
                 self["inline"] = base["inline"]
-        self["num_codes"] = gcabc.get("num_codes", 1)
-        self["num_codons"] = gcabc.get("num_codons", 1)
         self["num_inputs"] = len(self["inputs"])
         self["num_outputs"] = 0  # To keep alphabetical ordering in keys.
         self["output_types"], self["outputs"] = self["graph"].otypes()
@@ -189,10 +196,8 @@ class GGCMixin(EGCMixin):
         self["survivability"] = gcabc.get("survivability", 0.0)
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
-
-        # Some sanity that GCABC was consistent for derived values. _LOG_DEBUG because this is fast.
         if _LOG_DEBUG:
-            pass
+            self.verify()
 
     def verify(self) -> None:
         """Verify the genetic code object."""
@@ -351,8 +356,10 @@ class GGCMixin(EGCMixin):
         assert len(self["problem_set"]) == 32, "problem_set must be 32 bytes long."
 
         # The properties of the genetic code.
+        assert isinstance(self["properties"], int), "properties must be an integer."
         assert self["properties"] >= -(2**63), "properties must be greater than or equal to -2**63."
         assert self["properties"] <= 2**63 - 1, "properties must be less than or equal to 2**63-1."
+        assert PropertiesBD(self["properties"]).verify(), "properties failed verification."
 
         # The reference count of the genetic code.
         assert (
