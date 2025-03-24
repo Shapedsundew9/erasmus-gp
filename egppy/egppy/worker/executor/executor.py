@@ -6,14 +6,17 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Iterable, Iterator
+from collections.abc import Hashable, Sequence, Iterable, Iterator
 from dataclasses import dataclass
 from itertools import count
 from typing import Any, Callable
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.common import NULL_STR
 
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
+from egppy.gc_graph.end_point.end_point_type import ept_to_str
+from egppy.gc_graph.end_point.import_def import ImportDef
 from egppy.gc_graph.typing import DestinationRow, Row, SourceRow
 from egppy.gc_types.gc import (
     GCABC,
@@ -32,16 +35,40 @@ from egppy.worker.gc_store import GGC_CACHE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
+enable_debug_logging()
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Constants
+# Maximum number of local variables in a GC function
+# Limit is representation as a variable name f"t{number:05d}"
+MAX_NUM_LOCALS: int = 99999
+UNUSED_VAR_NAME: str = "_"
+
+
 # For GC's with no executable (yet)
 def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
     """The Null Exectuable. Should never be executed."""
     raise RuntimeError("NULL_EXECUTABLE should never be executed.")
+
+
+# For sorting connections for naming
+def connection_key(connection: CodeConnection) -> int:
+    """Return the key for sorting connections for naming.
+    Input connections where the source is the top level node are first.
+    Output connections where the destination is the top level node are second.
+    All other connections are last.
+
+    This ensures inputs get assigned an ix name and outputs a ox name.
+    Everything else is assigned a tx name.
+    """
+    if connection.src.row == SourceRow.I:
+        return 0
+    if connection.dst.row == DestinationRow.O:
+        return 1
+    return 2
 
 
 def i_cstr(n: int) -> str:
@@ -50,7 +77,7 @@ def i_cstr(n: int) -> str:
     The number of inputs is limited to 256 in a GC.
     """
     assert 0 <= n <= 255, f"Invalid input index: {n} must be 0 <= n <= 255"
-    return f"i[{n:03d}]"
+    return f"i[{n}]"
 
 
 def o_cstr(n: int) -> str:
@@ -59,7 +86,7 @@ def o_cstr(n: int) -> str:
     The number of outputs in a GC is limited to 256.
     """
     assert 0 <= n <= 255, f"Invalid output index: {n} must be 0 <= n <= 255"
-    return f"o{n:03d}"
+    return f"o{n}"
 
 
 def t_cstr(n: int) -> str:
@@ -68,7 +95,7 @@ def t_cstr(n: int) -> str:
     The number of temporary variables in a function is limited to 100,000.
     """
     assert 0 <= n <= 99999, f"Invalid temporary index: {n} must be 0 <= n <= 99999"
-    return f"t{n:05d}"
+    return f"t{n}"
 
 
 # Mermaid Chart creation helper function
@@ -104,7 +131,8 @@ def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_CODON_COLOR
 def mc_code_node_str(gcnode: GCNode) -> str:
     """Return a Mermaid Chart string representation of the code (terminal GCNode)."""
     if gcnode.exists or gcnode.write:
-        label = f"{gcnode.function_info.call_str()}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        # Stub ivns for the call string to keep the length under control.
+        label = f"{gcnode.function_info.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_rectangle_str(gcnode.uid, label, "green")
     assert (
         gcnode.gc.is_codon()
@@ -143,17 +171,20 @@ class FunctionInfo:
     executable: Callable
     global_index: int
     line_count: int
+    gc: GCABC
 
     def name(self) -> str:
         """Return the function name."""
-        return f"f_{self.global_index:08x}"
+        return f"f_{self.global_index:x}"
 
-    def call_str(self) -> str:
-        """Return the function call string."""
-        return f"{self.name()}(i)"
+    def call_str(self, ivns: Sequence[str]) -> str:
+        """Return the function call string using the map of input variable names."""
+        if len(ivns):
+            return f"{self.name()}(({', '.join(f'{ivn}' for ivn in ivns)},))"
+        return f"{self.name()}()"
 
 
-NULL_FUNCTION_MAP: FunctionInfo = FunctionInfo(NULL_EXECUTABLE, -1, 0)
+NULL_FUNCTION_MAP: FunctionInfo = FunctionInfo(NULL_EXECUTABLE, -1, 0, NULL_GC)
 
 
 class ExecutionContext:
@@ -178,30 +209,51 @@ class ExecutionContext:
         self.function_map: dict[bytes, FunctionInfo] = {}
         # The maximum number of lines in a function
         self._line_limit: int = line_limit
+        # Existing Imports
+        self.imports: set[ImportDef] = set()
 
     def define(self, code: str) -> None:
         """Define a function in the execution context."""
         exec(code, self.namespace)  # pylint: disable=exec-used
 
-    def function_def_str(self, _: GCNode) -> str:
-        """Return the code string for the GC."""
-        return ""
+    def function_def(self, node: GCNode) -> tuple[str, str]:
+        """Create the function definition in the execution context including the imports."""
+        imports, code = node.code_lines()
+        self.imports.update(imports)
+        code.insert(0, node.function_def())
+        return "\n".join(str(imp) for imp in imports), "\n\t".join(code)
 
     def line_limit(self) -> int:
         """Return the maximum number of lines in a function."""
         return self._line_limit
 
-    def new_function(self, node: GCNode) -> FunctionInfo:
-        """Create a new function in the execution context."""
+    def new_function_placeholder(self, node: GCNode) -> FunctionInfo:
+        """Create a placeholder for a new function in the execution context.
+        Functions need to be named before they can be defined otherwise they would
+        have to be defined in the order they are used which is not always possible.
+        """
         signature = node.gc["signature"]
         self.function_map[signature] = newf = FunctionInfo(
-            NULL_EXECUTABLE, next(self._global_index), node.num_lines
+            NULL_EXECUTABLE, next(self._global_index), node.num_lines, node.gc
         )
-        self.define(self.function_def_str(node))
-        # TODO: newf.executable = self.namespace[newf.name()]
-        newf.executable = lambda x: x  # Placeholder for now
         node.function_info = newf
         return newf
+
+    def new_function(self, node: GCNode) -> FunctionInfo:
+        """Create a new function in the execution context."""
+        imports, code = self.function_def(node)
+
+        # Debugging
+        if _LOG_DEBUG:
+            _logger.debug("Function: %s", node.function_info.name())
+            _logger.debug("Imports:\n%s", imports)
+            _logger.debug("Code:\n%s", code)
+
+        # Add to the execution context
+        self.define(imports)
+        self.define(code)
+        node.function_info.executable = self.namespace[node.function_info.name()]
+        return node.function_info
 
     def node_graph(self, gc: GCABC) -> GCNode:
         """Build the bi-directional graph of GC's.
@@ -264,7 +316,7 @@ class ExecutionContext:
                     node_stack.append(gc_node_graph_entry)
         return gc_node_graph
 
-    def write_executable(self, gc: GCABC | bytes) -> tuple[list[str], list[str]]:
+    def write_executable(self, gc: GCABC | bytes) -> None:
         """Write the code for the GC.
 
         Sub-GC's are looked up in the gc_store.
@@ -280,16 +332,18 @@ class ExecutionContext:
         """
         sig: bytes = gc.signature() if isinstance(gc, GCABC) else gc
         assert isinstance(sig, bytes), f"Invalid signature type: {type(sig)}"
-        _gc: GCABC = gc if isinstance(gc, GCABC) else GGC_CACHE[sig]
+
+        # Function already exists & is a reasonable size
+        if sig in self.function_map and self.function_map[sig].line_count > self._line_limit // 2:
+            return
 
         # The GC may have been assessed as part of another GC but not an executable in its own right
         # The GC node graph is needed to determine connectivity and so we reset the num_lines
         # and re-assess
+        _gc: GCABC = gc if isinstance(gc, GCABC) else GGC_CACHE[sig]
         gc_node_graph: GCNode = self.node_graph(_gc)
         gc_node_graph.line_count()
-        gcs_to_write: list[GCNode] = gc_node_graph.create_code_graphs()
-
-        return [], []
+        gc_node_graph.create_code_graphs()
 
 
 class GCNodeIterator(Iterator):
@@ -403,7 +457,7 @@ class GCNode(Iterable, Hashable):
     """A node in the GC Graph."""
 
     # For generating UIDs for GCNode instances
-    _counter = count()
+    _uid_counter = count()
 
     def __init__(self, ec: ExecutionContext, gc: GCABC, parent: GCNode | None, row: Row) -> None:
         self.ec: ExecutionContext = ec  # The execution context for this work dictionary
@@ -424,16 +478,20 @@ class GCNode(Iterable, Hashable):
         self.gca_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         self.gcb_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         # Uniquely identify the node in the graph
-        self.uid: str = f"uid{next(self._counter):04x}"
+        self.uid: str = f"uid{next(self._uid_counter):04x}"
         # The code connection end points if this node is to be written
         self.terminal_connections: list[CodeConnection] = []
         # Calculated number of lines in the *potential* function
         self.num_lines = self.function_info.line_count
+        # The local variable counter (used to make unique variable names)
+        self._local_counter = count()
 
         # Context within the GC Node graph not known from within the GC
         if parent is None:
             # This is the top level GC that is being analysed to create a function
             # It has no parent.
+            # NOTE: The top level GC is the root of the graph & therefore not terminal.
+            # However, connection to its inputs and outputs are terminal.
             self.iam = SourceRow.I
             self.parent = NULL_GC_NODE if gc is not NULL_GC else self
         else:
@@ -499,7 +557,7 @@ class GCNode(Iterable, Hashable):
             return ""
         title_txt: list[str] = [
             "---",
-            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.function_info.call_str()}\"",
+            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.function_info.call_str('')}\"",
             "---",
         ]
         chart_txt: list[str] = []
@@ -520,24 +578,77 @@ class GCNode(Iterable, Hashable):
         If a node (function) is not yet written it has not been assigned a global index.
         """
         nwcg: list[GCNode] = [code_graph(gcng) for gcng in self if gcng.write]
-        assert all(
-            node.function_info.global_index == -1 for node in nwcg
-        ), "Global index must not already be set."
+
         for node in nwcg:
             # Set the global index for the node in execution context
             # A node will use the same index as an identical node in the same context
-            # for code reuse.
+            # for code reuse. Naming must happen before the function is defined.
+            self.ec.new_function_placeholder(node)
+
+        for node in nwcg:
+            # Define the function in the execution context. Defining the function may involve
+            # calling other functions not yet defined. This is why the function must be named
+            # before it is defined.
             self.ec.new_function(node)
-        assert all(
-            all(c.src.terminal and c.dst.terminal for c in gcng.terminal_connections)
-            for gcng in nwcg
-        ), "All source connections endpoints must be terminal for a GC to be written."
+
         return nwcg
 
-    def inline_cstr(self) -> str:
+    def function_def(self, hints: bool = False) -> str:
+        """Return the function definition code line for the GC node.
+        hints: If True then include type hints in the function definition.
+        """
+        # Define the function input parameters
+        iface = self.gc["graph"]["Is"]
+        inum = self.gc["num_inputs"]
+        iparams = "i"
+
+        if hints:
+            # Add type hints for input parameters
+            input_types = ", ".join(ept_to_str(iface[i]) for i in range(inum))
+            iparams += f": tuple[{input_types}]"
+
+        # Start building the function definition
+        base_def = f"def {self.function_info.name()}({iparams if inum else ''})"
+
+        if hints:
+            # Add type hints for output parameters
+            onum = self.gc["num_outputs"]
+            if onum > 1:
+                oface = self.gc["graph"]["Od"]
+                output_types = ", ".join(ept_to_str(oface[i]) for i in range(onum))
+                ret_type = f"tuple[{output_types}]"
+            elif onum == 1:
+                ret_type = ept_to_str(self.gc["graph"]["Od"][0])
+            elif onum == 0:
+                ret_type = "None"
+            else:
+                raise ValueError(f"Invalid number of outputs: {onum}, in GC.")
+            return f"{base_def} -> {ret_type}:"
+
+        # Return the function definition without type hints
+        return f"{base_def}:"
+
+    def inline_cstr(self, root: GCNode) -> str:
         """Return the code string for the GC inline code."""
-        # TODO: Need to add parameter elaboration here
-        return self.gc["inline"]
+        # By default the ovns is underscore (unused) for all outputs. This is
+        # then overridden by any connection that starts (is source endpoint) at this node.
+        ovns: list[str] = ["_"] * self.gc["num_outputs"]
+        rtc = root.terminal_connections
+        for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is self):
+            ovns[idx] = ovn
+
+        # Similary the ivns are defined. However, they must have variable names as they
+        # cannot be undefined.
+        ivns: list[str] = [NULL_STR] * self.gc["num_inputs"]
+        for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is self):
+            ivns[idx] = ivn
+
+        # Is this node a codon?
+        assignment = ", ".join(ovns) + " = "
+        if self.is_codon:
+            ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
+            return assignment + self.gc["inline"].format_map(ivns_map)
+        return assignment + self.function_info.call_str(ivns)
 
     def line_count(self) -> None:
         """Calculate the best number of lines for each function and
@@ -627,13 +738,78 @@ class GCNode(Iterable, Hashable):
                         chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
         return chart_txt
 
+    def name_connections(self) -> list[str]:
+        """Name the source variable of the connection between two code end points."""
+
+        # Gather the output variable names to catch the case where an input is
+        # directly connected to an output
+        _ovns: list[str] = ["" for _ in range(self.gc["num_outputs"])]
+        self.terminal_connections.sort(key=connection_key)
+        src_cep_map: dict[CodeEndPoint, CodeConnection] = {}
+        for connection in self.terminal_connections:
+            # If the source end point has already had a varibale name assigned
+            # then the connection is already named.
+            src: CodeEndPoint = connection.src
+            if src in src_cep_map:
+                connection.var_name = src_cep_map[src].var_name
+                continue
+            src_cep_map[src] = connection
+
+            # Quick reference the source code endpoint,
+            # the output variable names and the output index
+            dst: CodeEndPoint = connection.dst
+            idx: int = src.idx
+
+            # Priority naming is given to input and output variables
+            # This keeps all inputs as ix and outputs as ox except in the
+            # case where the input is directly connected to the output.
+            if src.row == SourceRow.I:
+                assert src.node is self, "Invalid connection source node."
+                assert connection.var_name == "", "Input variable name already assigned."
+                connection.var_name = i_cstr(idx)
+            elif dst.row == DestinationRow.O and connection.var_name is NULL_STR:
+                assert dst.node is self, "Invalid connection destination node."
+                connection.var_name = o_cstr(dst.idx)
+            elif connection.var_name is NULL_STR:
+                assert src.row == SourceRow.A or src.row == SourceRow.B, "Invalid source row."
+                number = next(self._local_counter)
+                connection.var_name = t_cstr(number)
+            else:
+                raise ValueError("Invalid connection source row.")
+
+            # Gather the outputs for this node (may not be named ox if connected to an input)
+            if dst.row == DestinationRow.O:
+                assert dst.node is self, "Invalid connection destination node."
+                _ovns[dst.idx] = connection.var_name
+        return _ovns
+
+    def code_lines(self) -> tuple[set[ImportDef], list[str]]:
+        """Return the code lines for the GC function.
+        First list are the imports and the second list are the function lines.
+        """
+        if not self.write:
+            return set(), []
+        imports: set[ImportDef] = set()
+        code: list[str] = []
+        ovns: list[str] = self.name_connections()
+
+        # Write a line for each terminal node in the graph
+        for node in (tn for tn in GCNodeCodeIterable(self) if tn.terminal and tn is not self):
+            imports.update(node.gc["imports"])
+            code.append(node.inline_cstr(self))
+
+        # Add a return statement if the function has outputs
+        if self.gc["num_outputs"] > 0:
+            code.append(f"return {', '.join(ovns)}")
+        return imports, code
+
 
 # The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node but
 # if bot GCA and GCB are NULL_GC_NODE then it is a leaf node.
 NULL_GC_NODE = GCNode(ExecutionContext(), NULL_GC, None, DestinationRow.O)
 
 
-class CodeEndPoint:
+class CodeEndPoint(Hashable):
     """An code end point in the GC node graph."""
 
     def __init__(self, node: GCNode, row: Row, idx: int, terminal: bool = False) -> None:
@@ -655,6 +831,16 @@ class CodeEndPoint:
         self.idx: int = idx
         self.terminal: bool = terminal
 
+    def __eq__(self, other: object) -> bool:
+        """Check equality of CodeEndPoint instances."""
+        if not isinstance(other, CodeEndPoint):
+            return NotImplemented
+        return self.key() == other.key()
+
+    def __hash__(self) -> int:
+        """Return the hash of the CodeEndPoint instance."""
+        return hash(self.key())
+
     def __repr__(self) -> str:
         """Return the representation of the CodeEndPoint instance."""
         return (
@@ -662,14 +848,29 @@ class CodeEndPoint:
             f"{self.row}, {self.idx}, {self.terminal})"
         )
 
+    def key(self) -> tuple:
+        """Return the key for the CodeEndPoint instance."""
+        return (self.node, self.row, self.idx, self.terminal)
 
-class CodeConnection:
+
+class CodeConnection(Hashable):
     """A connection between terminal end points in the GC node graph."""
 
     def __init__(self, src: CodeEndPoint, dst: CodeEndPoint) -> None:
         """Create a connection between code end points in the GC node graph."""
         self.src: CodeEndPoint = src
         self.dst: CodeEndPoint = dst
+        self.var_name: str = NULL_STR
+
+    def __eq__(self, other: object) -> bool:
+        """Check equality of CodeConnection instances."""
+        if not isinstance(other, CodeConnection):
+            return NotImplemented
+        return self.key() == other.key()
+
+    def __hash__(self) -> int:
+        """Return the hash of the CodeConnection instance."""
+        return hash(self.key())
 
     def __repr__(self) -> str:
         """Return the representation of the CodeConnection instance."""
@@ -677,8 +878,12 @@ class CodeConnection:
             f"CodeConnection({self.src.node.uid}(0x{self.src.node.gc['signature'].hex()[-8:]}), "
             f"{self.src.row}, {self.src.idx}, "
             f"{self.dst.node.uid}(0x{self.dst.node.gc['signature'].hex()[-8:]}), "
-            f"{self.dst.row}, {self.dst.idx})"
+            f"{self.dst.row}, {self.dst.idx}, {self.var_name})"
         )
+
+    def key(self) -> tuple:
+        """Return the key for the CodeConnection instance."""
+        return (self.src, self.dst, self.var_name)
 
 
 def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
@@ -765,12 +970,16 @@ def code_graph(function: GCNode) -> GCNode:
                         if src.row == SourceRow.I:
                             src.node = parent
                             node = parent.parent
+                            # If the source in the parent it row I & its parent is the root
+                            # then the source is terminal - it is a connection to the top level
+                            # GC input interface.
+                            src.terminal = src.node.terminal or node is NULL_GC_NODE
                         else:
                             src.node = parent.gca_node
                             refs = src.node.gc["graph"]["Odc"]
                             src.idx = ref.get_idx()
                             node = parent
-                        src.terminal = src.node.terminal
+                            src.terminal = src.node.terminal
                     else:
                         refs = []
                         src.terminal = True
@@ -787,6 +996,10 @@ def code_graph(function: GCNode) -> GCNode:
                 # to the connection stack if it has not already been added (visited).
                 # node.iam tells us which row defines the interface within the node.
                 assert connection.dst.terminal, "Destination must be terminal."
+
+                # The list of connections for the entire written GC (all the local
+                # variables that are defined or used in the function) are maintained
+                # in the function nodes terminal_connections list.
                 terminal_connections.append(connection)
                 connection_stack.pop()
                 if src.node not in visited_nodes:

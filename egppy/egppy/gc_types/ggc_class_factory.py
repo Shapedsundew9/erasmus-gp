@@ -158,8 +158,12 @@ class GGCMixin(EGCMixin):
         self["fitness"] = self["f_total"] / self["f_count"]
         self["imports"] = NULL_TUPLE
         self["inline"] = NULL_STR
+
+        # TODO: What do we need these for internally. Need to write them to the DB
+        # but internally we can use the graph interface e.g. self["graph"]["I"]
         self["input_types"], self["inputs"] = self["graph"].itypes()
         self["lost_descendants"] = gcabc.get("lost_descendants", 0)
+
         # TODO: Need to resolve the meta_data references. Too deep.
         # Need to pull relevant data in and then destroy the meta data dictionary.
         self["meta_data"] = gcabc.get("meta_data", {})
@@ -169,15 +173,19 @@ class GGCMixin(EGCMixin):
             and "0" in self["meta_data"]["function"]["python3"]
         ):
             base = self["meta_data"]["function"]["python3"]["0"]
+            self["inline"] = base["inline"]
             if "imports" in base and not isinstance(base["imports"], tuple):
                 base["imports"] = self["imports"] = tuple(
                     import_def_store.add(ImportDef(**md)) for md in base["imports"]
                 )
-                self["inline"] = base["inline"]
+
+        # TODO: What do we need these for internally. Need to write them to the DB
+        # but internally we can use the graph interface e.g. self["graph"]["O"]
         self["num_inputs"] = len(self["inputs"])
         self["num_outputs"] = 0  # To keep alphabetical ordering in keys.
         self["output_types"], self["outputs"] = self["graph"].otypes()
         self["num_outputs"] = len(self["outputs"])
+
         self["population_uid"] = gcabc.get("population_uid", 0)
         tmp = gcabc.get("problem") if gcabc.get("problem") is not None else NULL_PROBLEM
         assert not isinstance(tmp, (bytearray, memoryview)) and tmp is not None

@@ -403,22 +403,24 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
         """Initialize the genetic code object."""
         super().__init__(
             {
-                "signature": NULL_SIGNATURE,
-                "problem": NULL_PROBLEM,
-                "problem_set": NULL_PROBLEM_SET,
-                "gca": NULL_SIGNATURE,
-                "gcb": NULL_SIGNATURE,
-                "pgc": NULL_SIGNATURE,
                 "ancestora": NULL_SIGNATURE,
                 "ancestorb": NULL_SIGNATURE,
+                "code_depth": 0,
+                "gca": NULL_SIGNATURE,
+                "gcb": NULL_SIGNATURE,
+                "generation": 0,
+                "graph": NULL_GC_GRAPH,
+                "num_codons": 0,
+                "num_codes": 0,
+                "num_inputs": 0,
+                "num_outputs": 0,
+                "pgc": NULL_SIGNATURE,
+                "problem": NULL_PROBLEM,
+                "problem_set": NULL_PROBLEM_SET,
                 "properties": PropertiesBD(
                     {"gc_type": GCType.CODON, "graph_type": GraphType.EMPTY}
                 ).to_int(),
-                "graph": NULL_GC_GRAPH,
-                "code_depth": 0,
-                "num_codons": 0,
-                "num_codes": 0,
-                "generation": 0,
+                "signature": NULL_SIGNATURE,
             }
         )
 

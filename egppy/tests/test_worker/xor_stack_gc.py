@@ -41,6 +41,10 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 enable_debug_logging()
 
 
+# Set the seed for reproducibility
+seed(0)
+
+
 # Python int type as an EGP type
 INT_T = ["int"]
 
@@ -157,7 +161,8 @@ rshift_xor_gc.consistency()
 GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
 
 # one_to_two signature:
-# b'\xc3\xef\xa5\xf3N\x034<\xd6\xef\xd9o\xedh\xe60\x9eH\xfd\x9b}8\x8f\x12\x85\x1b\x04\xc2T\x83\xe8\x85'
+# b'\xc3\xef\xa5\xf3N\x034<\xd6\xef\xd9o\xedh\xe60\x9eH\
+# xfd\x9b}8\x8f\x12\x85\x1b\x04\xc2T\x83\xe8\x85'
 # c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885
 one_to_two = GGCDict(
     {
@@ -410,7 +415,6 @@ def expand_gc_matrix(
 
 if __name__ == "__main__":
     # Seed the random number generator for reproducibility
-    seed(0)
     start = time()
     gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
     print(f"GCM Elapsed time: {time() - start:.2f} seconds")
@@ -423,8 +427,12 @@ if __name__ == "__main__":
     ec1 = ExecutionContext(3)
     ec2 = ExecutionContext(50)
     # Hack in pre-defined function
-    ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(f_7fffffff, 0x7FFFFFFF, 2)
-    ec2.function_map[rshift_1_gc["signature"]] = FunctionInfo(f_7fffffff, 0x7FFFFFFF, 2)
+    ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
+        f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+    )
+    ec2.function_map[rshift_1_gc["signature"]] = FunctionInfo(
+        f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+    )
 
     # Create a markdown formatted file with mermaid diagrams of the GC's in the gene pool
     # A temporary file is created in the default temp directory
