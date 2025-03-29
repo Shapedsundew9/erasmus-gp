@@ -475,11 +475,11 @@ if __name__ == "__main__":
             f.write(f"### GC Node Graph Structure with Line Limit = {ec1.line_limit()}\n\n")
             f.write("```mermaid\n")
             ng = ec1.node_graph(gpgc)
-            ng.line_count()
+            ng.line_count(ec1.line_limit())
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
             f.write(f"### GC Code Connection Graphs with Line Limit = {ec1.line_limit()}\n")
-            ntw: list[GCNode] = ng.create_code_graphs()
+            ntw: list[GCNode] = ec1.create_code_graphs(ng)
             for node in ntw:
                 if node.function_info.global_index not in global_idx_set1:
                     f.write("\n```mermaid\n")
@@ -491,11 +491,11 @@ if __name__ == "__main__":
             f.write(f"### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
             f.write("```mermaid\n")
             ng = ec2.node_graph(gpgc)
-            ng.line_count()
+            ng.line_count(ec2.line_limit())
             f.write(ng.mermaid_chart())
             f.write("\n```\n\n")
             f.write(f"### GC Code Connection Graphs with Line Limit = {ec2.line_limit()}\n")
-            ntw: list[GCNode] = ng.create_code_graphs()
+            ntw: list[GCNode] = ec2.create_code_graphs(ng)
             for node in ntw:
                 if node.function_info.global_index not in global_idx_set2:
                     f.write("\n```mermaid\n")
