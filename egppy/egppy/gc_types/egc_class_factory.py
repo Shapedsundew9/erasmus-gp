@@ -135,7 +135,8 @@ class EGCMixin(GCMixin):
         assert len(self["signature"]) == 32, "signature must be 32 bytes"
         for key in self:
             assert key in self.GC_KEY_TYPES, f"Invalid key: {key}"
-            if getattr(self[key], "verify", None) is not None:
+            # Recursively calling verify on GCABC's can take a long time.
+            if getattr(self[key], "verify", None) is not None and not isinstance(self[key], GCABC):
                 self[key].verify()
 
 

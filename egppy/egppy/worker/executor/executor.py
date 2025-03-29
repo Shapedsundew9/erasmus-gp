@@ -245,7 +245,7 @@ class ExecutionContext:
 
         # Debugging
         if _LOG_DEBUG:
-            _logger.debug("Function: %s", node.function_info.name())
+            _logger.debug("Function:\n%s", node.function_info.name())
             _logger.debug("Imports:\n%s", imports)
             _logger.debug("Code:\n%s", code)
 
@@ -283,7 +283,7 @@ class ExecutionContext:
             # See [Assessing a GC for Function Creation](docs/executor.md) for more information.
             node: GCNode = node_stack.pop(0)
             # if _LOG_DEBUG:
-            _logger.debug("Assessing node: %s", node)
+            # _logger.debug("Assessing node: %s", node)
             if node.is_codon or node.unknown:
                 continue
             child_nodes = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
@@ -312,6 +312,7 @@ class ExecutionContext:
                         gc_node_graph_entry.exists = True
                         gc_node_graph_entry.terminal = True
                         gc_node_graph_entry.function_info.line_count = 1
+                        gc_node_graph_entry.num_lines = 1
                 else:
                     node_stack.append(gc_node_graph_entry)
         return gc_node_graph
@@ -432,12 +433,14 @@ class GCNodeCodeIterator(Iterator):
         """Traverse the GCNode graph to the limit of the GCA nodes."""
         node = parent.gca_node
         root = self.stack[0]
-        # If a is to be written then there is no need to go any further
+        # If a node is to be written or already terminal then there is no need to go any further
         # as the parent will become a single line executable in this code. The exception
         # is if the parent is the root which by definition is being written and this code is
         # figuring out how.
         # NB: If a parent exists it does not mean it will be used (it may have too few lines)
-        while (parent is root or not parent.write) and (node is not NULL_GC_NODE):
+        while (parent is root or not (parent.write or parent.terminal)) and (
+            node is not NULL_GC_NODE
+        ):
             parent = node
             self.stack.append(node)
             node = node.gca_node
@@ -526,6 +529,12 @@ class GCNode(Iterable, Hashable):
             self.assess = False
             self.unknown = True
             self.num_lines = 1
+
+    def __eq__(self, value: object) -> bool:
+        """Return True if the GCNode instance is equal to the value."""
+        if not isinstance(value, GCNode):
+            return False
+        return self.uid == value.uid
 
     def __hash__(self) -> int:
         """Return the hash of the GCNode instance."""
@@ -633,7 +642,7 @@ class GCNode(Iterable, Hashable):
         # By default the ovns is underscore (unused) for all outputs. This is
         # then overridden by any connection that starts (is source endpoint) at this node.
         ovns: list[str] = ["_"] * self.gc["num_outputs"]
-        rtc = root.terminal_connections
+        rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is self):
             ovns[idx] = ovn
 
@@ -927,7 +936,7 @@ def code_graph(function: GCNode) -> GCNode:
     node: GCNode = function  # This is the root of the graph for the GC function to be written
 
     # Debugging
-    _logger.debug("Creating code graph for: %s", node)
+    # _logger.debug("Creating code graph for: %s", node)
 
     # If the GC is a codon then there are no connections to make
     if node.gca is NULL_GC and node.gcb is NULL_GC:

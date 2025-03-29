@@ -2,10 +2,19 @@
 
 import unittest
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+
 from egppy.gc_types.gc import GCABC
 from egppy.worker.executor.executor import ExecutionContext, FunctionInfo
 
 from .xor_stack_gc import create_gc_matrix, expand_gc_matrix, f_7fffffff, one_to_two, rshift_1_gc
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+enable_debug_logging()
 
 
 class TestExecutor(unittest.TestCase):
@@ -43,11 +52,13 @@ class TestExecutor(unittest.TestCase):
     def test_write_gene_pool_ec1(self) -> None:
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""
-        for gc in self.gene_pool:
+        for idx, gc in enumerate(self.gene_pool):
+            _logger.debug("Writing gc %d", idx)
             self.ec1.write_executable(gc)
 
     def test_write_gene_pool_ec2(self) -> None:
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""
-        for gc in self.gene_pool:
+        for idx, gc in enumerate(self.gene_pool):
+            _logger.debug("Writing gc %d", idx)
             self.ec2.write_executable(gc)
