@@ -6,10 +6,9 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Sequence, Iterable, Iterator
-from dataclasses import dataclass
+from collections.abc import Hashable, Iterable, Iterator
 from itertools import count
-from typing import Any, Callable
+from typing import Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import NULL_STR
@@ -32,6 +31,7 @@ from egppy.gc_types.gc import (
     mc_rectangle_str,
 )
 from egppy.worker.gc_store import GGC_CACHE
+from egppy.worker.executor.function_info import FunctionInfo, NULL_FUNCTION_MAP, NULL_EXECUTABLE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -46,12 +46,6 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # Limit is representation as a variable name f"t{number:05d}"
 MAX_NUM_LOCALS: int = 99999
 UNUSED_VAR_NAME: str = "_"
-
-
-# For GC's with no executable (yet)
-def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
-    """The Null Exectuable. Should never be executed."""
-    raise RuntimeError("NULL_EXECUTABLE should never be executed.")
 
 
 # For sorting connections for naming
@@ -162,29 +156,6 @@ def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str
         else dst.node.uid + "O"
     )
     return mc_connect_str(namea, nameb, arrow)
-
-
-@dataclass
-class FunctionInfo:
-    """The information for a function in the execution context."""
-
-    executable: Callable
-    global_index: int
-    line_count: int
-    gc: GCABC
-
-    def name(self) -> str:
-        """Return the function name."""
-        return f"f_{self.global_index:x}"
-
-    def call_str(self, ivns: Sequence[str]) -> str:
-        """Return the function call string using the map of input variable names."""
-        if len(ivns):
-            return f"{self.name()}(({', '.join(f'{ivn}' for ivn in ivns)},))"
-        return f"{self.name()}()"
-
-
-NULL_FUNCTION_MAP: FunctionInfo = FunctionInfo(NULL_EXECUTABLE, -1, 0, NULL_GC)
 
 
 class ExecutionContext:
