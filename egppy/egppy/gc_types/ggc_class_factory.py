@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from math import isclose
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_STR, NULL_TUPLE
+from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_STR, NULL_TUPLE, ANONYMOUS_CREATOR
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 
@@ -149,6 +149,7 @@ class GGCMixin(EGCMixin):
         self["_reference_count"] = gcabc.get("_reference_count", 0)
         tmp = gcabc.get("created", datetime.now(UTC))
         self["created"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+        self["creator"] = gcabc.get("creator", ANONYMOUS_CREATOR)
         self["descendants"] = gcabc.get("descendants", 0)
         self["e_count"] = gcabc.get("e_count", self["_e_count"])
         self["e_total"] = gcabc.get("e_total", self["_e_total"])

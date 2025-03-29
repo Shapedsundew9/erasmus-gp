@@ -21,6 +21,7 @@ from egppy.gc_types.gc import (
 from egppy.worker.gc_store import GGC_CACHE
 from egppy.worker.executor.function_info import FunctionInfo, NULL_FUNCTION_MAP, NULL_EXECUTABLE
 from egppy.worker.executor.gc_node import GCNode, GCNodeCodeIterable, NULL_GC_NODE
+from egppy.worker.executor.fw_config import FWConfig, FWCONFIG_DEFAULT
 from egppy.worker.executor.code_connection import (
     CodeConnection,
     CodeEndPoint,
@@ -223,15 +224,47 @@ class ExecutionContext:
         # Return the original node with the connections made
         return root
 
-    def code_lines(self, root: GCNode) -> tuple[set[ImportDef], list[str]]:
+    def code_lines(
+        self, root: GCNode, lean: bool, fwconfig: FWConfig
+    ) -> tuple[set[ImportDef], list[str]]:
         """Return the code lines for the GC function.
         First list are the imports and the second list are the function lines.
         """
         if not root.write:
             return set(), []
-        imports: set[ImportDef] = set()
+
+        # Comment lines at the top of the function are done first
         code: list[str] = []
+        if not lean:
+            if fwconfig.signature:
+                code.append(f"# Signature: {root.gc['signature'].hex()}")
+            if fwconfig.created:
+                code.append(f"# Created: {root.gc['created']}")
+            if fwconfig.license:
+                code.append(f"# License: {root.gc.get('license', "MIT")}")
+            if fwconfig.creator:
+                code.append(f"# Creator: {root.gc['creator']}")
+            if fwconfig.generation:
+                code.append(f"# Generation: {root.gc['generation']}")
+            if fwconfig.version and "version" in root.gc:
+                code.append(f"# Version: {root.gc['version']}")
+            if fwconfig.optimisations:
+                code.append("# Optimisations:")
+                code.append("#   - Dead code elimination: True")
+                code.append(f"#   - Constant evaluation: {fwconfig.const_eval}")
+                code.append(f"#   - Common subexpression elimination: {fwconfig.cse}")
+                code.append(f"#   - Simplification: {fwconfig.simplification}")
+
+        imports: set[ImportDef] = set()
         ovns: list[str] = self.name_connections(root)
+
+        # Apply optimisations
+        if lean or fwconfig.const_eval:
+            self.constant_evaluation(root)
+        if lean or fwconfig.cse:
+            self.common_subexpression_elimination(root)
+        if lean or fwconfig.simplification:
+            self.simplification(root)
 
         # Write a line for each terminal node in the graph
         for node in (tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn is not root):
@@ -242,6 +275,18 @@ class ExecutionContext:
         if root.gc["num_outputs"] > 0:
             code.append(f"return {', '.join(ovns)}")
         return imports, code
+
+    def common_subexpression_elimination(self, root: GCNode) -> None:
+        """Apply common subexpression elimination to the GC function.
+        This optimisations identifies code paths that have identical expressions
+        and replaces them with a single expression that is assigned to a variable.
+        """
+
+    def constant_evaluation(self, root: GCNode) -> None:
+        """Apply constant evaluation to the GC function.
+        This optimisations identifies code paths that always return the same result
+        and replaces them with the constant result.
+        """
 
     def create_code_graphs(self, root: GCNode) -> list[GCNode]:
         """Return the list of GCNode instances that need to be written. i.e. that need code graphs.
@@ -267,11 +312,13 @@ class ExecutionContext:
         """Define a function in the execution context."""
         exec(code, self.namespace)  # pylint: disable=exec-used
 
-    def function_def(self, node: GCNode) -> tuple[str, str]:
+    def function_def(
+        self, node: GCNode, lean: bool = True, fwconfig: FWConfig = FWCONFIG_DEFAULT
+    ) -> tuple[str, str]:
         """Create the function definition in the execution context including the imports."""
-        imports, code = self.code_lines(node)
+        imports, code = self.code_lines(node, lean, fwconfig)
         self.imports.update(imports)
-        code.insert(0, node.function_def())
+        code.insert(0, node.function_def(fwconfig.hints and not lean))
         return "\n".join(str(imp) for imp in imports), "\n\t".join(code)
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
@@ -307,37 +354,33 @@ class ExecutionContext:
         # directly connected to an output
         _ovns: list[str] = ["" for _ in range(root.gc["num_outputs"])]
         root.terminal_connections.sort(key=connection_key)
-        src_cep_map: dict[CodeEndPoint, CodeConnection] = {}
         for connection in root.terminal_connections:
             # If the source end point has already had a variable name assigned
             # then the connection is already named.
-            src: CodeEndPoint = connection.src
-            if src in src_cep_map:
-                connection.var_name = src_cep_map[src].var_name
-                continue
-            src_cep_map[src] = connection
-
-            # Quick reference the source code endpoint,
-            # the output variable names and the output index
             dst: CodeEndPoint = connection.dst
-            idx: int = src.idx
+            if connection.var_name is NULL_STR:
 
-            # Priority naming is given to input and output variables
-            # This keeps all inputs as ix and outputs as ox except in the
-            # case where the input is directly connected to the output.
-            if src.row == SourceRow.I:
-                assert src.node is root, "Invalid connection source node."
-                assert connection.var_name == "", "Input variable name already assigned."
-                connection.var_name = i_cstr(idx)
-            elif dst.row == DestinationRow.O and connection.var_name is NULL_STR:
-                assert dst.node is root, "Invalid connection destination node."
-                connection.var_name = o_cstr(dst.idx)
-            elif connection.var_name is NULL_STR:
-                assert src.row == SourceRow.A or src.row == SourceRow.B, "Invalid source row."
-                number = next(root.local_counter)
-                connection.var_name = t_cstr(number)
-            else:
-                raise ValueError("Invalid connection source row.")
+                # Quick reference the source code endpoint,
+                # the output variable names and the output index
+                src: CodeEndPoint = connection.src
+                idx: int = src.idx
+
+                # Priority naming is given to input and output variables
+                # This keeps all inputs as ix and outputs as ox except in the
+                # case where the input is directly connected to the output.
+                if src.row == SourceRow.I:
+                    assert src.node is root, "Invalid connection source node."
+                    assert connection.var_name == "", "Input variable name already assigned."
+                    connection.var_name = i_cstr(idx)
+                elif dst.row == DestinationRow.O and connection.var_name is NULL_STR:
+                    assert dst.node is root, "Invalid connection destination node."
+                    connection.var_name = o_cstr(dst.idx)
+                elif connection.var_name is NULL_STR:
+                    assert src.row == SourceRow.A or src.row == SourceRow.B, "Invalid source row."
+                    number = next(root.local_counter)
+                    connection.var_name = t_cstr(number)
+                else:
+                    raise ValueError("Invalid connection source row.")
 
             # Gather the outputs for this node (may not be named ox if connected to an input)
             if dst.row == DestinationRow.O:
@@ -436,7 +479,12 @@ class ExecutionContext:
                     node_stack.append(gc_node_graph_entry)
         return gc_node_graph
 
-    def write_executable(self, gc: GCABC | bytes) -> None:
+    def simplification(self, root: GCNode) -> None:
+        """Apply simplification to the GC function.
+        This optimisations uses symbolic regression to simplify the code.
+        """
+
+    def write_executable(self, gc: GCABC | bytes) -> GCNode | None:
         """Write the code for the GC.
 
         Sub-GC's are looked up in the gc_store.
@@ -449,13 +497,16 @@ class ExecutionContext:
             gc_store (CacheABC): The cache of GC's.
             gc (GCABC | bytes): The Genetic Code.
             limit (int, optional): The maximum number of lines per function. Defaults to 20.
+
+        Returns:
+            GCNode: The GC node graph or None if the GC already exists as a suitable function.
         """
         sig: bytes = gc.signature() if isinstance(gc, GCABC) else gc
         assert isinstance(sig, bytes), f"Invalid signature type: {type(sig)}"
 
         # Function already exists & is a reasonable size
         if sig in self.function_map and self.function_map[sig].line_count > self._line_limit // 2:
-            return
+            return None
 
         # The GC may have been assessed as part of another GC but not an executable in its own right
         # The GC node graph is needed to determine connectivity and so we reset the num_lines
@@ -464,3 +515,4 @@ class ExecutionContext:
         gc_node_graph: GCNode = self.node_graph(_gc)
         gc_node_graph.line_count(self._line_limit)
         self.create_code_graphs(gc_node_graph)
+        return gc_node_graph

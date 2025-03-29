@@ -86,6 +86,7 @@ random_long_gc = GGCDict(
     {
         "ancestora": sixtyfour_gc,
         "ancestorb": getrandbits_gc,
+        "created": "2025-03-29 22:05:08.489847+00:00",
         "gca": sixtyfour_gc,
         "gcb": getrandbits_gc,
         "graph": {
@@ -119,6 +120,7 @@ rshift_1_gc = GGCDict(
     {
         "ancestora": literal_1_gc,
         "ancestorb": rshift_gc,
+        "created": "2025-03-29 22:05:08.489847+00:00",
         "code_depth": 2,
         "gca": literal_1_gc["signature"],  # Makes the structure of this GC unknown
         "gcb": rshift_gc,
@@ -145,6 +147,7 @@ rshift_xor_gc = GGCDict(
     {
         "ancestora": rshift_1_gc,
         "ancestorb": xor_gc,
+        "created": "2025-03-29 22:05:08.489847+00:00",
         "gca": rshift_1_gc,
         "gcb": xor_gc,
         "graph": {
@@ -168,6 +171,7 @@ one_to_two = GGCDict(
     {
         "ancestora": random_long_gc,
         "ancestorb": rshift_xor_gc,
+        "created": "2025-03-29 22:05:08.489847+00:00",
         "gca": random_long_gc,
         "gcb": rshift_xor_gc,
         "graph": {

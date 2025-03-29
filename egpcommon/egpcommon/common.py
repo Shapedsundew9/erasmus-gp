@@ -20,6 +20,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)
+ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
 
 
 # Constants
@@ -51,6 +52,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_reference_count": {"db_type": "BIGINT", "nullable": False},
     "code_depth": {"db_type": "INT", "nullable": False},
     "created": {"db_type": "TIMESTAMP", "nullable": False},
+    "creator": {"db_type": "UUID", "nullable": False},
     "descendants": {"db_type": "BIGINT", "nullable": False},
     "e_count": {"db_type": "INT", "nullable": False},
     "e_total": {"db_type": "FLOAT", "nullable": False},

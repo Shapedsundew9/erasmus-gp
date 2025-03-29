@@ -37,6 +37,10 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
             self.data: dict[str, Any] = {}
         super().__init__()
 
+    def __contains__(self, key: object) -> bool:
+        """Check if the dictionary contains a key."""
+        return key in self.data
+
     def __delitem__(self, key: str) -> None:
         """Delete an item from the dictionary."""
         del self.data[key]
@@ -67,6 +71,11 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
         """Set an item in the dictionary."""
         self.data[key] = value
         self.dirty()
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        """Get an item from the dictionary."""
+        self.touch()
+        return self.data.get(key, default)
 
     def popitem(self) -> tuple[Any, Any]:
         """Default MutableMapping mixin popitem() method is implemented

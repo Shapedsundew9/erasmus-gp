@@ -96,8 +96,11 @@ class MethodExpander:
         return json_dict
 
 
-def generate_codons() -> None:
+def generate_codons(write: bool = False) -> None:
     """Generate codons.
+
+    Arguments:
+        write: If True, write the codons to a JSON file.
 
     1. Find all the JSON files in the python directory.
     2. Extract the name of the file. If it begins with '_' (for custom objects) remove it.
@@ -118,7 +121,8 @@ def generate_codons() -> None:
             new_codon = GGCDirtyDict(MethodExpander(td, name, definition).to_json())
             new_codon.consistency()
             codons.append(new_codon.to_json())
-    dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
+    if write:
+        dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
 
     # Verify the signatures are unique
     # This check picks up any errors in sigurature generation or type defintions
@@ -129,4 +133,4 @@ def generate_codons() -> None:
 
 
 if __name__ == "__main__":
-    generate_codons()
+    generate_codons(True)
