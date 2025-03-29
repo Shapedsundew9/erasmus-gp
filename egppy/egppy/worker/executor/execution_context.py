@@ -408,13 +408,12 @@ class ExecutionContext:
             child_nodes = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
             for row, xgc in (x for x in child_nodes):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
-                finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
-                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, finfo)
+                fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
+                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap)
                 if row == DestinationRow.A:
                     node.gca_node = gc_node_graph_entry
                 else:
                     node.gcb_node = gc_node_graph_entry
-                fmap: FunctionInfo = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
                 assert (
                     fmap.line_count <= self._line_limit
                 ), f"# lines in function exceeds limit: {fmap.line_count} > {self._line_limit}"

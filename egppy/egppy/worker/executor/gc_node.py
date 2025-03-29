@@ -6,8 +6,6 @@ from collections.abc import Iterable, Iterator, Hashable
 from itertools import count
 from typing import TYPE_CHECKING
 
-from egpcommon.common import NULL_STR
-
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
 from egppy.gc_graph.typing import DestinationRow, Row, SourceRow
 from egppy.gc_types.gc import (
