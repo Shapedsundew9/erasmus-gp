@@ -5,7 +5,7 @@ import unittest
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 
 from egppy.gc_types.gc import GCABC
-from egppy.worker.executor.executor import ExecutionContext, FunctionInfo
+from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 
 from .xor_stack_gc import create_gc_matrix, expand_gc_matrix, f_7fffffff, one_to_two, rshift_1_gc
 

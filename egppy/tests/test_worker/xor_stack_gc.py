@@ -30,7 +30,7 @@ from egppy.gc_types.gc import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.gc_store import GGC_CACHE
-from egppy.worker.executor.executor import FunctionInfo, GCNode, ExecutionContext
+from egppy.worker.executor.execution_context import FunctionInfo, GCNode, ExecutionContext
 
 
 # Standard EGP logging pattern
