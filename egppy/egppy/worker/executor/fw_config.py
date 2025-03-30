@@ -25,7 +25,7 @@ class FWConfig:
     # The version of the GC
     version: bool = True
     # Write out the optimisations performed on the function (defined below)
-    optimisations: bool = True
+    optimisations: bool = False
 
     # The following attributes enable / disable code optimisations.
     # Constant evaluation: Any constant expressions in the function are evaluated

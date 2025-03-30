@@ -157,8 +157,8 @@ class GGCMixin(EGCMixin):
         self["f_count"] = gcabc.get("f_count", self["_f_count"])
         self["f_total"] = gcabc.get("f_total", self["_f_total"])
         self["fitness"] = self["f_total"] / self["f_count"]
-        self["imports"] = NULL_TUPLE
-        self["inline"] = NULL_STR
+        self["imports"] = gcabc.get("imports", NULL_TUPLE)
+        self["inline"] = gcabc.get("inline", NULL_STR)
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]

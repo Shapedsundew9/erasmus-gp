@@ -19,7 +19,7 @@ deterministic with a seed and require correct order execution to produce the cor
 
 from json import dump
 from random import choice, random, randint, seed, shuffle
-import tempfile
+from tempfile import NamedTemporaryFile
 from time import time
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
@@ -440,7 +440,7 @@ if __name__ == "__main__":
 
     # Create a markdown formatted file with mermaid diagrams of the GC's in the gene pool
     # A temporary file is created in the default temp directory
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+    with NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write("# Genetic Codes\n\n")
         f.write(
             "Be aware that GC's may have the same GC graph (structure) but the top level "
@@ -511,5 +511,5 @@ if __name__ == "__main__":
             f.write("\n")
 
     # Dump as JSON so we can take a deeper look at the GC's
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+    with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)

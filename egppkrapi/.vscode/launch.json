@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Python Debugger: Python File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "internalConsole",
+            "redirectOutput": true,
+            "env": {
+                "LOGLEVEL": "DEBUG"
+            }
+        }
+    ],
+    "version": "0.2.0"
+}

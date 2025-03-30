@@ -39,6 +39,25 @@ def _file_size_limit(fullpath: str, limit: int = 2**30) -> int:
     return size
 
 
+def validate_json_signature(fullpath: str) -> bool:
+    """ Validate the JSON file signature.
+    EGP JSON files are always a list. The first element of the list is the
+    data and the second element is the signature.
+    No matter how the data is formatted the signed JSON always has this format:
+    [
+    <data object>,
+    "lowercase hexadecimal signature[64]",
+    ]
+    The signature is thus always characters 1 to 64 inclusive of the penultimate line.
+    The signature is the signed sha256 hash of characters from the start of the file to
+    the end of the antepenultimate line inclusive (i.e. including the comma after 
+    the data object).
+    Validation ensures that the format of the signature line and the last line are exact.
+    """
+    # TODO: Implementation Needed
+    return True
+
+
 def get_signature(creator: UUID) -> bytes:
     """Get the creators signature.
     May be the local creator, Erasmus, or a validated community creator.

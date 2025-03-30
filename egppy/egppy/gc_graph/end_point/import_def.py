@@ -33,9 +33,20 @@ class ImportDef(Validator, DictTypeAccessor):
         setattr(self, "name", name)
         setattr(self, "as_name", as_name)
 
+    def __eq__(self, value: object) -> bool:
+        """Check equality of ImportDef instances."""
+        if not isinstance(value, ImportDef):
+            return NotImplemented
+        return self.key() == value.key()
+
     def __hash__(self) -> int:
         """Unique hash for the import def."""
-        return hash(self.aip) ^ hash((self.name, self.as_name))
+        return self.key()
+
+    def __str__(self) -> str:
+        """Return the string representation of the object."""
+        base_str = f"from {'.'.join(self.aip)} import {self.name}"
+        return base_str + " as " + self.as_name if self.as_name else base_str
 
     @property
     def aip(self) -> tuple[str, ...]:
@@ -76,10 +87,9 @@ class ImportDef(Validator, DictTypeAccessor):
         self._is_printable_string("as_name", value)
         self._as_name = value
 
-    def __str__(self) -> str:
-        """Return the string representation of the object."""
-        base_str = f"from {'.'.join(self.aip)} import {self.name}"
-        return base_str + " as " + self.as_name if self.as_name else base_str
+    def key(self) -> int:
+        """Return the key for the import definition."""
+        return hash((self.aip, self.name, self.as_name))
 
     def to_json(self) -> dict[str, Any]:
         """Return the object as a JSON serializable dictionary."""

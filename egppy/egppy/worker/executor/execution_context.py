@@ -5,10 +5,8 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 """
 
 from __future__ import annotations
-
 from itertools import count
 from typing import Any
-
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import NULL_STR
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
@@ -224,38 +222,16 @@ class ExecutionContext:
         # Return the original node with the connections made
         return root
 
-    def code_lines(
-        self, root: GCNode, lean: bool, fwconfig: FWConfig
-    ) -> tuple[set[ImportDef], list[str]]:
+    def code_lines(self, root: GCNode, lean: bool, fwconfig: FWConfig) -> list[str]:
         """Return the code lines for the GC function.
-        First list are the imports and the second list are the function lines.
+        First list are the function lines.
         """
         if not root.write:
-            return set(), []
+            return []
 
-        # Comment lines at the top of the function are done first
-        code: list[str] = []
-        if not lean:
-            if fwconfig.signature:
-                code.append(f"# Signature: {root.gc['signature'].hex()}")
-            if fwconfig.created:
-                code.append(f"# Created: {root.gc['created']}")
-            if fwconfig.license:
-                code.append(f"# License: {root.gc.get('license', "MIT")}")
-            if fwconfig.creator:
-                code.append(f"# Creator: {root.gc['creator']}")
-            if fwconfig.generation:
-                code.append(f"# Generation: {root.gc['generation']}")
-            if fwconfig.version and "version" in root.gc:
-                code.append(f"# Version: {root.gc['version']}")
-            if fwconfig.optimisations:
-                code.append("# Optimisations:")
-                code.append("#   - Dead code elimination: True")
-                code.append(f"#   - Constant evaluation: {fwconfig.const_eval}")
-                code.append(f"#   - Common subexpression elimination: {fwconfig.cse}")
-                code.append(f"#   - Simplification: {fwconfig.simplification}")
-
-        imports: set[ImportDef] = set()
+        # Doc string lines are at the top of the function are done first
+        # then the actual code lines.
+        code: list[str] = [] if lean else self.docstring(fwconfig, root)
         ovns: list[str] = self.name_connections(root)
 
         # Apply optimisations
@@ -268,13 +244,12 @@ class ExecutionContext:
 
         # Write a line for each terminal node in the graph
         for node in (tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn is not root):
-            imports.update(node.gc["imports"])
             code.append(self.inline_cstr(root=root, node=node))
 
         # Add a return statement if the function has outputs
         if root.gc["num_outputs"] > 0:
             code.append(f"return {', '.join(ovns)}")
-        return imports, code
+        return code
 
     def common_subexpression_elimination(self, root: GCNode) -> None:
         """Apply common subexpression elimination to the GC function.
@@ -288,9 +263,13 @@ class ExecutionContext:
         and replaces them with the constant result.
         """
 
-    def create_code_graphs(self, root: GCNode) -> list[GCNode]:
+    def create_code_graphs(self, root: GCNode, executable: bool = True) -> list[GCNode]:
         """Return the list of GCNode instances that need to be written. i.e. that need code graphs.
         If a node (function) is not yet written it has not been assigned a global index.
+        The executable boolean is used to determine if the function map should be
+        updated with the new function. This is used when the function map is being
+        created. When a EC is being written to a file the function map is not updated but
+        the code graphs must be regenerated as these are not persisted.
         """
         nwcg: list[GCNode] = [self.code_graph(gcng) for gcng in root if gcng.write]
 
@@ -300,26 +279,75 @@ class ExecutionContext:
             # for code reuse. Naming must happen before the function is defined.
             self.new_function_placeholder(node)
 
-        for node in nwcg:
-            # Define the function in the execution context. Defining the function may involve
-            # calling other functions not yet defined. This is why the function must be named
-            # before it is defined.
-            self.new_function(node)
+        if executable:
+            for node in nwcg:
+                # Define the function in the execution context. Defining the function may involve
+                # calling other functions not yet defined. This is why the function must be named
+                # before it is defined.
+                self.new_function(node)
 
         return nwcg
+
+    def create_graphs(self, gc: GCABC, executable: bool = True) -> tuple[GCNode, list[GCNode]]:
+        """Create the node code graphs for the GC function."""
+        root: GCNode = self.node_graph(gc)
+        root.line_count(self._line_limit)
+        return root, self.create_code_graphs(root, executable)
 
     def define(self, code: str) -> None:
         """Define a function in the execution context."""
         exec(code, self.namespace)  # pylint: disable=exec-used
 
+    def docstring(self, fwconfig: FWConfig, root: GCNode) -> list[str]:
+        """Return the docstring for the GC function."""
+        dstr: list[str] = []
+        open_str = '"""'
+        if fwconfig.signature:
+            dstr.append(f"{open_str}Signature: {root.gc['signature'].hex()}")
+            open_str = ""
+        if fwconfig.created:
+            dstr.append(f"{open_str}Created: {root.gc['created']}")
+            open_str = ""
+        if fwconfig.license:
+            dstr.append(f"{open_str}License: {root.gc.get('license', 'MIT')}")
+            open_str = ""
+        if fwconfig.creator:
+            dstr.append(f"{open_str}Creator: {root.gc['creator']}")
+            open_str = ""
+        if fwconfig.generation:
+            dstr.append(f"{open_str}Generation: {root.gc['generation']}")
+            open_str = ""
+        if fwconfig.version and "version" in root.gc:
+            dstr.append(f"{open_str}Version: {root.gc['version']}")
+            open_str = ""
+        if fwconfig.optimisations:
+            dstr.append(f"{open_str}Optimisations:")
+            dstr.append("   - Dead code elimination: True")
+            dstr.append(f"   - Constant evaluation: {fwconfig.const_eval}")
+            dstr.append(f"   - Common subexpression elimination: {fwconfig.cse}")
+            dstr.append(f"   - Simplification: {fwconfig.simplification}")
+        if open_str:
+            dstr.append('"""EGP generated Genetic Code function."""')
+        else:
+            dstr.append('"""')
+        return dstr
+
+    def execute(self, signature: bytes, args: tuple[Any, ...]) -> Any:
+        """Execute the function in the execution context."""
+        assert isinstance(signature, bytes), f"Invalid signature type: {type(signature)}"
+        assert signature in self.function_map, f"Signature not found: {signature.hex()}"
+        lns: dict[str, Any] = {"i": args}
+        execution_str = f"result = {self.function_map[signature].name()}(i)"
+        exec(execution_str, self.namespace, lns)  # pylint: disable=exec-used
+        return lns["result"]
+
     def function_def(
         self, node: GCNode, lean: bool = True, fwconfig: FWConfig = FWCONFIG_DEFAULT
-    ) -> tuple[str, str]:
+    ) -> str:
         """Create the function definition in the execution context including the imports."""
-        imports, code = self.code_lines(node, lean, fwconfig)
-        self.imports.update(imports)
+        code = self.code_lines(node, lean, fwconfig)
         code.insert(0, node.function_def(fwconfig.hints and not lean))
-        return "\n".join(str(imp) for imp in imports), "\n\t".join(code)
+        return "\n\t".join(code)
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
         """Return the code string for the GC inline code."""
@@ -339,6 +367,11 @@ class ExecutionContext:
         # Is this node a codon?
         assignment = ", ".join(ovns) + " = "
         if node.is_codon:
+            # Only codons have imports
+            # Make sure the imports are captured
+            for impt in (i for i in node.gc["imports"] if i not in self.imports):
+                self.define(str(impt))
+                self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
             return assignment + node.gc["inline"].format_map(ivns_map)
         return assignment + node.function_info.call_str(ivns)
@@ -402,16 +435,14 @@ class ExecutionContext:
 
     def new_function(self, node: GCNode) -> FunctionInfo:
         """Create a new function in the execution context."""
-        imports, code = self.function_def(node)
+        code = self.function_def(node)
 
         # Debugging
         if _LOG_DEBUG:
             _logger.debug("Function:\n%s", node.function_info.name())
-            _logger.debug("Imports:\n%s", imports)
             _logger.debug("Code:\n%s", code)
 
         # Add to the execution context
-        self.define(imports)
         self.define(code)
         node.function_info.executable = self.namespace[node.function_info.name()]
         return node.function_info
@@ -460,7 +491,14 @@ class ExecutionContext:
                 assert (
                     fmap.line_count <= self._line_limit
                 ), f"# lines in function exceeds limit: {fmap.line_count} > {self._line_limit}"
-                if fmap.executable is not NULL_EXECUTABLE:  # A known executable
+
+                # If the function does not have a global index then it is not yet defined
+                # Note that the global index is used rather than a check of whether the executable
+                # is NULL_EXECUTABLE because when writing the execution context to a fiel
+                # the node (and code)
+                # graphs must be regenerated but we do not need the executables which a) takes time
+                # and b) uses a lot of memory needlessly.
+                if fmap.global_index != -1:
                     assert (
                         fmap.line_count > 0
                     ), f"The # lines cannot be <= 0 when there is an executable: {fmap.line_count}"
@@ -484,7 +522,7 @@ class ExecutionContext:
         This optimisations uses symbolic regression to simplify the code.
         """
 
-    def write_executable(self, gc: GCABC | bytes) -> GCNode | None:
+    def write_executable(self, gc: GCABC | bytes, executable: bool = True) -> GCNode | None:
         """Write the code for the GC.
 
         Sub-GC's are looked up in the gc_store.
@@ -494,9 +532,9 @@ class ExecutionContext:
         1. Graph bi-directional graph of GC's
 
         Args:
-            gc_store (CacheABC): The cache of GC's.
             gc (GCABC | bytes): The Genetic Code.
-            limit (int, optional): The maximum number of lines per function. Defaults to 20.
+            executable (bool): Creates an in memory executable of the GC when True. False
+                is typically used for writing out the execution context to a file.
 
         Returns:
             GCNode: The GC node graph or None if the GC already exists as a suitable function.
@@ -512,7 +550,5 @@ class ExecutionContext:
         # The GC node graph is needed to determine connectivity and so we reset the num_lines
         # and re-assess
         _gc: GCABC = gc if isinstance(gc, GCABC) else GGC_CACHE[sig]
-        gc_node_graph: GCNode = self.node_graph(_gc)
-        gc_node_graph.line_count(self._line_limit)
-        self.create_code_graphs(gc_node_graph)
-        return gc_node_graph
+        root, _ = self.create_graphs(_gc, executable)
+        return root

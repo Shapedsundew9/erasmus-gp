@@ -26,7 +26,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # EGP Worker header
-# From ptfiglet: print(figlet_format("EGP Worker"))
+# From pyfiglet: print(figlet_format("EGP Worker"))
 # NB: Needs monospace font to display correctly
 _HEADER = "\n".join(
     (
