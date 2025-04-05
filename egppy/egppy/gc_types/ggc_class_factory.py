@@ -9,6 +9,7 @@ by considered to be a dict[str, Any] object with the additional constraints of t
 from datetime import UTC, datetime
 from math import isclose
 from typing import Any
+from uuid import UUID
 
 from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_STR, NULL_TUPLE, ANONYMOUS_CREATOR
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -149,7 +150,10 @@ class GGCMixin(EGCMixin):
         self["_reference_count"] = gcabc.get("_reference_count", 0)
         tmp = gcabc.get("created", datetime.now(UTC))
         self["created"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+        # TODO: creator can be a reference into an object set as there will be many duplicates
         self["creator"] = gcabc.get("creator", ANONYMOUS_CREATOR)
+        if isinstance(self["creator"], str):
+            self["creator"] = UUID(self["creator"])
         self["descendants"] = gcabc.get("descendants", 0)
         self["e_count"] = gcabc.get("e_count", self["_e_count"])
         self["e_total"] = gcabc.get("e_total", self["_e_total"])

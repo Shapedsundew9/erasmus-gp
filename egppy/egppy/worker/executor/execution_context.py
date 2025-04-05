@@ -168,17 +168,24 @@ class ExecutionContext:
                             refs = parent.gc["graph"][node.iam + "dc"]
                             ref: XEndPointRefABC = refs[src.idx][0]
                             src.row = ref.get_row()
+                            src.idx = ref.get_idx()
                             if src.row == SourceRow.I:
                                 src.node = parent
-                                node = parent.parent
-                                # If the source in the parent it row I & its parent is the root
+                                node = parent
+                                # If the source in the parent is row I & its parent is the root
                                 # then the source is terminal - it is a connection to the top level
                                 # GC input interface.
-                                src.terminal = src.node.terminal or node is NULL_GC_NODE
+                                src.terminal = parent.terminal or node is NULL_GC_NODE
+                                # If the new src node (original parent) is not terminal then
+                                # just continue to the next iteration.
+                                if not src.terminal:
+                                    continue
                             else:
+                                # If the source is not row I then then it has to be A
+                                # and this node must be B
                                 src.node = parent.gca_node
+                                assert node is parent.gcb_node, "Node must be GCB here."
                                 refs = src.node.gc["graph"]["Odc"]
-                                src.idx = ref.get_idx()
                                 node = parent
                                 src.terminal = src.node.terminal
                         else:
@@ -271,13 +278,22 @@ class ExecutionContext:
         created. When a EC is being written to a file the function map is not updated but
         the code graphs must be regenerated as these are not persisted.
         """
-        nwcg: list[GCNode] = [self.code_graph(gcng) for gcng in root if gcng.write]
-
-        for node in nwcg:
+        # The function map is used to determine if a function has already been written
+        # Note that the code graph may have the same function to be written in multiple
+        # places. This is because the function may be called multiple times in the same
+        # top level GC function.
+        nwcg: list[GCNode] = []
+        for node in (ng for ng in root if ng.write):
             # Set the global index for the node in execution context
             # A node will use the same index as an identical node in the same context
             # for code reuse. Naming must happen before the function is defined.
-            self.new_function_placeholder(node)
+            if node.gc["signature"] not in self.function_map:
+                self.code_graph(node)
+                self.new_function_placeholder(node)
+                nwcg.append(node)
+            else:
+                # Node that use the same function must reference the correct info
+                node.function_info = self.function_map[node.gc["signature"]]
 
         if executable:
             for node in nwcg:

@@ -8,7 +8,7 @@ from typing import Any, Self
 from uuid import UUID
 from json import dumps
 from collections.abc import Sequence
-
+from random import randint
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -237,3 +237,31 @@ def bin_counts(data: Sequence[int], bin_width: int = 10) -> list[int]:
         bin_counts_list[bin_index] += 1
 
     return bin_counts_list
+
+
+def random_int_tuple_generator(n: int, x: int) -> tuple[int, ...]:
+    """
+    Generates a tuple of N random integers between 0 and X (exclusive)
+    using a generator expression.
+
+    Args:
+      n: The number of random integers (tuple length). Must be non-negative.
+      x: The maximum value for the random integers (exclusive). Must be non-negative.
+
+    Returns:
+      A tuple containing N random integers.
+
+    Raises:
+      ValueError: If n or x is negative.
+    """
+    if n < 0:
+        raise ValueError("Number of elements (n) cannot be negative")
+    if x < 1:
+        # random.randint(0, x) would raise ValueError if x < 1,
+        # but explicit check is clearer.
+        raise ValueError("Maximum value (x) must be at least 1 for range [0, x)")
+    if n == 0:
+        return ()  # Return empty tuple immediately if n is 0
+
+    # random.randint(a, b) includes both endpoints a and b.
+    return tuple(randint(0, x - 1) for _ in range(n))

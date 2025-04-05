@@ -4,8 +4,12 @@ from hashlib import sha256
 from pprint import pformat
 from typing import Any
 from unittest import TestCase
-
-from egpcommon.common import NULL_SHA256, sha256_signature, bin_counts
+from egpcommon.common import (
+    NULL_SHA256,
+    sha256_signature,
+    bin_counts,
+    random_int_tuple_generator,
+)
 
 
 class TestCommon(TestCase):
@@ -175,3 +179,40 @@ class TestCommon(TestCase):
                 1,
             ],
         )
+
+    def test_generate_random_int_tuple_generator(self) -> None:
+        """Test the generate_random_int_tuple_generator function."""
+        # Test with n = 0
+        self.assertEqual(random_int_tuple_generator(0, 10), ())
+
+        # Test with n = 1 and x = 1
+        self.assertEqual(random_int_tuple_generator(1, 1), (0,))
+
+        # Test with n = 5 and x = 1
+        self.assertEqual(random_int_tuple_generator(5, 1), (0, 0, 0, 0, 0))
+
+        # Test with n = 5 and x = 10
+        result = random_int_tuple_generator(5, 10)
+        self.assertEqual(len(result), 5)
+        self.assertTrue(all(0 <= value < 10 for value in result))
+
+        # Test with n = 10 and x = 100
+        result = random_int_tuple_generator(10, 100)
+        self.assertEqual(len(result), 10)
+        self.assertTrue(all(0 <= value < 100 for value in result))
+
+        # Test with negative n
+        with self.assertRaises(ValueError):
+            random_int_tuple_generator(-1, 10)
+
+        # Test with negative x
+        with self.assertRaises(ValueError):
+            random_int_tuple_generator(5, -10)
+
+        # Test with zero x
+        with self.assertRaises(ValueError):
+            random_int_tuple_generator(5, 0)
+
+        # Test with both n and x negative
+        with self.assertRaises(ValueError):
+            random_int_tuple_generator(-5, -10)

@@ -7,6 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 from itertools import count
 from typing import Any, Iterator
+from uuid import UUID
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -364,6 +365,7 @@ class GCMixin:
         for key in (k for k in self if self.GC_KEY_TYPES.get(k, {})):
             value = self[key]
             if key == "meta_data":
+                assert isinstance(value, dict), "Meta data must be a dict."
                 md = deepcopy(value)
                 if (
                     "function" in md
@@ -377,8 +379,10 @@ class GCMixin:
                 retval[key] = md
             elif key == "properties":
                 # Make properties humman readable.
+                assert isinstance(value, int), "Properties must be an int."
                 retval[key] = PropertiesBD(value).to_json()
             elif key.endswith("_types"):
+
                 retval[key] = [ept_to_str(ept) for ept in interface(value)]
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
@@ -390,6 +394,8 @@ class GCMixin:
                 retval[key] = value.hex() if value is not NULL_SIGNATURE else None
             elif isinstance(value, datetime):
                 retval[key] = value.isoformat()
+            elif isinstance(value, UUID):
+                retval[key] = str(value)
             else:
                 retval[key] = value
                 if _LOG_DEBUG:
