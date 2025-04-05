@@ -70,10 +70,19 @@ PROPERTIES_CONFIG = {
         "default": False,
         "description": "At least one type in one interface is abstract.",
     },
+    "side_effects": {
+        "type": "bool",
+        "start": 11,
+        "width": 1,
+        "default": False,
+        "description": (
+            "The genetic code has side effects that are not " "related to the return value."
+        ),
+    },
     "reserved2": {
         "type": "uint",
-        "start": 11,
-        "width": 4,
+        "start": 12,
+        "width": 3,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
@@ -150,10 +159,12 @@ PropertiesBD.assign_verification_function(_verify)
 
 
 # Standard Property Constants
-BASIC_CODON_PROPERTIES: int = PropertiesBD({
-    "gc_type": GCType.CODON, "graph_type": GraphType.STANDARD}).to_int()
-BASIC_ORDINARY_PROPERTIES: int = PropertiesBD({
-    "gc_type": GCType.ORDINARY, "graph_type": GraphType.STANDARD}).to_int()
+BASIC_CODON_PROPERTIES: int = PropertiesBD(
+    {"gc_type": GCType.CODON, "graph_type": GraphType.STANDARD}
+).to_int()
+BASIC_ORDINARY_PROPERTIES: int = PropertiesBD(
+    {"gc_type": GCType.ORDINARY, "graph_type": GraphType.STANDARD}
+).to_int()
 
 if __name__ == "__main__":
     print("\n\n".join(generate_markdown_tables(PropertiesBD)))

@@ -11,7 +11,11 @@
         ],
         "outputs": [
             "int"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "randint": {
         "description": "Return a random integer N such that a <= N <= b.",
@@ -26,7 +30,11 @@
         ],
         "outputs": [
             "int"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "randrange1": {
         "description": "Return a randomly selected element from range(start, stop, step).",
@@ -42,7 +50,11 @@
         ],
         "outputs": [
             "int"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "randrange2": {
         "description": "Return a randomly selected element from range(start, stop).",
@@ -57,7 +69,11 @@
         ],
         "outputs": [
             "int"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "randrange3": {
         "description": "Return a randomly selected element from range(stop).",
@@ -71,7 +87,11 @@
         ],
         "outputs": [
             "int"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "random": {
         "description": "Return the next random floating point number in the range [0.0, 1.0).",
@@ -82,7 +102,11 @@
         "inline": "random()",
         "outputs": [
             "float"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "uniform": {
         "description": "Return a random floating point number N such that a <= N <= b for a <= b and b <= N <= a for b < a.",
@@ -97,7 +121,11 @@
         ],
         "outputs": [
             "float"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "choice": {
         "description": "Return a random element from the non-empty sequence seq.",
@@ -111,7 +139,11 @@
         ],
         "outputs": [
             "object1"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "choices1": {
         "description": "Return a k sized list of elements chosen from the population with replacement.",
@@ -126,7 +158,11 @@
         ],
         "outputs": [
             "list[object1]"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "choices2": {
         "description": "Return a k sized list of elements chosen from the population with replacement.",
@@ -142,7 +178,11 @@
         ],
         "outputs": [
             "list[object1]"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "choices3": {
         "description": "Return a k sized list of elements chosen from the population with replacement.",
@@ -158,7 +198,11 @@
         ],
         "outputs": [
             "list[object1]"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "shuffle": {
         "description": "Shuffle the sequence x in place.",
@@ -170,7 +214,11 @@
         "inputs": [
             "list[object1]"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "sample": {
         "description": "Return a k length list of unique elements chosen from the population sequence or set.",
@@ -185,7 +233,11 @@
         ],
         "outputs": [
             "list[object1]"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     },
     "seed": {
         "description": "Initialize the random number generator.",
@@ -197,7 +249,11 @@
         "inputs": [
             "int"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "deterministic": true,
+            "side_effects": true
+        }
     },
     "randbytes": {
         "description": "Return a bytes object containing n random bytes.",
@@ -211,7 +267,11 @@
         ],
         "outputs": [
             "bytes"
-        ]
+        ],
+        "properties": {
+            "deterministic": false,
+            "side_effects": true
+        }
     }
 }
 

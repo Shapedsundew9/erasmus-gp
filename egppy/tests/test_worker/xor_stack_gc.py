@@ -108,9 +108,9 @@ GGC_CACHE[random_long_gc["signature"]] = random_long_gc
 # i.e. inputs are encapsulated in a tuple (even if there is only one)
 # and the output is a tuple (even if there is only one). The function
 # name must end in an 8 character unsigned hexadecimal value.
-def f_7fffffff(i: tuple[int]) -> tuple[int]:
+def f_7fffffff(i: tuple[int]) -> int:
     """Shift right by one."""
-    return (i[0] >> 1,)
+    return i[0] >> 1
 
 
 # rshift_1_gc signature:

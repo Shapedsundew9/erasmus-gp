@@ -4,6 +4,9 @@
         "description": "Manually created GC. This is a placeholder no-op representing a custom mutation function.",
         "num_inputs": 0,
         "num_outputs": 0,
-        "inline": "()"
+        "inline": "()",
+        "properties": {
+            "side_effects": true
+        }
     }
 }

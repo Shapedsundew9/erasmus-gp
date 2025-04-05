@@ -5,12 +5,18 @@
             "MutableSequence[object1]",
             "object1"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "clear": {
         "inline": "{i0}.clear()",
         "num_inputs": 1,
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "del element": {
         "inline": "del {i0}[{i1}]",
@@ -18,7 +24,10 @@
             "MutableSequence[object]",
             "egp_integral"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "del slice": {
         "inline": "del {i0}[{i1}:{i2}]",
@@ -27,7 +36,10 @@
             "egp_integral",
             "egp_integral"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "del slice step": {
         "inline": "del {i0}[{i1}:{i2}:{i3}]",
@@ -37,7 +49,10 @@
             "egp_integral",
             "egp_integral"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "extend": {
         "inline": "{i0}.extend({i1})",
@@ -45,7 +60,10 @@
             "MutableSequence[object1]",
             "Iterable[object1]"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "insert": {
         "inline": "{i0}.insert({i1}, {i2})",
@@ -54,7 +72,10 @@
             "egp_integral",
             "object1"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "pop0": {
         "inline": "{i0}.pop()",
@@ -63,7 +84,10 @@
         ],
         "outputs": [
             "object1"
-        ]
+        ],
+        "properties": {
+            "side_effects": true
+        }
     },
     "pop1": {
         "inline": "{i0}.pop({i1})",
@@ -73,7 +97,10 @@
         ],
         "outputs": [
             "object1"
-        ]
+        ],
+        "properties": {
+            "side_effects": true
+        }
     },
     "remove": {
         "inline": "{i0}.remove({i1})",
@@ -81,7 +108,10 @@
             "MutableSequence[object1]",
             "object1"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "set element": {
         "inline": "{i0}[{i1}] = {i2}",
@@ -90,7 +120,10 @@
             "egp_integral",
             "object1"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "set slice": {
         "inline": "{i0}[{i1}:{i2}] = {i3}",
@@ -100,7 +133,10 @@
             "egp_integral",
             "Iterable[object1]"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "set slice step": {
         "inline": "{i0}[{i1}:{i2}:{i3}] = {i4}",
@@ -111,6 +147,9 @@
             "egp_integral",
             "Iterable[object1]"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     }
 }

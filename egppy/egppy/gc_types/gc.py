@@ -375,6 +375,9 @@ class GCMixin:
                         imp.to_json() for imp in md["function"]["python3"]["0"]["imports"]
                     ]
                 retval[key] = md
+            elif key == "properties":
+                # Make properties humman readable.
+                retval[key] = PropertiesBD(value).to_json()
             elif key.endswith("_types"):
                 retval[key] = [ept_to_str(ept) for ept in interface(value)]
             elif isinstance(value, GCABC):

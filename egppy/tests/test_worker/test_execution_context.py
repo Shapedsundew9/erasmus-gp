@@ -1,6 +1,7 @@
 """Unit tests for the executor function."""
 
 import unittest
+from random import seed
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 
@@ -53,18 +54,14 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            "\t# Signature: c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885\n"
-            "\t# Created: 2025-03-29 22:05:08.489847+00:00\n"
-            "\t# License: MIT\n"
-            "\t# Creator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\t# Generation: 4\n"
-            "\t# Optimisations:\n"
-            "\t#   - Dead code elimination: True\n"
-            "\t#   - Constant evaluation: True\n"
-            "\t#   - Common subexpression elimination: True\n"
-            "\t#   - Simplification: True\n"
-            "\tt1 = f_0()\n"
-            "\tt0 = f_7fffffff((t1,))\n"
+            '\t"""Signature: c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885\n'
+            "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
+            "\tLicense: MIT\n"
+            "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
+            "\tGeneration: 4\n"
+            '\t"""\n'
+            "\to1 = f_0()\n"
+            "\tt0 = f_7fffffff((o1,))\n"
             "\to0 = i[0] ^ t0\n"
             "\treturn o0, o1"
         )
@@ -79,19 +76,15 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            "\t# Signature: c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885\n"
-            "\t# Created: 2025-03-29 22:05:08.489847+00:00\n"
-            "\t# License: MIT\n"
-            "\t# Creator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\t# Generation: 4\n"
-            "\t# Optimisations:\n"
-            "\t#   - Dead code elimination: True\n"
-            "\t#   - Constant evaluation: True\n"
-            "\t#   - Common subexpression elimination: True\n"
-            "\t#   - Simplification: True\n"
+            '\t"""Signature: c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885\n'
+            "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
+            "\tLicense: MIT\n"
+            "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
+            "\tGeneration: 4\n"
+            '\t"""\n'
             "\tt0 = 64\n"
-            "\tt2 = getrandbits(t0)\n"
-            "\tt1 = f_7fffffff((t2,))\n"
+            "\to1 = getrandbits(t0)\n"
+            "\tt1 = f_7fffffff((o1,))\n"
             "\to0 = i[0] ^ t1\n"
             "\treturn o0, o1"
         )
@@ -100,10 +93,16 @@ class TestExecutor(unittest.TestCase):
     def test_execute_basic(self) -> None:
         """Test the execute function."""
         self.ec1.write_executable(one_to_two)
-        write_context_to_file(self.ec1, "test_ec1.py")
+        write_context_to_file(self.ec1)
         self.ec2.write_executable(one_to_two)
-        write_context_to_file(self.ec2, "test_ec2.py")
+        write_context_to_file(self.ec2)
+        # Must set the seed as we are using getrandbits
+        # and it is not seeded in the function
+        seed(0)
         r1 = self.ec1.execute(one_to_two["signature"], (0x12345678,))
+        # Must set the seed as we are using getrandbits
+        # and it is not seeded in the function for reproducibility
+        seed(0)
         r2 = self.ec2.execute(one_to_two["signature"], (0x12345678,))
         self.assertIsInstance(r1, tuple)
         self.assertIsInstance(r2, tuple)
@@ -115,6 +114,7 @@ class TestExecutor(unittest.TestCase):
         for idx, gc in enumerate(self.gene_pool):
             _logger.debug("Writing gc %d", idx)
             self.ec1.write_executable(gc)
+        write_context_to_file(self.ec1)
 
     def test_write_gene_pool_ec2(self) -> None:
         """Test the functions execute.
@@ -122,3 +122,4 @@ class TestExecutor(unittest.TestCase):
         for idx, gc in enumerate(self.gene_pool):
             _logger.debug("Writing gc %d", idx)
             self.ec2.write_executable(gc)
+        write_context_to_file(self.ec2)

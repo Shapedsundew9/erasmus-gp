@@ -19,7 +19,10 @@
     "sort0": {
         "inline": "{i0}.sort()",
         "num_inputs": 1,
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "sort1": {
         "inline": "{i0}.sort(reverse={i1})",
@@ -27,6 +30,9 @@
             "MutableSequence[object1]",
             "bool"
         ],
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     }
 }

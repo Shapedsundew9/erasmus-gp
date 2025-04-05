@@ -39,7 +39,7 @@ CODON_TEMPLATE: dict[str, Any] = {
         "graph_type": GraphType.STANDARD,
         "constant": False,
         "deterministic": True,
-        "simplification": False,
+        "side_effects": False,
         "gctsp": {"literal": False},
     },
     "meta_data": {"function": {"python3": {"0": {}}}},

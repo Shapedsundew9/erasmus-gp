@@ -7,7 +7,10 @@
         "description": "next",
         "outputs": [
             "object1"
-        ]
+        ],
+        "properties": {
+            "side_effects": true
+        }
     },
     "next2": {
         "inline": "next({i0}, default={i1})",
@@ -18,7 +21,10 @@
         "description": "next",
         "outputs": [
             "object1"
-        ]
+        ],
+        "properties": {
+            "side_effects": true
+        }
     },
     "next3": {
         "inline": "next({i0}, default={i1})",
@@ -29,6 +35,9 @@
         "description": "next",
         "outputs": [
             "object"
-        ]
+        ],
+        "properties": {
+            "side_effects": true
+        }
     }
 }

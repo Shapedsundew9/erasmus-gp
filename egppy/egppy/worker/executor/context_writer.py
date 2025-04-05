@@ -55,7 +55,7 @@ def write_context_to_file(ec: ExecutionContext, filepath: str = "") -> None:
 def _context_writer(ec: ExecutionContext, filepath: str | Path) -> str:
     """Write the execution context using a specified writer."""
 
-    _filepath = filepath if filepath else NamedTemporaryFile(".py", delete=False).name
+    _filepath = filepath if filepath else NamedTemporaryFile(suffix=".py", delete=False).name
     with open(_filepath, mode="w", encoding="utf-8") as f:
         # File name
         filename = f.name

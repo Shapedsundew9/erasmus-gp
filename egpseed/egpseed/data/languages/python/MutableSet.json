@@ -6,7 +6,10 @@
             "Set[Hashable]"
         ],
         "description": "intersection",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "&2": {
         "inline": "{i0} &= {i1}",
@@ -15,7 +18,10 @@
             "Set[Hashable1]"
         ],
         "description": "intersection",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "-1": {
         "inline": "{i0} -= {i1}",
@@ -24,7 +30,10 @@
             "Set[Hashable]"
         ],
         "description": "difference",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "-2": {
         "inline": "{i0} -= {i1}",
@@ -33,7 +42,10 @@
             "Set[Hashable1]"
         ],
         "description": "difference",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "^1": {
         "inline": "{i0} ^= {i1}",
@@ -42,7 +54,10 @@
             "Set[Hashable]"
         ],
         "description": "symmetric difference",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "^2": {
         "inline": "{i0} ^= {i1}",
@@ -51,7 +66,10 @@
             "Set[Hashable1]"
         ],
         "description": "symmetric difference",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "add1": {
         "inline": "{i0}.add({i1})",
@@ -60,7 +78,10 @@
             "Hashable"
         ],
         "description": "add",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "add2": {
         "inline": "{i0}.add({i1})",
@@ -69,7 +90,10 @@
             "Hashable1"
         ],
         "description": "add",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "clear": {
         "inline": "{i0}.clear()",
@@ -77,7 +101,10 @@
             "MutableSet[Hashable]"
         ],
         "description": "clear",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "discard1": {
         "inline": "{i0}.discard({i1})",
@@ -86,7 +113,10 @@
             "Hashable"
         ],
         "description": "discard",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "discard2": {
         "inline": "{i0}.discard({i1})",
@@ -95,7 +125,10 @@
             "Hashable1"
         ],
         "description": "discard",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "pop": {
         "inline": "{i0}.pop()",
@@ -105,7 +138,11 @@
         "description": "pop",
         "outputs": [
             "Hashable1"
-        ]
+        ],
+        "properties": {
+            "side_effects": true
+        },
+        "num_outputs": 1
     },
     "remove1": {
         "inline": "{i0}.remove({i1})",
@@ -114,7 +151,10 @@
             "Hashable"
         ],
         "description": "remove",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "remove2": {
         "inline": "{i0}.remove({i1})",
@@ -123,7 +163,10 @@
             "Hashable1"
         ],
         "description": "remove",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "|=1": {
         "inline": "{i0} |= {i1}",
@@ -132,7 +175,10 @@
             "Set[Hashable]"
         ],
         "description": "union operator",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "|=2": {
         "inline": "{i0} |= {i1}",
@@ -141,6 +187,9 @@
             "Set[Hashable1]"
         ],
         "description": "union operator",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     }
 }

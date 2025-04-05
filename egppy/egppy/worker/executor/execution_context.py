@@ -387,16 +387,24 @@ class ExecutionContext:
         # directly connected to an output
         _ovns: list[str] = ["" for _ in range(root.gc["num_outputs"])]
         root.terminal_connections.sort(key=connection_key)
+        src_connection_map: dict[CodeEndPoint, CodeConnection] = {}
         for connection in root.terminal_connections:
-            # If the source end point has already had a variable name assigned
-            # then the connection is already named.
             dst: CodeEndPoint = connection.dst
+            # If the code for this function is being regenerated then the
+            # connections have already been named, but we still need to
+            # make sure the return
             if connection.var_name is NULL_STR:
-
                 # Quick reference the source code endpoint,
                 # the output variable names and the output index
                 src: CodeEndPoint = connection.src
                 idx: int = src.idx
+
+                # If the source end point already has a variable name assigned
+                # from another connection then this connection must use that name.
+                if src in src_connection_map:
+                    connection.var_name = src_connection_map[src].var_name
+                    continue
+                src_connection_map[src] = connection
 
                 # Priority naming is given to input and output variables
                 # This keeps all inputs as ix and outputs as ox except in the

@@ -6,7 +6,10 @@
             "Iterable[Hashable]"
         ],
         "description": "difference update",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "intersection1": {
         "inline": "{i0}.intersection({i1})",
@@ -37,7 +40,10 @@
             "Iterable[Hashable]"
         ],
         "description": "intersection update",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "issubset": {
         "inline": "{i0}.issubset({i1})",
@@ -59,7 +65,11 @@
         "description": "issuperset",
         "outputs": [
             "bool"
-        ]
+        ],
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "symmetric_difference1": {
         "inline": "{i0}.symmetric_difference({i1})",
@@ -90,7 +100,10 @@
             "Iterable[Hashable]"
         ],
         "description": "symmetric difference update",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "union1": {
         "inline": "{i0}.union({i1})",
@@ -112,7 +125,11 @@
         "description": "union",
         "outputs": [
             "set[Hashable1]"
-        ]
+        ],
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "update": {
         "inline": "{i0}.update({i1})",
@@ -121,6 +138,9 @@
             "Iterable[Hashable]"
         ],
         "description": "update",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     }
 }
