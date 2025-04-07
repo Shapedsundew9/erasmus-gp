@@ -4,7 +4,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
 from egppy.gc_graph.end_point.types_def import types_db
-from egppy.gc_graph.typing import ROWS, DestinationRow, EndPointClass, SourceRow
+from egppy.gc_graph.cg_key import ROWS, DstRow, EndPointClass, SrcRow
 from tests.test_gc_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
 
 # Standard EGP logging pattern
@@ -37,21 +37,21 @@ class EndPointTestBase(XEndPointRefTestBase):
         Set up the test case by initializing the row, index, and endpoint.
         """
         # As a destination row
-        self.row1 = DestinationRow.B
+        self.row1 = DstRow.B
         self.idx1 = 0
         self.typ1 = (types_db["int"],)
         self.cls1 = EndPointClass.DST
-        self.refs1 = [self.get_src_ref_cls()(SourceRow.A, 0)]
+        self.refs1 = [self.get_src_ref_cls()(SrcRow.A, 0)]
         self.endpoint = self.get_endpoint_cls()(
             self.row1, self.idx1, self.typ1, self.cls1, self.refs1
         )
 
         # Endpoint2 must be same class but different with invalid refs
-        self.row2 = DestinationRow.B
+        self.row2 = DstRow.B
         self.idx2 = 1
         self.typ2 = (types_db["float"],)
         self.cls2 = EndPointClass.DST
-        self.refs2 = [self.get_src_ref_cls()(SourceRow.B, 1)]
+        self.refs2 = [self.get_src_ref_cls()(SrcRow.B, 1)]
         self.endpoint2 = self.get_endpoint_cls()(
             self.row2, self.idx2, self.typ2, self.cls2, self.refs2
         )
@@ -116,7 +116,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         """
         if self.running_in_test_base_class():
             return
-        new_row = SourceRow.I if self.endpoint.is_dst() else DestinationRow.B
+        new_row = SrcRow.I if self.endpoint.is_dst() else DstRow.B
         new_cls = EndPointClass.SRC if self.endpoint.is_dst() else EndPointClass.DST
         new_endpoint = self.endpoint.move_cls_copy(new_row, new_cls)
         self.assertEqual(new_endpoint.get_row(), new_row)
@@ -130,7 +130,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         """
         if self.running_in_test_base_class():
             return
-        new_row = SourceRow.I if self.endpoint.is_src() else DestinationRow.A
+        new_row = SrcRow.I if self.endpoint.is_src() else DstRow.A
         new_endpoint = self.endpoint.move_copy(new_row)
         self.assertEqual(new_endpoint.get_row(), new_row)
         self.assertEqual(new_endpoint.get_cls(), self.cls1)

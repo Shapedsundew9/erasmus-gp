@@ -12,12 +12,12 @@ from egppy.gc_graph.end_point.end_point_abc import (
 )
 from egppy.gc_graph.end_point.end_point_mixin import EndPointMixin, GenericEndPointMixin
 from egppy.gc_graph.end_point.end_point_type import EndPointType
-from egppy.gc_graph.typing import (
+from egppy.gc_graph.cg_key import (
     DESTINATION_ROWS,
     EP_CLS_STR_TUPLE,
     ROWS,
     SOURCE_ROWS,
-    DestinationRow,
+    DstRow,
     EndPointClass,
     EndPointHash,
     Row,
@@ -114,7 +114,7 @@ class DstEndPointRef(EndPointRef, XEndPointRefABC):
         assert self.get_row() in DESTINATION_ROWS, f"Invalid destination row: {self.get_row()}"
         assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
-        if self.get_row() == DestinationRow.F:
+        if self.get_row() == DstRow.F:
             assert self.get_idx() == 0, f"Invalid index for row F: {self.get_idx()}"
         super().verify()
 

@@ -8,6 +8,8 @@ from typing import Any
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
+from egppy.cg_graph.cg_validation import GraphType
+from egppy.cg_graph.cg_key import CGKey
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -30,6 +32,7 @@ class GCGraphABC(CacheableObjABC):
         e.g. 'Asc', 'Bdc', 'Isc', 'Odc' etc.
     Endpoints are keyed by the row letter, a 3 digit index and 's' or 'd'.
         e.g. 'A000s', 'B002d', 'I013s', 'O255d' etc.
+    See the CGKey class for more details.
 
     The keys above can be used with:
         __contains__    (required by CacheableObjABC. Mixed in)
@@ -49,24 +52,29 @@ class GCGraphABC(CacheableObjABC):
     """
 
     @abstractmethod
-    def __delitem__(self, key: str) -> None:
+    def __delitem__(self, key: CGKey) -> None:
         """Delete the endpoint with the given key."""
         raise NotImplementedError("GCGraphABC.__delitem__ must be overridden")
 
     @abstractmethod
-    def __getitem__(self, key: str) -> Any:
+    def __getitem__(self, key: CGKey) -> Any:
         """Get the endpoint with the given key."""
         raise NotImplementedError("GCGraphABC.__getitem__ must be overridden")
 
     @abstractmethod
-    def __setitem__(self, key: str, value: Any) -> None:
+    def __setitem__(self, key: CGKey, value: Any) -> None:
         """Set the endpoint with the given key."""
         raise NotImplementedError("GCGraphABC.__setitem__ must be overridden")
 
     @abstractmethod
-    def get(self, key: str, default: Any = None) -> Any:
+    def get(self, key: CGKey, default: Any = None) -> Any:
         """Get the endpoint with the given key or return the default."""
         raise NotImplementedError("GCGraphABC.get must be overridden")
+
+    @abstractmethod
+    def graph_type(self) -> GraphType:
+        """Return the graph type."""
+        raise NotImplementedError("GCGraphABC.graphtype must be overridden")
 
     @abstractmethod
     def is_stable(self) -> bool:

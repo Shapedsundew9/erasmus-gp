@@ -11,15 +11,15 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_type import EndPointType
 from egppy.gc_graph.end_point.types_def import types_db
-from egppy.gc_graph.gc_graph_class_factory import FrozenGCGraph, MutableGCGraph
-from egppy.gc_graph.typing import (
+from egppy.gc_graph.cc_graph_class_factory import FrozenGCGraph, MutableGCGraph
+from egppy.gc_graph.cg_key import (
     DESTINATION_ROWS,
     SOURCE_ROWS,
     VALID_ROW_SOURCES,
-    DestinationRow,
+    DstRow,
     EPClsPostfix,
     Row,
-    SourceRow,
+    SrcRow,
 )
 
 # Standard EGP logging pattern
@@ -41,9 +41,9 @@ _TYPE_COMBINATIONS: tuple[tuple[EndPointType, ...], ...] = tuple(
 
 
 def next_idx(
-    src_next_idx: dict[SourceRow, count],
+    src_next_idx: dict[SrcRow, count],
     src_positions: dict[str, list[int]],
-    row: SourceRow,
+    row: SrcRow,
     typa: EndPointType,
 ) -> int:
     """Get the next index for a source endpoint."""
@@ -72,7 +72,7 @@ def generate_valid_json_gc_graphs() -> list[dict[str, list[list]]]:
                 for row in row_order:
                     # Row only appears in JSON format GCG's for unconnected
                     # sources so has the same connectivity as row O in standard graphs
-                    dst_row = DestinationRow.O if row == "U" else cast(Row, row)
+                    dst_row = DstRow.O if row == "U" else cast(Row, row)
                     for src in VALID_ROW_SOURCES[False][dst_row]:
                         if row == "U":
                             typ: EndPointType = (types_db["complex"],)

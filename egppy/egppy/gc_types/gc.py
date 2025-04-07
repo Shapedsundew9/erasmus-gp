@@ -14,9 +14,9 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import GCType, GraphType, PropertiesBD
 
 from egppy.gc_graph.end_point.end_point_type import ept_to_str
-from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH
+from egppy.gc_graph.cc_graph_class_factory import NULL_GC_GRAPH
 from egppy.gc_graph.interface import interface
-from egppy.gc_graph.typing import Row, SourceRow
+from egppy.gc_graph.cg_key import Row, SrcRow
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -257,14 +257,14 @@ class GCMixin:
         work_queue: list[tuple[GCABC, GCABC | bytes, GCABC | bytes, str]] = [
             (self, self["gca"], self["gcb"], "0")
         ]
-        chart_txt: list[str] = [mc_gc_str(self, "0", SourceRow.I)]
+        chart_txt: list[str] = [mc_gc_str(self, "0", SrcRow.I)]
         # Each instance of the same GC must have a unique id in the chart
         counter = count(1)
         while work_queue:
             gc, gca, gcb, cts = work_queue.pop(0)
             # deepcode ignore unguarded~next~call: This is an infinite generator
             nct = str(next(counter))
-            for gcx, prefix, row in [(gca, "a" + nct, SourceRow.A), (gcb, "b" + nct, SourceRow.B)]:
+            for gcx, prefix, row in [(gca, "a" + nct, SrcRow.A), (gcb, "b" + nct, SrcRow.B)]:
                 if isinstance(gcx, GCABC) and gcx is not NULL_GC:
                     work_queue.append((gcx, gcx["gca"], gcx["gcb"], prefix))
                     chart_txt.append(mc_gc_str(gcx, prefix, row))

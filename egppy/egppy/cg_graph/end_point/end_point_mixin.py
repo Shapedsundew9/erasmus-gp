@@ -9,10 +9,9 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
 from egppy.gc_graph.end_point.end_point_type import EndPointType
-from egppy.gc_graph.typing import DESTINATION_ROWS, EP_CLS_STR_TUPLE, ROWS, SOURCE_ROWS
-from egppy.gc_graph.typing import VALID_ROW_DESTINATIONS as VRD
-from egppy.gc_graph.typing import VALID_ROW_SOURCES as VRS
-from egppy.gc_graph.typing import DestinationRow, EndPointClass, EndPointHash, Row
+from egppy.gc_graph.cg_key import DESTINATION_ROWS, EP_CLS_STR_TUPLE, ROWS, SOURCE_ROWS
+from egppy.gc_graph.cg_validation import valid_dst_rows, valid_src_rows, GraphType
+from egppy.gc_graph.cg_key import SrcRow, DstRow, EndPointClass, EndPointHash, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -79,10 +78,15 @@ class EndPointMixin(CommonObjMixin):
             and self.get_refs() == other.get_refs()
         )
 
-    def del_invalid_refs(self, has_f: bool = False) -> None:
+    def del_invalid_refs(self, gt: GraphType = GraphType.STANDARD) -> None:
         """Remove any invalid references"""
-        row = self.get_row()
-        valid_ref_rows: tuple[Row, ...] = VRS[has_f][row] if self.is_dst() else VRD[has_f][row]
+        row: SrcRow | DstRow = self.get_row()
+        if self.is_dst():
+            assert isinstance(row, DstRow), f"Invalid row: {row}"
+            valid_ref_rows: tuple[Row, ...] = valid_src_rows(gt)[row]
+        else:
+            assert isinstance(row, SrcRow), f"Invalid row: {row}"
+            valid_ref_rows: tuple[Row, ...] = valid_dst_rows(gt)[row]
         erefs = enumerate(self.get_refs())
         for vidx in reversed([i for i, r in erefs if r.get_row() not in valid_ref_rows]):
             del self.get_refs()[vidx]
@@ -159,24 +163,27 @@ class EndPointMixin(CommonObjMixin):
                 assert row in DESTINATION_ROWS, "Invalid row for destination endpoint"
         return self.cls()(row, self.get_idx(), self.get_typ(), cls, [])
 
-    def move_copy(self, row: Row, clean: bool = False, has_f: bool = False) -> EndPointABC:
+    def move_copy(
+        self, row: Row, clean: bool = False, gt: GraphType = GraphType.STANDARD
+    ) -> EndPointABC:
         """Return a copy of the end point with the row changed.
         Any references that are no longer valid are deleted."""
         if _LOG_DEBUG:
-            if self.cls == EndPointClass.SRC:
+            if self.get_cls() == EndPointClass.SRC:
                 assert row in SOURCE_ROWS, "Cannot change cls from SRC to DST in a move_copy."
             else:
                 assert row in DESTINATION_ROWS, "Cannot change cls from DST to SRC in a move_copy."
         ep: EndPointABC = self.copy(clean)
         ep.set_row(row)
         if not clean:
-            ep.del_invalid_refs(has_f)
+            ep.del_invalid_refs(gt)
         return ep
 
     def redirect_refs(self, old_ref_row, new_ref_row) -> None:
         """Redirect all references to old_ref_row to new_ref_row."""
-        for ref in (x.get_row() == old_ref_row for x in self.get_refs()):
-            ref.set_row(new_ref_row)
+        for ref in self.get_refs():
+            if ref.get_row() == old_ref_row:
+                ref.set_row(new_ref_row)
 
     def safe_add_ref(self, ref: XEndPointRefABC) -> None:
         """Check if a reference exists before adding it."""
@@ -194,7 +201,7 @@ class EndPointMixin(CommonObjMixin):
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
         if self.is_dst():
             assert self.get_row() in DESTINATION_ROWS, f"Invalid destination row: {self.get_row()}"
-            if self.get_row() == DestinationRow.F:
+            if self.get_row() == DstRow.F:
                 assert self.get_idx() == 0, f"Invalid index for row F: {self.get_idx()}"
             refs = self.get_refs()
             assert len(refs) == 1, f"Invalid number of references for dst endpoint: {len(refs)}"

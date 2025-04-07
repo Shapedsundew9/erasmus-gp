@@ -11,15 +11,29 @@ class GCType(IntEnum):
 
     CODON = 0
     ORDINARY = 1
-    RESERVED = 2
+    RESERVED_2 = 2
+    RESERVED_3 = 3
 
 
 class GraphType(IntEnum):
     """Graph type."""
 
-    CONDITIONAL = 0
-    EMPTY = 1
-    STANDARD = 2
+    IF_THEN = 0
+    IF_THEN_ELSE = 1
+    EMPTY = 2
+    FOR_LOOP = 3
+    WHILE_LOOP = 4
+    STANDARD = 5
+    RESERVED_6 = 6
+    RESERVED_7 = 7
+    RESERVED_8 = 8
+    RESERVED_9 = 9
+    RESERVED_10 = 10
+    RESERVED_11 = 11
+    RESERVED_12 = 12
+    RESERVED_13 = 13
+    RESERVED_14 = 14
+    UNKNOWN = 15  # This is not a valid graph type. Used when constructing graphs.
 
 
 PROPERTIES_CONFIG = {
@@ -29,15 +43,15 @@ PROPERTIES_CONFIG = {
         "width": 2,
         "default": 0,
         "valid": {"range": [(2,)]},
-        "description": ("Graph type. 0 = Codon, 1 = Ordinary, 2 & 3 = Reserved."),
+        "description": ("GC type."),
     },
     "graph_type": {
         "type": "uint",
         "start": 2,
         "width": 4,
         "default": 0,
-        "valid": {"range": [(3,)]},
-        "description": ("Graph type. 0 = Conditional, 1 = Empty, 2 = Standard, 3-15 = Reserved."),
+        "valid": {"range": [(6,)]},
+        "description": ("Graph type."),
     },
     "reserved1": {
         "type": "uint",

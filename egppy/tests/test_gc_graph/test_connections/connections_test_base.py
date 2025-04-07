@@ -10,7 +10,7 @@ from egppy.gc_graph.connections.connections_class_factory import (
     TupleConnections,
 )
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, SrcEndPointRef
-from egppy.gc_graph.typing import DestinationRow, SourceRow
+from egppy.gc_graph.cg_key import DstRow, SrcRow
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -46,9 +46,7 @@ class ConnectionsTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.connections_type = self.get_connections_cls()
-        self.connections = self.connections_type(
-            [[SrcEndPointRef(DestinationRow.A, i)] for i in range(4)]
-        )
+        self.connections = self.connections_type([[SrcEndPointRef(DstRow.A, i)] for i in range(4)])
 
     def test_len(self) -> None:
         """Test the length of the connections."""
@@ -61,8 +59,8 @@ class ConnectionsTestBase(unittest.TestCase):
         if self.running_in_test_base_class():
             return
         for idx, ept in enumerate(self.connections):
-            self.assertEqual(ept, [SrcEndPointRef(DestinationRow.A, idx)])
-            self.assertEqual(self.connections[idx], [SrcEndPointRef(DestinationRow.A, idx)])
+            self.assertEqual(ept, [SrcEndPointRef(DstRow.A, idx)])
+            self.assertEqual(self.connections[idx], [SrcEndPointRef(DstRow.A, idx)])
 
     def test_consistency(self) -> None:
         """Test the consistency of the connections."""
@@ -76,7 +74,7 @@ class ConnectionsTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             conns = TupleConnections(
-                [(SrcEndPointRef(DestinationRow.O, 0), DstEndPointRef(SourceRow.I, 0)) * 4]
+                [(SrcEndPointRef(DstRow.O, 0), DstEndPointRef(SrcRow.I, 0)) * 4]
             )
             conns.consistency()
 
@@ -92,9 +90,7 @@ class ConnectionsTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
-            conns = self.connections_type(
-                [[SrcEndPointRef(DestinationRow.A, 0)] for _ in range(257)]
-            )
+            conns = self.connections_type([[SrcEndPointRef(DstRow.A, 0)] for _ in range(257)])
             conns.verify()
 
     def test_has_unconnected_eps(self):
@@ -127,8 +123,8 @@ class MutableConnectionsTestBase(ConnectionsTestBase):
         """Test setting an item in the connections."""
         if self.running_in_test_base_class():
             return
-        self.connections[0] = [SrcEndPointRef(DestinationRow.O, 0)]
-        self.assertEqual(self.connections[0], [SrcEndPointRef(DestinationRow.O, 0)])
+        self.connections[0] = [SrcEndPointRef(DstRow.O, 0)]
+        self.assertEqual(self.connections[0], [SrcEndPointRef(DstRow.O, 0)])
 
     def test_delitem(self) -> None:
         """Test deleting an item in the connections."""
@@ -136,9 +132,9 @@ class MutableConnectionsTestBase(ConnectionsTestBase):
             return
         del self.connections[0]
         self.assertEqual(len(self.connections), 3)
-        self.assertEqual(self.connections[0], [SrcEndPointRef(DestinationRow.A, 1)])
-        self.assertEqual(self.connections[1], [SrcEndPointRef(DestinationRow.A, 2)])
-        self.assertEqual(self.connections[2], [SrcEndPointRef(DestinationRow.A, 3)])
+        self.assertEqual(self.connections[0], [SrcEndPointRef(DstRow.A, 1)])
+        self.assertEqual(self.connections[1], [SrcEndPointRef(DstRow.A, 2)])
+        self.assertEqual(self.connections[2], [SrcEndPointRef(DstRow.A, 3)])
         with self.assertRaises(IndexError):
             _ = self.connections[3]
         with self.assertRaises(IndexError):
@@ -148,6 +144,6 @@ class MutableConnectionsTestBase(ConnectionsTestBase):
         """Test appending an item in the connections."""
         if self.running_in_test_base_class():
             return
-        self.connections.append([SrcEndPointRef(DestinationRow.O, 0)])
+        self.connections.append([SrcEndPointRef(DstRow.O, 0)])
         self.assertEqual(len(self.connections), 5)
-        self.assertEqual(self.connections[4], [SrcEndPointRef(DestinationRow.O, 0)])
+        self.assertEqual(self.connections[4], [SrcEndPointRef(DstRow.O, 0)])

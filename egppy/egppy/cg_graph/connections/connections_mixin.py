@@ -5,7 +5,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.connections.connections_abc import ConnectionsABC
 from egppy.gc_graph.interface import INTERFACE_MAX_LENGTH
-from egppy.gc_graph.typing import Row
+from egppy.gc_graph.cg_key import Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

@@ -2,7 +2,7 @@
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.gc_graph_class_factory import MutableGCGraph
+from egppy.gc_graph.cc_graph_class_factory import MutableGCGraph
 from tests.test_gc_graph.gc_graph_test_base import GCGraphTestBase, MutableGCGraphTestBase
 
 # Standard EGP logging pattern

@@ -3,7 +3,7 @@
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point import DstEndPointRef
-from egppy.gc_graph.typing import EndPointClass
+from egppy.gc_graph.cg_key import EndPointClass
 from tests.test_gc_graph.test_end_point.end_point_ref_test_base import EndPointRefTestBase
 
 # Standard EGP logging pattern

@@ -11,8 +11,8 @@ from typing import Any, Mapping
 from egpcommon.common import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.gc_graph_abc import GCGraphABC
-from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH, FrozenGCGraph
+from egppy.gc_graph.cc_graph_abc import GCGraphABC
+from egppy.gc_graph.cc_graph_class_factory import NULL_GC_GRAPH, FrozenGCGraph
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCMixin
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict

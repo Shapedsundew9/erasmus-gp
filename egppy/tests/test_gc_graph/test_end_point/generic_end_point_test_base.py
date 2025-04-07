@@ -5,7 +5,7 @@ import unittest
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point import GenericEndPoint
-from egppy.gc_graph.typing import ROWS
+from egppy.gc_graph.cg_key import ROWS
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

@@ -11,7 +11,7 @@ from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.gc_graph.typing import Row
+from egppy.gc_graph.cg_key import Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

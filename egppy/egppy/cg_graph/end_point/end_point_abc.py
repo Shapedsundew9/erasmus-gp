@@ -9,7 +9,8 @@ from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.gc_graph.end_point.end_point_type import EndPointType
-from egppy.gc_graph.typing import EndPointClass, EndPointHash, EndPointIndex, Row
+from egppy.gc_graph.cg_key import EndPointClass, EndPointHash, EndPointIndex, Row
+from egppy.gc_graph.cg_validation import GraphType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -119,7 +120,7 @@ class EndPointABC(XEndPointRefABC):
         raise NotImplementedError
 
     @abstractmethod
-    def del_invalid_refs(self, has_f: bool = False) -> None:
+    def del_invalid_refs(self, gt: GraphType = GraphType.STANDARD) -> None:
         """Remove any invalid references"""
         raise NotImplementedError
 
@@ -154,7 +155,9 @@ class EndPointABC(XEndPointRefABC):
         raise NotImplementedError
 
     @abstractmethod
-    def move_copy(self, row: Row, clean: bool = False, has_f: bool = False) -> EndPointABC:
+    def move_copy(
+        self, row: Row, clean: bool = False, gt: GraphType = GraphType.STANDARD
+    ) -> EndPointABC:
         """Return a copy of the end point with the row changed.
         Any references that are no longer valid are deleted.
         """

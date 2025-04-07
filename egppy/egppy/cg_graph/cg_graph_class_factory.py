@@ -33,15 +33,16 @@ from egppy.gc_graph.connections.connections_class_factory import (
     TupleConnections,
 )
 from egppy.gc_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
-from egppy.gc_graph.gc_graph_abc import GCGraphABC
-from egppy.gc_graph.gc_graph_mixin import GCGraphDict, GCGraphMixin, key2parts
+from egppy.gc_graph.cc_graph_abc import GCGraphABC
+from egppy.gc_graph.cg_validation import GraphType
+from egppy.gc_graph.cc_graph_mixin import GCGraphDict, GCGraphMixin, key2parts
 from egppy.gc_graph.interface import (
     EMPTY_INTERFACE,
     Interface,
     interface,
     mutable_interface,
 )
-from egppy.gc_graph.typing import ROW_CLS_INDEXED, DestinationRow, EPClsPostfix, SourceRow
+from egppy.gc_graph.cg_key import ROW_CLS_INDEXED, DstRow, EPClsPostfix, SrcRow
 
 # Standard EGP logging pattern
 # This pattern involves creating a logger instance using the egp_logger function,
@@ -82,6 +83,7 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
         self._connections: dict[str, ConnectionsABC] = _EMPTY_CONNECTIONS.copy()
         self._dirty_ics: set[str] = set()  # Interface and connection keys
         self._lock = False  # Modifiable during initialization
+        self._graph_type = GraphType.UNKNOWN
 
         # Call the mixin constructor & run the sanity checks
         super().__init__(gc_graph)
@@ -185,6 +187,10 @@ class FrozenGCGraph(GCGraphMixin, GCGraphABC):
         self._dirty_ics.clear()
         super().clean()
 
+    def graph_type(self) -> GraphType:
+        """Return the graph type."""
+        if self._graph_type == GraphType.UNKNOWN:
+            if "Fd"
     def is_conditional_graph(self) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
         return self._interfaces["Fd"] is not EMPTY_INTERFACE
@@ -221,11 +227,11 @@ class MutableGCGraph(FrozenGCGraph):
     def connect_all(self, fixed_interface: bool = True) -> None:
         """Connect all the unconnected destination endpoints in the GC graph."""
         # Make a list of unconnected endpoints and shuffle it
-        unconnected: list[tuple[DestinationRow, int]] = (
-            [(DestinationRow.F, idx) for idx in self._connections["Fdc"].get_unconnected_idx()]
-            + [(DestinationRow.A, idx) for idx in self._connections["Adc"].get_unconnected_idx()]
-            + [(DestinationRow.B, idx) for idx in self._connections["Bdc"].get_unconnected_idx()]
-            + [(DestinationRow.O, idx) for idx in self._connections["Odc"].get_unconnected_idx()]
+        unconnected: list[tuple[DstRow, int]] = (
+            [(DstRow.F, idx) for idx in self._connections["Fdc"].get_unconnected_idx()]
+            + [(DstRow.A, idx) for idx in self._connections["Adc"].get_unconnected_idx()]
+            + [(DstRow.B, idx) for idx in self._connections["Bdc"].get_unconnected_idx()]
+            + [(DstRow.O, idx) for idx in self._connections["Odc"].get_unconnected_idx()]
         )
         shuffle(unconnected)
 
@@ -239,12 +245,12 @@ class MutableGCGraph(FrozenGCGraph):
             # a new input interface endpoint is an option.
             len_is = len(self._interfaces["Is"])
             if not fixed_interface:
-                vsrcs.append((SourceRow.I, len_is))
+                vsrcs.append((SrcRow.I, len_is))
             if vsrcs:
                 # Randomly choose a valid source endpoint
                 srow, sidx = choice(vsrcs)
                 # If it is a new input interface endpoint then add it to input interface
-                if not fixed_interface and sidx == len_is and srow == SourceRow.I:
+                if not fixed_interface and sidx == len_is and srow == SrcRow.I:
                     assert isinstance(
                         self._interfaces["Is"], MutableSequence
                     ), "Interface must be mutable."
