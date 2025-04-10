@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from egpcommon.common import NULL_STR
 
-from egppy.gc_graph.cg_key import DstRow, Row, SrcRow
+from egppy.c_graph.c_graph_key import DstRow, Row, SrcRow
 
 if TYPE_CHECKING:
     from egppy.worker.executor.gc_node import GCNode

@@ -9,7 +9,7 @@ from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.validator import Validator
 
-from egppy.gc_graph.interface import Interface, interface, interface_to_list_str
+from egppy.c_graph.interface import Interface, interface, interface_to_list_str
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

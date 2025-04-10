@@ -11,8 +11,8 @@ from typing import Any, Mapping
 from egpcommon.common import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.cc_graph_abc import GCGraphABC
-from egppy.gc_graph.cc_graph_class_factory import NULL_GC_GRAPH, FrozenGCGraph
+from egppy.c_graph.cc_graph_abc import GCGraphABC
+from egppy.c_graph.cc_graph_class_factory import NULL_c_graph, FrozenGCGraph
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCMixin
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
@@ -85,7 +85,7 @@ class EGCMixin(GCMixin):
             gcabc: The genetic code object or dictionary to set the attributes.
         """
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
-        tmp = gcabc.get("graph", NULL_GC_GRAPH)
+        tmp = gcabc.get("graph", NULL_c_graph)
         # Seems to by a pylint bug. pylance is happy.
         self["graph"] = (
             FrozenGCGraph(tmp)  # pylint: disable=abstract-class-instantiated

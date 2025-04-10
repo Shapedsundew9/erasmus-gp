@@ -15,7 +15,7 @@ class GCType(IntEnum):
     RESERVED_3 = 3
 
 
-class GraphType(IntEnum):
+class CGraphType(IntEnum):
     """Graph type."""
 
     IF_THEN = 0
@@ -33,7 +33,7 @@ class GraphType(IntEnum):
     RESERVED_12 = 12
     RESERVED_13 = 13
     RESERVED_14 = 14
-    UNKNOWN = 15  # This is not a valid graph type. Used when constructing graphs.
+    UNKNOWN = 15  # This is not a valid connection graph type. Used when constructing graphs.
 
 
 PROPERTIES_CONFIG = {
@@ -159,7 +159,7 @@ def _verify(properties: BitDictABC) -> bool:
         return False
 
     # If the GC is a codon then the graph cannot be empty.
-    if properties["gc_type"] == GCType.CODON and properties["graph_type"] == GraphType.EMPTY:
+    if properties["gc_type"] == GCType.CODON and properties["graph_type"] == CGraphType.EMPTY:
         return False
 
     # If the genetic code is constant, it must be deterministic.
@@ -174,10 +174,10 @@ PropertiesBD.assign_verification_function(_verify)
 
 # Standard Property Constants
 BASIC_CODON_PROPERTIES: int = PropertiesBD(
-    {"gc_type": GCType.CODON, "graph_type": GraphType.STANDARD}
+    {"gc_type": GCType.CODON, "graph_type": CGraphType.STANDARD}
 ).to_int()
 BASIC_ORDINARY_PROPERTIES: int = PropertiesBD(
-    {"gc_type": GCType.ORDINARY, "graph_type": GraphType.STANDARD}
+    {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.STANDARD}
 ).to_int()
 
 if __name__ == "__main__":

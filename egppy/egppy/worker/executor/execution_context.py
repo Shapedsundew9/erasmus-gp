@@ -9,9 +9,9 @@ from itertools import count
 from typing import Any
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import NULL_STR
-from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.gc_graph.end_point.import_def import ImportDef
-from egppy.gc_graph.cg_key import DstRow, SrcRow
+from egppy.c_graph.end_point.end_point_abc import XEndPointRefABC
+from egppy.c_graph.end_point.import_def import ImportDef
+from egppy.c_graph.c_graph_key import DstRow, SrcRow
 from egppy.gc_types.gc import (
     GCABC,
     NULL_GC,
@@ -194,7 +194,7 @@ class ExecutionContext:
                     case _:
                         raise ValueError(f"Invalid source row: {src.row}")
                 # In all none terminal cases the new source row and index populated from the
-                # gc_graph connection.
+                # c_graph connection.
                 if not src.terminal:
                     ref: XEndPointRefABC = refs[src.idx][0]
                     src.row = ref.get_row()

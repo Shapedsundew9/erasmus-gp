@@ -29,6 +29,7 @@ NULL_SHA256_STR = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
 NULL_TUPLE = tuple()
 NULL_STR = ""
+NULL_FROZENSET = frozenset()
 
 
 # GC Fields with Postgres definitions

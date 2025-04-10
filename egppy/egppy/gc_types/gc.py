@@ -11,12 +11,12 @@ from uuid import UUID
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.properties import GCType, GraphType, PropertiesBD
+from egpcommon.properties import GCType, CGraphType, PropertiesBD
 
-from egppy.gc_graph.end_point.end_point_type import ept_to_str
-from egppy.gc_graph.cc_graph_class_factory import NULL_GC_GRAPH
-from egppy.gc_graph.interface import interface
-from egppy.gc_graph.cg_key import Row, SrcRow
+from egppy.c_graph.end_point.end_point_type import ept_to_str
+from egppy.c_graph.cc_graph_class_factory import NULL_c_graph
+from egppy.c_graph.interface import interface
+from egppy.c_graph.c_graph_key import Row, SrcRow
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -233,23 +233,23 @@ class GCMixin:
         """Return True if the genetic code is conditional."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         assert (
-            PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
+            PropertiesBD(self["properties"])["graph_type"] == CGraphType.CONDITIONAL
             and self["graph"].is_conditional_graph()
         ) or (
-            PropertiesBD(self["properties"])["graph_type"] != GraphType.CONDITIONAL
+            PropertiesBD(self["properties"])["graph_type"] != CGraphType.CONDITIONAL
             and not self["graph"].is_conditional_graph()
         ), "Conditional inconsistent!"
-        return PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
+        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.CONDITIONAL
 
     def is_empty(self) -> bool:
         """Return True if the genetic code graph type is 'empty'."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == GraphType.EMPTY
+        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.EMPTY
 
     def is_standard(self) -> bool:
         """Return True if the genetic code graph type is 'standard'."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == GraphType.STANDARD
+        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.STANDARD
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
@@ -418,7 +418,7 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
                 "gca": NULL_SIGNATURE,
                 "gcb": NULL_SIGNATURE,
                 "generation": 0,
-                "graph": NULL_GC_GRAPH,
+                "graph": NULL_c_graph,
                 "num_codons": 0,
                 "num_codes": 0,
                 "num_inputs": 0,
@@ -427,7 +427,7 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
                 "problem": NULL_PROBLEM,
                 "problem_set": NULL_PROBLEM_SET,
                 "properties": PropertiesBD(
-                    {"gc_type": GCType.CODON, "graph_type": GraphType.EMPTY}
+                    {"gc_type": GCType.CODON, "graph_type": CGraphType.EMPTY}
                 ).to_int(),
                 "signature": NULL_SIGNATURE,
             }

@@ -6,8 +6,8 @@ from collections.abc import Iterable, Iterator, Hashable
 from itertools import count
 from typing import TYPE_CHECKING
 
-from egppy.gc_graph.end_point.end_point_type import ept_to_str
-from egppy.gc_graph.cg_key import DstRow, Row, SrcRow
+from egppy.c_graph.end_point.end_point_type import ept_to_str
+from egppy.c_graph.c_graph_key import DstRow, Row, SrcRow
 from egppy.gc_types.gc import (
     GCABC,
     MERMAID_CODON_COLOR,
