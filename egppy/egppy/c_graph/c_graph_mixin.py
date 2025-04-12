@@ -15,6 +15,7 @@ from egppy.c_graph.end_point.end_point_type import EndPointType, end_point_type
 from egppy.c_graph.end_point.types_def import types_db
 from egppy.c_graph.c_graph_abc import GCGraphABC
 from egppy.c_graph.c_graph_validation import valid_dst_rows, valid_src_rows, CGraphType
+
 from egppy.c_graph.interface import (
     EMPTY_INTERFACE,
     INTERFACE_MAX_LENGTH,
@@ -26,7 +27,9 @@ from egppy.c_graph.interface import (
 )
 from egppy.c_graph.c_graph_key import (
     CPI,
+    CGraphKey,
     IfKeys,
+    ConnKeys,
     SOURCE_ROWS,
     SOURCE_ROW_SET,
     DESTINATION_ROW_SET_U,
@@ -93,22 +96,22 @@ class GCGraphMixin(CacheableObjMixin):
     def _init_from_c_graph(self, c_graph: GCGraphABC | GCGraphDict) -> None:
         """Initialize from a GCGraphABC or empty dictionary."""
         assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
-        for key in IfKeys:
-            self[key] = c_graph.get(key, EMPTY_INTERFACE)
-            self[key + "c"] = c_graph.get(key + "c", EMPTY_CONNECTIONS)
+        for ikey in IfKeys:
+            self[ikey] = c_graph.get(ikey, EMPTY_INTERFACE)
+        for ckey in ConnKeys:
+            self[ckey] = c_graph.get(ckey, EMPTY_CONNECTIONS)
 
     def _init_from_dict(self, c_graph: GCGraphDict) -> None:
         """Initialize from a dictionary with keys and values like a GCGraphABC."""
         assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         rtype = self._TC.get_ref_iterable_type()
-        for key in ROW_CLS_INDEXED:
-            ckey = key + "c"
-            if key not in c_graph:
-                self[key] = EMPTY_INTERFACE
+        for ikey, ckey in zip(IfKeys, ConnKeys):
+            if ikey not in c_graph:
+                self[ikey] = EMPTY_INTERFACE
                 self[ckey] = EMPTY_CONNECTIONS
             elif ckey not in c_graph:
-                self[key] = c_graph[key]
-                self[ckey] = self._TC(rtype() for _ in c_graph[key])
+                self[ikey] = c_graph[ikey]
+                self[ckey] = self._TC(rtype() for _ in c_graph[ikey])
 
     def _init_from_json(self, c_graph: GCGraphDict) -> None:
         """Initialize from a JSON formatted GC graph.
@@ -359,7 +362,7 @@ class GCGraphMixin(CacheableObjMixin):
             for idx in range(len(self[key])):
                 yield f"{key[0]}{idx:03d}{key[1]}"
 
-    def get(self, key: str, default: Any = None) -> Any:
+    def get(self, key: CGraphKey, default: Any = None) -> Any:
         """Get the endpoint with the given key."""
         assert isinstance(self, GCGraphABC), "Invalid GC Graph type."
         try:

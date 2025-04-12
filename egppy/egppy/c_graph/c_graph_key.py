@@ -122,7 +122,7 @@ class CGraphKey(Sized):
         assert False, "Invalid Connection Graph Key"
 
 
-class SrcIfKeys(Iterable[CGraphKey]):
+class _SrcIfKeys(Iterable[CGraphKey]):
     """Source interfaces."""
 
     IS = CGraphKey(row=SrcRow.I, ep_cls=EPClsPostfix.SRC)
@@ -130,14 +130,16 @@ class SrcIfKeys(Iterable[CGraphKey]):
     AS = CGraphKey(row=SrcRow.A, ep_cls=EPClsPostfix.SRC)
     BS = CGraphKey(row=SrcRow.B, ep_cls=EPClsPostfix.SRC)
 
-    @classmethod
-    def __iter__(cls) -> Iterator[CGraphKey]:
+    def __iter__(self) -> Iterator[CGraphKey]:
         """Iterate over the source interface keys."""
-        for key in (cls.IS, cls.LS, cls.AS, cls.BS):
+        for key in (_SrcIfKeys.IS, _SrcIfKeys.LS, _SrcIfKeys.AS, _SrcIfKeys.BS):
             yield key
 
 
-class DstIfKeys:
+SrcIFKeys = _SrcIfKeys()
+
+
+class _DstIfKeys(Iterable[CGraphKey]):
     """Destination interfaces."""
 
     AD = CGraphKey(row=DstRow.A, ep_cls=EPClsPostfix.DST)
@@ -149,24 +151,37 @@ class DstIfKeys:
     PD = CGraphKey(row=DstRow.P, ep_cls=EPClsPostfix.DST)
     UD = CGraphKey(row=DstRow.U, ep_cls=EPClsPostfix.DST)
 
-    @classmethod
-    def __iter__(cls) -> Iterator[CGraphKey]:
+    def __iter__(self) -> Iterator[CGraphKey]:
         """Iterate over the destination interface keys."""
-        for key in (cls.AD, cls.BD, cls.FD, cls.LD, cls.WD, cls.OD, cls.PD, cls.UD):
+        for key in (
+            _DstIfKeys.AD,
+            _DstIfKeys.BD,
+            _DstIfKeys.FD,
+            _DstIfKeys.LD,
+            _DstIfKeys.WD,
+            _DstIfKeys.OD,
+            _DstIfKeys.PD,
+            _DstIfKeys.UD,
+        ):
             yield key
 
 
-class IfKeys(SrcIfKeys, DstIfKeys):
+DstIfKeys = _DstIfKeys()
+
+
+class _IfKeys(Iterable[CGraphKey]):
     """All interface Keys."""
 
-    @classmethod
-    def __iter__(cls) -> Iterator[CGraphKey]:
+    def __iter__(self) -> Iterator[CGraphKey]:
         """Iterate over all interface keys."""
-        yield from SrcIfKeys.__iter__()
+        yield from SrcIFKeys.__iter__()
         yield from DstIfKeys.__iter__()
 
 
-class SrcConnKeys:
+IfKeys = _IfKeys()
+
+
+class _SrcConnKeys(Iterable[CGraphKey]):
     """Source connection keys."""
 
     ISC = CGraphKey(row=SrcRow.I, ep_cls=EPClsPostfix.SRC, connection=True)
@@ -174,14 +189,16 @@ class SrcConnKeys:
     ASC = CGraphKey(row=SrcRow.A, ep_cls=EPClsPostfix.SRC, connection=True)
     BSC = CGraphKey(row=SrcRow.B, ep_cls=EPClsPostfix.SRC, connection=True)
 
-    @classmethod
-    def __iter__(cls) -> Iterator[CGraphKey]:
+    def __iter__(self) -> Iterator[CGraphKey]:
         """Iterate over the source connection keys."""
-        for key in (cls.ISC, cls.LSC, cls.ASC, cls.BSC):
+        for key in (_SrcConnKeys.ISC, _SrcConnKeys.LSC, _SrcConnKeys.ASC, _SrcConnKeys.BSC):
             yield key
 
 
-class DstConnKeys:
+SrcConnKeys = _SrcConnKeys()
+
+
+class _DstConnKeys(Iterable[CGraphKey]):
     """Destination connection keys."""
 
     ADC = CGraphKey(row=DstRow.A, ep_cls=EPClsPostfix.DST, connection=True)
@@ -193,21 +210,34 @@ class DstConnKeys:
     PDC = CGraphKey(row=DstRow.P, ep_cls=EPClsPostfix.DST, connection=True)
     UDC = CGraphKey(row=DstRow.U, ep_cls=EPClsPostfix.DST, connection=True)
 
-    @classmethod
-    def __iter__(cls) -> Iterator[CGraphKey]:
+    def __iter__(self) -> Iterator[CGraphKey]:
         """Iterate over the destination connection keys."""
-        for key in (cls.ADC, cls.BDC, cls.FDC, cls.LDC, cls.WDC, cls.ODC, cls.PDC, cls.UDC):
+        for key in (
+            _DstConnKeys.ADC,
+            _DstConnKeys.BDC,
+            _DstConnKeys.FDC,
+            _DstConnKeys.LDC,
+            _DstConnKeys.WDC,
+            _DstConnKeys.ODC,
+            _DstConnKeys.PDC,
+            _DstConnKeys.UDC,
+        ):
             yield key
 
 
-class ConnKeys(SrcConnKeys, DstConnKeys):
+DstConnKeys = _DstConnKeys()
+
+
+class _ConnKeys(Iterable[CGraphKey]):
     """All connection keys."""
 
-    @classmethod
-    def __iter__(cls) -> Iterator[CGraphKey]:
+    def __iter__(self) -> Iterator[CGraphKey]:
         """Iterate over all connection keys."""
         yield from SrcConnKeys.__iter__()
         yield from DstConnKeys.__iter__()
+
+
+ConnKeys = _ConnKeys()
 
 
 class EndPointClass(IntEnum):
