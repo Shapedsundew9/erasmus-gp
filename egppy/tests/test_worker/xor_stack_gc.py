@@ -443,7 +443,7 @@ if __name__ == "__main__":
     with NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write("# Genetic Codes\n\n")
         f.write(
-            "Be aware that GC's may have the same GC graph (structure) but the top level "
+            "Be aware that GC's may have the same Connection Graph (structure) but the top level "
             "GC may have a different connectivity resulting in a different signature.\n\n"
         )
         f.write(f"Num GC's: {len(gene_pool)}\n\n")

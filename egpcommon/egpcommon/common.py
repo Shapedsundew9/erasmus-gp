@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from hashlib import sha256
 from pprint import pformat
-from typing import Any, Self
+from typing import Any, Literal, Self
 from uuid import UUID
 from json import dumps
 from collections.abc import Sequence
@@ -25,10 +25,11 @@ ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
 
 # Constants
 NULL_SHA256: bytes = b"\x00" * 32
-NULL_SHA256_STR = NULL_SHA256.hex()
+NULL_SHA256_STR: str = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
-NULL_TUPLE = tuple()
-NULL_STR = ""
+NULL_TUPLE: tuple = tuple()
+NULL_STR: Literal[''] = ""
+NULL_FROZENSET: frozenset = frozenset()
 
 
 # GC Fields with Postgres definitions

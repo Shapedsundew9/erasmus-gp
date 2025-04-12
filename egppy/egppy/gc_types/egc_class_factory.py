@@ -11,8 +11,8 @@ from typing import Any, Mapping
 from egpcommon.common import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.gc_graph.gc_graph_abc import GCGraphABC
-from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH, FrozenGCGraph
+from egppy.c_graph.c_graph_abc import CGraphABC
+from egppy.c_graph.c_graph_class_factory import NULL_c_graph, FrozenCGraph
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCMixin
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
@@ -85,11 +85,11 @@ class EGCMixin(GCMixin):
             gcabc: The genetic code object or dictionary to set the attributes.
         """
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
-        tmp = gcabc.get("graph", NULL_GC_GRAPH)
+        tmp = gcabc.get("graph", NULL_c_graph)
         # Seems to by a pylint bug. pylance is happy.
         self["graph"] = (
-            FrozenGCGraph(tmp)  # pylint: disable=abstract-class-instantiated
-            if not isinstance(tmp, GCGraphABC)
+            FrozenCGraph(tmp)  # pylint: disable=abstract-class-instantiated
+            if not isinstance(tmp, CGraphABC)
             else tmp
         )
         tmp = gcabc.get("gca", NULL_GC) if gcabc.get("gca") is not None else NULL_GC
@@ -111,7 +111,7 @@ class EGCMixin(GCMixin):
     def verify(self) -> None:
         """Verify the genetic code object."""
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
-        assert isinstance(self["graph"], GCGraphABC), "graph must be a GC graph object"
+        assert isinstance(self["graph"], CGraphABC), "graph must be a Connection Graph object"
         assert isinstance(self["gca"], (bytes, GCABC)), "gca must be a bytes or genetic code object"
         if isinstance(self["gca"], bytes):
             assert len(self["gca"]) == 32, "gca must be 32 bytes"
@@ -149,7 +149,7 @@ class EGCDirtyDict(EGCMixin, CacheableDirtyDict, GCABC):  # type: ignore
         gcabc -- the genetic code object or dictionary to set the attributes.
 
         Valid keys for the genetic code object are:
-            graph:GCGraphABC -- the genetic code graph object (optional)
+            graph:CGraphABC -- the genetic code graph object (optional)
             gca:bytes|GCABC -- the genetic code A object (optional)
             gcb:bytes|GCABC -- the genetic code B object (optional)
             ancestora:bytes|GCABC -- the genetic code A ancestor object (optional)
@@ -181,7 +181,7 @@ class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore
         gcabc -- the genetic code object or dictionary to set the attributes.
 
         Valid keys for the genetic code object are:
-            graph:GCGraphABC -- the genetic code graph object (optional)
+            graph:CGraphABC -- the genetic code graph object (optional)
             gca:bytes|GCABC -- the genetic code A object (optional)
             gcb:bytes|GCABC -- the genetic code B object (optional)
             ancestora:bytes|GCABC -- the genetic code A ancestor object (optional)

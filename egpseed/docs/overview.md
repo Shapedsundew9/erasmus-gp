@@ -64,7 +64,7 @@ The *[types.json](../egpseed/data/languages/python/types.json)* file contains ty
 3. If default is not None then the default is not a literal e.g. an int default cannot be "7" it must be "(7)" or "int(7)"
 4. With the exception of "object" if a type does not inherit i.e. inherits is None, then it is an EGP meta-type.
 5. All instanciable types have a zero-argument constructor defined in thier codon *.json* file. [**WHY?**]
-6. UID are, in fact, unique and within a signed 32 bit twos complement range. See [End point types](../../egppy/egppy/gc_graph/docs/graph.md)
+6. UID are, in fact, unique and within a signed 32 bit twos complement range. See [End point types](../../egppy/egppy/c_graph/docs/graph.md)
 7. Type names are unique.
 
 ### Type (Class) Methods

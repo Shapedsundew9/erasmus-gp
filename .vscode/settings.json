@@ -8,5 +8,6 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
-    "snyk.advanced.additionalParameters": "--all-projects"
+    "snyk.advanced.additionalParameters": "--all-projects",
+    "pylint.importStrategy": "useBundled"
 }

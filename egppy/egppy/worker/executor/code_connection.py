@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from egpcommon.common import NULL_STR
 
-from egppy.gc_graph.typing import DestinationRow, Row, SourceRow
+from egppy.c_graph.c_graph_constants import DstRow, Row, SrcRow
 
 if TYPE_CHECKING:
     from egppy.worker.executor.gc_node import GCNode
@@ -95,15 +95,15 @@ def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
 
     # Map the destination row in the node to the row in the destination node
     match row:
-        case DestinationRow.A:
+        case DstRow.A:
             dst_node = node.gca_node
-            dst_row = SourceRow.I
-        case DestinationRow.B:
+            dst_row = SrcRow.I
+        case DstRow.B:
             dst_node = node.gcb_node
-            dst_row = SourceRow.I
+            dst_row = SrcRow.I
         case _:
             dst_node = node
-            dst_row = DestinationRow.O
+            dst_row = DstRow.O
     return [
         CodeConnection(
             CodeEndPoint(node, r[0].get_row(), r[0].get_idx()),

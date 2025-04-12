@@ -11,12 +11,12 @@ from uuid import UUID
 
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.properties import GCType, GraphType, PropertiesBD
+from egpcommon.properties import GCType, CGraphType, PropertiesBD
 
-from egppy.gc_graph.end_point.end_point_type import ept_to_str
-from egppy.gc_graph.gc_graph_class_factory import NULL_GC_GRAPH
-from egppy.gc_graph.interface import interface
-from egppy.gc_graph.typing import Row, SourceRow
+from egppy.c_graph.end_point.end_point_type import ept_to_str
+from egppy.c_graph.c_graph_class_factory import NULL_c_graph
+from egppy.c_graph.interface import interface
+from egppy.c_graph.c_graph_constants import Row, SrcRow
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -232,24 +232,19 @@ class GCMixin:
     def is_conditional(self) -> bool:
         """Return True if the genetic code is conditional."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        assert (
-            PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
-            and self["graph"].is_conditional_graph()
-        ) or (
-            PropertiesBD(self["properties"])["graph_type"] != GraphType.CONDITIONAL
-            and not self["graph"].is_conditional_graph()
-        ), "Conditional inconsistent!"
-        return PropertiesBD(self["properties"])["graph_type"] == GraphType.CONDITIONAL
+        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.IF_THEN or PropertiesBD(
+            self["properties"]
+        )["graph_type"] == CGraphType.IF_THEN_ELSE
 
     def is_empty(self) -> bool:
         """Return True if the genetic code graph type is 'empty'."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == GraphType.EMPTY
+        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.EMPTY
 
     def is_standard(self) -> bool:
         """Return True if the genetic code graph type is 'standard'."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == GraphType.STANDARD
+        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.STANDARD
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
@@ -257,14 +252,14 @@ class GCMixin:
         work_queue: list[tuple[GCABC, GCABC | bytes, GCABC | bytes, str]] = [
             (self, self["gca"], self["gcb"], "0")
         ]
-        chart_txt: list[str] = [mc_gc_str(self, "0", SourceRow.I)]
+        chart_txt: list[str] = [mc_gc_str(self, "0", SrcRow.I)]
         # Each instance of the same GC must have a unique id in the chart
         counter = count(1)
         while work_queue:
             gc, gca, gcb, cts = work_queue.pop(0)
             # deepcode ignore unguarded~next~call: This is an infinite generator
             nct = str(next(counter))
-            for gcx, prefix, row in [(gca, "a" + nct, SourceRow.A), (gcb, "b" + nct, SourceRow.B)]:
+            for gcx, prefix, row in [(gca, "a" + nct, SrcRow.A), (gcb, "b" + nct, SrcRow.B)]:
                 if isinstance(gcx, GCABC) and gcx is not NULL_GC:
                     work_queue.append((gcx, gcx["gca"], gcx["gcb"], prefix))
                     chart_txt.append(mc_gc_str(gcx, prefix, row))
@@ -418,7 +413,7 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
                 "gca": NULL_SIGNATURE,
                 "gcb": NULL_SIGNATURE,
                 "generation": 0,
-                "graph": NULL_GC_GRAPH,
+                "graph": NULL_c_graph,
                 "num_codons": 0,
                 "num_codes": 0,
                 "num_inputs": 0,
@@ -427,7 +422,7 @@ class NullGC(CacheableDirtyDict, GCMixin, GCABC):  # type: ignore
                 "problem": NULL_PROBLEM,
                 "problem_set": NULL_PROBLEM_SET,
                 "properties": PropertiesBD(
-                    {"gc_type": GCType.CODON, "graph_type": GraphType.EMPTY}
+                    {"gc_type": GCType.CODON, "graph_type": CGraphType.EMPTY}
                 ).to_int(),
                 "signature": NULL_SIGNATURE,
             }

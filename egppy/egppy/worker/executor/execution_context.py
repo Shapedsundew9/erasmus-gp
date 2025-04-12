@@ -9,9 +9,9 @@ from itertools import count
 from typing import Any
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import NULL_STR
-from egppy.gc_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.gc_graph.end_point.import_def import ImportDef
-from egppy.gc_graph.typing import DestinationRow, SourceRow
+from egppy.c_graph.end_point.end_point_abc import XEndPointRefABC
+from egppy.c_graph.end_point.import_def import ImportDef
+from egppy.c_graph.c_graph_constants import DstRow, SrcRow
 from egppy.gc_types.gc import (
     GCABC,
     NULL_GC,
@@ -51,9 +51,9 @@ def connection_key(connection: CodeConnection) -> int:
     This ensures inputs get assigned an ix name and outputs a ox name.
     Everything else is assigned a tx name.
     """
-    if connection.src.row == SourceRow.I:
+    if connection.src.row == SrcRow.I:
         return 0
-    if connection.dst.row == DestinationRow.O:
+    if connection.dst.row == DstRow.O:
         return 1
     return 2
 
@@ -133,7 +133,7 @@ class ExecutionContext:
         # If the GC is a codon then there are no connections to make
         if node.gca is NULL_GC and node.gcb is NULL_GC:
             return node
-        connection_stack: list[CodeConnection] = code_connection_from_iface(node, DestinationRow.O)
+        connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
         # Make sure we are not processing the same interface more than once.
@@ -148,17 +148,17 @@ class ExecutionContext:
             # If the source is not terminal then find what it is connected to
             if not src.terminal:
                 match src.row:
-                    case SourceRow.A:
+                    case SrcRow.A:
                         assert node.gca is not NULL_GC, "Should never introspect a codon graph."
                         src.node = node.gca_node
                         src.terminal = node.gca_node.terminal
                         refs = src.node.gc["graph"]["Odc"]
-                    case SourceRow.B:
+                    case SrcRow.B:
                         assert node.gcb is not NULL_GC, "GCB cannot be NULL"
                         src.node = node.gcb_node
                         src.terminal = node.gcb_node.terminal
                         refs = src.node.gc["graph"]["Odc"]
-                    case SourceRow.I:
+                    case SrcRow.I:
                         parent: GCNode = node.parent
                         # Function is the root node. Going to its parent is moving
                         # out of the scope of this function.
@@ -169,7 +169,7 @@ class ExecutionContext:
                             ref: XEndPointRefABC = refs[src.idx][0]
                             src.row = ref.get_row()
                             src.idx = ref.get_idx()
-                            if src.row == SourceRow.I:
+                            if src.row == SrcRow.I:
                                 src.node = parent
                                 node = parent
                                 # If the source in the parent is row I & its parent is the root
@@ -194,7 +194,7 @@ class ExecutionContext:
                     case _:
                         raise ValueError(f"Invalid source row: {src.row}")
                 # In all none terminal cases the new source row and index populated from the
-                # gc_graph connection.
+                # c_graph connection.
                 if not src.terminal:
                     ref: XEndPointRefABC = refs[src.idx][0]
                     src.row = ref.get_row()
@@ -221,8 +221,8 @@ class ExecutionContext:
                 node.f_connection = False
                 connection_stack.append(
                     CodeConnection(
-                        CodeEndPoint(node, SourceRow.I, node.gc["graph"]["Fdc"][0].get_idx()),
-                        CodeEndPoint(node, DestinationRow.F, 0, True),
+                        CodeEndPoint(node, SrcRow.I, node.gc["graph"]["Fdc"][0].get_idx()),
+                        CodeEndPoint(node, DstRow.F, 0, True),
                     )
                 )
 
@@ -425,22 +425,22 @@ class ExecutionContext:
                 # Priority naming is given to input and output variables
                 # This keeps all inputs as ix and outputs as ox except in the
                 # case where the input is directly connected to the output.
-                if src.row == SourceRow.I:
+                if src.row == SrcRow.I:
                     assert src.node is root, "Invalid connection source node."
                     assert connection.var_name == "", "Input variable name already assigned."
                     connection.var_name = i_cstr(idx)
-                elif dst.row == DestinationRow.O and connection.var_name is NULL_STR:
+                elif dst.row == DstRow.O and connection.var_name is NULL_STR:
                     assert dst.node is root, "Invalid connection destination node."
                     connection.var_name = o_cstr(dst.idx)
                 elif connection.var_name is NULL_STR:
-                    assert src.row == SourceRow.A or src.row == SourceRow.B, "Invalid source row."
+                    assert src.row == SrcRow.A or src.row == SrcRow.B, "Invalid source row."
                     number = next(root.local_counter)
                     connection.var_name = t_cstr(number)
                 else:
                     raise ValueError("Invalid connection source row.")
 
             # Gather the outputs for this node (may not be named ox if connected to an input)
-            if dst.row == DestinationRow.O:
+            if dst.row == DstRow.O:
                 assert dst.node is root, "Invalid connection destination node."
                 _ovns[dst.idx] = connection.var_name
         return _ovns
@@ -493,7 +493,7 @@ class ExecutionContext:
 
         half_limit: int = self._line_limit // 2
         finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
-        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SourceRow.I, finfo)]
+        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo)]
 
         # Define the GCNode data
         while node_stack:
@@ -503,12 +503,12 @@ class ExecutionContext:
             # _logger.debug("Assessing node: %s", node)
             if node.is_codon or node.unknown:
                 continue
-            child_nodes = ((DestinationRow.A, node.gca), (DestinationRow.B, node.gcb))
+            child_nodes = ((DstRow.A, node.gca), (DstRow.B, node.gcb))
             for row, xgc in (x for x in child_nodes):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
                 fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
                 gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap)
-                if row == DestinationRow.A:
+                if row == DstRow.A:
                     node.gca_node = gc_node_graph_entry
                 else:
                     node.gcb_node = gc_node_graph_entry

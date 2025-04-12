@@ -8,9 +8,9 @@ from typing import Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.security import load_signed_json_dict, dump_signed_json
-from egpcommon.properties import GCType, GraphType
-from egppy.gc_graph.end_point.end_point_type import ept_to_str
-from egppy.gc_graph.end_point.types_def import TypesDef, types_db
+from egpcommon.properties import GCType, CGraphType
+from egppy.c_graph.end_point.end_point_type import ept_to_str
+from egppy.c_graph.end_point.types_def import TypesDef, types_db
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
@@ -36,7 +36,7 @@ CODON_TEMPLATE: dict[str, Any] = {
     "problem": ACYBERGENESIS_PROBLEM,
     "properties": {
         "gc_type": GCType.CODON,
-        "graph_type": GraphType.STANDARD,
+        "graph_type": CGraphType.STANDARD,
         "constant": False,
         "deterministic": True,
         "side_effects": False,

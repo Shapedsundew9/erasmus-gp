@@ -35,7 +35,7 @@ Assessing a GC is done recursively (it is actaully implemented as a stack to all
 
 ### Dead Code
 
-When travesing the GC graph it is not possible to determine what code will not be executed, "Dead Code". Only when the codon graph with all the connection are resolved is it possible to know the actual number of lines a function will not take.
+When travesing the Connection Graph it is not possible to determine what code will not be executed, "Dead Code". Only when the codon graph with all the connection are resolved is it possible to know the actual number of lines a function will not take.
 
 ### Method
 
@@ -169,7 +169,7 @@ linkStyle default stroke:#AAAAAA,stroke-width:2px
 
 #### Creating the node graph
 
-The node graph is a bidirectional graph of the GC logical structure using _GCNode_ objects as nodes created by the _node_graph()_ function. The node graph structure is an explicit GC logical graph in that GC nodes that are used in more than one place are duplicated rather than just referenced, as they are in the GC graph, so that a) a bidirectional graph can be created and b) nodes can have meta data added pursuant thier local environment in the graph. i.e. the node graph looks like the graph above. Note that "unknown" GC's (those that have a GCA and or GCB that is **not** in the cache) are permissable as long as they have an executable defined.
+The node graph is a bidirectional graph of the GC logical structure using _GCNode_ objects as nodes created by the _node_graph()_ function. The node graph structure is an explicit GC logical graph in that GC nodes that are used in more than one place are duplicated rather than just referenced, as they are in the Connection Graph, so that a) a bidirectional graph can be created and b) nodes can have meta data added pursuant thier local environment in the graph. i.e. the node graph looks like the graph above. Note that "unknown" GC's (those that have a GCA and or GCB that is **not** in the cache) are permissable as long as they have an executable defined.
 
 #### Determining line counts
 

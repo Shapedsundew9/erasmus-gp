@@ -15,7 +15,7 @@ from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_STR, NULL_TUPLE, ANONYMOUS
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 
-from egppy.gc_graph.end_point.import_def import ImportDef, import_def_store
+from egppy.c_graph.end_point.import_def import ImportDef, import_def_store
 from egppy.gc_types.egc_class_factory import EGCMixin
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict

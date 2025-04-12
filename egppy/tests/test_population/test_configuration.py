@@ -5,7 +5,7 @@ from typing import Callable
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from egppy.gc_graph.end_point.types_def import types_db
+from egppy.c_graph.end_point.types_def import types_db
 from egppy.populations.configuration import PopulationConfig, PopulationsConfig, SourceConfig
 
 

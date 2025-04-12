@@ -1,6 +1,6 @@
 # Genetric Code Logical Structure
 
-A genetic codes, GC, is a recursively embedded structure. A GC has an input interface, I, and an output interface, O as well as none or two embedded sub-GCs that are connected together as a graph. The GC graph is described in ... A GC with no sub-GCs is called a codon or an empty GC. Codons represent a functional primitive.
+A genetic codes, GC, is a recursively embedded structure. A GC has an input interface, I, and an output interface, O as well as none or two embedded sub-GCs that are connected together as a graph. The Connection Graph is described in ... A GC with no sub-GCs is called a codon or an empty GC. Codons represent a functional primitive.
 
 ```mermaid
 flowchart TB

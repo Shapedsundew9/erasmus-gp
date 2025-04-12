@@ -6,8 +6,8 @@ from collections.abc import Iterable, Iterator, Hashable
 from itertools import count
 from typing import TYPE_CHECKING
 
-from egppy.gc_graph.end_point.end_point_type import ept_to_str
-from egppy.gc_graph.typing import DestinationRow, Row, SourceRow
+from egppy.c_graph.end_point.end_point_type import ept_to_str
+from egppy.c_graph.c_graph_constants import DstRow, Row, SrcRow
 from egppy.gc_types.gc import (
     GCABC,
     MERMAID_CODON_COLOR,
@@ -84,11 +84,11 @@ def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str
     dst = connection.dst
     arrow = f"-- {src.idx}:{dst.idx} -->"
     namea = (
-        src.node.uid if src.node is not root and src.row is not SourceRow.I else src.node.uid + "I"
+        src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
     )
     nameb = (
         dst.node.uid
-        if dst.node is not root and dst.row is not DestinationRow.O
+        if dst.node is not root and dst.row is not DstRow.O
         else dst.node.uid + "O"
     )
     return mc_connect_str(namea, nameb, arrow)
@@ -204,7 +204,7 @@ class GCNodeCodeIterable(Iterable):
 
 
 class GCNode(Iterable, Hashable):
-    """A node in the GC Graph."""
+    """A node in the Connection Graph."""
 
     # For generating UIDs for GCNode instances
     _uid_counter = count()
@@ -241,7 +241,7 @@ class GCNode(Iterable, Hashable):
             # It has no parent.
             # NOTE: The top level GC is the root of the graph & therefore not terminal.
             # However, connection to its inputs and outputs are terminal.
-            self.iam = SourceRow.I
+            self.iam = SrcRow.I
             self.parent = NULL_GC_NODE if gc is not NULL_GC else self
         else:
             self.iam = row
@@ -434,7 +434,7 @@ class GCNode(Iterable, Hashable):
         chart_txt: list[str] = [mc_gc_node_str(gc_node, gc_node.iam)]
         while work_queue:
             gc_node, gca_node, gcb_node = work_queue.pop(0)
-            for gcx_node, row in ((gca_node, SourceRow.A), (gcb_node, SourceRow.B)):
+            for gcx_node, row in ((gca_node, SrcRow.A), (gcb_node, SrcRow.B)):
                 if gcx_node is not NULL_GC_NODE:
                     if gcx_node.exists or gcx_node.write:
                         chart_txt.append(f'    subgraph {gcx_node.uid}sd[" "]')
@@ -453,4 +453,4 @@ class GCNode(Iterable, Hashable):
 
 # The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node but
 # if bot GCA and GCB are NULL_GC_NODE then it is a leaf node.
-NULL_GC_NODE = GCNode(NULL_GC, None, DestinationRow.O, NULL_FUNCTION_MAP)
+NULL_GC_NODE = GCNode(NULL_GC, None, DstRow.O, NULL_FUNCTION_MAP)

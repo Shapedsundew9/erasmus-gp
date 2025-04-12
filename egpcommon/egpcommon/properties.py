@@ -11,15 +11,29 @@ class GCType(IntEnum):
 
     CODON = 0
     ORDINARY = 1
-    RESERVED = 2
+    RESERVED_2 = 2
+    RESERVED_3 = 3
 
 
-class GraphType(IntEnum):
+class CGraphType(IntEnum):
     """Graph type."""
 
-    CONDITIONAL = 0
-    EMPTY = 1
-    STANDARD = 2
+    IF_THEN = 0
+    IF_THEN_ELSE = 1
+    EMPTY = 2
+    FOR_LOOP = 3
+    WHILE_LOOP = 4
+    STANDARD = 5
+    RESERVED_6 = 6
+    RESERVED_7 = 7
+    RESERVED_8 = 8
+    RESERVED_9 = 9
+    RESERVED_10 = 10
+    RESERVED_11 = 11
+    RESERVED_12 = 12
+    RESERVED_13 = 13
+    RESERVED_14 = 14
+    UNKNOWN = 15  # This is not a valid connection graph type. Used when constructing graphs.
 
 
 PROPERTIES_CONFIG = {
@@ -29,15 +43,15 @@ PROPERTIES_CONFIG = {
         "width": 2,
         "default": 0,
         "valid": {"range": [(2,)]},
-        "description": ("Graph type. 0 = Codon, 1 = Ordinary, 2 & 3 = Reserved."),
+        "description": ("GC type."),
     },
     "graph_type": {
         "type": "uint",
         "start": 2,
         "width": 4,
         "default": 0,
-        "valid": {"range": [(3,)]},
-        "description": ("Graph type. 0 = Conditional, 1 = Empty, 2 = Standard, 3-15 = Reserved."),
+        "valid": {"range": [(6,)]},
+        "description": ("Graph type."),
     },
     "reserved1": {
         "type": "uint",
@@ -145,7 +159,7 @@ def _verify(properties: BitDictABC) -> bool:
         return False
 
     # If the GC is a codon then the graph cannot be empty.
-    if properties["gc_type"] == GCType.CODON and properties["graph_type"] == GraphType.EMPTY:
+    if properties["gc_type"] == GCType.CODON and properties["graph_type"] == CGraphType.EMPTY:
         return False
 
     # If the genetic code is constant, it must be deterministic.
@@ -160,10 +174,10 @@ PropertiesBD.assign_verification_function(_verify)
 
 # Standard Property Constants
 BASIC_CODON_PROPERTIES: int = PropertiesBD(
-    {"gc_type": GCType.CODON, "graph_type": GraphType.STANDARD}
+    {"gc_type": GCType.CODON, "graph_type": CGraphType.STANDARD}
 ).to_int()
 BASIC_ORDINARY_PROPERTIES: int = PropertiesBD(
-    {"gc_type": GCType.ORDINARY, "graph_type": GraphType.STANDARD}
+    {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.STANDARD}
 ).to_int()
 
 if __name__ == "__main__":
