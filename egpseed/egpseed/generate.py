@@ -25,7 +25,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "graph": {"A": None, "O": None},
+    "graph": {"A": None, "O": None, "U": []},
     "gca": None,
     "gcb": None,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
@@ -36,10 +36,12 @@ CODON_TEMPLATE: dict[str, Any] = {
     "problem": ACYBERGENESIS_PROBLEM,
     "properties": {
         "gc_type": GCType.CODON,
-        "graph_type": CGraphType.STANDARD,
+        # NOTE: The graph type does not have to be primitive.
+        "graph_type": CGraphType.PRIMITIVE,
         "constant": False,
         "deterministic": True,
         "side_effects": False,
+        "static_creation": True,
         "gctsp": {"literal": False},
     },
     "meta_data": {"function": {"python3": {"0": {}}}},
@@ -76,7 +78,7 @@ class MethodExpander:
             self.num_outputs = len(method["outputs"])
             self.outputs = method["outputs"]
 
-        # Methof imports if there are any
+        # Method imports if there are any
         self.imports = method.get("imports", [])
 
         # Other members
@@ -91,8 +93,8 @@ class MethodExpander:
         json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
         json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
         json_dict["properties"].update(self.properties)
-        json_dict["graph"]["A"] = [["I", idx, [typ]] for idx, typ in enumerate(self.inputs)]
-        json_dict["graph"]["O"] = [["A", idx, [typ]] for idx, typ in enumerate(self.outputs)]
+        json_dict["graph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
+        json_dict["graph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
         return json_dict
 
 

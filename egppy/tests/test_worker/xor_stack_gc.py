@@ -46,7 +46,7 @@ seed(0)
 
 
 # Python int type as an EGP type
-INT_T = ["int"]
+INT_T = "int"
 
 # New GC consistency assessment sample rate
 # Slows down the code but is useful for debugging
@@ -55,33 +55,27 @@ CONSISTENCY_SAMPLE = 1.0
 
 # Right shift codon
 rshift_gc = GGC_CACHE[
-    bytes.fromhex("3ba3b63560abc42aa8088d5655a53d973c50fa0d3edacdfc801053b7a26e6923")
+    bytes.fromhex("4d8b4f80539109ab38684002bc119aadfbf2f94bf1d54e8891eb05219ab2e8d2")
 ]
 # Literal 1 codon
 literal_1_gc = GGC_CACHE[
-    bytes.fromhex("ebba2a300e27e8b73a8e4c2807ad43273534ad9ae385e9a21cc1e7d9c3d8abd0")
+    bytes.fromhex("3fde1df1a5100ca05dcdaf3449f6f1b1e4468b5651efba50aebebcd73d930acb")
 ]
 # This is the Integral type XOR but it does not matter for this
-# b'\x00\xaf\x97\xc8\x88\xef\x12\xa4V\xda\xad\x80!\xf2\x1cpLBY\xa6\xe9TiY\x83\xb3\xf9=I\xdd\x82\x90'
 xor_gc = GGC_CACHE[
-    bytes.fromhex("00af97c888ef12a456daad8021f21c704c4259a6e954695983b3f93d49dd8290")
+    bytes.fromhex("d7bf3e6ce99ecc6bf31f90e8cf0c20e6888a07059a016e8a977dca981db57580")
 ]
-# b'e\x864d\xea\xc5\x14!a>pS)\xddv\xfczs\xfb\xdbI\xbe\xa1\x18f!\xc5\xd2\xe00\xd5<'
 getrandbits_gc = GGC_CACHE[
-    bytes.fromhex("65863464eac51421613e705329dd76fc7a73fbdb49bea1186621c5d2e030d53c")
+    bytes.fromhex("39da3d58c6a28424433c9c6170e12daf261a8870f265a0e4b972f8f75d23c79e")
 ]
-# b'\xb3Y\x86s\x01J\x84\xbc\xca\xa4!\xa8\xebx\xe4\x10\x9b\x07\x8f,s\x98\xefO:\xec\x1e\x1d\xef\x8cu.'
 sixtyfour_gc = GGC_CACHE[
-    bytes.fromhex("b3598673014a84bccaa421a8eb78e4109b078f2c7398ef4f3aec1e1def8c752e")
+    bytes.fromhex("bb0e0bba9a1bea22140158f52192813dec974f555323e71691ad9b1feed895e4")
 ]
-# b'R\xb6j\xfd\x16\xa3\x10!\x91|\x90pdI7iW"\x044d+\xfc2\xc2`\xbf\x94~\x7f\xd8i'
 custom_pgc = GGC_CACHE[
-    bytes.fromhex("52b66afd16a31021917c90706449376957220434642bfc32c260bf947e7fd869")
+    bytes.fromhex("fbe6e87558533a387c867b3669e5d1369ba1eab3a3a4a4e9f5a98024a1893d67")
 ]
 
 # random_long_gc signature:
-# b'\xd1d\xb9=\x0b\xbeB\x97Go\xea<\x9c\xd6\xbc-\xa4\x8cn\xcc|C\xe8\xa7\x03Z\x15\xfa\xb2\xf3\x1c\n'
-# 'd164b93d0bbe4297476fea3c9cd6bc2da48c6ecc7c43e8a7035a15fab2f31c0a'
 random_long_gc = GGCDict(
     {
         "ancestora": sixtyfour_gc,
@@ -91,8 +85,9 @@ random_long_gc = GGCDict(
         "gcb": getrandbits_gc,
         "graph": {
             "A": [],
-            "B": [["A", 0, ["int"]]],
-            "O": [["B", 0, ["int"]]],
+            "B": [["A", 0, "int"]],
+            "O": [["B", 0, "int"]],
+            "U": [],
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
@@ -114,8 +109,6 @@ def f_7fffffff(i: tuple[int]) -> int:
 
 
 # rshift_1_gc signature:
-# b'\x94\xedS\xe0/Kr*\x14\xcf\xb7\xe8"d\xa1\x98\xf11\xfa\xfe\xb6\xc6\xc7w)\x1e\xac*\xfb\xads\xd9'
-# 94ed53e02f4b722a14cfb7e82264a198f131fafeb6c6c777291eac2afbad73d9
 rshift_1_gc = GGCDict(
     {
         "ancestora": literal_1_gc,
@@ -127,8 +120,9 @@ rshift_1_gc = GGCDict(
         "generation": 2,
         "graph": {
             "A": [],
-            "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
-            "O": [["B", 0, ["int"]]],
+            "B": [["I", 0, "int"], ["A", 0, "int"]],
+            "O": [["B", 0, "int"]],
+            "U": [],
         },
         "num_codes": 3,
         "num_codons": 2,
@@ -141,8 +135,6 @@ rshift_1_gc.consistency()
 GGC_CACHE[rshift_1_gc["signature"]] = rshift_1_gc
 
 # rshift_xor_gc signature:
-# b'\x17\x01\x9dk\xb5\xc6\x90G\xd1\xce\xee\xbaO@<>\xec\xab=\x8e\xdaefV:\x83\xbc\x16Wy\xcfa'
-# 17019d6bb5c69047d1ceeeba4f403c3eecab3d8eda6566563a83bc165779cf61
 rshift_xor_gc = GGCDict(
     {
         "ancestora": rshift_1_gc,
@@ -151,9 +143,10 @@ rshift_xor_gc = GGCDict(
         "gca": rshift_1_gc,
         "gcb": xor_gc,
         "graph": {
-            "A": [["I", 1, ["int"]]],
-            "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
-            "O": [["B", 0, ["int"]]],
+            "A": [["I", 1, "int"]],
+            "B": [["I", 0, "int"], ["A", 0, "int"]],
+            "O": [["B", 0, "int"]],
+            "U": [],
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
@@ -164,9 +157,6 @@ rshift_xor_gc.consistency()
 GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
 
 # one_to_two signature:
-# b'\xc3\xef\xa5\xf3N\x034<\xd6\xef\xd9o\xedh\xe60\x9eH\
-# xfd\x9b}8\x8f\x12\x85\x1b\x04\xc2T\x83\xe8\x85'
-# c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885
 one_to_two = GGCDict(
     {
         "ancestora": random_long_gc,
@@ -176,8 +166,9 @@ one_to_two = GGCDict(
         "gcb": rshift_xor_gc,
         "graph": {
             "A": [],
-            "B": [["I", 0, ["int"]], ["A", 0, ["int"]]],
-            "O": [["B", 0, ["int"]], ["A", 0, ["int"]]],
+            "B": [["I", 0, "int"], ["A", 0, "int"]],
+            "O": [["B", 0, "int"], ["A", 0, "int"]],
+            "U": [],
         },
         "pgc": custom_pgc,
         "problem": ACYBERGENESIS_PROBLEM,
@@ -222,6 +213,7 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "B": [["I", i, INT_T] for i in randomrange(gca["num_inputs"], gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "U": [],
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,
@@ -254,6 +246,7 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "U": [],
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,
@@ -306,6 +299,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "A": [["I", i, INT_T] for i in randomrange(gc1["num_inputs"])],
                 "B": [["A", i, INT_T] for i in randomrange(gc2["num_inputs"])],
                 "O": [["B", i, INT_T] for i in randomrange(gc2["num_outputs"])],
+                "U": [],
             },
             "pgc": custom_pgc,
             "problem": ACYBERGENESIS_PROBLEM,

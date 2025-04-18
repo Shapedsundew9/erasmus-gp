@@ -46,8 +46,10 @@ class EPTStore(ObjectSet):
 
     def valid_ept(self, tup: EndPointType) -> bool:
         """Return True if the EPT is valid."""
-        assert isinstance(tup, Iterable), f"End point type is not iterable: EPT = {tup}."
-        assert all(t in types_db for t in tup), f"End point type is invalid {tup}."
+        if not isinstance(tup, Iterable):
+            raise ValueError(f"End point type is not iterable: EPT = {tup}.")
+        if not all(t in types_db for t in tup):
+            raise ValueError(f"End point type is invalid {tup}.")
         return True
 
     def verify(self) -> None:
@@ -71,20 +73,23 @@ def end_point_type(
     by popping off the first EndPointType. This facility is provided to enable interfaces
     to be efficiently defined.
     """
-    assert len(type_sequence) > 0, "The type sequence must have at least one type."
-    assert not isinstance(type_sequence, str), "The type sequence must not be a str."
+    if len(type_sequence) <= 0:
+        raise ValueError("The type sequence must have at least one type.")
+    if isinstance(type_sequence, str):
+        raise ValueError("The type sequence must not be a str.")
     ts = list(type_sequence) if not _pop else type_sequence
-    assert isinstance(ts, list), f"Expected list but found {type(ts)}"
+    if not isinstance(ts, list):
+        raise ValueError(f"Expected list but found {type(ts)}")
     elmt = ts.pop(0)
-    assert isinstance(
-        elmt, (str, int, TypesDef)
-    ), f"The first element must be a UID or name but found {type(elmt)}"
+    if not isinstance(elmt, (str, int, TypesDef)):
+        raise ValueError(f"The first element must be a UID or name but found {type(elmt)}")
     # If the element is a UID (or TypesDef) then get the TypesDef object
     # If it is a str it may be a python type string rather than just a name
     if isinstance(elmt, str) and elmt not in types_db and "[" in elmt:
         return ept_store.add(str_to_ept(elmt))
     typ = types_db[elmt]
-    assert typ.tt() <= len(ts), f"Expected at least {typ.tt()} types but found {len(ts)}."
+    if typ.tt() > len(ts):
+        raise ValueError(f"Expected at least {typ.tt()} types but found {len(ts)}.")
     list_ept: list[TypesDef] = [typ]
     list_ept.extend(td for tt in range(typ.tt()) for td in end_point_type(ts, True))
     ept = tuple(list_ept)

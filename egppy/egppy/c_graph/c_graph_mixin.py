@@ -4,19 +4,22 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from pprint import pformat
-from typing import Any, Callable, Generator, cast
+from typing import Any, Callable, Generator, Iterable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.c_graph.c_graph_validation import (
+    valid_jcg,
+    CGT_VALID_SRC_ROWS,
+)
 from egppy.c_graph.connections.connections_abc import ConnectionsABC
-from egppy.c_graph.connections.connections_class_factory import EMPTY_CONNECTIONS
+from egppy.c_graph.connections.connections_class_factory import NULL_CONNECTIONS
 from egppy.c_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
-from egppy.c_graph.end_point.end_point_type import EndPointType, end_point_type
-from egppy.c_graph.end_point.types_def import types_db
+from egppy.c_graph.end_point.end_point_type import EndPointType, ept_to_str, str_to_ept, TypesDef
 from egppy.c_graph.c_graph_abc import CGraphABC
+from egppy.c_graph.c_graph_type import CGraphType, c_graph_type
 from egppy.c_graph.interface import (
-    EMPTY_INTERFACE,
-    INTERFACE_MAX_LENGTH,
+    NULL_INTERFACE,
     AnyInterface,
     MutableInterface,
     RawInterface,
@@ -26,17 +29,17 @@ from egppy.c_graph.interface import (
 from egppy.c_graph.c_graph_constants import (
     CPI,
     ROW_CLS_INDEXED,
-    DESTINATION_ROW_SET_AND_U,
+    ROW_MAP,
     SOURCE_ROWS,
-    SOURCE_ROW_SET,
-    VALID_ROW_DESTINATIONS,
-    VALID_ROW_SOURCES,
     DstRow,
     EndPointClass,
     EPClsPostfix,
     Row,
     SrcRow,
-    str2epcls,
+    EPC_MAP,
+    JSONCGraph,
+    JSONRefRow,
+    EMPTY_JSON_CGRAPH,
 )
 from egppy.storage.cache.cacheable_obj import CacheableObjMixin
 
@@ -59,13 +62,17 @@ def skey(x: tuple[int, EndPointType]) -> int:
 
 # Key to parts
 def key2parts(key: str) -> tuple[Row, int, EndPointClass]:
-    """Return the parts of the key."""
+    """Return the parts of the key.
+    <row>
+    <row><class>
+    <row><index><class>
+    """
     lenkey = len(key)
     if lenkey == 1:
-        return cast(Row, key), 0, EndPointClass.SRC
+        return ROW_MAP[key], 0, EndPointClass.SRC
     if lenkey <= 3:
-        return cast(Row, key[0]), 0, str2epcls(key[1])
-    return cast(Row, key[0]), int(key[1:4]), str2epcls(key[4])
+        return ROW_MAP[key[0]], 0, EPC_MAP[key[1]]
+    return ROW_MAP[key[0]], int(key[1:4]), EPC_MAP[key[4]]
 
 
 class CGraphMixin(CacheableObjMixin):
@@ -75,14 +82,17 @@ class CGraphMixin(CacheableObjMixin):
     _TI: Callable[[RawInterface], AnyInterface]  # interface() or mutable_interface()
     _TC: type[ConnectionsABC]
 
-    def __init__(self, c_graph: CGraphDict | CGraphABC) -> None:
+    def __init__(self, c_graph: JSONCGraph | CGraphDict | CGraphABC) -> None:
         """Initialize the Connection Graph."""
-        if isinstance(c_graph, CGraphABC) or not c_graph:
+        if isinstance(c_graph, CGraphABC):
             self._init_from_c_graph(c_graph)
-        elif not isinstance(tuple(c_graph.values())[0], list):
+        elif c_graph and not isinstance(tuple(c_graph.values())[0], list):
+            # FIXME: Not sure why this exists
+            assert isinstance(tuple(c_graph.values())[0], list), "Using this path."
             self._init_from_dict(c_graph)
         else:
-            self._init_from_json(c_graph)
+            assert isinstance(c_graph, dict), "Invalid Connection Graph type."
+            self._init_from_json(c_graph if c_graph else EMPTY_JSON_CGRAPH)  # type: ignore
 
         if _LOG_VERIFY:
             self.verify()
@@ -95,38 +105,35 @@ class CGraphMixin(CacheableObjMixin):
         """Initialize from a CGraphABC or empty dictionary."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         for key in ROW_CLS_INDEXED:
-            self[key] = c_graph.get(key, EMPTY_INTERFACE)
-            self[key + "c"] = c_graph.get(key + "c", EMPTY_CONNECTIONS)
+            self[key] = c_graph.get(key, NULL_INTERFACE)
+            self[key + "c"] = c_graph.get(key + "c", NULL_CONNECTIONS)
 
-    def _init_from_dict(self, c_graph: CGraphDict) -> None:
+    def _init_from_dict(self, c_graph: CGraphDict | dict) -> None:
         """Initialize from a dictionary with keys and values like a CGraphABC."""
-        assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
+        assert isinstance(self, dict), "Invalid Connection Graph type."
         rtype = self._TC.get_ref_iterable_type()
         for key in ROW_CLS_INDEXED:
             ckey = key + "c"
             if key not in c_graph:
-                self[key] = EMPTY_INTERFACE
-                self[ckey] = EMPTY_CONNECTIONS
+                self[key] = NULL_INTERFACE
+                self[ckey] = NULL_CONNECTIONS
             elif ckey not in c_graph:
                 self[key] = c_graph[key]
                 self[ckey] = self._TC(rtype() for _ in c_graph[key])
 
-    def _init_from_json(self, c_graph: CGraphDict) -> None:
+    def _init_from_json(self, c_graph: JSONCGraph) -> None:
         """Initialize from a JSON formatted Connection Graph.
         {
             "DSTROW":[[SRCROW, IDX, [TYP, ...]],...]
             ...
         }
         """
-        src_if_typs: dict[SrcRow, set[tuple[int, EndPointType]]] = {r: set() for r in SOURCE_ROWS}
+        src_if_typs: dict[SrcRow, set[tuple[int, EndPointType]]] = {}
         src_if_refs: dict[SrcRow, dict[int, list[DstEndPointRef]]] = {}
+        if _LOG_DEBUG:
+            valid_jcg(c_graph)
         for row, jeps in c_graph.items():
-            if row not in DESTINATION_ROW_SET_AND_U:
-                raise ValueError(
-                    f"Invalid row in JSON CGraph. " f"Expected a destination row but got: {row}"
-                )
-            if row != "U":
-                self._process_json_row(row, jeps, src_if_refs)
+            self._process_json_row(row, jeps, src_if_refs)
             self._collect_src_references(jeps, src_if_typs)
 
         self._create_source_interfaces(src_if_typs)
@@ -134,52 +141,38 @@ class CGraphMixin(CacheableObjMixin):
 
     def _process_json_row(
         self,
-        row: str,
-        jeps: Sequence[Sequence[Any]],
+        row: DstRow,
+        jeps: JSONRefRow,
         src_if_refs: dict[SrcRow, dict[int, list[DstEndPointRef]]],
     ) -> None:
         """Process a row in the JSON Connection Graph."""
-        # Some sanity to start with
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        if not isinstance(jeps, list):
-            raise ValueError(f"Invalid row in JSON CGraph. Expected a list but got: {type(jeps)}")
-        if not all(isinstance(jep, list) for jep in jeps):
-            typs = [type(jep) for jep in jeps]
-            raise ValueError(f"Invalid row in JSON CGraph. Expected a list[list] but got: {typs}")
-
         rowd = row + EPClsPostfix.DST
-        self[rowd] = self._TI(jep[CPI.TYP] for jep in jeps)
-        self[rowd + "c"] = self._TC(
-            self._TC.get_ref_iterable_type()((SrcEndPointRef(jep[CPI.ROW], jep[CPI.IDX]),))
-            for jep in jeps
-        )
+        iface: list[tuple[TypesDef, ...]] = []
+        conns: list[Iterable[SrcEndPointRef]] = []
+        rit: type = self._TC.get_ref_iterable_type()
         for idx, jep in enumerate(jeps):
-            # Some sanity on the endpoint
-            if jep[CPI.ROW] not in SOURCE_ROW_SET:
-                raise ValueError(
-                    f"Invalid source row in JSON Connection Graph. "
-                    f"Expected a row but got: {jep[CPI.ROW]}"
-                )
-            if not 0 <= jep[CPI.IDX] < INTERFACE_MAX_LENGTH:
-                raise ValueError(
-                    f"Invalid index in JSON Connection Graph. Expected 0 <= IDX"
-                    f" < {INTERFACE_MAX_LENGTH} but got: {jep[CPI.IDX]}"
-                )
-            if not isinstance(jep[CPI.TYP], list):
-                raise ValueError(
-                    f"Invalid type in JSON Connection Graph. Expected a list but"
-                    f" got: {type(jep[CPI.TYP])}"
-                )
-            if not all(isinstance(t, str | int) for t in jep[CPI.TYP]):
-                raise ValueError(
-                    f"Invalid type in JSON Connection Graph. Expected a list of str | int"
-                    f" but got: {[type(t) for t in jep[CPI.TYP]]}"
-                )
+            # Extra the data from the JSON reference
+            _row = jep[CPI.ROW]
+            _idx = jep[CPI.IDX]
+            _typ = jep[CPI.TYP]
+
+            # Fix the types
+            assert isinstance(_row, str), f"Invalid row: {_row}"
+            assert isinstance(_idx, int), f"Invalid index: {_idx}"
+            assert isinstance(_typ, str), f"Invalid type: {_typ}"
+            src_row = SrcRow(_row)
+            # Build the interface and connections
+
+            iface.append(str_to_ept(_typ))
+            conns.append(rit((SrcEndPointRef(src_row, _idx),)))
 
             # Collect the source row references
-            src_if_refs.setdefault(jep[CPI.ROW], {}).setdefault(jep[CPI.IDX], []).append(
-                DstEndPointRef(cast(DstRow, row), idx)
+            src_if_refs.setdefault(src_row, {}).setdefault(_idx, []).append(
+                DstEndPointRef(row, idx)
             )
+        self[rowd] = self._TI(iface)
+        self[rowd + "c"] = self._TC(conns)
 
     def _collect_src_references(
         self,
@@ -189,15 +182,17 @@ class CGraphMixin(CacheableObjMixin):
         """Collect references to the source interfaces."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         for jep in jeps:
-            src_if_typs[jep[CPI.ROW]].add((jep[CPI.IDX], end_point_type(jep[CPI.TYP])))
+            src_if_typs.setdefault(jep[CPI.ROW], set()).add(
+                (jep[CPI.IDX], str_to_ept(jep[CPI.TYP]))
+            )
 
     def _create_source_interfaces(
         self, src_if_typs: dict[SrcRow, set[tuple[int, EndPointType]]]
     ) -> None:
         """Create source interfaces from collected references."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        # Leave the EMPTY_INTERFACE object in place for empty interfaces
-        for row, sif in ((r, s) for r, s in src_if_typs.items() if s):
+        # It is important to create empty interfaces for mutable graphs
+        for row, sif in src_if_typs.items():
             self[row + EPClsPostfix.SRC] = self._TI(t for _, t in sorted(sif, key=skey))
 
     def _add_src_references_to_destinations(
@@ -213,22 +208,22 @@ class CGraphMixin(CacheableObjMixin):
                 )
             self[row + EPClsPostfix.SRC + "c"] = self._TC(src_refs)
 
-    def __contains__(self, key: object) -> bool:
+    def __contains__(self, key: str) -> bool:
         """Return True if the row, interface or endpoint exists."""
         if isinstance(key, str):
             keylen = len(key)
             if keylen == 1:  # Its a row
                 return (
-                    self.get(key + EPClsPostfix.DST, EMPTY_INTERFACE) is not EMPTY_INTERFACE
-                    or self.get(key + EPClsPostfix.SRC, EMPTY_INTERFACE) is not EMPTY_INTERFACE
+                    self.get(key + EPClsPostfix.DST, NULL_INTERFACE) is not NULL_INTERFACE
+                    or self.get(key + EPClsPostfix.SRC, NULL_INTERFACE) is not NULL_INTERFACE
                 )
             if keylen == 2:  # Its an interface
-                return self.get(key, EMPTY_INTERFACE) is not EMPTY_INTERFACE
+                return self.get(key, NULL_INTERFACE) is not NULL_INTERFACE
             if keylen == 3:  # Its connections
-                return self.get(key, EMPTY_CONNECTIONS) is not EMPTY_CONNECTIONS
+                return self.get(key, NULL_CONNECTIONS) is not NULL_CONNECTIONS
             if keylen == 5:  # Its an endpoint
-                iface = self.get(key[0] + key[4], EMPTY_INTERFACE)
-                return len(iface) > int(key[1:4]) + 1
+                iface = self.get(key[0] + key[4], NULL_INTERFACE)
+                return len(iface) > int(key[1:4])
         return False  # Its none of the above!
 
     def __eq__(self, other: object) -> bool:
@@ -262,101 +257,27 @@ class CGraphMixin(CacheableObjMixin):
     def check_required_connections(self) -> list[tuple[SrcRow, DstRow]]:
         """Return a list of required connections that are missing."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        retval = []
-        if self.is_codon_or_empty():
-            return retval
-
-        if self.is_conditional_graph():
-            # I must connect to F
-            fdc: ConnectionsABC = self["Fdc"]
-            if len(fdc) == 0 or len(fdc[0]) == 0 or fdc[0][0].get_row() != SrcRow.I:
-                retval.append((SrcRow.I, DstRow.F))
-            # I must connect to B
-            bdc: ConnectionsABC = self["Bdc"]
-            if len(bdc) == 0 or all(ep[0].get_row() != SrcRow.I for ep in bdc):
-                retval.append((SrcRow.I, DstRow.B))
-            # A must connect to O
-            odc: ConnectionsABC = self["Odc"]
-            if len(odc) == 0 or all(ep[0].get_row() != SrcRow.A for ep in odc):
-                retval.append((SrcRow.A, DstRow.O))
-            # B must connect to P
-            pdc: ConnectionsABC = self["Pdc"]
-            if len(pdc) == 0 or all(ep[0].get_row() != SrcRow.B for ep in pdc):
-                retval.append((SrcRow.B, DstRow.P))
-
-        if self.is_standard_graph():
-            # B must connect to O
-            odc: ConnectionsABC = self["Odc"]
-            _logger.debug("Odc: %s", odc)
-            if len(odc) == 0 or all(ep[0].get_row() != SrcRow.B for ep in odc):
-                retval.append((SrcRow.B, DstRow.O))
-
-        # In all cases I must be connected to A
-        adc: ConnectionsABC = self["Adc"]
-        _logger.debug("Adc: %s", adc)
-        if len(adc) == 0 or all(ep[0].get_row() != SrcRow.I for ep in adc):
-            retval.append((SrcRow.I, DstRow.A))
-
-        return retval
+        cgt: CGraphType = c_graph_type(self)
+        if cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE:
+            # Interface Fd[0] must be connected to row I
+            return [(SrcRow.I, DstRow.F)] if not self["Fdc"][0] else []
+        if cgt == CGraphType.FOR_LOOP:
+            # Interface Ld[0] must be connected to row I
+            return [(SrcRow.I, DstRow.L)] if not self["Ldc"][0] else []
+        if cgt == CGraphType.WHILE_LOOP:
+            # Interface Ld[0] must be connected to row I
+            retval = [(SrcRow.I, DstRow.L)] if not self["Ldc"][0] else []
+            # Interface Wd[0] must be connected to row A
+            if not self["Wdc"][0]:
+                retval.append((SrcRow.A, DstRow.W))
+        # No required connections are missing
+        return []
 
     def consistency(self) -> None:
         """Check the consistency of the Connection Graph."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-
-        if self.is_conditional_graph():
-            fdi: AnyInterface = self[DstRow.F + EPClsPostfix.DST]
-            assert len(fdi) == 1, f"Row F must only have one end point: {len(fdi)}"
-            assert fdi[0] == types_db["bool"].ept(), f"F EP must be bool: {fdi[0]}"
-            fdc: ConnectionsABC = self[DstRow.F + EPClsPostfix.DST + "c"]
-            assert len(fdc) == 1, f"Row F must only have one connection: {len(fdc)}"
-            assert fdc[0][0].get_row() == SrcRow.I, f"Row F src must be I: {fdc[0][0].get_row()}"
-
-        if self.is_hardened_graph():
-            ai: AnyInterface = self[SrcRow.A + EPClsPostfix.SRC] + self[DstRow.A + EPClsPostfix.DST]
-            assert len(ai) >= 1, f"Row A must have at least one end point: {len(ai)}"
-
-        if self.is_standard_graph() or self.is_conditional_graph():
-            ai: AnyInterface = self[DstRow.A + EPClsPostfix.DST] + self[SrcRow.A + EPClsPostfix.SRC]
-            assert len(ai) >= 1, f"Row A must have at least one end point: {len(ai)}"
-            bi: AnyInterface = self[DstRow.B + EPClsPostfix.DST] + self[SrcRow.B + EPClsPostfix.SRC]
-            assert len(bi) >= 1, f"Row B must have at least one end point: {len(bi)}"
-
-        # Check connections
-        for key in ROW_CLS_INDEXED:
-            iface = self.get(key, EMPTY_INTERFACE)
-            conns = self.get(key + "c", EMPTY_CONNECTIONS)
-            conns.consistency()
-            assert len(iface) == len(conns), f"Length mismatch: {len(iface)} != {len(conns)}"
-
-            # Check desintation connections
-            if key[1] == EPClsPostfix.DST:
-                for idx, refs in enumerate(conns):
-                    assert len(refs) == 1, f"Dst EPs must have one reference: {len(refs)}"
-                    srow = refs[0].get_row()
-                    assert (
-                        srow in VALID_ROW_SOURCES[self.is_conditional_graph()]
-                    ), f"Invalid src row: {srow}"
-                    styp = self[srow + EPClsPostfix.SRC][refs[0].get_idx()]
-                    assert iface[idx] == styp, f"Dst EP type mismatch: {iface[idx]} != {styp}"
-                    srefs = self[srow + EPClsPostfix.SRC + "c"][refs[0].get_idx()]
-                    assert (
-                        DstEndPointRef(cast(Row, key[0]), idx) in srefs
-                    ), f"Src not connected to Dst: {key[0]}[{idx}]"
-            else:
-                # Check source connections
-                for idx, refs in enumerate(conns):
-                    for ref in refs:
-                        drow = ref.get_row()
-                        assert (
-                            drow in VALID_ROW_DESTINATIONS[self.is_conditional_graph()]
-                        ), f"Invalid dst row: {drow}"
-                        dtyp = self[drow + EPClsPostfix.DST][ref.get_idx()]
-                        assert iface[idx] == dtyp, f"Src typ mismatch: {iface[idx]} != {dtyp}"
-                        drefs = self[drow + EPClsPostfix.DST + "c"][ref.get_idx()]
-                        assert (
-                            SrcEndPointRef(cast(Row, key[0]), idx) in drefs
-                        ), f"Dst not connected to src: {key[0]}[{idx}]"
-
+        # cgt: CGraphType = c_graph_type(self)
+        # TODO: Implement this function
         super().consistency()
 
     def epkeys(self) -> Generator[str, None, None]:
@@ -380,37 +301,17 @@ class CGraphMixin(CacheableObjMixin):
         for key in (r for r in ROW_CLS_INDEXED if r in self):
             yield key
 
-    def is_codon_or_empty(self) -> bool:
-        """Return True if the graph is a codon or empty."""
-        assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        return DstRow.A not in self
-
-    def is_conditional_graph(self) -> bool:
-        """Return True if the graph is conditional i.e. has row F."""
-        assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        return DstRow.F in self
-
-    def is_hardened_graph(self) -> bool:
-        """Check if the graph is a hardened graph."""
-        assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        return DstRow.F not in self and DstRow.A in self and DstRow.B not in self
-
-    def is_standard_graph(self) -> bool:
-        """Return True if the graph is a standard graph."""
-        assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        return DstRow.F not in self and DstRow.A in self and DstRow.B in self
-
     def itypes(self) -> tuple[tuple[tuple[int, ...], ...], bytes]:
         """Return the input types and input row indices into them."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         ikey = SrcRow.I + EPClsPostfix.SRC
-        return interface_to_types_idx(self.get(ikey, EMPTY_INTERFACE))
+        return interface_to_types_idx(self.get(ikey, NULL_INTERFACE))
 
     def otypes(self) -> tuple[tuple[tuple[int, ...], ...], bytes]:
         """Return the output types and output row indices into them."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         okey = DstRow.O + EPClsPostfix.DST
-        return interface_to_types_idx(self.get(okey, EMPTY_INTERFACE))
+        return interface_to_types_idx(self.get(okey, NULL_INTERFACE))
 
     def setdefault(self, key: str, default: Any) -> Any:
         """Set the endpoint with the given key to the default if it does not exist."""
@@ -422,34 +323,37 @@ class CGraphMixin(CacheableObjMixin):
     def to_json(self) -> dict[str, Any]:
         """Return a JSON Connection Graph."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        jgcg: dict[str, list[list[Any]]] = {}
+        jgcg: dict[str, list[list[Any]]] = {dr: [] for dr in CGT_VALID_SRC_ROWS[c_graph_type(self)]}
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.DST and k in self):
             iface: AnyInterface = self[key]
             conns: ConnectionsABC = self[key + "c"]
             jgcg[key[0]] = [
-                [str(r[0].get_row()), r[0].get_idx(), [td.uid for td in ept]]
+                [str(r[0].get_row()), r[0].get_idx(), ept_to_str(ept)]
                 for r, ept in zip(conns, iface, strict=True)
             ]
-        ucn: list[list[Any]] = []
         for key in (k for k in ROW_CLS_INDEXED if k[1] == EPClsPostfix.SRC and k in self):
             iface: AnyInterface = self[key]
             conns: ConnectionsABC = self[key + "c"]
-            row = cast(Row, key[0])
-            ucn.extend(
+            row = ROW_MAP[key[0]]
+            jgcg[DstRow.U].extend(
                 [
-                    [row, i, [td.uid for td in ept]]
+                    [row, i, ept_to_str(ept)]
                     for i, (r, ept) in enumerate(zip(conns, iface, strict=True))
                     if not r
                 ]
             )
-        if ucn:
-            jgcg["U"] = sorted(ucn, key=lambda x: x[0] + f"{x[1]:03d}")
+        jgcg[DstRow.U].sort(key=lambda x: x[0] + f"{x[1]:03d}")
         return jgcg
+
+    def type(self) -> CGraphType:
+        """Return the types of the Connection Graph."""
+        assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
+        return c_graph_type(self)
 
     def valid_srcs(self, row: DstRow, typ: EndPointType) -> list[tuple[SrcRow, int]]:
         """Return a list of valid source row endpoint indexes."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
-        srows = VALID_ROW_SOURCES[DstRow.F in self][row]
+        srows: frozenset[SrcRow] = CGT_VALID_SRC_ROWS[c_graph_type(self)][row]
         return [(srow, sidx) for srow in srows for sidx in self[srow + EPClsPostfix.SRC].find(typ)]
 
     def verify(self) -> None:
@@ -458,7 +362,7 @@ class CGraphMixin(CacheableObjMixin):
         key = "Null"
         try:
             for key in ROW_CLS_INDEXED:
-                verify_interface(self.get(key, EMPTY_INTERFACE))
+                verify_interface(self.get(key, NULL_INTERFACE))
             super().verify()
         except AssertionError as e:
             _logger.error("Interface %s verification failed", key)

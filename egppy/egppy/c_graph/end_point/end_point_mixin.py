@@ -5,14 +5,21 @@ from __future__ import annotations
 from typing import Any
 
 from egpcommon.common_obj_mixin import CommonObjMixin
+from egpcommon.properties import CGraphType
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.c_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
 from egppy.c_graph.end_point.end_point_type import EndPointType
-from egppy.c_graph.c_graph_constants import DESTINATION_ROWS, EP_CLS_STR_TUPLE, ROWS, SOURCE_ROWS
-from egppy.c_graph.c_graph_constants import VALID_ROW_DESTINATIONS as VRD
-from egppy.c_graph.c_graph_constants import VALID_ROW_SOURCES as VRS
+from egppy.c_graph.c_graph_constants import (
+    DESTINATION_ROWS,
+    EPC_STR_TUPLE,
+    ROWS,
+    SOURCE_ROWS,
+    SrcRow,
+)
 from egppy.c_graph.c_graph_constants import DstRow, EndPointClass, EndPointHash, Row
+from egppy.c_graph.c_graph_validation import valid_dst_rows, valid_src_rows
+
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -79,10 +86,12 @@ class EndPointMixin(CommonObjMixin):
             and self.get_refs() == other.get_refs()
         )
 
-    def del_invalid_refs(self, has_f: bool = False) -> None:
+    def del_invalid_refs(self, cgt: CGraphType) -> None:
         """Remove any invalid references"""
         row = self.get_row()
-        valid_ref_rows: tuple[Row, ...] = VRS[has_f][row] if self.is_dst() else VRD[has_f][row]
+        valid_ref_rows: frozenset = (
+            valid_dst_rows(cgt)[row] if isinstance(row, SrcRow) else valid_src_rows(cgt)[row]
+        )
         erefs = enumerate(self.get_refs())
         for vidx in reversed([i for i, r in erefs if r.get_row() not in valid_ref_rows]):
             del self.get_refs()[vidx]
@@ -130,7 +139,7 @@ class EndPointMixin(CommonObjMixin):
 
     def invert_key(self) -> EndPointHash:
         """Invert hash. Return a hash for the source/destination endpoint equivilent."""
-        return self.key_base() + EP_CLS_STR_TUPLE[not self.get_cls()]
+        return self.key_base() + EPC_STR_TUPLE[not self.get_cls()]
 
     def is_dst(self) -> bool:
         """Return True if the end point is a destination."""
@@ -142,7 +151,7 @@ class EndPointMixin(CommonObjMixin):
 
     def key(self) -> EndPointHash:
         """Return the key of the end point."""
-        return self.key_base() + EP_CLS_STR_TUPLE[self.get_cls()]
+        return self.key_base() + EPC_STR_TUPLE[self.get_cls()]
 
     def key_base(self) -> str:
         """Base end point hash."""
@@ -159,18 +168,20 @@ class EndPointMixin(CommonObjMixin):
                 assert row in DESTINATION_ROWS, "Invalid row for destination endpoint"
         return self.cls()(row, self.get_idx(), self.get_typ(), cls, [])
 
-    def move_copy(self, row: Row, clean: bool = False, has_f: bool = False) -> EndPointABC:
+    def move_copy(
+        self, row: Row, clean: bool = False, cgt: CGraphType = CGraphType.STANDARD
+    ) -> EndPointABC:
         """Return a copy of the end point with the row changed.
         Any references that are no longer valid are deleted."""
         if _LOG_DEBUG:
-            if self.cls == EndPointClass.SRC:
+            if self.get_cls() == EndPointClass.SRC:
                 assert row in SOURCE_ROWS, "Cannot change cls from SRC to DST in a move_copy."
             else:
                 assert row in DESTINATION_ROWS, "Cannot change cls from DST to SRC in a move_copy."
         ep: EndPointABC = self.copy(clean)
         ep.set_row(row)
         if not clean:
-            ep.del_invalid_refs(has_f)
+            ep.del_invalid_refs(cgt)
         return ep
 
     def redirect_refs(self, old_ref_row, new_ref_row) -> None:

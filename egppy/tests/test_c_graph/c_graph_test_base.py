@@ -5,20 +5,20 @@ from itertools import count, permutations, product
 from json import dump, load
 from os.path import dirname, exists, join
 from random import randint
-from typing import cast
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.c_graph.c_graph_validation import valid_src_rows
 from egppy.c_graph.end_point.end_point_type import EndPointType
 from egppy.c_graph.end_point.types_def import types_db
 from egppy.c_graph.c_graph_class_factory import FrozenCGraph, MutableCGraph
+from egppy.c_graph.c_graph_validation import CGraphType
 from egppy.c_graph.c_graph_constants import (
+    DESTINATION_ROW_MAP,
     DESTINATION_ROWS,
     SOURCE_ROWS,
-    VALID_ROW_SOURCES,
     DstRow,
     EPClsPostfix,
-    Row,
     SrcRow,
 )
 
@@ -60,30 +60,25 @@ def next_idx(
 
 
 def generate_valid_json_c_graphs() -> list[dict[str, list[list]]]:
-    """Generate all possible valid JSON Connection Graphs with short rows."""
+    """Generate all possible valid standard JSON Connection Graphs with short rows."""
     filename = join(dirname(__file__), "..", "data", "valid_json_c_graphs.json")
     if not exists(filename):
         jgcg_list = []
-        for structure in ("ABO", "ABOU"):  # JSON Connection Graphs that are standard graphs
-            for row_order in permutations(structure):  # Different orders of assignment
-                jgcg_list.append(jgcg := {})
-                src_next_idx = {row: count() for row in SOURCE_ROWS}
-                src_positions = {}
-                for row in row_order:
-                    # Row only appears in JSON format GCG's for unconnected
-                    # sources so has the same connectivity as row O in standard graphs
-                    dst_row = DstRow.O if row == "U" else cast(Row, row)
-                    for src in VALID_ROW_SOURCES[False][dst_row]:
-                        if row == "U":
-                            typ: EndPointType = (types_db["complex"],)
-                            idx: int = next_idx(src_next_idx, src_positions, src, typ)
-                            jgcg.setdefault(row, []).append([src, idx, [typ[0].uid]])
-                        else:
-                            for typ in _FOUR_EP_TYPES:
-                                idx = next_idx(src_next_idx, src_positions, src, typ)
-                                jgcg.setdefault(row, []).append([src, idx, [typ[0].uid]])
-                if "U" in jgcg:
-                    jgcg["U"] = sorted(jgcg["U"], key=lambda x: x[0] + f"{x[1]:03d}")
+        for row_order in permutations("ABOU"):  # JSON standard graphs
+            jgcg_list.append(jgcg := {})
+            src_next_idx = {row: count() for row in SOURCE_ROWS}
+            src_positions = {}
+            for row in row_order:
+                for src in valid_src_rows(CGraphType.STANDARD)[DESTINATION_ROW_MAP[row]]:
+                    if row == "U":
+                        typ: EndPointType = (types_db["complex"],)
+                        idx: int = next_idx(src_next_idx, src_positions, src, typ)
+                        jgcg.setdefault(row, []).append([src, idx, typ[0].name])
+                    else:
+                        for typ in _FOUR_EP_TYPES:
+                            idx = next_idx(src_next_idx, src_positions, src, typ)
+                            jgcg.setdefault(row, []).append([src, idx, typ[0].name])
+                jgcg["U"] = sorted(jgcg.setdefault("U", []), key=lambda x: x[0] + f"{x[1]:03d}")
 
         # Write the JSON Connection Graphs to a file
         with open(filename, "w", encoding="ascii") as f:

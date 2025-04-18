@@ -88,12 +88,16 @@ Additional to the Common Rules While-Loop graphs have the following rules
 Additional to the Common Rules Standard graphs have the following rules
     - Must not have an Fd, Ld, Wd, Ls or Pd interface
     - Bs can only connect to Od or Ud
+
+Additional to the Common Rules Primitive connection graphs have the following rules
+    - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
 """
 
 from egpcommon.properties import CGraphType
 from egpcommon.common import NULL_FROZENSET
-from egppy.c_graph.c_graph_constants import DstRow, SrcRow, CPI
+from egppy.c_graph.c_graph_constants import DstRow, JSONCGraph, SrcRow, CPI, Row, SOURCE_ROW_MAP
 from egppy.c_graph.c_graph_type import c_graph_type
+from egppy.c_graph.end_point.end_point_type import str_to_ept
 
 # NOTE: There are a lot of duplicate frozensets in this module. They have not been reduced to
 # constants because they are used in different contexts and it is not clear that they
@@ -101,14 +105,11 @@ from egppy.c_graph.c_graph_type import c_graph_type
 # propagate inappropriately).
 
 
-def valid_src_rows(graph_type: CGraphType, u=False) -> dict[DstRow, frozenset[SrcRow]]:
+def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
     """Return a dictionary of valid source rows for the given graph type.
-
-    NOTE: Row U is only needed for JSON format connection graphs.
 
     Args:
         graph_type: The type of graph to validate.
-        u: If True, include the Ud row in the result.
     """
     retval: dict[DstRow, frozenset[SrcRow]] = {}
     match graph_type:
@@ -157,20 +158,20 @@ def valid_src_rows(graph_type: CGraphType, u=False) -> dict[DstRow, frozenset[Sr
                 DstRow.B: frozenset({SrcRow.I, SrcRow.A}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A, SrcRow.B}),
             }
+        case CGraphType.PRIMITIVE:
+            retval = {
+                DstRow.A: frozenset(
+                    {
+                        SrcRow.I,
+                    }
+                ),
+                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
+            }
         case _:
-            raise ValueError(f"Invalid graph type: {graph_type}")
+            retval = {}
 
-    if u:
-        # Add the U row to the dictionary
-        # U row is a special case, it can be connected to any source row
-        if graph_type == CGraphType.EMPTY:
-            retval[DstRow.U] = frozenset(
-                SrcRow.I,
-            )
-        else:
-            retval[DstRow.U] = frozenset(
-                {src for srcs in retval.values() for src in srcs} | retval[DstRow.U]
-            )
+    # Add the U row to the dictionary (super set of all sources)
+    retval[DstRow.U] = frozenset({src for srcs in retval.values() for src in srcs})
     return retval
 
 
@@ -245,11 +246,36 @@ def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
                 SrcRow.A: frozenset({DstRow.B, DstRow.O}),
                 SrcRow.B: frozenset({DstRow.O}),
             }
+        case CGraphType.PRIMITIVE:
+            return {
+                SrcRow.I: frozenset(
+                    {
+                        DstRow.A,
+                        DstRow.O,
+                    }
+                ),
+                SrcRow.A: frozenset({DstRow.O}),
+            }
         case _:
-            raise ValueError(f"Invalid graph type: {graph_type}")
+            # There are no valid rows for this graph type (likely RESERVED)
+            return {}
 
 
-def valid_jcg(jcg: dict[DstRow, list[list[SrcRow | int | str]]]) -> bool:
+def valid_rows(graph_type: CGraphType) -> frozenset[Row]:
+    """Return a dictionary of valid rows for the given graph type.
+
+    Args:
+        graph_type: The type of graph to validate.
+
+    Returns:
+        A dictionary of valid rows for the given graph type.
+    """
+    return frozenset(valid_dst_rows(graph_type).keys()) | frozenset(
+        valid_src_rows(graph_type).keys()
+    )
+
+
+def valid_jcg(jcg: JSONCGraph) -> bool:
     """Validate a JSON connection graph.
 
     Args:
@@ -264,32 +290,42 @@ def valid_jcg(jcg: dict[DstRow, list[list[SrcRow | int | str]]]) -> bool:
             raise ValueError(f"Invalid key in JSON connection graph: {key}")
 
     # Check that all values are valid
-    for key, value in jcg.items():
-        if not isinstance(value, list):
-            raise ValueError(f"Invalid value in JSON connection graph: {value}")
-        for item in value:
-            if not isinstance(item, (SrcRow, int, str)):
-                raise ValueError(f"Invalid item in JSON connection graph: {item}")
+    for key, epts in jcg.items():
+        if not isinstance(epts, list):
+            raise ValueError(f"Invalid value in JSON connection graph: {epts}")
 
     # Check that connectivity is valid
     for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():
         if dst not in jcg:
             raise ValueError(f"Missing destination row in JSON connection graph: {dst}")
         for src in jcg[dst]:
-            assert isinstance(src[CPI.ROW], SrcRow), "Expected a source row"
-            row = src[CPI.ROW]
+            assert isinstance(src, list), "Expected a list of defining an endpoint."
+            srow = src[CPI.ROW]
+            assert isinstance(srow, str), "Expected a destination row"
+            row: SrcRow | None = SOURCE_ROW_MAP.get(srow)
             idx = src[CPI.IDX]
             ept = src[CPI.TYP]
-            assert isinstance(row, SrcRow), "Expected a source row"
+            assert row is not None, "Expected a valid source row"
             assert isinstance(idx, int), "Expected an integer index"
-            assert isinstance(ept, str), "Expected a string endpoint type"
+            assert isinstance(ept, str), "Expected a list of endpoint int types"
+
             if row not in vsr:
                 raise ValueError(
                     f"Invalid source row in JSON connection graph: {row} for destination {dst}"
                 )
-            if not 0 < idx < 256:
+            if not 0 <= idx < 256:
                 raise ValueError(
                     f"Index out of range for JSON connection graph: {idx} for destination {dst}"
                 )
+            if not str_to_ept(ept):
+                raise ValueError(
+                    f"Invalid endpoint type in JSON connection graph: {ept} for destination {dst}"
+                )
 
     return True
+
+
+# Constants
+CGT_VALID_SRC_ROWS = {cgt: valid_src_rows(cgt) for cgt in CGraphType}
+CGT_VALID_DST_ROWS = {cgt: valid_dst_rows(cgt) for cgt in CGraphType}
+CGT_VALID_ROWS = {cgt: valid_rows(cgt) for cgt in CGraphType}

@@ -6,6 +6,7 @@ from abc import abstractmethod
 from typing import Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.properties import CGraphType
 
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -70,6 +71,11 @@ class CGraphABC(CacheableObjABC):
     def __setitem__(self, key: str, value: Any) -> None:
         """Set the endpoint with the given key."""
         raise NotImplementedError("CGraphABC.__setitem__ must be overridden")
+
+    @abstractmethod
+    def type(self) -> CGraphType:
+        """Return the type of the graph."""
+        raise NotImplementedError("CGraphABC.type must be overridden")
 
     @abstractmethod
     def get(self, key: str, default: Any = None) -> Any:

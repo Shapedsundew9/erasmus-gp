@@ -232,9 +232,10 @@ class GCMixin:
     def is_conditional(self) -> bool:
         """Return True if the genetic code is conditional."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.IF_THEN or PropertiesBD(
-            self["properties"]
-        )["graph_type"] == CGraphType.IF_THEN_ELSE
+        return (
+            PropertiesBD(self["properties"])["graph_type"] == CGraphType.IF_THEN
+            or PropertiesBD(self["properties"])["graph_type"] == CGraphType.IF_THEN_ELSE
+        )
 
     def is_empty(self) -> bool:
         """Return True if the genetic code graph type is 'empty'."""
@@ -301,6 +302,11 @@ class GCMixin:
                     and isinstance(gcb, GCABC)
                     and gcb["signature"] is NULL_SIGNATURE
                 ):
+                    # gca_sig and gcb_sig will be redefined below but the type checker cannot
+                    # see this. This is a workaround for the type checker to avoid
+                    # 'possibly unbound' complaints
+                    gca_sig = NULL_SIGNATURE
+                    gcb_sig = NULL_SIGNATURE
                     # To avoid the stack popping with deep recurision, as may happen if we get
                     # succesive steady state exceptions or evolve a very complex PGC, we build a
                     # work stack of GC's to calaculate the signatures of.
@@ -334,11 +340,30 @@ class GCMixin:
                     gca_sig = gca.signature() if isinstance(gca, GCABC) else gca
                     gcb_sig = gcb.signature() if isinstance(gcb, GCABC) else gcb
 
+                assert isinstance(gca_sig, bytes), "GCA signature must be bytes."
+                assert isinstance(gcb_sig, bytes), "GCB signature must be bytes."
+
+                # Find the created time of the GC. This is part of the GC signature if the GC was
+                # not created from a static PGC i.e. one that has a random element.
+                ct: datetime | int = self["created"]
+                epoch_s: int = int(ct.timestamp()) if isinstance(ct, datetime) else ct
+
+                # If the GC was created from a static PGC then the created time is 0.
+                created = 0 if PropertiesBD(self["properties"])["static_creation"] else epoch_s
+                ancestora: bytes | GCABC = self["ancestora"]
+                ancestorb: bytes | GCABC = self["ancestorb"]
+                pgc: bytes | GCABC = self["pgc"]
+                creator: bytes | UUID = self["creator"]
                 self["signature"] = sha256_signature(
-                    gca_sig,  # type: ignore Guaranteed to be a bytes objects
-                    gcb_sig,  # type: ignore Guaranteed to be a bytes objects
+                    ancestora.signature() if isinstance(ancestora, GCABC) else ancestora,
+                    ancestorb.signature() if isinstance(ancestorb, GCABC) else ancestorb,
+                    gca_sig,
+                    gcb_sig,
                     self["graph"].to_json(),
+                    pgc.signature() if isinstance(pgc, GCABC) else pgc,
                     self["meta_data"] if self["meta_data"] is not None else {},
+                    created,
+                    creator.bytes if isinstance(creator, UUID) else creator,
                 )
             return self["signature"]
         elif field.startswith("problem"):
@@ -377,8 +402,8 @@ class GCMixin:
                 assert isinstance(value, int), "Properties must be an int."
                 retval[key] = PropertiesBD(value).to_json()
             elif key.endswith("_types"):
-
-                retval[key] = [ept_to_str(ept) for ept in interface(value)]
+                # Make types humman readable.
+                retval[key] = [ept_to_str(ept) for ept in interface(value) if ept]
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.

@@ -5,7 +5,7 @@ import unittest
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.c_graph.connections.connections_class_factory import (
-    EMPTY_CONNECTIONS,
+    NULL_CONNECTIONS,
     ListConnections,
     TupleConnections,
 )
@@ -46,9 +46,7 @@ class ConnectionsTestBase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.connections_type = self.get_connections_cls()
-        self.connections = self.connections_type(
-            [[SrcEndPointRef(DstRow.A, i)] for i in range(4)]
-        )
+        self.connections = self.connections_type([[SrcEndPointRef(DstRow.A, i)] for i in range(4)])
 
     def test_len(self) -> None:
         """Test the length of the connections."""
@@ -92,9 +90,7 @@ class ConnectionsTestBase(unittest.TestCase):
             return
         with self.assertRaises(AssertionError):
             # It is legit for the constructor to assert this but not required.
-            conns = self.connections_type(
-                [[SrcEndPointRef(DstRow.A, 0)] for _ in range(257)]
-            )
+            conns = self.connections_type([[SrcEndPointRef(DstRow.A, 0)] for _ in range(257)])
             conns.verify()
 
     def test_has_unconnected_eps(self):
@@ -104,7 +100,7 @@ class ConnectionsTestBase(unittest.TestCase):
         self.assertFalse(self.connections.has_unconnected_eps())
         self.connections = self.connections_type([[]])
         self.assertTrue(self.connections.has_unconnected_eps())
-        self.connections = EMPTY_CONNECTIONS
+        self.connections = NULL_CONNECTIONS
         self.assertFalse(self.connections.has_unconnected_eps())
 
     def test_get_unconnected_idx(self):
@@ -114,7 +110,7 @@ class ConnectionsTestBase(unittest.TestCase):
         self.assertEqual(self.connections.get_unconnected_idx(), [])
         self.connections = self.connections_type([[]])
         self.assertEqual(self.connections.get_unconnected_idx(), [0])
-        self.connections = EMPTY_CONNECTIONS
+        self.connections = NULL_CONNECTIONS
         self.assertEqual(self.connections.get_unconnected_idx(), [])
 
 

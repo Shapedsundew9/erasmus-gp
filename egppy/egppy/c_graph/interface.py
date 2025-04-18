@@ -26,9 +26,24 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
+
+class _tuple(tuple):
+    """A tuple class to avoid _tuple() == tuple()."""
+
+    def __hash__(self) -> int:
+        """Return the hash of the tuple."""
+        return 123456789
+
+    def __eq__(self, value: object) -> bool:
+        """Return True only if the value is this tuple."""
+        return value is self
+
+
 # Interface constants
+# NOTE that the NULL_INTERFACE is a tuple of an empty tuple to avoid
+# matching with an empty interface. EndPointTypes cannot be an empty tuple.
 INTERFACE_MAX_LENGTH: int = 256
-EMPTY_INTERFACE = NULL_TUPLE
+NULL_INTERFACE: _tuple = _tuple()
 
 # The Interface type definition
 Interface = Sequence[EndPointType]
@@ -86,7 +101,7 @@ class InterfaceStore(ObjectSet):
 
 
 interface_store = InterfaceStore("Interface Store")
-interface_store.add(EMPTY_INTERFACE)
+interface_store.add(NULL_INTERFACE)
 
 
 def interface(iface: RawInterface) -> Interface:

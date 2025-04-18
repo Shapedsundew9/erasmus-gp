@@ -24,7 +24,7 @@ class CGraphType(IntEnum):
     FOR_LOOP = 3
     WHILE_LOOP = 4
     STANDARD = 5
-    RESERVED_6 = 6
+    PRIMITIVE = 6
     RESERVED_7 = 7
     RESERVED_8 = 8
     RESERVED_9 = 9
@@ -50,7 +50,7 @@ PROPERTIES_CONFIG = {
         "start": 2,
         "width": 4,
         "default": 0,
-        "valid": {"range": [(6,)]},
+        "valid": {"range": [(7,)]},
         "description": ("Graph type."),
     },
     "reserved1": {
@@ -93,9 +93,18 @@ PROPERTIES_CONFIG = {
             "The genetic code has side effects that are not " "related to the return value."
         ),
     },
+    "static_creation": {
+        "type": "bool",
+        "start": 12,
+        "width": 1,
+        "default": False,
+        "description": (
+            "The genetic code was created by a deterministic PGC i.e. had no random element."
+        ),
+    },
     "reserved2": {
         "type": "uint",
-        "start": 12,
+        "start": 13,
         "width": 3,
         "default": 0,
         "description": "Reserved for future use.",

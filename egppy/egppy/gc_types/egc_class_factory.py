@@ -6,10 +6,12 @@ code class. As a working genetic code object, it only contains the essentials of
 genetic code object avoiding all the derived data.
 """
 
+from datetime import datetime, UTC
 from typing import Any, Mapping
 
 from egpcommon.common import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.properties import PropertiesBD
 
 from egppy.c_graph.c_graph_abc import CGraphABC
 from egppy.c_graph.c_graph_class_factory import NULL_c_graph, FrozenCGraph
@@ -102,6 +104,12 @@ class EGCMixin(GCMixin):
         self["ancestorb"] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
         tmp = gcabc.get("pgc", NULL_GC) if gcabc.get("pgc") is not None else NULL_GC
         self["pgc"] = tmp if isinstance(tmp, (bytes, GCABC)) else bytes.fromhex(tmp)
+        tmp = gcabc.get("created", datetime.now(UTC))
+        self["created"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+        props = gcabc.get("properties", 0)
+        self["properties"] = (
+            props if isinstance(props, int) else PropertiesBD(props, False).to_int()
+        )
         tmp = gcabc.get("signature", NULL_SIGNATURE)
         if tmp is None:
             tmp = NULL_SIGNATURE

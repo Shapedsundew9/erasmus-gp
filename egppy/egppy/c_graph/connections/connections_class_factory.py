@@ -79,4 +79,4 @@ class ListConnections(list, ConnectionsMixin, ConnectionsABC):  # type: ignore
         return list
 
 
-EMPTY_CONNECTIONS: TupleConnections = TupleConnections()
+NULL_CONNECTIONS: TupleConnections = TupleConnections()

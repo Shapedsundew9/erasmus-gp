@@ -1,7 +1,7 @@
 """
 Builtin graph classes for the Connection Graph.
 
-This module provides classes for creating and managing Connection Graphs, 
+This module provides classes for creating and managing Connection Graphs,
 which are used to represent
 graph structures in the GC system. The module includes both frozen (immutable) and mutable
 graph classes, allowing for different use cases where graphs need to be either static or
@@ -29,7 +29,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.c_graph.connections.connections_abc import ConnectionsABC
 from egppy.c_graph.connections.connections_class_factory import (
-    EMPTY_CONNECTIONS,
+    NULL_CONNECTIONS,
     ListConnections,
     TupleConnections,
 )
@@ -37,7 +37,7 @@ from egppy.c_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPo
 from egppy.c_graph.c_graph_abc import CGraphABC
 from egppy.c_graph.c_graph_mixin import CGraphDict, CGraphMixin, key2parts
 from egppy.c_graph.interface import (
-    EMPTY_INTERFACE,
+    NULL_INTERFACE,
     Interface,
     interface,
     mutable_interface,
@@ -60,10 +60,8 @@ SRC_CONN_POSTFIX: str = EPClsPostfix.SRC + "c"
 
 
 # Empty Connection Graph templates
-_EMPTY_INTERFACES: dict[str, Interface] = {r: EMPTY_INTERFACE for r in ROW_CLS_INDEXED}
-_EMPTY_CONNECTIONS: dict[str, ConnectionsABC] = {
-    r + "c": EMPTY_CONNECTIONS for r in ROW_CLS_INDEXED
-}
+_NULL_INTERFACES: dict[str, Interface] = {r: NULL_INTERFACE for r in ROW_CLS_INDEXED}
+_NULL_CONNECTIONS: dict[str, ConnectionsABC] = {r + "c": NULL_CONNECTIONS for r in ROW_CLS_INDEXED}
 
 
 class FrozenCGraph(CGraphMixin, CGraphABC):
@@ -79,8 +77,8 @@ class FrozenCGraph(CGraphMixin, CGraphABC):
         """Initialize the Connection Graph.
         Construct the internal representation of the graph from the JSON graph.
         """
-        self._interfaces: dict[str, Interface] = _EMPTY_INTERFACES.copy()
-        self._connections: dict[str, ConnectionsABC] = _EMPTY_CONNECTIONS.copy()
+        self._interfaces: dict[str, Interface] = _NULL_INTERFACES.copy()
+        self._connections: dict[str, ConnectionsABC] = _NULL_CONNECTIONS.copy()
         self._dirty_ics: set[str] = set()  # Interface and connection keys
         self._lock = False  # Modifiable during initialization
 
@@ -105,12 +103,12 @@ class FrozenCGraph(CGraphMixin, CGraphABC):
 
     def _delete_interface(self, key: str) -> None:
         """Delete an interface."""
-        self._interfaces[key] = EMPTY_INTERFACE
+        self._interfaces[key] = NULL_INTERFACE
         self._dirty_ics.add(key)
 
     def _delete_connections(self, key: str) -> None:
         """Delete connections."""
-        self._connections[key] = EMPTY_CONNECTIONS
+        self._connections[key] = NULL_CONNECTIONS
         self._dirty_ics.add(key)
 
     def _delete_endpoint(self, key: str) -> None:
@@ -132,17 +130,17 @@ class FrozenCGraph(CGraphMixin, CGraphABC):
         """Get the endpoint with the given key."""
         if (keylen := len(key)) == 2:  # Its an interface
             self.touch()
-            return self._interfaces.get(key, EMPTY_INTERFACE)
+            return self._interfaces.get(key, NULL_INTERFACE)
         if keylen == 3:  # Its connections
             self.touch()
-            return self._connections.get(key, EMPTY_CONNECTIONS)
+            return self._connections.get(key, NULL_CONNECTIONS)
         if keylen == 5:  # Its an endpoint
-            iface = self._interfaces.get(ikey := key[0] + key[4], EMPTY_INTERFACE)
-            if iface is EMPTY_INTERFACE:
+            iface = self._interfaces.get(ikey := key[0] + key[4], NULL_INTERFACE)
+            if iface is NULL_INTERFACE:
                 raise KeyError(f"Endpoint {key} does not exist.")
-            conns = self._connections.get(ikey + "c", EMPTY_CONNECTIONS)
+            conns = self._connections.get(ikey + "c", NULL_CONNECTIONS)
             assert (
-                conns is not EMPTY_CONNECTIONS
+                conns is not NULL_CONNECTIONS
             ), f"Connections {key} does not exist when interface does."
             k, i, c = key2parts(key)
             self.touch()
@@ -188,7 +186,7 @@ class FrozenCGraph(CGraphMixin, CGraphABC):
 
     def is_conditional_graph(self) -> bool:
         """Return True if the graph is conditional i.e. has row F."""
-        return self._interfaces["Fd"] is not EMPTY_INTERFACE
+        return self._interfaces["Fd"] is not NULL_INTERFACE
 
     def is_stable(self) -> bool:
         """Return True if the Connection Graph is stable, i.e. all destinations are connected."""

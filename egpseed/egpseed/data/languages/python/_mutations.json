@@ -6,7 +6,8 @@
         "num_outputs": 0,
         "inline": "()",
         "properties": {
-            "side_effects": true
+            "side_effects": true,
+            "static_creation": true
         }
     }
 }

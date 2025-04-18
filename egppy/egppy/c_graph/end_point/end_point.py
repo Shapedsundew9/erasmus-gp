@@ -14,7 +14,7 @@ from egppy.c_graph.end_point.end_point_mixin import EndPointMixin, GenericEndPoi
 from egppy.c_graph.end_point.end_point_type import EndPointType
 from egppy.c_graph.c_graph_constants import (
     DESTINATION_ROWS,
-    EP_CLS_STR_TUPLE,
+    EPC_STR_TUPLE,
     ROWS,
     SOURCE_ROWS,
     DstRow,
@@ -76,7 +76,7 @@ class EndPointRef(GenericEndPoint, EndPointRefABC):
 
     def force_key(self, cls: EndPointClass) -> EndPointHash:
         """Create a unique key to use in the internal graph."""
-        return self.key_base() + EP_CLS_STR_TUPLE[cls]
+        return self.key_base() + EPC_STR_TUPLE[cls]
 
     def verify(self) -> None:
         """Verify the end point."""

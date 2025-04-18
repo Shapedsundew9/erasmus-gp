@@ -1,7 +1,6 @@
 """Unit tests for the common module."""
 
-from hashlib import sha256
-from pprint import pformat
+from uuid import uuid4
 from typing import Any
 from unittest import TestCase
 from egpcommon.common import (
@@ -17,34 +16,49 @@ class TestCommon(TestCase):
 
     def test_sha256_signature(self) -> None:
         """Test the sha256_signature function."""
+        ancestora: bytes = b"ancestora"
+        ancestorb: bytes = b"ancestorb"
+        pgc: bytes = b"pgc"
         gca: bytes = b"gca"
         gcb: bytes = b"gcb"
         graph: dict[str, Any] = {"a": 1, "b": 2}
         meta_data: dict[str, Any] = {
             "function": {"python3": {"0": {"inline": "def f(x): return x+1"}}}
         }
-        signature: bytes = sha256_signature(gca, gcb, graph, meta_data)
+        created: int = 0
+        creator: bytes = uuid4().bytes
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
+        )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
         # Test with None meta_data
-        signature: bytes = sha256_signature(gca, gcb, graph, None)
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, None, created, creator
+        )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
         # Test with empty meta_data
-        signature: bytes = sha256_signature(gca, gcb, graph, {})
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, {}, created, creator
+        )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
         # Test with meta_data without function
-        signature: bytes = sha256_signature(gca, gcb, graph, {"a": 1})
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, {"a": 1}, created, creator
+        )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
         # Test with meta_data with function but without code
         meta_data = {"function": {"python3": {"0": {"inline": "def f(x): return x+1"}}}}
-        signature: bytes = sha256_signature(gca, gcb, graph, meta_data)
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
+        )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
@@ -52,64 +66,19 @@ class TestCommon(TestCase):
         meta_data = {
             "function": {"python3": {"0": {"inline": "def f(x): return x+1", "code": "bytecode"}}}
         }
-        signature: bytes = sha256_signature(gca, gcb, graph, meta_data)
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
+        )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
-        # Test that changing the gca changes the signature
-        hash_obj = sha256(b"gca1")
-        hash_obj.update(gcb)
-        hash_obj.update(pformat(graph, compact=True).encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
-        signature1: bytes = hash_obj.digest()
-        self.assertNotEqual(signature, signature1)
-
-        # Test that changing the gcb changes the signature
-        hash_obj = sha256(gca)
-        hash_obj.update(b"gcb1")
-        hash_obj.update(pformat(graph, compact=True).encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
-        signature1: bytes = hash_obj.digest()
-        self.assertNotEqual(signature, signature1)
-
-        # Test that changing the graph changes the signature
-        hash_obj = sha256(gca)
-        hash_obj.update(gcb)
-        hash_obj.update(pformat({"a": 1, "b": 3}, compact=True).encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
-        signature1: bytes = hash_obj.digest()
-        self.assertNotEqual(signature, signature1)
-
-        # Test that changing the meta_data changes the signature
-        hash_obj = sha256(gca)
-        hash_obj.update(gcb)
-        hash_obj.update(pformat(graph, compact=True).encode())
-        hash_obj.update(
-            {"function": {"python3": {"0": {"inline": "def f(x): return x+2"}}}}["function"][
-                "python3"
-            ]["0"]["inline"].encode()
+        # Use a created time to create a signature
+        created = 2198374
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
         )
-        hash_obj.update(meta_data["function"]["python3"]["0"]["code"].encode())
-        signature1: bytes = hash_obj.digest()
-        self.assertNotEqual(signature, signature1)
-
-        # Test that changing the meta_data code changes the signature
-        hash_obj = sha256(gca)
-        hash_obj.update(gcb)
-        hash_obj.update(pformat(graph, compact=True).encode())
-        hash_obj.update(meta_data["function"]["python3"]["0"]["inline"].encode())
-        hash_obj.update(
-            {
-                "function": {
-                    "python3": {"0": {"inline": "def f(x): return x+1", "code": "bytecode1"}}
-                }
-            }["function"]["python3"]["0"]["code"].encode()
-        )
-        signature1: bytes = hash_obj.digest()
-        self.assertNotEqual(signature, signature1)
+        self.assertEqual(len(signature), 32)
+        self.assertNotEqual(signature, NULL_SHA256)
 
     def test_bin_counts(self) -> None:
         """Test the bin_counts function."""

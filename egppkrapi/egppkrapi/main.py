@@ -40,12 +40,16 @@ async def get_keys(app_uuid: str) -> list[models.KeyInfoResponse]:
         # Simulate finding keys for this specific UUID
         dummy_key_list: list[models.KeyInfoResponse] = [
             models.KeyInfoResponse(
-                publicKeyPem="-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExgMP/03XMO0tHdDmy7nOSkQQ\nNOCwfisG949F/VICnVss3mQV8vZDojDbqjXy1ZGeh2IQ+wi9ZiJRaFvN91k5Vg==\n-----END PUBLIC KEY-----\n",
+                publicKeyPem="""-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExgMP
+                /03XMO0tHdDmy7nOSkQQ\nNOCwfisG949F/VICnVss3mQV8vZDojDbqjXy1ZGeh2IQ+wi9ZiJRaFvN91k5Vg
+                ==\n-----END PUBLIC KEY-----\n""",
                 status="Active",
                 statusTimestamp=datetime.now(timezone.utc),  # Use timezone-aware UTC time
             ),
             models.KeyInfoResponse(
-                publicKeyPem="-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfWZ4XiKVObhyrdlL0FpkN9p9\nlx7T7A+P8a9zZ4E9n7kv8v6sT5yF+M+qG+J/3rX0sD/lP5aH3jI6bZ7R8zXqWw==\n-----END PUBLIC KEY-----\n",
+                publicKeyPem="""-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfWZ4
+                XiKVObhyrdlL0FpkN9p9\nlx7T7A+P8a9zZ4E9n7kv8v6sT5yF+M+qG+J/3rX0sD/lP5aH3jI6bZ7R8zXqWw
+                ==\n-----END PUBLIC KEY-----\n""",
                 status="Deprecated",
                 statusTimestamp=datetime.now(timezone.utc)
                 - timedelta(days=10),  # Example past timestamp
@@ -154,4 +158,5 @@ async def update_key_status(app_uuid: str, update_info: models.KeyInfoStatusUpda
 # --- Root Endpoint (Optional) ---
 @app.get("/", include_in_schema=False)  # Basic check endpoint, excluded from OpenAPI docs
 async def read_root():
+    """Basic check"""
     return {"message": "EGPPKR API is running!"}

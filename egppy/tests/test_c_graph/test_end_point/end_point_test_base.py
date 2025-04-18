@@ -1,6 +1,7 @@
 """Unit tests for the End Point classes."""
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.properties import CGraphType
 
 from egppy.c_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
 from egppy.c_graph.end_point.types_def import types_db
@@ -42,6 +43,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         self.typ1 = (types_db["int"],)
         self.cls1 = EndPointClass.DST
         self.refs1 = [self.get_src_ref_cls()(SrcRow.A, 0)]
+        self.cgt1 = CGraphType.STANDARD
         self.endpoint = self.get_endpoint_cls()(
             self.row1, self.idx1, self.typ1, self.cls1, self.refs1
         )
@@ -52,6 +54,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         self.typ2 = (types_db["float"],)
         self.cls2 = EndPointClass.DST
         self.refs2 = [self.get_src_ref_cls()(SrcRow.B, 1)]
+        self.cgt2 = CGraphType.STANDARD
         self.endpoint2 = self.get_endpoint_cls()(
             self.row2, self.idx2, self.typ2, self.cls2, self.refs2
         )
@@ -143,9 +146,9 @@ class EndPointTestBase(XEndPointRefTestBase):
         """
         if self.running_in_test_base_class():
             return
-        self.endpoint.del_invalid_refs()
+        self.endpoint.del_invalid_refs(self.cgt1)
         self.assertEqual(self.endpoint.get_refs(), self.refs1)
-        self.endpoint2.del_invalid_refs()
+        self.endpoint2.del_invalid_refs(self.cgt2)
         self.assertEqual(self.endpoint2.get_refs(), [])
 
     def test_set_typ(self) -> None:

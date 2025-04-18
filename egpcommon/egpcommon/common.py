@@ -28,7 +28,7 @@ NULL_SHA256: bytes = b"\x00" * 32
 NULL_SHA256_STR: str = NULL_SHA256.hex()
 NULL_UUID: UUID = UUID(int=0)
 NULL_TUPLE: tuple = tuple()
-NULL_STR: Literal[''] = ""
+NULL_STR: Literal[""] = ""
 NULL_FROZENSET: frozenset = frozenset()
 
 
@@ -40,6 +40,8 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     "ancestora": {"db_type": "BYTEA", "nullable": True},
     "ancestorb": {"db_type": "BYTEA", "nullable": True},
     "pgc": {"db_type": "BYTEA", "nullable": True},
+    "created": {"db_type": "TIMESTAMP", "nullable": False},
+    "properties": {"db_type": "BIGINT", "nullable": False},
     "signature": {"db_type": "BYTEA", "nullable": False},
 }
 GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
@@ -52,7 +54,6 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_lost_descendants": {"db_type": "BIGINT", "nullable": False},
     "_reference_count": {"db_type": "BIGINT", "nullable": False},
     "code_depth": {"db_type": "INT", "nullable": False},
-    "created": {"db_type": "TIMESTAMP", "nullable": False},
     "creator": {"db_type": "UUID", "nullable": False},
     "descendants": {"db_type": "BIGINT", "nullable": False},
     "e_count": {"db_type": "INT", "nullable": False},
@@ -77,7 +78,6 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "population_uid": {"db_type": "SMALLINT", "nullable": False},
     "problem": {"db_type": "BYTEA", "nullable": True},
     "problem_set": {"db_type": "BYTEA", "nullable": True},
-    "properties": {"db_type": "BIGINT", "nullable": False},
     "reference_count": {"db_type": "BIGINT", "nullable": False},
     "survivability": {"db_type": "FLOAT", "nullable": False},
     "updated": {"db_type": "TIMESTAMP", "nullable": False},
@@ -154,18 +154,44 @@ def merge(  # pylint: disable=dangerous-default-value
 
 
 def sha256_signature(
-    gca: bytes, gcb: bytes, graph: dict[str, Any], meta_data: dict[str, Any] | None
+    ancestora: bytes,
+    ancestorb: bytes,
+    gca: bytes,
+    gcb: bytes,
+    graph: dict[str, Any],
+    pgc: bytes,
+    meta_data: dict[str, Any] | None,
+    created: int,
+    creator: bytes
 ) -> bytes:
     """Return the SHA256 signature of the data.
     This function is the basis for identifying *EVERYTHING* in the EGP system.
-    The signature is based on the graph, the gca, and the gcb. If the meta_data
-    is provided then the function code is also included in the signature..
-    This function must not change!
+    The signature is based on the functional elements of the GC *and* the lineage.
+    Whilst this means that (theoretically) two GCs with the same function but different
+    lineages will have different signatures, this is only even remotely likely
+    to occur in very early generations and one variant will then dominate.
+    Lineage is part of the signature to ensure traceablity of the origins of the GC through
+    the mutuation process. The creation time is captured as this is the seed for the random
+    number generator used to create the GC. All this combined means it is possible to
+    deterministically recreate the GC from the ancestors and know if the GC can be trusted.
+    If the meta_data is provided then the function code is also included in the signature.
 
-    Make sure the unit tests pass!
+    If created > 0 then the created time is encoded in the signature. Note that
+    this is used to indicate that the created time should be part of the signature.
+    It is a convenience when developing with primitives that get re-generated regularly
+    where the changing signature is overhead.
+
+    NOTE: Created is the creation time of the GC in seconds from epoch when > 0
+
+    THIS FUNCTION MUST NOT CHANGE!
+    MAKE SURE THE UNIT TESTS PASS!
     """
-    hash_obj = sha256(gca)
+    hash_obj = sha256(ancestora)
+    hash_obj.update(ancestorb)
+    hash_obj.update(gca)
     hash_obj.update(gcb)
+    hash_obj.update(pgc)
+    hash_obj.update(creator)
     hash_obj.update(pformat(graph, compact=True).encode())
     if meta_data is not None and "function" in meta_data:
         definition = meta_data["function"]["python3"]["0"]
@@ -175,6 +201,8 @@ def sha256_signature(
         if "imports" in definition:
             for import_def in definition["imports"]:
                 hash_obj.update(dumps(import_def.to_json()).encode())
+    if created > 0:
+        hash_obj.update(created.to_bytes(8, "big"))
     return hash_obj.digest()
 
 

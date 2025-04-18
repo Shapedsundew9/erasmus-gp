@@ -198,10 +198,6 @@ class GGCMixin(EGCMixin):
         tmp = gcabc.get("problem_set") if gcabc.get("problem_set") is not None else NULL_PROBLEM_SET
         assert not isinstance(tmp, (bytearray, memoryview)) and tmp is not None
         self["problem_set"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
-        props = gcabc.get("properties", 0)
-        self["properties"] = (
-            props if isinstance(props, int) else PropertiesBD(props, False).to_int()
-        )
         self["reference_count"] = gcabc.get("reference_count", 0)
         assert (
             self["signature"] is NULL_SIGNATURE if self["signature"] == NULL_SIGNATURE else True
