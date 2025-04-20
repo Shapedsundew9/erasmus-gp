@@ -315,7 +315,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
 def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
     """Create a matrix of GC's.
 
-    Create a matrix of GC's where the maxim number of inputs and outputs
+    Create a matrix of GC's where the maximum number of inputs and outputs
     is determined by max_epc. The matrix is a dictionary of
     dictionaries where the key is the number of inputs and the value
     is a dictionary of the number of outputs and a set of GC's.

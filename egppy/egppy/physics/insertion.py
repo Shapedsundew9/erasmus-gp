@@ -1,7 +1,6 @@
-"""The physics module.
+"""The insertion module.
 
-Physics in Erasmus GP defines how GCA & GCB of a GC are selected and the Connection Graph connections
-are made.
+Defines how a insert GC (iGC) is inserted into a target GC (tGC).
 """
 
 from random import randint
