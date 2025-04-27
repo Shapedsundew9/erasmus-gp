@@ -9,7 +9,7 @@ from typing import Any
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.security import load_signed_json_dict, dump_signed_json
 from egpcommon.properties import GCType, CGraphType
-from egppy.c_graph.end_point.end_point_type import ept_to_str
+from egppy.c_graph.end_point.end_point_type import end_point_type, ept_store
 from egppy.c_graph.end_point.types_def import TypesDef, types_db
 from egppy.gc_types.ggc_class_factory import GGCDirtyDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
@@ -22,6 +22,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
+EPT_PATH = ("..", "..", "egppy", "egppy", "data", "end_point_types.json")
 CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
@@ -56,7 +57,7 @@ class MethodExpander:
         super().__init__()
         self.inline = method["inline"]  # Must exist
         self.name = name
-        type_str = ept_to_str((td,) + tuple(types_db["object"] for _ in range(td.tt())))
+        type_str = end_point_type((td,) + tuple(types_db["object"] for _ in range(td.tt()))).str
 
         # If neither exist then assume 2 inputs of type type_str
         if "num_inputs" not in method and "inputs" not in method:
@@ -84,6 +85,12 @@ class MethodExpander:
         # Other members
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
+
+        # Ensure the input and output endpoint types are captured
+        # Converting them to EndPointType objects will ensure they are stored
+        # in the local store and so can be shared between GC's
+        _ = [end_point_type([i]) for i in self.inputs]
+        __ = [end_point_type([o]) for o in self.outputs]
 
     def to_json(self) -> dict[str, Any]:
         """Convert to json."""
@@ -115,6 +122,8 @@ def generate_codons(write: bool = False) -> None:
         d. Convert the GGCDirtyDict object to a JSON object.
         e. Add the JSON object to the codons dictionary.
     6. Save the codons dictionary to a JSON file.
+    7. Verify the signatures are unique.
+    8. Create the end_point_types.json file.
     """
     codons: list[dict[str, Any]] = []
     for json_file in sorted(glob(join(dirname(__file__), "data", "languages", "python", "*.json"))):
@@ -132,6 +141,15 @@ def generate_codons(write: bool = False) -> None:
     for codon in codons:
         assert codon["signature"] not in signature_set, f"Duplicate signature: {codon['signature']}"
         signature_set.add(codon["signature"])
+
+    # Create the end_point_types.json file
+    # This contains the mapping of the EndPointType string representation to the UID
+    # Whist both a unique the UID is a 32 bit signed value which is much more efficiently
+    # stored in the database & searchable.
+    dump_signed_json(
+        {ept.str: ept.uid for ept in sorted(ept_store, key=lambda x: x.str)},  # type: ignore
+        join(dirname(__file__), *EPT_PATH),
+    )
 
 
 if __name__ == "__main__":

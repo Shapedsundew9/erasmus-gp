@@ -3,7 +3,7 @@
 from os.path import expanduser, normpath
 from re import Pattern
 from re import compile as regex_compile
-from typing import Any, Callable, LiteralString
+from typing import Any, Callable
 
 from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -319,11 +319,9 @@ class ColumnSchema(Validator, DictTypeAccessor):
         self._unique = value
 
 
-ConversionFunc = Callable[[Any], Any] | None
+ConversionFunc = Callable | None
 # ('column_name', encode_func, decode_func) or ['column_name', encode_func, decode_func]
-Conversion = (
-    tuple[LiteralString, ConversionFunc, ConversionFunc] | list[LiteralString | ConversionFunc]
-)
+Conversion = tuple[str, ConversionFunc, ConversionFunc]
 Conversions = tuple[Conversion, ...]
 PtrMap = dict[str, str]
 TableSchema = dict[str, ColumnSchema]

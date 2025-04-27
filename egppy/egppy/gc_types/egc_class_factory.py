@@ -9,7 +9,7 @@ genetic code object avoiding all the derived data.
 from datetime import datetime, UTC
 from typing import Any, Mapping
 
-from egpcommon.common import EGC_KVT
+from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 

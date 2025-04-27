@@ -11,7 +11,8 @@ from math import isclose
 from typing import Any
 from uuid import UUID
 
-from egpcommon.common import EGP_EPOCH, GGC_KVT, NULL_STR, NULL_TUPLE, ANONYMOUS_CREATOR
+from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, ANONYMOUS_CREATOR
+from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 

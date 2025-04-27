@@ -30,7 +30,6 @@ from egppy.c_graph.c_graph_constants import (
     CPI,
     ROW_CLS_INDEXED,
     ROW_MAP,
-    SOURCE_ROWS,
     DstRow,
     EndPointClass,
     EPClsPostfix,

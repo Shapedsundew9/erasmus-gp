@@ -6,6 +6,7 @@ Endpoint types are defined as a tuple of TypesDef objects.
 
 from __future__ import annotations
 
+from itertools import count
 from re import split
 from typing import Iterable, Sequence
 
@@ -20,8 +21,6 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
-# The End Point Type type definition is recursive
-EndPointType = tuple[TypesDef, ...]
 
 # The generic tuple type UID
 _TUPLE_UID: int = types_db["tuple"].uid
@@ -62,9 +61,34 @@ class EPTStore(ObjectSet):
 ept_store: EPTStore = EPTStore("End Point Type Store")
 
 
+# This "store" needs to be replaced with a proper store
+_EPT_UID_STORE: dict[str, int] = {}
+_EPT_UID_COUNT = count()
+
+
+def get_ept_uid(type_sequence: tuple[TypesDef, ...], name: str) -> int:
+    """Retrieve the EPT UID
+    This comes from the local store or is fetched from the remote (global store).
+    """
+    if len(type_sequence) == 1:
+        return type_sequence[0].uid
+    if name not in _EPT_UID_STORE:
+        _EPT_UID_STORE[name] = next(_EPT_UID_COUNT)
+    return _EPT_UID_STORE[name]
+
+
 def end_point_type(
-    type_sequence: Sequence[str | int | TypesDef], _pop: bool = False
+    type_sequence: Sequence[str | int | TypesDef] | str,
 ) -> EndPointType:
+    """Return the EPT as a tuple of TypesDef objects."""
+    if isinstance(type_sequence, str):
+        return ept_store.add(EndPointType(from_str(type_sequence)))
+    return ept_store.add(EndPointType(from_type_sequence(type_sequence)))
+
+
+def from_type_sequence(
+    type_sequence: Sequence[str | int | TypesDef], _pop: bool = False
+) -> tuple[TypesDef, ...]:
     """Return the EPT as a recursive tuple of TypesDef objects.
 
     If the endpoint type is valid and not in the store then it is added.
@@ -86,26 +110,25 @@ def end_point_type(
     # If the element is a UID (or TypesDef) then get the TypesDef object
     # If it is a str it may be a python type string rather than just a name
     if isinstance(elmt, str) and elmt not in types_db and "[" in elmt:
-        return ept_store.add(str_to_ept(elmt))
+        return ept_store.add(EndPointType(from_str(elmt))).ept
     typ = types_db[elmt]
     if typ.tt() > len(ts):
         raise ValueError(f"Expected at least {typ.tt()} types but found {len(ts)}.")
     list_ept: list[TypesDef] = [typ]
-    list_ept.extend(td for tt in range(typ.tt()) for td in end_point_type(ts, True))
-    ept = tuple(list_ept)
-    return ept_store.add(ept)
+    list_ept.extend(td for tt in range(typ.tt()) for td in from_type_sequence(ts, True))
+    return tuple(list_ept)
 
 
-def ept_to_const(ept: EndPointType) -> str:
+def to_const(ept: tuple[TypesDef, ...]) -> str:
     """Return the EPT as a python type style string."""
     assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
     if len(ept) == 1:
         return f"types_db['{ept[0].name}']"
-    return f"types_db['{ept[0].name}'], {
-        ', '.join(ept_to_const(tt) for tt in ept[1:] if isinstance(tt, tuple))}"
+    return f"types_db['{ept[0].name}'], {', '.join(
+        to_const(tt) for tt in ept[1:] if isinstance(tt, tuple))}"
 
 
-def ept_to_str(ept: EndPointType, _marker: list[int] | None = None) -> str:
+def to_str(ept: tuple[TypesDef, ...], _marker: list[int] | None = None) -> str:
     """Return the EPT as a python type style string.
 
     Args:
@@ -123,21 +146,49 @@ def ept_to_str(ept: EndPointType, _marker: list[int] | None = None) -> str:
         return td.name
     # Tuples require a special case
     ext = ", ..." if td.uid == _TUPLE_UID else ""
-    return f"{td.name}[{', '.join(ept_to_str(ept, _marker) for _ in range(tt))}{ext}]"
+    return f"{td.name}[{', '.join(to_str(ept, _marker) for _ in range(tt))}{ext}]"
 
 
-def ept_to_uids(ept: EndPointType) -> tuple[int, ...]:
-    """Return the UIDs of the EPT as a tuple."""
-    return tuple(tt.uid for tt in ept)
-
-
-def is_abstract_endpoint(ept: EndPointType) -> bool:
-    """Return True if the EPT contains an abstract type."""
-    return any(tt.abstract for tt in ept)
-
-
-def str_to_ept(type_str: str) -> EndPointType:
+def from_str(type_str: str) -> tuple[TypesDef, ...]:
     """Return the EPT from a python type style string."""
     # Split out the types into a list of names and push through the end_point_type function
     # NB: Split will remove any spaces, periods (including tuple ... notation) and commas
-    return end_point_type([s for s in split(r"\W+", type_str) if s], True)
+    return from_type_sequence([s for s in split(r"\W+", type_str) if s], True)
+
+
+class EndPointType:
+    """The End Point Type.
+
+    An End Point Type is a tuple of TypesDef objects. It is used to define the types of
+    the inputs and outputs of an end point.
+    """
+
+    def __init__(self, type_sequence: tuple[TypesDef, ...]) -> None:
+        self.ept = type_sequence
+        self.str = to_str(self.ept)
+        self._hash = hash(self.str)
+        self.uid = get_ept_uid(type_sequence, self.str)
+
+    def __eq__(self, value: object) -> bool:
+        """Check if the object is equal to the value."""
+        if not isinstance(value, EndPointType):
+            return False
+        return self.uid == value.uid
+
+    def __hash__(self) -> int:
+        """Return the hash of the object."""
+        return self._hash
+
+    def __repr__(self) -> str:
+        return f"EndPointType({self.ept})"
+
+    def __str__(self) -> str:
+        return to_str(self.ept)
+
+    def to_uids(self) -> tuple[int, ...]:
+        """Return the UIDs of the EPT as a tuple."""
+        return tuple(tt.uid for tt in self.ept)
+
+    def is_abstract_endpoint(self) -> bool:
+        """Return True if the EPT contains an abstract type."""
+        return any(tt.abstract for tt in self.ept)

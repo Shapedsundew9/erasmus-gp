@@ -69,6 +69,8 @@ class TypesDef(Validator, DictTypeAccessor):
         "abstract",
         "meta",
         "derived",
+        "_max_depth",
+        "_min_depth",
     )
 
     def __init__(
@@ -118,6 +120,8 @@ class TypesDef(Validator, DictTypeAccessor):
         setattr(self, "imports", imports)
         setattr(self, "inherits", inherits)
         self.derived: tuple[TypesDef, ...] = NULL_TUPLE
+        self._max_depth: int = -1
+        self._min_depth: int = -1
 
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
@@ -272,6 +276,28 @@ class TypesDef(Validator, DictTypeAccessor):
         """Return True if the type is a container type."""
         return self.tt() > 0
 
+    def max_depth(self) -> int:
+        """Return the maximum depth of the type in the inheritance tree."""
+        if self._max_depth == -1:
+            if not self.inherits:
+                self._max_depth = 0
+            else:
+                self._max_depth = (
+                    max(i.max_depth() for i in self.inherits if isinstance(i, TypesDef)) + 1
+                )
+        return self._max_depth
+
+    def min_depth(self) -> int:
+        """Return the minimum depth of the type in the inheritance tree."""
+        if self._min_depth == -1:
+            if not self.inherits:
+                self._min_depth = 0
+            else:
+                self._min_depth = (
+                    min(i.min_depth() for i in self.inherits if isinstance(i, TypesDef)) + 1
+                )
+        return self._min_depth
+
     def to_json(self) -> dict:
         """Return Type Definition as a JSON serializable dictionary."""
         return {
@@ -400,13 +426,30 @@ class TypesDB(Container):
         default = "object" if default not in self else default
         return self[key] if key in self else self[default]
 
+    def inheritance_chart(self, concrete: bool = True) -> str:
+        """Return a string representation of the inheritance chart
+        in Mermaid charts graph diagram format.
+
+        The chart graphically shows how each object inherits from each other
+        all the way back to 'object'.
+        """
+        # Build the graph.
+
+        chart: list[str] = []
+        if concrete:
+            flter = (v for v in self._name_key.values() if not v.fx())
+        else:
+            flter = (v for v in self._name_key.values() if not v.fx() and (v.meta or v.abstract))
+        for node in sorted(flter, key=lambda x: x.min_depth()):
+            for edge in node.inherits:
+                assert isinstance(edge, TypesDef), "Inherits must be a TypesDef object."
+                chart.append(f"  {edge.name} --> {node.name}")
+        chart.insert(0, "flowchart TD")
+        return "\n".join(chart)
+
     def keys(self) -> list[str]:
         """Return the keys of the types database."""
         return list(self._name_key.keys())
-
-    def values(self) -> list[TypesDef]:
-        """Return the values of the types database."""
-        return list(self._name_key.values())
 
     def to_json(self) -> dict:
         """Return Types Database as a JSON serializable dictionary."""
@@ -420,8 +463,19 @@ class TypesDB(Container):
                 _logger.error("Type UID %d is not unique. There are %d occurances.", uid, _count)
                 for types_def in (td for td in self._name_key.values() if td.uid == uid):
                     _logger.error("\t\tType='%s' uid=%d", types_def.name, types_def.uid)
-            raise ValueError("Type UID's are not unique. See logs.")
+            raise ValueError("Type UIDs are not unique. See logs.")
+
+    def values(self) -> list[TypesDef]:
+        """Return the values of the types database."""
+        return list(self._name_key.values())
 
 
 types_db = TypesDB(join(dirname(__file__), "..", "..", "data", "types.json"))
 types_db.validate()
+
+
+if __name__ == "__main__":
+    # Output the inheritence chart.
+    print("```mermaid")
+    print(types_db.inheritance_chart(False))
+    print("```")

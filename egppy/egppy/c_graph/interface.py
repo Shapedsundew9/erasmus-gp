@@ -6,18 +6,10 @@ from collections.abc import Hashable, MutableSequence, Sequence
 from hashlib import sha256
 from typing import Generator
 
-from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.object_set import ObjectSet
 
-from egppy.c_graph.end_point.end_point_type import (
-    EndPointType,
-    end_point_type,
-    ept_store,
-    ept_to_str,
-    ept_to_uids,
-    is_abstract_endpoint,
-)
+from egppy.c_graph.end_point.end_point_type import EndPointType, ept_store
 from egppy.c_graph.end_point.types_def import TypesDef
 
 # Standard EGP logging pattern
@@ -111,22 +103,22 @@ def interface(iface: RawInterface) -> Interface:
 
 def interface_to_parameters(iface: AnyInterface) -> str:
     """Return the interface as a string in the format '(i0: name, i1: name, ..., in: name)'."""
-    return f"({', '.join(f'i{idx}: {ept_to_str(ept)}' for idx, ept in enumerate(iface))})"
+    return f"({', '.join(f'i{idx}: {str(ept)}' for idx, ept in enumerate(iface))})"
 
 
 def interface_to_list_str(iface: AnyInterface) -> list[str]:
     """Return the interface as a string in the format '(i0: name, i1: name, ..., in: name)'."""
-    return [ept_to_str(ept) for ept in iface]
+    return [str(ept) for ept in iface]
 
 
 def interface_to_uids(iface: AnyInterface) -> list[int]:
     """Return the interface as a list of endpoint type UIDs."""
-    return [uid for ept in iface for uid in ept_to_uids(ept)]
+    return [uid for ept in iface for uid in ept.to_uids()]
 
 
 def is_abstract_interface(iface: AnyInterface) -> bool:
     """Return True if the interface is abstract."""
-    return any(is_abstract_endpoint(ept) for ept in iface)
+    return any(ept.is_abstract_endpoint() for ept in iface)
 
 
 def mutable_interface(iface: RawInterface) -> MutableInterface:
