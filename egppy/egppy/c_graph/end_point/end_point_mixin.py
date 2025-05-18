@@ -8,8 +8,8 @@ from egpcommon.common_obj_mixin import CommonObjMixin
 from egpcommon.properties import CGraphType
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egppy.c_graph.end_point.end_point_abc import GenericEndPointABC
 from egppy.c_graph.end_point.end_point_abc import EndPointABC, XEndPointRefABC
-from egppy.c_graph.end_point.end_point_type import EndPointType
 from egppy.c_graph.c_graph_constants import (
     DESTINATION_ROWS,
     EPC_STR_TUPLE,
@@ -28,54 +28,12 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPointMixin(CommonObjMixin):
-    """Mixin methods for GenericEndPoint."""
-
-    def __repr__(self) -> str:
-        """Return a string representation of the endpoint."""
-        sorted_members = sorted(self.json_obj().items(), key=lambda x: x[0])
-        return f"{self.cls().__name__}({', '.join((k + '=' + str(v) for k, v in sorted_members))})"
-
-    @classmethod
-    def cls(cls) -> type:
-        """Return the object class type."""
-        return cls
-
-    def get_idx(self) -> int:
-        """Return the index of the end point."""
-        raise NotImplementedError
-
-    def get_row(self) -> Row:
-        """Return the row of the end point."""
-        raise NotImplementedError
-
-    def json_obj(self) -> dict[str, Any]:
-        """Return a json serializable object."""
-        # return  a dictionary of the return of each method starting with
-        # "get_" where the key is the method name without the "get_"
-        return {k: v for k, v in self.__dict__.items()}
-
-    def key_base(self) -> str:
-        """Base end point hash."""
-        return f"{self.get_row()}{self.get_idx()}"
-
-    def verify(self) -> None:
-        """Verify the end point."""
-        assert self.get_row() in ROWS, f"Invalid row: {self.get_row()}"
-        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
-        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
-        super().verify()
-
-
 class EndPointMixin(CommonObjMixin):
     """Mixin methods for EndPoint."""
 
-    def __init__(self, *args) -> None:
-        """Initialize the endpoint."""
-        raise NotImplementedError
-
     def __eq__(self, other: object) -> bool:
         """Compare two end points."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         if not isinstance(other, self.__class__):
             return False
         return (
@@ -86,8 +44,16 @@ class EndPointMixin(CommonObjMixin):
             and self.get_refs() == other.get_refs()
         )
 
+    def __hash__(self) -> int:
+        """Return the hash of the endpoint."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
+        return hash(
+            (self.get_row(), self.get_idx(), self.get_typ(), self.get_cls(), hash(self.get_refs()))
+        )
+
     def del_invalid_refs(self, cgt: CGraphType) -> None:
         """Remove any invalid references"""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         row = self.get_row()
         valid_ref_rows: frozenset = (
             valid_dst_rows(cgt)[row] if isinstance(row, SrcRow) else valid_src_rows(cgt)[row]
@@ -101,14 +67,16 @@ class EndPointMixin(CommonObjMixin):
         """Return the object class type."""
         raise NotImplementedError
 
-    def consistency(self) -> None:
+    def consistency(self) -> bool:
         """Check the consistency of the end point."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         if self.is_src():
             assert list(self.get_refs()) == list(set(self.get_refs())), "Duplicate references."
-        super().consistency()
+        return super().consistency()
 
     def copy(self, clean: bool = False) -> EndPointABC:
         """Return a copy of the end point with no references."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         return self.cls()(
             self.get_row(),
             self.get_idx(),
@@ -117,50 +85,31 @@ class EndPointMixin(CommonObjMixin):
             [] if clean else self.get_refs(),
         )
 
-    def get_cls(self) -> EndPointClass:
-        """Return the class of the end point."""
-        raise NotImplementedError
-
-    def get_idx(self) -> int:
-        """Return the index of the end point."""
-        raise NotImplementedError
-
-    def get_refs(self) -> list[XEndPointRefABC]:
-        """Return the references of the end point."""
-        raise NotImplementedError
-
-    def get_row(self) -> Row:
-        """Return the row of the end point."""
-        raise NotImplementedError
-
-    def get_typ(self) -> EndPointType:
-        """Return the type of the end point."""
-        raise NotImplementedError
-
     def invert_key(self) -> EndPointHash:
         """Invert hash. Return a hash for the source/destination endpoint equivilent."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         return self.key_base() + EPC_STR_TUPLE[not self.get_cls()]
 
     def is_dst(self) -> bool:
         """Return True if the end point is a destination."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         return self.get_cls() == EndPointClass.DST
 
     def is_src(self) -> bool:
         """Return True if the end point is a source."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         return self.get_cls() == EndPointClass.SRC
 
     def key(self) -> EndPointHash:
         """Return the key of the end point."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         return self.key_base() + EPC_STR_TUPLE[self.get_cls()]
-
-    def key_base(self) -> str:
-        """Base end point hash."""
-        raise NotImplementedError
 
     def move_cls_copy(self, row: Row, cls: EndPointClass) -> EndPointABC:
         """Return a copy of the end point with the row & cls changed.
         If the class of the endpoint has changed then the references must
         be invalid and are not copied."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         if _LOG_DEBUG:
             if cls == EndPointClass.SRC:
                 assert row in SOURCE_ROWS, "Invalid row for source endpoint"
@@ -173,6 +122,7 @@ class EndPointMixin(CommonObjMixin):
     ) -> EndPointABC:
         """Return a copy of the end point with the row changed.
         Any references that are no longer valid are deleted."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         if _LOG_DEBUG:
             if self.get_cls() == EndPointClass.SRC:
                 assert row in SOURCE_ROWS, "Cannot change cls from SRC to DST in a move_copy."
@@ -186,21 +136,20 @@ class EndPointMixin(CommonObjMixin):
 
     def redirect_refs(self, old_ref_row, new_ref_row) -> None:
         """Redirect all references to old_ref_row to new_ref_row."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         for ref in (x.get_row() == old_ref_row for x in self.get_refs()):
             ref.set_row(new_ref_row)
 
     def safe_add_ref(self, ref: XEndPointRefABC) -> None:
         """Check if a reference exists before adding it."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         if ref not in self.get_refs():
             _logger.warning("Adding reference %s to %s: This is inefficient.", ref, self)
             self.get_refs().append(ref)
 
-    def set_row(self, row: Row) -> None:
-        """Set the row of the end point."""
-        raise NotImplementedError
-
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the end point."""
+        assert isinstance(self, EndPointABC), f"Invalid type: {type(self)}"
         assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
         assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
         if self.is_dst():
@@ -216,4 +165,4 @@ class EndPointMixin(CommonObjMixin):
             for ref in self.get_refs():
                 assert ref.is_dst(), f"Invalid destination reference: {ref}"
                 ref.verify()
-        super().verify()
+        return super().verify()

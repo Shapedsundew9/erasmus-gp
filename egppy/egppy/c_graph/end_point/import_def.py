@@ -5,21 +5,23 @@ a way to define imports in a way that is easy to use and understand. End point
 type definitions use imports as do codons.
 """
 
-from typing import Any, Sequence
+from typing import Sequence
 
-from egpcommon.common import DictTypeAccessor
+from egpcommon.common import DictTypeAccessor, JSONDictType
 from egpcommon.validator import Validator
 from egpcommon.object_set import ObjectSet
-
+from egpcommon.freezable_object import FreezableObject
 
 # Constants
 EMPTY_STRING = ""
 
 
-class ImportDef(Validator, DictTypeAccessor):
+class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     """Class to define an import."""
 
-    def __init__(self, aip: Sequence[str], name: str, as_name: str = EMPTY_STRING) -> None:
+    def __init__(
+        self, aip: Sequence[str], name: str, as_name: str = EMPTY_STRING, frozen: bool = False
+    ) -> None:
         """Initialize the ImportDef class
 
         Args
@@ -28,20 +30,24 @@ class ImportDef(Validator, DictTypeAccessor):
         name: str: The name of the import.
         as_name: str: The name to use for the import. This must be globally unique.
         """
-        super().__init__()
+        # Always set frozen to False
+        # because we want to be able to set the attributes during initialization.
+        super().__init__(False)
         setattr(self, "aip", aip)
         setattr(self, "name", name)
         setattr(self, "as_name", as_name)
+        if frozen:
+            self.freeze()
 
     def __eq__(self, value: object) -> bool:
         """Check equality of ImportDef instances."""
         if not isinstance(value, ImportDef):
-            return NotImplemented
-        return self.key() == value.key()
+            return False
+        return self.aip == value.aip and self.name == value.name and self.as_name == value.as_name
 
     def __hash__(self) -> int:
         """Unique hash for the import def."""
-        return self.key()
+        return hash((self.aip, self.name, self.as_name))
 
     def __str__(self) -> str:
         """Return the string representation of the object."""
@@ -87,13 +93,16 @@ class ImportDef(Validator, DictTypeAccessor):
         self._is_printable_string("as_name", value)
         self._as_name = value
 
-    def key(self) -> int:
-        """Return the key for the import definition."""
-        return hash((self.aip, self.name, self.as_name))
-
-    def to_json(self) -> dict[str, Any]:
+    def to_json(self) -> JSONDictType:
         """Return the object as a JSON serializable dictionary."""
         return {"aip": list(self.aip), "name": self.name, "as_name": self.as_name}
+
+    def verify(self) -> bool:
+        """Verify the object."""
+        # All import definitions must be in the import_def_store. This is effectively a
+        # for a memory leak.
+        assert self in import_def_store, f"ImportDef {self} not in import_def_store"
+        return super().verify()
 
 
 class ImportDefStore(ObjectSet):

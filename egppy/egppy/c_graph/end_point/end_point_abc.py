@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any
+from collections.abc import Hashable
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.properties import CGraphType
+from egpcommon.common import JSONDictType
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.c_graph.end_point.end_point_type import EndPointType
 from egppy.c_graph.c_graph_constants import EndPointClass, EndPointHash, EndPointIndex, Row
 
 # Standard EGP logging pattern
@@ -19,7 +19,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPointABC(CommonObjABC):
+class GenericEndPointABC(Hashable, CommonObjABC):
     """Lowest common denominator end point class"""
 
     @abstractmethod
@@ -27,25 +27,26 @@ class GenericEndPointABC(CommonObjABC):
         """Initialize the endpoint."""
         raise NotImplementedError
 
-    @classmethod
     @abstractmethod
-    def cls(cls) -> type:
-        """Return the object class type."""
+    def __eq__(self, other: object) -> bool:
+        """Equivilence for end point references."""
         raise NotImplementedError
 
+    @property
     @abstractmethod
-    def get_idx(self) -> EndPointIndex:
+    def idx(self) -> EndPointIndex:
         """Return the index of the end point."""
         raise NotImplementedError
 
+    @property
     @abstractmethod
-    def get_row(self) -> Row:
+    def row(self) -> Row:
         """Return the row of the end point."""
         raise NotImplementedError
 
     @abstractmethod
-    def json_obj(self) -> list[Any] | dict[str, Any]:
-        """Return a json serializable object."""
+    def cls(self) -> type:
+        """Return the object class type."""
         raise NotImplementedError
 
     @abstractmethod
@@ -54,23 +55,13 @@ class GenericEndPointABC(CommonObjABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_idx(self, idx: EndPointIndex) -> None:
-        """Set the index of the end point."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def set_row(self, row: Row) -> None:
-        """Set the row of the end point."""
+    def to_json(self) -> JSONDictType:
+        """Return a json serializable object."""
         raise NotImplementedError
 
 
 class EndPointRefABC(GenericEndPointABC):
     """Defines the connection to a row in a Graph."""
-
-    @abstractmethod
-    def __eq__(self, other: object) -> bool:
-        """Equivilence for end point references."""
-        raise NotImplementedError
 
     @abstractmethod
     def force_key(self, cls: EndPointClass) -> EndPointHash:
@@ -114,7 +105,7 @@ class EndPointABC(XEndPointRefABC):
 
     @abstractmethod
     def __init__(
-        self, row: Row, idx: int, typ: EndPointType, cls: EndPointClass, refs: list[XEndPointRefABC]
+        self, row: Row, idx: int, typ: int, cls: EndPointClass, refs: list[XEndPointRefABC]
     ) -> None:
         """Initialize the endpoint."""
         raise NotImplementedError
@@ -135,7 +126,7 @@ class EndPointABC(XEndPointRefABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_typ(self) -> EndPointType:
+    def get_typ(self) -> int:
         """Return the type of the end point."""
         raise NotImplementedError
 
@@ -174,7 +165,7 @@ class EndPointABC(XEndPointRefABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_typ(self, typ: EndPointType) -> None:
+    def set_typ(self, typ: int) -> None:
         """Set the type of the end point."""
         raise NotImplementedError
 

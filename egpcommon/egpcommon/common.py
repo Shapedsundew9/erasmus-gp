@@ -1,6 +1,7 @@
 """Common functions for the EGPPY package."""
 
 from copy import deepcopy
+from os import environ
 from datetime import UTC, datetime
 from hashlib import sha256
 from pprint import pformat
@@ -21,6 +22,23 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)
 ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
+
+
+# Set the EGP profile.
+# This is used to determine the environment in which the code is running and
+# configure such things as the type of stores to use, how much memory to allocate
+# etc.
+EGP_DEV_PROFILE = "DEV"
+EGP_CI_PROFILE = "CI"
+EGP_PROD_PROFILE = "PROD"
+EGP_PROFILE: str = environ.get("EGP_PROFILE", "PROD")
+assert EGP_PROFILE in (EGP_DEV_PROFILE, EGP_CI_PROFILE, EGP_PROD_PROFILE)
+
+
+# Some common types
+JSONDictType = dict[str, list | dict | int | str | float | bool | None]
+JSONListType = list[dict | list | int | str | float | bool | None]
+JSONType = JSONDictType | JSONListType
 
 
 # Constants
@@ -156,6 +174,8 @@ def sha256_signature(
 
 class DictTypeAccessor:
     """Provide very simple get/set dictionary like access to an objects members."""
+
+    __slots__ = tuple()
 
     def __contains__(self, key: str) -> bool:
         """Check if the attribute exists."""

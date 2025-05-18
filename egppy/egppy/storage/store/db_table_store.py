@@ -7,6 +7,7 @@ from egpdb.configuration import TableConfig
 from egpdb.table import Table
 
 from egppy.storage.store.storable_obj import StorableDict
+from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_base import StoreBase
 
@@ -20,10 +21,14 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class DBTableStore(StoreBase, StoreABC):
     """An in memory store class that can be used for testing."""
 
-    def __init__(self, config: TableConfig) -> None:
+    def __init__(self, config: TableConfig, flavor: type = StorableDict) -> None:
         """Initialize the store."""
         self.table = Table(config=config)
-        StoreBase.__init__(self, flavor=StorableDict)
+        pk: None | str = self.table.raw.primary_key
+        if pk is None:
+            raise ValueError("Table must have a primary key")
+        self._pk = pk
+        StoreBase.__init__(self, flavor=flavor)
 
     def __contains__(self, key: Any) -> bool:
         """Check if an item is in the store."""
@@ -37,13 +42,9 @@ class DBTableStore(StoreBase, StoreABC):
         """Get an item from the store."""
         return self.table[key]
 
-    def __setitem__(self, key: Any, value: StorableDict) -> None:
+    def __setitem__(self, key: Any, value: StorableObjABC) -> None:
         """Set an item in the store. NOTE this is an UPSERT operation."""
-        if self.table.raw.primary_key not in value:
-            value[self.table.raw.primary_key] = key
-        elif _LOG_VERIFY:
-            assert value[self.table.raw.primary_key] == key
-        self.table[key] = value
+        self.table[key] = value.to_json()
 
     def __iter__(self) -> Iterator:
         """Iterate over the store."""

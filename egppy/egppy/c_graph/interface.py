@@ -9,8 +9,8 @@ from typing import Generator
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.object_set import ObjectSet
 
-from egppy.c_graph.end_point.end_point_type import EndPointType, ept_store
-from egppy.c_graph.end_point.types_def import TypesDef
+from egppy.c_graph.end_point.end_point_type import int, ept_store
+from egppy.c_graph.end_point.types_def.types_def import TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -33,24 +33,24 @@ class _tuple(tuple):
 
 # Interface constants
 # NOTE that the NULL_INTERFACE is a tuple of an empty tuple to avoid
-# matching with an empty interface. EndPointTypes cannot be an empty tuple.
+# matching with an empty interface. ints cannot be an empty tuple.
 INTERFACE_MAX_LENGTH: int = 256
 NULL_INTERFACE: _tuple = _tuple()
 
 # The Interface type definition
-Interface = Sequence[EndPointType]
-MutableInterface = MutableSequence[EndPointType]
+Interface = Sequence[int]
+MutableInterface = MutableSequence[int]
 AnyInterface = Interface | MutableInterface
 RawInterface = (
     Sequence[Sequence[str]]  # e.g. [['list', 'int'], ['int']]
     | Sequence[Sequence[int]]  # e.g. [[1, 2], [2]]
-    | Sequence[EndPointType]  # e.g. [(TypesDef(), TypesDef()), (TypesDef(),)]
+    | Sequence[int]  # e.g. [(TypesDef(), TypesDef()), (TypesDef(),)]
     | Sequence[str]  # e.g. ['list[int]', 'int'] or ['list', 'int', 'int]
     | Sequence[int]  # e.g. [1, 2, 2]
     | Sequence[TypesDef]  # e.g. [TypesDef(), TypesDef(), TypesDef()]
     | Generator[Sequence[str], None, None]
     | Generator[Sequence[int], None, None]
-    | Generator[EndPointType, None, None]
+    | Generator[int, None, None]
     | Generator[str, None, None]
     | Generator[int, None, None]
     | Generator[TypesDef, None, None]
@@ -60,7 +60,7 @@ RawInterface = (
 # The interface global store
 # Interfaces are constant and can be shared between GC's
 # Many duplicate interfaces are created in the code and so it is more efficient to store them
-# as a tuple of EndPointType objects and share them.
+# as a tuple of int objects and share them.
 class InterfaceStore(ObjectSet):
     """The interface global store."""
 
@@ -97,7 +97,7 @@ interface_store.add(NULL_INTERFACE)
 
 
 def interface(iface: RawInterface) -> Interface:
-    """Return the interface as a tuple of EndPointType objects."""
+    """Return the interface as a tuple of int objects."""
     return interface_store.add(tuple(mutable_interface(iface)))
 
 
@@ -122,7 +122,7 @@ def is_abstract_interface(iface: AnyInterface) -> bool:
 
 
 def mutable_interface(iface: RawInterface) -> MutableInterface:
-    """Return the interface as a list of EndPointType objects."""
+    """Return the interface as a list of int objects."""
     # It could be an interface in the store then return the list of EPT's.
     # This is a common pattern in the code and so is more efficient to handle here.
     if isinstance(iface, Hashable) and iface in interface_store:
@@ -134,13 +134,13 @@ def mutable_interface(iface: RawInterface) -> MutableInterface:
     if isinstance(_interface[0], (str, int, TypesDef)):
         retval = []
         while _interface:
-            # Pop EndPointTypes from the RawInterface until it is empty
+            # Pop ints from the RawInterface until it is empty
             retval.append(end_point_type(_interface, True))  # type: ignore
         assert (
             len(retval) <= INTERFACE_MAX_LENGTH
         ), f"Interface has too many endpoints: {len(retval)}."
         return retval
-    # Must be a list of EndPointType-like objects
+    # Must be a list of int-like objects
     assert (
         len(_interface) <= INTERFACE_MAX_LENGTH
     ), f"Interface has too many endpoints: {len(_interface)}."

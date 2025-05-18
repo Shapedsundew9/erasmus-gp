@@ -5,7 +5,7 @@ from typing import Callable
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from egppy.c_graph.end_point.types_def import types_db
+from egppy.c_graph.end_point.types_def.types_def import ept_db
 from egppy.populations.configuration import PopulationConfig, PopulationsConfig, SourceConfig
 
 
@@ -181,8 +181,8 @@ class TestPopulationConfig(TestCase):
         self.assertEqual(config.uid, 7)
         self.assertEqual(config.problem, bytes.fromhex("1" * 64))
         self.assertIsInstance(config.worker_id, UUID)
-        self.assertEqual(config.inputs, tuple((types_db[x],) for x in ["int", "str", "bool"]))
-        self.assertEqual(config.outputs, tuple((types_db[x],) for x in ["int", "str", "bool"]))
+        self.assertEqual(config.inputs, tuple((ept_db[x],) for x in ["int", "str", "bool"]))
+        self.assertEqual(config.outputs, tuple((ept_db[x],) for x in ["int", "str", "bool"]))
         self.assertEqual(config.name, "test")
         self.assertEqual(config.description, "test")
         self.assertEqual(config.meta_data, '{"test": "test"}')

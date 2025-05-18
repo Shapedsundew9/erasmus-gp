@@ -9,8 +9,8 @@ from random import randint
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.c_graph.c_graph_validation import valid_src_rows
-from egppy.c_graph.end_point.end_point_type import EndPointType
-from egppy.c_graph.end_point.types_def import types_db
+from egppy.c_graph.end_point.end_point_type import int
+from egppy.c_graph.end_point.types_def.types_def import ept_db
 from egppy.c_graph.c_graph_class_factory import FrozenCGraph, MutableCGraph
 from egppy.c_graph.c_graph_validation import CGraphType
 from egppy.c_graph.c_graph_constants import (
@@ -29,14 +29,14 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-_FOUR_EP_TYPES: tuple[EndPointType, ...] = (
-    (types_db["bool"],),
-    (types_db["int"],),
-    (types_db["float"],),
-    (types_db["str"],),
+_FOUR_EP_TYPES: tuple[int, ...] = (
+    (ept_db["bool"],),
+    (ept_db["int"],),
+    (ept_db["float"],),
+    (ept_db["str"],),
 )
-_TYPE_COMBINATIONS: tuple[tuple[EndPointType, ...], ...] = tuple(
-    product(_FOUR_EP_TYPES, _FOUR_EP_TYPES + ((types_db["egp_invalid"],),))
+_TYPE_COMBINATIONS: tuple[tuple[int, ...], ...] = tuple(
+    product(_FOUR_EP_TYPES, _FOUR_EP_TYPES + ((ept_db["egp_invalid"],),))
 )
 
 
@@ -44,7 +44,7 @@ def next_idx(
     src_next_idx: dict[SrcRow, count],
     src_positions: dict[str, list[int]],
     row: SrcRow,
-    typa: EndPointType,
+    typa: int,
 ) -> int:
     """Get the next index for a source endpoint."""
     if row != "U":
@@ -71,7 +71,7 @@ def generate_valid_json_c_graphs() -> list[dict[str, list[list]]]:
             for row in row_order:
                 for src in valid_src_rows(CGraphType.STANDARD)[DESTINATION_ROW_MAP[row]]:
                     if row == "U":
-                        typ: EndPointType = (types_db["complex"],)
+                        typ: int = (ept_db["complex"],)
                         idx: int = next_idx(src_next_idx, src_positions, src, typ)
                         jgcg.setdefault(row, []).append([src, idx, typ[0].name])
                     else:

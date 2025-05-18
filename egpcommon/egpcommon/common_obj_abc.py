@@ -21,7 +21,7 @@ class CommonObjABC(ABC):
     """
 
     @abstractmethod
-    def consistency(self) -> None:
+    def consistency(self) -> bool:
         """Check the consistency of the CommonObjABC.
         The consistency() method is used to check the semantic of the CommonObjABC
         object. An object verified by verify() may not raise an exception because each of its
@@ -34,7 +34,7 @@ class CommonObjABC(ABC):
         raise NotImplementedError("CommonObjABC.consistency must be overridden")
 
     @abstractmethod
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the CommonObjABC object.
         The verify() method is used to check the CommonObjABC objects data for validity.
         e.g. correct value ranges, lengths, types etc.

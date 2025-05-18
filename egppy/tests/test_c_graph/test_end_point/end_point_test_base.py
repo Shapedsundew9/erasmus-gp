@@ -4,7 +4,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import CGraphType
 
 from egppy.c_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
-from egppy.c_graph.end_point.types_def import types_db
+from egppy.c_graph.end_point.types_def.types_def import ept_db
 from egppy.c_graph.c_graph_constants import ROWS, DstRow, EndPointClass, SrcRow
 from tests.test_c_graph.test_end_point.x_end_point_ref_test_base import XEndPointRefTestBase
 
@@ -40,7 +40,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         # As a destination row
         self.row1 = DstRow.B
         self.idx1 = 0
-        self.typ1 = (types_db["int"],)
+        self.typ1 = (ept_db["int"],)
         self.cls1 = EndPointClass.DST
         self.refs1 = [self.get_src_ref_cls()(SrcRow.A, 0)]
         self.cgt1 = CGraphType.STANDARD
@@ -51,7 +51,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         # Endpoint2 must be same class but different with invalid refs
         self.row2 = DstRow.B
         self.idx2 = 1
-        self.typ2 = (types_db["float"],)
+        self.typ2 = (ept_db["float"],)
         self.cls2 = EndPointClass.DST
         self.refs2 = [self.get_src_ref_cls()(SrcRow.B, 1)]
         self.cgt2 = CGraphType.STANDARD
@@ -157,7 +157,7 @@ class EndPointTestBase(XEndPointRefTestBase):
         """
         if self.running_in_test_base_class():
             return
-        new_typ = types_db["str"].ept()
+        new_typ = ept_db["str"].ept()
         self.endpoint.set_typ(new_typ)
         self.assertEqual(self.endpoint.get_typ(), new_typ)
 

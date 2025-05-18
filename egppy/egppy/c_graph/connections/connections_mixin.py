@@ -35,7 +35,7 @@ class ConnectionsMixin(CommonObjMixin):
                 return False
         return True
 
-    def consistency(self) -> None:
+    def consistency(self) -> bool:
         """Check the consistency of the interface."""
         assert isinstance(self, ConnectionsABC), f"Invalid type: {type(self)}"
         for ep in self:
@@ -44,7 +44,7 @@ class ConnectionsMixin(CommonObjMixin):
             assert all(ref.is_dst() for ref in ep) or all(
                 ref.is_src() for ref in ep
             ), f"Connections endpoint {ep} has both source and destination row references: {self}"
-        super().consistency()
+        return super().consistency()
 
     def get_unconnected_idx(self) -> list[int]:
         """Return a list of unconnected endpoints."""
@@ -67,7 +67,7 @@ class ConnectionsMixin(CommonObjMixin):
                 return True
         return False
 
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the connections."""
         assert isinstance(self, ConnectionsABC), f"Invalid type: {type(self)}"
         assert (
@@ -76,4 +76,4 @@ class ConnectionsMixin(CommonObjMixin):
         for ep in self:
             for ref in ep:
                 ref.verify()
-        super().verify()
+        return super().verify()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Collection, Hashable
+from collections.abc import Hashable
 from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
@@ -16,7 +16,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class StorableObjABC(Collection, Hashable, CommonObjABC):
+class StorableObjABC(Hashable, CommonObjABC):
     """Abstract Base Class for Storeable Object types.
 
     The Storeable Object Abstract Base Class, StoreableObjABC, is the base class for all storeable

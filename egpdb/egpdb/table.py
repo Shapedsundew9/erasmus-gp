@@ -88,7 +88,7 @@ class Table:
 
         Returns
         -------
-        (dict) with the row values or an empty dict if the primary key does not exist.
+        (dict) with the row values or throws StopIteration if the primary key does not exist.
         """
         if self.raw.primary_key is None:
             raise ValueError("SELECT row on primary key but no primary key defined!")
@@ -153,6 +153,31 @@ class Table:
     def columns(self) -> set[str]:
         """Return a tuple of all column names."""
         return self.raw.columns
+
+    def get(self, pk_value: Any, default: Any = None) -> Any:
+        """Query the table for the row with primary key value pk_value.
+
+        Args
+        ----
+        pk_value (obj): A primary key value.
+        default (obj): A default value to return if the primary key does not exist.
+
+        Returns
+        -------
+        (dict) with the row values or an empty dict if the primary key does not exist.
+        """
+        if self.raw.primary_key is None:
+            raise ValueError("SELECT row on primary key but no primary key defined!")
+        encoded_pk_value: Any = self.encode_value(self.raw.primary_key, pk_value)
+        try:
+            return next(
+                self.select(
+                    "WHERE {" + self.raw.primary_key + "} = {_pk_value}",
+                    {"_pk_value": encoded_pk_value},
+                )
+            )
+        except StopIteration:
+            return default
 
     def _return_container(self, columns: Iterable[str], values, container="dict") -> RowIter:
         _columns: Iterable[str] = self.raw.columns if columns == "*" else columns

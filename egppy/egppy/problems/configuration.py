@@ -41,6 +41,12 @@ class ProblemConfig(Validator, DictTypeAccessor):
         root_path: str = ".",
     ) -> None:
         """Initialize the class."""
+        # TODO: Add codon limit for a solution.
+        # TODO: Add an execution time limit for a solution.
+        # TODO: Add a global loop count limit
+        # NOTE: "limits" are actually soft - it is more of a pressure threshold.
+        # After the "limit" an evolutionary pressure is applied to get under it - increasing
+        # the pressure the further over the limit a solution is.
         self._set_git_attributes(git_hash, git_repo, git_url)
         self._set_interface_hashes(ordered_interface_hash, unordered_interface_hash)
         self._set_optional_attributes(

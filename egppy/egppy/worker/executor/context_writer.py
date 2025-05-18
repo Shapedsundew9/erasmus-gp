@@ -64,6 +64,8 @@ def _context_writer(ec: ExecutionContext, filepath: str | Path) -> str:
         f.write(f'"""EGP Execution Context generated on {datetime.now().isoformat()}"""\n')
         f.write(HEADER.replace("\n", "\n# ") + "\n#")
         f.write("\n# ".join(header_lines(attr="bw")))
+        # TODO: License information
+        # TODO: Author information
         f.write("\n")
 
         # Now the imports
@@ -77,6 +79,9 @@ def _context_writer(ec: ExecutionContext, filepath: str | Path) -> str:
                 # Write the function definition
                 f.write(nec.function_def(node, False))
                 f.write("\n")
+
+        # TODO: Add a signature of authenticity
+        f.write("# Signature of authenticity: [Your Signature Here]\n")
     return filename
 
 

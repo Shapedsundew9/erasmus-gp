@@ -4,7 +4,7 @@ import unittest
 from os.path import dirname, join
 
 from egppy.c_graph.end_point.import_def import ImportDef, import_def_store
-from egppy.c_graph.end_point.types_def import TypesDB, TypesDef
+from egppy.c_graph.end_point.types_def.types_def import EPTDB, TypesDef
 
 
 class TestTypesDef(unittest.TestCase):
@@ -86,7 +86,7 @@ class TestTypesDB(unittest.TestCase):
                 """
             )
 
-        _types_db = TypesDB(test_types_db_path)
+        _types_db = EPTDB(test_types_db_path)
         self.assertIn("int", _types_db)
         self.assertIn(1, _types_db)
         self.assertIn(_types_db["int"], _types_db)

@@ -320,7 +320,7 @@ class ColumnSchema(Validator, DictTypeAccessor):
 
 
 ConversionFunc = Callable | None
-# ('column_name', encode_func, decode_func) or ['column_name', encode_func, decode_func]
+# ('column_name', encode_into_db_func, decode_from_db_func)
 Conversion = tuple[str, ConversionFunc, ConversionFunc]
 Conversions = tuple[Conversion, ...]
 PtrMap = dict[str, str]

@@ -15,7 +15,7 @@ from egppy.c_graph.c_graph_validation import (
 from egppy.c_graph.connections.connections_abc import ConnectionsABC
 from egppy.c_graph.connections.connections_class_factory import NULL_CONNECTIONS
 from egppy.c_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
-from egppy.c_graph.end_point.end_point_type import EndPointType, ept_to_str, str_to_ept, TypesDef
+from egppy.c_graph.end_point.end_point_type import int, ept_to_str, str_to_ept, TypesDef
 from egppy.c_graph.c_graph_abc import CGraphABC
 from egppy.c_graph.c_graph_type import CGraphType, c_graph_type
 from egppy.c_graph.interface import (
@@ -54,7 +54,7 @@ CGraphDict = Mapping[str, Sequence[Sequence[Any] | MutableInterface | Connection
 
 
 # Sort key function
-def skey(x: tuple[int, EndPointType]) -> int:
+def skey(x: tuple[int, int]) -> int:
     """Return the index."""
     return x[0]
 
@@ -127,7 +127,7 @@ class CGraphMixin(CacheableObjMixin):
             ...
         }
         """
-        src_if_typs: dict[SrcRow, set[tuple[int, EndPointType]]] = {}
+        src_if_typs: dict[SrcRow, set[tuple[int, int]]] = {}
         src_if_refs: dict[SrcRow, dict[int, list[DstEndPointRef]]] = {}
         if _LOG_DEBUG:
             valid_jcg(c_graph)
@@ -176,7 +176,7 @@ class CGraphMixin(CacheableObjMixin):
     def _collect_src_references(
         self,
         jeps: Sequence[Any],
-        src_if_typs: dict[SrcRow, set[tuple[int, EndPointType]]],
+        src_if_typs: dict[SrcRow, set[tuple[int, int]]],
     ) -> None:
         """Collect references to the source interfaces."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
@@ -185,9 +185,7 @@ class CGraphMixin(CacheableObjMixin):
                 (jep[CPI.IDX], str_to_ept(jep[CPI.TYP]))
             )
 
-    def _create_source_interfaces(
-        self, src_if_typs: dict[SrcRow, set[tuple[int, EndPointType]]]
-    ) -> None:
+    def _create_source_interfaces(self, src_if_typs: dict[SrcRow, set[tuple[int, int]]]) -> None:
         """Create source interfaces from collected references."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         # It is important to create empty interfaces for mutable graphs
@@ -349,7 +347,7 @@ class CGraphMixin(CacheableObjMixin):
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         return c_graph_type(self)
 
-    def valid_srcs(self, row: DstRow, typ: EndPointType) -> list[tuple[SrcRow, int]]:
+    def valid_srcs(self, row: DstRow, typ: int) -> list[tuple[SrcRow, int]]:
         """Return a list of valid source row endpoint indexes."""
         assert isinstance(self, CGraphABC), "Invalid Connection Graph type."
         srows: frozenset[SrcRow] = CGT_VALID_SRC_ROWS[c_graph_type(self)][row]

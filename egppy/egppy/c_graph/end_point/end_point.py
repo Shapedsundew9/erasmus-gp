@@ -1,8 +1,12 @@
 """Endpoint class using builtin collections."""
 
 from __future__ import annotations
+from calendar import c
+from typing import Final
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.common_obj import CommonObj
+from egpcommon.common import JSONDictType
 
 from egppy.c_graph.end_point.end_point_abc import (
     EndPointABC,
@@ -10,8 +14,7 @@ from egppy.c_graph.end_point.end_point_abc import (
     GenericEndPointABC,
     XEndPointRefABC,
 )
-from egppy.c_graph.end_point.end_point_mixin import EndPointMixin, GenericEndPointMixin
-from egppy.c_graph.end_point.end_point_type import EndPointType
+from egppy.c_graph.end_point.end_point_mixin import EndPointMixin
 from egppy.c_graph.c_graph_constants import (
     DESTINATION_ROWS,
     EPC_STR_TUPLE,
@@ -30,60 +33,70 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPoint(GenericEndPointMixin, GenericEndPointABC):
+class GenericEndPoint(CommonObj, GenericEndPointABC):
     """Endpoint class using builtin collections."""
+
+    __slots__ = ("__row", "__idx", "__weakref__")
 
     def __init__(self, row: Row, idx: int) -> None:
         """Initialize the endpoint."""
-        self._row: Row = row
-        self._idx: int = idx
+        self.__row: Final[Row] = row
+        self.__idx: Final[int] = idx
+        assert self.verify(), f"Invalid generic endpoint: {self}"
+        assert self.consistency(), f"Inconsistent generic endpoint: {self}"
 
-    def get_idx(self) -> int:
+    def __eq__(self, other: object) -> bool:
+        """Compare two end points."""
+        if isinstance(other, self.__class__):
+            return self.__row == other.row and self.__idx == other.idx
+        if isinstance(other, (tuple, list)):
+            return self.__row == other[0] and self.__idx == other[1]
+        return False
+
+    def __hash__(self) -> int:
+        """Return the hash of the endpoint."""
+        return hash((self.__row, self.__idx))
+
+    def __repr__(self) -> str:
+        """Return a string representation of the endpoint."""
+        sorted_members = sorted(self.to_json().items(), key=lambda x: x[0])
+        return f"{self.cls().__name__}({', '.join((k + '=' + str(v) for k, v in sorted_members))})"
+
+    @property
+    def idx(self) -> int:
         """Return the index of the end point."""
-        return self._idx
+        return self.__idx
 
-    def get_row(self) -> Row:
+    @property
+    def row(self) -> Row:
         """Return the row of the end point."""
-        return self._row
+        return self.__row
 
-    def set_idx(self, idx: int) -> None:
-        """Set the index of the end point."""
-        self._idx = idx
+    def cls(self) -> type:
+        """Return the object class type."""
+        return self.__class__
 
-    def set_row(self, row: Row) -> None:
-        """Set the row of the end point."""
-        self._row = row
+    def to_json(self) -> JSONDictType:
+        """Return a json serializable object."""
+        return {
+            "row": self.__row,
+            "idx": self.__idx,
+        }
+
+    def verify(self) -> bool:
+        """Verify the end point."""
+        assert self.__row in ROWS, f"Invalid row: {self.__row}"
+        assert self.__idx >= 0, f"Invalid index: {self.__idx}"
+        assert self.__idx < 2**8, f"Invalid index: {self.__idx}"
+        return super().verify()
 
 
 class EndPointRef(GenericEndPoint, EndPointRefABC):
     """Refers to an end point."""
 
-    def __eq__(self, other: object) -> bool:
-        """Compare two end points."""
-        if not isinstance(other, (EndPointRef, DstEndPointRef, SrcEndPointRef)):
-            return self._eq_to_seq(other)
-        return self.get_row() == other.get_row() and self.get_idx() == other.get_idx()
-
-    def _eq_to_seq(self, other: object) -> bool:
-        """Compare the end point to a sequence."""
-        if not isinstance(other, (tuple, list)):
-            return False
-        if len(other) != 2:
-            return False
-        if not isinstance(other[0], Row) or not isinstance(other[1], int):
-            return False
-        return self.get_row() == other[0] and self.get_idx() == other[1]
-
     def force_key(self, cls: EndPointClass) -> EndPointHash:
         """Create a unique key to use in the internal graph."""
         return self.key_base() + EPC_STR_TUPLE[cls]
-
-    def verify(self) -> None:
-        """Verify the end point."""
-        assert self.get_row() in ROWS, f"Invalid row: {self.get_row()}"
-        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
-        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
-        super().verify()
 
 
 class DstEndPointRef(EndPointRef, XEndPointRefABC):
@@ -91,7 +104,7 @@ class DstEndPointRef(EndPointRef, XEndPointRefABC):
 
     def copy(self) -> XEndPointRefABC:
         """Return a copy of the end point."""
-        return self.cls()(self._row, self._idx)
+        return self.cls()(self.__row, self.__idx)
 
     def key(self) -> EndPointHash:
         """Return the key of the end point."""
@@ -109,14 +122,12 @@ class DstEndPointRef(EndPointRef, XEndPointRefABC):
         """Return True if the end point is a source."""
         return False
 
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the end point."""
-        assert self.get_row() in DESTINATION_ROWS, f"Invalid destination row: {self.get_row()}"
-        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
-        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
-        if self.get_row() == DstRow.F:
-            assert self.get_idx() == 0, f"Invalid index for row F: {self.get_idx()}"
-        super().verify()
+        assert self.row in DESTINATION_ROWS, f"Invalid destination row: {self.row}"
+        if self.__row == DstRow.F:
+            assert self.__idx == 0, f"Invalid index for row F: {self.__idx}"
+        return super().verify()
 
 
 class SrcEndPointRef(EndPointRef, XEndPointRefABC):
@@ -124,7 +135,7 @@ class SrcEndPointRef(EndPointRef, XEndPointRefABC):
 
     def copy(self) -> XEndPointRefABC:
         """Return a copy of the end point."""
-        return self.cls()(self._row, self._idx)
+        return self.cls()(self.__row, self.__idx)
 
     def key(self) -> EndPointHash:
         """Return the key of the end point."""
@@ -142,32 +153,34 @@ class SrcEndPointRef(EndPointRef, XEndPointRefABC):
         """Return True if the end point is a source."""
         return True
 
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the end point."""
-        assert self.get_row() in SOURCE_ROWS, f"Invalid source row: {self.get_row()}"
-        assert self.get_idx() >= 0, f"Invalid index: {self.get_idx()}"
-        assert self.get_idx() < 2**8, f"Invalid index: {self.get_idx()}"
-        super().verify()
+        assert self.__row in SOURCE_ROWS, f"Invalid source row: {self.row}"
+        assert self.__idx >= 0, f"Invalid index: {self.idx}"
+        assert self.__idx < 2**8, f"Invalid index: {self.idx}"
+        return super().verify()
 
 
 class EndPoint(EndPointRef, EndPointMixin, EndPointABC):
     """Endpoint class using builtin collections."""
 
+    __slots__ = ("_typ", "_cls", "_refs")
+
     def __init__(
-        self, row: Row, idx: int, typ: EndPointType, cls: EndPointClass, refs: list[XEndPointRefABC]
+        self, row: Row, idx: int, typ: int, cls: EndPointClass, refs: list[XEndPointRefABC]
     ) -> None:
         """Initialize the endpoint."""
         super().__init__(row=row, idx=idx)
-        self._typ: EndPointType = typ
+        self._typ: int = typ
         self._cls: EndPointClass = cls
         self._refs: list[XEndPointRefABC] = list(refs)
 
     def as_ref(self) -> EndPointRefABC:
         """Return a reference to this end point."""
         ref_cls = SrcEndPointRef if self.is_src() else DstEndPointRef
-        return ref_cls(self._row, self._idx)
+        return ref_cls(self.__row, self.__idx)
 
-    def get_typ(self) -> EndPointType:
+    def get_typ(self) -> int:
         """Return the type of the end point."""
         return self._typ
 
@@ -179,7 +192,7 @@ class EndPoint(EndPointRef, EndPointMixin, EndPointABC):
         """Return the references of the end point."""
         return self._refs
 
-    def set_typ(self, typ: EndPointType) -> None:
+    def set_typ(self, typ: int) -> None:
         """Set the type of the end point."""
         self._typ = typ
 

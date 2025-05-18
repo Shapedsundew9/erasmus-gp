@@ -170,13 +170,19 @@ The EP Type integer UID value Has the following format:
 
 |    31    | 30:28 | 27 | 26:24 |   23:16  | 15:0 |
 |:--------:|:-----:|:--:|:-----:|:--------:|:----:|
-| Reserved |   TT  | IO |  FX   | Reserved | XUID |
+| Reserved | TT=0  | IO |  FX   | Reserved | XUID |
 
-When IO = 1, TT = b'000, FX = b'000 and XUID is is split as follows:
+When TT = b'000 and IO = b'1, then FX = b'000 and XUID is is split as follows:
 
 |   15:14  | 13:8 |    7:4   | 3:0 |
 |:--------:|:----:|:--------:|:---:|
 | Reserved |   X  | Reserved |  Y  |
+
+When TT != b'000 then
+
+|    31    | 30:28 |   27:16  | 15:0 |
+|:--------:|:-----:|:--------:|:----:|
+| Reserved |  TT   | Reserved | XUID |
 
 The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using an abstract type such as _object_ or _Number_ abstract types). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined in the End Point Type.
 
