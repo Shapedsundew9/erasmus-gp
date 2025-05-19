@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Hashable
 
-from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.properties import CGraphType
 from egpcommon.common import JSONDictType
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.c_graph.c_graph_constants import EndPointClass, EndPointHash, EndPointIndex, Row
+from egppy.c_graph.c_graph_constants import EndPointClass, EndPointHash, Row
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,7 +17,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPointABC(Hashable, CommonObjABC):
+class GenericEndPointABC:
     """Lowest common denominator end point class"""
 
     @abstractmethod
@@ -30,18 +28,6 @@ class GenericEndPointABC(Hashable, CommonObjABC):
     @abstractmethod
     def __eq__(self, other: object) -> bool:
         """Equivilence for end point references."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def idx(self) -> EndPointIndex:
-        """Return the index of the end point."""
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def row(self) -> Row:
-        """Return the row of the end point."""
         raise NotImplementedError
 
     @abstractmethod

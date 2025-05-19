@@ -1,12 +1,11 @@
 """Endpoint class using builtin collections."""
 
 from __future__ import annotations
-from calendar import c
-from typing import Final
+from typing import Self, Any
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.common_obj import CommonObj
 from egpcommon.common import JSONDictType
+from egpcommon.freezable_object import FreezableObject
 
 from egppy.c_graph.end_point.end_point_abc import (
     EndPointABC,
@@ -33,61 +32,66 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class GenericEndPoint(CommonObj, GenericEndPointABC):
+class GenericEndPoint(FreezableObject, GenericEndPointABC):
     """Endpoint class using builtin collections."""
 
-    __slots__ = ("__row", "__idx", "__weakref__")
+    __slots__ = ("row", "idx")
 
-    def __init__(self, row: Row, idx: int) -> None:
+    def __init__(self, row: Row, idx: int, frozen: bool = False) -> None:
         """Initialize the endpoint."""
-        self.__row: Final[Row] = row
-        self.__idx: Final[int] = idx
+        super().__init__(False)
+        self.row: Row = row
+        self.idx: int = idx
+        if frozen:
+            self.freeze()
         assert self.verify(), f"Invalid generic endpoint: {self}"
         assert self.consistency(), f"Inconsistent generic endpoint: {self}"
+
+    def __copy__(self) -> Self:
+        """Return a mutable (unfrozen) copy of the endpoint."""
+        return self.__class__(self.row, self.idx, frozen=False)
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> Self:
+        """Return a mutable (unfrozen) copy of the endpoint."""
+        return self.__class__(self.row, self.idx, frozen=False)
 
     def __eq__(self, other: object) -> bool:
         """Compare two end points."""
         if isinstance(other, self.__class__):
-            return self.__row == other.row and self.__idx == other.idx
+            return self.row == other.row and self.idx == other.idx
         if isinstance(other, (tuple, list)):
-            return self.__row == other[0] and self.__idx == other[1]
+            return self.row == other[0] and self.idx == other[1]
         return False
 
     def __hash__(self) -> int:
         """Return the hash of the endpoint."""
-        return hash((self.__row, self.__idx))
+        return hash((self.row, self.idx))
 
     def __repr__(self) -> str:
         """Return a string representation of the endpoint."""
         sorted_members = sorted(self.to_json().items(), key=lambda x: x[0])
         return f"{self.cls().__name__}({', '.join((k + '=' + str(v) for k, v in sorted_members))})"
 
-    @property
-    def idx(self) -> int:
-        """Return the index of the end point."""
-        return self.__idx
-
-    @property
-    def row(self) -> Row:
-        """Return the row of the end point."""
-        return self.__row
-
     def cls(self) -> type:
         """Return the object class type."""
         return self.__class__
 
+    def key_base(self) -> str:
+        """Base end point hash."""
+        return f"{self.row}{self.idx:03d}"
+
     def to_json(self) -> JSONDictType:
         """Return a json serializable object."""
         return {
-            "row": self.__row,
-            "idx": self.__idx,
+            "row": self.row,
+            "idx": self.idx,
         }
 
     def verify(self) -> bool:
         """Verify the end point."""
-        assert self.__row in ROWS, f"Invalid row: {self.__row}"
-        assert self.__idx >= 0, f"Invalid index: {self.__idx}"
-        assert self.__idx < 2**8, f"Invalid index: {self.__idx}"
+        assert self.row in ROWS, f"Invalid row: {self.row}"
+        assert self.idx >= 0, f"Invalid index: {self.idx}"
+        assert self.idx < 2**8, f"Invalid index: {self.idx}"
         return super().verify()
 
 
@@ -104,7 +108,7 @@ class DstEndPointRef(EndPointRef, XEndPointRefABC):
 
     def copy(self) -> XEndPointRefABC:
         """Return a copy of the end point."""
-        return self.cls()(self.__row, self.__idx)
+        return self.cls()(self.row, self.idx)
 
     def key(self) -> EndPointHash:
         """Return the key of the end point."""
@@ -125,8 +129,8 @@ class DstEndPointRef(EndPointRef, XEndPointRefABC):
     def verify(self) -> bool:
         """Verify the end point."""
         assert self.row in DESTINATION_ROWS, f"Invalid destination row: {self.row}"
-        if self.__row == DstRow.F:
-            assert self.__idx == 0, f"Invalid index for row F: {self.__idx}"
+        if self.row == DstRow.F:
+            assert self.idx == 0, f"Invalid index for row F: {self.idx}"
         return super().verify()
 
 
@@ -135,7 +139,7 @@ class SrcEndPointRef(EndPointRef, XEndPointRefABC):
 
     def copy(self) -> XEndPointRefABC:
         """Return a copy of the end point."""
-        return self.cls()(self.__row, self.__idx)
+        return self.cls()(self.row, self.idx)
 
     def key(self) -> EndPointHash:
         """Return the key of the end point."""
@@ -155,9 +159,9 @@ class SrcEndPointRef(EndPointRef, XEndPointRefABC):
 
     def verify(self) -> bool:
         """Verify the end point."""
-        assert self.__row in SOURCE_ROWS, f"Invalid source row: {self.row}"
-        assert self.__idx >= 0, f"Invalid index: {self.idx}"
-        assert self.__idx < 2**8, f"Invalid index: {self.idx}"
+        assert self.row in SOURCE_ROWS, f"Invalid source row: {self.row}"
+        assert self.idx >= 0, f"Invalid index: {self.idx}"
+        assert self.idx < 2**8, f"Invalid index: {self.idx}"
         return super().verify()
 
 
@@ -178,7 +182,7 @@ class EndPoint(EndPointRef, EndPointMixin, EndPointABC):
     def as_ref(self) -> EndPointRefABC:
         """Return a reference to this end point."""
         ref_cls = SrcEndPointRef if self.is_src() else DstEndPointRef
-        return ref_cls(self.__row, self.__idx)
+        return ref_cls(self.row, self.idx)
 
     def get_typ(self) -> int:
         """Return the type of the end point."""

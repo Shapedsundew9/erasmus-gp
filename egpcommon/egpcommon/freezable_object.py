@@ -5,8 +5,9 @@ used in a program."""
 
 import types
 from abc import ABCMeta, abstractmethod
+from copy import copy, deepcopy
 from collections.abc import Hashable
-from typing import Any, Set as TypingSet  # Using TypingSet for type hint for clarity
+from typing import Self, Any, Set as TypingSet  # Using TypingSet for type hint for clarity
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
@@ -87,6 +88,22 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # Using object.__setattr__ bypasses our overridden __setattr__,
         # which is necessary as _frozen controls writability itself.
         self._frozen: bool = frozen
+
+    def __copy__(self) -> Self:
+        """Return a shallow copy of the object. Shallow copy is not allowed
+        for frozen objects. Derived classes may override this method with an
+        implementation that creates an unfrozen copy."""
+        if self.is_frozen():
+            raise TypeError(f"'{type(self).__name__}' object is frozen; cannot copy")
+        return copy(self)
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> Self:
+        """Return a deep copy of the object. Deep copy is not allowed for frozen objects.
+        Derived classes may override this method with an implementation that creates
+        an unfrozen copy."""
+        if self.is_frozen():
+            raise TypeError(f"'{type(self).__name__}' object is frozen; cannot deepcopy")
+        return deepcopy(self, memo)
 
     def __delattr__(self, name: str) -> None:
         """Delete an attribute. Raises AttributeError if the object is frozen."""

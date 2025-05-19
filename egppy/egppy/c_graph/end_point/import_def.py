@@ -5,9 +5,9 @@ a way to define imports in a way that is easy to use and understand. End point
 type definitions use imports as do codons.
 """
 
-from typing import Sequence
+from typing import Any, Sequence
 
-from egpcommon.common import DictTypeAccessor, JSONDictType
+from egpcommon.common import DictTypeAccessor
 from egpcommon.validator import Validator
 from egpcommon.object_set import ObjectSet
 from egpcommon.freezable_object import FreezableObject
@@ -93,7 +93,7 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
         self._is_printable_string("as_name", value)
         self._as_name = value
 
-    def to_json(self) -> JSONDictType:
+    def to_json(self) -> dict[str, Any]:
         """Return the object as a JSON serializable dictionary."""
         return {"aip": list(self.aip), "name": self.name, "as_name": self.as_name}
 
@@ -105,8 +105,4 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
         return super().verify()
 
 
-class ImportDefStore(ObjectSet):
-    """Class to store ImportDef objects."""
-
-
-import_def_store: ImportDefStore = ImportDefStore("Import Def Store")
+import_def_store: ObjectSet = ObjectSet("Import Def Store")

@@ -1,16 +1,24 @@
-"""Types Definition class for EGP Seed."""
+"""Types Definition class and store for EGP types."""
 
 from __future__ import annotations
 
-from typing import Any, Generator, Iterable, Final
+from json import dumps, loads
+from os.path import dirname, join
+from typing import Any, Final, Generator, Iterable
+from weakref import WeakValueDictionary
+
 from bitdict import BitDictABC, bitdict_factory
-from egpcommon.common import NULL_TUPLE
-from egpcommon.validator import Validator
-from egpcommon.freezable_object import FreezableObject
+from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.freezable_object import FreezableObject
+from egpcommon.object_dict import ObjectDict
+from egpcommon.validator import Validator
+from egpdb.configuration import ColumnSchema
+from egpdb.table import Table, TableConfig
 
 from egppy.c_graph.end_point.import_def import ImportDef, import_def_store
 from egppy.c_graph.end_point.types_def.types_def_bit_dict import TYPESDEF_CONFIG
+from egppy.local_db_config import LOCAL_DB_CONFIG
 
 
 # Standard EGP logging pattern
@@ -19,6 +27,36 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
+
+# Initialize the database connection
+NAME_TO_TD_MAP: WeakValueDictionary[str, TypesDef] = WeakValueDictionary()
+UID_TO_TD_MAP: WeakValueDictionary[int, TypesDef] = WeakValueDictionary()
+DB_STORE = Table(
+    config=TableConfig(
+        database=LOCAL_DB_CONFIG,
+        table="types_def",
+        schema={
+            "uid": ColumnSchema(db_type="int4", primary_key=True),
+            "name": ColumnSchema(db_type="VARCHAR", index="btree"),
+            "default": ColumnSchema(db_type="VARCHAR", nullable=True),
+            "abstract": ColumnSchema(db_type="bool"),
+            "ept": ColumnSchema(db_type="INT4[]"),
+            "imports": ColumnSchema(db_type="VARCHAR"),
+            "parents": ColumnSchema(db_type="VARCHAR"),
+            "children": ColumnSchema(db_type="VARCHAR"),
+        },
+        data_file_folder=join(dirname(__file__), "..", "..", "..", "data"),
+        data_files=["types_def.json"],
+        delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
+        create_db=True,
+        create_table=True,
+        conversions=(
+            ("imports", dumps, loads),
+            ("parents", dumps, loads),
+            ("children", dumps, loads),
+        ),
+    ),
+)
 
 # The generic tuple type UID
 # See types_def_db.py assertion for the UID
@@ -382,3 +420,60 @@ def to_str(ept: tuple[TypesDef, ...], _marker: list[int] | None = None) -> str:
     # Tuples require a special case
     ext = ", ..." if td.uid == _TUPLE_UID else ""
     return f"{td.name}[{', '.join(to_str(ept, _marker) for _ in range(tt))}{ext}]"
+
+
+class TypesDefStore(ObjectDict):
+    """Types Definition Database.
+
+    The TDDB is a double dictionary that maps type names to TypesDef objects
+    and type UIDs to TypesDef objects. It is implemented as a cache of the
+    full types database which is a local postgres database.
+
+    The expectation is that the types used at runtime will be small enough
+    to fit in memory (but the user should look for frequent cache evictions
+    in the logs and adjust the cache size accordingly) as EGP should use a tight
+    subset for a population.
+
+    New compound types can be created during evolution requiring the  cache and
+    database to be updated. Since types have to be globally unique a cloud service
+    call is required to create a new type.
+
+    Initialization follow the following steps:
+        1. Load the pre-defined types from the local JSON file.
+        2. Generate the abstract type fixed versions.
+        3. Generate the output wildcard meta-types.
+        4. Push the types to the database.
+        5. Initialise the empty cache.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the TypesDefStore."""
+        super().__init__("TypesDefStore")
+
+    def __getitem__(self, key: Any) -> Any:
+        """Get a object from the dict."""
+        if key in self._objects:
+            return self._objects[key]
+        if isinstance(key, int):
+            td = DB_STORE.get(key, {})
+        elif isinstance(key, str):
+            tds = tuple(DB_STORE.select("WHERE name = {id}", literals={"id": key}))
+            td = tds[0] if len(tds) == 1 else {}
+        else:
+            raise TypeError(f"Invalid key type: {type(key)}")
+        if not td:
+            raise KeyError(f"Object not found with key: {key}")
+
+        # Create the TypesDef object
+        ntd = TypesDef(**td)
+        self._objects[ntd.name] = ntd
+        self._objects[ntd.uid] = ntd
+        return ntd
+
+
+# Create the TypesDefStore object
+types_def_store = TypesDefStore()
+
+
+# Important check
+assert types_def_store["tuple"].uid == 200, "Tuple UID is used as a constant in types_def.py"
