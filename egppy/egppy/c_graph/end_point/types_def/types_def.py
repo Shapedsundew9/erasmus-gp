@@ -116,7 +116,7 @@ class TypesDef(FreezableObject, Validator):
         # because we want to be able to set the attributes during initialization.
         super().__init__(frozen=False)
         self.__name: Final[str] = self._name(name)
-        self.__ept: Final[list[int]] = self._ept(ept)
+        self.__ept: Final[tuple[int, ...]] = self._ept(ept)
         self.__default: Final[str | None] = self._default(default)
         self.__abstract: Final[bool] = self._abstract(abstract)
         self.__imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
@@ -189,10 +189,10 @@ class TypesDef(FreezableObject, Validator):
         self._is_printable_string("default", default)
         return default
 
-    def _ept(self, ept: Iterable[int]) -> list[int]:
+    def _ept(self, ept: Iterable[int]) -> tuple[int, ...]:
         """Validate the EPT of the type definition."""
         self._is_sequence("ept", ept)
-        ept = list(ept)
+        ept = tuple(ept)
         assert 9 > len(ept) > 0, "The EPT must have between 1 and 8 elements."
         assert all(isinstance(x, int) for x in ept), "All elements of EPT must be integers."
         return ept
@@ -277,7 +277,7 @@ class TypesDef(FreezableObject, Validator):
         return self.__default
 
     @property
-    def ept(self) -> list[int]:
+    def ept(self) -> tuple[int, ...]:
         """Return the EPT of the type definition."""
         return self.__ept
 
@@ -401,25 +401,29 @@ class TypesDef(FreezableObject, Validator):
         return retval
 
 
-def to_str(ept: tuple[TypesDef, ...], _marker: list[int] | None = None) -> str:
-    """Return the EPT as a python type style string.
-
-    Args:
-        ept: The EPT as a tuple of TypesDef objects.
-        _marker: A list of one integer to keep track of the current position in the EPT.
-    """
-    assert len(ept) > 0, "The EPT must have at least one type."
-    assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
-    _marker = _marker or [0]
-    idx: int = _marker[0]
-    _marker[0] += 1
-    td: TypesDef = ept[idx]
+def _to_str_recursive(ept: tuple[TypesDef, ...], current_index: int) -> tuple[str, int]:
+    """Recursively convert the EPT to a string representation."""
+    td: TypesDef = ept[current_index]
+    current_index += 1
     tt: int = td.tt()
     if not tt:
-        return td.name
-    # Tuples require a special case
+        return td.name, current_index
+
+    parts: list[str] = []
+    for _ in range(tt):
+        part_str, current_index = _to_str_recursive(ept, current_index)
+        parts.append(part_str)
+
     ext = ", ..." if td.uid == _TUPLE_UID else ""
-    return f"{td.name}[{', '.join(to_str(ept, _marker) for _ in range(tt))}{ext}]"
+    return f"{td.name}[{', '.join(parts)}{ext}]", current_index
+
+
+def to_str(ept: tuple[TypesDef, ...]) -> str:
+    """Convert the EPT to a string representation."""
+    assert len(ept) > 0, "The EPT must have at least one type."
+    assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
+    result, _ = _to_str_recursive(ept, 0)
+    return result
 
 
 class TypesDefStore(ObjectDict):
@@ -449,11 +453,15 @@ class TypesDefStore(ObjectDict):
     def __init__(self) -> None:
         """Initialize the TypesDefStore."""
         super().__init__("TypesDefStore")
+        self._cache_hit: int = 0
+        self._cache_miss: int = 0
 
     def __getitem__(self, key: Any) -> Any:
         """Get a object from the dict."""
         if key in self._objects:
+            self._cache_hit += 1
             return self._objects[key]
+        self._cache_miss += 1
         if isinstance(key, int):
             td = DB_STORE.get(key, {})
         elif isinstance(key, str):
@@ -469,6 +477,16 @@ class TypesDefStore(ObjectDict):
         self._objects[ntd.name] = ntd
         self._objects[ntd.uid] = ntd
         return ntd
+
+    def info(self) -> str:
+        """Print cache hit and miss statistics."""
+        info_str = (
+            f"TypesDefStore Cache hits: {self._cache_hit}\n"
+            f"TypesDefStore Cache misses: {self._cache_miss}\n"
+            f"{super().info()}"
+        )
+        _logger.info(info_str)
+        return info_str
 
 
 # Create the TypesDefStore object
