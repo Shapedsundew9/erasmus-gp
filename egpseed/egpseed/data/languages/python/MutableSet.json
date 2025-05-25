@@ -14,8 +14,8 @@
     "&2": {
         "inline": "{i0} &= {i1}",
         "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
+            "Set[Hashable]",
+            "Set[0_1]"
         ],
         "description": "intersection",
         "num_outputs": 0,
@@ -39,7 +39,7 @@
         "inline": "{i0} -= {i1}",
         "inputs": [
             "Set[Hashable1]",
-            "Set[Hashable1]"
+            "Set[0_1]"
         ],
         "description": "difference",
         "num_outputs": 0,
@@ -63,7 +63,7 @@
         "inline": "{i0} ^= {i1}",
         "inputs": [
             "Set[Hashable1]",
-            "Set[Hashable1]"
+            "Set[0_1]"
         ],
         "description": "symmetric difference",
         "num_outputs": 0,
@@ -86,8 +86,8 @@
     "add2": {
         "inline": "{i0}.add({i1})",
         "inputs": [
-            "MutableSet[Hashable1]",
-            "Hashable1"
+            "MutableSet[Hashable]",
+            "0_1"
         ],
         "description": "add",
         "num_outputs": 0,
@@ -121,8 +121,8 @@
     "discard2": {
         "inline": "{i0}.discard({i1})",
         "inputs": [
-            "MutableSet[Hashable1]",
-            "Hashable1"
+            "MutableSet[Hashable]",
+            "0_1"
         ],
         "description": "discard",
         "num_outputs": 0,
@@ -133,11 +133,11 @@
     "pop": {
         "inline": "{i0}.pop()",
         "inputs": [
-            "MutableSet[Hashable1]"
+            "MutableSet[Hashable]"
         ],
         "description": "pop",
         "outputs": [
-            "Hashable1"
+            "0_1"
         ],
         "properties": {
             "side_effects": true
@@ -159,8 +159,8 @@
     "remove2": {
         "inline": "{i0}.remove({i1})",
         "inputs": [
-            "MutableSet[Hashable1]",
-            "Hashable1"
+            "MutableSet[Hashable]",
+            "0_1"
         ],
         "description": "remove",
         "num_outputs": 0,
@@ -183,8 +183,8 @@
     "|=2": {
         "inline": "{i0} |= {i1}",
         "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
+            "Set[Hashable]",
+            "Set[0_1]"
         ],
         "description": "union operator",
         "num_outputs": 0,

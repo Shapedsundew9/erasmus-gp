@@ -12,7 +12,7 @@
     "bytes2": {
         "inline": "bytes({i0})",
         "inputs": [
-            "Iterable[egp_integral]"
+            "Iterable[EGPIntegral]"
         ],
         "description": "bytes from integers",
         "outputs": [

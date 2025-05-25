@@ -6,17 +6,17 @@
         ],
         "description": "copy",
         "outputs": [
-            "dict[Hashable, object]"
+            "0_0"
         ]
     },
     "dict": {
         "inline": "dict({i0})",
         "inputs": [
-            "Iterable[Pair[Hashable1, object1]]"
+            "Iterable[Pair[Hashable, object]]"
         ],
         "description": "dict",
         "outputs": [
-            "dict[Hashable1, object1]"
+            "dict[0_2, 0_3]"
         ]
     },
     "{}": {

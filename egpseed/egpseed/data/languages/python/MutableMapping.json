@@ -2,16 +2,19 @@
     "clear": {
         "inline": "{i0}.clear()",
         "inputs": [
-            "MutableMapping[Hashable1, object1]"
+            "MutableMapping[Hashable, object]"
         ],
         "description": "clear",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "outputs": [
+            "0_0"
+        ]
     },
     "delitem": {
         "inline": "del {i0}[{i1}]",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1"
+            "MutableMapping[Hashable, object]",
+            "0_1"
         ],
         "description": "delitem",
         "num_outputs": 0,
@@ -22,12 +25,12 @@
     "pop": {
         "inline": "{i0}.pop({i1})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1"
+            "MutableMapping[Hashable, object]",
+            "0_1"
         ],
         "description": "pop",
         "outputs": [
-            "object1"
+            "0_2"
         ],
         "properties": {
             "side_effects": true
@@ -36,11 +39,11 @@
     "popitem": {
         "inline": "{i0}.popitem()",
         "inputs": [
-            "MutableMapping[Hashable1, object1]"
+            "MutableMapping[Hashable, object]"
         ],
         "description": "popitem",
         "outputs": [
-            "Pair[Hashable1, object1]"
+            "Pair[0_1, 0_2]"
         ],
         "properties": {
             "side_effects": true
@@ -49,13 +52,13 @@
     "setdefault1": {
         "inline": "{i0}.setdefault({i1}, {i2})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1",
-            "object1"
+            "MutableMapping[Hashable, object]",
+            "0_1",
+            "0_2"
         ],
         "description": "setdefault",
         "outputs": [
-            "object1"
+            "0_2"
         ],
         "properties": {
             "side_effects": true
@@ -64,12 +67,12 @@
     "setdefault2": {
         "inline": "{i0}.setdefault({i1})",
         "inputs": [
-            "MutableMapping[Hashable1, object]",
-            "Hashable1"
+            "MutableMapping[Hashable, object]",
+            "0_1"
         ],
         "description": "setdefault",
         "outputs": [
-            "object"
+            "0_2"
         ],
         "properties": {
             "side_effects": true
@@ -78,9 +81,9 @@
     "setitem": {
         "inline": "{i0}[{i1}] = {i2}",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1",
-            "object1"
+            "MutableMapping[Hashable, object]",
+            "0_1",
+            "0_2"
         ],
         "description": "setitem",
         "num_outputs": 0,
@@ -91,8 +94,8 @@
     "update1": {
         "inline": "{i0}.update({i1})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Mapping[Hashable1, object1]"
+            "MutableMapping[Hashable, object]",
+            "Mapping[0_1, 0_2]"
         ],
         "description": "update",
         "num_outputs": 0,
@@ -103,32 +106,8 @@
     "update2": {
         "inline": "{i0}.update({i1})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Iterable[Pair[Hashable1, object1]]"
-        ],
-        "description": "update",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "update3": {
-        "inline": "{i0}.update({i1}, {i2})",
-        "inputs": [
             "MutableMapping[Hashable, object]",
-            "Mapping[Hashable, object]"
-        ],
-        "description": "update",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "update4": {
-        "inline": "{i0}.update({i1}, {i2})",
-        "inputs": [
-            "MutableMapping[Hashable, object]",
-            "Iterable[Pair[Hashable, object]]"
+            "Iterable[Pair[0_1, 0_2]]"
         ],
         "description": "update",
         "num_outputs": 0,

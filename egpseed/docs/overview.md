@@ -67,6 +67,10 @@ The *[types.json](../egpseed/data/languages/python/types.json)* file contains ty
 6. UID are, in fact, unique and within a signed 32 bit twos complement range. See [End point types](../../egppy/egppy/c_graph/docs/graph.md)
 7. Type names are unique.
 
+#### A Word on EGP Types
+
+EGP only deals in concrete types to support reduce the complexity of Gene Pool searching (SQL expression and search time). However, this means there is a lot of codons with type combinations. To efficiently generate these codons meta-types such as **egp_highest**: An output type that matches the highest (closest to 'object') type of the inputs, exist to generate arithmetic operation codons etc. or **x_y** where x is an integer from 0 to 255 referencing a position of an input and y is an integer in the range 0 to 7 that references the type within that type (the same as TT) for example. if input 3 was of type 'list[dict[str, int]]' then 3_0 would be 'list[dict[str, int]]', 3_1 would be 'dict[str, int]', 3_2 would be 'str' and 3_3 would be 'int'. In practice y's of values > 1 are rarely as codons do not perform compound functions. The exceptions are special objects like Quadruplet (a 4 element tuple).
+
 ### Type (Class) Methods
 
 All a types methods (codons) are defined in their respective .json file.

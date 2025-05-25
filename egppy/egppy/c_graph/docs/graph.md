@@ -124,75 +124,33 @@ class O Ocd
 
 ## Types
 
-Types are represented by signed 32 bit integer unique identifiers and a unique name string
-of no more than 64 characters, for example 0x1, "bool" for the builtin python type bool. The integer UIDs are
-for efficient storage and look up, the strings for import names. As well as concrete types (like bool, int,
-list etc.) there are _abstract_ types and _meta_ types which differ by the scopes in which they can be resolved
-into concrete types.
+Types are represented by signed 32 bit integer unique identifiers and a unique name string of no more than 128 characters, for example 0x1, "bool" for the builtin python type bool (NB: 0x1 may not actually be the integer UID of the bool type). The integer UIDs are for efficient storage and look up and the strings for import names and generating code. Other data is associated with each type such as the bi-directional inheritence tree. An EGP type may be abstract in the programming sense that it is not completely defined and so cannot be instanciated.
 
-| Class        | **Runtime** | **Buildtime** | **In Storage** |
-|--------------|:-----------:|:-------------:|:--------------:|
-| **Meta**     |     Yes     |       -       |        -       |
-| **Abstract** |     Yes     |      Yes      |        -       |
-| **Concrete** |     Yes     |      Yes      |       Yes      |
+### EGP Defined Types
 
-Where _runtime_ is when the GC is executed, _buildtime_ is when the GC is being modified / mutated and _in storage_
-is when the GC is persisted in the Gene Pool or Genomic Library caches or databases.
+There are several EGP defined types that can be considered pure abstract types and only exist as a root or low level node in the inheritance tree in order to support future type expansion or error conditions:
 
-### Meta-Types
-
-There are several meta-types:
-
-- **egp_invalid**: The invalid type. Used for error conditions and testing.
-- **egp_number**: A base type that defines the numeric operators which can be inherited by all builtin python and custom numeric types.
-- **egp_complex**: Similar to number but for complex types.
-- **egp_rational**: Similar to number but for rational types.
-- **egp_real**: Similar to number but for rational types.
-- **egp_integral**: Similar to number but for rational types.
-- **egp_highest**: Is an output type that matches the highest (closest to 'object') type of the inputs. Useful in arithmetic operations.
-- **egp_wc_X_Y**: Output wildcard types. These define output types based on the input types. See below for more details.
-
-In addition, meta-types (except egp_highest and egp_wc_*) or abstract types (see below) have a corresponding homogeneous any meta-type e.g. egp_number1, object7.
-where all reference to the homogeneous any meta-type refer to the same runtime type. The unextended type name e.g. 'egp_number' or 'object' is the heterogeneous any meta-type i.e. each reference to it in an interface may be referencing a different concrete type.
-
-### Abstract Types
-
-Abstract types are like abstract classes in python, they cannot be instanciated themselves but may represent any type that conforms to thier
-protocol. Abstract types get resolved at build time when a GC with compatible types is instanciated. Abstract EP types enable Abstract GC's which are a key optimisation for EGP. Examples of abstract EP types are the [python numbers abstract base classes](https://docs.python.org/3/library/numbers.html).
-
-### Concrete types
-
-Concrete types are always known and can be any sort of python concrete class. The majority of EP types are concrete types.
+- **Any**: The standard 'typing' package 'Any' used to represent that an object may have any type.
+- **EGPInvalid**: The invalid type. Used for error conditions and testing.
+- **EGPNumber**: A base type that defines the numeric operators which can be inherited by all builtin python and custom numeric types.
+- **EGPComplex**: Similar to number but for complex types.
+- **EGPRational**: Similar to number but for rational types.
+- **EGPReal**: Similar to number but for rational types.
+- **EGPIntegral**: Similar to number but for rational types.
 
 ### Integer UID Format
 
 The EP Type integer UID value Has the following format:
 
-|    31    | 30:28 | 27 | 26:24 |   23:16  | 15:0 |
-|:--------:|:-----:|:--:|:-----:|:--------:|:----:|
-| Reserved | TT=0  | IO |  FX   | Reserved | XUID |
-
-When TT = b'000 and IO = b'1, then FX = b'000 and XUID is is split as follows:
-
-|   15:14  | 13:8 |    7:4   | 3:0 |
-|:--------:|:----:|:--------:|:---:|
-| Reserved |   X  | Reserved |  Y  |
-
-When TT != b'000 then
-
-|    31    | 30:28 |   27:16  | 15:0 |
+|    31    | 30:28 |  28:16   | 15:0 |
 |:--------:|:-----:|:--------:|:----:|
 | Reserved |  TT   | Reserved | XUID |
 
-The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using an abstract type such as _object_ or _Number_ abstract types). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types, they are defined in the End Point Type.
-
-The IO bit defines a set of meta-types call _wildcard_ types. Wildcard types are numbered from X = 0 to 63 and Y = 0 to 15 in thier names i.e. 'egp_wc_0_0', 'egp_wc_0_1', ... 'egp_wc_63_15' i.e. 64 * 16 = 1024 different types. These meta-types define output types from input types, X is the index of the input type in the GC input type array (which has a maximum of 64 elements) and Y the depth of type definition. The use case for this type is identifying the type of an element extracted from a container or returned from a conditional e.g. if the single input type to a list.pop() codon was list\[float\] the output type would be float as identfied by the wildcard type egp_wc_0_1 (egp_wc_0_0 is 'list', egp_wc_0_1 is 'float').
-
-The FX or 'fixed' bits expand the set of abstract and meta-types. Each value of FX creates another instance of the type as defined by the other bits in the UID. The purpose is to be able to define input types where the type can be abstract (and thus one of many) but each reference is to the same concrete type.  For example if 'object' is the abstract type then there are 8 object types represented by the stings 'object', 'object1', 'object2' ... 'object7'. The base 'object' type can match any derived type at any position in the input interface, however 'object1' to 'object7' may match any concrete object type but it must be the **same** concrete object type in all positions where the number object type appears. This enables codons to represent functions like 'max([1, 2, 3, 4], default=3)' with a known output type by defining the abstract fixed types e.g. max(Iterable[Number1], default=Number1).
+The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using a type such as _object_ or _Number_ which constrain the type). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types directly, a global database maintains the UID to typed container mapping.
 
 ### End Point Types
 
-End Point Types , EPTs, are complete types defined by a sequence (usually a tuple) of types with the format:
+End Point Types, EPTs, are complete types defined by a sequence (usually a tuple) of types with the format. They are the full definition of a container type (TT > 0) type:
 
 (type[0], \*template_type[1], ..., \*template_type[n])
 
@@ -201,15 +159,17 @@ where _n_ is the value of TT in the type[0] type UID. For scalar types type[0] =
 - list[str]: (list_type, str_type, )
 - dict[str, float]: (dict_type, str_type, float_type)
 - dict[str, list[int]]: (dict_type, str_type, list_type, int_type)
-- dict[tuple[int, ...], list[list[any]]]: (dict_type, tuple_type, int_type, list_type, list_type, heany_type)
+- dict[tuple[int, ...], list[list[Any]]]: (dict_type, tuple_type, int_type, list_type, list_type, any_type)
 
-Note that the TT bit format of the UID means that the EPT sub-groupings do not have to be explicit in the implementation i.e. an array of types without grouping for an EPT is uniquely decodable which in turn enables an interface (see later) to be defined as a single array of types. This is efficient for
-database storage.
+NOTE: EPT's are an internal concept. The database storage (e.g. Gene Pool, Genomic Library) define types for ease of look up (SQL expression efficiency).
+
+### End Points
+
+End Points are parameters in a connection graph definition. They have a position, EGP type, row and 0, 1 or more references (connections to other end points) depending on their class: Source or destination. Destination end points must have 1 and only one reference (source that defines them) as they are input parameters to a GC function. Source endpoints may have 0 or more references as they are output parameters from a GC function. The function result may not be used or may be used in 1 or more places.
 
 ### Interfaces
 
-An interface is an ordered sequence (usually an array or tuple) of 0 or more End Point Types but with no more
-than a total of 256 types elements i.e. sum(len(ept for ept in interface)) <= 256. The EPTs are stored in lexicographical ascending order which puts scalar types first.
+An interface is a list or tuple like container of 0 or more End Points but with no more than a total of 256 types elements.
 
 ## JSON Format
 

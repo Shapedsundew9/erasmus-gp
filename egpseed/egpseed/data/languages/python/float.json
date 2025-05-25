@@ -17,7 +17,7 @@
     "float1": {
         "inline": "float({i0})",
         "inputs": [
-            "egp_number"
+            "EGPNumber"
         ],
         "description": "float"
     },

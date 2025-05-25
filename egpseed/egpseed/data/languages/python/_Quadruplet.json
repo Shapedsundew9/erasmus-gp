@@ -2,64 +2,64 @@
     "Quadruplet": {
         "inline": "({i0}, {i1}, {i2}, {i3})",
         "inputs": [
-            "object1",
-            "object2",
-            "object3",
-            "object4"
+            "object",
+            "object",
+            "object",
+            "object"
         ],
         "description": "Quadruplet",
         "outputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "Quadruplet[0_0, 1_0, 2_0, 3_0]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "Quadruplet[object, object, object, object]"
         ],
         "description": "first item",
         "outputs": [
-            "object1"
+            "0_0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "Quadruplet[object, object, object, object]"
         ],
         "description": "second item",
         "outputs": [
-            "object2"
+            "1_0"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "Quadruplet[object, object, object, object]"
         ],
         "description": "third item",
         "outputs": [
-            "object3"
+            "2_0"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "Quadruplet[object, object, object, object]"
         ],
         "description": "fourth item",
         "outputs": [
-            "object4"
+            "3_0"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "Quadruplet[object, object, object, object]"
         ],
         "description": "to any",
         "outputs": [
-            "object"
+            "tuple[Any, ...]"
         ]
     }
 }

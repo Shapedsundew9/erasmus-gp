@@ -4,44 +4,31 @@
         "description": "copy",
         "num_inputs": 1,
         "outputs": [
-            "frozenset[Hashable]"
+            "0_0"
         ]
     },
-    "difference1": {
+    "difference": {
         "inline": "{i0}.difference({i1})",
         "inputs": [
             "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "Iterable[0_1]"
         ],
         "description": "difference",
         "outputs": [
-            "frozenset[Hashable]"
+            "1_0"
         ]
     },
-    "difference2": {
-        "inline": "{i0}.difference({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "difference",
-        "outputs": [
-            "frozenset[Hashable1]"
-        ]
-    },
-    "frozenset0": {
-        "inline": "frozenset()",
-        "description": "frozenset",
-        "num_inputs": 0
-    },
-    "frozenset1": {
+    "frozenset": {
         "inline": "frozenset({i0})",
         "inputs": [
             "Iterable[Hashable]"
         ],
-        "description": "frozenset"
+        "description": "frozenset",
+        "outputs": [
+            "frozenset[0_1]"
+        ]
     },
-    "intersection1": {
+    "intersection": {
         "inline": "{i0}.intersection({i1})",
         "inputs": [
             "frozenset[Hashable]",
@@ -49,18 +36,7 @@
         ],
         "description": "intersection",
         "outputs": [
-            "frozenset[Hashable]"
-        ]
-    },
-    "intersection2": {
-        "inline": "{i0}.intersection({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "intersection",
-        "outputs": [
-            "frozenset[Hashable1]"
+            "0_0"
         ]
     },
     "issubset": {
@@ -85,48 +61,26 @@
             "bool"
         ]
     },
-    "symmetric_difference1": {
+    "symmetric_difference": {
         "inline": "{i0}.symmetric_difference({i1})",
         "inputs": [
             "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "Iterable[0_1]"
         ],
         "description": "symmetric difference",
         "outputs": [
-            "frozenset[Hashable]"
+            "0_0"
         ]
     },
-    "symmetric_difference2": {
-        "inline": "{i0}.symmetric_difference({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "symmetric difference",
-        "outputs": [
-            "frozenset[Hashable1]"
-        ]
-    },
-    "union1": {
+    "union": {
         "inline": "{i0}.union({i1})",
         "inputs": [
             "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "Iterable[0_1]"
         ],
         "description": "union",
         "outputs": [
-            "frozenset[Hashable]"
-        ]
-    },
-    "union2": {
-        "inline": "{i0}.union({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "union",
-        "outputs": [
-            "frozenset[Hashable1]"
+            "0_0"
         ]
     }
 }

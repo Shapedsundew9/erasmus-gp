@@ -2,41 +2,41 @@
     "capitalize": {
         "inline": "{i0}.capitalize()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "capitalize",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "center1": {
         "inline": "{i0}.center({i1})",
         "inputs": [
-            "Bytes1",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "center with space",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "center2": {
         "inline": "{i0}.center({i1}, {i2})",
         "inputs": [
-            "Bytes1",
-            "egp_integral",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "center with fill byte",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "count1": {
         "inline": "{i0}.count({i1})",
         "inputs": [
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "count",
         "outputs": [
@@ -47,8 +47,8 @@
         "inline": "{i0}.count({i1}, {i2})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "count from",
         "outputs": [
@@ -59,9 +59,9 @@
         "inline": "{i0}.count({i1}, {i2}, {i3})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "count from to",
         "outputs": [
@@ -84,7 +84,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "count from",
         "outputs": [
@@ -96,8 +96,8 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "count from to",
         "outputs": [
@@ -131,7 +131,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "ends with after",
         "outputs": [
@@ -143,8 +143,8 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "ends with between",
         "outputs": [
@@ -167,7 +167,7 @@
         "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "ends with one of after",
         "outputs": [
@@ -179,8 +179,8 @@
         "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "ends with one of between",
         "outputs": [
@@ -190,22 +190,22 @@
     "expandtabs1": {
         "inline": "{i0}.expandtabs()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "expand tabs",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "expandtabs2": {
         "inline": "{i0}.expandtabs({i1})",
         "inputs": [
-            "Bytes1",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "expand tabs",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "find1": {
@@ -224,7 +224,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "find after",
         "outputs": [
@@ -236,8 +236,8 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "find between",
         "outputs": [
@@ -248,7 +248,7 @@
         "inline": "{i0}.find({i1})",
         "inputs": [
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "find one of",
         "outputs": [
@@ -259,8 +259,8 @@
         "inline": "{i0}.find({i1}, {i2})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "find one of after",
         "outputs": [
@@ -271,9 +271,9 @@
         "inline": "{i0}.find({i1}, {i2}, {i3})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "find one of between",
         "outputs": [
@@ -296,7 +296,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "index after",
         "outputs": [
@@ -308,8 +308,8 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "index between",
         "outputs": [
@@ -320,7 +320,7 @@
         "inline": "{i0}.index({i1})",
         "inputs": [
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "index one of",
         "outputs": [
@@ -331,8 +331,8 @@
         "inline": "{i0}.index({i1}, {i2})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "index one of after",
         "outputs": [
@@ -343,9 +343,9 @@
         "inline": "{i0}.index({i1}, {i2}, {i3})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "index one of between",
         "outputs": [
@@ -435,124 +435,124 @@
     "join": {
         "inline": "{i0}.join({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Iterable[Bytes, ...]"
         ],
         "description": "join",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "ljust1": {
         "inline": "{i0}.ljust({i1})",
         "inputs": [
-            "Bytes1",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "left justify with space",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "ljust2": {
         "inline": "{i0}.ljust({i1}, {i2})",
         "inputs": [
-            "Bytes1",
-            "egp_integral",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "left justify with fill byte",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "lower": {
         "inline": "{i0}.lower()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "lower",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "lstrip1": {
         "inline": "{i0}.lstrip()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "left strip",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "lstrip2": {
         "inline": "{i0}.lstrip({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "left strip",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "partition": {
         "inline": "{i0}.partition({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "partition",
         "outputs": [
-            "Triplet[Bytes1, Bytes1, Bytes1]"
+            "Triplet[0_0, 0_0, 0_0]"
         ]
     },
     "removeprefix": {
         "inline": "{i0}.removeprefix({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes2"
         ],
         "description": "remove prefix",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "removesuffix": {
         "inline": "{i0}.removesuffix({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes2"
         ],
         "description": "remove suffix",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "replace1": {
         "inline": "{i0}.replace({i1}, {i2})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes",
             "Bytes"
         ],
         "description": "replace",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "replace2": {
         "inline": "{i0}.replace({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes1",
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "replace",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "rfind1": {
@@ -571,7 +571,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "rfind after",
         "outputs": [
@@ -583,9 +583,9 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rfind between",
         "outputs": [
@@ -596,7 +596,7 @@
         "inline": "{i0}.rfind({i1})",
         "inputs": [
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "rfind one of",
         "outputs": [
@@ -607,8 +607,8 @@
         "inline": "{i0}.rfind({i1}, {i2})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rfind one of after",
         "outputs": [
@@ -619,9 +619,9 @@
         "inline": "{i0}.rfind({i1}, {i2}, {i3})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rfind one of between",
         "outputs": [
@@ -644,7 +644,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "rindex after",
         "outputs": [
@@ -656,8 +656,8 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rindex between",
         "outputs": [
@@ -668,7 +668,7 @@
         "inline": "{i0}.rindex({i1})",
         "inputs": [
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "rindex one of",
         "outputs": [
@@ -679,8 +679,8 @@
         "inline": "{i0}.rindex({i1}, {i2})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rindex one of after",
         "outputs": [
@@ -691,9 +691,9 @@
         "inline": "{i0}.rindex({i1}, {i2}, {i3})",
         "inputs": [
             "Bytes",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rindex one of between",
         "outputs": [
@@ -703,143 +703,143 @@
     "rjust1": {
         "inline": "{i0}.rjust({i1})",
         "inputs": [
-            "Bytes1",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "right justify with space",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "rjust2": {
         "inline": "{i0}.rjust({i1}, {i2})",
         "inputs": [
-            "Bytes1",
-            "egp_integral",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "right justify with fill byte",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "rpartition": {
         "inline": "{i0}.rpartition({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "rpartition",
         "outputs": [
-            "Triplet[Bytes1, Bytes1, Bytes1]"
+            "Triplet[0_0, 0_0, 0_0]"
         ]
     },
     "rsplit1": {
         "inline": "{i0}.rsplit()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "right split",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "rsplit2": {
         "inline": "{i0}.rsplit({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "right split",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "rsplit3": {
         "inline": "{i0}.rsplit({i1}, {i2})",
         "inputs": [
-            "Bytes1",
             "Bytes",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "right split",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "rstrip1": {
         "inline": "{i0}.rstrip()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "right strip",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "rstrip2": {
         "inline": "{i0}.rstrip({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "right strip",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "split1": {
         "inline": "{i0}.split()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "split",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "split2": {
         "inline": "{i0}.split({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "split",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "split3": {
         "inline": "{i0}.split({i1}, {i2})",
         "inputs": [
-            "Bytes1",
             "Bytes",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "split",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "splitlines1": {
         "inline": "{i0}.splitlines()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "split lines",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "splitlines2": {
         "inline": "{i0}.splitlines({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "bool"
         ],
         "description": "split lines",
         "outputs": [
-            "list[Bytes1]"
+            "list[0_0]"
         ]
     },
     "startswith1": {
@@ -858,7 +858,7 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "starts with after",
         "outputs": [
@@ -870,8 +870,8 @@
         "inputs": [
             "Bytes",
             "Bytes",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "starts with between",
         "outputs": [
@@ -894,7 +894,7 @@
         "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "starts with one of after",
         "outputs": [
@@ -906,8 +906,8 @@
         "inputs": [
             "Bytes",
             "tuple[Bytes, ...]",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "starts with one of between",
         "outputs": [
@@ -917,88 +917,88 @@
     "strip1": {
         "inline": "{i0}.strip()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "strip",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "strip2": {
         "inline": "{i0}.strip({i1})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes"
         ],
         "description": "strip",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "swapcase": {
         "inline": "{i0}.swapcase()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "swap case",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "title": {
         "inline": "{i0}.title()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "title",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "translate1": {
         "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes",
             "Bytes"
         ],
         "description": "translate",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "translate2": {
         "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
         "inputs": [
-            "Bytes1",
+            "Bytes",
             "Bytes",
             "Bytes",
             "Bytes"
         ],
         "description": "translate",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "upper": {
         "inline": "{i0}.upper()",
         "inputs": [
-            "Bytes1"
+            "Bytes"
         ],
         "description": "upper",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     },
     "zfill": {
         "inline": "{i0}.zfill({i1})",
         "inputs": [
-            "Bytes1",
-            "egp_integral"
+            "Bytes",
+            "EGPIntegral"
         ],
         "description": "zfill",
         "outputs": [
-            "Bytes1"
+            "0_0"
         ]
     }
 }

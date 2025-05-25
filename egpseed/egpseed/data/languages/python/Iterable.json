@@ -22,238 +22,237 @@
     "enumerate": {
         "inline": "enumerate({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "Iterable[object]"
         ],
         "description": "enumerate",
         "outputs": [
-            "Iterator[Pair[int, object1]]"
+            "Iterator[Pair[int, 0_1]]"
         ]
     },
     "iter": {
         "inline": "iter({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "Iterable[object]"
         ],
         "description": "create iterator",
         "outputs": [
-            "Iterator[object1]"
+            "Iterator[0_1]"
         ]
     },
     "max1": {
         "inline": "max({i0})",
         "inputs": [
-            "Iterable[egp_number1]"
+            "Iterable[EGPNumber]"
         ],
         "description": "maximum value",
         "outputs": [
-            "egp_number1"
+            "0_1"
         ]
     },
     "max2": {
         "inline": "max({i0}, default={i1})",
         "inputs": [
-            "Iterable[egp_number1]",
-            "egp_number1"
+            "Iterable[EGPNumber]",
+            "0_1"
         ],
         "description": "maximum value with default",
         "outputs": [
-            "egp_number1"
+            "0_1"
         ]
     },
     "max3": {
         "inline": "max({i0}, key=len)",
         "inputs": [
-            "Iterable[Sized1]"
+            "Iterable[Sized]"
         ],
         "description": "maximum length",
         "outputs": [
-            "Sized1"
+            "0_1"
         ]
     },
     "max4": {
         "inline": "max({i0}, default={i1}, key=len)",
         "inputs": [
-            "Iterable[Sized1]",
-            "Sized1"
+            "Iterable[Sized]",
+            "0_1"
         ],
         "description": "maximum length with default",
         "outputs": [
-            "Sized1"
+            "0_1"
         ]
     },
     "min1": {
         "inline": "min({i0})",
         "inputs": [
-            "Iterable[egp_number1]"
+            "Iterable[EGPNumber]"
         ],
         "description": "minimum value",
         "outputs": [
-            "egp_number1"
+            "0_1"
         ]
     },
     "min2": {
         "inline": "min({i0}, default={i1})",
         "inputs": [
-            "Iterable[egp_number1]",
-            "egp_number1"
+            "Iterable[0_1]",
+            "0_1"
         ],
         "description": "minimum value with default",
         "outputs": [
-            "egp_number1"
+            "0_1"
         ]
     },
     "min3": {
         "inline": "min({i0}, key=len)",
         "inputs": [
-            "Iterable[Sized1]"
+            "Iterable[Sized]"
         ],
         "description": "minimum length",
         "outputs": [
-            "Sized1"
+            "0_1"
         ]
     },
     "min4": {
         "inline": "min({i0}, default={i1}, key=len)",
         "inputs": [
-            "Iterable[Sized1]",
-            "Sized1"
+            "Iterable[Sized]",
+            "0_1"
         ],
         "description": "minimum value with default",
         "outputs": [
-            "Sized1"
+            "0_1"
         ]
     },
     "sorted1": {
         "inline": "sorted({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "Iterable[object]"
         ],
         "description": "sorted",
         "outputs": [
-            "list[object1]"
+            "list[0_1]"
         ]
     },
     "sorted2": {
         "inline": "sorted({i0}, False)",
         "inputs": [
-            "Iterable[object1]"
+            "Iterable[object]"
         ],
         "description": "sorted in reverse",
         "outputs": [
-            "list[object1]"
+            "list[0_1]"
         ]
     },
     "sorted3": {
         "inline": "sorted({i0}, {i1})",
         "inputs": [
-            "Iterable[object1]",
+            "Iterable[object]",
             "bool"
         ],
         "description": "optional reversible sorted",
         "outputs": [
-            "list[object1]"
+            "list[0_1]"
         ]
     },
     "sum1": {
         "inline": "sum({i0})",
         "inputs": [
-            "Iterable[egp_number1]"
+            "Iterable[EGPNumber]"
         ],
         "description": "sum",
         "outputs": [
-            "egp_number1"
+            "0_1"
         ]
     },
     "sum2": {
         "inline": "sum({i0}, {i1})",
         "inputs": [
-            "Iterable[egp_number1]",
-            "egp_integral"
+            "Iterable[EGPNumber]",
+            "EGPIntegral"
         ],
         "description": "sum from",
         "outputs": [
-            "egp_number1"
+            "0_1"
         ]
     },
     "zip1": {
         "inline": "zip({i0}, {i1})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]"
+            "Iterable[object]",
+            "Iterable[object]"
         ],
         "description": "zip",
         "outputs": [
-            "Iterator[Pair[object1, object2]]"
+            "Iterator[Pair[0_1, 1_1]]"
         ]
     },
     "zip2": {
         "inline": "zip({i0}, {i1}, {i2})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]"
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]"
         ],
         "description": "zip",
         "outputs": [
-            "Iterator[Triplet[object1, object2, object3]]"
+            "Iterator[Triplet[0_1, 1_1, 2_1]]"
         ]
     },
     "zip3": {
         "inline": "zip({i0}, {i1}, {i2}, {i3})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]"
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]"
         ],
         "description": "zip",
         "outputs": [
-            "Iterator[Quadruplet[object1, object2, object3, object4]]"
+            "Iterator[Quadruplet[0_1, 1_1, 2_1, 3_1]]"
         ]
     },
     "zip4": {
         "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]",
-            "Iterable[object5]"
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]"
         ],
         "description": "zip",
         "outputs": [
-            "Iterator[Quintuplet[object1, object2, object3, object4, object5]]"
+            "Iterator[Quadruplet[0_1, 1_1, 2_1, 3_1]]"
         ]
     },
     "zip5": {
         "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]",
-            "Iterable[object5]",
-            "Iterable[object6]"
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]"
         ],
         "description": "zip",
         "outputs": [
-            "Iterator[Sextuplet[object1, object2, object3, object4, object5, object6]]"
+            "Iterator[Sextuplet[0_1, 1_1, 2_1, 3_1, 4_1, 5_1]]"
         ]
     },
     "zip6": {
         "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5}, {i6})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]",
-            "Iterable[object5]",
-            "Iterable[object6]",
-            "Iterable[object7]"
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]",
+            "Iterable[object]"
         ],
         "description": "zip",
         "outputs": [
-            "Iterator[Septuplet[object1, object2, object3, object4, object5, object6, object7]]"
+            "Iterator[Septuplet[0_1, 1_1, 2_1, 3_1, 4_1, 5_1, 6_1]]"
         ]
     }
 }

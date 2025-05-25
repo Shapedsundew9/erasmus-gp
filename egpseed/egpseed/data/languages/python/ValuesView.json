@@ -13,34 +13,23 @@
     "iter": {
         "inline": "iter({i0})",
         "inputs": [
-            "ValuesView[object1]"
+            "ValuesView[object]"
         ],
         "description": "iterator",
         "num_inputs": 1,
         "outputs": [
-            "Iterator[object1]"
+            "Iterator[0_1]"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
         "inputs": [
             "ValuesView[object]",
-            "object"
+            "0_1"
         ],
         "description": "not in",
         "outputs": [
             "bool"
-        ]
-    },
-    "reversed": {
-        "inline": "reversed({i0})",
-        "inputs": [
-            "ValuesView[object1]"
-        ],
-        "description": "reversed",
-        "num_inputs": 1,
-        "outputs": [
-            "Iterator[object1]"
         ]
     }
 }

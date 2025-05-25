@@ -1,46 +1,24 @@
 {
-    "&1": {
+    "&": {
         "inline": "{i0} & {i1}",
         "inputs": [
             "Set[Hashable]",
-            "Set[Hashable]"
+            "Set[0_1]"
         ],
         "description": "intersection",
         "outputs": [
-            "Set[Hashable]"
+            "0_0"
         ]
     },
-    "&2": {
-        "inline": "{i0} & {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "intersection",
-        "outputs": [
-            "Set[Hashable1]"
-        ]
-    },
-    "-1": {
+    "-": {
         "inline": "{i0} - {i1}",
         "inputs": [
             "Set[Hashable]",
-            "Set[Hashable]"
+            "Set[0_1]"
         ],
         "description": "difference",
         "outputs": [
-            "Set[Hashable]"
-        ]
-    },
-    "-2": {
-        "inline": "{i0} - {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "difference",
-        "outputs": [
-            "Set[Hashable1]"
+            "0_0"
         ]
     },
     "<": {
@@ -71,26 +49,15 @@
             "bool"
         ]
     },
-    "^1": {
+    "^": {
         "inline": "{i0} ^ {i1}",
         "inputs": [
             "Set[Hashable]",
-            "Set[Hashable]"
+            "Set[0_1]"
         ],
         "description": "symmetric difference",
         "outputs": [
-            "Set[Hashable]"
-        ]
-    },
-    "^2": {
-        "inline": "{i0} ^ {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "symmetric difference",
-        "outputs": [
-            "Set[Hashable1]"
+            "0_0"
         ]
     },
     "isdisjoint": {
@@ -100,26 +67,15 @@
             "bool"
         ]
     },
-    "|1": {
+    "|": {
         "inline": "{i0} | {i1}",
         "inputs": [
             "Set[Hashable]",
-            "Set[Hashable]"
+            "Set[0_1]"
         ],
         "description": "union operator",
         "outputs": [
-            "Set[Hashable]"
-        ]
-    },
-    "|2": {
-        "inline": "{i0} | {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "union operator",
-        "outputs": [
-            "Set[Hashable1]"
+            "0_0"
         ]
     }
 }

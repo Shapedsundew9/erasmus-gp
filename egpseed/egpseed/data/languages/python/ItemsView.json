@@ -31,16 +31,5 @@
         "outputs": [
             "bool"
         ]
-    },
-    "reversed": {
-        "inline": "reversed({i0})",
-        "inputs": [
-            "ItemsView[Hashable1, object1]"
-        ],
-        "description": "reversed",
-        "num_inputs": 1,
-        "outputs": [
-            "Iterator[Pair[Hashable1, object1]]"
-        ]
     }
 }

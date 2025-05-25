@@ -3,14 +3,14 @@
         "inline": "{i0} % {i1}",
         "description": "modulo",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "//": {
         "inline": "{i0} // {i1}",
         "description": "floor divide",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "<": {
@@ -45,7 +45,7 @@
         "inline": "divmod({i0}, {i1})",
         "description": "quotient and remainder",
         "outputs": [
-            "Pair[egp_highest, egp_highest]"
+            "Pair[EGPHighest, EGPHighest]"
         ]
     },
     "round1": {
@@ -60,11 +60,11 @@
         "inline": "round({i0}, {i1})",
         "inputs": [
             "Real",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "round to decimal places",
         "outputs": [
-            "egp_wc_0_0"
+            "0_0"
         ]
     }
 }

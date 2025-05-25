@@ -12,7 +12,7 @@
     "bytearray2": {
         "inline": "bytearray({i0})",
         "inputs": [
-            "Iterable[egp_integral]"
+            "Iterable[EGPIntegral]"
         ],
         "description": "bytearray from integers",
         "outputs": [

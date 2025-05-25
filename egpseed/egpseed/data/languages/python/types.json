@@ -1,6 +1,5 @@
 {
     "Any": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -10,8 +9,28 @@
             }
         ]
     },
+    "bool": {
+        "default": "True",
+        "parents": [
+            "int"
+        ]
+    },
+    "bytearray": {
+        "default": "bytearray('btwo')",
+        "parents": [
+            "MutableSequence",
+            "Bytes"
+        ]
+    },
+    "bytes": {
+        "default": "bytes('btwo')",
+        "parents": [
+            "Sequence",
+            "Hashable",
+            "Bytes"
+        ]
+    },
     "Bytes": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -39,7 +58,6 @@
         ]
     },
     "Collection": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -56,8 +74,13 @@
         ],
         "tt": 1
     },
+    "complex": {
+        "default": "complex(2.0,-2.0)",
+        "parents": [
+            "Complex"
+        ]
+    },
     "Complex": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -69,13 +92,40 @@
         ],
         "parents": [
             "Number",
-            "egp_complex"
+            "EGPComplex"
         ]
     },
     "Container": {
-        "abstract": true,
         "parents": [
             "object"
+        ],
+        "tt": 1
+    },
+    "dict": {
+        "default": "{}",
+        "parents": [
+            "MutableMapping"
+        ],
+        "tt": 2
+    },
+    "EGPComplex": {},
+    "EGPHighest": {},
+    "EGPIntegral": {},
+    "EGPInvalid": {},
+    "EGPNumber": {},
+    "EGPRational": {},
+    "EGPReal": {},
+    "float": {
+        "default": "(2.0)",
+        "parents": [
+            "Real"
+        ]
+    },
+    "frozenset": {
+        "default": "frozenset()",
+        "parents": [
+            "Set",
+            "Hashable"
         ],
         "tt": 1
     },
@@ -95,7 +145,6 @@
         "tt": 1
     },
     "Hashable": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -109,8 +158,13 @@
             "object"
         ]
     },
+    "int": {
+        "default": "(2)",
+        "parents": [
+            "Integral"
+        ]
+    },
     "Integral": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -121,7 +175,7 @@
         ],
         "parents": [
             "Rational",
-            "egp_integral"
+            "EGPIntegral"
         ]
     },
     "ItemsView": {
@@ -142,7 +196,6 @@
         "tt": 2
     },
     "Iterable": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -158,7 +211,6 @@
         "tt": 1
     },
     "Iterator": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -190,8 +242,14 @@
         ],
         "tt": 1
     },
+    "list": {
+        "default": "[]",
+        "parents": [
+            "MutableSequence"
+        ],
+        "tt": 1
+    },
     "Mapping": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -207,7 +265,6 @@
         "tt": 2
     },
     "MappingView": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -222,7 +279,6 @@
         ]
     },
     "MutableMapping": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -238,7 +294,6 @@
         "tt": 2
     },
     "MutableSequence": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -254,7 +309,6 @@
         "tt": 1
     },
     "MutableSet": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -276,7 +330,6 @@
         ]
     },
     "Number": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -287,8 +340,11 @@
         ],
         "parents": [
             "Hashable",
-            "egp_number"
+            "EGPNumber"
         ]
+    },
+    "object": {
+        "default": "object()"
     },
     "Pair": {
         "imports": [
@@ -341,8 +397,14 @@
         ],
         "tt": 5
     },
+    "range": {
+        "default": "range(2)",
+        "parents": [
+            "Sequence",
+            "Hashable"
+        ]
+    },
     "Rational": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -353,11 +415,10 @@
         ],
         "parents": [
             "Real",
-            "egp_rational"
+            "EGPRational"
         ]
     },
     "Real": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -368,11 +429,10 @@
         ],
         "parents": [
             "Complex",
-            "egp_real"
+            "EGPReal"
         ]
     },
     "Reversible": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -405,7 +465,6 @@
         "tt": 7
     },
     "Sequence": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -421,8 +480,14 @@
         ],
         "tt": 1
     },
+    "set": {
+        "default": "set()",
+        "parents": [
+            "MutableSet"
+        ],
+        "tt": 1
+    },
     "Set": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -455,7 +520,6 @@
         "tt": 6
     },
     "Sized": {
-        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -467,6 +531,13 @@
         ],
         "parents": [
             "object"
+        ]
+    },
+    "str": {
+        "default": "two",
+        "parents": [
+            "Sequence",
+            "Hashable"
         ]
     },
     "Triplet": {
@@ -485,6 +556,20 @@
             "tuple"
         ],
         "tt": 3
+    },
+    "tuple": {
+        "default": "tuple()",
+        "parents": [
+            "Sequence",
+            "Hashable"
+        ],
+        "tt": 1
+    },
+    "type": {
+        "default": "type('two')",
+        "parents": [
+            "object"
+        ]
     },
     "ValuesView": {
         "imports": [
@@ -514,127 +599,6 @@
                 ],
                 "name": "XGCType"
             }
-        ]
-    },
-    "bool": {
-        "default": "True",
-        "parents": [
-            "int"
-        ]
-    },
-    "bytearray": {
-        "default": "bytearray('btwo')",
-        "parents": [
-            "MutableSequence",
-            "Bytes"
-        ]
-    },
-    "bytes": {
-        "default": "bytes('btwo')",
-        "parents": [
-            "Sequence",
-            "Hashable",
-            "Bytes"
-        ]
-    },
-    "complex": {
-        "default": "complex(2.0,-2.0)",
-        "parents": [
-            "Complex"
-        ]
-    },
-    "dict": {
-        "default": "{}",
-        "parents": [
-            "MutableMapping"
-        ],
-        "tt": 2
-    },
-    "egp_complex": {
-        "meta": true
-    },
-    "egp_highest": {
-        "meta": true
-    },
-    "egp_integral": {
-        "meta": true
-    },
-    "egp_invalid": {
-        "meta": true
-    },
-    "egp_number": {
-        "meta": true
-    },
-    "egp_rational": {
-        "meta": true
-    },
-    "egp_real": {
-        "meta": true
-    },
-    "float": {
-        "default": "(2.0)",
-        "parents": [
-            "Real"
-        ]
-    },
-    "frozenset": {
-        "default": "frozenset()",
-        "parents": [
-            "Set",
-            "Hashable"
-        ],
-        "tt": 1
-    },
-    "int": {
-        "default": "(2)",
-        "parents": [
-            "Integral"
-        ]
-    },
-    "list": {
-        "default": "[]",
-        "parents": [
-            "MutableSequence"
-        ],
-        "tt": 1
-    },
-    "object": {
-        "abstract": true,
-        "default": "object()"
-    },
-    "range": {
-        "default": "range(2)",
-        "parents": [
-            "Sequence",
-            "Hashable"
-        ]
-    },
-    "set": {
-        "default": "set()",
-        "parents": [
-            "MutableSet"
-        ],
-        "tt": 1
-    },
-    "str": {
-        "default": "two",
-        "parents": [
-            "Sequence",
-            "Hashable"
-        ]
-    },
-    "tuple": {
-        "default": "tuple()",
-        "parents": [
-            "Sequence",
-            "Hashable"
-        ],
-        "tt": 1
-    },
-    "type": {
-        "default": "type('two')",
-        "parents": [
-            "object"
         ]
     }
 }

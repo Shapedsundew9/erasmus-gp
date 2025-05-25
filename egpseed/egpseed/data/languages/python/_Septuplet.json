@@ -2,96 +2,96 @@
     "Septuplet": {
         "inline": "({i0}, {i1}, {i2}, {i3}, {i4}, {i5}, {i6})",
         "inputs": [
-            "object1",
-            "object2",
-            "object3",
-            "object4",
-            "object5",
-            "object6",
-            "object7"
+            "object",
+            "object",
+            "object",
+            "object",
+            "object",
+            "object",
+            "object"
         ],
         "description": "Septuplet",
         "outputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[0_0, 1_0, 2_0, 3_0, 4_0, 5_0, 6_0]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "first item",
         "outputs": [
-            "object1"
+            "0_0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "second item",
         "outputs": [
-            "object2"
+            "1_0"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "third item",
         "outputs": [
-            "object3"
+            "2_0"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "fourth item",
         "outputs": [
-            "object4"
+            "3_0"
         ]
     },
     "item4": {
         "inline": "{i0}[4]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "fifth item",
         "outputs": [
-            "object5"
+            "4_0"
         ]
     },
     "item5": {
         "inline": "{i0}[5]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "sixth item",
         "outputs": [
-            "object6"
+            "5_0"
         ]
     },
     "item6": {
         "inline": "{i0}[6]",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "description": "seventh item",
         "outputs": [
-            "object7"
+            "6_0"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Septuplet[object1, object2, object3, object4, object5, object6, object7]"
+            "Septuplet[object, object, object, object, object, object, object]"
         ],
         "outputs": [
-            "object"
+            "tuple[Any, ...]"
         ]
     }
 }

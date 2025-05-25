@@ -5,7 +5,6 @@ from __future__ import annotations
 from json import dumps, loads
 from os.path import dirname, join
 from typing import Any, Final, Generator, Iterable
-from weakref import WeakValueDictionary
 
 from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
@@ -29,8 +28,6 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Initialize the database connection
-NAME_TO_TD_MAP: WeakValueDictionary[str, TypesDef] = WeakValueDictionary()
-UID_TO_TD_MAP: WeakValueDictionary[int, TypesDef] = WeakValueDictionary()
 DB_STORE = Table(
     config=TableConfig(
         database=LOCAL_DB_CONFIG,
@@ -59,8 +56,8 @@ DB_STORE = Table(
 )
 
 # The generic tuple type UID
-# See types_def_db.py assertion for the UID
-_TUPLE_UID: int = 200
+_TUPLE_UID: int = 268435471
+
 
 # The BitDict format of the EGP type UID
 TypesDefBD: type[BitDictABC] = bitdict_factory(
@@ -335,7 +332,7 @@ class TypesDef(FreezableObject, Validator):
             "abstract": self.__abstract,
             "children": list(self.__children),
             "default": self.__default,
-            "ept": self.__ept,
+            "ept": list(self.__ept),
             "imports": [idef.to_json() for idef in self.__imports],
             "name": self.__name,
             "parents": list(self.__parents),
@@ -494,4 +491,4 @@ types_def_store = TypesDefStore()
 
 
 # Important check
-assert types_def_store["tuple"].uid == 200, "Tuple UID is used as a constant in types_def.py"
+assert types_def_store["tuple"].uid == _TUPLE_UID, "Tuple UID is used as a constant."

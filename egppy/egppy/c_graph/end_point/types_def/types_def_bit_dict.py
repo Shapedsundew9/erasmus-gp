@@ -19,10 +19,27 @@ Y_MAX = 15
 FX_MAX = 7
 
 TT_RESERVED: dict[str, dict[str, Any]] = {
-    "reserved_tt": {
+    "reserved_tt1": {
+        "type": "uint",
+        "start": 27,
+        "width": 1,
+        "default": 0,
+        "description": "Reserved for future use.",
+        "valid": {"value": {0}},
+    },
+    "fx": {
+        "type": "uint",
+        "start": 24,
+        "width": 3,
+        "description": "Fixed set.",
+        "default": 0,
+        "valid": {"range": [(FX_MAX + 1,)]},
+    },
+    "reserved_tt2": {
         "type": "uint",
         "start": 16,
-        "width": 12,
+        "width": 8,
+        "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
     },
@@ -30,9 +47,11 @@ TT_RESERVED: dict[str, dict[str, Any]] = {
         "type": "uint",
         "start": 0,
         "width": 16,
-        "description": "Compound type XUID (TT > 0).",
+        "default": 0,
+        "description": "Single concrete type XUID.",
     },
 }
+
 
 TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
     "reserved": {
@@ -83,7 +102,7 @@ TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
                                 "default": 0,
                                 "valid": {"range": [(FX_MAX + 1,)]},
                             },
-                            "reserved": {
+                            "reserved_io": {
                                 "type": "uint",
                                 "start": 16,
                                 "width": 8,
@@ -100,7 +119,7 @@ TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
                             },
                         },
                         {
-                            "reserved": {
+                            "reserved_io": {
                                 "type": "uint",
                                 "start": 16,
                                 "width": 11,

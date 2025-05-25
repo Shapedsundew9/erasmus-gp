@@ -2,53 +2,53 @@
     "Triplet": {
         "inline": "({i0}, {i1}, {i2})",
         "inputs": [
-            "object1",
-            "object2",
-            "object3"
+            "object",
+            "object",
+            "object"
         ],
         "description": "Triplet",
         "outputs": [
-            "Triplet[object1, object2, object3]"
+            "Triplet[0_0, 1_0, 2_0]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Triplet[object1, object2, object3]"
+            "Triplet[object, object, object]"
         ],
         "description": "first item",
         "outputs": [
-            "object1"
+            "0_0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Triplet[object1, object2, object3]"
+            "Triplet[object, object, object]"
         ],
         "description": "second item",
         "outputs": [
-            "object2"
+            "1_0"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
         "inputs": [
-            "Triplet[object1, object2, object3]"
+            "Triplet[object, object, object]"
         ],
         "description": "third item",
         "outputs": [
-            "object3"
+            "2_0"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Triplet[object1, object2, object3]"
+            "Triplet[object, object, object]"
         ],
         "description": "to any",
         "outputs": [
-            "tuple[object, ...]"
+            "tuple[Any, ...]"
         ]
     }
 }

@@ -2,24 +2,24 @@
     "range1": {
         "inline": "range({i0}, {i1}, {i2})",
         "inputs": [
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "range(start, stop, step)"
     },
     "range2": {
         "inline": "range({i0}, {i1})",
         "inputs": [
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "range(start, stop)"
     },
     "range3": {
         "inline": "range({i0})",
         "inputs": [
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "range(stop)"
     }

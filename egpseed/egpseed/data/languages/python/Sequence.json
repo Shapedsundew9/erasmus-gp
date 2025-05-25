@@ -3,7 +3,7 @@
         "inline": "{i0}.count({i1})",
         "inputs": [
             "Sequence[object]",
-            "object"
+            "0_1"
         ],
         "description": "total number of occurances",
         "outputs": [
@@ -18,7 +18,7 @@
         ],
         "description": "element at index",
         "outputs": [
-            "object"
+            "0_1"
         ]
     },
     "get slice": {
@@ -28,7 +28,10 @@
             "int",
             "int"
         ],
-        "description": "slice of a sequence"
+        "description": "slice of a sequence",
+        "outputs": [
+            "Sequence[0_1]"
+        ]
     },
     "get slice step": {
         "inline": "{i0}[{i1}:{i2}:{i3}]",
@@ -37,13 +40,16 @@
             "int",
             "int",
             "int"
+        ],
+        "outputs": [
+            "Sequence[0_1]"
         ]
     },
     "index1": {
         "inline": "{i0}.index({i1})",
         "inputs": [
             "Sequence[object]",
-            "object"
+            "0_1"
         ],
         "description": "Index of the first occurance",
         "outputs": [
@@ -54,7 +60,7 @@
         "inline": "{i0}.index({i1}, {i2})",
         "inputs": [
             "Sequence[object]",
-            "object",
+            "0_1",
             "int"
         ],
         "description": "Index of the first occurance from an offset",
@@ -66,7 +72,7 @@
         "inline": "{i0}.index({i1}, {i2}, {i3})",
         "inputs": [
             "Sequence[object]",
-            "object",
+            "0_1",
             "int",
             "int"
         ],

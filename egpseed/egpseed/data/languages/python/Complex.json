@@ -3,35 +3,35 @@
         "inline": "{i0} * {i1}",
         "description": "multiply",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "**": {
         "inline": "{i0} ** {i1}",
         "description": "to the power of",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "+": {
         "inline": "{i0} + {i1}",
         "description": "add",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "-": {
         "inline": "{i0} - {i1}",
         "description": "subtract",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "/": {
         "inline": "{i0} / {i1}",
         "description": "true divide",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "abs": {
@@ -39,7 +39,7 @@
         "description": "absolute value or magnitude",
         "num_inputs": 1,
         "outputs": [
-            "egp_wc_0_0"
+            "int"
         ]
     },
     "conjugate": {
@@ -64,7 +64,7 @@
         "inline": "pow({i0}, {i1})",
         "description": "raise to the power of",
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "real": {

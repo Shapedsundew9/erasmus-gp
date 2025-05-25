@@ -2,8 +2,8 @@
     "append": {
         "inline": "{i0}.append({i1})",
         "inputs": [
-            "MutableSequence[object1]",
-            "object1"
+            "MutableSequence[object]",
+            "0_1"
         ],
         "num_outputs": 0,
         "properties": {
@@ -22,7 +22,7 @@
         "inline": "del {i0}[{i1}]",
         "inputs": [
             "MutableSequence[object]",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "num_outputs": 0,
         "properties": {
@@ -33,8 +33,8 @@
         "inline": "del {i0}[{i1}:{i2}]",
         "inputs": [
             "MutableSequence[object]",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "num_outputs": 0,
         "properties": {
@@ -45,9 +45,9 @@
         "inline": "del {i0}[{i1}:{i2}:{i3}]",
         "inputs": [
             "MutableSequence[object]",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "num_outputs": 0,
         "properties": {
@@ -57,8 +57,8 @@
     "extend": {
         "inline": "{i0}.extend({i1})",
         "inputs": [
-            "MutableSequence[object1]",
-            "Iterable[object1]"
+            "MutableSequence[object]",
+            "Iterable[0_1]"
         ],
         "num_outputs": 0,
         "properties": {
@@ -68,9 +68,9 @@
     "insert": {
         "inline": "{i0}.insert({i1}, {i2})",
         "inputs": [
-            "MutableSequence[object1]",
-            "egp_integral",
-            "object1"
+            "MutableSequence[object]",
+            "EGPIntegral",
+            "0_1"
         ],
         "num_outputs": 0,
         "properties": {
@@ -80,10 +80,10 @@
     "pop0": {
         "inline": "{i0}.pop()",
         "inputs": [
-            "MutableSequence[object1]"
+            "MutableSequence[object]"
         ],
         "outputs": [
-            "object1"
+            "0_1"
         ],
         "properties": {
             "side_effects": true
@@ -92,11 +92,11 @@
     "pop1": {
         "inline": "{i0}.pop({i1})",
         "inputs": [
-            "MutableSequence[object1]",
-            "egp_integral"
+            "MutableSequence[object]",
+            "EGPIntegral"
         ],
         "outputs": [
-            "object1"
+            "0_1"
         ],
         "properties": {
             "side_effects": true
@@ -105,8 +105,8 @@
     "remove": {
         "inline": "{i0}.remove({i1})",
         "inputs": [
-            "MutableSequence[object1]",
-            "object1"
+            "MutableSequence[0_1]",
+            "0_1"
         ],
         "num_outputs": 0,
         "properties": {
@@ -116,9 +116,9 @@
     "set element": {
         "inline": "{i0}[{i1}] = {i2}",
         "inputs": [
-            "MutableSequence[object1]",
-            "egp_integral",
-            "object1"
+            "MutableSequence[0_1]",
+            "EGPIntegral",
+            "0_1"
         ],
         "num_outputs": 0,
         "properties": {
@@ -128,10 +128,10 @@
     "set slice": {
         "inline": "{i0}[{i1}:{i2}] = {i3}",
         "inputs": [
-            "MutableSequence[object1]",
-            "egp_integral",
-            "egp_integral",
-            "Iterable[object1]"
+            "MutableSequence[object]",
+            "EGPIntegral",
+            "EGPIntegral",
+            "Iterable[0_1]"
         ],
         "num_outputs": 0,
         "properties": {
@@ -141,11 +141,11 @@
     "set slice step": {
         "inline": "{i0}[{i1}:{i2}:{i3}] = {i4}",
         "inputs": [
-            "MutableSequence[object1]",
-            "egp_integral",
-            "egp_integral",
-            "egp_integral",
-            "Iterable[object1]"
+            "MutableSequence[object]",
+            "EGPIntegral",
+            "EGPIntegral",
+            "EGPIntegral",
+            "Iterable[0_1]"
         ],
         "num_outputs": 0,
         "properties": {

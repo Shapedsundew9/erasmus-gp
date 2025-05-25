@@ -79,7 +79,7 @@
     "int1": {
         "inline": "int({i0})",
         "inputs": [
-            "egp_number"
+            "EGPNumber"
         ],
         "description": "int"
     },
@@ -87,7 +87,7 @@
         "inline": "int({i0}, {i1})",
         "inputs": [
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "int"
     },

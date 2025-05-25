@@ -13,7 +13,7 @@
         "inline": "{i0}.center({i1})",
         "inputs": [
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "center"
     },
@@ -21,7 +21,7 @@
         "inline": "{i0}.center({i1}, {i2})",
         "inputs": [
             "str",
-            "egp_integral",
+            "EGPIntegral",
             "str"
         ],
         "description": "center with fill character"
@@ -38,7 +38,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "count from",
         "outputs": [
@@ -50,8 +50,8 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "count from to",
         "outputs": [
@@ -82,7 +82,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "ends with from",
         "outputs": [
@@ -94,8 +94,8 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "ends with from to",
         "outputs": [
@@ -111,7 +111,7 @@
         "inline": "{i0}.expandtabs({i1})",
         "inputs": [
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "expand tabs"
     },
@@ -131,7 +131,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "find from",
         "outputs": [
@@ -143,8 +143,8 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "find from to",
         "outputs": [
@@ -259,7 +259,7 @@
         "inline": "{i0}.ljust({i1})",
         "inputs": [
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "left justify space"
     },
@@ -267,7 +267,7 @@
         "inline": "{i0}.ljust({i1}, {i2})",
         "inputs": [
             "str",
-            "egp_integral",
+            "EGPIntegral",
             "str"
         ],
         "description": "left justify with fill character"
@@ -340,7 +340,7 @@
             "str",
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "replace count"
     },
@@ -360,7 +360,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "rfind from",
         "outputs": [
@@ -372,8 +372,8 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rfind from to",
         "outputs": [
@@ -396,7 +396,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "rindex from",
         "outputs": [
@@ -408,8 +408,8 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "rindex from to",
         "outputs": [
@@ -420,7 +420,7 @@
         "inline": "{i0}.rjust({i1})",
         "inputs": [
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "right justify space"
     },
@@ -428,7 +428,7 @@
         "inline": "{i0}.rjust({i1}, {i2})",
         "inputs": [
             "str",
-            "egp_integral",
+            "EGPIntegral",
             "str"
         ],
         "description": "right justify with fill character"
@@ -468,7 +468,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "right split max",
         "outputs": [
@@ -512,7 +512,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "split max",
         "outputs": [
@@ -554,7 +554,7 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "starts with from",
         "outputs": [
@@ -566,8 +566,8 @@
         "inputs": [
             "str",
             "str",
-            "egp_integral",
-            "egp_integral"
+            "EGPIntegral",
+            "EGPIntegral"
         ],
         "description": "starts with from to",
         "outputs": [
@@ -655,7 +655,7 @@
         "inline": "{i0}.zfill({i1})",
         "inputs": [
             "str",
-            "egp_integral"
+            "EGPIntegral"
         ],
         "description": "zero fill",
         "outputs": [
