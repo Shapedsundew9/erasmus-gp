@@ -1,5 +1,6 @@
 {
     "Any": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -18,19 +19,20 @@
     "bytearray": {
         "default": "bytearray('btwo')",
         "parents": [
-            "MutableSequence",
+            "MutableSequence[int]",
             "Bytes"
         ]
     },
     "bytes": {
         "default": "bytes('btwo')",
         "parents": [
-            "Sequence",
+            "Sequence[int]",
             "Hashable",
             "Bytes"
         ]
     },
     "Bytes": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -43,7 +45,7 @@
             }
         ]
     },
-    "Callable": {
+    "Callable[list[Any], Any]": {
         "imports": [
             {
                 "aip": [
@@ -55,9 +57,11 @@
         ],
         "parents": [
             "object"
-        ]
+        ],
+        "tt": 2
     },
-    "Collection": {
+    "Collection[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -69,8 +73,8 @@
         ],
         "parents": [
             "Sized",
-            "Iterable",
-            "Container"
+            "Iterable[0]",
+            "Container[0]"
         ],
         "tt": 1
     },
@@ -81,6 +85,7 @@
         ]
     },
     "Complex": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -92,44 +97,59 @@
         ],
         "parents": [
             "Number",
-            "EGPComplex"
+            "egp_complex"
         ]
     },
-    "Container": {
+    "Container[Any]": {
+        "abstract": true,
         "parents": [
             "object"
         ],
         "tt": 1
     },
-    "dict": {
+    "dict[Hashable, Any]": {
         "default": "{}",
         "parents": [
-            "MutableMapping"
+            "MutableMapping[0, 1]"
         ],
         "tt": 2
     },
-    "EGPComplex": {},
-    "EGPHighest": {},
-    "EGPIntegral": {},
-    "EGPInvalid": {},
-    "EGPNumber": {},
-    "EGPRational": {},
-    "EGPReal": {},
+    "egp_complex": {
+        "meta": true
+    },
+    "egp_highest": {
+        "meta": true
+    },
+    "egp_integral": {
+        "meta": true
+    },
+    "egp_invalid": {
+        "meta": true
+    },
+    "egp_number": {
+        "meta": true
+    },
+    "egp_rational": {
+        "meta": true
+    },
+    "egp_real": {
+        "meta": true
+    },
     "float": {
         "default": "(2.0)",
         "parents": [
             "Real"
         ]
     },
-    "frozenset": {
+    "frozenset[Any]": {
         "default": "frozenset()",
         "parents": [
-            "Set",
+            "Set[0]",
             "Hashable"
         ],
         "tt": 1
     },
-    "Generator": {
+    "Generator[Any, Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -142,9 +162,10 @@
         "parents": [
             "object"
         ],
-        "tt": 1
+        "tt": 3
     },
     "Hashable": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -165,6 +186,7 @@
         ]
     },
     "Integral": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -175,10 +197,10 @@
         ],
         "parents": [
             "Rational",
-            "EGPIntegral"
+            "egp_integral"
         ]
     },
-    "ItemsView": {
+    "ItemsView[Hashable, Any]": {
         "imports": [
             {
                 "aip": [
@@ -190,12 +212,13 @@
         ],
         "parents": [
             "MappingView",
-            "Set",
-            "Reversible"
+            "Set[tuple[0, 1]]",
+            "Reversible[tuple[0, 1]]"
         ],
         "tt": 2
     },
-    "Iterable": {
+    "Iterable[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -210,7 +233,8 @@
         ],
         "tt": 1
     },
-    "Iterator": {
+    "Iterator[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -221,11 +245,11 @@
             }
         ],
         "parents": [
-            "Iterable"
+            "Iterable[0]"
         ],
         "tt": 1
     },
-    "KeysView": {
+    "KeysView[Hashable]": {
         "imports": [
             {
                 "aip": [
@@ -237,19 +261,20 @@
         ],
         "parents": [
             "MappingView",
-            "Set",
-            "Reversible"
+            "Set[0]",
+            "Reversible[0]"
         ],
         "tt": 1
     },
-    "list": {
+    "list[Any]": {
         "default": "[]",
         "parents": [
-            "MutableSequence"
+            "MutableSequence[0]"
         ],
         "tt": 1
     },
-    "Mapping": {
+    "Mapping[Hashable, Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -260,11 +285,12 @@
             }
         ],
         "parents": [
-            "Collection"
+            "Collection[0]"
         ],
         "tt": 2
     },
     "MappingView": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -278,7 +304,8 @@
             "Sized"
         ]
     },
-    "MutableMapping": {
+    "MutableMapping[Hashable, Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -289,11 +316,12 @@
             }
         ],
         "parents": [
-            "Mapping"
+            "Mapping[0, 1]"
         ],
         "tt": 2
     },
-    "MutableSequence": {
+    "MutableSequence[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -304,11 +332,12 @@
             }
         ],
         "parents": [
-            "Sequence"
+            "Sequence[0]"
         ],
         "tt": 1
     },
-    "MutableSet": {
+    "MutableSet[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -319,7 +348,7 @@
             }
         ],
         "parents": [
-            "Set"
+            "Set[0]"
         ],
         "tt": 1
     },
@@ -330,6 +359,7 @@
         ]
     },
     "Number": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -340,13 +370,14 @@
         ],
         "parents": [
             "Hashable",
-            "EGPNumber"
+            "egp_number"
         ]
     },
     "object": {
+        "abstract": true,
         "default": "object()"
     },
-    "Pair": {
+    "Pair[Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -359,11 +390,11 @@
             }
         ],
         "parents": [
-            "tuple"
+            "tuple[Any, ...]"
         ],
         "tt": 2
     },
-    "Quadruplet": {
+    "Quadruplet[Any, Any, Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -376,11 +407,11 @@
             }
         ],
         "parents": [
-            "tuple"
+            "tuple[Any, ...]"
         ],
         "tt": 4
     },
-    "Quintuplet": {
+    "Quintuplet[Any, Any, Any, Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -393,18 +424,19 @@
             }
         ],
         "parents": [
-            "tuple"
+            "tuple[Any, ...]"
         ],
         "tt": 5
     },
     "range": {
         "default": "range(2)",
         "parents": [
-            "Sequence",
+            "Sequence[int]",
             "Hashable"
         ]
     },
     "Rational": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -415,10 +447,11 @@
         ],
         "parents": [
             "Real",
-            "EGPRational"
+            "egp_rational"
         ]
     },
     "Real": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -429,10 +462,11 @@
         ],
         "parents": [
             "Complex",
-            "EGPReal"
+            "egp_real"
         ]
     },
-    "Reversible": {
+    "Reversible[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -443,11 +477,11 @@
             }
         ],
         "parents": [
-            "Iterable"
+            "Iterable[Any]"
         ],
         "tt": 1
     },
-    "Septuplet": {
+    "Septuplet[Any, Any, Any, Any, Any, Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -460,11 +494,12 @@
             }
         ],
         "parents": [
-            "tuple"
+            "tuple[Any, ...]"
         ],
         "tt": 7
     },
-    "Sequence": {
+    "Sequence[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -475,19 +510,20 @@
             }
         ],
         "parents": [
-            "Reversible",
-            "Collection"
+            "Reversible[Any]",
+            "Collection[Any]"
         ],
         "tt": 1
     },
-    "set": {
+    "set[Any]": {
         "default": "set()",
         "parents": [
-            "MutableSet"
+            "MutableSet[Any]"
         ],
         "tt": 1
     },
-    "Set": {
+    "Set[Any]": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -498,11 +534,11 @@
             }
         ],
         "parents": [
-            "Collection"
+            "Collection[Any]"
         ],
         "tt": 1
     },
-    "Sextuplet": {
+    "Sextuplet[Any, Any, Any, Any, Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -515,11 +551,12 @@
             }
         ],
         "parents": [
-            "tuple"
+            "tuple[Any, ...]"
         ],
         "tt": 6
     },
     "Sized": {
+        "abstract": true,
         "imports": [
             {
                 "aip": [
@@ -536,11 +573,11 @@
     "str": {
         "default": "two",
         "parents": [
-            "Sequence",
+            "Sequence[str]",
             "Hashable"
         ]
     },
-    "Triplet": {
+    "Triplet[Any, Any, Any]": {
         "imports": [
             {
                 "aip": [
@@ -553,11 +590,11 @@
             }
         ],
         "parents": [
-            "tuple"
+            "tuple[Any, ...]"
         ],
         "tt": 3
     },
-    "tuple": {
+    "tuple[Any, ...]": {
         "default": "tuple()",
         "parents": [
             "Sequence",
@@ -571,7 +608,7 @@
             "object"
         ]
     },
-    "ValuesView": {
+    "ValuesView[Any]": {
         "imports": [
             {
                 "aip": [
@@ -583,8 +620,8 @@
         ],
         "parents": [
             "MappingView",
-            "Collection",
-            "Reversible"
+            "Collection[Any]",
+            "Reversible[Any]"
         ],
         "tt": 1
     },

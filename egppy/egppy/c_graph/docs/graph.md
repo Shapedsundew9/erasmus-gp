@@ -148,6 +148,10 @@ The EP Type integer UID value Has the following format:
 
 The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using a type such as _object_ or _Number_ which constrain the type). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types directly, a global database maintains the UID to typed container mapping.
 
+### UID Allocation
+
+EGP permits an [infinite number of types](https://g.co/gemini/share/36d4f3b94521) i.e. a Septuple may be typed with Septuples that are not the same type as itself (inifinte recursion is not permitted) and so UID's are allocated on a globally atomic "first come first served" basis. By default all scalar (TT = 0) types plus base typed containers (e.g. "list[Any]", "dict[Hashable, Any]") permutation UIDs are defined for all containers with TT <= 2 and further types UID definitions for TT >= 1 e.g "list[int]" or "Triplet[list[Any], str, Complex]" are defined on demand from the problem definition.
+
 ### End Point Types
 
 End Point Types, EPTs, are complete types defined by a sequence (usually a tuple) of types with the format. They are the full definition of a container type (TT > 0) type:

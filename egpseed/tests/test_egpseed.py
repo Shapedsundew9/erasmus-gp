@@ -1,7 +1,7 @@
 """Test the generate module."""
 
 import unittest
-from egpseed.generate import generate_codons
+from egpseed.generate_codons import generate_codons
 
 
 class TestGenerateCodons(unittest.TestCase):

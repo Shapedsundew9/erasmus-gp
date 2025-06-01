@@ -1,16 +1,18 @@
 """Unit tests for the TypesDef class and _to_str_recursive function."""
 
 import unittest
+
+from egpcommon.egp_log import DEBUG, Logger, egp_logger  # For logging setup (optional)
+
 from egppy.c_graph.end_point.import_def import ImportDef, import_def_store
 
 # Absolute import for the functions and classes to test
 from egppy.c_graph.end_point.types_def.types_def import (
-    TypesDef,
-    _to_str_recursive,
     _TUPLE_UID,
+    TypesDef,
     TypesDefBD,
+    _to_str_recursive,
 )
-from egpcommon.egp_log import Logger, egp_logger, DEBUG  # For logging setup (optional)
 
 # Standard EGP logging pattern (optional, but good practice from example)
 _logger: Logger = egp_logger(name=__name__)
@@ -114,10 +116,10 @@ class TestTypesDef(unittest.TestCase):
 
         # Template TypesDef instances with UIDs structured to yield specific tt() values
         cls.td_collection_template = TypesDef(
-            name="Collection", uid={"tt": 1, "xuid": 9}, ept=(9,), abstract=True
+            name="Collection[object]", uid={"tt": 1, "xuid": 9}, ept=(268435465, 25), abstract=True
         )
         cls.td_mapping_template = TypesDef(
-            name="Mapping", uid={"tt": 2, "xuid": 68}, ept=(68,), abstract=True
+            name="Mapping", uid={"tt": 2, "xuid": 15}, ept=(536870927, 25, 25), abstract=True
         )
 
         # For testing 'imports' property
