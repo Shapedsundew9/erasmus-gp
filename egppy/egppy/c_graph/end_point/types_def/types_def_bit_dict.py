@@ -11,50 +11,8 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# Types definition bit dict configuration
-X_POS = 8
-Y_POS = 0
-X_MAX = 63
-Y_MAX = 15
-FX_MAX = 7
-
-TT_RESERVED: dict[str, dict[str, Any]] = {
-    "reserved_tt1": {
-        "type": "uint",
-        "start": 27,
-        "width": 1,
-        "default": 0,
-        "description": "Reserved for future use.",
-        "valid": {"value": {0}},
-    },
-    "fx": {
-        "type": "uint",
-        "start": 24,
-        "width": 3,
-        "description": "Fixed set.",
-        "default": 0,
-        "valid": {"range": [(FX_MAX + 1,)]},
-    },
-    "reserved_tt2": {
-        "type": "uint",
-        "start": 16,
-        "width": 8,
-        "default": 0,
-        "description": "Reserved for future use.",
-        "valid": {"value": {0}},
-    },
-    "xuid": {
-        "type": "uint",
-        "start": 0,
-        "width": 16,
-        "default": 0,
-        "description": "Single concrete type XUID.",
-    },
-}
-
-
 TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
-    "reserved": {
+    "reserved_31": {
         "type": "bool",
         "start": 31,
         "width": 1,
@@ -70,106 +28,19 @@ TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
         "description": "Template Type.",
         "valid": {"range": [(8,)]},
     },
-    "ttsp": {
-        "type": "bitdict",
-        "start": 0,
-        "width": 28,
-        "selector": "tt",
-        "description": "Template Type specific properties.",
-        "subtype": [
-            {
-                "io": {
-                    "type": "bool",
-                    "start": 27,
-                    "width": 1,
-                    "description": "Wildcard types.",
-                    "default": False,
-                    "valid": {"range": [(2,)]},
-                },
-                "iosp": {
-                    "type": "bitdict",
-                    "start": 0,
-                    "width": 27,
-                    "description": "IO specific properties.",
-                    "selector": "io",
-                    "subtype": [
-                        {
-                            "fx": {
-                                "type": "uint",
-                                "start": 24,
-                                "width": 3,
-                                "description": "Fixed set.",
-                                "default": 0,
-                                "valid": {"range": [(FX_MAX + 1,)]},
-                            },
-                            "reserved_io": {
-                                "type": "uint",
-                                "start": 16,
-                                "width": 8,
-                                "default": 0,
-                                "description": "Reserved for future use.",
-                                "valid": {"value": {0}},
-                            },
-                            "xuid": {
-                                "type": "uint",
-                                "start": 0,
-                                "width": 16,
-                                "default": 0,
-                                "description": "Single concrete type XUID.",
-                            },
-                        },
-                        {
-                            "reserved_io": {
-                                "type": "uint",
-                                "start": 16,
-                                "width": 11,
-                                "default": 0,
-                                "description": "Reserved for future use.",
-                                "valid": {"value": {0}},
-                            },
-                            "reserved_x": {
-                                "type": "uint",
-                                "start": 14,
-                                "width": 2,
-                                "default": 0,
-                                "description": "Reserved for future use.",
-                                "valid": {"value": {0}},
-                            },
-                            "x": {
-                                "type": "uint",
-                                "start": X_POS,
-                                "width": 6,
-                                "description": "X coordinate.",
-                                "default": 0,
-                                "valid": {"range": [(X_MAX + 1,)]},
-                            },
-                            "reserved_y": {
-                                "type": "uint",
-                                "start": 4,
-                                "width": 4,
-                                "default": 0,
-                                "description": "Reserved for future use.",
-                                "valid": {"value": {0}},
-                            },
-                            "y": {
-                                "type": "uint",
-                                "start": Y_POS,
-                                "width": 4,
-                                "description": "Y coordinate.",
-                                "default": 0,
-                                "valid": {"range": [(Y_MAX + 1,)]},
-                            },
-                        },
-                    ],
-                },
-            },
-            TT_RESERVED,
-            TT_RESERVED,
-            TT_RESERVED,
-            TT_RESERVED,
-            TT_RESERVED,
-            TT_RESERVED,
-            TT_RESERVED,
-        ],
+    "reserved_27_16": {
+        "type": "int",
+        "start": 16,
+        "width": 12,
+        "default": 0,
+        "description": "Reserved for future use.",
+        "valid": {"value": {0}},
     },
+    "xuid": {
+        "type": "uint",
+        "start": 0,
+        "width": 16,
+        "default": 0,
+        "description": "Single concrete type XUID.",
+    }
 }

@@ -5,6 +5,7 @@ from __future__ import annotations
 from json import dumps, loads
 from os.path import dirname, join
 from typing import Any, Final, Generator, Iterable
+from array import array
 
 from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
@@ -37,26 +38,21 @@ DB_STORE = Table(
             "name": ColumnSchema(db_type="VARCHAR", index="btree"),
             "default": ColumnSchema(db_type="VARCHAR", nullable=True),
             "abstract": ColumnSchema(db_type="bool"),
-            "ept": ColumnSchema(db_type="INT4[]"),
             "imports": ColumnSchema(db_type="VARCHAR"),
-            "parents": ColumnSchema(db_type="VARCHAR"),
-            "children": ColumnSchema(db_type="VARCHAR"),
+            "parents": ColumnSchema(db_type="INT4[]"),
+            "children": ColumnSchema(db_type="INT4[]"),
         },
         data_file_folder=join(dirname(__file__), "..", "..", "..", "data"),
         data_files=["types_def.json"],
         delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
         create_db=True,
         create_table=True,
-        conversions=(
-            ("imports", dumps, loads),
-            ("parents", dumps, loads),
-            ("children", dumps, loads),
-        ),
+        conversions=(("imports", dumps, loads),),
     ),
 )
 
 # The generic tuple type UID
-_TUPLE_UID: int = 268435471
+_TUPLE_UID: int = 268435874
 
 
 # The BitDict format of the EGP type UID
@@ -77,7 +73,6 @@ class TypesDef(FreezableObject, Validator):
 
     __slots__: tuple[str, ...] = (
         "__name",
-        "__ept",
         "__default",
         "__abstract",
         "__imports",
@@ -90,35 +85,32 @@ class TypesDef(FreezableObject, Validator):
         self,
         name: str,
         uid: int | dict[str, Any],
-        ept: Iterable[int],
         abstract: bool = False,
         default: str | None = None,
         imports: Iterable[ImportDef] | dict = NULL_TUPLE,
-        parents: Iterable[str | TypesDef] = NULL_TUPLE,
-        children: Iterable[str | TypesDef] = NULL_TUPLE,
+        parents: Iterable[int | TypesDef] = NULL_TUPLE,
+        children: Iterable[int | TypesDef] = NULL_TUPLE,
     ) -> None:
         """Initialize Type Definition.
 
         Args:
             name: Name of the type definition.
             uid: Unique identifier of the type definition.
-            ept: The End Point Type - a list of integers defining the type.
             abstract: True if the type is abstract.
             default: Executable python default instantiation of the type.
             imports: List of import definitions need to instantiate the type.
-            parents: List of type names or definitions that the type inherits from.
-            children: List of type names or definitions that the type has as children.
+            parents: List of type uids or definitions that the type inherits from.
+            children: List of type uids or definitions that the type has as children.
         """
         # Always set frozen to False
         # because we want to be able to set the attributes during initialization.
         super().__init__(frozen=False)
         self.__name: Final[str] = self._name(name)
-        self.__ept: Final[tuple[int, ...]] = self._ept(ept)
         self.__default: Final[str | None] = self._default(default)
         self.__abstract: Final[bool] = self._abstract(abstract)
         self.__imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
-        self.__parents: Final[tuple[str, ...]] = self._parents(parents)
-        self.__children: Final[tuple[str, ...]] = self._children(children)
+        self.__parents: Final[array[int]] = self._parents(parents)
+        self.__children: Final[array[int]] = self._children(children)
         self.__uid: Final[int] = self._uid(uid)
         self.freeze()
 
@@ -142,7 +134,6 @@ class TypesDef(FreezableObject, Validator):
         for value in (
             self.__name,
             self.uid,
-            self.__ept,
             self.__default,
             self.__imports,
             self.__parents,
@@ -159,23 +150,23 @@ class TypesDef(FreezableObject, Validator):
         self._is_bool("abstract", abstract)
         return abstract
 
-    def _children(self, children: Iterable[str | TypesDef]) -> tuple[str, ...]:
-        """Mash the children definitions into a tuple of type names.
+    def _children(self, children: Iterable[int | TypesDef]) -> array[int]:
+        """Mash the children definitions into an array of type uids.
         Names are used to look up the type in the types database on an as needed basis.
         This allows TypesDef objects to be independently cached.
         """
-        # If it is already a tuple no need to copy it. Saves memory.
-        if isinstance(children, tuple) and all(isinstance(i, str) for i in children):
-            return children  # type: ignore
-        child_list: list[str] = []
+        # If it is already an array no need to copy it. Saves memory.
+        if isinstance(children, array) and children.typecode == "i":
+            return children
+        child_list: list[int] = []
         for child in children:
-            if isinstance(child, str):
+            if isinstance(child, int):
                 child_list.append(child)
             elif isinstance(child, TypesDef):
-                child_list.append(child.name)
+                child_list.append(child.uid)
             else:
                 raise ValueError("Invalid children definition.")
-        return tuple(child_list)
+        return array("i", child_list)
 
     def _default(self, default: str | None) -> str | None:
         """Validate the default instantiation of the type definition."""
@@ -185,14 +176,6 @@ class TypesDef(FreezableObject, Validator):
         self._is_length("default", default, 1, 64)
         self._is_printable_string("default", default)
         return default
-
-    def _ept(self, ept: Iterable[int]) -> tuple[int, ...]:
-        """Validate the EPT of the type definition."""
-        self._is_sequence("ept", ept)
-        ept = tuple(ept)
-        assert 9 > len(ept) > 0, "The EPT must have between 1 and 8 elements."
-        assert all(isinstance(x, int) for x in ept), "All elements of EPT must be integers."
-        return ept
 
     def _imports(self, imports: Iterable[ImportDef] | dict) -> tuple[ImportDef, ...]:
         """Mash the import definitions into a tuple of ImportDef objects
@@ -223,23 +206,23 @@ class TypesDef(FreezableObject, Validator):
         self._is_printable_string("name", name)
         return name
 
-    def _parents(self, parents: Iterable[str | TypesDef]) -> tuple[str, ...]:
-        """Mash the inheritance definitions into a tuple of type names.
+    def _parents(self, parents: Iterable[int | TypesDef]) -> array[int]:
+        """Mash the inheritance definitions into an array of type uids.
         Names are used to look up the type in the types database on an as needed basis.
         This allows TypesDef objects to be independently cached.
         """
-        # If it is already a tuple no need to copy it. Saves memory.
-        if isinstance(parents, tuple) and all(isinstance(i, str) for i in parents):
-            return parents  # type: ignore
-        parent_list: list[str] = []
+        # If it is already an array no need to copy it. Saves memory.
+        if isinstance(parents, array) and parents.typecode == "i":
+            return parents
+        parent_list: list[int] = []
         for parent in parents:
-            if isinstance(parent, str):
+            if isinstance(parent, int):
                 parent_list.append(parent)
             elif isinstance(parent, TypesDef):
-                parent_list.append(parent.name)
+                parent_list.append(parent.uid)
             else:
                 raise ValueError("Invalid parents definition.")
-        return tuple(parent_list)
+        return array("i", parent_list)
 
     def _uid(self, uid: int | dict[str, Any]) -> int:
         """Validate the UID of the type definition."""
@@ -264,7 +247,7 @@ class TypesDef(FreezableObject, Validator):
         return TypesDefBD(self.__uid)
 
     @property
-    def children(self) -> tuple[str, ...]:
+    def children(self) -> array[int]:
         """Return the children of the type definition."""
         return self.__children
 
@@ -272,11 +255,6 @@ class TypesDef(FreezableObject, Validator):
     def default(self) -> str | None:
         """Return the default instantiation of the type."""
         return self.__default
-
-    @property
-    def ept(self) -> tuple[int, ...]:
-        """Return the EPT of the type definition."""
-        return self.__ept
 
     @property
     def imports(self) -> tuple[ImportDef, ...]:
@@ -289,7 +267,7 @@ class TypesDef(FreezableObject, Validator):
         return self.__name
 
     @property
-    def parents(self) -> tuple[str, ...]:
+    def parents(self) -> array[int]:
         """Return the parents of the type definition."""
         return self.__parents
 
@@ -298,41 +276,12 @@ class TypesDef(FreezableObject, Validator):
         """Return the UID of the type definition."""
         return self.bd.to_int()
 
-    def fx(self) -> int | None:
-        """Return the FX number."""
-        bd = self.bd
-        if not bd["tt"]:
-            return None
-        ttsp = bd["ttsp"]
-        assert isinstance(ttsp, BitDictABC), "ttsp must be a BitDictABC"
-        io = ttsp["io"]
-        assert isinstance(io, int), "IO must be an integer."
-        if io:
-            return None
-        iosp = ttsp["iosp"]
-        assert isinstance(iosp, BitDictABC), "iosp must be a BitDictABC"
-        retval = iosp["fx"]
-        assert isinstance(retval, int), "FX must be an integer."
-        return retval
-
-    def io(self) -> int | None:
-        """Return the IO number."""
-        bd = self.bd
-        if not bd["tt"]:
-            return None
-        ttsp = bd["ttsp"]
-        assert isinstance(ttsp, BitDictABC), "ttsp must be a BitDictABC"
-        retval = ttsp["io"]
-        assert isinstance(retval, int), "IO must be an integer."
-        return retval
-
     def to_json(self) -> dict:
         """Return Type Definition as a JSON serializable dictionary."""
         return {
             "abstract": self.__abstract,
             "children": list(self.__children),
             "default": self.__default,
-            "ept": list(self.__ept),
             "imports": [idef.to_json() for idef in self.__imports],
             "name": self.__name,
             "parents": list(self.__parents),
@@ -346,81 +295,12 @@ class TypesDef(FreezableObject, Validator):
         assert isinstance(retval, int), "TT must be an integer."
         return retval
 
-    def x(self) -> int | None:
-        """Return the X number."""
-        bd = self.bd
-        if not bd["tt"]:
-            return None
-        ttsp = bd["ttsp"]
-        assert isinstance(ttsp, BitDictABC), "ttsp must be a BitDictABC"
-        io = ttsp["io"]
-        assert isinstance(io, int), "IO must be an integer."
-        if not io:
-            return None
-        iosp = ttsp["iosp"]
-        assert isinstance(iosp, BitDictABC), "iosp must be a BitDictABC"
-        retval = iosp["x"]
-        assert isinstance(retval, int), "X must be an integer."
-        return retval
-
-    def xuid(self) -> int | None:
+    def xuid(self) -> int:
         """Return the XUID of the type definition."""
         bd = self.bd
-        if not bd["tt"]:
-            return None
-        ttsp = bd["ttsp"]
-        assert isinstance(ttsp, BitDictABC), "ttsp must be a BitDictABC"
-        io = ttsp["io"]
-        assert isinstance(io, int), "IO must be an integer."
-        if io:
-            return None
-        iosp = ttsp["iosp"]
-        assert isinstance(iosp, BitDictABC), "iosp must be a BitDictABC"
-        retval = iosp["xuid"]
+        retval = bd["xuid"]
         assert isinstance(retval, int), "XUID must be an integer."
         return retval
-
-    def y(self) -> int | None:
-        """Return the Y number."""
-        bd = self.bd
-        if not bd["tt"]:
-            return None
-        ttsp = bd["ttsp"]
-        assert isinstance(ttsp, BitDictABC), "ttsp must be a BitDictABC"
-        io = ttsp["io"]
-        assert isinstance(io, int), "IO must be an integer."
-        if not io:
-            return None
-        iosp = ttsp["iosp"]
-        assert isinstance(iosp, BitDictABC), "iosp must be a BitDictABC"
-        retval = iosp["y"]
-        assert isinstance(retval, int), "Y must be an integer."
-        return retval
-
-
-def _to_str_recursive(ept: tuple[TypesDef, ...], current_index: int) -> tuple[str, int]:
-    """Recursively convert the EPT to a string representation."""
-    td: TypesDef = ept[current_index]
-    current_index += 1
-    tt: int = td.tt()
-    if not tt:
-        return td.name, current_index
-
-    parts: list[str] = []
-    for _ in range(tt):
-        part_str, current_index = _to_str_recursive(ept, current_index)
-        parts.append(part_str)
-
-    ext = ", ..." if td.uid == _TUPLE_UID else ""
-    return f"{td.name}[{', '.join(parts)}{ext}]", current_index
-
-
-def to_str(ept: tuple[TypesDef, ...]) -> str:
-    """Convert the EPT to a string representation."""
-    assert len(ept) > 0, "The EPT must have at least one type."
-    assert isinstance(ept[0], TypesDef), f"Expected TypesDef but found {type(ept[0])}"
-    result, _ = _to_str_recursive(ept, 0)
-    return result
 
 
 class TypesDefStore(ObjectDict):
@@ -431,20 +311,13 @@ class TypesDefStore(ObjectDict):
     full types database which is a local postgres database.
 
     The expectation is that the types used at runtime will be small enough
-    to fit in memory (but the user should look for frequent cache evictions
+    to fit in memory (but the user should look for frequent GC cache evictions
     in the logs and adjust the cache size accordingly) as EGP should use a tight
     subset for a population.
 
-    New compound types can be created during evolution requiring the  cache and
+    New compound types can be created during evolution requiring the store and
     database to be updated. Since types have to be globally unique a cloud service
     call is required to create a new type.
-
-    Initialization follow the following steps:
-        1. Load the pre-defined types from the local JSON file.
-        2. Generate the abstract type fixed versions.
-        3. Generate the output wildcard meta-types.
-        4. Push the types to the database.
-        5. Initialise the empty cache.
     """
 
     def __init__(self) -> None:
@@ -491,4 +364,4 @@ types_def_store = TypesDefStore()
 
 
 # Important check
-assert types_def_store["tuple"].uid == _TUPLE_UID, "Tuple UID is used as a constant."
+assert types_def_store["tuple[Any, ...]"].uid == _TUPLE_UID, "Tuple UID is used as a constant."

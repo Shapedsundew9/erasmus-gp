@@ -45,7 +45,7 @@
             }
         ]
     },
-    "Callable[list[Any], Any]": {
+    "Callable[list[type], Any]": {
         "imports": [
             {
                 "aip": [
@@ -60,7 +60,7 @@
         ],
         "tt": 2
     },
-    "Collection[Any]": {
+    "Collection[-Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -73,8 +73,26 @@
         ],
         "parents": [
             "Sized",
-            "Iterable[0]",
-            "Container[0]"
+            "Iterable[-Any0]",
+            "Container[-Any0]"
+        ],
+        "tt": 1
+    },
+    "Collection[-Hashable0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Collection"
+            }
+        ],
+        "parents": [
+            "Sized",
+            "Iterable[-Hashable0]",
+            "Container[-Hashable0]"
         ],
         "tt": 1
     },
@@ -107,10 +125,10 @@
         ],
         "tt": 1
     },
-    "dict[Hashable, Any]": {
+    "dict[-Hashable0, -Any0]": {
         "default": "{}",
         "parents": [
-            "MutableMapping[0, 1]"
+            "MutableMapping[-Hashable0, -Any0]"
         ],
         "tt": 2
     },
@@ -141,10 +159,10 @@
             "Real"
         ]
     },
-    "frozenset[Any]": {
+    "frozenset[-Hashable0]": {
         "default": "frozenset()",
         "parents": [
-            "Set[0]",
+            "Set[-Hashable0]",
             "Hashable"
         ],
         "tt": 1
@@ -200,7 +218,7 @@
             "egp_integral"
         ]
     },
-    "ItemsView[Hashable, Any]": {
+    "ItemsView[-Hashable0, -Any0]": {
         "imports": [
             {
                 "aip": [
@@ -212,8 +230,8 @@
         ],
         "parents": [
             "MappingView",
-            "Set[tuple[0, 1]]",
-            "Reversible[tuple[0, 1]]"
+            "Set[Pair[-Hashable0, -Any0]]",
+            "Reversible[Pair[-Hashable0, -Any0]]"
         ],
         "tt": 2
     },
@@ -233,7 +251,7 @@
         ],
         "tt": 1
     },
-    "Iterator[Any]": {
+    "Iterator[-Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -245,11 +263,11 @@
             }
         ],
         "parents": [
-            "Iterable[0]"
+            "Iterable[-Any0]"
         ],
         "tt": 1
     },
-    "KeysView[Hashable]": {
+    "KeysView[-Hashable0]": {
         "imports": [
             {
                 "aip": [
@@ -261,19 +279,19 @@
         ],
         "parents": [
             "MappingView",
-            "Set[0]",
-            "Reversible[0]"
+            "Set[-Hashable0]",
+            "Reversible[-Hashable0]"
         ],
         "tt": 1
     },
-    "list[Any]": {
+    "list[-Any0]": {
         "default": "[]",
         "parents": [
-            "MutableSequence[0]"
+            "MutableSequence[-Any0]"
         ],
         "tt": 1
     },
-    "Mapping[Hashable, Any]": {
+    "Mapping[-Hashable0, Any]": {
         "abstract": true,
         "imports": [
             {
@@ -285,7 +303,7 @@
             }
         ],
         "parents": [
-            "Collection[0]"
+            "Collection[-Hashable0]"
         ],
         "tt": 2
     },
@@ -304,7 +322,7 @@
             "Sized"
         ]
     },
-    "MutableMapping[Hashable, Any]": {
+    "MutableMapping[-Hashable0, -Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -316,11 +334,11 @@
             }
         ],
         "parents": [
-            "Mapping[0, 1]"
+            "Mapping[-Hashable0, -Any0]"
         ],
         "tt": 2
     },
-    "MutableSequence[Any]": {
+    "MutableSequence[-Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -332,11 +350,11 @@
             }
         ],
         "parents": [
-            "Sequence[0]"
+            "Sequence[-Any0]"
         ],
         "tt": 1
     },
-    "MutableSet[Any]": {
+    "MutableSet[-Hashable0]": {
         "abstract": true,
         "imports": [
             {
@@ -348,7 +366,7 @@
             }
         ],
         "parents": [
-            "Set[0]"
+            "Set[-Hashable0]"
         ],
         "tt": 1
     },
@@ -377,7 +395,7 @@
         "abstract": true,
         "default": "object()"
     },
-    "Pair[Any, Any]": {
+    "Pair[-Any0, -Any1]": {
         "imports": [
             {
                 "aip": [
@@ -465,7 +483,7 @@
             "egp_real"
         ]
     },
-    "Reversible[Any]": {
+    "Reversible[-Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -477,7 +495,7 @@
             }
         ],
         "parents": [
-            "Iterable[Any]"
+            "Iterable[-Any0]"
         ],
         "tt": 1
     },
@@ -498,7 +516,7 @@
         ],
         "tt": 7
     },
-    "Sequence[Any]": {
+    "Sequence[-Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -510,19 +528,19 @@
             }
         ],
         "parents": [
-            "Reversible[Any]",
-            "Collection[Any]"
+            "Reversible[-Any0]",
+            "Collection[-Any0]"
         ],
         "tt": 1
     },
-    "set[Any]": {
+    "set[-Hashable0]": {
         "default": "set()",
         "parents": [
-            "MutableSet[Any]"
+            "MutableSet[-Hashable0]"
         ],
         "tt": 1
     },
-    "Set[Any]": {
+    "Set[-Hashable0]": {
         "abstract": true,
         "imports": [
             {
@@ -534,7 +552,7 @@
             }
         ],
         "parents": [
-            "Collection[Any]"
+            "Collection[-Hashable0]"
         ],
         "tt": 1
     },
@@ -594,10 +612,10 @@
         ],
         "tt": 3
     },
-    "tuple[Any, ...]": {
+    "tuple[-Any0, ...]": {
         "default": "tuple()",
         "parents": [
-            "Sequence",
+            "Sequence[-Any0]",
             "Hashable"
         ],
         "tt": 1
@@ -608,7 +626,7 @@
             "object"
         ]
     },
-    "ValuesView[Any]": {
+    "ValuesView[-Any0]": {
         "imports": [
             {
                 "aip": [
@@ -620,8 +638,8 @@
         ],
         "parents": [
             "MappingView",
-            "Collection[Any]",
-            "Reversible[Any]"
+            "Collection[-Any0]",
+            "Reversible[-Any0]"
         ],
         "tt": 1
     },

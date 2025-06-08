@@ -142,7 +142,7 @@ There are several EGP defined types that can be considered pure abstract types a
 
 The EP Type integer UID value Has the following format:
 
-|    31    | 30:28 |  28:16   | 15:0 |
+|    31    | 30:28 |  27:16   | 15:0 |
 |:--------:|:-----:|:--------:|:----:|
 | Reserved |  TT   | Reserved | XUID |
 

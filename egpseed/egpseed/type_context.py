@@ -54,13 +54,15 @@ class TypeContext:
 
     Special handling for `tuple` with ellipsis (e.g., `tuple[str, ...]`) is supported:
     - `tuple[T, ...]` is parsed, and the "..." is treated as a special marker.
-    - Attempting to use "..." in other contexts (e.g., `list[...]`, `tuple[T, U, ...]`, `tuple[...]`)
+    - Attempting to use "..." in other contexts (e.g., `list[...]`,
+      `tuple[T, U, ...]`, `tuple[...]`)
       will result in a ValueError during initialization.
     - Attempting to get a `TypeContext` focused on the "..." marker itself (e.g., `tc["0_1"]`
       if `tc` is `TypeContext(["tuple[str, ...]"])`) will also result in a ValueError.
 
     Key functionalities include:
-    - Parsing type strings like "int", "list[str]", "tuple[int, str]", "MyType[0_1]", "tuple[str, ...]".
+    - Parsing type strings like "int", "list[str]", "tuple[int, str]", "MyType[0_1]",
+      "tuple[str, ...]".
     - Resolving references during initial parsing:
         - "0" refers to the 1st top-level type in the original list provided at initialization.
         - "0_1" refers to the 2nd type argument of the 1st top-level type from the original list.
@@ -117,18 +119,21 @@ class TypeContext:
         >>> try:
         ...     TypeContext(["tuple[int, str, ...]"])
         ... except ValueError as e:
-        ...     print(e) # doctest: +ELLIPSIS
-        For 'tuple' type, '...' can only be used as the second element in a two-argument list (e.g., 'tuple[T, ...]'). Invalid format for arguments: 'int, str, ...' in 'tuple[int, str, ...]'.
+        ...     print(e) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        For 'tuple' type, '...' can only be used as the second element in a two-argument list (e.g.,
+        'tuple[T, ...]'). Invalid format for arguments: 'int, str, ...' in 'tuple[int, str, ...]'.
         >>> try:
         ...     TypeContext(["list[...]"])
         ... except ValueError as e:
-        ...     print(e) # doctest: +ELLIPSIS
-        '...' ellipsis is not supported for type 'list'. It is only allowed in the format 'tuple[T, ...]'. Found in arguments: '...'.
+        ...     print(e) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        '...' ellipsis is not supported for type 'list'. It is only allowed in the format
+        'tuple[T, ...]'. Found in arguments: '...'.
         >>> try:
         ...     TypeContext(["tuple[...]"]) # Ellipsis alone is not allowed for tuple
         ... except ValueError as e:
-        ...     print(e) # doctest: +ELLIPSIS
-        For 'tuple' type, '...' can only be used as the second element in a two-argument list (e.g., 'tuple[T, ...]'). Invalid format for arguments: '...' in 'tuple[...]'.
+        ...     print(e) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+        For 'tuple' type, '...' can only be used as the second element in a two-argument list (e.g.,
+        'tuple[T, ...]'). Invalid format for arguments: '...' in 'tuple[...]'.
 
         >>> # Focusing changes the context for subsequent operations
         >>> tc_complex = TypeContext(["A[B, C[E, F]]", "D"])
@@ -251,7 +256,8 @@ class TypeContext:
                         is used incorrectly (e.g., not with tuple, or in wrong tuple format).
         """
         collected_arg_strings = []
-        # Handles cases like "Type[]" where content is empty, this is validated before _split_args_string
+        # Handles cases like "Type[]" where content is empty,
+        # this is validated before _split_args_string
         if not args_content_str.strip():
             return []
 
@@ -291,7 +297,8 @@ class TypeContext:
                     )
                     raise ValueError(
                         f"For 'tuple' type, '...' can only be used as the second element "
-                        f"in a two-argument list (e.g., 'tuple[T, ...]'). Invalid format for arguments: '{args_content_str}' "
+                        "in a two-argument list (e.g., 'tuple[T, ...]'). "
+                        f"Invalid format for arguments: '{args_content_str}' "
                         f"in '{full_type_repr}'."
                     )
         elif has_ellipsis:  # Not a tuple, but contains "..."
@@ -300,7 +307,8 @@ class TypeContext:
             )
             raise ValueError(
                 f"'...' ellipsis is not supported for type '{for_type_name}'. "
-                f"It is only allowed in the format 'tuple[T, ...]'. Found in arguments: '{args_content_str}' "
+                f"It is only allowed in the format 'tuple[T, ...]'."
+                f" Found in arguments: '{args_content_str}' "
                 f"in '{full_type_repr}'."
             )
 
@@ -315,7 +323,7 @@ class TypeContext:
             raise ValueError(f"Invalid reference format: {ref_str}") from exc
 
         base_type_idx = indices[0]
-        if not (0 <= base_type_idx < len(self._original_type_strings)):
+        if not 0 <= base_type_idx < len(self._original_type_strings):
             raise IndexError(
                 f"Reference '{ref_str}' base index {base_type_idx} is out of bounds"
                 " for the initial list of type strings."
@@ -327,7 +335,8 @@ class TypeContext:
             sub_idx = indices[i]
             if current_obj.name == "...":
                 raise IndexError(
-                    f"Reference '{ref_str}' attempts to access subtype from '...' ellipsis placeholder "
+                    f"Reference '{ref_str}' attempts to access subtype from "
+                    "'...' ellipsis placeholder "
                     f"within '{current_obj.original_string}'."
                 )
             if not current_obj.args:
@@ -394,7 +403,8 @@ class TypeContext:
             cycle_path = " -> ".join(cycle_path_str_list)
             raise ValueError(f"Circular dependency detected: {cycle_path}")
 
-        # 2. Check cache (if parsing has already started/completed for this index and it's not a direct cycle)
+        # 2. Check cache (if parsing has already started/completed for
+        # this index and it's not a direct cycle)
         if index in self._parsing_cache:
             return self._parsing_cache[index]
 
@@ -432,7 +442,8 @@ class TypeContext:
                     current_pt_shell.args.append(self._parse_literal_type_string(arg_s))
 
         self._parsing_stack.pop()
-        # The object in _parsing_cache[index] (current_pt_shell) is now fully populated with its arguments.
+        # The object in _parsing_cache[index] (current_pt_shell) is now
+        # fully populated with its arguments.
         return current_pt_shell
 
     def __getitem__(self, relative_pos_ref: str) -> "TypeContext":
@@ -458,7 +469,8 @@ class TypeContext:
         base_type_idx = indices[0]
         if not 0 <= base_type_idx < len(self._resolved_top_level_types):
             raise IndexError(
-                f"Index {base_type_idx} out of bounds for main type list (size {len(self._resolved_top_level_types)}). Ref: '{relative_pos_ref}'"
+                f"Index {base_type_idx} out of bounds for main type list (size "
+                f"{len(self._resolved_top_level_types)}). Ref: '{relative_pos_ref}'"
             )
 
         current_obj = self._resolved_top_level_types[base_type_idx]
@@ -468,7 +480,8 @@ class TypeContext:
             if current_obj.name == "...":  # Cannot get sub-type from ellipsis
                 raise IndexError(
                     f"Type '{current_obj.original_string}' resolved to '...' "
-                    f"has no type arguments. Attempted to access argument {arg_idx} via ref: '{relative_pos_ref}'."
+                    f"has no type arguments. Attempted to access argument {arg_idx} "
+                    f"via ref: '{relative_pos_ref}'."
                 )
             if not current_obj.args:
                 raise IndexError(
@@ -481,7 +494,8 @@ class TypeContext:
             except IndexError as exc:
                 raise IndexError(
                     f"Subtype index {arg_idx} out of bounds for '{current_obj.original_string}' "
-                    f"(resolved: '{current_obj.reconstruct_resolved_string()}', {len(current_obj.args)} args)."
+                    f"(resolved: '{current_obj.reconstruct_resolved_string()}', "
+                    f"{len(current_obj.args)} args)."
                     f" Ref: '{relative_pos_ref}'."
                 ) from exc
 
@@ -495,6 +509,13 @@ class TypeContext:
         return TypeContext(_pre_resolved_type=current_obj)
 
     def get_current_type_strings(self) -> list[str]:
+        """
+        Returns a list of reconstructed type strings for the current context.
+        This includes all top-level types currently in focus, with their arguments
+        resolved and reconstructed into a string format.
+        Returns:
+            list[str]: A list of reconstructed type strings for the current context.
+        """
         return [pt.reconstruct_resolved_string() for pt in self._resolved_top_level_types]
 
     def __repr__(self) -> str:
@@ -505,12 +526,6 @@ class TypeContext:
 
 
 if __name__ == "__main__":
-    import doctest
-
-    # Run embedded doctests
-    results = doctest.testmod()
-    print(f"\nDoctest results: {results}")
-
     # Original example usage
     print("\n--- Original Main Example ---")
     tc = TypeContext(["int", "list[0]", "dict[0, 1]"])
@@ -522,127 +537,3 @@ if __name__ == "__main__":
     print(f"tc['2_0']: {tc['2_0'].get_current_type_strings()}")  # int
     print(f"tc['2_1']: {tc['2_1'].get_current_type_strings()}")  # list[int]
     print(f"tc['2_1_0']: {tc['2_1_0'].get_current_type_strings()}")  # int
-
-    print("\n--- Testing Empty Argument List Errors ---")
-    test_cases_for_empty_args = [
-        (
-            "MyType[]",
-            "Type 'MyType' in 'MyType[]' has an empty argument list '[]'.",
-        ),
-        (
-            "MyType[ ]",
-            "Type 'MyType' in 'MyType[ ]' has an empty argument list '[]'.",
-        ),
-        (
-            "list[int, MyType[]]",
-            "Type 'MyType' in 'MyType[]' has an empty argument list '[]'.",
-        ),
-        (
-            "Wrapper[OK, Bad[]]",
-            "Type 'Bad' in 'Bad[]' has an empty argument list '[]'.",
-        ),
-        (
-            "TopLevel[]",
-            "Top-level type 'TopLevel' in 'TopLevel[]' has an empty argument list '[]'.",
-        ),
-        (
-            "tuple[]",
-            "Top-level type 'tuple' in 'tuple[]' has an empty argument list '[]'.",
-        ),
-    ]
-
-    for type_str_list, expected_msg_fragment in test_cases_for_empty_args:
-        type_input = [type_str_list] if not isinstance(type_str_list, list) else type_str_list
-        print(f"\nTesting with input: {type_input}")
-        try:
-            TypeContext(type_input)
-            print(f"ERROR: Expected ValueError for {type_input}, but none was raised.")
-        except ValueError as e:
-            if expected_msg_fragment in str(e):
-                print(f"Caught expected error: {e}")
-            else:
-                print(f"ERROR: Caught ValueError for {type_input}, but message mismatch.")
-                print(f'  Expected fragment: "{expected_msg_fragment}"')
-                print(f'  Actual error: "{e}"')
-        except Exception as e:
-            print(f"ERROR: Expected ValueError for {type_input}, but got {type(e).__name__}: {e}")
-
-    print("\n--- Testing Valid Complex Cases ---")
-    tc_valid = TypeContext(["A[B, C[E, F]]", "D"])
-    print(f"tc_valid: {tc_valid.get_current_type_strings()}")
-    # Expected: ['A[B, C[E, F]]', 'D']
-    focused_on_C_generic = tc_valid["0_1"]
-    print(f"focused_on_C_generic: {focused_on_C_generic.get_current_type_strings()}")
-    # Expected: ['C[E, F]']
-    focused_on_F = focused_on_C_generic["0_1"]
-    print(f"focused_on_F: {focused_on_F.get_current_type_strings()}")
-    # Expected: ['F']
-
-    print("\n--- Testing Tuple Ellipsis Specifics ---")
-    # Satisfying user requirements:
-    # 1. TypeContext(["tuple[int, ...]"])["0_0"] == TypeContext(["int"])
-    tc_tuple_int_ellipsis = TypeContext(["tuple[int, ...]"])
-    tc_int = TypeContext(["int"])
-    val1 = tc_tuple_int_ellipsis["0_0"].get_current_type_strings()
-    val2 = tc_int.get_current_type_strings()
-    print(f"TypeContext(['tuple[int, ...]'])['0_0'] -> {val1}")
-    print(f"TypeContext(['int']) -> {val2}")
-    assert val1 == val2, "Test 1 FAILED"
-    print("Test 1 PASSED: TypeContext(['tuple[int, ...]'])['0_0'] == TypeContext(['int'])")
-
-    # 2. TypeContext(["tuple[int, ...]"])["0_1"] raises a ValueError
-    try:
-        TypeContext(["tuple[int, ...]"])["0_1"]
-        print("ERROR: Test 2 FAILED - Expected ValueError for tc['0_1'] on tuple ellipsis")
-    except ValueError as e:
-        print(f"Test 2 PASSED: Caught expected error for tc['0_1'] on tuple ellipsis: {e}")
-        assert "Cannot create a focused TypeContext on '...' ellipsis" in str(
-            e
-        ), "Test 2 message check FAILED"
-
-    # 3. TypeContext(["tuple[int, ...]"]).get_current_type_strings() == ["tuple[int, ...]"]
-    val3 = TypeContext(["tuple[int, ...]"]).get_current_type_strings()
-    print(f"TypeContext(['tuple[int, ...]']).get_current_type_strings() -> {val3}")
-    assert val3 == ["tuple[int, ...]"], "Test 3 FAILED"
-    print("Test 3 PASSED: Correct string reconstruction for tuple[int, ...]")
-
-    # 4. TypeContext(["tuple[int, str, ...]"]) raises a ValueError
-    try:
-        TypeContext(["tuple[int, str, ...]"])
-        print("ERROR: Test 4 FAILED - Expected ValueError for tuple[int, str, ...]")
-    except ValueError as e:
-        print(f"Test 4 PASSED: Caught expected error for tuple[int, str, ...]: {e}")
-        assert "For 'tuple' type, '...' can only be used as the second element" in str(
-            e
-        ), "Test 4 message check FAILED"
-
-    # 5. TypeContext(["list[...]"]) raises a ValueError
-    try:
-        TypeContext(["list[...]"])
-        print("ERROR: Test 5 FAILED - Expected ValueError for list[...]")
-    except ValueError as e:
-        print(f"Test 5 PASSED: Caught expected error for list[...]: {e}")
-        assert "'...' ellipsis is not supported for type 'list'" in str(
-            e
-        ), "Test 5 message check FAILED"
-
-    # 6. TypeContext(["list[tuple[int, ...]]"])["0_0"] == TypeContext(["tuple[int, ...]"])
-    tc_list_tuple_ellipsis = TypeContext(["list[tuple[int, ...]]"])
-    tc_tuple_ellipsis_standalone = TypeContext(["tuple[int, ...]"])
-    val6a = tc_list_tuple_ellipsis["0_0"].get_current_type_strings()
-    val6b = tc_tuple_ellipsis_standalone.get_current_type_strings()
-    print(f"TypeContext(['list[tuple[int, ...]]'])['0_0'] -> {val6a}")
-    print(f"TypeContext(['tuple[int, ...]']) -> {val6b}")
-    assert val6a == val6b, "Test 6 FAILED"
-    print("Test 6 PASSED: Correct focusing on list[tuple[int, ...]]")
-
-    print("\n--- Additional Reference Tests with Ellipsis ---")
-    try:
-        TypeContext(["tuple[int, ...]", "ErrorType[0_1]"])
-        print("ERROR: Expected IndexError for ref '0_1' pointing to ellipsis.")
-    except IndexError as e:  # Or ValueError depending on where it's caught first for refs.
-        # _resolve_reference_to_parsed_type raises IndexError if sub_idx from ellipsis
-        print(f"Caught expected error for ref '0_1' pointing to ellipsis: {e}")
-        assert "attempts to access subtype from '...' ellipsis placeholder" in str(e)
-
-    print("\nAll specified tests in __main__ completed.")

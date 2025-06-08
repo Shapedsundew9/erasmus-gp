@@ -1,8 +1,18 @@
+"""Unit tests for the TypeContext class in egpseed.type_context module."""
+
 import unittest
+from doctest import testmod
+from egpseed import type_context
 from egpseed.type_context import TypeContext, ParsedType
 
 
+# pylint: disable=missing-function-docstring,pointless-statement,missing-class-docstring,protected-access
 class TestTypeContextInit(unittest.TestCase):
+
+    def test_docstrings(self):
+        """Ensure that the docstrings examples are correct."""
+        testmod(type_context, raise_on_error=True)
+
     def test_valid_simple_types(self):
         tc = TypeContext(["int", "str", "bool"])
         self.assertEqual(tc.get_current_type_strings(), ["int", "str", "bool"])
@@ -46,7 +56,8 @@ class TestTypeContextInit(unittest.TestCase):
         # This specific error is for when the constructor is called with all defaults (None),
         # which TypeContext's constructor definition with type hints prevents directly
         # if called programmatically without bypassing normal argument passing.
-        # The explicit check for `type_strings is None` (when _pre_resolved_type is also None) handles this.
+        # The explicit check for `type_strings is None` (when _pre_resolved_type is also None)
+        # handles this.
         with self.assertRaisesRegex(ValueError, "Must provide type_strings or _pre_resolved_type."):
             TypeContext()
 
@@ -88,7 +99,8 @@ class TestTypeContextInit(unittest.TestCase):
     def test_error_nameless_bracketed_args(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Invalid type string format: '\\[int\\]'. Bracketed argument lists must be associated with a type name",
+            "Invalid type string format: '\\[int\\]'. "
+            "Bracketed argument lists must be associated with a type name",
         ):
             TypeContext(["[int]"])
 
@@ -120,28 +132,32 @@ class TestTypeContextInit(unittest.TestCase):
     def test_error_invalid_tuple_ellipsis_alone(self):
         with self.assertRaisesRegex(
             ValueError,
-            "For 'tuple' type, '...' can only be used as the second element .* Invalid format for arguments: '...' in 'tuple\\[...\\]'",
+            "For 'tuple' type, '...' can only be used as the second element .* "
+            "Invalid format for arguments: '...' in 'tuple\\[...\\]'",
         ):
             TypeContext(["tuple[...]"])
 
     def test_error_invalid_tuple_ellipsis_too_many_args(self):
         with self.assertRaisesRegex(
             ValueError,
-            "For 'tuple' type, '...' can only be used as the second element .* Invalid format for arguments: 'A, B, ...' in 'tuple\\[A, B, ...\\]'",
+            "For 'tuple' type, '...' can only be used as the second element .* "
+            "Invalid format for arguments: 'A, B, ...' in 'tuple\\[A, B, ...\\]'",
         ):
             TypeContext(["tuple[A, B, ...]"])
 
     def test_error_invalid_tuple_ellipsis_first_arg(self):
         with self.assertRaisesRegex(
             ValueError,
-            "For 'tuple' type, '...' can only be used as the second element .* Invalid format for arguments: '..., A' in 'tuple\\[..., A\\]'",
+            "For 'tuple' type, '...' can only be used as the second element .* "
+            "Invalid format for arguments: '..., A' in 'tuple\\[..., A\\]'",
         ):
             TypeContext(["tuple[..., A]"])
 
     def test_error_invalid_ellipsis_for_list(self):
         with self.assertRaisesRegex(
             ValueError,
-            "'...' ellipsis is not supported for type 'list'.* Found in arguments: '...' in 'list\\[...\\]'",
+            "'...' ellipsis is not supported for type 'list'.*:"
+            " Found in arguments: '...' in 'list\\[...\\]'",
         ):
             TypeContext(["list[...]"])
 
@@ -178,12 +194,12 @@ class TestTypeContextGetItem(unittest.TestCase):
         self.assertEqual(self.tc_generic["1_1"].get_current_type_strings(), ["str"])
 
     def test_getitem_nested_generic_arg(self):
-        focused_C = self.tc_complex_nesting["0_1"]  # C[E, F[G,H]]
-        self.assertEqual(focused_C.get_current_type_strings(), ["C[E, F[G, H]]"])
-        focused_F = focused_C["0_1"]  # F[G,H]
-        self.assertEqual(focused_F.get_current_type_strings(), ["F[G, H]"])
-        focused_H = focused_F["0_1"]  # H
-        self.assertEqual(focused_H.get_current_type_strings(), ["H"])
+        focused_c = self.tc_complex_nesting["0_1"]  # C[E, F[G,H]]
+        self.assertEqual(focused_c.get_current_type_strings(), ["C[E, F[G, H]]"])
+        focused_f = focused_c["0_1"]  # F[G,H]
+        self.assertEqual(focused_f.get_current_type_strings(), ["F[G, H]"])
+        focused_h = focused_f["0_1"]  # H
+        self.assertEqual(focused_h.get_current_type_strings(), ["H"])
 
     def test_getitem_from_focused_context(self):
         list_type_ctx = self.tc_generic["0"]  # Focused on list[float]
@@ -251,7 +267,8 @@ class TestTypeContextGetItem(unittest.TestCase):
         # "0_1" should resolve to "..."
         with self.assertRaisesRegex(
             ValueError,
-            "Cannot create a focused TypeContext on '...' ellipsis. The type at '0_1' resolves to '...'.",
+            "Cannot create a focused TypeContext on '...' "
+            "ellipsis. The type at '0_1' resolves to '...'.",
         ):
             self.tc_tuple_ellipsis["0_1"]
 
