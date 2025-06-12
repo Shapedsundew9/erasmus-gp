@@ -52,7 +52,7 @@ DB_STORE = Table(
 )
 
 # The generic tuple type UID
-_TUPLE_UID: int = 268435874
+_TUPLE_UID: int = 268435852
 
 
 # The BitDict format of the EGP type UID
@@ -120,6 +120,18 @@ class TypesDef(FreezableObject, Validator):
             return self.__uid == value.uid
         return False
 
+    def __gt__(self, other: object) -> bool:
+        """Return True if this object's UID is greater than the other object's UID."""
+        if not isinstance(other, TypesDef):
+            return NotImplemented
+        return self.__uid > other.uid
+
+    def __ge__(self, other: object) -> bool:
+        """Return True if this object's UID is greater than or equal to the other object's UID."""
+        if not isinstance(other, TypesDef):
+            return NotImplemented
+        return self.__uid >= other.uid
+
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
         TypeDefs are unique by design and should not be duplicated.
@@ -141,9 +153,27 @@ class TypesDef(FreezableObject, Validator):
         ):
             yield value
 
+    def __le__(self, other: object) -> bool:
+        """Return True if this object's UID is less than or equal to the other object's UID."""
+        if not isinstance(other, TypesDef):
+            return NotImplemented
+        return self.__uid <= other.uid
+
     def __len__(self) -> int:
         """Return the number of publicly exposed variables."""
         return 7
+
+    def __lt__(self, other: object) -> bool:
+        """Return True if this object's UID is less than the other object's UID."""
+        if not isinstance(other, TypesDef):
+            return NotImplemented
+        return self.__uid < other.uid
+
+    def __ne__(self, value: object) -> bool:
+        """Return True if the value is not equal to this object."""
+        if not isinstance(value, TypesDef):
+            return NotImplemented
+        return self.__uid != value.uid
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
@@ -190,7 +220,7 @@ class TypesDef(FreezableObject, Validator):
         for import_def in imports:
             if isinstance(import_def, dict):
                 # The import store will ensure that the same import is not duplicated.
-                idef = import_def_store.add(ImportDef(**import_def))
+                idef = import_def_store.add(ImportDef(**import_def, frozen=True))
                 import_list.append(idef)
             elif isinstance(import_def, ImportDef):
                 assert import_def in import_def_store, "ImportDef must be in the import store."
