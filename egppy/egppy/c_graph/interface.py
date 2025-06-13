@@ -1,16 +1,14 @@
 """The Interface Module."""
 
 from __future__ import annotations
-
-from collections.abc import Hashable, MutableSequence, Sequence
-from hashlib import sha256
-from typing import Generator
+from typing import Sequence, Set as TypingSet, Any
+from collections.abc import Iterable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.object_set import ObjectSet
+from egpcommon.freezable_object import FreezableObject
+from egppy.c_graph.c_graph_constants import Row, EndPointClass
+from egppy.c_graph.end_point.end_point import EndPoint
 
-from egppy.c_graph.end_point.end_point_type import int, ept_store
-from egppy.c_graph.end_point.types_def.types_def import TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -19,173 +17,131 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class _tuple(tuple):
-    """A tuple class to avoid _tuple() == tuple()."""
+class Interface(FreezableObject):
+    """The Interface class provides a base for defining interfaces in the EGP system."""
 
-    def __hash__(self) -> int:
-        """Return the hash of the tuple."""
-        return 123456789
+    __slots__ = ("endpoints", "_hash")
+
+    def __init__(
+        self,
+        endpoints: Sequence[EndPoint] | Sequence[list | tuple],
+        row: Row | None = None,
+        frozen: bool = False,
+    ) -> None:
+        """Initialize the Interface class.
+
+        Args
+        ----
+        endpoints: Sequence[EndPoint] | Sequence[Sequence]: A sequence of EndPoint objects or
+            sequences that define the interface. If a sequence of sequences is provided, each
+            inner sequence should contain [ref_row, ref_idx, typ] and the row parameter must
+            be != None.
+        row: Row | None: The destination row associated with the interface. Ignored if endpoints are
+            provided as EndPoint objects.
+        frozen: bool: If True, the object will be frozen after initialization.
+            This allows the interface to be immutable after creation.
+        """
+        super().__init__(frozen=False)
+        self.endpoints: list[EndPoint] | tuple[EndPoint, ...] = []
+
+        # Validate row if endpoints are provided as sequences
+        for idx, ep in enumerate(endpoints):
+            if isinstance(ep, EndPoint):
+                if ep.idx != idx:
+                    raise ValueError(f"Endpoint index mismatch: {ep.idx} != {idx}")
+                self.endpoints.append(ep)
+            elif isinstance(ep, (list, tuple)):
+                if len(ep) != 3:
+                    raise ValueError(f"Invalid endpoint sequence length: {len(ep)} != 3")
+                if row is None:
+                    raise ValueError("Destination row must be specified if using sequence format.")
+                self.endpoints.append(EndPoint(row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2]))
+            else:
+                raise ValueError(f"Invalid endpoint format: {ep}")
+
+        # Persistent hash will be defined when frozen. Dynamic until then.
+        self._hash: int = 0
+        if frozen:
+            self.freeze()
 
     def __eq__(self, value: object) -> bool:
-        """Return True only if the value is this tuple."""
-        return value is self
+        """Check equality of Interface instances."""
+        if not isinstance(value, Interface):
+            return False
+        return self.endpoints == value.endpoints
 
+    def __hash__(self) -> int:
+        """Return the hash of the interface."""
+        if self.is_frozen():
+            # Use the persistent hash if the interface is frozen. Hash is defined in self.freeze()
+            return self._hash
+        # If not frozen, calculate the hash dynamically
+        return hash(tuple(self.endpoints))
 
-# Interface constants
-# NOTE that the NULL_INTERFACE is a tuple of an empty tuple to avoid
-# matching with an empty interface. ints cannot be an empty tuple.
-INTERFACE_MAX_LENGTH: int = 256
-NULL_INTERFACE: _tuple = _tuple()
+    def __getitem__(self, idx: int) -> EndPoint:
+        """Get an endpoint by index."""
+        return self.endpoints[idx]
 
-# The Interface type definition
-Interface = Sequence[int]
-MutableInterface = MutableSequence[int]
-AnyInterface = Interface | MutableInterface
-RawInterface = (
-    Sequence[Sequence[str]]  # e.g. [['list', 'int'], ['int']]
-    | Sequence[Sequence[int]]  # e.g. [[1, 2], [2]]
-    | Sequence[int]  # e.g. [(TypesDef(), TypesDef()), (TypesDef(),)]
-    | Sequence[str]  # e.g. ['list[int]', 'int'] or ['list', 'int', 'int]
-    | Sequence[int]  # e.g. [1, 2, 2]
-    | Sequence[TypesDef]  # e.g. [TypesDef(), TypesDef(), TypesDef()]
-    | Generator[Sequence[str], None, None]
-    | Generator[Sequence[int], None, None]
-    | Generator[int, None, None]
-    | Generator[str, None, None]
-    | Generator[int, None, None]
-    | Generator[TypesDef, None, None]
-)
+    def __iter__(self) -> Iterable[EndPoint]:
+        """Return an iterator over the endpoints."""
+        return iter(self.endpoints)
 
+    def __len__(self) -> int:
+        """Return the number of endpoints in the interface."""
+        return len(self.endpoints)
 
-# The interface global store
-# Interfaces are constant and can be shared between GC's
-# Many duplicate interfaces are created in the code and so it is more efficient to store them
-# as a tuple of int objects and share them.
-class InterfaceStore(ObjectSet):
-    """The interface global store."""
+    def __setitem__(self, idx: int, value: EndPoint) -> None:
+        """Set an endpoint at a specific index."""
+        if _logger.isEnabledFor(level=DEBUG):
+            if self.is_frozen():
+                raise RuntimeError("Cannot modify a frozen Interface")
+            if not isinstance(value, EndPoint):
+                raise TypeError(f"Expected EndPoint, got {type(value)}")
+            if idx < 0 or idx >= len(self.endpoints):
+                raise IndexError("Index out of range")
+        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        self.endpoints[idx] = value
 
-    def add(self, tup: Interface) -> Interface:
-        """Add the interface to the store."""
-        assert self.valid_interface(tup), f"Invalid interface {tup}"
-        return super().add(tup)
+    def __str__(self) -> str:
+        """Return the string representation of the interface."""
+        return f"Interface({', '.join(str(ep.typ) for ep in self.endpoints)})"
 
-    def consistency(self) -> None:
-        """Check the consistency of the interface store."""
-        ept_store.consistency()
-        self.verify()
-        return super().consistency()
+    def cls(self) -> bool:
+        """Return the class of the interface. Defaults to destination if no endpoints."""
+        return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
 
-    def valid_interface(self, tup: Interface) -> bool:
-        """Return True if the interface is valid."""
-        assert len(tup) <= INTERFACE_MAX_LENGTH, "Interface has too many endpoints."
-        try:
-            for ept in tup:
-                ept_store.valid_ept(ept)
-        except AssertionError as e:
-            raise AssertionError(f"Invalid interface has an invalid endpoint {tup}. {e}") from None
-        return True
+    def copy(self) -> Interface:
+        """Return a copy of the interface."""
+        return Interface(self.endpoints)
 
-    def verify(self) -> None:
-        """Verify the interface store."""
-        for iface in self:
-            self.valid_interface(iface)
-        super().verify()
+    def freeze(self, _fo_visited_in_freeze_call: TypingSet[int] | None = None) -> None:
+        """Freeze the interface, making it immutable."""
+        if not self._frozen:
+            for ep in self.endpoints:
+                ep.freeze()
+            self.endpoints = tuple(self.endpoints)  # Convert to tuple for immutability
+            self._hash = hash(self.endpoints)
+            super().freeze()
 
+            # Some sanity checks
+            if _logger.isEnabledFor(level=VERIFY):
+                if not len(self.endpoints) > 0:
+                    raise ValueError("Interface must have at least one endpoint.")
+                if not all(isinstance(ep, EndPoint) for ep in self.endpoints):
+                    raise ValueError("All endpoints must be EndPoint instances.")
+                if not all(ep.row == self.endpoints[0].row for ep in self.endpoints):
+                    raise ValueError("All endpoints must have the same row.")
+                if not all(ep.cls == self.endpoints[0].cls for ep in self.endpoints):
+                    raise ValueError("All endpoints must have the same class.")
 
-interface_store = InterfaceStore("Interface Store")
-interface_store.add(NULL_INTERFACE)
+    def ordered_td_uids(self) -> list[int]:
+        """Return the ordered type definition UIDs."""
+        return sorted(set(ep.typ.uid for ep in self.endpoints))
 
+    def to_json(self) -> list[dict[str, Any]]:
+        """Convert the interface to a JSON-compatible object."""
+        return list(ep.to_json() for ep in self.endpoints)
 
-def interface(iface: RawInterface) -> Interface:
-    """Return the interface as a tuple of int objects."""
-    return interface_store.add(tuple(mutable_interface(iface)))
-
-
-def interface_to_parameters(iface: AnyInterface) -> str:
-    """Return the interface as a string in the format '(i0: name, i1: name, ..., in: name)'."""
-    return f"({', '.join(f'i{idx}: {str(ept)}' for idx, ept in enumerate(iface))})"
-
-
-def interface_to_list_str(iface: AnyInterface) -> list[str]:
-    """Return the interface as a string in the format '(i0: name, i1: name, ..., in: name)'."""
-    return [str(ept) for ept in iface]
-
-
-def interface_to_uids(iface: AnyInterface) -> list[int]:
-    """Return the interface as a list of endpoint type UIDs."""
-    return [uid for ept in iface for uid in ept.to_uids()]
-
-
-def is_abstract_interface(iface: AnyInterface) -> bool:
-    """Return True if the interface is abstract."""
-    return any(ept.is_abstract_endpoint() for ept in iface)
-
-
-def mutable_interface(iface: RawInterface) -> MutableInterface:
-    """Return the interface as a list of int objects."""
-    # It could be an interface in the store then return the list of EPT's.
-    # This is a common pattern in the code and so is more efficient to handle here.
-    if isinstance(iface, Hashable) and iface in interface_store:
-        return list(iface)  # type: ignore
-    _interface = list(iface)
-    if not _interface:
-        return []
-    # All elements in an interface must be the same type.
-    if isinstance(_interface[0], (str, int, TypesDef)):
-        retval = []
-        while _interface:
-            # Pop ints from the RawInterface until it is empty
-            retval.append(end_point_type(_interface, True))  # type: ignore
-        assert (
-            len(retval) <= INTERFACE_MAX_LENGTH
-        ), f"Interface has too many endpoints: {len(retval)}."
-        return retval
-    # Must be a list of int-like objects
-    assert (
-        len(_interface) <= INTERFACE_MAX_LENGTH
-    ), f"Interface has too many endpoints: {len(_interface)}."
-    return [end_point_type(ept) for ept in _interface if isinstance(ept, Sequence)]
-
-
-def interface_hash(iface: AnyInterface) -> bytes:
-    """Return the sha256 of the interface endpoint type UIDs in the order they are
-    defined for the interface."""
-    return sha256(
-        b"".join(uid.to_bytes(4, "big", signed=True) for uid in interface_to_uids(iface))
-    ).digest()
-
-
-def interface_to_types_idx(iface: AnyInterface) -> tuple[tuple[tuple[int, ...], ...], bytes]:
-    """Return the interface as an ordered tuple of endpoint types and indices into it."""
-    tuple_iface = tuple(tuple(td.uid for td in ept) for ept in iface)
-    ordered_types = tuple(sorted(set(tuple_iface)))
-    return ordered_types, bytes(ordered_types.index(ept) for ept in tuple_iface)
-
-
-def types_idx_to_interface(ordered_types: Sequence[Sequence[int]], indices: bytes) -> Interface:
-    """Return the interface from an ordered tuple of endpoint types and indices into it."""
-    # The ordered_types is a tuple of tuples of endpoint type UIDs == an interface
-    # (but not *the* interface)
-    ordered_epts = interface(ordered_types)
-    return tuple(ordered_epts[idx] for idx in indices)
-
-
-def interface_type_hash(iface: AnyInterface) -> bytes:
-    """Return the sha256 of the ordered unique interface endpoint type UIDs."""
-    ordered_types, _ = interface_to_types_idx(iface)
-    return sha256(
-        b"".join(uid.to_bytes(4, "big", signed=True) for ept in ordered_types for uid in ept)
-    ).digest()
-
-
-def verify_interface(iface: AnyInterface) -> None:
-    """Verify the interface. Either the interface is in the store or it is a
-    mutable sequence of valid end point types."""
-    if isinstance(iface, Hashable):
-        assert iface in interface_store, f"Invalid interface {iface}. Expected to be in the store."
-    else:
-        try:
-            for ept in iface:
-                ept_store.valid_ept(ept)
-        except AssertionError as e:
-            raise AssertionError(f"Invalid interface {iface}. {e}") from None
+    def to_td_uids(self) -> list[int]:
+        """Convert the interface to a list of TypesDef UIDs (ints)."""
+        return [ep.typ.uid for ep in self.endpoints]

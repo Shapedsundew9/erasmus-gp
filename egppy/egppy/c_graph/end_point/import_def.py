@@ -11,6 +11,15 @@ from egpcommon.common import DictTypeAccessor
 from egpcommon.validator import Validator
 from egpcommon.object_set import ObjectSet
 from egpcommon.freezable_object import FreezableObject
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
+_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
+_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
+_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
 
 # Constants
 EMPTY_STRING = ""
@@ -18,6 +27,8 @@ EMPTY_STRING = ""
 
 class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     """Class to define an import."""
+
+    __slots__ = ("_aip", "_name", "_as_name")
 
     def __init__(
         self, aip: Sequence[str], name: str, as_name: str = EMPTY_STRING, frozen: bool = False
@@ -62,9 +73,10 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     @aip.setter
     def aip(self, value: Sequence[str]) -> None:
         """Set the Absolute Import Path."""
-        self._is_sequence("aip", value)
-        assert len(value) > 0, "The aip must have at least one element."
-        assert all(isinstance(x, str) for x in value), "All elements of aip must be strings."
+        if _logger.isEnabledFor(level=DEBUG):
+            self._is_sequence("aip", value)
+            assert len(value) > 0, "The aip must have at least one element."
+            assert all(isinstance(x, str) for x in value), "All elements of aip must be strings."
         self._aip = tuple(value)
 
     @property
@@ -75,9 +87,10 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     @name.setter
     def name(self, value: str) -> None:
         """Set the name of the import."""
-        self._is_string("name", value)
-        self._is_length("name", value, 1, 64)
-        self._is_printable_string("name", value)
+        if _logger.isEnabledFor(level=DEBUG):
+            self._is_string("name", value)
+            self._is_length("name", value, 1, 64)
+            self._is_printable_string("name", value)
         self._name = value
 
     @property
@@ -88,9 +101,10 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     @as_name.setter
     def as_name(self, value: str) -> None:
         """Set the as name of the import."""
-        self._is_string("as_name", value)
-        self._is_length("as_name", value, 0, 64)
-        self._is_printable_string("as_name", value)
+        if _logger.isEnabledFor(level=DEBUG):
+            self._is_string("as_name", value)
+            self._is_length("as_name", value, 0, 64)
+            self._is_printable_string("as_name", value)
         self._as_name = value
 
     def to_json(self) -> dict[str, Any]:

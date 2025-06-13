@@ -26,23 +26,11 @@ from random import choice, shuffle
 from typing import Any, Callable, MutableSequence
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
-from egppy.c_graph.connections.connections_abc import ConnectionsABC
-from egppy.c_graph.connections.connections_class_factory import (
-    NULL_CONNECTIONS,
-    ListConnections,
-    TupleConnections,
-)
-from egppy.c_graph.end_point.end_point import DstEndPointRef, EndPoint, SrcEndPointRef
+from egpcommon.freezable_object import FreezableObject
 from egppy.c_graph.c_graph_abc import CGraphABC
-from egppy.c_graph.c_graph_mixin import CGraphDict, CGraphMixin, key2parts
-from egppy.c_graph.interface import (
-    NULL_INTERFACE,
-    Interface,
-    interface,
-    mutable_interface,
-)
+from egppy.c_graph.c_graph_mixin import CGraphDict, key2parts
 from egppy.c_graph.c_graph_constants import ROW_CLS_INDEXED, DstRow, EPClsPostfix, SrcRow
+from egppy.c_graph.interface import Interface
 
 # Standard EGP logging pattern
 # This pattern involves creating a logger instance using the egp_logger function,
@@ -59,32 +47,33 @@ _DST_CONN_POSTFIX: str = EPClsPostfix.DST + "c"
 SRC_CONN_POSTFIX: str = EPClsPostfix.SRC + "c"
 
 
-# Empty Connection Graph templates
-_NULL_INTERFACES: dict[str, Interface] = {r: NULL_INTERFACE for r in ROW_CLS_INDEXED}
-_NULL_CONNECTIONS: dict[str, ConnectionsABC] = {r + "c": NULL_CONNECTIONS for r in ROW_CLS_INDEXED}
-
-
-class FrozenCGraph(CGraphMixin, CGraphABC):
+class CGraph(FreezableObject, CGraphABC):
     """Builtin graph class for the Connection Graph.
 
     Frozen graphs are created once and then never modified.
     """
 
-    _TI: Callable = lambda _, y: interface(y)
-    _TC: type[ConnectionsABC] = TupleConnections
-
     def __init__(self, c_graph: CGraphDict | CGraphABC) -> None:
         """Initialize the Connection Graph.
         Construct the internal representation of the graph from the JSON graph.
         """
-        self._interfaces: dict[str, Interface] = _NULL_INTERFACES.copy()
-        self._connections: dict[str, ConnectionsABC] = _NULL_CONNECTIONS.copy()
-        self._dirty_ics: set[str] = set()  # Interface and connection keys
-        self._lock = False  # Modifiable during initialization
+        self._interfaces: dict[str, Interface] = {}
+        if isinstance(c_graph, CGraphABC):
+            self._init_from_c_graph(c_graph)
+        elif c_graph and not isinstance(tuple(c_graph.values())[0], list):
+            # FIXME: Not sure why this exists
+            assert isinstance(tuple(c_graph.values())[0], list), "Using this path."
+            self._init_from_dict(c_graph)
+        else:
+            assert isinstance(c_graph, dict), "Invalid Connection Graph type."
+            self._init_from_json(c_graph if c_graph else EMPTY_JSON_CGRAPH)  # type: ignore
 
-        # Call the mixin constructor & run the sanity checks
-        super().__init__(c_graph)
-        self._lock = True
+        if _LOG_VERIFY:
+            self.verify()
+        if _LOG_CONSISTENCY:
+            self.consistency()
+            assert self.to_json() == c_graph, "JSON Connection Graph consistency failure."
+        super().__init__()
 
     def __delitem__(self, key: str) -> None:
         """Delete the endpoint with the given key."""

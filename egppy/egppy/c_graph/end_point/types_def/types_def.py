@@ -175,6 +175,19 @@ class TypesDef(FreezableObject, Validator):
             return NotImplemented
         return self.__uid != value.uid
 
+    def __repr__(self) -> str:
+        """Return the string representation of the type definition."""
+        return (
+            f"TypesDef(name={self.__name!r}, uid={self.uid}, "
+            f"abstract={self.__abstract}, default={self.__default!r}, "
+            f"imports={self.__imports!r}, parents={self.__parents!r}, "
+            f"children={self.__children!r})"
+        )
+
+    def __str__(self) -> str:
+        """Return the string representation of the type definition."""
+        return self.name
+
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
         self._is_bool("abstract", abstract)
@@ -231,9 +244,10 @@ class TypesDef(FreezableObject, Validator):
 
     def _name(self, name: str) -> str:
         """Validate the name of the type definition."""
-        self._is_string("name", name)
-        self._is_length("name", name, 1, 64)
-        self._is_printable_string("name", name)
+        if _logger.isEnabledFor(level=DEBUG):
+            self._is_string("name", name)
+            self._is_length("name", name, 1, 64)
+            self._is_printable_string("name", name)
         return name
 
     def _parents(self, parents: Iterable[int | TypesDef]) -> array[int]:
@@ -257,8 +271,9 @@ class TypesDef(FreezableObject, Validator):
     def _uid(self, uid: int | dict[str, Any]) -> int:
         """Validate the UID of the type definition."""
         if isinstance(uid, int):
-            self._is_int("uid", uid)
-            self._in_range("uid", uid, -(2**31), 2**31 - 1)
+            if _logger.isEnabledFor(level=DEBUG):
+                self._is_int("uid", uid)
+                self._in_range("uid", uid, -(2**31), 2**31 - 1)
             return uid
         elif isinstance(uid, dict):
             # The BitDict will handle the validation.

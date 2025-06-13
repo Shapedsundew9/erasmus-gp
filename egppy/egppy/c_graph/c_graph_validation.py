@@ -97,7 +97,7 @@ from egpcommon.properties import CGraphType
 from egpcommon.common import NULL_FROZENSET
 from egppy.c_graph.c_graph_constants import DstRow, JSONCGraph, SrcRow, CPI, Row, SOURCE_ROW_MAP
 from egppy.c_graph.c_graph_type import c_graph_type
-from egppy.c_graph.end_point.end_point_type import str_to_ept
+from egppy.c_graph.end_point.types_def.types_def import types_def_store
 
 # NOTE: There are a lot of duplicate frozensets in this module. They have not been reduced to
 # constants because they are used in different contexts and it is not clear that they
@@ -143,29 +143,33 @@ def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
         case CGraphType.WHILE_LOOP:
             retval = {
                 DstRow.A: frozenset({SrcRow.I, SrcRow.L}),
-                DstRow.L: frozenset(SrcRow.I),
-                DstRow.W: frozenset(SrcRow.A),
+                DstRow.L: frozenset({SrcRow.I}),
+                DstRow.W: frozenset({SrcRow.A}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
                 DstRow.P: frozenset(SrcRow.I),
             }
         case CGraphType.STANDARD:
             retval = {
-                DstRow.A: frozenset(
-                    {
-                        SrcRow.I,
-                    }
-                ),
+                DstRow.A: frozenset({SrcRow.I}),
                 DstRow.B: frozenset({SrcRow.I, SrcRow.A}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A, SrcRow.B}),
             }
         case CGraphType.PRIMITIVE:
             retval = {
-                DstRow.A: frozenset(
-                    {
-                        SrcRow.I,
-                    }
-                ),
+                DstRow.A: frozenset({SrcRow.I}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
+            }
+        case CGraphType.UNKNOWN:  # The superset case
+            retval = {
+                DstRow.A: frozenset({SrcRow.I, SrcRow.L}),
+                DstRow.B: frozenset({SrcRow.I, SrcRow.A}),
+                DstRow.F: frozenset({SrcRow.I}),
+                DstRow.L: frozenset({SrcRow.I}),
+                DstRow.W: frozenset({SrcRow.A}),
+                DstRow.O: frozenset({SrcRow.I, SrcRow.A, SrcRow.B}),
+                DstRow.P: frozenset({SrcRow.I, SrcRow.B}),
+                # FIXME: Can L ever not be connected?
+                DstRow.U: frozenset({SrcRow.A, SrcRow.I, SrcRow.L, SrcRow.B}),
             }
         case _:
             retval = {}
@@ -180,27 +184,12 @@ def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
     match graph_type:
         case CGraphType.IF_THEN:
             return {
-                SrcRow.I: frozenset(
-                    {
-                        DstRow.A,
-                        DstRow.F,
-                        DstRow.O,
-                        DstRow.P,
-                    }
-                ),
-                SrcRow.A: frozenset((DstRow.O,)),
+                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.O, DstRow.P}),
+                SrcRow.A: frozenset({DstRow.O}),
             }
         case CGraphType.IF_THEN_ELSE:
             return {
-                SrcRow.I: frozenset(
-                    {
-                        DstRow.A,
-                        DstRow.F,
-                        DstRow.B,
-                        DstRow.P,
-                        DstRow.O,
-                    }
-                ),
+                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.B, DstRow.P, DstRow.O}),
                 SrcRow.A: frozenset({DstRow.O}),
                 SrcRow.B: frozenset({DstRow.P}),
             }
@@ -210,51 +199,36 @@ def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
             }
         case CGraphType.FOR_LOOP:
             return {
-                SrcRow.I: frozenset(
-                    {
-                        DstRow.A,
-                        DstRow.L,
-                        DstRow.O,
-                        DstRow.P,
-                    }
-                ),
+                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.O, DstRow.P}),
                 SrcRow.L: frozenset({DstRow.A}),
                 SrcRow.A: frozenset({DstRow.O}),
             }
         case CGraphType.WHILE_LOOP:
             return {
-                SrcRow.I: frozenset(
-                    {
-                        DstRow.A,
-                        DstRow.L,
-                        DstRow.O,
-                        DstRow.P,
-                    }
-                ),
+                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.O, DstRow.P}),
                 SrcRow.L: frozenset({DstRow.A}),
                 SrcRow.A: frozenset({DstRow.O, DstRow.W}),
             }
         case CGraphType.STANDARD:
             return {
-                SrcRow.I: frozenset(
-                    {
-                        DstRow.A,
-                        DstRow.B,
-                        DstRow.O,
-                    }
-                ),
+                SrcRow.I: frozenset({DstRow.A, DstRow.B, DstRow.O}),
                 SrcRow.A: frozenset({DstRow.B, DstRow.O}),
                 SrcRow.B: frozenset({DstRow.O}),
             }
         case CGraphType.PRIMITIVE:
             return {
-                SrcRow.I: frozenset(
-                    {
-                        DstRow.A,
-                        DstRow.O,
-                    }
-                ),
+                SrcRow.I: frozenset({DstRow.A, DstRow.O}),
                 SrcRow.A: frozenset({DstRow.O}),
+            }
+        case CGraphType.UNKNOWN:  # The superset case
+            return {
+                SrcRow.I: frozenset(
+                    {DstRow.A, DstRow.B, DstRow.F, DstRow.L, DstRow.O, DstRow.P, DstRow.W, DstRow.U}
+                ),
+                # FIXME: Can L ever not be connected?
+                SrcRow.L: frozenset({DstRow.A, DstRow.U}),
+                SrcRow.A: frozenset({DstRow.B, DstRow.O, DstRow.W, DstRow.U}),
+                SrcRow.B: frozenset({DstRow.O, DstRow.P, DstRow.U}),
             }
         case _:
             # There are no valid rows for this graph type (likely RESERVED)
@@ -292,22 +266,27 @@ def valid_jcg(jcg: JSONCGraph) -> bool:
     # Check that all values are valid
     for key, epts in jcg.items():
         if not isinstance(epts, list):
-            raise ValueError(f"Invalid value in JSON connection graph: {epts}")
+            raise TypeError(f"Invalid value in JSON connection graph: {epts}")
 
     # Check that connectivity is valid
     for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():
         if dst not in jcg:
             raise ValueError(f"Missing destination row in JSON connection graph: {dst}")
         for src in jcg[dst]:
-            assert isinstance(src, list), "Expected a list of defining an endpoint."
+            if not isinstance(src, list):
+                raise TypeError("Expected a list of defining an endpoint.")
             srow = src[CPI.ROW]
-            assert isinstance(srow, str), "Expected a destination row"
+            if not isinstance(srow, str):
+                raise TypeError("Expected a destination row")
             row: SrcRow | None = SOURCE_ROW_MAP.get(srow)
             idx = src[CPI.IDX]
             ept = src[CPI.TYP]
-            assert row is not None, "Expected a valid source row"
-            assert isinstance(idx, int), "Expected an integer index"
-            assert isinstance(ept, str), "Expected a list of endpoint int types"
+            if row is None:
+                raise ValueError("Expected a valid source row")
+            if not isinstance(idx, int):
+                raise TypeError("Expected an integer index")
+            if not isinstance(ept, str):
+                raise TypeError("Expected a list of endpoint int types")
 
             if row not in vsr:
                 raise ValueError(
@@ -317,7 +296,7 @@ def valid_jcg(jcg: JSONCGraph) -> bool:
                 raise ValueError(
                     f"Index out of range for JSON connection graph: {idx} for destination {dst}"
                 )
-            if not str_to_ept(ept):
+            if not ept in types_def_store:
                 raise ValueError(
                     f"Invalid endpoint type in JSON connection graph: {ept} for destination {dst}"
                 )

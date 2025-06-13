@@ -33,7 +33,7 @@ class CGraphType(IntEnum):
     RESERVED_12 = 12
     RESERVED_13 = 13
     RESERVED_14 = 14
-    UNKNOWN = 15  # This is not a valid connection graph type. Used when constructing graphs.
+    UNKNOWN = 15  # The common subset
 
 
 PROPERTIES_CONFIG = {
