@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from egppy.c_graph.end_point.end_point_type import ept_to_str
 from egppy.c_graph.c_graph_constants import DstRow, Row, SrcRow
-from egppy.gc_types.gc import (
+from egppy.gc_types.genetic_code import (
     GCABC,
     MERMAID_CODON_COLOR,
     MERMAID_FOOTER,
@@ -83,14 +83,8 @@ def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str
     src = connection.src
     dst = connection.dst
     arrow = f"-- {src.idx}:{dst.idx} -->"
-    namea = (
-        src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
-    )
-    nameb = (
-        dst.node.uid
-        if dst.node is not root and dst.row is not DstRow.O
-        else dst.node.uid + "O"
-    )
+    namea = src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
+    nameb = dst.node.uid if dst.node is not root and dst.row is not DstRow.O else dst.node.uid + "O"
     return mc_connect_str(namea, nameb, arrow)
 
 

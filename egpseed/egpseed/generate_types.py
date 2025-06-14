@@ -12,7 +12,7 @@ from copy import deepcopy
 from re import search
 
 from bitdict import BitDictABC, bitdict_factory
-from egppy.c_graph.end_point.types_def.types_def_bit_dict import TYPESDEF_CONFIG
+from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 
 
 # The XUID_ZERO_NAMES are the names that are reserved for the xuid 0.

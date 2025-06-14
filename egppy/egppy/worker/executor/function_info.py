@@ -5,7 +5,7 @@ This class is used to store the information about the executable function for th
 
 from typing import Callable, Sequence
 from dataclasses import dataclass
-from egppy.gc_types.gc import GCABC, NULL_GC
+from egppy.gc_types.genetic_code import GCABC, NULL_GC
 
 
 # For GC's with no executable (yet)

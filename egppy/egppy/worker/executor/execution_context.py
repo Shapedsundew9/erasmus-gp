@@ -12,7 +12,7 @@ from egpcommon.common import NULL_STR
 from egppy.c_graph.end_point.end_point_abc import XEndPointRefABC
 from egppy.c_graph.end_point.import_def import ImportDef
 from egppy.c_graph.c_graph_constants import DstRow, SrcRow
-from egppy.gc_types.gc import (
+from egppy.gc_types.genetic_code import (
     GCABC,
     NULL_GC,
 )

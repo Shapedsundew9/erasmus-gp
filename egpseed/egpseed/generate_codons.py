@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from datetime import UTC, datetime
+from email.mime import base
 from glob import glob
 from os.path import basename, dirname, join, splitext
 from typing import Any
@@ -9,9 +10,8 @@ from typing import Any
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.security import load_signed_json_dict, dump_signed_json
 from egpcommon.properties import GCType, CGraphType
-from egppy.c_graph.end_point.end_point_type import end_point_type, ept_store
-from egppy.c_graph.end_point.types_def import TypesDef, types_db
-from egppy.gc_types.ggc_class_factory import GGCDirtyDict
+from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
 # Standard EGP logging pattern
@@ -26,7 +26,7 @@ EPT_PATH = ("..", "..", "egppy", "egppy", "data", "end_point_types.json")
 CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "graph": {"A": None, "O": None, "U": []},
+    "cgraph": {"A": None, "O": None, "U": []},
     "gca": None,
     "gcb": None,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
@@ -57,14 +57,13 @@ class MethodExpander:
         super().__init__()
         self.inline = method["inline"]  # Must exist
         self.name = name
-        type_str = end_point_type((td,) + tuple(types_db["object"] for _ in range(td.tt()))).str
 
         # If neither exist then assume 2 inputs of type type_str
         if "num_inputs" not in method and "inputs" not in method:
             method["num_inputs"] = 2
         if "num_inputs" in method:
             self.num_inputs = method["num_inputs"]
-            self.inputs = [type_str for _ in range(self.num_inputs)]
+            self.inputs = [td.name for _ in range(self.num_inputs)]
         else:
             self.num_inputs = len(method["inputs"])
             self.inputs = method["inputs"]
@@ -74,7 +73,7 @@ class MethodExpander:
             method["num_outputs"] = 1
         if "num_outputs" in method:
             self.num_outputs = method["num_outputs"]
-            self.outputs = [type_str for _ in range(self.num_outputs)]
+            self.outputs = [td.name for _ in range(self.num_outputs)]
         else:
             self.num_outputs = len(method["outputs"])
             self.outputs = method["outputs"]
@@ -86,12 +85,6 @@ class MethodExpander:
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
 
-        # Ensure the input and output endpoint types are captured
-        # Converting them to EndPointType objects will ensure they are stored
-        # in the local store and so can be shared between GC's
-        _ = [end_point_type([i]) for i in self.inputs]
-        __ = [end_point_type([o]) for o in self.outputs]
-
     def to_json(self) -> dict[str, Any]:
         """Convert to json."""
         json_dict = deepcopy(CODON_TEMPLATE)
@@ -100,8 +93,8 @@ class MethodExpander:
         json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
         json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
         json_dict["properties"].update(self.properties)
-        json_dict["graph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
-        json_dict["graph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
+        json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
+        json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
         return json_dict
 
 
@@ -127,11 +120,12 @@ def generate_codons(write: bool = False) -> None:
     """
     codons: list[dict[str, Any]] = []
     for json_file in sorted(glob(join(dirname(__file__), "data", "languages", "python", "*.json"))):
-        td: TypesDef = types_db.get(splitext(basename(json_file))[0].removeprefix("_"))
-        for name, definition in load_signed_json_dict(json_file).items():  # Methods
-            new_codon = GGCDirtyDict(MethodExpander(td, name, definition).to_json())
-            new_codon.consistency()
-            codons.append(new_codon.to_json())
+        type_base = splitext(basename(json_file))[0].removeprefix("_")
+        for td in types_def_store.get(type_base):
+            for name, definition in load_signed_json_dict(json_file).items():  # Methods
+                new_codon = GGCDict(MethodExpander(td, name, definition).to_json())
+                new_codon.consistency()
+                codons.append(new_codon.to_json())
     if write:
         dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
 
@@ -142,15 +136,6 @@ def generate_codons(write: bool = False) -> None:
         assert codon["signature"] not in signature_set, f"Duplicate signature: {codon['signature']}"
         signature_set.add(codon["signature"])
 
-    # Create the end_point_types.json file
-    # This contains the mapping of the EndPointType string representation to the UID
-    # Whist both a unique the UID is a 32 bit signed value which is much more efficiently
-    # stored in the database & searchable.
-    dump_signed_json(
-        {ept.str: ept.uid for ept in sorted(ept_store, key=lambda x: x.str)},  # type: ignore
-        join(dirname(__file__), *EPT_PATH),
-    )
-
 
 if __name__ == "__main__":
-    generate_codons(True)
+    generate_codons(False)

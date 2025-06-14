@@ -5,16 +5,14 @@ from __future__ import annotations
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_set import ObjectSet
-from egpcommon.properties import CGraphType
-from egppy.c_graph.end_point.types_def.types_def import TypesDef, types_def_store
-from egppy.c_graph.c_graph_constants import (
+from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROWS,
     SOURCE_ROW_SET,
     Row,
     EndPointClass,
 )
-from egppy.c_graph.c_graph import CGT_VALID_DST_ROWS, CGT_VALID_SRC_ROWS
 
 
 # Standard EGP logging pattern
@@ -196,7 +194,10 @@ class EndPoint(FreezableObject):
             # Need to make references immutable
             self.refs = ref_tuple_store.add(tuple(ref_store.add(tuple(ref)) for ref in self.refs))
             retval = super().freeze(store)
-            self._hash = hash((self.row, self.idx, self.cls, self.typ, self.refs))
+            # Need to jump through hoops to set the persistent hash
+            object.__setattr__(
+                self, "_hash", hash((self.row, self.idx, self.cls, self.typ, self.refs))
+            )
 
             # Some sanity checks
             if _logger.isEnabledFor(level=VERIFY):
@@ -218,7 +219,7 @@ class EndPoint(FreezableObject):
                     )
                 if not (
                     (
-                        all(ref[0] in CGT_VALID_SRC_ROWS[CGraphType.UNKNOWN] for ref in self.refs)
+                        all(ref[0] in SOURCE_ROW_SET for ref in self.refs)
                         and self.cls == EndPointClass.DST
                     )
                     or self.cls == EndPointClass.SRC
@@ -228,7 +229,7 @@ class EndPoint(FreezableObject):
                     )
                 if not (
                     (
-                        all(ref[0] in CGT_VALID_DST_ROWS[CGraphType.UNKNOWN] for ref in self.refs)
+                        all(ref[0] in DESTINATION_ROW_SET for ref in self.refs)
                         and self.cls == EndPointClass.SRC
                     )
                     or self.cls == EndPointClass.DST

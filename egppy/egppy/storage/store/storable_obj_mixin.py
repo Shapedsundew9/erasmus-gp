@@ -1,7 +1,6 @@
 """Storable object base class"""
 
-from egpcommon.common_obj_abc import CommonObjABC
-from egpcommon.common_obj_mixin import CommonObjMixin
+from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -11,8 +10,10 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class StorableObjMixin(CommonObjMixin, CommonObjABC):
+class StorableObjMixin(CommonObj):
     """Storable Mixin class has methods generic to all storable objects classes."""
+
+    __slots__ = ()
 
     def modified(self) -> tuple[str | int, ...] | bool:
         """Mark the object as modified - always."""

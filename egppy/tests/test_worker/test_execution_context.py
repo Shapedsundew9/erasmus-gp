@@ -6,7 +6,7 @@ from random import getrandbits, seed
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import random_int_tuple_generator
 
-from egppy.gc_types.gc import GCABC
+from egppy.gc_types.genetic_code import GCABC
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 from egppy.worker.executor.gc_node import GCNode
 from egppy.worker.executor.context_writer import write_context_to_file
@@ -133,9 +133,7 @@ class TestExecutor(unittest.TestCase):
         to generate multiple different execution contexts
         and validate they all produce the same result."""
         seed(1)
-        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(
-            100, len(self.gene_pool)
-        )
+        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(100, len(self.gene_pool))
         # For debug: 1st 100 are the smallest code trees
         # the_one_hundred = tuple(range(100))
         baseline: dict[int, list[int]] = {num_lines: [] for num_lines in NUM_LINES}
@@ -161,9 +159,7 @@ class TestExecutor(unittest.TestCase):
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""
         seed(1)
-        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(
-            100, len(self.gene_pool)
-        )
+        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(100, len(self.gene_pool))
         for idx in the_one_hundred:
             _logger.debug("Writing gc %d", idx)
             gc = self.gene_pool[idx]
@@ -174,9 +170,7 @@ class TestExecutor(unittest.TestCase):
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""
         seed(1)
-        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(
-            100, len(self.gene_pool)
-        )
+        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(100, len(self.gene_pool))
         for idx in the_one_hundred:
             _logger.debug("Writing gc %d", idx)
             gc = self.gene_pool[idx]

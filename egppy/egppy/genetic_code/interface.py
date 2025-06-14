@@ -6,8 +6,8 @@ from collections.abc import Iterable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egppy.c_graph.c_graph_constants import Row, EndPointClass
-from egppy.c_graph.end_point.end_point import EndPoint
+from egppy.genetic_code.c_graph_constants import Row, EndPointClass
+from egppy.genetic_code.end_point import EndPoint
 
 
 # Standard EGP logging pattern
@@ -23,10 +23,7 @@ class Interface(FreezableObject):
     __slots__ = ("endpoints", "_hash")
 
     def __init__(
-        self,
-        endpoints: Sequence[EndPoint] | Sequence[list | tuple],
-        row: Row | None = None,
-        frozen: bool = False,
+        self, endpoints: Sequence[EndPoint] | Sequence[list | tuple], row: Row | None = None
     ) -> None:
         """Initialize the Interface class.
 
@@ -61,8 +58,6 @@ class Interface(FreezableObject):
 
         # Persistent hash will be defined when frozen. Dynamic until then.
         self._hash: int = 0
-        if frozen:
-            self.freeze()
 
     def __eq__(self, value: object) -> bool:
         """Check equality of Interface instances."""
@@ -114,14 +109,13 @@ class Interface(FreezableObject):
         """Return a modifiable shallow copy of the interface."""
         return Interface(self.endpoints)
 
-    def freeze(
-        self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
-    ) -> Interface:
+    def freeze(self, store: bool = True) -> Interface:
         """Freeze the interface, making it immutable."""
         if not self._frozen:
             self.endpoints = tuple(ep.freeze() for ep in self.endpoints)
             retval = super().freeze(store)
-            self._hash = hash(self.endpoints)
+            # Need to jump through hoops to set the persistent hash
+            object.__setattr__(self, "_hash", hash(self.endpoints))
 
             # Some sanity checks
             if _logger.isEnabledFor(level=VERIFY):
@@ -135,6 +129,13 @@ class Interface(FreezableObject):
                     raise ValueError("All endpoints must have the same class.")
             return retval
         return self
+
+    def types(self) -> tuple[list[int], bytes]:
+        """Return a tuple of the ordered type UIDs and the indices into to it."""
+        otu: list[int] = self.ordered_td_uids()
+        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(otu)}
+        indices = bytes(lookup_indices[ep.typ.uid] for ep in self.endpoints)
+        return otu, indices
 
     def ordered_td_uids(self) -> list[int]:
         """Return the ordered type definition UIDs."""
@@ -156,4 +157,4 @@ class Interface(FreezableObject):
 
 
 # The NULL Interface, used as a placeholder.
-NULL_INTERFACE: Interface = Interface(endpoints=[], frozen=True)
+NULL_INTERFACE: Interface = Interface(endpoints=[]).freeze()

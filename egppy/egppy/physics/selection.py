@@ -5,7 +5,7 @@ The selectors defined here are selector codons (primitives).
 """
 
 from egpcommon.egp_rnd_gen import EGPRndGen
-from egppy.gc_types.gc import GCABC, NULL_GC
+from egppy.gc_types.genetic_code import GCABC, NULL_GC
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.c_graph.interface import Interface
 

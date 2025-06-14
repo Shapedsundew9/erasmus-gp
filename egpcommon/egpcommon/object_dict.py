@@ -11,7 +11,7 @@ from weakref import WeakValueDictionary
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
+
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -57,7 +57,7 @@ class ObjectDict(Collection, CommonObj):
         # If the object is already in the dict, return the existing object.
         added = self._objects.setdefault(key, obj)
         assert (
-            added.is_frozen() if isinstance(added, FreezableObject) else True
+            added.is_frozen() if hasattr(added, "is_frozen") else True
         ), "FreezableObjects must be frozen to be placed in an ObjectDict."
         self._dupes += added is not obj
         self._added += added is obj

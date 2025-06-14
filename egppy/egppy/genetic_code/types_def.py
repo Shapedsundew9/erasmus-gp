@@ -16,8 +16,8 @@ from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
 from egpdb.table import Table, TableConfig
 
-from egppy.c_graph.end_point.import_def import ImportDef
-from egppy.c_graph.end_point.types_def.types_def_bit_dict import TYPESDEF_CONFIG
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 from egppy.local_db_config import LOCAL_DB_CONFIG
 
 
@@ -42,7 +42,7 @@ DB_STORE = Table(
             "parents": ColumnSchema(db_type="INT4[]"),
             "children": ColumnSchema(db_type="INT4[]"),
         },
-        data_file_folder=join(dirname(__file__), "..", "..", "..", "data"),
+        data_file_folder=join(dirname(__file__), "..", "data"),
         data_files=["types_def.json"],
         delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
         create_db=True,
@@ -392,6 +392,13 @@ class TypesDefStore(ObjectDict):
         self._objects[ntd.name] = ntd
         self._objects[ntd.uid] = ntd
         return ntd
+
+    def get(self, base_key: str) -> tuple[TypesDef, ...]:
+        """Get a tuple of TypesDef objects by base key."""
+        if not isinstance(base_key, str):
+            raise TypeError(f"Invalid key type: {type(base_key)}")
+        tds = DB_STORE.select("WHERE name LIKE {id}", literals={"id": f"{base_key}%"})
+        return tuple(TypesDef(**td) for td in tds)
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""

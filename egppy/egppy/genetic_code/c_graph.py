@@ -102,14 +102,14 @@ from __future__ import annotations
 from itertools import chain
 from pprint import pformat
 from random import choice, shuffle
-from typing import Any, Iterable, MutableSequence
+from typing import Any, Iterable
 
 from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
 
-from egppy.c_graph.c_graph_constants import (
+from egppy.genetic_code.c_graph_constants import (
     CPI,
     DESTINATION_ROW_SET,
     DESTINATION_ROWS,
@@ -123,9 +123,9 @@ from egppy.c_graph.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.c_graph.end_point.end_point import EndPoint
-from egppy.c_graph.end_point.types_def.types_def import types_def_store
-from egppy.c_graph.interface import NULL_INTERFACE, Interface
+from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.interface import NULL_INTERFACE, Interface
 
 
 # Standard EGP logging pattern
@@ -557,6 +557,11 @@ class CGraph(FreezableObject):
                     i_iface.endpoints.append(sep)
                 # Connect the destination endpoint to the source endpoint
                 dep.connect(sep)
+
+    def copy(self) -> CGraph:
+        """Return a modifiable shallow copy of the Connection Graph."""
+        # Create a new CGraph instance with the same interfaces
+        return CGraph({key: getattr(self, key) for key in _DUNDER_ROW_CLS_INDEXED})
 
     def stabilize(self, fixed_interface: bool = True) -> None:
         """Stablization involves making all the mandatory connections and

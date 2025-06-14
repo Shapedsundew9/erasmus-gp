@@ -8,6 +8,7 @@ by considered to be a dict[str, Any] object with the additional constraints of t
 
 from datetime import UTC, datetime
 from math import isclose
+import re
 from typing import Any
 from uuid import UUID
 
@@ -16,10 +17,9 @@ from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 
-from egppy.c_graph.end_point.import_def import ImportDef, import_def_store
-from egppy.gc_types.egc_class_factory import EGCMixin
-from egppy.gc_types.gc import GCABC, NULL_GC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
-from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.egc_class_factory import EGCMixin
+from egppy.genetic_code.genetic_code import GCABC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
@@ -35,7 +35,7 @@ class GGCMixin(EGCMixin):
 
     GC_KEY_TYPES: dict[str, dict[str, str | bool]] = GGC_KVT
 
-    def consistency(self) -> None:
+    def consistency(self) -> bool:
         """Check the genetic code object for consistency."""
         super().consistency()
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
@@ -67,22 +67,22 @@ class GGCMixin(EGCMixin):
         assert self["code_depth"] >= 0, "code_depth must be greater than or equal to zero."
         if self["code_depth"] == 1:
             assert (
-                self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE
+                self["gca"] is NULL_SIGNATURE or self["gca"] is NULL_SIGNATURE
             ), "A code depth of 1 is a codon or empty GC and must have a NULL GCA."
 
         if self["code_depth"] > 1:
             assert (
-                self["gca"] is not NULL_GC and self["gca"] is not NULL_SIGNATURE
+                self["gca"] is not NULL_SIGNATURE and self["gca"] is not NULL_SIGNATURE
             ), "A code depth greater than 1 must have a non-NULL GCA."
 
         assert self["created"] <= self["updated"], "created time must be less than updated time."
 
         if self["generation"] == 0:
-            assert self is NULL_GC, "A generation of 0 can only be the NULL_GC."
+            assert self is NULL_SIGNATURE, "A generation of 0 can only be the NULL_SIGNATURE."
 
         if self["generation"] == 1:
             assert (
-                self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE
+                self["gca"] is NULL_SIGNATURE or self["gca"] is NULL_SIGNATURE
             ), "A generation of 1 is a codon and can only have a NULL GCA."
 
         if len(self["inputs"]) == 0:
@@ -109,6 +109,7 @@ class GGCMixin(EGCMixin):
         assert self["updated"] <= datetime.now(
             UTC
         ), "updated time must be less than or equal to the current time."
+        return True
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the GGC.
@@ -122,25 +123,10 @@ class GGCMixin(EGCMixin):
         """
         super().set_members(gcabc)
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
-        gca: GCABC | bytes = self["gca"]
-        gcb: GCABC | bytes = self["gcb"]
-        unknown = isinstance(gca, bytes) or isinstance(gcb, bytes)
-
-        # If one or both of the sub-GC's are unknown then some fields cannot be derived.
-        if unknown:
-            self["code_depth"] = gcabc["code_depth"]
-            self["generation"] = gcabc["generation"]
-            self["num_codes"] = gcabc["num_codes"]
-            self["num_codons"] = gcabc["num_codons"]
-        else:
-            # Can derive some values from the sub-GC's.
-            assert isinstance(gca, GCABC) and isinstance(gcb, GCABC), "GCA and GCB must be GCABC."
-            self["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
-            self["generation"] = max(gca["generation"], gcb["generation"]) + 1
-            self["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
-            self["num_codons"] = max(gca["num_codons"] + gcb["num_codons"], 1)
-
-        # Other values do not depend on the sub-GC's being known.
+        self["code_depth"] = gcabc["code_depth"]
+        self["generation"] = gcabc["generation"]
+        self["num_codes"] = gcabc["num_codes"]
+        self["num_codons"] = gcabc["num_codons"]
         self["_e_count"] = gcabc.get("_e_count", 1)
         self["_e_total"] = gcabc.get("_e_total", 0.0)
         self["_evolvability"] = self["_e_total"] / self["_e_count"]
@@ -167,7 +153,7 @@ class GGCMixin(EGCMixin):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]
-        self["input_types"], self["inputs"] = self["graph"].itypes()
+        self["input_types"], self["inputs"] = self["cgraph"]["Is"].types()
         self["lost_descendants"] = gcabc.get("lost_descendants", 0)
 
         # TODO: Need to resolve the meta_data references. Too deep.
@@ -181,15 +167,13 @@ class GGCMixin(EGCMixin):
             base = self["meta_data"]["function"]["python3"]["0"]
             self["inline"] = base["inline"]
             if "imports" in base and not isinstance(base["imports"], tuple):
-                base["imports"] = self["imports"] = tuple(
-                    import_def_store.add(ImportDef(**md)) for md in base["imports"]
-                )
+                base["imports"] = self["imports"] = tuple(ImportDef(**md) for md in base["imports"])
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["O"]
         self["num_inputs"] = len(self["inputs"])
         self["num_outputs"] = 0  # To keep alphabetical ordering in keys.
-        self["output_types"], self["outputs"] = self["graph"].otypes()
+        self["output_types"], self["outputs"] = self["graph"]["Od"].types()
         self["num_outputs"] = len(self["outputs"])
 
         self["population_uid"] = gcabc.get("population_uid", 0)
@@ -200,18 +184,13 @@ class GGCMixin(EGCMixin):
         assert not isinstance(tmp, (bytearray, memoryview)) and tmp is not None
         self["problem_set"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
         self["reference_count"] = gcabc.get("reference_count", 0)
-        assert (
-            self["signature"] is NULL_SIGNATURE if self["signature"] == NULL_SIGNATURE else True
-        ), "Signature must be NULL_SIGNATURE object if NULL."
-        if self["signature"] is NULL_SIGNATURE:
-            self["signature"] = self.signature()
         self["survivability"] = gcabc.get("survivability", 0.0)
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
         if _LOG_DEBUG:
             self.verify()
 
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the genetic code object."""
         super().verify()
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
@@ -391,28 +370,7 @@ class GGCMixin(EGCMixin):
         ), "Updated must be less than or equal to the current date and time."
         assert self["updated"] >= EGP_EPOCH, "Updated must be greater than or equal to EGP_EPOCH."
         assert self["updated"].tzinfo == UTC, "Updated must be in the UTC time zone."
-
-
-class GGCDirtyDict(GGCMixin, CacheableDirtyDict, GCABC):  # type: ignore
-    """Dirty Dictionary Embryonic Genetic Code Class."""
-
-    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Constructor for DirtyDictGGC"""
-        super().__init__()
-        CacheableDirtyDict.__init__(self)
-        self.set_members(gcabc if gcabc is not None else {})
-
-    def consistency(self) -> None:
-        """Check the genetic code object for consistency."""
-        # Need to call consistency down both MRO paths.
-        CacheableDirtyDict.consistency(self)
-        GGCMixin.consistency(self)
-
-    def verify(self) -> None:
-        """Verify the genetic code object."""
-        # Need to call verify down both MRO paths.
-        CacheableDirtyDict.verify(self)
-        GGCMixin.verify(self)
+        return True
 
 
 class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
@@ -424,20 +382,15 @@ class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
         # CacheableDict.__init__(self)
         self.set_members(gcabc if gcabc is not None else {})
 
-    def consistency(self) -> None:
+    def consistency(self) -> bool:
         """Check the genetic code object for consistency."""
         # Need to call consistency down both MRO paths.
-        CacheableDict.consistency(self)
-        GGCMixin.consistency(self)
+        return CacheableDict.consistency(self) and GGCMixin.consistency(self)
 
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the genetic code object."""
         # Need to call verify down both MRO paths.
-        CacheableDict.verify(self)
-        GGCMixin.verify(self)
-
-
-GGCType = GGCDirtyDict | GGCDict
+        return CacheableDict.verify(self) and GGCMixin.verify(self)
 
 
 # XGC is an execution genetic code object. It is a read-only GGC object.

@@ -22,6 +22,8 @@ class CacheableObjMixin(StorableObjMixin):
     Used to add cacheable functionality to a class.
     """
 
+    __slots__ = ("_dirty", "_seq_num")
+
     def __init__(self) -> None:
         """Constructor."""
         self._dirty: bool = True

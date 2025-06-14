@@ -6,7 +6,7 @@ Defines how a insert GC (iGC) is inserted into a target GC (tGC).
 from random import randint
 
 from egppy.gc_types.egc_class_factory import EGCDirtyDict
-from egppy.gc_types.gc import GCABC
+from egppy.gc_types.genetic_code import GCABC
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 
 

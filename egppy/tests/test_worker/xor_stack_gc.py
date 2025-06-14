@@ -26,7 +26,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, en
 from egpcommon.common import bin_counts
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 
-from egppy.gc_types.gc import GCABC, mermaid_key
+from egppy.gc_types.genetic_code import GCABC, mermaid_key
 from egppy.gc_types.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.gc_store import GGC_CACHE

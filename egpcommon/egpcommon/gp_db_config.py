@@ -15,7 +15,7 @@ from egpcommon.conversions import (
 
 # GP GC Fields with Postgres definitions
 EGC_KVT: dict[str, dict[str, Any]] = {
-    "graph": {"db_type": "BYTEA", "nullable": False},
+    "cgraph": {"db_type": "BYTEA", "nullable": False},
     "gca": {"db_type": "BYTEA", "nullable": True},
     "gcb": {"db_type": "BYTEA", "nullable": True},
     "ancestora": {"db_type": "BYTEA", "nullable": True},
