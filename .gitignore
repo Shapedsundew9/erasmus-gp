@@ -131,5 +131,5 @@ dmypy.json
 .pyre/
 
 # Erasmus special
-types_def.json
-codons.json
+# types_def.json
+# codons.json
