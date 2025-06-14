@@ -12,10 +12,6 @@ from uuid import UUID
 from egpcommon.common import NULL_SHA256, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import GCType, CGraphType, PropertiesBD
-
-from egppy.c_graph.end_point.end_point_type import ept_to_str
-from egppy.c_graph.c_graph_class_factory import NULL_c_graph
-from egppy.c_graph.interface import interface
 from egppy.c_graph.c_graph_constants import Row, SrcRow
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -215,37 +211,6 @@ class GCMixin:
         Signature is guaranteed unique for a given genetic code.
         """
         return hash(self.signature())
-
-    def is_codon(self) -> bool:
-        """Return True if the genetic code is a codon."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        assert (
-            (self["pgc"] is NULL_GC or self["pgc"] is NULL_SIGNATURE)
-            and PropertiesBD(self["properties"])["gc_type"] == GCType.CODON
-            and (self["gca"] is NULL_GC or self["gca"] is NULL_SIGNATURE)
-            and (self["gcb"] is NULL_GC or self["gcb"] is NULL_SIGNATURE)
-            and (self["ancestora"] is NULL_GC or self["ancestora"] is NULL_SIGNATURE)
-            and (self["ancestorb"] is NULL_GC or self["ancestorb"] is NULL_SIGNATURE)
-        ) or (PropertiesBD(self["properties"])["gc_type"] != GCType.CODON), "Codon inconsistent!"
-        return self["pgc"] is NULL_GC or self["pgc"] is NULL_SIGNATURE
-
-    def is_conditional(self) -> bool:
-        """Return True if the genetic code is conditional."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return (
-            PropertiesBD(self["properties"])["graph_type"] == CGraphType.IF_THEN
-            or PropertiesBD(self["properties"])["graph_type"] == CGraphType.IF_THEN_ELSE
-        )
-
-    def is_empty(self) -> bool:
-        """Return True if the genetic code graph type is 'empty'."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.EMPTY
-
-    def is_standard(self) -> bool:
-        """Return True if the genetic code graph type is 'standard'."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return PropertiesBD(self["properties"])["graph_type"] == CGraphType.STANDARD
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""

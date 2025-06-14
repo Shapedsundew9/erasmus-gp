@@ -1,7 +1,7 @@
 """The Interface Module."""
 
 from __future__ import annotations
-from typing import Sequence, Set as TypingSet, Any
+from typing import Sequence, Set as TypingSet
 from collections.abc import Iterable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
@@ -111,17 +111,17 @@ class Interface(FreezableObject):
         return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
 
     def copy(self) -> Interface:
-        """Return a copy of the interface."""
+        """Return a modifiable shallow copy of the interface."""
         return Interface(self.endpoints)
 
-    def freeze(self, _fo_visited_in_freeze_call: TypingSet[int] | None = None) -> None:
+    def freeze(
+        self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
+    ) -> Interface:
         """Freeze the interface, making it immutable."""
         if not self._frozen:
-            for ep in self.endpoints:
-                ep.freeze()
-            self.endpoints = tuple(self.endpoints)  # Convert to tuple for immutability
+            self.endpoints = tuple(ep.freeze() for ep in self.endpoints)
+            retval = super().freeze(store)
             self._hash = hash(self.endpoints)
-            super().freeze()
 
             # Some sanity checks
             if _logger.isEnabledFor(level=VERIFY):
@@ -133,15 +133,27 @@ class Interface(FreezableObject):
                     raise ValueError("All endpoints must have the same row.")
                 if not all(ep.cls == self.endpoints[0].cls for ep in self.endpoints):
                     raise ValueError("All endpoints must have the same class.")
+            return retval
+        return self
 
     def ordered_td_uids(self) -> list[int]:
         """Return the ordered type definition UIDs."""
         return sorted(set(ep.typ.uid for ep in self.endpoints))
 
-    def to_json(self) -> list[dict[str, Any]]:
-        """Convert the interface to a JSON-compatible object."""
-        return list(ep.to_json() for ep in self.endpoints)
+    def to_json(self, json_c_graph: bool = False) -> list:
+        """Convert the interface to a JSON-compatible object.
+        If `json_c_graph` is True, it returns a list suitable for JSON Connection Graph format.
+        """
+        return [ep.to_json(json_c_graph=json_c_graph) for ep in self.endpoints]
 
     def to_td_uids(self) -> list[int]:
         """Convert the interface to a list of TypesDef UIDs (ints)."""
         return [ep.typ.uid for ep in self.endpoints]
+
+    def unconnected_eps(self) -> list[EndPoint]:
+        """Return a list of unconnected endpoints."""
+        return [ep for ep in self.endpoints if not ep.is_connected()]
+
+
+# The NULL Interface, used as a placeholder.
+NULL_INTERFACE: Interface = Interface(endpoints=[], frozen=True)

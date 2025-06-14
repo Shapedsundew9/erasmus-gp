@@ -14,7 +14,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 
 from egppy.c_graph.c_graph_abc import CGraphABC
-from egppy.c_graph.c_graph_class_factory import NULL_c_graph, FrozenCGraph
+from egppy.c_graph.c_graph import NULL_c_graph, FrozenCGraph
 from egppy.gc_types.gc import GCABC, NULL_GC, NULL_SIGNATURE, GCMixin
 from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict

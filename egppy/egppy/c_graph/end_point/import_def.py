@@ -30,9 +30,7 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
 
     __slots__ = ("_aip", "_name", "_as_name")
 
-    def __init__(
-        self, aip: Sequence[str], name: str, as_name: str = EMPTY_STRING, frozen: bool = False
-    ) -> None:
+    def __init__(self, aip: Sequence[str], name: str, as_name: str = EMPTY_STRING) -> None:
         """Initialize the ImportDef class
 
         Args
@@ -47,8 +45,6 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
         setattr(self, "aip", aip)
         setattr(self, "name", name)
         setattr(self, "as_name", as_name)
-        if frozen:
-            self.freeze()
 
     def __eq__(self, value: object) -> bool:
         """Check equality of ImportDef instances."""
@@ -110,13 +106,3 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     def to_json(self) -> dict[str, Any]:
         """Return the object as a JSON serializable dictionary."""
         return {"aip": list(self.aip), "name": self.name, "as_name": self.as_name}
-
-    def verify(self) -> bool:
-        """Verify the object."""
-        # All import definitions must be in the import_def_store. This is effectively a
-        # for a memory leak.
-        assert self in import_def_store, f"ImportDef {self} not in import_def_store"
-        return super().verify()
-
-
-import_def_store: ObjectSet = ObjectSet("Import Def Store")

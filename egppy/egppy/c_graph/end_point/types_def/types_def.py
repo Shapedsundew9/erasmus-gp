@@ -16,7 +16,7 @@ from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
 from egpdb.table import Table, TableConfig
 
-from egppy.c_graph.end_point.import_def import ImportDef, import_def_store
+from egppy.c_graph.end_point.import_def import ImportDef
 from egppy.c_graph.end_point.types_def.types_def_bit_dict import TYPESDEF_CONFIG
 from egppy.local_db_config import LOCAL_DB_CONFIG
 
@@ -52,7 +52,7 @@ DB_STORE = Table(
 )
 
 # The generic tuple type UID
-_TUPLE_UID: int = 268435852
+_TUPLE_UID: int = 268435456
 
 
 # The BitDict format of the EGP type UID
@@ -112,7 +112,6 @@ class TypesDef(FreezableObject, Validator):
         self.__parents: Final[array[int]] = self._parents(parents)
         self.__children: Final[array[int]] = self._children(children)
         self.__uid: Final[int] = self._uid(uid)
-        self.freeze()
 
     def __eq__(self, value: object) -> bool:
         """Return True if the value is equal to this object."""
@@ -199,6 +198,8 @@ class TypesDef(FreezableObject, Validator):
         This allows TypesDef objects to be independently cached.
         """
         # If it is already an array no need to copy it. Saves memory.
+        # TODO: For Any and tuple[Any, ...] there are a lot of children
+        # these need to be special cased to save memory.
         if isinstance(children, array) and children.typecode == "i":
             return children
         child_list: list[int] = []
@@ -223,20 +224,15 @@ class TypesDef(FreezableObject, Validator):
     def _imports(self, imports: Iterable[ImportDef] | dict) -> tuple[ImportDef, ...]:
         """Mash the import definitions into a tuple of ImportDef objects
         and ensure they are in the ImportDef store."""
-        # If it is already a tuple no need to copy it. Saves memory.
-        if isinstance(imports, tuple) and all(isinstance(i, ImportDef) for i in imports):
-            assert all(
-                impt in import_def_store for impt in imports
-            ), "ImportDef must be in the import store."
-            return imports
         import_list: list[ImportDef] = []
         for import_def in imports:
             if isinstance(import_def, dict):
                 # The import store will ensure that the same import is not duplicated.
-                idef = import_def_store.add(ImportDef(**import_def, frozen=True))
-                import_list.append(idef)
+                import_list.append(ImportDef(**import_def).freeze())
             elif isinstance(import_def, ImportDef):
-                assert import_def in import_def_store, "ImportDef must be in the import store."
+                assert (
+                    import_def in ImportDef.object_store
+                ), "ImportDef must be in the import store."
                 import_list.append(import_def)
             else:
                 raise ValueError("Invalid imports definition.")
@@ -294,6 +290,7 @@ class TypesDef(FreezableObject, Validator):
     @property
     def children(self) -> array[int]:
         """Return the children of the type definition."""
+        # TODO: Special case this for Any and tuple[Any, ...] types
         return self.__children
 
     @property
@@ -385,10 +382,13 @@ class TypesDefStore(ObjectDict):
         else:
             raise TypeError(f"Invalid key type: {type(key)}")
         if not td:
+            # TODO: Go to an external service to find or create the type definition.
+            # NOTE: "Any" and potentially other types will be affected by any new type.
             raise KeyError(f"Object not found with key: {key}")
 
-        # Create the TypesDef object
-        ntd = TypesDef(**td)
+        # Create a frozen TypesDef object but do not put it in the object_store as
+        # we will cache it here.
+        ntd = TypesDef(**td).freeze(store=False)
         self._objects[ntd.name] = ntd
         self._objects[ntd.uid] = ntd
         return ntd

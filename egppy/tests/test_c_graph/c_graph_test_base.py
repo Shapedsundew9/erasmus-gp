@@ -11,7 +11,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egppy.c_graph.c_graph_validation import valid_src_rows
 from egppy.c_graph.end_point.end_point_type import int
 from egppy.c_graph.end_point.types_def.types_def import ept_db
-from egppy.c_graph.c_graph_class_factory import FrozenCGraph, MutableCGraph
+from egppy.c_graph.c_graph import FrozenCGraph, MutableCGraph
 from egppy.c_graph.c_graph_validation import CGraphType
 from egppy.c_graph.c_graph_constants import (
     DESTINATION_ROW_MAP,

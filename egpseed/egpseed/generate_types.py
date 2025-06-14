@@ -15,6 +15,10 @@ from bitdict import BitDictABC, bitdict_factory
 from egppy.c_graph.end_point.types_def.types_def_bit_dict import TYPESDEF_CONFIG
 
 
+# The XUID_ZERO_NAMES are the names that are reserved for the xuid 0.
+XUID_ZERO_NAMES: set[str] = {"Any", "tuple[Any, ...]"}
+
+
 def parse_toplevel_args(type_string: str) -> list[str]:
     """
     Extracts top-level, comma-separated arguments from within the first
@@ -66,7 +70,8 @@ with open(join(dirname(__file__), "data", "types.json"), encoding="utf-8") as f:
     types: dict[str, dict[str, Any]] = load(f)
 
 # The tt_counters are used to generate unique xuid values for each type in each template type (TT).
-tt_counters: list[count] = [count(0) for _ in range(8)]
+# NOTE: xuid 0 is reserved for the Any type, so the counters start at 1.
+tt_counters: list[count] = [count(1) for _ in range(8)]
 
 # Multiple passes are made of the types as some types are defined in terms of others. Pass:
 #   1. Creates a new type definition dictionary with unique names and UIDs.
@@ -292,10 +297,14 @@ new_tdd["Any"]["children"].remove("Any")  # Remove self-reference
 # Pass 7: JSON-ize the fields and add a UID to each type definition.
 for definition in new_tdd.values():
     # Create a unique identifier for the type definition.
+    xuid: int = next(tt_counters[definition["tt"]]) * (
+        not any(definition["name"] == name for name in XUID_ZERO_NAMES)
+    )
+
     definition["uid"] = tdbd(
         {
             "tt": definition["tt"],
-            "xuid": next(tt_counters[definition["tt"]]),
+            "xuid": xuid,
         }
     ).to_int()
 for definition in new_tdd.values():

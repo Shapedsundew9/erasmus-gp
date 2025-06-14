@@ -29,12 +29,12 @@ class ObjectDict(Collection, CommonObj):
     dictionary returning the existing object if it already exists.
     """
 
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         """Initialize a ObjectDict object."""
         self._objects: WeakValueDictionary = WeakValueDictionary()
-        self._dupes = 0
-        self._added = 0
-        self.name = name
+        self._dupes: int = 0
+        self._added: int = 0
+        self.name: str = name
 
     def __contains__(self, key) -> bool:
         """Check if a object is in the dict."""

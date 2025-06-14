@@ -14,7 +14,7 @@ from egppy.c_graph.c_graph_constants import (
     Row,
     EndPointClass,
 )
-from egppy.c_graph.c_graph_validation import CGT_VALID_DST_ROWS, CGT_VALID_SRC_ROWS
+from egppy.c_graph.c_graph import CGT_VALID_DST_ROWS, CGT_VALID_SRC_ROWS
 
 
 # Standard EGP logging pattern
@@ -32,7 +32,7 @@ ref_tuple_store = ObjectSet("Endpoint reference tuple store")
 class EndPoint(FreezableObject):
     """Endpoint class using builtin collections."""
 
-    __slots__ = ("_row", "_idx", "_cls", "_typ", "_refs", "_hash")
+    __slots__ = ("row", "idx", "cls", "_typ", "_refs", "_hash")
 
     def __init__(
         self,
@@ -55,32 +55,6 @@ class EndPoint(FreezableObject):
         self._hash: int = 0
         if frozen:
             self.freeze()
-
-    @property
-    def cls(self) -> bool:
-        """Return the class of the endpoint."""
-        return self._cls
-
-    @cls.setter
-    def cls(self, cls: bool) -> None:
-        """Validate and set the class."""
-        if self._frozen:
-            raise RuntimeError("Cannot set class on a frozen EndPoint")
-        assert isinstance(cls, bool), f"Invalid class: {cls}"
-        self._cls = cls
-
-    @property
-    def idx(self) -> int:
-        """Return the index of the endpoint."""
-        return self._idx
-
-    @idx.setter
-    def idx(self, idx: int) -> None:
-        """Validate and set the index."""
-        if self._frozen:
-            raise RuntimeError("Cannot set index on a frozen EndPoint")
-        assert isinstance(idx, int) and 0 <= idx < 256, f"Invalid index: {idx}"
-        self._idx = idx
 
     @property
     def refs(self) -> list[list[str | int]] | tuple[tuple[str, int], ...]:
@@ -122,20 +96,6 @@ class EndPoint(FreezableObject):
             self._refs.append([r, i])
 
     @property
-    def row(self) -> Row:
-        """Return the row of the endpoint."""
-        return self._row
-
-    @row.setter
-    def row(self, row: Row) -> None:
-        """Validate and set the row."""
-        if self._frozen:
-            raise RuntimeError("Cannot set row on a frozen EndPoint")
-        if _logger.isEnabledFor(level=DEBUG) and not (row in ROWS):
-            raise ValueError(f"Invalid row: {row}")
-        self._row = row
-
-    @property
     def typ(self) -> TypesDef:
         """Return the type of the endpoint."""
         return self._typ
@@ -160,6 +120,18 @@ class EndPoint(FreezableObject):
             and self.refs == value.refs
         )
 
+    def __ge__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
+        if not isinstance(other, EndPoint):
+            return NotImplemented
+        return self.idx >= other.idx
+
+    def __gt__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
+        if not isinstance(other, EndPoint):
+            return NotImplemented
+        return self.idx > other.idx
+
     def __hash__(self) -> int:
         """Return the hash of the endpoint."""
         if self.is_frozen():
@@ -168,6 +140,22 @@ class EndPoint(FreezableObject):
         # Else it is dynamically defined.
         return hash((self.row, self.idx, self.cls, self.typ, self.refs))
 
+    def __le__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
+        if not isinstance(other, EndPoint):
+            return NotImplemented
+        return self.idx <= other.idx
+
+    def __lt__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting. Endpoints are compared on thier idx"""
+        if not isinstance(other, EndPoint):
+            return NotImplemented
+        return self.idx < other.idx
+
+    def __ne__(self, value: object) -> bool:
+        """Check inequality of EndPoint instances."""
+        return not self.__eq__(value)
+
     def __str__(self) -> str:
         """Return the string representation of the endpoint."""
         return (
@@ -175,19 +163,40 @@ class EndPoint(FreezableObject):
             f", typ={self.typ}, refs=[{self.refs}])"
         )
 
+    def connect(self, other: EndPoint) -> None:
+        """Connect this endpoint to another endpoint."""
+        if _logger.isEnabledFor(level=DEBUG):
+            if self._frozen:
+                raise RuntimeError("Cannot modify a frozen EndPoint")
+            if not isinstance(other, EndPoint):
+                raise TypeError(f"Expected EndPoint, got {type(other)}")
+            if other.is_frozen():
+                raise RuntimeError("Cannot connect to a frozen EndPoint")
+            if self.cls == EndPointClass.DST and len(self.refs) > 0:
+                raise ValueError("Destination endpoints can only have one reference.")
+        if self.cls == EndPointClass.DST:
+            self.refs = [[other.row, other.idx]]
+        else:
+            assert isinstance(self.refs, list), "References must be a list for source endpoints."
+            self.refs.append([other.row, other.idx])
+
     def copy(self, clean: bool = False) -> EndPoint:
         """Return a copy of the endpoint with no references."""
         return EndPoint(
-            self.row, self.idx, self.cls, self.typ, [] if clean else self.refs, frozen=self._frozen
+            self.row,
+            self.idx,
+            self.cls,
+            self.typ,
+            [] if clean else [list(ref) for ref in self.refs],
         )
 
-    def freeze(self, _fo_visited_in_freeze_call: set[int] | None = None) -> None:
+    def freeze(self, store: bool = True) -> EndPoint:
         """Freeze the endpoint, making it immutable."""
         if not self.is_frozen():
             # Need to make references immutable
             self.refs = ref_tuple_store.add(tuple(ref_store.add(tuple(ref)) for ref in self.refs))
+            retval = super().freeze(store)
             self._hash = hash((self.row, self.idx, self.cls, self.typ, self.refs))
-            super().freeze()
 
             # Some sanity checks
             if _logger.isEnabledFor(level=VERIFY):
@@ -229,9 +238,24 @@ class EndPoint(FreezableObject):
                     )
                 if not all(0 <= ref[1] < 256 for ref in self.refs if isinstance(ref[1], int)):
                     raise ValueError("All reference indices must be between 0 and 255.")
+            return retval
+        return self
 
-    def to_json(self) -> dict[str, str | int | list[list[str | int]]]:
-        """Convert the endpoint to a JSON-compatible object."""
+    def is_connected(self) -> bool:
+        """Check if the endpoint is connected."""
+        return len(self.refs) > 0
+
+    def to_json(self, json_c_graph: bool = False) -> dict | list:
+        """Convert the endpoint to a JSON-compatible object.
+
+        If `json_c_graph` is True, it returns a list suitable for JSON Connection Graph format.
+        """
+        if json_c_graph and self.cls == EndPointClass.DST:
+            return [self.refs[0][0], self.refs[0][1], str(self.typ)]
+        if json_c_graph and self.cls == EndPointClass.SRC:
+            raise ValueError(
+                "Source endpoints cannot be converted to JSON Connection Graph format."
+            )
         return {
             "row": str(self.row),
             "idx": self.idx,

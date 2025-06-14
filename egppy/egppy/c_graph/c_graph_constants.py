@@ -82,3 +82,4 @@ ALL_ROWS_STR: str = "".join(ROWS)
 ROW_CLS_INDEXED: tuple[str, ...] = tuple(f"{row}{EPClsPostfix.SRC}" for row in SOURCE_ROWS) + tuple(
     f"{row}{EPClsPostfix.DST}" for row in DESTINATION_ROWS
 )
+ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED)

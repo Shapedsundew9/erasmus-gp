@@ -9,6 +9,7 @@ from copy import copy, deepcopy
 from collections.abc import Hashable
 from typing import Self, Any, Set as TypingSet  # Using TypingSet for type hint for clarity
 from egpcommon.common_obj import CommonObj
+from egpcommon.object_set import ObjectSet
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 
@@ -76,6 +77,20 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
     """
 
     __slots__ = ("_frozen", "__weakref__")
+    object_store: ObjectSet  # pylint: disable=declare-non-slot
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        """
+        This hook is called when a class inherits from FreezableObject.
+        'cls' is the new subclass being created.
+        """
+        # Call the parent's __init_subclass__ to be cooperative
+        super().__init_subclass__(**kwargs)
+
+        # Create the ObjectSet instance, labeled with the new class's name
+        # Attach the store as a CLASS ATTRIBUTE to the new subclass
+        cls.object_store = ObjectSet(name=cls.__name__)
 
     def __init__(self, frozen: bool = False) -> None:
         """
@@ -88,6 +103,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # Using object.__setattr__ bypasses our overridden __setattr__,
         # which is necessary as _frozen controls writability itself.
         self._frozen: bool = frozen
+        super().__init__()
 
     def __copy__(self) -> Self:
         """Return a shallow copy of the object. Shallow copy is not allowed
@@ -218,7 +234,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
 
     @staticmethod
     def _recursively_freeze_member_value(
-        value: Any, _fo_visited_in_freeze_call: TypingSet[int]
+        value: Any, store: bool, _fo_visited_in_freeze_call: TypingSet[int]
     ) -> None:
         """
         Static helper to recursively process a value for freezing.
@@ -237,14 +253,16 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         if isinstance(value, FreezableObject):
             # If the value is a FreezableObject, call its freeze method.
             # The freeze method itself will use _fo_visited_in_freeze_call to handle cycles.
-            value.freeze(_fo_visited_in_freeze_call)
+            # pylint: disable=protected-access
+            value._freeze(store, _fo_visited_in_freeze_call)
         elif isinstance(value, (tuple, frozenset)):
             # If the value is a tuple or frozenset, iterate through its elements
             # and recursively call this helper for each element.
             # This does not add the tuple/frozenset ID to _fo_visited_in_freeze_call,
             # as that set is specifically for tracking FreezableObject instances.
             for item in value:
-                FreezableObject._recursively_freeze_member_value(item, _fo_visited_in_freeze_call)
+                FreezableObject._recursively_freeze_member_value(
+                    item, store, _fo_visited_in_freeze_call)
         # Any other types of values are not processed further by this freezing logic.
         # For example, lists or dicts are not modified, nor are their contents inspected here.
 
@@ -257,7 +275,24 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         """
         return (self.is_frozen() and self.is_immutable()) or not self.is_frozen()
 
-    def freeze(self, _fo_visited_in_freeze_call: TypingSet[int] | None = None) -> None:
+    def freeze(self, store: bool = True) -> Self:
+        """
+        Freeze the object, making it immutable.
+
+        This method is the entry point for freezing the object. It initializes the
+        internal state and calls the recursive _freeze method to process all members.
+
+        Args:
+            store (bool): If True, the object is stored in the FreezableObject store.
+                This is used to avoid duplicates. Default is True.
+
+        Returns:
+            Self: The frozen version of this object.
+        """
+        return self._freeze(store)
+
+    def _freeze(self, store: bool = True,
+               _fo_visited_in_freeze_call: TypingSet[int] | None = None) -> Self:
         """
         Freezes the object, making it immutable.
         This method recursively freezes:
@@ -273,10 +308,17 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         by `is_immutable()`.
 
         Args:
+            store (bool): If True, the object is stored in the FreezableObject store.
+                This is used to avoid duplicates. Default is True.
             _fo_visited_in_freeze_call (set[int], optional): Used internally to track
                 FreezableObject IDs during a single top-level freeze operation to prevent
                 infinite recursion in case of cyclic references. Callers should not
                 provide this argument.
+        Returns:
+            Self: This method returns an immutable version of itself. Note that the object
+            may not be the same object as self if store = True so the caller should execute
+            _FreezableInstance = FreezableInstance.freeze()_ to ensure
+            the object is frozen and immutable.
         """
         # Initialize the visited set for the top-level call.
         if _fo_visited_in_freeze_call is None:
@@ -285,7 +327,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # If this FreezableObject instance is already in the visited set for this
         # specific top-level freeze() call, it means we're in a cycle. Stop here for this path.
         if id(self) in _fo_visited_in_freeze_call:
-            return
+            return self
 
         # If the object is already marked as frozen, its members should have been
         # handled during the call that originally froze it.
@@ -293,7 +335,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # different path in the current (potentially ongoing) top-level freeze operation.
         if self.is_frozen():
             _fo_visited_in_freeze_call.add(id(self))
-            return
+            return self
 
         # Mark this FreezableObject as visited for the current freeze operation *before*
         # processing members to handle cycles correctly.
@@ -305,7 +347,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
                 member_value = getattr(self, slot_name)
                 # Delegate to the static helper to process the member's value
                 FreezableObject._recursively_freeze_member_value(
-                    member_value, _fo_visited_in_freeze_call
+                    member_value, store, _fo_visited_in_freeze_call
                 )
             except AttributeError:
                 # Slot defined but attribute not set on this instance. This is fine.
@@ -315,6 +357,9 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         object.__setattr__(self, "_frozen", True)
         # The ID remains in _fo_visited_in_freeze_call for the duration of the top-level call
         # to signify it has been processed.
+
+        # Return the object itself, or add it to the store if requested.
+        return self.object_store.add(self) if store else self
 
     def is_frozen(self) -> bool:
         """Returns True if the object is marked as frozen, False otherwise."""
