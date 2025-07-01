@@ -2,8 +2,8 @@
     "difference_update": {
         "inline": "{i0}.difference_update({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "difference update",
         "num_outputs": 0,
@@ -14,19 +14,19 @@
     "intersection": {
         "inline": "{i0}.intersection({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "intersection",
         "outputs": [
-            "set[0_1]"
+            "set[-Hashable0]"
         ]
     },
     "intersection_update": {
         "inline": "{i0}.intersection_update({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "intersection update",
         "num_outputs": 0,
@@ -37,8 +37,8 @@
     "issubset": {
         "inline": "{i0}.issubset({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "issubset",
         "outputs": [
@@ -48,8 +48,8 @@
     "issuperset": {
         "inline": "{i0}.issuperset({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "issuperset",
         "outputs": [
@@ -63,19 +63,19 @@
     "symmetric_difference": {
         "inline": "{i0}.symmetric_difference({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "symmetric difference",
         "outputs": [
-            "set[Hashable]"
+            "set[-Hashable0]"
         ]
     },
     "symmetric_difference_update": {
         "inline": "{i0}.symmetric_difference_update({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "symmetric difference update",
         "num_outputs": 0,
@@ -86,19 +86,19 @@
     "union": {
         "inline": "{i0}.union({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "union",
         "outputs": [
-            "set[0_1]"
+            "set[-Hashable0]"
         ]
     },
     "update": {
         "inline": "{i0}.update({i1})",
         "inputs": [
-            "set[Hashable]",
-            "Iterable[0_1]"
+            "set[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "update",
         "num_outputs": 0,

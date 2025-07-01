@@ -2,7 +2,9 @@
     "denominator": {
         "inline": "{i0}.denominator",
         "description": "denominator",
-        "num_inputs": 1,
+        "inputs": [
+            "-Rational0"
+        ],
         "outputs": [
             "int"
         ]
@@ -10,7 +12,9 @@
     "numerator": {
         "inline": "{i0}.numerator",
         "description": "numerator",
-        "num_inputs": 1,
+        "inputs": [
+            "-Rational0"
+        ],
         "outputs": [
             "int"
         ]

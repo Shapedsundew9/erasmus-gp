@@ -141,7 +141,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
             raise AttributeError(
                 f"'{type(self).__name__}' object is frozen; cannot set attribute '{name}'"
             )
-        super().__setattr__(name, value)
+        object.__setattr__(self, name, value)
 
     @abstractmethod
     def __eq__(self, value: object) -> bool:

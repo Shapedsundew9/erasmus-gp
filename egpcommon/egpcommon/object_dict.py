@@ -35,6 +35,7 @@ class ObjectDict(Collection, CommonObj):
         self._dupes: int = 0
         self._added: int = 0
         self.name: str = name
+        # TODO: In MONITOR mode and below send stats to prometheus
 
     def __contains__(self, key) -> bool:
         """Check if a object is in the dict."""

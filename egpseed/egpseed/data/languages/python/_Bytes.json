@@ -2,41 +2,41 @@
     "capitalize": {
         "inline": "{i0}.capitalize()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "capitalize",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "center1": {
         "inline": "{i0}.center({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "center with space",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "center2": {
         "inline": "{i0}.center({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "center with fill byte",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "count1": {
         "inline": "{i0}.count({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "count",
         "outputs": [
@@ -46,9 +46,9 @@
     "count2": {
         "inline": "{i0}.count({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "count from",
         "outputs": [
@@ -58,10 +58,10 @@
     "count3": {
         "inline": "{i0}.count({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "count from to",
         "outputs": [
@@ -71,8 +71,8 @@
     "count4": {
         "inline": "{i0}.count({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "count",
         "outputs": [
@@ -82,9 +82,9 @@
     "count5": {
         "inline": "{i0}.count({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "count from",
         "outputs": [
@@ -94,10 +94,10 @@
     "count6": {
         "inline": "{i0}.count({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "count from to",
         "outputs": [
@@ -107,7 +107,7 @@
     "decode1": {
         "inline": "{i0}.decode({i1})",
         "inputs": [
-            "Bytes",
+            "-Bytes0",
             "str"
         ],
         "description": "decode",
@@ -118,8 +118,8 @@
     "endswith1": {
         "inline": "{i0}.endswith({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "ends with",
         "outputs": [
@@ -129,9 +129,9 @@
     "endswith2": {
         "inline": "{i0}.endswith({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "ends with after",
         "outputs": [
@@ -141,10 +141,10 @@
     "endswith3": {
         "inline": "{i0}.endswith({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "ends with between",
         "outputs": [
@@ -154,8 +154,8 @@
     "endswith4": {
         "inline": "{i0}.endswith({i1})",
         "inputs": [
-            "Bytes",
-            "tuple[Bytes, ...]"
+            "-Bytes0",
+            "tuple[-Bytes1, ...]"
         ],
         "description": "ends with one of",
         "outputs": [
@@ -165,9 +165,9 @@
     "endswith5": {
         "inline": "{i0}.endswith({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "tuple[Bytes, ...]",
-            "EGPIntegral"
+            "-Bytes0",
+            "tuple[-Bytes1, ...]",
+            "-EGPIntegral0"
         ],
         "description": "ends with one of after",
         "outputs": [
@@ -177,10 +177,10 @@
     "endswith6": {
         "inline": "{i0}.endswith({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "tuple[Bytes, ...]",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "tuple[-Bytes1, ...]",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "ends with one of between",
         "outputs": [
@@ -190,29 +190,29 @@
     "expandtabs1": {
         "inline": "{i0}.expandtabs()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "expand tabs",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "expandtabs2": {
         "inline": "{i0}.expandtabs({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "expand tabs",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "find1": {
         "inline": "{i0}.find({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "find",
         "outputs": [
@@ -222,9 +222,9 @@
     "find2": {
         "inline": "{i0}.find({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "find after",
         "outputs": [
@@ -234,10 +234,10 @@
     "find3": {
         "inline": "{i0}.find({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "find between",
         "outputs": [
@@ -247,8 +247,8 @@
     "find4": {
         "inline": "{i0}.find({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "find one of",
         "outputs": [
@@ -258,9 +258,9 @@
     "find5": {
         "inline": "{i0}.find({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "find one of after",
         "outputs": [
@@ -270,10 +270,10 @@
     "find6": {
         "inline": "{i0}.find({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "find one of between",
         "outputs": [
@@ -283,8 +283,8 @@
     "index1": {
         "inline": "{i0}.index({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "index",
         "outputs": [
@@ -294,9 +294,9 @@
     "index2": {
         "inline": "{i0}.index({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "index after",
         "outputs": [
@@ -306,10 +306,10 @@
     "index3": {
         "inline": "{i0}.index({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "index between",
         "outputs": [
@@ -319,8 +319,8 @@
     "index4": {
         "inline": "{i0}.index({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "index one of",
         "outputs": [
@@ -330,9 +330,9 @@
     "index5": {
         "inline": "{i0}.index({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "index one of after",
         "outputs": [
@@ -342,10 +342,10 @@
     "index6": {
         "inline": "{i0}.index({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "index one of between",
         "outputs": [
@@ -355,7 +355,7 @@
     "isalnum": {
         "inline": "{i0}.isalnum()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is alphanumeric",
         "outputs": [
@@ -365,7 +365,7 @@
     "isalpha": {
         "inline": "{i0}.isalpha()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is alphabetic",
         "outputs": [
@@ -375,7 +375,7 @@
     "isascii": {
         "inline": "{i0}.isascii()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is ascii",
         "outputs": [
@@ -385,7 +385,7 @@
     "isdigit": {
         "inline": "{i0}.isdigit()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is digit",
         "outputs": [
@@ -395,7 +395,7 @@
     "islower": {
         "inline": "{i0}.islower()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is lower",
         "outputs": [
@@ -405,7 +405,7 @@
     "isspace": {
         "inline": "{i0}.isspace()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is space",
         "outputs": [
@@ -415,7 +415,7 @@
     "istitle": {
         "inline": "{i0}.istitle()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is title",
         "outputs": [
@@ -425,7 +425,7 @@
     "isupper": {
         "inline": "{i0}.isupper()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "is upper",
         "outputs": [
@@ -435,131 +435,132 @@
     "join": {
         "inline": "{i0}.join({i1})",
         "inputs": [
-            "Bytes",
-            "Iterable[Bytes, ...]"
+            "-Bytes0",
+            "-Iterable0[-Bytes0]"
         ],
         "description": "join",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "ljust1": {
         "inline": "{i0}.ljust({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "left justify with space",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "ljust2": {
         "inline": "{i0}.ljust({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "left justify with fill byte",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "lower": {
         "inline": "{i0}.lower()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "lower",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "lstrip1": {
         "inline": "{i0}.lstrip()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "left strip",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "lstrip2": {
         "inline": "{i0}.lstrip({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "left strip",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "partition": {
         "inline": "{i0}.partition({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "partition",
         "outputs": [
-            "Triplet[0_0, 0_0, 0_0]"
+            "Triplet[,-Bytes0, -Bytes0, -Bytes0]"
         ]
     },
     "removeprefix": {
         "inline": "{i0}.removeprefix({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes2"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "remove prefix",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "removesuffix": {
         "inline": "{i0}.removesuffix({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes2"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "remove suffix",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "replace1": {
         "inline": "{i0}.replace({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1",
+            "-Bytes2"
         ],
         "description": "replace",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "replace2": {
         "inline": "{i0}.replace({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-Bytes2",
+            "-EGPIntegral0"
         ],
         "description": "replace",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "rfind1": {
         "inline": "{i0}.rfind({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "rfind",
         "outputs": [
@@ -569,9 +570,9 @@
     "rfind2": {
         "inline": "{i0}.rfind({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "rfind after",
         "outputs": [
@@ -581,11 +582,11 @@
     "rfind3": {
         "inline": "{i0}.rfind({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "rfind between",
         "outputs": [
@@ -595,8 +596,8 @@
     "rfind4": {
         "inline": "{i0}.rfind({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "rfind one of",
         "outputs": [
@@ -606,9 +607,9 @@
     "rfind5": {
         "inline": "{i0}.rfind({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes1",
+            "-EGPIntegral1",
+            "-EGPIntegral1"
         ],
         "description": "rfind one of after",
         "outputs": [
@@ -618,10 +619,10 @@
     "rfind6": {
         "inline": "{i0}.rfind({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "rfind one of between",
         "outputs": [
@@ -631,8 +632,8 @@
     "rindex1": {
         "inline": "{i0}.rindex({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "rindex",
         "outputs": [
@@ -642,9 +643,9 @@
     "rindex2": {
         "inline": "{i0}.rindex({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "rindex after",
         "outputs": [
@@ -654,10 +655,10 @@
     "rindex3": {
         "inline": "{i0}.rindex({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "rindex between",
         "outputs": [
@@ -667,8 +668,8 @@
     "rindex4": {
         "inline": "{i0}.rindex({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "rindex one of",
         "outputs": [
@@ -678,9 +679,9 @@
     "rindex5": {
         "inline": "{i0}.rindex({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes1",
+            "-EGPIntegral1",
+            "-EGPIntegral1"
         ],
         "description": "rindex one of after",
         "outputs": [
@@ -690,10 +691,10 @@
     "rindex6": {
         "inline": "{i0}.rindex({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "rindex one of between",
         "outputs": [
@@ -703,150 +704,150 @@
     "rjust1": {
         "inline": "{i0}.rjust({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "right justify with space",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "rjust2": {
         "inline": "{i0}.rjust({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "right justify with fill byte",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "rpartition": {
         "inline": "{i0}.rpartition({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "rpartition",
         "outputs": [
-            "Triplet[0_0, 0_0, 0_0]"
+            "Triplet[-Bytes0, -Bytes0, -Bytes0]"
         ]
     },
     "rsplit1": {
         "inline": "{i0}.rsplit()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "right split",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "rsplit2": {
         "inline": "{i0}.rsplit({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "right split",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "rsplit3": {
         "inline": "{i0}.rsplit({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "right split",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "rstrip1": {
         "inline": "{i0}.rstrip()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "right strip",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "rstrip2": {
         "inline": "{i0}.rstrip({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "right strip",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "split1": {
         "inline": "{i0}.split()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "split",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "split2": {
         "inline": "{i0}.split({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "split",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "split3": {
         "inline": "{i0}.split({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "split",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "splitlines1": {
         "inline": "{i0}.splitlines()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "split lines",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "splitlines2": {
         "inline": "{i0}.splitlines({i1})",
         "inputs": [
-            "Bytes",
+            "-Bytes0",
             "bool"
         ],
         "description": "split lines",
         "outputs": [
-            "list[0_0]"
+            "list[-Bytes0]"
         ]
     },
     "startswith1": {
         "inline": "{i0}.startswith({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "starts with",
         "outputs": [
@@ -856,9 +857,9 @@
     "startswith2": {
         "inline": "{i0}.startswith({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0"
         ],
         "description": "starts with after",
         "outputs": [
@@ -868,10 +869,10 @@
     "startswith3": {
         "inline": "{i0}.startswith({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "-Bytes1",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "starts with between",
         "outputs": [
@@ -881,8 +882,8 @@
     "startswith4": {
         "inline": "{i0}.startswith({i1})",
         "inputs": [
-            "Bytes",
-            "tuple[Bytes, ...]"
+            "-Bytes0",
+            "tuple[-Bytes1, ...]"
         ],
         "description": "starts with one of",
         "outputs": [
@@ -892,9 +893,9 @@
     "startswith5": {
         "inline": "{i0}.startswith({i1}, {i2})",
         "inputs": [
-            "Bytes",
-            "tuple[Bytes, ...]",
-            "EGPIntegral"
+            "-Bytes0",
+            "tuple[-Bytes1, ...]",
+            "-EGPIntegral0"
         ],
         "description": "starts with one of after",
         "outputs": [
@@ -904,10 +905,10 @@
     "startswith6": {
         "inline": "{i0}.startswith({i1}, {i2}, {i3})",
         "inputs": [
-            "Bytes",
-            "tuple[Bytes, ...]",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-Bytes0",
+            "tuple[-Bytes1, ...]",
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "starts with one of between",
         "outputs": [
@@ -917,88 +918,88 @@
     "strip1": {
         "inline": "{i0}.strip()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "strip",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "strip2": {
         "inline": "{i0}.strip({i1})",
         "inputs": [
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1"
         ],
         "description": "strip",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "swapcase": {
         "inline": "{i0}.swapcase()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "swap case",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "title": {
         "inline": "{i0}.title()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "title",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "translate1": {
         "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1",
+            "-Bytes2"
         ],
         "description": "translate",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "translate2": {
         "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
         "inputs": [
-            "Bytes",
-            "Bytes",
-            "Bytes",
-            "Bytes"
+            "-Bytes0",
+            "-Bytes1",
+            "-Bytes2",
+            "-Bytes3"
         ],
         "description": "translate",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "upper": {
         "inline": "{i0}.upper()",
         "inputs": [
-            "Bytes"
+            "-Bytes0"
         ],
         "description": "upper",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     },
     "zfill": {
         "inline": "{i0}.zfill({i1})",
         "inputs": [
-            "Bytes",
-            "EGPIntegral"
+            "-Bytes0",
+            "-EGPIntegral0"
         ],
         "description": "zfill",
         "outputs": [
-            "0_0"
+            "-Bytes0"
         ]
     }
 }

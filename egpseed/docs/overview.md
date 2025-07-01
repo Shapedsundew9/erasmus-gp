@@ -92,3 +92,75 @@ All a types methods (codons) are defined in their respective .json file.
 3. _Bytes.json has the common methods for bytes and bytearray objects. Python does not have a common abstract type for these methods (after 3.11).
 4. Set union, intersection, difference & symmetric_difference methods are not implmented as operators (as the methods are more flexible taking Iterable[Hashable] rather than just Set). It is the same case for the MutableSet *_update equivilents.
 5. == and != are implemented in object.json as they are always available (NB: So not implemented elsewhere).
+
+## Design Notes
+
+### parse_toplevel_args()
+
+The function `parse_toplevel_args` is designed to parse a string that represents a generic type, such as those used in Python's `typing` module (e.g., `dict[str, int]`). Its specific goal is to extract the comma-separated arguments from within the outermost square brackets.
+
+The function employs a two-step strategy:
+
+1. **Regex Extraction**: It first uses a greedy regular expression `r"\[(.*)\]"` to find and isolate the entire substring between the first opening square bracket `[` and the last closing square bracket `]`. The greedy nature of `.*` is key here, as it ensures that for a string like `Callable[[A, B], C]`, it captures the content `[A, B], C` correctly.
+
+2. **Manual Parsing**: Instead of trying to use a complex regex to split the arguments (which is difficult with nested structures), the function wisely switches to a manual, character-by-character parsing loop. It maintains a `bracket_level` counter. A comma is only treated as a top-level delimiter if it is encountered when `bracket_level` is zero. This elegantly ignores commas within nested bracketed expressions (e.g., the comma in `dict[str, int]`).
+
+The code correctly handles stripping whitespace from the resulting arguments and manages the final argument after the last comma.
+
+### Suggested Test Inputs and Expected Outputs
+
+Here is a suite of test cases to validate the function. The tests are categorized to cover basic functionality, handling of nested structures, and various edge cases.
+
+---
+
+#### 1. Basic Cases
+
+These tests verify the core functionality with simple, non-nested arguments.
+
+| Test Case Description | Input (`type_string`) | Expected Output | Rationale |
+| :--- | :--- | :--- | :--- |
+| **Standard two arguments** | `'dict[str, int]'` | `['str', 'int']` | Checks basic splitting with a comma. |
+| **Single argument** | `'list[str]'` | `['str']` | Ensures the logic works correctly when there are no commas to split by. |
+| **Multiple arguments** | `'tuple[str, int, bool]'` | `['str', 'int', 'bool']` | Verifies correct parsing of more than two arguments. |
+
+---
+
+#### 2. Nested Brackets
+
+These are the most critical tests to confirm the main purpose of the function: correctly handling nested structures.
+
+| Test Case Description | Input (`type_string`) | Expected Output | Rationale |
+| :--- | :--- | :--- | :--- |
+| **Nested type as last arg** | `'dict[str, list[int]]'` | `['str', 'list[int]']` | The comma within `list[int]` must be ignored. |
+| **Nested type as first arg** | `'tuple[dict[str, str], int]'` | `['dict[str, str]', 'int']`| Confirms the parser works when the nested type is the first argument. |
+| **Multiple nested types** | `'Callable[[str, int], list[bool]]'` | `['[str, int]', 'list[bool]']` | A common `typing` pattern. The inner list `[str, int]` should be treated as a single argument. |
+| **Deeply nested types** | `'A[B, C[D, E[F, G]]]'` | `['B', 'C[D, E[F, G]]']` | Tests if the `bracket_level` counter correctly handles multiple levels of nesting. |
+
+---
+
+#### 3. Edge Cases
+
+These tests probe the function's behavior at the boundaries and with unusual or empty inputs.
+
+| Test Case Description | Input (`type_string`) | Expected Output | Rationale |
+| :--- | :--- | :--- | :--- |
+| **No brackets** | `'typing.Any'` | `[]` | The initial regex search should fail to find a match. |
+| **Empty brackets** | `'list[]'` | `[]` | The regex finds a match, but the captured group is empty. |
+| **Whitespace in brackets** | `'tuple[   ]'` | `[]` | The logic should not produce an argument consisting of only whitespace. |
+| **Leading/trailing spaces** | `'dict[ str ,  int ]'` | `['str', 'int']` | Verifies that `.strip()` is correctly applied to each argument. |
+| **Trailing comma** | `'tuple[str, int, ]'` | `['str', 'int']` | The final argument will be an empty string, which should be discarded. |
+| **Leading comma** | `'tuple[, str, int]'` | `['', 'str', 'int']` | An empty string is a valid argument. The function should capture it. |
+| **No content outside brackets** | `'[str, int]'` | `['str', 'int']` | Ensures the function works without any prefix before the brackets. |
+| **Content outside brackets**| `'MyType[str, int]Suffix'` | `['str', 'int']` | Confirms that any text outside the first and last brackets is ignored. |
+| **Empty Input String** | `''` | `[]` | The function should handle an empty string gracefully. |
+
+---
+
+#### 4. Malformed Inputs
+
+These tests check how the function behaves with invalid or mismatched bracket inputs. The function is not designed to be a validator, but its behavior should be predictable.
+
+| Test Case Description | Input (`type_string`) | Expected Output | Rationale |
+| :--- | :--- | :--- | :--- |
+| **Mismatched (more open)**| `'dict[str, list[int'` | `['str', 'list[int']` | The regex matches to the end. The parser doesn't validate matching, so it processes the content as is. |
+| **Mismatched (more close)**| `'dict[str, int]]'` | `['str', 'int]']` | The greedy regex `\[(.*)\]` will match from the first `[` to the very last `]`. The parser then processes `str, int]]`. |

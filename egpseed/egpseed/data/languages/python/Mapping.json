@@ -2,42 +2,42 @@
     "get1": {
         "inline": "{i0}.get({i1})",
         "inputs": [
-            "Mapping[Hashable, object]",
-            "0_1"
+            "-Mapping0[-Hashable0, -Any0]",
+            "-Hashable0"
         ],
         "description": "get",
         "outputs": [
-            "0_2"
+            "-Any0"
         ]
     },
     "get2": {
         "inline": "{i0}.get({i1}, {i2})",
         "inputs": [
-            "Mapping[Hashable, object]",
-            "0_1",
-            "0_2"
+            "-Mapping0[-Hashable0, -Any0]",
+            "-Hashable0",
+            "-Any0"
         ],
         "description": "get",
         "outputs": [
-            "0_2"
+            "-Any0"
         ]
     },
     "getitem": {
         "inline": "{i0}[{i1}]",
         "inputs": [
-            "Mapping[Hashable, object]",
-            "0_1"
+            "-Mapping0[-Hashable0, -Any0]",
+            "-Hashable0"
         ],
         "description": "getitem",
         "outputs": [
-            "0_2"
+            "-Any0"
         ]
     },
     "in": {
         "inline": "{i1} in {i0}",
         "inputs": [
-            "Mapping[Hashable, object]",
-            "0_1"
+            "-Mapping0[-Hashable0, -Any0]",
+            "-Hashable0"
         ],
         "description": "in",
         "outputs": [
@@ -47,39 +47,39 @@
     "items": {
         "inline": "{i0}.items()",
         "inputs": [
-            "Mapping[Hashable, object]"
+            "-Mapping0[-Hashable0, -Any0]"
         ],
         "description": "items",
         "outputs": [
-            "ItemsView[0_1, 0_2]"
+            "ItemsView[-Hashable0, -Any0]"
         ]
     },
     "iter": {
         "inline": "{i0}.keys()",
         "inputs": [
-            "Mapping[Hashable, object]"
+            "-Mapping0[-Hashable0, -Any0]"
         ],
         "description": "iter",
         "num_inputs": 1,
         "outputs": [
-            "KeysView[0_1]"
+            "KeysView[-Hashable0]"
         ]
     },
     "keys": {
         "inline": "{i0}.keys()",
         "inputs": [
-            "Mapping[Hashable, object]"
+            "-Mapping0[-Hashable0, -Any0]"
         ],
         "description": "keys",
         "outputs": [
-            "KeysView[0_1]"
+            "KeysView[-Hashable0]"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
         "inputs": [
-            "Mapping[Hashable, object]",
-            "0_1"
+            "-Mapping0[-Hashable0, -Any0]",
+            "-Hashable0"
         ],
         "description": "not in",
         "outputs": [
@@ -89,11 +89,11 @@
     "values": {
         "inline": "{i0}.values()",
         "inputs": [
-            "Mapping[Hashable, object]"
+            "-Mapping0[-Hashable0, -Any0]"
         ],
         "description": "values",
         "outputs": [
-            "ValuesView[0_2]"
+            "ValuesView[-Any0]"
         ]
     }
 }

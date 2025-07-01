@@ -57,7 +57,7 @@
     "isinstance1": {
         "inline": "isinstance({i0}, {i1})",
         "inputs": [
-            "object",
+            "Any",
             "type"
         ],
         "description": "is instance",
@@ -68,7 +68,7 @@
     "isinstance2": {
         "inline": "isinstance({i0}, {i1})",
         "inputs": [
-            "object",
+            "Any",
             "tuple[type, ...]"
         ],
         "description": "is instance",

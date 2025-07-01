@@ -2,8 +2,8 @@
     "in": {
         "inline": "{i1} in {i0}",
         "inputs": [
-            "KeysView[Hashable]",
-            "Hashable"
+            "KeysView[-Hashable0]",
+            "-Hashable0"
         ],
         "description": "in",
         "outputs": [
@@ -13,19 +13,19 @@
     "iter": {
         "inline": "iter({i0})",
         "inputs": [
-            "KeysView[Hashable1]"
+            "KeysView[-Hashable0]"
         ],
         "description": "iterator",
         "num_inputs": 1,
         "outputs": [
-            "Iterator[Hashable1]"
+            "Iterator[-Hashable0]"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
         "inputs": [
-            "KeysView[Hashable]",
-            "Hashable"
+            "KeysView[-Hashable0]",
+            "-Hashable0"
         ],
         "description": "not in",
         "outputs": [

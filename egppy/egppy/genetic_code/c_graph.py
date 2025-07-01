@@ -139,9 +139,9 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Constants
-_DUNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("__" + row for row in ROW_CLS_INDEXED)
-_DUNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple(
-    "__" + row + EPClsPostfix.DST for row in DESTINATION_ROWS
+_UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED)
+_UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple(
+    "_" + row + EPClsPostfix.DST for row in DESTINATION_ROWS
 )
 
 
@@ -396,29 +396,33 @@ class CGraph(FreezableObject):
     Frozen graphs are created once and then never modified.
     """
 
-    __slots__ = tuple(_DUNDER_ROW_CLS_INDEXED) + ("_hash",)
+    # Capture the slot names at class definition time. This ensures that
+    # __slots__ and the __init__ loop use the exact same list.
+    __slots__ = _UNDER_ROW_CLS_INDEXED + ("_hash",)
 
     def __init__(self, graph: dict[str, Interface] | JSONCGraph) -> None:
         """Initialize the Connection Graph."""
         FreezableObject.__init__(self, False)
-        for iface in ROW_CLS_INDEXED:
-            setattr(self, "__" + iface, NULL_INTERFACE)
+
+        # Set defaults
+        for key in _UNDER_ROW_CLS_INDEXED:
+            setattr(self, key, NULL_INTERFACE)
 
         # Iterate over the interface definitions in the graph.
         # NOTE: The keys for a JSONCGraph are just destination row letters but for
         # a dict of Interfaces they are the row letter and the class (e.g. 'Fd', 'Ad', 'Bs', etc.)
         src_ep_dict: dict[SrcRow, set[EndPoint]] = {}
         for iface, iface_def in graph.items():
-            dunder_iface: str = "__" + iface
+            under_iface: str = "_" + iface + EPClsPostfix.DST
             if isinstance(iface_def, Interface):
                 assert iface in ROW_CLS_INDEXED_SET, f"Invalid interface key: {iface}"
-                setattr(self, dunder_iface, iface_def)
+                setattr(self, under_iface, iface_def)
             elif isinstance(iface_def, list):
                 # Convert list to Interface
                 # Since this must be a JSONCGraph the interface is a destination interface
                 assert iface in DESTINATION_ROW_SET, f"Invalid interface key: {iface}"
-                setattr(self, dunder_iface, Interface(iface_def, row=DstRow(iface)))
-                for idx, ep in enumerate(getattr(self, dunder_iface).endpoints):
+                setattr(self, under_iface, Interface(iface_def, row=DstRow(iface)))
+                for idx, ep in enumerate(getattr(self, under_iface).endpoints):
                     for ref in ep.refs:
                         # Create a set of source endpoints for the destination endpoint
                         src_ep_dict.setdefault(SrcRow(ref[0]), set()).add(
@@ -436,7 +440,7 @@ class CGraph(FreezableObject):
         # If the graph is a JSONCGraph, we need to create the source interfaces
         # src_ep_dict will be empty if the graph parameter is a dict of Interfaces
         for src_row, eps in src_ep_dict.items():
-            setattr(self, "__" + src_row + EPClsPostfix.SRC, Interface(sorted(eps)))
+            setattr(self, "_" + src_row + EPClsPostfix.SRC, Interface(sorted(eps)))
 
         # Persistent hash will be defined when frozen. Dynamic until then.
         self._hash: int = 0
@@ -449,10 +453,10 @@ class CGraph(FreezableObject):
         """
         if len(key) == 1:
             return (
-                getattr(self, "__" + key + EPClsPostfix.DST) is not NULL_INTERFACE
-                or getattr(self, "__" + key + EPClsPostfix.SRC) is not NULL_INTERFACE
+                getattr(self, "_" + key + EPClsPostfix.DST) is not NULL_INTERFACE
+                or getattr(self, "_" + key + EPClsPostfix.SRC) is not NULL_INTERFACE
             )
-        return getattr(self, "__" + key) is not NULL_INTERFACE
+        return getattr(self, "_" + key) is not NULL_INTERFACE
 
     def __delitem__(self, key: str) -> None:
         """Delete the endpoint with the given key."""
@@ -460,14 +464,14 @@ class CGraph(FreezableObject):
             raise RuntimeError("Cannot modify a frozen connection graph.")
         if key not in ROW_CLS_INDEXED:
             raise KeyError(f"Invalid Connection Graph key: {key}")
-        setattr(self, "__" + key, NULL_INTERFACE)
+        setattr(self, "_" + key, NULL_INTERFACE)
 
     def __eq__(self, value: object) -> bool:
         """Check equality of Connection Graphs."""
         if not isinstance(value, CGraph):
             return False
         # Compare all interfaces in the graph
-        for key in _DUNDER_ROW_CLS_INDEXED:
+        for key in _UNDER_ROW_CLS_INDEXED:
             if getattr(self, key) != getattr(value, key):
                 return False
         return True
@@ -478,17 +482,17 @@ class CGraph(FreezableObject):
             # Use the persistent hash if the interface is frozen. Hash is defined in self.freeze()
             return self._hash
         # If not frozen, calculate the hash dynamically
-        return hash(tuple(getattr(self, key) for key in _DUNDER_ROW_CLS_INDEXED))
+        return hash(tuple(getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED))
 
     def __getitem__(self, key: str) -> Any:
         """Get the endpoint with the given key."""
         if key not in ROW_CLS_INDEXED:
             raise KeyError(f"Invalid Connection Graph key: {key}")
-        return getattr(self, "__" + key)
+        return getattr(self, "_" + key)
 
     def __iter__(self) -> Iterable[str]:
         """Return an iterator over the keys of the Connection Graph."""
-        return (key for key in ROW_CLS_INDEXED if getattr(self, "__" + key) is not NULL_INTERFACE)
+        return (key for key in ROW_CLS_INDEXED if getattr(self, "_" + key) is not NULL_INTERFACE)
 
     def __repr__(self) -> str:
         """Return a string representation of the Connection Graph."""
@@ -502,21 +506,21 @@ class CGraph(FreezableObject):
             raise KeyError(f"Invalid Connection Graph key: {key}")
         if not isinstance(value, Interface):
             raise TypeError(f"Value must be an Interface, got {type(value)}")
-        setattr(self, "__" + key, value)
+        setattr(self, "_" + key, value)
 
     def is_stable(self) -> bool:
         """Return True if the Connection Graph is stable, i.e. all destinations are connected."""
         if self.is_frozen():
             # Destination end points are guaranteed to be connected if they are frozen.
             return True
-        difs = (getattr(self, key) for key in _DUNDER_ROW_DST_INDEXED)
+        difs = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         return all(not iface.unconnected_eps() for iface in difs if iface is not NULL_INTERFACE)
 
     def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
         """Convert the Connection Graph to a JSON-compatible dictionary."""
         jcg: JSONCGraph = {}
         for key in DESTINATION_ROWS:
-            iface: Interface = getattr(self, "__" + key + EPClsPostfix.DST)
+            iface: Interface = getattr(self, "_" + key + EPClsPostfix.DST)
             if iface is not NULL_INTERFACE:
                 jcg[key] = iface.to_json(json_c_graph=json_c_graph)
         return jcg
@@ -524,7 +528,7 @@ class CGraph(FreezableObject):
     def connect_all(self, fixed_interface: bool = True) -> None:
         """Connect all the unconnected destination endpoints in the Connection Graph."""
         # Make a list of unconnected endpoints and shuffle it
-        ifaces = (getattr(self, key) for key in _DUNDER_ROW_DST_INDEXED)
+        ifaces = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         unconnected: list[EndPoint] = list(
             chain.from_iterable(
                 iface.unconnected_eps() for iface in ifaces if iface is not NULL_INTERFACE
@@ -539,7 +543,7 @@ class CGraph(FreezableObject):
         for dep in unconnected:
             # Gather all the viable source interfaces for this destination endpoint.
             vifs = (
-                getattr(self, "__" + row + EPClsPostfix.SRC) for row in vsrc_rows[DstRow(dep.row)]
+                getattr(self, "_" + row + EPClsPostfix.SRC) for row in vsrc_rows[DstRow(dep.row)]
             )
             # Gather all the source endpoints that match the type of the destination endpoint.
             vsrcs = [sep for vif in vifs for sep in vif if sep.typ == dep.typ]
@@ -561,7 +565,7 @@ class CGraph(FreezableObject):
     def copy(self) -> CGraph:
         """Return a modifiable shallow copy of the Connection Graph."""
         # Create a new CGraph instance with the same interfaces
-        return CGraph({key: getattr(self, key) for key in _DUNDER_ROW_CLS_INDEXED})
+        return CGraph({key: getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED})
 
     def stabilize(self, fixed_interface: bool = True) -> None:
         """Stablization involves making all the mandatory connections and

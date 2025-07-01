@@ -2,17 +2,20 @@
 
 from copy import deepcopy
 from datetime import UTC, datetime
-from email.mime import base
 from glob import glob
 from os.path import basename, dirname, join, splitext
 from typing import Any
+from itertools import product
+from re import findall
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.security import load_signed_json_dict, dump_signed_json
 from egpcommon.properties import GCType, CGraphType
+from egpcommon.spinner import Spinner
 from egppy.genetic_code.types_def import TypesDef, types_def_store
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_class_factory import GGCDict, NULL_SIGNATURE
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
+
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -22,13 +25,13 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-EPT_PATH = ("..", "..", "egppy", "egppy", "data", "end_point_types.json")
-CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
+TYPES_PATH = ("data", "types.json")
+OUTPUT_CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "cgraph": {"A": None, "O": None, "U": []},
-    "gca": None,
-    "gcb": None,
+    "gca": NULL_SIGNATURE,
+    "gcb": NULL_SIGNATURE,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
     "created": datetime.now(UTC).isoformat(),
     "generation": 1,
@@ -52,6 +55,9 @@ CODON_TEMPLATE: dict[str, Any] = {
 class MethodExpander:
     """Method class."""
 
+    # Flag for printing a warning about too many relative type combinations
+    warned = False
+
     def __init__(self, td: TypesDef, name: str, method: dict[str, Any]) -> None:
         """Initialize Method class."""
         super().__init__()
@@ -62,6 +68,7 @@ class MethodExpander:
         if "num_inputs" not in method and "inputs" not in method:
             method["num_inputs"] = 2
         if "num_inputs" in method:
+            assert "inputs" not in method, "Cannot have both num_inputs and inputs."
             self.num_inputs = method["num_inputs"]
             self.inputs = [td.name for _ in range(self.num_inputs)]
         else:
@@ -72,6 +79,7 @@ class MethodExpander:
         if "num_outputs" not in method and "outputs" not in method:
             method["num_outputs"] = 1
         if "num_outputs" in method:
+            assert "outputs" not in method, "Cannot have both num_outputs and outputs."
             self.num_outputs = method["num_outputs"]
             self.outputs = [td.name for _ in range(self.num_outputs)]
         else:
@@ -85,17 +93,87 @@ class MethodExpander:
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
 
-    def to_json(self) -> dict[str, Any]:
+        # Generate the input type combinations and output type combinations
+        self.io_combos = self.generate_io_combos()
+
+    def generate_io_combos(self) -> list[tuple[tuple[str, ...], tuple[str, ...]]]:
+        """Generate the valid input and output type combinations.
+
+        There are a few restrictions to prevent things from exploding:
+         - decendants of relative types must be tt==0 (not container variants)
+         - more than 4 relative types is not supported (too many combinations)
+         - more than 2 "Any" relative types is not supported (too many combinations)
+        """
+
+        # 1. Expand each input & output type into its components
+        # 2. Collect the set of types into tset
+        #       e.g. {Any0, Hashable0, int, str, ...}
+        # 3. Collect the set of relative type labels into rset
+        #       e.g. {-Any0, -Hashable0, ...}
+        # 4. Create a dictionary or relative types to valid relative type choices in rsd
+        #       e.g. {-Any0: [Any, float, ...], -Hashable0: [int, str, ...], ...}
+        #       NOTE: Relative types are "find & replace" labels and all other types are fixed.
+        io_list: list[str] = self.inputs + self.outputs
+        egph_flag: bool = "EGPHighest" in io_list
+        rset: set[str] = {t for tl in io_list for t in findall(r"-.*?[0-9]", tl)}
+        rsd: dict[str, tuple[str, ...]] = {
+            rt: tuple(t.name for t in types_def_store.decendants(rt[1:-1]) if t.tt() == 0)
+            for rt in rset
+        }
+
+        # Implement constraints to prevent runtime explosion
+        if len(rset) > 4:
+            if not MethodExpander.warned:
+                print("WARNING: More than 4 relative types is not supported. Truncating.")
+                MethodExpander.warned = True
+            for i in range(2, 10):
+                if f"-Any{i}" in rsd:
+                    rsd[f"-Any{i}"] = ("Any",)
+            count = sum(len(v) > 1 for v in rsd.values())
+            assert count <= 4, "More than 4 relative types is not supported."
+
+        # rsd is a map of each relative type to all the values it can take.
+        # Each set of input and output types has each relative type replaced with one of its values.
+        # 6. Create all combinations of relative types
+        if not rsd:
+            # If there are no relative types then we can just return the single combination
+            assert not egph_flag, "EGPHighest should not be used with static types."
+            return [(tuple(self.inputs), tuple(self.outputs))]
+
+        io_combos: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+        for rcombo in product(*[rsd[rt] for rt in rsd]):
+            # Replace relative types in input and output types with their values
+            inputs: list[str] = self.inputs.copy()
+            outputs: list[str] = self.outputs.copy()
+            # For each relative type, replace it in the inputs and outputs with the current combo
+            for rt, typ in zip(rsd.keys(), rcombo):
+                inputs = [t.replace(rt, typ) for t in inputs]
+                outputs = [t.replace(rt, typ) for t in outputs]
+            # If EGPHighest is used, we need to replace it with the highest (closest ot object) type
+            if egph_flag:
+                # Highest could be a parameter at the end of inthe inputs list
+                highest = min(
+                    (types_def_store[i] for i in inputs if i != "EGPHighest"), key=lambda x: x.depth
+                )
+                inputs = [t.replace("EGPHighest", highest.name) for t in inputs]
+                outputs = [t.replace("EGPHighest", highest.name) for t in outputs]
+            io_combos.append((tuple(inputs), tuple(outputs)))
+        return io_combos
+
+    def to_json(self) -> list[dict[str, Any]]:
         """Convert to json."""
-        json_dict = deepcopy(CODON_TEMPLATE)
-        json_dict["meta_data"]["function"]["python3"]["0"]["inline"] = self.inline
-        json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
-        json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
-        json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
-        json_dict["properties"].update(self.properties)
-        json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
-        json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
-        return json_dict
+        json_list: list[dict[str, Any]] = []
+        for io_combo in self.io_combos:
+            json_dict = deepcopy(CODON_TEMPLATE)
+            json_dict["meta_data"]["function"]["python3"]["0"]["inline"] = self.inline
+            json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
+            json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
+            json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
+            json_dict["properties"].update(self.properties)
+            json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(io_combo[0])]
+            json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(io_combo[1])]
+            json_list.append(json_dict)
+        return json_list
 
 
 def generate_codons(write: bool = False) -> None:
@@ -118,16 +196,63 @@ def generate_codons(write: bool = False) -> None:
     7. Verify the signatures are unique.
     8. Create the end_point_types.json file.
     """
+
+    # Load the types template definitions (need this to map sub-types to parent types).
+    # Store template types (tt > 0) with just the base type name and add a "base" key to the dict.
+    # with the fully defined base name. This is so we can match the type to the codon file.
+    type_json: dict[str, dict[str, Any]] = {
+        t.split("[")[0]: d | {"base": t}
+        for t, d in load_signed_json_dict(join(dirname(__file__), *TYPES_PATH)).items()
+    }
+
+    # Load the raw codon data for each type.
+    codon_json: dict[str, dict[str, dict[str, Any]]] = {}
+    for codon_file in glob(join(dirname(__file__), "data", "languages", "python", "*.json")):
+        type_base = splitext(basename(codon_file))[0].removeprefix("_")
+        codon_json[type_base] = load_signed_json_dict(codon_file)
+
+    # The ancestors method gets base_type and all ancestors down to "object" (the root type).
+    # To ensure inheritance works correctly we build the type codon definitions from
+    # "object" up and then any overides are correctly applied.
+    # NOTE: This does result in overwrites of the same thing but not worth the effort to optimize
+    for type_base, cjtb in codon_json.items():
+        # If this is a type codon json file then we need to ensure that the type is defined
+        # Files like _constants.json or random.json are not *type* codon files and so no
+        # types need expanding.
+        if type_base in types_def_store:
+            for typ in reversed(types_def_store.ancestors(type_base)):
+                cjtb.update(codon_json[typ.name.split("[")[0]])
+
+            # Now codon_json[type_base] is a complete dictionary of codon definitions for the type
+            # but the sub-types (when tt > 0) are not mapped. The classic example (and the one that
+            # caused this issue) is the "dict" type which has 2 subtypes "dict[-Hashable0, -Any0]"
+            # but inherits from "Container[-Any0]" where the "-Any0" in this case is actually the
+            # "-Hashable0" sub-type.
+            # The following code does that mapping so that the codon template have the right
+            # input and output type templates for the top level type.
+
+            # 1. Build type template mappings (order matters): Every mention of the fully defined
+            # parent type in input position 0 or output position 0 is replaced with the fully
+            # defined base type name (which for codon definitions always includes the template
+            # markers '-' and '0')
+            tbtd = type_json[type_base]
+            full_base_type: str = tbtd["base"].replace(type_base, f"-{type_base}0")
+            assert full_base_type.count(type_base) == 1, f"Type {type_base} is recursively defined!"
+            tt_map = {type_json[p.split("[")[0]]["base"]: full_base_type for p in tbtd["parents"]}
+
+    exit()
     codons: list[dict[str, Any]] = []
-    for json_file in sorted(glob(join(dirname(__file__), "data", "languages", "python", "*.json"))):
-        type_base = splitext(basename(json_file))[0].removeprefix("_")
-        for td in types_def_store.get(type_base):
-            for name, definition in load_signed_json_dict(json_file).items():  # Methods
-                new_codon = GGCDict(MethodExpander(td, name, definition).to_json())
+    spinner = Spinner(f"Processing {type_base}")
+    spinner.start()
+    for td in types_def_store.get(type_base):
+        for name, definition in load_signed_json_dict(codon_file).items():  # Methods
+            for ggc_json in MethodExpander(td, name, definition).to_json():
+                new_codon = GGCDict(ggc_json)
                 new_codon.consistency()
                 codons.append(new_codon.to_json())
+    spinner.stop(f"({len(codons)} codons)")
     if write:
-        dump_signed_json(codons, join(dirname(__file__), *CODON_PATH))
+        dump_signed_json(codons, join(dirname(__file__), *OUTPUT_CODON_PATH))
 
     # Verify the signatures are unique
     # This check picks up any errors in sigurature generation or type defintions

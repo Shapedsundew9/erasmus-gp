@@ -2,75 +2,75 @@
     "Quintuplet": {
         "inline": "({i0}, {i1}, {i2}, {i3}, {i4})",
         "inputs": [
-            "object",
-            "object",
-            "object",
-            "object",
-            "object"
+            "-Any0",
+            "-Any1",
+            "-Any2",
+            "-Any3",
+            "-Any4"
         ],
         "description": "Quintuplet",
         "outputs": [
-            "Quintuplet[0_0, 1_0, 2_0, 3_0, 4_0]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Quintuplet[object, object, object, object, object]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ],
         "description": "first item",
         "outputs": [
-            "0_0"
+            "-Any0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Quintuplet[object, object, object, object, object]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ],
         "description": "second item",
         "outputs": [
-            "1_0"
+            "-Any1"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
         "inputs": [
-            "Quintuplet[object, object, object, object, object]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ],
         "description": "third item",
         "outputs": [
-            "2_0"
+            "-Any2"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
         "inputs": [
-            "Quintuplet[object, object, object, object, object]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ],
         "description": "fourth item",
         "outputs": [
-            "3_0"
+            "-Any3"
         ]
     },
     "item4": {
         "inline": "{i0}[4]",
         "inputs": [
-            "Quintuplet[object, object, object, object, object]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ],
         "description": "fifth item",
         "outputs": [
-            "4_0"
+            "-Any4"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Quintuplet[object, object, object, object, object]"
+            "-Quintuplet0[-Any0, -Any1, -Any2, -Any3, -Any4]"
         ],
         "description": "to any",
         "outputs": [
-            "tuple[Any, ...]"
+            "tuple"
         ]
     }
 }

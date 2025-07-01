@@ -2,41 +2,41 @@
     "bytes1": {
         "inline": "bytes({i0})",
         "inputs": [
-            "bytes"
+            "-bytearray0"
         ],
         "description": "bytes from bytes",
         "outputs": [
-            "bytes"
+            "-bytes0"
         ]
     },
     "bytes2": {
         "inline": "bytes({i0})",
         "inputs": [
-            "Iterable[EGPIntegral]"
+            "-Iterable0[-EGPIntegral0]"
         ],
         "description": "bytes from integers",
         "outputs": [
-            "bytes"
+            "-bytes0"
         ]
     },
     "fromhex1": {
         "inline": "bytes.fromhex({i0})",
         "inputs": [
-            "str"
+            "-str0"
         ],
         "description": "bytes from hex string",
         "outputs": [
-            "bytes"
+            "-bytes0"
         ]
     },
     "fromhex2": {
         "inline": "bytes.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
         "inputs": [
-            "str"
+            "-str0"
         ],
         "description": "bytes from hex bytes",
         "outputs": [
-            "bytes"
+            "-bytes0"
         ]
     },
     "hex": {
@@ -44,7 +44,7 @@
         "description": "hex string",
         "num_inputs": 1,
         "outputs": [
-            "str"
+            "-str0"
         ]
     }
 }

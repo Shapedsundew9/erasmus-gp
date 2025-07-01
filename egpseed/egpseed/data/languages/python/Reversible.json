@@ -2,11 +2,11 @@
     "reversed": {
         "inline": "reversed({i0})",
         "inputs": [
-            "Iterable[object]"
+            "-Iterable0[-Any0]"
         ],
         "description": "reversed",
         "outputs": [
-            "0_0"
+            "-Iterable0[-Any0]"
         ]
     }
 }

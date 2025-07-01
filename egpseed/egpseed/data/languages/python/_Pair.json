@@ -2,42 +2,42 @@
     "Pair": {
         "inline": "({i0}, {i1})",
         "inputs": [
-            "object",
-            "object"
+            "-Any0",
+            "-Any1"
         ],
         "description": "Pair",
         "outputs": [
-            "Pair[0_0, 1_0]"
+            "-Pair0[-Any0, -Any1]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Pair[object, object]"
+            "-Pair0[-Any0, -Any1]"
         ],
         "description": "first item",
         "outputs": [
-            "0_0"
+            "-Any0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Pair[object, object]"
+            "-Pair0[-Any0, -Any1]"
         ],
         "description": "second item",
         "outputs": [
-            "1_0"
+            "-Any1"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Pair[object, object]"
+            "-Pair0[-Any0, -Any1]"
         ],
         "description": "to any",
         "outputs": [
-            "tuple[Any, ...]"
+            "tuple"
         ]
     }
 }

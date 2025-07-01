@@ -2,8 +2,8 @@
     "in": {
         "inline": "{i1} in {i0}",
         "inputs": [
-            "Container[object1]",
-            "object1"
+            "-Container0[-Any0]",
+            "-Any0"
         ],
         "description": "in",
         "outputs": [
@@ -13,8 +13,8 @@
     "not in": {
         "inline": "{i1} not in {i0}",
         "inputs": [
-            "Container[object1]",
-            "object1"
+            "-Container0[-Any0]",
+            "-Any0"
         ],
         "description": "not in",
         "outputs": [

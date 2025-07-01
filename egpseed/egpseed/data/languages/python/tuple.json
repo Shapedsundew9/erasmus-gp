@@ -6,10 +6,10 @@
     "tuple1": {
         "inline": "tuple({i0})",
         "inputs": [
-            "Iterable[object]"
+            "-Iterable0[-Any0]"
         ],
         "outputs": [
-            "tuple[0_1, ...]"
+            "tuple[-Any0, ...]"
         ]
     }
 }

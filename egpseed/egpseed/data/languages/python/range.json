@@ -2,24 +2,24 @@
     "range1": {
         "inline": "range({i0}, {i1}, {i2})",
         "inputs": [
-            "EGPIntegral",
-            "EGPIntegral",
-            "EGPIntegral"
+            "-EGPIntegral0",
+            "-EGPIntegral1",
+            "-EGPIntegral2"
         ],
         "description": "range(start, stop, step)"
     },
     "range2": {
         "inline": "range({i0}, {i1})",
         "inputs": [
-            "EGPIntegral",
-            "EGPIntegral"
+            "-EGPIntegral0",
+            "-EGPIntegral1"
         ],
         "description": "range(start, stop)"
     },
     "range3": {
         "inline": "range({i0})",
         "inputs": [
-            "EGPIntegral"
+            "-EGPIntegral0"
         ],
         "description": "range(stop)"
     }

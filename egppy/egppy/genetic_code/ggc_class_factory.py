@@ -170,10 +170,10 @@ class GGCMixin(EGCMixin):
                 base["imports"] = self["imports"] = tuple(ImportDef(**md) for md in base["imports"])
 
         # TODO: What do we need these for internally. Need to write them to the DB
-        # but internally we can use the graph interface e.g. self["graph"]["O"]
+        # but internally we can use the graph interface e.g. self["cgraph"]["O"]
         self["num_inputs"] = len(self["inputs"])
         self["num_outputs"] = 0  # To keep alphabetical ordering in keys.
-        self["output_types"], self["outputs"] = self["graph"]["Od"].types()
+        self["output_types"], self["outputs"] = self["cgraph"]["Od"].types()
         self["num_outputs"] = len(self["outputs"])
 
         self["population_uid"] = gcabc.get("population_uid", 0)

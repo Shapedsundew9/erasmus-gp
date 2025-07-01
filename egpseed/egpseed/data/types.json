@@ -78,24 +78,6 @@
         ],
         "tt": 1
     },
-    "Collection[-Hashable0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Collection"
-            }
-        ],
-        "parents": [
-            "Sized",
-            "Iterable[-Hashable0]",
-            "Container[-Hashable0]"
-        ],
-        "tt": 1
-    },
     "complex": {
         "default": "complex(2.0,-2.0)",
         "parents": [
@@ -115,10 +97,10 @@
         ],
         "parents": [
             "Number",
-            "egp_complex"
+            "EGPComplex"
         ]
     },
-    "Container[Any]": {
+    "Container[-Any0]": {
         "abstract": true,
         "parents": [
             "object"
@@ -132,26 +114,26 @@
         ],
         "tt": 2
     },
-    "egp_complex": {
+    "EGPComplex": {
+        "abstract": true
+    },
+    "EGPHighest": {
         "meta": true
     },
-    "egp_highest": {
-        "meta": true
+    "EGPIntegral": {
+        "abstract": true
     },
-    "egp_integral": {
-        "meta": true
+    "EGPInvalid": {
+        "abstract": true
     },
-    "egp_invalid": {
-        "meta": true
+    "EGPNumber": {
+        "abstract": true
     },
-    "egp_number": {
-        "meta": true
+    "EGPRational": {
+        "abstract": true
     },
-    "egp_rational": {
-        "meta": true
-    },
-    "egp_real": {
-        "meta": true
+    "EGPReal": {
+        "abstract": true
     },
     "float": {
         "default": "(2.0)",
@@ -167,7 +149,7 @@
         ],
         "tt": 1
     },
-    "Generator[Any, Any, Any]": {
+    "Generator[-Any0, -Any1, -Any2]": {
         "imports": [
             {
                 "aip": [
@@ -215,7 +197,7 @@
         ],
         "parents": [
             "Rational",
-            "egp_integral"
+            "EGPIntegral"
         ]
     },
     "ItemsView[-Hashable0, -Any0]": {
@@ -235,7 +217,7 @@
         ],
         "tt": 2
     },
-    "Iterable[Any]": {
+    "Iterable[-Any0]": {
         "abstract": true,
         "imports": [
             {
@@ -388,7 +370,7 @@
         ],
         "parents": [
             "Hashable",
-            "egp_number"
+            "EGPNumber"
         ]
     },
     "object": {
@@ -408,11 +390,11 @@
             }
         ],
         "parents": [
-            "tuple[Any, ...]"
+            "tuple"
         ],
         "tt": 2
     },
-    "Quadruplet[Any, Any, Any, Any]": {
+    "Quadruplet[-Any0, -Any1, -Any2, -Any3]": {
         "imports": [
             {
                 "aip": [
@@ -425,11 +407,11 @@
             }
         ],
         "parents": [
-            "tuple[Any, ...]"
+            "tuple"
         ],
         "tt": 4
     },
-    "Quintuplet[Any, Any, Any, Any, Any]": {
+    "Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]": {
         "imports": [
             {
                 "aip": [
@@ -442,7 +424,7 @@
             }
         ],
         "parents": [
-            "tuple[Any, ...]"
+            "tuple"
         ],
         "tt": 5
     },
@@ -465,7 +447,7 @@
         ],
         "parents": [
             "Real",
-            "egp_rational"
+            "EGPRational"
         ]
     },
     "Real": {
@@ -480,7 +462,7 @@
         ],
         "parents": [
             "Complex",
-            "egp_real"
+            "EGPReal"
         ]
     },
     "Reversible[-Any0]": {
@@ -499,7 +481,7 @@
         ],
         "tt": 1
     },
-    "Septuplet[Any, Any, Any, Any, Any, Any, Any]": {
+    "Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]": {
         "imports": [
             {
                 "aip": [
@@ -512,7 +494,7 @@
             }
         ],
         "parents": [
-            "tuple[Any, ...]"
+            "tuple"
         ],
         "tt": 7
     },
@@ -556,7 +538,7 @@
         ],
         "tt": 1
     },
-    "Sextuplet[Any, Any, Any, Any, Any, Any]": {
+    "Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]": {
         "imports": [
             {
                 "aip": [
@@ -569,7 +551,7 @@
             }
         ],
         "parents": [
-            "tuple[Any, ...]"
+            "tuple"
         ],
         "tt": 6
     },
@@ -595,7 +577,7 @@
             "Hashable"
         ]
     },
-    "Triplet[Any, Any, Any]": {
+    "Triplet[-Any0, -Any1, -Any2]": {
         "imports": [
             {
                 "aip": [
@@ -608,7 +590,7 @@
             }
         ],
         "parents": [
-            "tuple[Any, ...]"
+            "tuple"
         ],
         "tt": 3
     },

@@ -2,8 +2,8 @@
     "in": {
         "inline": "{i1} in {i0}",
         "inputs": [
-            "ValuesView[object]",
-            "object"
+            "ValuesView[-Any0]",
+            "-Any0"
         ],
         "description": "in",
         "outputs": [
@@ -13,19 +13,19 @@
     "iter": {
         "inline": "iter({i0})",
         "inputs": [
-            "ValuesView[object]"
+            "ValuesView[-Any0]"
         ],
         "description": "iterator",
         "num_inputs": 1,
         "outputs": [
-            "Iterator[0_1]"
+            "Iterator[-Any0]"
         ]
     },
     "not in": {
         "inline": "{i1} not in {i0}",
         "inputs": [
-            "ValuesView[object]",
-            "0_1"
+            "ValuesView[-Any0]",
+            "-Any0"
         ],
         "description": "not in",
         "outputs": [

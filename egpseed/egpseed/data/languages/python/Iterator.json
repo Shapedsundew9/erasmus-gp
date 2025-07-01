@@ -2,11 +2,11 @@
     "next1": {
         "inline": "next({i0})",
         "inputs": [
-            "Iterator[object]"
+            "Iterator[-Any0]"
         ],
         "description": "next",
         "outputs": [
-            "0_1"
+            "-Any0"
         ],
         "properties": {
             "side_effects": true
@@ -15,26 +15,12 @@
     "next2": {
         "inline": "next({i0}, default={i1})",
         "inputs": [
-            "Iterator[object]",
-            "0_1"
+            "Iterator[-Any0]",
+            "-Any0"
         ],
         "description": "next",
         "outputs": [
-            "0_1"
-        ],
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "next3": {
-        "inline": "next({i0}, default={i1})",
-        "inputs": [
-            "Iterator[object]",
-            "object"
-        ],
-        "description": "next",
-        "outputs": [
-            "object"
+            "-Any0"
         ],
         "properties": {
             "side_effects": true

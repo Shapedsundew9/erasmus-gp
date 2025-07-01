@@ -2,7 +2,7 @@
     "hash": {
         "inline": "hash({i0})",
         "inputs": [
-            "Hashable"
+            "-Hashable0"
         ],
         "description": "hash",
         "outputs": [

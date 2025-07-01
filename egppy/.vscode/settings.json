@@ -17,6 +17,5 @@
     "editor.codeActionsOnSave": {
         
     },
-    "snyk.advanced.additionalParameters": "--all-projects",
-    "python.analysis.logLevel": "Trace"
+    "snyk.advanced.additionalParameters": "--all-projects"
 }

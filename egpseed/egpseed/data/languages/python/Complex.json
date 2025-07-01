@@ -1,6 +1,10 @@
 {
     "*": {
         "inline": "{i0} * {i1}",
+        "inputs": [
+            "-EGPComplex0",
+            "-EGPComplex1"
+        ],
         "description": "multiply",
         "outputs": [
             "EGPHighest"
@@ -9,6 +13,10 @@
     "**": {
         "inline": "{i0} ** {i1}",
         "description": "to the power of",
+        "inputs": [
+            "-EGPComplex0",
+            "-EGPComplex1"
+        ],
         "outputs": [
             "EGPHighest"
         ]
@@ -16,6 +24,10 @@
     "+": {
         "inline": "{i0} + {i1}",
         "description": "add",
+        "inputs": [
+            "-EGPComplex0",
+            "-EGPComplex1"
+        ],
         "outputs": [
             "EGPHighest"
         ]
@@ -23,6 +35,10 @@
     "-": {
         "inline": "{i0} - {i1}",
         "description": "subtract",
+        "inputs": [
+            "-EGPComplex0",
+            "-EGPComplex1"
+        ],
         "outputs": [
             "EGPHighest"
         ]
@@ -30,6 +46,10 @@
     "/": {
         "inline": "{i0} / {i1}",
         "description": "true divide",
+        "inputs": [
+            "-EGPComplex0",
+            "-EGPComplex1"
+        ],
         "outputs": [
             "EGPHighest"
         ]
@@ -37,7 +57,9 @@
     "abs": {
         "inline": "abs({i0})",
         "description": "absolute value or magnitude",
-        "num_inputs": 1,
+        "inputs": [
+            "-EGPComplex0"
+        ],
         "outputs": [
             "int"
         ]
@@ -45,12 +67,19 @@
     "conjugate": {
         "inline": "{i0}.conjugate()",
         "description": "conjugate of",
-        "num_inputs": 1
+        "inputs": [
+            "-EGPComplex0"
+        ],
+        "outputs": [
+            "Real"
+        ]
     },
     "imag": {
         "inline": "{i0}.imag",
         "description": "imaginary part of",
-        "num_inputs": 1,
+        "inputs": [
+            "-EGPComplex0"
+        ],
         "outputs": [
             "Real"
         ]
@@ -58,19 +87,30 @@
     "negate": {
         "inline": "-{i0}",
         "description": "negate",
-        "num_inputs": 1
+        "inputs": [
+            "-EGPComplex0"
+        ],
+        "outputs": [
+            "-EGPComplex0"
+        ]
     },
     "pow": {
         "inline": "pow({i0}, {i1})",
         "description": "raise to the power of",
+         "inputs": [
+            "-EGPComplex0",
+            "-EGPComplex1"
+        ],
         "outputs": [
             "EGPHighest"
         ]
-    },
+   },
     "real": {
         "inline": "{i0}.real",
         "description": "real part",
-        "num_inputs": 1,
+        "inputs": [
+            "-EGPComplex0"
+        ],
         "outputs": [
             "Real"
         ]

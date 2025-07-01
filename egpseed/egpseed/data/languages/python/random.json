@@ -135,10 +135,10 @@
         }],
         "inline": "choice({i0})",
         "inputs": [
-            "Iterable[object]"
+            "-Iterable0[-Any0]"
         ],
         "outputs": [
-            "0_1"
+            "-Any0"
         ],
         "properties": {
             "deterministic": false,
@@ -153,11 +153,11 @@
         }],
         "inline": "choices({i0}, k={i1})",
         "inputs": [
-            "Iterable[object]",
+            "-Iterable0[-Any0]",
             "int"
         ],
         "outputs": [
-            "list[0_1]"
+            "list[-Any0]"
         ],
         "properties": {
             "deterministic": false,
@@ -172,12 +172,12 @@
         }],
         "inline": "choices({i0}, weights={i1}, k={i2})",
         "inputs": [
-            "Iterable[object]",
-            "Iterable[float]",
+            "-Iterable0[-Any0]",
+            "-Iterable1[float]",
             "int"
         ],
         "outputs": [
-            "list[0_1]"
+            "list[-Any0]"
         ],
         "properties": {
             "deterministic": false,
@@ -192,12 +192,12 @@
         }],
         "inline": "choices({i0}, cum_weights={i1}, k={i2})",
         "inputs": [
-            "Iterable[object]",
-            "Iterable[float]",
+            "-Iterable0[-Any0]",
+            "-Iterable1[float]",
             "int"
         ],
         "outputs": [
-            "list[0_1]"
+            "list[-Any0]"
         ],
         "properties": {
             "deterministic": false,
@@ -212,7 +212,7 @@
         }],
         "inline": "shuffle({i0})",
         "inputs": [
-            "list[object]"
+            "list[-Any0]"
         ],
         "num_outputs": 0,
         "properties": {
@@ -228,11 +228,11 @@
         }],
         "inline": "sample({i0}, k={i1})",
         "inputs": [
-            "Iterable[object]",
+            "-Iterable0[-Any0]",
             "int"
         ],
         "outputs": [
-            "list[0_1]"
+            "list[-Any0]"
         ],
         "properties": {
             "deterministic": false,
@@ -256,7 +256,7 @@
         }
     },
     "randbytes": {
-        "description": "Return a bytes object containing n random bytes.",
+        "description": "Return a bytes Any containing n random bytes.",
         "imports": [{
             "name": "randbytes",
             "aip": ["random"]

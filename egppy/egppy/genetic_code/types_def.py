@@ -6,6 +6,7 @@ from json import dumps, loads
 from os.path import dirname, join
 from typing import Any, Final, Generator, Iterable
 from array import array
+from functools import lru_cache
 
 from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
@@ -37,6 +38,7 @@ DB_STORE = Table(
             "uid": ColumnSchema(db_type="int4", primary_key=True),
             "name": ColumnSchema(db_type="VARCHAR", index="btree"),
             "default": ColumnSchema(db_type="VARCHAR", nullable=True),
+            "depth": ColumnSchema(db_type="int4"),
             "abstract": ColumnSchema(db_type="bool"),
             "imports": ColumnSchema(db_type="VARCHAR"),
             "parents": ColumnSchema(db_type="INT4[]"),
@@ -52,7 +54,7 @@ DB_STORE = Table(
 )
 
 # The generic tuple type UID
-_TUPLE_UID: int = 268435456
+_TUPLE_UID: int = 0
 
 
 # The BitDict format of the EGP type UID
@@ -74,6 +76,7 @@ class TypesDef(FreezableObject, Validator):
     __slots__: tuple[str, ...] = (
         "__name",
         "__default",
+        "__depth",
         "__abstract",
         "__imports",
         "__parents",
@@ -87,6 +90,7 @@ class TypesDef(FreezableObject, Validator):
         uid: int | dict[str, Any],
         abstract: bool = False,
         default: str | None = None,
+        depth: int | None = None,
         imports: Iterable[ImportDef] | dict = NULL_TUPLE,
         parents: Iterable[int | TypesDef] = NULL_TUPLE,
         children: Iterable[int | TypesDef] = NULL_TUPLE,
@@ -98,6 +102,7 @@ class TypesDef(FreezableObject, Validator):
             uid: Unique identifier of the type definition.
             abstract: True if the type is abstract.
             default: Executable python default instantiation of the type.
+            depth: Depth of the type in the inheritance hierarchy. object = 0.
             imports: List of import definitions need to instantiate the type.
             parents: List of type uids or definitions that the type inherits from.
             children: List of type uids or definitions that the type has as children.
@@ -107,6 +112,7 @@ class TypesDef(FreezableObject, Validator):
         super().__init__(frozen=False)
         self.__name: Final[str] = self._name(name)
         self.__default: Final[str | None] = self._default(default)
+        self.__depth: Final[int] = self._depth(depth if depth is not None else 0)
         self.__abstract: Final[bool] = self._abstract(abstract)
         self.__imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
         self.__parents: Final[array[int]] = self._parents(parents)
@@ -146,6 +152,7 @@ class TypesDef(FreezableObject, Validator):
             self.__name,
             self.uid,
             self.__default,
+            self.__depth,
             self.__imports,
             self.__parents,
             self.__children,
@@ -198,7 +205,7 @@ class TypesDef(FreezableObject, Validator):
         This allows TypesDef objects to be independently cached.
         """
         # If it is already an array no need to copy it. Saves memory.
-        # TODO: For Any and tuple[Any, ...] there are a lot of children
+        # TODO: For Any and tuple there are a lot of children
         # these need to be special cased to save memory.
         if isinstance(children, array) and children.typecode == "i":
             return children
@@ -220,6 +227,12 @@ class TypesDef(FreezableObject, Validator):
         self._is_length("default", default, 1, 64)
         self._is_printable_string("default", default)
         return default
+
+    def _depth(self, depth: int) -> int:
+        """Validate the depth of the type definition."""
+        self._is_int("depth", depth)
+        self._in_range("depth", depth, 0, 1024)
+        return depth
 
     def _imports(self, imports: Iterable[ImportDef] | dict) -> tuple[ImportDef, ...]:
         """Mash the import definitions into a tuple of ImportDef objects
@@ -290,13 +303,18 @@ class TypesDef(FreezableObject, Validator):
     @property
     def children(self) -> array[int]:
         """Return the children of the type definition."""
-        # TODO: Special case this for Any and tuple[Any, ...] types
+        # TODO: Special case this for Any and tuple types
         return self.__children
 
     @property
     def default(self) -> str | None:
         """Return the default instantiation of the type."""
         return self.__default
+
+    @property
+    def depth(self) -> int:
+        """Return the depth of the type definition."""
+        return self.__depth
 
     @property
     def imports(self) -> tuple[ImportDef, ...]:
@@ -324,6 +342,7 @@ class TypesDef(FreezableObject, Validator):
             "abstract": self.__abstract,
             "children": list(self.__children),
             "default": self.__default,
+            "depth": self.__depth,
             "imports": [idef.to_json() for idef in self.__imports],
             "name": self.__name,
             "parents": list(self.__parents),
@@ -393,8 +412,40 @@ class TypesDefStore(ObjectDict):
         self._objects[ntd.uid] = ntd
         return ntd
 
+    @lru_cache(maxsize=128)
+    def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
+        """Return the type definition and all ancestors by name or UID.
+        The ancestors are the parents, grandparents etc. in depth order (type "key" first).
+        """
+        if not isinstance(key, (int, str)):
+            raise TypeError(f"Invalid key type: {type(key)}")
+        stack: set[TypesDef] = {self[key]}
+        ancestors: set[TypesDef] = set()
+        while stack:
+            parent: TypesDef = stack.pop()
+            if parent not in ancestors:
+                ancestors.add(parent)
+                stack.update(self[p] for p in parent.parents)
+        return tuple(sorted(ancestors, key=lambda td: td.depth, reverse=True))
+
+    @lru_cache(maxsize=128)
+    def decendants(self, key: str | int) -> tuple[TypesDef, ...]:
+        """Return the type definition and all descendants by name or UID.
+        The descendants are the children, grandchildren etc. in depth order (type "key" first).
+        """
+        if not isinstance(key, (int, str)):
+            raise TypeError(f"Invalid key type: {type(key)}")
+        stack: set[TypesDef] = {self[key]}
+        descendants: set[TypesDef] = set()
+        while stack:
+            child: TypesDef = stack.pop()
+            if child not in descendants:
+                descendants.add(child)
+                stack.update(self[c] for c in child.children)
+        return tuple(sorted(descendants, key=lambda td: td.depth, reverse=True))
+
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
-        """Get a tuple of TypesDef objects by base key."""
+        """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
         if not isinstance(base_key, str):
             raise TypeError(f"Invalid key type: {type(base_key)}")
         tds = DB_STORE.select("WHERE name LIKE {id}", literals={"id": f"{base_key}%"})
@@ -416,4 +467,4 @@ types_def_store = TypesDefStore()
 
 
 # Important check
-assert types_def_store["tuple[Any, ...]"].uid == _TUPLE_UID, "Tuple UID is used as a constant."
+assert types_def_store["tuple"].uid == _TUPLE_UID, "Tuple UID is used as a constant."
