@@ -9,6 +9,7 @@ echo "--- Running post-create script ---"
 # Create and activate virtual environment
 echo "Creating and activating virtual environment..."
 python3 -m venv .venv
+#.venv/bin/activate
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."

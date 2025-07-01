@@ -1,0 +1,8 @@
+pytest
+numpy
+psycopg2
+pympler
+pytest-cov
+black
+pylint
+pyright
