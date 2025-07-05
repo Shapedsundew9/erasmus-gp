@@ -1,3 +1,33 @@
 [tool.black]
 line-length = 100
 target-version = ['py312']
+
+[build-system]
+requires = ["setuptools>=61.0"] # Or your preferred build backend
+build-backend = "setuptools.build_meta"
+
+[project]
+name="egpcommon"
+version="1.0.0"
+readme="README.md"
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+keywords = ["example", "package"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    # List your project's runtime dependencies here
+    # "requests",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/my_package_repo"
+"Bug Tracker" = "https://github.com/yourusername/my_package_repo/issues"
+
+[tool.setuptools.packages.find]
+where = ["."] # <--- This tells setuptools to look for packages in the current directory (my_package_repo/)
+include = ["egpcommon"] # <--- This tells it to *only* include directories starting with my_package

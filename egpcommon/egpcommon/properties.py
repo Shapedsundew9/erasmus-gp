@@ -3,7 +3,7 @@
 from enum import IntEnum
 
 from bitdict import bitdict_factory, BitDictABC
-from markdown import generate_markdown_tables
+from bitdict.markdown import generate_markdown_tables
 
 
 class GCType(IntEnum):

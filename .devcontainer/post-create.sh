@@ -6,13 +6,13 @@ set -e
 
 echo "--- Running post-create script ---"
 
-# Create and activate virtual environment
-echo "Creating and activating virtual environment..."
-python3 -m venv .venv
-#.venv/bin/activate
+# Activating the virtual environment
+#echo "Activating virtual environment..."
+#source /workspace/.venv/bin/activate
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
+pip install --upgrade pip
 pip install -r ./egppkrapi/requirements.txt -r ./egppy/requirements.txt -r ./requirements.txt
 pip install -e ./egpcommon
 pip install -e ./egppkrapi
