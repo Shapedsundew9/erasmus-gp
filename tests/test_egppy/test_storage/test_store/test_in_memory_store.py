@@ -3,8 +3,8 @@ import unittest
 from egppy.storage.store.in_memory_store import InMemoryStore
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.storable_obj import StorableDict, StorableList, StorableSet, StorableTuple
-from tests.test_storage.store_test_base import DEFAULT_VALUES
-from tests.test_storage.store_test_base import StoreTestBase
+from test_egppy.test_storage.store_test_base import DEFAULT_VALUES
+from test_egppy.test_storage.store_test_base import StoreTestBase
 
 
 class TestInMemoryStoreStorableDict(StoreTestBase):

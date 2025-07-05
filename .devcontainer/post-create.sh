@@ -12,13 +12,13 @@ source /workspaces/erasmus-gp/.venv/bin/activate
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
-pip install --upgrade pip
-pip install -e ./egpcommon
-pip install -e ./egppkrapi
-pip install -e ./egppy
-pip install -e ./egpdb
-pip install -e ./egpseed
-pip install -e ./egpdbmgr
+/workspaces/erasmus-gp/.venv/bin/pip install --upgrade pip
+/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpcommon
+/workspaces/erasmus-gp/.venv/bin/pip install -e ./egppkrapi
+/workspaces/erasmus-gp/.venv/bin/pip install -e ./egppy
+/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpdb
+/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpseed
+/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpdbmgr
 
 # Done
 echo "--- Post-create script finished ---"

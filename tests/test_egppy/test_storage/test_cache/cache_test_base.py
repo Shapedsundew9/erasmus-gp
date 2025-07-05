@@ -4,7 +4,7 @@ from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.cache.cacheable_obj import CacheableDict
-from tests.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase, NUM_CACHE_ITEMS
+from test_egppy.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase, NUM_CACHE_ITEMS
 
 
 # Standard EGP logging pattern
@@ -57,7 +57,8 @@ class CacheTestBase(DirtyCacheTestBase):
         item = self.json_data[0]
         self.cache.next_level[item['signature']] = CacheableDict(item)
         # Get the item from the cache
-        self.assertEqual(first=self.cache[item['signature']], second=CacheableDict(item))
+        self.assertEqual(
+            first=self.cache[item['signature']], second=CacheableDict(item))
 
     def test_purge(self) -> None:
         """Purge method is called by over filling the cache."""
@@ -76,7 +77,8 @@ class CacheTestBase(DirtyCacheTestBase):
             self.assertIn(member=item['signature'], container=self.cache)
         # The store should have the purged items
         for item in self.json_data[:NUM_CACHE_PURGE_ITEMS]:
-            self.assertIn(member=item['signature'], container=self.cache.next_level)
+            self.assertIn(member=item['signature'],
+                          container=self.cache.next_level)
 
     def test_touch(self) -> None:
         """Test the touch method."""
@@ -91,4 +93,5 @@ class CacheTestBase(DirtyCacheTestBase):
         item = self.json_data[MAX_NUM_CACHE_ITEMS]
         self.cache[item['signature']] = CacheableDict(item)
         # The first item should still be in the cache
-        self.assertIn(member=self.json_data[0]['signature'], container=self.cache)
+        self.assertIn(member=self.json_data[0]
+                      ['signature'], container=self.cache)

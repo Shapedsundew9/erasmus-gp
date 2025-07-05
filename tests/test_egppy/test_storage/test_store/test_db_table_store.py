@@ -12,7 +12,7 @@ from egppy.storage.store.db_table_store import DBTableStore
 from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
-from tests.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
+from test_egppy.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
 
 # To uniquely name databases for parallel execution
 # To avoid conflicts with other test modules we just use the range 0 to 999

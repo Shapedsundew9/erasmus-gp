@@ -9,13 +9,9 @@ from itertools import count
 from typing import Any
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import NULL_STR
-from egppy.c_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.c_graph.end_point.import_def import ImportDef
-from egppy.c_graph.c_graph_constants import DstRow, SrcRow
-from egppy.gc_types.genetic_code import (
-    GCABC,
-    NULL_GC,
-)
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.gc_store import GGC_CACHE
 from egppy.worker.executor.function_info import FunctionInfo, NULL_FUNCTION_MAP, NULL_EXECUTABLE
 from egppy.worker.executor.gc_node import GCNode, GCNodeCodeIterable, NULL_GC_NODE
@@ -133,7 +129,8 @@ class ExecutionContext:
         # If the GC is a codon then there are no connections to make
         if node.gca is NULL_GC and node.gcb is NULL_GC:
             return node
-        connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)
+        connection_stack: list[CodeConnection] = code_connection_from_iface(
+            node, DstRow.O)
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
         # Make sure we are not processing the same interface more than once.
@@ -212,7 +209,8 @@ class ExecutionContext:
                     connection_stack.pop()
                     if src.node not in visited_nodes:
                         visited_nodes.add(src.node)
-                        connection_stack.extend(code_connection_from_iface(node, src.node.iam))
+                        connection_stack.extend(
+                            code_connection_from_iface(node, src.node.iam))
             else:
                 assert False, "Source must not be terminal."
 
@@ -221,7 +219,8 @@ class ExecutionContext:
                 node.f_connection = False
                 connection_stack.append(
                     CodeConnection(
-                        CodeEndPoint(node, SrcRow.I, node.gc["graph"]["Fdc"][0].get_idx()),
+                        CodeEndPoint(node, SrcRow.I,
+                                     node.gc["graph"]["Fdc"][0].get_idx()),
                         CodeEndPoint(node, DstRow.F, 0, True),
                     )
                 )
@@ -340,7 +339,8 @@ class ExecutionContext:
             dstr.append(f"{open_str}Optimisations:")
             dstr.append("   - Dead code elimination: True")
             dstr.append(f"   - Constant evaluation: {fwconfig.const_eval}")
-            dstr.append(f"   - Common subexpression elimination: {fwconfig.cse}")
+            dstr.append(
+                f"   - Common subexpression elimination: {fwconfig.cse}")
             dstr.append(f"   - Simplification: {fwconfig.simplification}")
         if open_str:
             dstr.append('"""EGP generated Genetic Code function."""')
@@ -350,7 +350,8 @@ class ExecutionContext:
 
     def execute(self, signature: bytes, args: tuple[Any, ...]) -> Any:
         """Execute the function in the execution context."""
-        assert isinstance(signature, bytes), f"Invalid signature type: {type(signature)}"
+        assert isinstance(
+            signature, bytes), f"Invalid signature type: {type(signature)}"
         assert signature in self.function_map, f"Signature not found: {signature.hex()}"
         lns: dict[str, Any] = {"i": args}
         execution_str = f"result = {self.function_map[signature].name()}(i)"
@@ -388,7 +389,8 @@ class ExecutionContext:
             for impt in (i for i in node.gc["imports"] if i not in self.imports):
                 self.define(str(impt))
                 self.imports.add(impt)
-            ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
+            ivns_map: dict[str, str] = {
+                f"i{i}": ivn for i, ivn in enumerate(ivns)}
             return assignment + node.gc["inline"].format_map(ivns_map)
         return assignment + node.function_info.call_str(ivns)
 
@@ -468,7 +470,8 @@ class ExecutionContext:
 
         # Add to the execution context
         self.define(code)
-        node.function_info.executable = self.namespace[node.function_info.name()]
+        node.function_info.executable = self.namespace[node.function_info.name(
+        )]
         return node.function_info
 
     def node_graph(self, gc: GCABC) -> GCNode:
@@ -493,7 +496,8 @@ class ExecutionContext:
 
         half_limit: int = self._line_limit // 2
         finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
-        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo)]
+        node_stack: list[GCNode] = [gc_node_graph :=
+                                    GCNode(gc, None, SrcRow.I, finfo)]
 
         # Define the GCNode data
         while node_stack:
@@ -505,8 +509,10 @@ class ExecutionContext:
                 continue
             child_nodes = ((DstRow.A, node.gca), (DstRow.B, node.gcb))
             for row, xgc in (x for x in child_nodes):
-                assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
-                fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
+                assert isinstance(
+                    xgc, GCABC), "GCA or GCB must be a GCABC instance"
+                fmap = self.function_map.get(
+                    xgc["signature"], NULL_FUNCTION_MAP)
                 gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap)
                 if row == DstRow.A:
                     node.gca_node = gc_node_graph_entry

@@ -35,8 +35,8 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     def __init__(
         self,
         dbname: str = "erasmus_db",
-        host: str = "localhost",
-        password: str = "~/.egppy/db_password",
+        host: str = "postgres",
+        password: str = "/run/secrets/db_password",
         port: int = 5432,
         maintenance_db: str = "postgres",
         retries: int = 3,
@@ -201,14 +201,17 @@ class ColumnSchema(Validator, DictTypeAccessor):
         """Check the consistency of the schema column."""
         if self.primary_key:
             if self.nullable:
-                raise ValueError("Primary key columns cannot have NULL entries.")
+                raise ValueError(
+                    "Primary key columns cannot have NULL entries.")
             if not self.unique:
                 raise RuntimeError("Primary key columns must also be unique.")
         if self.index is not None:
             if self.primary_key:
-                raise ValueError("Primary key columns cannot be additionally indexed.")
+                raise ValueError(
+                    "Primary key columns cannot be additionally indexed.")
             if self.unique:
-                raise ValueError("Unique columns cannot be additionally indexed.")
+                raise ValueError(
+                    "Unique columns cannot be additionally indexed.")
 
     def to_json(self) -> dict:
         """Get the configuration as a JSON object."""
@@ -376,7 +379,8 @@ class TableConfig(Validator, DictTypeAccessor):
             assert (
                 "database" not in database
             ), "Did you remember to unpack the configuration dictionary?"
-        setattr(self, "database", database if database is not None else DatabaseConfig())
+        setattr(self, "database",
+                database if database is not None else DatabaseConfig())
         setattr(self, "table", table)
         setattr(self, "schema", schema if schema is not None else {})
         setattr(self, "ptr_map", ptr_map if ptr_map is not None else {})
@@ -399,23 +403,27 @@ class TableConfig(Validator, DictTypeAccessor):
             if v not in self.schema:
                 raise ValueError(f"Pointer map value '{v}' not in schema.")
             if v in self.ptr_map:
-                raise ValueError(f"Pointer map value '{v}' is also a key. Circular reference.")
+                raise ValueError(
+                    f"Pointer map value '{v}' is also a key. Circular reference.")
         if self.delete_db:
             if not self.create_db:
                 raise ValueError("Delete DB requires create DB.")
             if self.wait_for_db:
                 raise ValueError("Delete DB requires wait for DB to be False.")
             if not self.create_table and not self.wait_for_table:
-                raise ValueError("Delete DB requires create table or wait for table.")
+                raise ValueError(
+                    "Delete DB requires create table or wait for table.")
         if self.delete_table:
             if not self.create_table:
                 raise ValueError("Delete table requires create table.")
             if self.wait_for_table:
-                raise ValueError("Delete table requires wait for table to be False.")
+                raise ValueError(
+                    "Delete table requires wait for table to be False.")
         if self.create_db and self.wait_for_db:
             raise ValueError("Create DB requires wait for DB to be False.")
         if self.create_table and self.wait_for_table:
-            raise ValueError("Create table requires wait for table to be False.")
+            raise ValueError(
+                "Create table requires wait for table to be False.")
 
     def to_json(self) -> dict:
         """Get the configuration as a JSON object."""

@@ -1,5 +1,5 @@
 """Test cases for JSONFileStore class."""
-from tests.test_storage.store_test_base import StoreTestBase
+from test_egppy.test_storage.store_test_base import StoreTestBase
 
 
 class JSONFileStoreTestBase(StoreTestBase):
@@ -30,7 +30,8 @@ class JSONFileStoreTestBase(StoreTestBase):
         self.store[self.key1] = self.value1
         self.store[self.key2] = self.value2
         keys = self.store.keys()
-        self.assertEqual(first=list(keys), second=[str(self.key1), str(self.key2)])
+        self.assertEqual(first=list(keys), second=[
+                         str(self.key1), str(self.key2)])
 
     def test_items(self) -> None:
         """

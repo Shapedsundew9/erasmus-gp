@@ -3,8 +3,8 @@ import unittest
 from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.store.storable_obj import StorableDict, StorableList, StorableSet, StorableTuple
 from egppy.storage.store.storable_obj_abc import StorableObjABC
-from tests.test_storage.store_test_base import DEFAULT_VALUES
-from tests.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
+from test_egppy.test_storage.store_test_base import DEFAULT_VALUES
+from test_egppy.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
 
 
 class TestJSONFileStoreStorableDict(JSONFileStoreTestBase):

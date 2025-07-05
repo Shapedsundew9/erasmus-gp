@@ -1,5 +1,3 @@
-"""Ensures module path is in the python path."""
-
 from sys import path
 from os.path import abspath, dirname, join
 

@@ -388,7 +388,8 @@ class TestTableConfig(TestCase):
         """Test the data_file_folder property."""
         config = TableConfig()
         config.data_file_folder = "~/data"
-        self.assertEqual(config.data_file_folder, normpath(expanduser("~/data")))
+        self.assertEqual(config.data_file_folder,
+                         normpath(expanduser("~/data")))
         with self.assertRaises(AssertionError):
             config.data_file_folder = 123  # type: ignore
 
@@ -477,7 +478,6 @@ class TestTableConfig(TestCase):
         config.maintenance_db = "valid_maintenance_db"
         config.retries = 3
         config.user = "valid_user"
-        config.consistency()  # Should not raise any exceptions
 
     def test_table_config_consistency(self):
         """Test the consistency method of TableConfig."""

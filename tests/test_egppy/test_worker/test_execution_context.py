@@ -6,7 +6,7 @@ from random import getrandbits, seed
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import random_int_tuple_generator
 
-from egppy.gc_types.genetic_code import GCABC
+from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 from egppy.worker.executor.gc_node import GCNode
 from egppy.worker.executor.context_writer import write_context_to_file
@@ -30,7 +30,8 @@ class TestExecutor(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Setup class method for test setup."""
-        cls.gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
+        cls.gcm: dict[int, dict[int, list[GCABC]]
+                      ] = expand_gc_matrix(create_gc_matrix(8), 10)
         cls.gene_pool: list[GCABC] = [
             gc for ni in cls.gcm.values() for rs in ni.values() for gc in rs
         ]
@@ -119,11 +120,13 @@ class TestExecutor(unittest.TestCase):
         ec2.write_executable(self.gene_pool[gci])
 
         seed(idx)
-        r1 = ec1.execute(self.gene_pool[gci]["signature"], tuple(getrandbits(64) for _ in range(2)))
+        r1 = ec1.execute(self.gene_pool[gci]["signature"], tuple(
+            getrandbits(64) for _ in range(2)))
         write_context_to_file(ec1)
 
         seed(idx)
-        r2 = ec2.execute(self.gene_pool[gci]["signature"], tuple(getrandbits(64) for _ in range(2)))
+        r2 = ec2.execute(self.gene_pool[gci]["signature"], tuple(
+            getrandbits(64) for _ in range(2)))
         write_context_to_file(ec2)
 
         self.assertEqual(r1, r2)
@@ -133,10 +136,12 @@ class TestExecutor(unittest.TestCase):
         to generate multiple different execution contexts
         and validate they all produce the same result."""
         seed(1)
-        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(100, len(self.gene_pool))
+        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(
+            100, len(self.gene_pool))
         # For debug: 1st 100 are the smallest code trees
         # the_one_hundred = tuple(range(100))
-        baseline: dict[int, list[int]] = {num_lines: [] for num_lines in NUM_LINES}
+        baseline: dict[int, list[int]] = {
+            num_lines: [] for num_lines in NUM_LINES}
 
         for num_lines in NUM_LINES:
             # Create a new execution context
@@ -148,7 +153,8 @@ class TestExecutor(unittest.TestCase):
                 # Execute the function
                 gc: GCABC = self.gene_pool[gci]
                 result = ec.execute(
-                    gc["signature"], tuple(getrandbits(64) for _ in range(gc["num_inputs"]))
+                    gc["signature"], tuple(getrandbits(64)
+                                           for _ in range(gc["num_inputs"]))
                 )
                 baseline[num_lines].append(result)
                 if num_lines != NUM_LINES[0]:
@@ -159,7 +165,8 @@ class TestExecutor(unittest.TestCase):
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""
         seed(1)
-        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(100, len(self.gene_pool))
+        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(
+            100, len(self.gene_pool))
         for idx in the_one_hundred:
             _logger.debug("Writing gc %d", idx)
             gc = self.gene_pool[idx]
@@ -170,7 +177,8 @@ class TestExecutor(unittest.TestCase):
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""
         seed(1)
-        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(100, len(self.gene_pool))
+        the_one_hundred: tuple[int, ...] = random_int_tuple_generator(
+            100, len(self.gene_pool))
         for idx in the_one_hundred:
             _logger.debug("Writing gc %d", idx)
             gc = self.gene_pool[idx]

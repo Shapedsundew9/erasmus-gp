@@ -2,12 +2,11 @@
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
-from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.store.storable_obj_abc import StorableObjABC
-from tests.test_storage.store_test_base import DEFAULT_VALUES
-from tests.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase
+from test_egppy.test_storage.store_test_base import DEFAULT_VALUES
+from test_egppy.test_storage.test_cache.dirty_cache_test_base import DirtyCacheTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

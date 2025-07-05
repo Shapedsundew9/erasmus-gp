@@ -3,12 +3,11 @@
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 from egppy.storage.cache.cache import DictCache
-from egppy.storage.cache.cacheable_dirty_obj import CacheableDirtyDict, CacheableDirtyList
 from egppy.storage.cache.cacheable_obj import CacheableDict, CacheableList
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.store.in_memory_store import InMemoryStore
-from tests.test_storage.test_cache.multilevel_cache_test_base import (
+from test_egppy.test_storage.test_cache.multilevel_cache_test_base import (
     SECOND_LEVEL_CACHE_SIZE,
     MultilevelCacheTestBase,
 )

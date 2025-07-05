@@ -23,6 +23,10 @@ class InMemoryStore(dict, StoreBase, StoreABC):  # type: ignore
         dict.__init__(self)
         StoreBase.__init__(self, flavor=flavor)
 
+    def consistency(self) -> bool:
+        """Check the consistency of the store."""
+        return True
+
     def verify(self) -> bool:
         """Verify the store."""
         if not self.flavor:
