@@ -2,7 +2,7 @@
     "in": {
         "inline": "{i1} in {i0}",
         "inputs": [
-            "KeysView[-Hashable0]",
+            "-KeysView0[-Hashable0]",
             "-Hashable0"
         ],
         "description": "in",
@@ -13,7 +13,7 @@
     "iter": {
         "inline": "iter({i0})",
         "inputs": [
-            "KeysView[-Hashable0]"
+            "-KeysView0[-Hashable0]"
         ],
         "description": "iterator",
         "num_inputs": 1,
@@ -24,7 +24,7 @@
     "not in": {
         "inline": "{i1} not in {i0}",
         "inputs": [
-            "KeysView[-Hashable0]",
+            "-KeysView0[-Hashable0]",
             "-Hashable0"
         ],
         "description": "not in",

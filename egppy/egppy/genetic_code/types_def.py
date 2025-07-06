@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from array import array
+from functools import lru_cache
 from json import dumps, loads
 from os.path import dirname, join
 from typing import Any, Final, Generator, Iterable
-from array import array
-from functools import lru_cache
 
 from bitdict import BitDictABC, bitdict_factory
+
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
@@ -16,11 +17,9 @@ from egpcommon.object_dict import ObjectDict
 from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
 from egpdb.table import Table, TableConfig
-
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 from egppy.local_db_config import LOCAL_DB_CONFIG
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -386,6 +385,15 @@ class TypesDefStore(ObjectDict):
         super().__init__("TypesDefStore")
         self._cache_hit: int = 0
         self._cache_miss: int = 0
+
+    def __contains__(self, key: Any) -> bool:
+        """Check if the key is in the store."""
+        if not super().__contains__(key):
+            try:
+                self[key]  # This will populate the cache if the key exists.
+            except KeyError:
+                return False
+        return True
 
     def __getitem__(self, key: Any) -> Any:
         """Get a object from the dict."""
