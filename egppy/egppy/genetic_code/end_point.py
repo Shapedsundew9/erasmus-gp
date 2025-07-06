@@ -36,9 +36,10 @@ class EndPoint(FreezableObject):
         self,
         row: Row,
         idx: int,
-        cls: bool,
+        cls: EndPointClass,
         typ: TypesDef | int | str,
-        refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...] | None = None,
+        refs: list[str] | list[list[str | int]
+                               ] | tuple[tuple[str, int], ...] | None = None,
         frozen: bool = False,
     ) -> None:
         """Initialize the endpoint."""
@@ -70,7 +71,8 @@ class EndPoint(FreezableObject):
             if isinstance(ref, str):
                 if _logger.isEnabledFor(level=DEBUG):
                     if not len(ref) == 4:
-                        raise ValueError(f"Invalid reference string length: {len(ref)} != 4")
+                        raise ValueError(
+                            f"Invalid reference string length: {len(ref)} != 4")
                     if not ref[0] in ROWS:
                         raise ValueError(f"Invalid reference row: {ref[0]}")
                     if not 0 <= int(ref[1:]) < 256:
@@ -80,13 +82,16 @@ class EndPoint(FreezableObject):
             elif isinstance(ref, (list, tuple)) and len(ref) == 3:
                 if _logger.isEnabledFor(level=DEBUG):
                     if not len(ref) == 2:
-                        raise ValueError(f"Invalid reference sequence length: {len(ref)} != 2")
+                        raise ValueError(
+                            f"Invalid reference sequence length: {len(ref)} != 2")
                     if not ref[0] in ROWS:
                         raise ValueError(f"Invalid reference row: {ref[0]}")
                     if not (isinstance(ref[1], int) and 0 <= ref[1] < 256):
                         raise ValueError(f"Invalid reference index: {ref[1]}")
-                assert isinstance(ref[0], str), f"Invalid reference row type: {type(ref[0])}"
-                assert isinstance(ref[1], int), f"Invalid reference index type: {type(ref[1])}"
+                assert isinstance(
+                    ref[0], str), f"Invalid reference row type: {type(ref[0])}"
+                assert isinstance(
+                    ref[1], int), f"Invalid reference index type: {type(ref[1])}"
                 r: str = ref[0]
                 i: int = ref[1]
             else:
@@ -104,7 +109,8 @@ class EndPoint(FreezableObject):
         if self._frozen:
             raise RuntimeError("Cannot set type on a frozen EndPoint")
         assert isinstance(typ, (TypesDef, int, str)), f"Invalid type: {typ}"
-        self._typ: TypesDef = types_def_store[typ] if isinstance(typ, (int, str)) else typ
+        self._typ: TypesDef = types_def_store[typ] if isinstance(
+            typ, (int, str)) else typ
 
     def __eq__(self, value: object) -> bool:
         """Check equality of EndPoint instances."""
@@ -171,11 +177,13 @@ class EndPoint(FreezableObject):
             if other.is_frozen():
                 raise RuntimeError("Cannot connect to a frozen EndPoint")
             if self.cls == EndPointClass.DST and len(self.refs) > 0:
-                raise ValueError("Destination endpoints can only have one reference.")
+                raise ValueError(
+                    "Destination endpoints can only have one reference.")
         if self.cls == EndPointClass.DST:
             self.refs = [[other.row, other.idx]]
         else:
-            assert isinstance(self.refs, list), "References must be a list for source endpoints."
+            assert isinstance(
+                self.refs, list), "References must be a list for source endpoints."
             self.refs.append([other.row, other.idx])
 
     def copy(self, clean: bool = False) -> EndPoint:
@@ -192,11 +200,13 @@ class EndPoint(FreezableObject):
         """Freeze the endpoint, making it immutable."""
         if not self.is_frozen():
             # Need to make references immutable
-            self.refs = ref_tuple_store.add(tuple(ref_store.add(tuple(ref)) for ref in self.refs))
+            self.refs = ref_tuple_store.add(
+                tuple(ref_store.add(tuple(ref)) for ref in self.refs))
             retval = super().freeze(store)
             # Need to jump through hoops to set the persistent hash
             object.__setattr__(
-                self, "_hash", hash((self.row, self.idx, self.cls, self.typ, self.refs))
+                self, "_hash", hash(
+                    (self.row, self.idx, self.cls, self.typ, self.refs))
             )
 
             # Some sanity checks
@@ -205,11 +215,14 @@ class EndPoint(FreezableObject):
                     (self.row in DESTINATION_ROW_SET and self.cls == EndPointClass.DST)
                     or (self.row in SOURCE_ROW_SET and self.cls == EndPointClass.SRC)
                 ):
-                    raise ValueError("Endpoint row is not consistent with the endpoint class.")
+                    raise ValueError(
+                        "Endpoint row is not consistent with the endpoint class.")
                 if not (isinstance(self.idx, int) and 0 <= self.idx < 256):
-                    raise ValueError("Endpoint index must be an integer between 0 and 255.")
+                    raise ValueError(
+                        "Endpoint index must be an integer between 0 and 255.")
                 if not isinstance(self.typ, TypesDef):
-                    raise TypeError("Endpoint type must be a TypesDef instance.")
+                    raise TypeError(
+                        "Endpoint type must be a TypesDef instance.")
                 if not (
                     (len(self.refs) == 1 and self.cls == EndPointClass.DST)
                     or self.cls == EndPointClass.SRC
@@ -238,7 +251,8 @@ class EndPoint(FreezableObject):
                         "All source endpoint references must be a valid destination row."
                     )
                 if not all(0 <= ref[1] < 256 for ref in self.refs if isinstance(ref[1], int)):
-                    raise ValueError("All reference indices must be between 0 and 255.")
+                    raise ValueError(
+                        "All reference indices must be between 0 and 255.")
             return retval
         return self
 

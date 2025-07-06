@@ -8,18 +8,21 @@ by considered to be a dict[str, Any] object with the additional constraints of t
 
 from datetime import UTC, datetime
 from math import isclose
-import re
 from typing import Any
 from uuid import UUID
 
-from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, ANONYMOUS_CREATOR
-from egpcommon.gp_db_config import GGC_KVT
+from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import PropertiesBD
-
-from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.egc_class_factory import EGCMixin
-from egppy.genetic_code.genetic_code import GCABC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
+from egppy.genetic_code.genetic_code import (
+    GCABC,
+    NULL_PROBLEM,
+    NULL_PROBLEM_SET,
+    NULL_SIGNATURE,
+)
+from egppy.genetic_code.import_def import ImportDef
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
@@ -397,3 +400,15 @@ class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
 # This can be more robustly implemented.
 class XGCType(GGCDict):
     """Execution Genetic Code Class."""
+
+
+# The NULL GC is a placeholder for a genetic code object that does not exist.
+NULL_GC: GCABC = GGCDict(
+    {
+        "cgraph": {"A": [["I", 0, "EGPInvalid"]], "O": [["A", 0, "EGPInvalid"]]},
+        "code_depth": 1,
+        "generation": 0,
+        "num_codes": 1,
+        "num_codons": 1,
+    }
+)

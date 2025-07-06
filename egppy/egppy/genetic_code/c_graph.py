@@ -108,7 +108,6 @@ from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
-
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     DESTINATION_ROW_SET,
@@ -124,9 +123,8 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.end_point import EndPoint
-from egppy.genetic_code.types_def import types_def_store
 from egppy.genetic_code.interface import NULL_INTERFACE, Interface
-
+from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
 # This pattern involves creating a logger instance using the egp_logger function,
@@ -182,9 +180,9 @@ def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
         case CGraphType.FOR_LOOP:
             retval = {
                 DstRow.A: frozenset({SrcRow.I, SrcRow.L}),
-                DstRow.L: frozenset(SrcRow.I),
+                DstRow.L: frozenset({SrcRow.I}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.P: frozenset(SrcRow.I),
+                DstRow.P: frozenset({SrcRow.I}),
             }
         case CGraphType.WHILE_LOOP:
             retval = {
@@ -192,7 +190,7 @@ def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
                 DstRow.L: frozenset({SrcRow.I}),
                 DstRow.W: frozenset({SrcRow.A}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.P: frozenset(SrcRow.I),
+                DstRow.P: frozenset({SrcRow.I}),
             }
         case CGraphType.STANDARD:
             retval = {
@@ -421,6 +419,9 @@ class CGraph(FreezableObject):
                 # Convert list to Interface
                 # Since this must be a JSONCGraph the interface is a destination interface
                 assert iface in DESTINATION_ROW_SET, f"Invalid interface key: {iface}"
+                assert isinstance(
+                    iface_def, (list | tuple)
+                ), f"Expected a list or tuple for interface {iface}, got {type(iface_def)}"
                 setattr(self, under_iface, Interface(iface_def, row=DstRow(iface)))
                 for idx, ep in enumerate(getattr(self, under_iface).endpoints):
                     for ref in ep.refs:
@@ -453,8 +454,8 @@ class CGraph(FreezableObject):
         """
         if len(key) == 1:
             return (
-                getattr(self, "_" + key + EPClsPostfix.DST) is not NULL_INTERFACE
-                or getattr(self, "_" + key + EPClsPostfix.SRC) is not NULL_INTERFACE
+                getattr(self, "_" + key + EPClsPostfix.DST, NULL_INTERFACE) is not NULL_INTERFACE
+                or getattr(self, "_" + key + EPClsPostfix.SRC, NULL_INTERFACE) is not NULL_INTERFACE
             )
         return getattr(self, "_" + key) is not NULL_INTERFACE
 

@@ -1,6 +1,5 @@
 """Storable object base class"""
 
-from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -10,7 +9,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class StorableObjMixin(CommonObj):
+class StorableObjMixin:
     """Storable Mixin class has methods generic to all storable objects classes."""
 
     __slots__ = ()

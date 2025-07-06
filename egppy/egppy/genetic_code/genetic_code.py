@@ -12,6 +12,7 @@ from uuid import UUID
 from egpcommon.common import NULL_SHA256
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
+from egppy.genetic_code.c_graph import CGraphType, c_graph_type
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -152,6 +153,16 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.get must be overridden")
 
     @abstractmethod
+    def is_codon(self) -> bool:
+        """Return True if the GCABC is a codon."""
+        raise NotImplementedError("GCABC.is_codon must be overridden")
+
+    @abstractmethod
+    def is_conditional(self) -> bool:
+        """Return True if the GCABC is conditional."""
+        raise NotImplementedError("GCABC.is_conditional must be overridden")
+
+    @abstractmethod
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
@@ -182,6 +193,17 @@ class GCMixin:
         assert isinstance(self, GCABC)
         assert self["signature"] is not NULL_SIGNATURE, "Signature must not be NULL."
         return hash(self["signature"])
+
+    def is_codon(self) -> bool:
+        """Return True if the genetic code is a codon."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        return c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+
+    def is_conditional(self) -> bool:
+        """Return True if the genetic code is conditional."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        cgt: CGraphType = c_graph_type(self["cgraph"])
+        return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""

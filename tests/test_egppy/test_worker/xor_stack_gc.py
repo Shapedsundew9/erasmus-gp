@@ -18,20 +18,29 @@ deterministic with a seed and require correct order execution to produce the cor
 """
 
 from json import dump
-from random import choice, random, randint, seed, shuffle
+from random import choice, randint, random, seed, shuffle
 from tempfile import NamedTemporaryFile
 from time import time
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.common import bin_counts
+from egpcommon.egp_log import (
+    CONSISTENCY,
+    DEBUG,
+    VERIFY,
+    Logger,
+    egp_logger,
+    enable_debug_logging,
+)
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
-
-from egppy.gc_types.genetic_code import GCABC, mermaid_key
-from egppy.gc_types.ggc_class_factory import GGCDict
+from egppy.genetic_code.genetic_code import GCABC, mermaid_key
+from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
+from egppy.worker.executor.execution_context import (
+    ExecutionContext,
+    FunctionInfo,
+    GCNode,
+)
 from egppy.worker.gc_store import GGC_CACHE
-from egppy.worker.executor.execution_context import FunctionInfo, GCNode, ExecutionContext
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

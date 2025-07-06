@@ -1,20 +1,80 @@
 """The Interface Module."""
 
 from __future__ import annotations
-from typing import Sequence, Set as TypingSet
+
 from collections.abc import Iterable
+from typing import Sequence
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egppy.genetic_code.c_graph_constants import Row, EndPointClass
+from egppy.genetic_code.c_graph_constants import (
+    DESTINATION_ROW_SET,
+    ROW_SET,
+    SOURCE_ROW_SET,
+    DstRow,
+    EndPointClass,
+    Row,
+    SrcRow,
+)
 from egppy.genetic_code.end_point import EndPoint
-
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
+
+def unpack_ref(ref: list[int | str] | tuple[str, int]) -> tuple[str, int]:
+    """Unpack a reference into its components.
+
+    Args
+    ----
+    ref: A reference to unpack, either as a list or tuple.
+
+    Returns
+    -------
+    A tuple containing the row and index.
+    """
+    row = ref[0]
+    idx = ref[1]
+    assert isinstance(row, str), "Row must be a Row"
+    assert row in ROW_SET, f"Row must be in ROW_SET, got {row}"
+    assert isinstance(idx, int), "Index must be an int"
+    assert 0 <= idx <= 255, "Index must be between 0 and 255"
+    return row, idx
+
+
+def unpack_src_ref(ref: list[int | str] | tuple[str, int]) -> tuple[SrcRow, int]:
+    """Unpack a source reference into its components.
+
+    Args
+    ----
+    ref: A reference to unpack, either as a list or tuple.
+
+    Returns
+    -------
+    A tuple containing the source row and index.
+    """
+    row, idx = unpack_ref(ref)
+    assert row in SOURCE_ROW_SET, f"Row must be in SOURCE_ROW_SET, got {row}"
+    return SrcRow(row), idx
+
+
+def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]:
+    """Unpack a destination reference into its components.
+
+    Args
+    ----
+    ref: A reference to unpack, either as a list or tuple.
+
+    Returns
+    -------
+    A tuple containing the destination row and index.
+    """
+    row, idx = unpack_ref(ref)
+    assert row in DESTINATION_ROW_SET, f"Row must be in DESTINATION_ROW_SET, got {row}"
+    return DstRow(row), idx
 
 
 class Interface(FreezableObject):
@@ -54,7 +114,9 @@ class Interface(FreezableObject):
                     raise ValueError("Destination row must be specified if using sequence format.")
                 self.endpoints.append(EndPoint(row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2]))
             else:
-                raise ValueError(f"Invalid endpoint format: {ep}")
+                raise ValueError(
+                    f"Invalid endpoint type: {type(ep)} was expecting EndPoint or Sequence"
+                )
 
         # Persistent hash will be defined when frozen. Dynamic until then.
         self._hash: int = 0
@@ -101,7 +163,7 @@ class Interface(FreezableObject):
         """Return the string representation of the interface."""
         return f"Interface({', '.join(str(ep.typ) for ep in self.endpoints)})"
 
-    def cls(self) -> bool:
+    def cls(self) -> EndPointClass:
         """Return the class of the interface. Defaults to destination if no endpoints."""
         return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
 

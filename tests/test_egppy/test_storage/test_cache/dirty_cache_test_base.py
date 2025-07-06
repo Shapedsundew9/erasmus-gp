@@ -4,12 +4,11 @@ from json import load
 from os.path import dirname, join
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.store.json_file_store import JSONFileStore
-from test_egppy.test_storage.store_test_base import StoreTestBase
+from tests.test_egppy.test_storage.store_test_base import StoreTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -42,8 +41,7 @@ class DirtyCacheTestBase(StoreTestBase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        datafile: str = join(dirname(p=__file__), "..",
-                             "data", "ugc_test_data.json")
+        datafile: str = join(dirname(p=__file__), "..", "data", "ugc_test_data.json")
         with open(file=datafile, mode="r", encoding="utf-8") as file:
             cls.json_data: list[dict] = load(fp=file)
 
@@ -74,8 +72,7 @@ class DirtyCacheTestBase(StoreTestBase):
         # All items are in the store
         for item in self.json_data[:NUM_CACHE_ITEMS]:
             stored_item = self.cache.next_level[item["signature"]]
-            self.assertEqual(first=CacheableDict(stored_item),
-                             second=CacheableDict(item))
+            self.assertEqual(first=CacheableDict(stored_item), second=CacheableDict(item))
 
     def test_flush(self) -> None:
         """Test the flush method."""
@@ -91,8 +88,7 @@ class DirtyCacheTestBase(StoreTestBase):
         # All items are in the store
         for item in self.json_data[:NUM_CACHE_ITEMS]:
             stored_item = self.cache.next_level[item["signature"]]
-            self.assertEqual(first=CacheableDict(stored_item),
-                             second=CacheableDict(item))
+            self.assertEqual(first=CacheableDict(stored_item), second=CacheableDict(item))
 
     def test_purge(self) -> None:
         """purge method is not supported for dict caches."""

@@ -1,7 +1,6 @@
 """Test the DB Manager module."""
 
 from unittest import TestCase
-from egpdbmgr.db_manager import initialize, operations
 
 
 class TestDBManager(TestCase):

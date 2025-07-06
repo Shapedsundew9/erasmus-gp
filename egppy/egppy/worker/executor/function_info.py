@@ -3,9 +3,10 @@ FunctionInfo class for the function information in the execution context.
 This class is used to store the information about the executable function for the GC.
 """
 
-from typing import Callable, Sequence
 from dataclasses import dataclass
-from egppy.genetic_code.ggc_class_factory import GCABC
+from typing import Callable, Sequence
+
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 
 
 # For GC's with no executable (yet)

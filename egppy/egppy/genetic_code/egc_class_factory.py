@@ -6,16 +6,15 @@ code class. As a working genetic code object, it only contains the essentials of
 genetic code object avoiding all the derived data.
 """
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
-from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import PropertiesBD
-
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
 from egppy.genetic_code.c_graph_constants import JSONCGraph
+from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
 from egppy.genetic_code.interface import Interface
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -81,6 +80,7 @@ class EGCMixin(GCMixin):
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
 
         # Connection Graph
+        # It is intentional that the cgraph cannot be defaulted.
         cgraph: CGraph | dict[str, Interface] | JSONCGraph = gcabc["cgraph"]
         self["cgraph"] = cgraph.copy() if isinstance(cgraph, CGraph) else CGraph(cgraph)
 
@@ -124,7 +124,7 @@ class EGCMixin(GCMixin):
     def verify(self) -> bool:
         """Verify the genetic code object."""
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
-        assert isinstance(self["graph"], CGraph), "graph must be a Connection Graph object"
+        assert isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
         assert isinstance(self["gca"], bytes), "gca must be a bytes object"
         assert len(self["gca"]) == 32, "gca must be 32 bytes"
         assert isinstance(self["gcb"], bytes), "gcb must be a bytes object"

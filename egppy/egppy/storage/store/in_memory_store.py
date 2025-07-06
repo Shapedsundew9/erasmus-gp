@@ -3,7 +3,6 @@ This module provides a Store that can be used for testing.
 """
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
 from egppy.storage.store.store_base import StoreBase
@@ -22,10 +21,6 @@ class InMemoryStore(dict, StoreBase, StoreABC):  # type: ignore
         """Initialize the store."""
         dict.__init__(self)
         StoreBase.__init__(self, flavor=flavor)
-
-    def consistency(self) -> bool:
-        """Check the consistency of the store."""
-        return True
 
     def verify(self) -> bool:
         """Verify the store."""

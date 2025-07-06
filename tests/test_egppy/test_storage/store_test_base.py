@@ -6,7 +6,6 @@ import unittest
 from collections.abc import Hashable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.store.in_memory_store import InMemoryStore
 from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.storable_obj_abc import StorableObjABC

@@ -27,6 +27,17 @@
 					"/workspaces/erasmus-gp/egpdb",
 					"/workspaces/erasmus-gp/egpdbmgr",
 					"/workspaces/erasmus-gp/egpseed"
+				],
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": "explicit"
+					}
+				},
+				"isort.args": [
+					"--profile",
+					"black"
 				]
 			}
 		}

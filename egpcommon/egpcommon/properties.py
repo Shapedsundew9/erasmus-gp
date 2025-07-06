@@ -2,7 +2,7 @@
 
 from enum import IntEnum
 
-from bitdict import bitdict_factory, BitDictABC
+from bitdict import BitDictABC, bitdict_factory
 from bitdict.markdown import generate_markdown_tables
 
 
@@ -183,7 +183,7 @@ PropertiesBD.assign_verification_function(_verify)
 
 # Standard Property Constants
 BASIC_CODON_PROPERTIES: int = PropertiesBD(
-    {"gc_type": GCType.CODON, "graph_type": CGraphType.STANDARD}
+    {"gc_type": GCType.CODON, "graph_type": CGraphType.PRIMITIVE}
 ).to_int()
 BASIC_ORDINARY_PROPERTIES: int = PropertiesBD(
     {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.STANDARD}

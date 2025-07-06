@@ -2,25 +2,23 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Hashable
+from collections.abc import Hashable, Iterable, Iterator
 from itertools import count
 from typing import TYPE_CHECKING
 
-from egppy.c_graph.end_point.end_point_type import ept_to_str
-from egppy.c_graph.c_graph_constants import DstRow, Row, SrcRow
-from egppy.gc_types.genetic_code import (
-    GCABC,
+from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
+from egppy.genetic_code.genetic_code import (
     MERMAID_CODON_COLOR,
     MERMAID_FOOTER,
     MERMAID_GC_COLOR,
     MERMAID_HEADER,
     MERMAID_UNKNOWN_COLOR,
-    NULL_GC,
-    NULL_SIGNATURE,
     mc_circle_str,
     mc_connect_str,
     mc_rectangle_str,
 )
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
+from egppy.genetic_code.interface import Interface
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
 from egppy.worker.gc_store import GGC_CACHE
 
@@ -38,7 +36,7 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
         color = MERMAID_GC_COLOR
         if gcnode.gc["num_codons"] == 1:
             return mc_codon_node_str(gcnode, row)
-    label = f'"{gcnode.gc.signature().hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_rectangle_str(gcnode.uid, label, color)
 
 
@@ -46,7 +44,7 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
 def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_UNKNOWN_COLOR) -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCNode in the logical structure."""
-    label = f'"{gcnode.gc.signature().hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_circle_str(gcnode.uid, label, color)
 
 
@@ -54,7 +52,7 @@ def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_UNKNOWN_C
 def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_CODON_COLOR) -> str:
     """Return a Mermaid Chart string representation of the codon structure
     GCNode in the logical structure."""
-    label = f'"{gcnode.gc.signature().hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_circle_str(gcnode.uid, label, color)
 
 
@@ -327,13 +325,13 @@ class GCNode(Iterable, Hashable):
         hints: If True then include type hints in the function definition.
         """
         # Define the function input parameters
-        iface = self.gc["graph"]["Is"]
-        inum = self.gc["num_inputs"]
+        iface: Interface = self.gc["graph"]["Is"]
+        inum: int = self.gc["num_inputs"]
         iparams = "i"
 
         if hints:
             # Add type hints for input parameters
-            input_types = ", ".join(ept_to_str(iface[i]) for i in range(inum))
+            input_types = ", ".join(str(iface[i].typ) for i in range(inum))
             iparams += f": tuple[{input_types}]"
 
         # Start building the function definition
@@ -344,10 +342,10 @@ class GCNode(Iterable, Hashable):
             onum = self.gc["num_outputs"]
             if onum > 1:
                 oface = self.gc["graph"]["Od"]
-                output_types = ", ".join(ept_to_str(oface[i]) for i in range(onum))
+                output_types = ", ".join(str(oface[i].typ) for i in range(onum))
                 ret_type = f"tuple[{output_types}]"
             elif onum == 1:
-                ret_type = ept_to_str(self.gc["graph"]["Od"][0])
+                ret_type = str(self.gc["graph"]["Od"][0].typ)
             elif onum == 0:
                 ret_type = "None"
             else:

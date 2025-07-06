@@ -4,6 +4,7 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpdb.configuration import DatabaseConfig
 
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
+from egppy.genetic_code.interface import Interface
 from egppy.populations.configuration import PopulationConfig
 
 # Standard EGP logging pattern
@@ -25,13 +26,20 @@ class GenePoolInterface(GPIABC):
         """Initialize the Gene Pool Interface."""
         self.config = config.copy()
 
-    def consistency(self) -> None:
+    def consistency(self) -> bool:
         """Check the consistency of the Gene Pool."""
+        return True
 
     def initial_generation_query(self, pconfig: PopulationConfig) -> list[bytes]:
         """Query the Gene Pool for the initial generation of this population."""
         # Place holder for the actual implementation
         return []
 
-    def verify(self) -> None:
+    def select_gc(self, _: Interface) -> bytes | None:
+        """Select a Genetic Code with the exact input types."""
+        # Place holder for the actual implementation
+        return None
+
+    def verify(self) -> bool:
         """Verify the Gene Pool."""
+        return True

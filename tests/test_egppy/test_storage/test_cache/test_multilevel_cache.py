@@ -1,13 +1,12 @@
 """Test the Multi-level Caches."""
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.cache.cacheable_obj import CacheableDict, CacheableList
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.dirty_cache import DirtyDictCache
 from egppy.storage.store.in_memory_store import InMemoryStore
-from test_egppy.test_storage.test_cache.multilevel_cache_test_base import (
+from tests.test_egppy.test_storage.test_cache.multilevel_cache_test_base import (
     SECOND_LEVEL_CACHE_SIZE,
     MultilevelCacheTestBase,
 )
@@ -30,17 +29,6 @@ class TestMultiLevelCache11(MultilevelCacheTestBase):
     store_value_type = CacheableDict
 
 
-class TestMultiLevelCache12(MultilevelCacheTestBase):
-    """Test case multilevel caches using DictCache and CacheableDirtyDicts uniformly."""
-
-    first_level_cache_type = DictCache
-    second_level_cache_type = DictCache
-    store_type = InMemoryStore
-    first_level_value_type = CacheableDirtyDict
-    second_level_value_type = CacheableDirtyDict
-    store_value_type = CacheableDirtyDict
-
-
 class TestMultiLevelCache13(MultilevelCacheTestBase):
     """Test case multilevel caches using DictCache and CacheableLists uniformly."""
 
@@ -50,22 +38,6 @@ class TestMultiLevelCache13(MultilevelCacheTestBase):
     first_level_value_type = CacheableList
     second_level_value_type = CacheableList
     store_value_type = CacheableList
-
-    @classmethod
-    def set_values(cls, value_type: type[CacheableObjABC]) -> list[CacheableObjABC]:
-        """Set the values to be used in the tests."""
-        return [value_type((i,)) for i in range(2 * SECOND_LEVEL_CACHE_SIZE)]
-
-
-class TestMultiLevelCache14(MultilevelCacheTestBase):
-    """Test case multilevel caches using DictCache and CacheableDirtyLists uniformly."""
-
-    first_level_cache_type = DictCache
-    second_level_cache_type = DictCache
-    store_type = InMemoryStore
-    first_level_value_type = CacheableDirtyList
-    second_level_value_type = CacheableDirtyList
-    store_value_type = CacheableDirtyList
 
     @classmethod
     def set_values(cls, value_type: type[CacheableObjABC]) -> list[CacheableObjABC]:
@@ -85,18 +57,6 @@ class TestMultiLevelCache21(MultilevelCacheTestBase):
     store_value_type = CacheableDict
 
 
-class TestMultiLevelCache22(MultilevelCacheTestBase):
-    """Test case multilevel caches using a DictCache as a first level and
-    DictCache as a second level with CacheableDirtyDicts."""
-
-    first_level_cache_type = DirtyDictCache
-    second_level_cache_type = DictCache
-    store_type = InMemoryStore
-    first_level_value_type = CacheableDirtyDict
-    second_level_value_type = CacheableDirtyDict
-    store_value_type = CacheableDirtyDict
-
-
 class TestMultiLevelCache23(MultilevelCacheTestBase):
     """Test case multilevel caches using a DictCache as a first level and
     DictCache as a second level with CacheableLists."""
@@ -107,23 +67,6 @@ class TestMultiLevelCache23(MultilevelCacheTestBase):
     first_level_value_type = CacheableList
     second_level_value_type = CacheableList
     store_value_type = CacheableList
-
-    @classmethod
-    def set_values(cls, value_type: type[CacheableObjABC]) -> list[CacheableObjABC]:
-        """Set the values to be used in the tests."""
-        return [value_type((i,)) for i in range(2 * SECOND_LEVEL_CACHE_SIZE)]
-
-
-class TestMultiLevelCache24(MultilevelCacheTestBase):
-    """Test case multilevel caches using a DictCache as a first level and
-    DictCache as a second level with CacheableDirtyLists."""
-
-    first_level_cache_type = DirtyDictCache
-    second_level_cache_type = DictCache
-    store_type = InMemoryStore
-    first_level_value_type = CacheableDirtyList
-    second_level_value_type = CacheableDirtyList
-    store_value_type = CacheableDirtyList
 
     @classmethod
     def set_values(cls, value_type: type[CacheableObjABC]) -> list[CacheableObjABC]:

@@ -9,7 +9,8 @@ from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.validator import Validator
 
-from egppy.c_graph.interface import Interface, interface, interface_to_list_str
+from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.end_point import EndPoint
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -20,7 +21,8 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Locally uniquie population id generator
 _POPULATION_IDS: count = count(start=1, step=1)
-INITIAL_POPULATION_SOURCES = ("BEST", "DIVERSE", "RELATED", "UNRELATED", "SPONTANEOUS")
+INITIAL_POPULATION_SOURCES = (
+    "BEST", "DIVERSE", "RELATED", "UNRELATED", "SPONTANEOUS")
 UNDERFLOW_OPTIONS = INITIAL_POPULATION_SOURCES + ("NEXT", "NONE")
 
 
@@ -63,7 +65,8 @@ class SourceConfig(Validator, DictTypeAccessor):
         - {'sse_limit', 'tolerence', 'min_generation', 'max_generation'}  # SPONTANEOUS
         """
         if self.source == "BEST":
-            assert len(kwargs) == 0, f"Additional keys not allowed for BEST. {kwargs} specified."
+            assert len(
+                kwargs) == 0, f"Additional keys not allowed for BEST. {kwargs} specified."
         elif self.source == "DIVERSE":
             assert len(kwargs) == 3, "Invalid number of keys for DIVERSE."
             assert "minimum_distance" in kwargs, "Missing minimum_distance key."
@@ -389,11 +392,11 @@ class PopulationConfig(Validator, DictTypeAccessor):
 
     @inputs.setter
     def inputs(
-        self, value: Sequence[Sequence[int]] | Sequence[Sequence[str] | Sequence[str]]
+        self, value: Sequence[EndPoint] | Sequence[list | tuple]
     ) -> None:
         """The inputs."""
         self._is_sequence("inputs", value)
-        self._inputs = interface(value)
+        self._inputs = Interface(value)
 
     @property
     def outputs(self) -> Interface:
@@ -402,11 +405,11 @@ class PopulationConfig(Validator, DictTypeAccessor):
 
     @outputs.setter
     def outputs(
-        self, value: Sequence[Sequence[int]] | Sequence[Sequence[str] | Sequence[str]]
+        self, value: Sequence[EndPoint] | Sequence[list | tuple]
     ) -> None:
         """The inputs."""
         self._is_sequence("inputs", value)
-        self._outputs = interface(value)
+        self._outputs = Interface(value)
 
     @property
     def name(self) -> str:
@@ -510,7 +513,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
         """The best source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        assert isinstance(value, SourceConfig), "best_source must be a SourceConfig"
+        assert isinstance(
+            value, SourceConfig), "best_source must be a SourceConfig"
         assert value.source == "BEST", f"best_source must be the BEST source but is {value.source}"
         self._best_source = value
 
@@ -524,7 +528,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
         """The diverse source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        assert isinstance(value, SourceConfig), "diverse_source must be a SourceConfig"
+        assert isinstance(
+            value, SourceConfig), "diverse_source must be a SourceConfig"
         assert (
             value.source == "DIVERSE"
         ), f"diverse_source must be the DIVERSE source but is {value.source}"
@@ -540,7 +545,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
         """The related source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        assert isinstance(value, SourceConfig), "related_source must be a SourceConfig"
+        assert isinstance(
+            value, SourceConfig), "related_source must be a SourceConfig"
         assert (
             value.source == "RELATED"
         ), f"related_source must be the RELATED source but is {value.source}"
@@ -556,7 +562,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
         """The unrelated source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        assert isinstance(value, SourceConfig), "unrelated_source must be a SourceConfig"
+        assert isinstance(
+            value, SourceConfig), "unrelated_source must be a SourceConfig"
         assert (
             value.source == "UNRELATED"
         ), f"unrelated_source must be the UNRELATED source but is {value.source}"
@@ -572,7 +579,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
         """The spontaneous source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        assert isinstance(value, SourceConfig), "spontaneous_source must be a SourceConfig"
+        assert isinstance(
+            value, SourceConfig), "spontaneous_source must be a SourceConfig"
         assert (
             value.source == "SPONTANEOUS"
         ), f"spontaneous_source must be the SPONTANEOUS source but is {value.source}"
@@ -584,8 +592,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
             "uid": self.uid,
             "problem": self.problem.hex(),
             "worker_id": str(self.worker_id),
-            "inputs": interface_to_list_str(self.inputs),
-            "outputs": interface_to_list_str(self.outputs),
+            "inputs": self.inputs.to_json(),
+            "outputs": self.outputs.to_json(),
             "name": self.name,
             "description": self.description,
             "meta_data": self.meta_data,
