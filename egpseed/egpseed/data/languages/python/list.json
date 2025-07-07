@@ -1,19 +1,20 @@
 {
     "copy": {
         "inputs": [
-            "list[-Any0]"
+            "-list0[-Any0]"
         ],
         "inline": "{i0}.copy()",
-        "num_inputs": 1,
         "outputs": [
-            "list[-Any0]"
+            "-list0[-Any0]"
         ]
     },
     "list0": {
         "inline": "list()",
-        "num_outputs": 1,
+        "inputs": [
+            "-list0[-Any0]"
+        ],
         "outputs": [
-            "list[Any]"
+            "-list0[-Any0]"
         ]
     },
     "list1": {
@@ -22,35 +23,28 @@
             "-Iterable0[-Any0]"
         ],
         "outputs": [
-            "list[-Any0]"
+            "-list0[-Any0]"
         ]
     },
     "sort0": {
-         "inputs": [
-            "list[-Any0]"
+        "inputs": [
+            "-list0[-Any0]"
         ],
-       "inline": "{i0}.sort()",
-        "num_inputs": 1,
+        "inline": "{i0}.sort()",
         "num_outputs": 0,
         "properties": {
             "side_effects": true
-        },
-        "outputs": [
-            "list[-Any0]"
-        ]
+        }
     },
     "sort1": {
         "inputs": [
-            "list[-Any0]",
+            "-list0[-Any0]",
             "bool"
         ],
         "inline": "{i0}.sort(reverse={i1})",
-        "num_outputs": 0,
         "properties": {
             "side_effects": true
         },
-        "outputs": [
-            "list[-Any0]"
-        ]
+        "num_outputs": 0
     }
 }

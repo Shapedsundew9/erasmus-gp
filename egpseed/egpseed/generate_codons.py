@@ -4,8 +4,9 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from glob import glob
 from itertools import product
+from math import prod
 from os.path import basename, dirname, join, splitext
-from re import findall, split
+from re import findall
 from typing import Any
 
 from egpcommon.egp_log import (
@@ -20,8 +21,9 @@ from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import types_def_store
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
+from egpseed.generate_types import parse_toplevel_args
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -30,6 +32,11 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
+
+# Some codon definitions have been specialized to avoid particularly complicated
+# type combinations that are not supported by the EGP. These are exceptions to the
+# rule that codons must have an input or output with the full base type.
+FBT_EXCEPTIONS: set[str] = {"-Iterable0[-EGPNumber0]", "-Iterable0[-Sized0]"}
 
 TYPES_PATH = ("data", "types.json")
 OUTPUT_CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
@@ -64,33 +71,15 @@ class MethodExpander:
     # Flag for printing a warning about too many relative type combinations
     warned = False
 
-    def __init__(self, td: TypesDef, name: str, method: dict[str, Any]) -> None:
+    def __init__(self, name: str, method: dict[str, Any]) -> None:
         """Initialize Method class."""
         super().__init__()
         self.inline = method["inline"]  # Must exist
         self.name = name
-
-        # If neither exist then assume 2 inputs of type type_str
-        if "num_inputs" not in method and "inputs" not in method:
-            method["num_inputs"] = 2
-        if "num_inputs" in method:
-            assert "inputs" not in method, "Cannot have both num_inputs and inputs."
-            self.num_inputs = method["num_inputs"]
-            self.inputs = [td.name for _ in range(self.num_inputs)]
-        else:
-            self.num_inputs = len(method["inputs"])
-            self.inputs = method["inputs"]
-
-        # If neither exist then assume 1 output of type type_str
-        if "num_outputs" not in method and "outputs" not in method:
-            method["num_outputs"] = 1
-        if "num_outputs" in method:
-            assert "outputs" not in method, "Cannot have both num_outputs and outputs."
-            self.num_outputs = method["num_outputs"]
-            self.outputs = [td.name for _ in range(self.num_outputs)]
-        else:
-            self.num_outputs = len(method["outputs"])
-            self.outputs = method["outputs"]
+        self.num_inputs = len(method["inputs"])
+        self.num_outputs = len(method["outputs"])
+        self.inputs = method["inputs"]
+        self.outputs = method["outputs"]
 
         # Method imports if there are any
         self.imports = method.get("imports", [])
@@ -122,21 +111,34 @@ class MethodExpander:
         io_list: list[str] = self.inputs + self.outputs
         egph_flag: bool = "EGPHighest" in io_list
         rset: set[str] = {t for tl in io_list for t in findall(r"-.*?[0-9]", tl)}
-        rsd: dict[str, tuple[str, ...]] = {
-            rt: tuple(t.name for t in types_def_store.decendants(rt[1:-1]) if t.tt() == 0)
+        rsd: dict[str, list[str]] = {
+            rt: sorted(
+                t.name
+                for t in types_def_store.decendants(rt[1:-1])
+                if t.tt() == 0 and not t.abstract
+            )
             for rt in rset
         }
 
-        # Implement constraints to prevent runtime explosion
-        if len(rset) > 4:
-            if not MethodExpander.warned:
-                print("WARNING: More than 4 relative types is not supported. Truncating.")
-                MethodExpander.warned = True
-            for i in range(2, 10):
-                if f"-Any{i}" in rsd:
-                    rsd[f"-Any{i}"] = ("Any",)
-            count = sum(len(v) > 1 for v in rsd.values())
-            assert count <= 4, "More than 4 relative types is not supported."
+        if prod((len(v) for v in rsd.values())) > 2**10:
+            # If there are too many combinations of relative types then first we remove
+            # any custom or abstract types i.e. those that start with a capital letter
+            rsd = {
+                rt: sorted(v for v in vs if v[0].islower() or len(vs) == 1)
+                for rt, vs in rsd.items()
+            }
+            # If there are still too many combinations then we reduce the
+            # number of relative types by halving the length of the longest list
+            # until it is less than 2**16.
+            # This is a brute force approach but it is simple and effective.
+            while prod((len(v) for v in rsd.values())) > 2**10:
+                # Find the longest list of relative types
+                max_len_rt: str = max(rsd, key=lambda k: len(rsd[k]))
+                assert (
+                    len(rsd[max_len_rt]) > 1
+                ), f"Relative type {max_len_rt} has only one value: {rsd[max_len_rt]}"
+                # Reduce the longest list by half (rounding up)
+                rsd[max_len_rt] = rsd[max_len_rt][: (len(rsd[max_len_rt]) + 1) // 2]
 
         # rsd is a map of each relative type to all the values it can take.
         # Each set of input and output types has each relative type replaced with one of its values.
@@ -163,7 +165,12 @@ class MethodExpander:
                 )
                 inputs = [t.replace("EGPHighest", highest.name) for t in inputs]
                 outputs = [t.replace("EGPHighest", highest.name) for t in outputs]
-            io_combos.append((tuple(inputs), tuple(outputs)))
+
+            # Make sure the types are valid. It is possible to create invalid combinations.
+            if all(i in types_def_store for i in inputs + outputs):
+                if len(io_combos) > 2**16:
+                    raise ValueError("Too many combinations of input and output types. ")
+                io_combos.append((tuple(inputs), tuple(outputs)))
         return io_combos
 
     def to_json(self) -> list[dict[str, Any]]:
@@ -207,9 +214,9 @@ def generate_codons(write: bool = False) -> None:
     # Store template types (tt > 0) with just the base type name and add a "base" key to the dict.
     # with the fully defined base name. This is so we can match the type to the codon file.
     # e.g. "dict[-Hashable0, -Any0]" will be stored as
-    #   "dict": {"base": "dict[-Hashable0, -Any0]", ...}.
+    #   "dict": {"base": "-dict0[-Hashable0, -Any0]", ...}.
     type_json: dict[str, dict[str, Any]] = {
-        t.split("[")[0]: d | {"base": t}
+        t.split("[")[0]: d | {"base": t.replace(t.split("[")[0], f"-{t.split('[')[0]}0")}
         for t, d in load_signed_json_dict(join(dirname(__file__), *TYPES_PATH)).items()
     }
 
@@ -220,87 +227,144 @@ def generate_codons(write: bool = False) -> None:
         base_type = splitext(basename(codon_file))[0].removeprefix("_")
         codon_json[base_type] = load_signed_json_dict(codon_file)
 
+    # Cache of full base types for each codon json.
+    # Cache is lazily populated as we process each codon json.
+    # dict[base type, full base type]
+    fbt_cache: dict[str, str] = {}
+
+    # The giant list of codons to write out.
+    codons: dict[str, dict[str, Any]] = {}
+
     # cjtb = codon json type bases
-    for base_type, cjtb in codon_json.items():
-        # If this is a type codon json file then we need to ensure that the type is defined
-        # Files like _constants.json or random.json are not *type* codon files and so no
-        # types need substituting.
-        if base_type in types_def_store:
-            # Next we need to determine the full_base_type. Base_type is something like "dict"
+    # If this is a type codon json file then we need to ensure that the type is defined
+    # Files like _constants.json or random.json are not *type* codon files and so no
+    # types need substituting.
+    for base_type in sorted(k for k in codon_json if k in types_def_store and k > "Con"):
+        # For each qualifying base type we set up a queue of work to do.
+        # The work is to populate a list of groups of codon definitions from the
+        # inheritance hierarchy of the type. This involves the following steps:
+        spinner = Spinner(f"Processing {base_type}")
+        spinner.start()
+
+        # 1. Base type and full reference type of the top level type definition
+        # into the queue of work. A this point the full reference type is the full base type.
+        qow: list[tuple[str, str]] = [(base_type, type_json[base_type]["base"])]
+        codon_groups: list[dict[str, dict]] = []
+        while qow:
+            # 1. Get the full reference type from the work queue and find the full base type
+            #    i.e. the mapping from the child type (frt) to the
+            #    parent type (fbt). e.g. reversible[-Any0] -> reversible[-Hashable8]
+            #    (e.g. for KeysView)
+            # 2. Mapping the subtypes e.g. -Any0 -> -Hashable8
+            # 3. Replacing the subtypes in the codon definitions with the reference type mappings.
+            # 4. Appending the modified codons to the list of codon groups to merge.
+            # 5. Appending the parents and full reference types to the work queue.
+            #
+            # Until the work queue is empty we repeat the above steps.
+            # 6. Merge all the codon groups in reverse order (to respect inheritance)
+            # 7. For each codon definition create the matrix of concrete type codons.
+
+            # 1. Determine the full_base_type. Base_type is something like "dict"
             # but we need to ensure that the type is fully defined with all sub-types as it is in
             # the codon definitions. There are some rules to this:
-            #   1. If the type is tt==0 then the full_base_type is f"-{base_type}0"
-            #      a. If input types are not specified they are assumed to be base_type
-            #      b. If the number of inputs is not specified it is assumed to be 2
-            #      c. If the output types are not specified they are assumed to be base_type
-            #      d. If the number of outputs is not specified it is assumed to be 1
-            #   2. If the type is tt > 0 then the full_base_type *will* be specified in input
+            #   i.  If the type is tt==0 then the full_base_type is f"-{base_type}0"
+            #         a. If input types are not specified they are assumed to be base_type
+            #         b. If the number of inputs is not specified it is assumed to be 2
+            #         c. If the output types are not specified they are assumed to be base_type
+            #         d. If the number of outputs is not specified it is assumed to be 1
+            #         e. Each assumed type is assumed to be a different template
+            #   ii. If the type is tt > 0 then the full_base_type *will* be specified in input
             #      and output type strings that start f"-{base_type}0".
-            fbt_set: set[str] = set()
-            dft = f"-{base_type}0"
-            for codon_def in cjtb.values():
-                ipts = [dft] * codon_def.get("num_inputs", 2)
-                opts = [dft] * codon_def.get("num_outputs", 1)
-                inputs = codon_def.setdefault("inputs", ipts)
-                outputs = codon_def.setdefault("outputs", opts)
-                all_types = set(inputs + outputs)
-                fbt_set.update(t for t in all_types if t.startswith(dft))
-            assert len(fbt_set) == 1, f"Type {base_type} is inconsistently defined: {fbt_set}"
-            full_base_type = fbt_set.pop()
+            bt, frt = qow.pop()
+            cjtb: dict[str, dict[str, Any]] = codon_json[bt]
+            if bt not in fbt_cache:
+                fbt_set: set[str] = {type_json[bt]["base"]}
+                for codon_def in cjtb.values():
+                    ipts = [f"-{bt}{i}" for i in range(codon_def.get("num_inputs", 2))]
+                    opts = [f"-{bt}{i}" for i in range(codon_def.get("num_outputs", 1))]
+                    inputs = codon_def.setdefault("inputs", ipts)
+                    outputs = codon_def.setdefault("outputs", opts)
+                    all_types = set(inputs + outputs)
+                    fbt_set.update(t for t in all_types if t.startswith(f"-{bt}0"))
+                fbt_set -= FBT_EXCEPTIONS
+                assert len(fbt_set) == 1, f"Type {bt} is inconsistently defined: {fbt_set}"
+                fbt_cache[bt] = fbt_set.pop()
+            fbt = fbt_cache[bt]
 
-            # The ancestors method gets base_type and all ancestors down to "object" (the
-            # root type).
-            # To ensure inheritance works correctly we build the type codon definitions from
-            # "object" up and then any overides are correctly applied.
-            # NOTE: This does result in overwrites of the same thing but not worth the effort
-            # to optimize
-            # e.g. "dict": {object codons} | ... | {mutable_mapping codons} | {dict codons}
-            for typ in reversed(types_def_store.ancestors(base_type)):
-                cjtb.update(codon_json[typ.name.split("[")[0]])
+            # 2. Mapping the subtypes
+            #   i.   Unpack the top level arguments from the fbt & frt
+            #   ii.  Where each argument differs make a mapping of the sub-type
+            #        to avoid name collisions (i.e. if we are mapping Any to Hashable we want to
+            #        avoid accidentally mapping an Any that is not the template we are looking for).
+            #        we ensure the mapping is to a template number >7 which is not supported in tt
+            #        so we know is available e.g. -Any0 -> -Hashable8
+            #        NOTE: The code only looks for 1 digit so we are limited to 8 & 9 but this is
+            #        more than sufficient for now.
+            fbt_args: list[str] = parse_toplevel_args(fbt)
+            frt_args: list[str] = parse_toplevel_args(frt)
+            tt_map: dict[str, str] = {fbt: frt}
+            for rt1, rt2 in zip(fbt_args, frt_args):
+                if rt1 != rt2:
+                    # If the base type is not the same as the reference type then we need to
+                    # map the sub-type to a new template number.
+                    # e.g. -Any0 -> -Hashable8
+                    # NOTE: We assume that the sub-type is always a relative type
+                    # (i.e. starts with '-')
+                    assert rt2.startswith("-"), f"Type {rt2} is not a relative type."
+                    assert rt2[-1].isdigit(), f"Type {rt2} is not a valid template type."
+                    assert rt2[-2].isalpha(), f"Type {rt2} is not a valid template type."
+                    tt_map[rt1] = (
+                        f"-{rt2[1:-1]}{rt2[-1] if rt2[-1] in '89' else str(int(rt2[-1]) + 8)}"
+                    )
 
-            # Now codon_json[base_type] is a complete dictionary of codon definitions for the type
-            # but the sub-types (when tt > 0) are not mapped. The classic example (and the one that
-            # caused the issue to refactor this) is the "dict" type which has 2 subtypes
-            # "dict[-Hashable0, -Any0]"
-            # but inherits from "Container[-Any0]" where the "-Any0" in this case is actually the
-            # "-Hashable0" sub-type.
-            # The following code does that mapping so that the codon template have the right
-            # input and output type templates for the top level type.
+            # 3. Replace the sub-types in the codon definitions.
+            #    i.   Make a copy of the codon definitions for the base type
+            #    ii.  For each codon definition replace the sub-types with the reference sub-types
+            #         in all the input and output type strings.
+            #    iii. Append the modified codon definitions to the codon groups
+            codon_group: dict[str, dict[str, Any]] = deepcopy(cjtb)
+            for codon_def in codon_group.values():
+                for rt1, rt2 in tt_map.items():
+                    # Replace the base type with the full base type
+                    codon_def["inputs"] = [ipt.replace(rt1, rt2) for ipt in codon_def["inputs"]]
+                    codon_def["outputs"] = [opt.replace(rt1, rt2) for opt in codon_def["outputs"]]
 
-            # 1. Build type template mappings (order matters): Every mention of the fully defined
-            # parent type in input position 0 or output position 0 is replaced with the fully
-            # defined base type name (which for codon definitions always includes the template
-            # markers '-' and '0')
-            tbtd = type_json[base_type]
-            assert tbtd["base"].replace(base_type, f"-{base_type}0") == full_base_type, (
-                f"Type {base_type} is not defined correctly in types.json: "
-                f"{tbtd['base']} != -{base_type}0"
-            )
-            assert full_base_type.count(base_type) == 1, f"Type {base_type} is recursively defined!"
-            fbtp = {p: p.split("[")[0] for p in tbtd["parents"]}
-            tt_map = {pb.replace(p, f"-{p}0"): full_base_type for pb, p in fbtp.items()}
-            print(tt_map)
+            # 4. Append the modified codon definitions to the codon groups
+            codon_groups.append(codon_group)
 
-    exit()
-    codons: list[dict[str, Any]] = []
-    spinner = Spinner(f"Processing {base_type}")
-    spinner.start()
-    for td in types_def_store.get(base_type):
-        for name, definition in load_signed_json_dict(codon_file).items():  # Methods
-            for ggc_json in MethodExpander(td, name, definition).to_json():
+            # 5. Append the parents and full reference types to the work queue.
+            #    i.   Get the parents of the base type from the type definitions
+            #    ii.  For each parent type, get the full reference type and append to the work queue
+            #         e.g. for "KeysView[-Hashable0]" a parent is
+            #         "Reversible[-Hashable0]" which is the full reference type to the parent base
+            #         type "Reversible[-Any0]
+            for parent in type_json[bt].get("parents", []):
+                if parent.startswith("EGP"):
+                    # EGP types are placeholder base types so can be skipped.
+                    continue
+                pbt = parent.split("[")[0]
+                qow.append((pbt, frt))
+
+        # 6. Merge all the codon groups in reverse order (to respect inheritance)
+        full_codon_set = {}
+        for codon_group in reversed(codon_groups):
+            full_codon_set.update(codon_group)
+
+        # 7. For each codon definition create the matrix of concrete type codons.
+        prev_len = len(codons)
+        for name, definition in full_codon_set.items():  # Methods
+            for ggc_json in MethodExpander(name, definition).to_json():
                 new_codon = GGCDict(ggc_json)
                 new_codon.consistency()
-                codons.append(new_codon.to_json())
-    spinner.stop(f"({len(codons)} codons)")
-    if write:
-        dump_signed_json(codons, join(dirname(__file__), *OUTPUT_CODON_PATH))
+                codon = new_codon.to_json()
+                signature = codon["signature"]
+                assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"
+                codons[signature] = codon
+        spinner.stop(f"(Added {len(codons) - prev_len} codons: Total {len(codons)})")
 
-    # Verify the signatures are unique
-    # This check picks up any errors in sigurature generation or type defintions
-    signature_set = set()
-    for codon in codons:
-        assert codon["signature"] not in signature_set, f"Duplicate signature: {codon['signature']}"
-        signature_set.add(codon["signature"])
+    # If we are writing the codons to a file then we need to ensure that the signatures are unique
+    if write:
+        dump_signed_json(list(codons.values()), join(dirname(__file__), *OUTPUT_CODON_PATH))
 
 
 if __name__ == "__main__":

@@ -1,15 +1,16 @@
 """Common functions for the EGPPY package."""
 
+from collections.abc import Sequence
 from copy import deepcopy
-from os import environ
 from datetime import UTC, datetime
 from hashlib import sha256
+from json import dumps
+from os import environ
 from pprint import pformat
+from random import randint
 from typing import Any, Literal, Self
 from uuid import UUID
-from json import dumps
-from collections.abc import Sequence
-from random import randint
+
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern

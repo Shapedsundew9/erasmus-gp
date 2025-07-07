@@ -26,7 +26,7 @@
         ],
         "description": "enumerate",
         "outputs": [
-            "Iterator[-Any0]"
+            "Iterator[Pair[int, -Any0]]"
         ]
     },
     "iter": {

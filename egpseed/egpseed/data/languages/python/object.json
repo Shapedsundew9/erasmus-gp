@@ -15,7 +15,11 @@
     },
     "and1": {
         "inline": "{i0} and {i1}",
-        "description": "logical AND"
+        "description": "logical AND",
+        "inputs": [
+            "-object0",
+            "-object0"
+        ]
     },
     "and2": {
         "inline": "bool({i0} and {i1})",
@@ -86,7 +90,11 @@
     },
     "or1": {
         "inline": "{i0} or {i1}",
-        "description": "logical OR"
+        "description": "logical OR",
+        "inputs": [
+            "-object0",
+            "-object0"
+        ]
     },
     "or2": {
         "inline": "bool({i0} or {i1})",

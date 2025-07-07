@@ -2,7 +2,7 @@
     "reversed": {
         "inline": "reversed({i0})",
         "inputs": [
-            "-Iterable0[-Any0]"
+            "-Reversible0[-Any0]"
         ],
         "description": "reversed",
         "outputs": [

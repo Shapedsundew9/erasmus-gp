@@ -117,9 +117,6 @@
     "EGPComplex": {
         "abstract": true
     },
-    "EGPHighest": {
-        "meta": true
-    },
     "EGPIntegral": {
         "abstract": true
     },

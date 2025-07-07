@@ -11,7 +11,13 @@ from math import isclose
 from typing import Any
 from uuid import UUID
 
-from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE
+from egpcommon.common import (
+    ANONYMOUS_CREATOR,
+    EGP_EPOCH,
+    NULL_STR,
+    NULL_TUPLE,
+    sha256_signature,
+)
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import PropertiesBD
@@ -190,6 +196,19 @@ class GGCMixin(EGCMixin):
         self["survivability"] = gcabc.get("survivability", 0.0)
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = tmp if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+
+        if self["signature"] is None or self["signature"] == NULL_SIGNATURE:
+            self["signature"] = sha256_signature(
+                self["ancestora"],
+                self["ancestorb"],
+                self["gca"],
+                self["gcb"],
+                self["cgraph"].to_json(),
+                self["pgc"],
+                self["meta_data"],
+                int(self["created"].timestamp()),
+                self["creator"].bytes,
+            )
         if _LOG_DEBUG:
             self.verify()
 

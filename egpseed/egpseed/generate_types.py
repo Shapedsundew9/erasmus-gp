@@ -4,16 +4,16 @@ with unique identifiers, and writes the result to a new JSON file. It also handl
 for template types and ensures that all parent-child relationships are correctly established.
 """
 
+from copy import deepcopy
 from itertools import count
 from json import dump, load
 from os.path import dirname, join
-from typing import Any
-from copy import deepcopy
 from re import search
+from typing import Any
 
 from bitdict import BitDictABC, bitdict_factory
-from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 
+from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 
 # The XUID_ZERO_NAMES are the names that are reserved for the xuid 0.
 XUID_ZERO_NAMES: set[str] = {"tuple"}
@@ -118,6 +118,7 @@ for name, definition in types.items():
         new_tdd[tt_name] = deepcopy(new_tdd[definition["name"]])
         new_tdd[tt_name]["name"] = tt_name
         new_tdd[tt_name]["tt"] = 0
+        new_tdd[tt_name]["abstract"] = True
         new_tdd[tt_name]["parents"] = [
             p.split("[")[0] for p in new_tdd[definition["name"]]["parents"]
         ]
@@ -219,7 +220,8 @@ for td in tt1_tuple:
         del new_tdd[name]
 
 # Pass 4: Expand types that are defined with tt == 2
-# NOTE: We exclude all abstract & meta sub-types to reduce the volume of types created with the exception
+# NOTE: We exclude all abstract & meta sub-types to reduce the volume of types
+# created with the exception
 # of Hashable, which is an abstract type but is used as a sub-type of many types.
 for td in tuple(nd for nd in new_tdd.values() if nd["tt"] == 2):
     # Find what base class the type is a template of.
@@ -324,6 +326,7 @@ for td in tt1_tuple:
 # Pass 6: Special: Some types are required as children of other base types.
 new_tdd["Triplet[str, str, str]"] = deepcopy(new_tdd["Triplet[-Any0, -Any1, -Any2]"])
 new_tdd["Triplet[str, str, str]"]["parents"] = ["tuple[str, ...]"]
+new_tdd["Triplet[str, str, str]"]["name"] = "Triplet[str, str, str]"
 
 # Pass 7: Strip remaining templated types. These may not have been expanded in the previous passes
 # because they would generate to many variants (high tt) and only the "Any" tt==0 types are needed.
