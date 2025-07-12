@@ -1,6 +1,6 @@
 # EGP Seed
 
-EGP Seed is an unpacked python application to generate the seeding codons for Erasmus GP. As it is unpublished it is not as neat and tidy as other parts of Erasmus and cruft from its design legacy can be found through out. As EGP was originally intended (and still could in the future) support multiple languages in each codon Seed was designed to extend to multiple language. So far only python has been implemented and the generality of the design may have waned.
+EGP Seed is an unpacked python application to generate the seeding codons for Erasmus GP. Since codons are immutable this script is only used during development but can serve as a reference or inspiration for future codon addition. As it is unpublished it is not as neat and tidy as other parts of Erasmus and cruft from its design legacy can be found through out. As EGP was originally intended (and still could in the future) support multiple languages in each codon Seed has some vestiges that hint at multiple languages. So far only python has been implemented and the generality of the design may have waned.
 
 ## Design
 

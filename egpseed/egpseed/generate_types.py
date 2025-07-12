@@ -1,7 +1,23 @@
 """Generate types_def.json from types.json.
-This script reads a JSON file containing type definitions, processes them to create a new structure
-with unique identifiers, and writes the result to a new JSON file. It also handles special cases
-for template types and ensures that all parent-child relationships are correctly established.
+
+This script generates a comprehensive type definition file (`types_def.json`) from a raw type
+specification (`types.json`). It processes type definitions, expands template types, establishes
+parent-child relationships, and assigns unique identifiers (UIDs) to each type. The script performs
+multiple passes to handle complex type hierarchies, template instantiations, and special
+cases such as pairs and triplets. It ensures all relationships are correctly established,
+sets type depths, and serializes the final structure to JSON for downstream use in
+genetic programming or type analysis.
+
+Main steps:
+1. Parse and initialize type definitions from `types.json`.
+2. Expand template types and create concrete instances.
+3. Establish parent-child relationships for all types.
+4. Expand types with template parameters (tt == 1 and tt == 2).
+5. Handle special cases for pairs and triplets.
+6. Remove unused or abstract template types.
+7. Assign depth values based on type hierarchy.
+8. Generate unique UIDs for each type using bit fields.
+9. Serialize and write the final type definitions to `types_def.json`.
 """
 
 from copy import deepcopy

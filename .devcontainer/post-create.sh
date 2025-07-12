@@ -7,12 +7,13 @@ set -e
 echo "--- Running post-create script ---"
 
 # Activating the virtual environment
-echo "Activating virtual environment..."
-source /workspaces/erasmus-gp/.venv/bin/activate
+echo "Creating virtual environment..."
+python3 -m venv /workspaces/erasmus-gp/.venv
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
 /workspaces/erasmus-gp/.venv/bin/pip install --upgrade pip
+find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 /workspaces/erasmus-gp/.venv/bin/pip install -e ./egpcommon
 /workspaces/erasmus-gp/.venv/bin/pip install -e ./egppkrapi
 /workspaces/erasmus-gp/.venv/bin/pip install -e ./egppy

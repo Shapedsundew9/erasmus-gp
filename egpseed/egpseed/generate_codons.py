@@ -68,9 +68,6 @@ CODON_TEMPLATE: dict[str, Any] = {
 class MethodExpander:
     """Method class."""
 
-    # Flag for printing a warning about too many relative type combinations
-    warned = False
-
     def __init__(self, name: str, method: dict[str, Any]) -> None:
         """Initialize Method class."""
         super().__init__()
