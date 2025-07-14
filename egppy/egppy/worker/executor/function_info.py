@@ -15,7 +15,7 @@ def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
     raise RuntimeError("NULL_EXECUTABLE should never be executed.")
 
 
-@dataclass
+@dataclass(slots=True)
 class FunctionInfo:
     """The information for a function in the execution context."""
 

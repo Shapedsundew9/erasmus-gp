@@ -2,37 +2,59 @@
 
 EGP Seed is an unpacked python application to generate the seeding codons for Erasmus GP. Since codons are immutable this script is only used during development but can serve as a reference or inspiration for future codon addition. As it is unpublished it is not as neat and tidy as other parts of Erasmus and cruft from its design legacy can be found through out. As EGP was originally intended (and still could in the future) support multiple languages in each codon Seed has some vestiges that hint at multiple languages. So far only python has been implemented and the generality of the design may have waned.
 
-## Design
+## Generate Types
 
-EGP Seed is a monolithic python module. The file *[test_initialize.py](../tests/test_initialize.py)* runs the initialize.py script configured for python.
+This script, `generate_types.py`, is responsible for creating a detailed type definition file named `types_def.json` from a simpler input file, `types.json`.
+
+The main goal is to process the raw type information, expand any generic or template types (like `Iterable[Any]` or `dict[Hashable, Any]`) into all their possible concrete forms, establish the inheritance relationships (parent and child types), and assign a unique identifier (UID) to every single type. This final `types_def.json` file is used by other parts of the system for tasks related to genetic programming and type analysis.
+
+### Load Types
+
+The *[types.json](../egpseed/data/languages/python/types.json)* file contains type definitions. It makes several assumptions:
+
+1. Every type name has an equivilent [type name].json file in a subdirectory containing method/function definitions.
+2. If the type has no default i.e. default is None, then the type is not instanciable.
+3. If default is not None then the default is not a literal e.g. an int default cannot be "7" it must be "(7)" or "int(7)"
+4. With the exception of "object" if a type does not inherit i.e. inherits is None, then it is an EGP meta-type.
+5. All instanciable types have a zero-argument constructor defined in thier codon *.json* file. [**WHY?**]
+6. UID are, in fact, unique and within a signed 32 bit twos complement range. See [End point types](../../egppy/egppy/c_graph/docs/graph.md)
+7. Type names are unique.
+8. All tt > 0 types have a tt == 0 type e.g. 'dict[Hashable, Any]' (tt == 2) has an equivilent 'dict' type (tt == 0) which is implicitly the same.
+9. Sub-type strings are templated with a '-' prefix and '[0-9]' postfix. This enables them to be uniquely identified and referenced where parent types depends on them.
+
+#### A Word on EGP Types
+
+EGP only deals in concrete types to support reduce the complexity of Gene Pool searching (SQL expression and search time). However, this means there is a lot of codons with type combinations. To efficiently generate these codons meta-types such as **EGPhighest**: An output type that matches the highest (closest to 'object') type of the inputs, exist to generate arithmetic operation codons etc. Some EGP types like **EGPIntegral** exist as a base class placeholder to enable other non-standard class hierarchies to derive from the same base class (and this share codon definitions) e.g. numpy types.
+
+### Workflow
+
+The script operates in a series of passes to build the final type definitions. This multi-pass approach ensures that complex relationships and template expansions are handled correctly.
 
 ```mermaid
-flowchart TD
-    D["Discover template files"]
-    T["Load types" ]
-    C["Create types"]
-    L["Load codon templates"]
-    subgraph S["For each codon"]
-        subgraph "For all input type combos"
-            E["Execute inline representation"]
-            O["Determine output type"]
-            M["Create codon"]
-        end
-    end
-    WT["Write out ep_types.json"]
-    WC["Write out codons.json"]
-    WCT["Create test_codons.py"]
-
-    D --> T
-    T --> C
-    C --> L
-    L --> S
-    E --> O
-    O --> M
-    S --> WT
-    WT --> WC
-    WC --> WCT
+graph TD
+    A[Start: Read `types.json`] --> B{Pass 1: Initialize Types};
+    B --> C{Pass 2: Establish Parent-Child Links};
+    C --> D{Pass 3: Expand Template Types};
+    D --> E{Pass 4 & 5: Expand Multi-Parameter & Special Types};
+    E --> F{Pass 6 & 7: Handle Special Cases & Clean Up Templates};
+    F --> G{Pass 8 & 9: Finalize Relationships & Set Hierarchy Depth};
+    G --> H{Pass 10: Generate Unique UIDs};
+    H --> I{Pass 11-13: Final Formatting & Serialization};
+    I --> J[Output: `types_def.json`];
 ```
+
+### Key Steps
+
+1. **Parse & Initialize**: Reads the basic type definitions from `types.json`.
+2. **Expand Templates**: Creates concrete instances from template types (e.g., generating `list[int]`, `list[str]`, etc., from a generic list definition).
+3. **Build Hierarchy**: Establishes parent-child relationships between all types.
+4. **Handle Special Cases**: Manages complex types like `Pair` and `Triplet`.
+5. **Assign UIDs**: Generates a unique, bit-field-based UID for each type, which is crucial for efficient downstream processing.
+6. **Serialize Output**: Writes the final, comprehensive type structure to `types_def.json`.
+
+## Codon Generation
+
+
 
 ### Discover Template Files
 
@@ -55,21 +77,6 @@ Codon templates are stored in JSON files in subfolders. Codons are just class me
 
 The role of *[exceptions.json](../egpseed/data/languages/python/exceptions.json)* is currently legacy. It is not simple, obvious nor entirely consistent on how to determine what the output type of some (many) operations are in python depending on the input types. To avoid complex logic and errors EGP seed executes all defined combinations of input types to a method/operator and records the output type. Ideally no exceptions occur when running the inline executable code to determine the output types but some hard to avoid combinations of input parameters may occur resulting in a corner case exception that must be ignored rather than crash the application. The *[exceptions.json](../egpseed/data/languages/python/exceptions.json)* file records these specific instances so they can be ignored in the future.
 
-### Load Types
-
-The *[types.json](../egpseed/data/languages/python/types.json)* file contains type definitions. It makes several assumptions:
-
-1. Every type name has an equivilent [type name].json file in a subdirectory containing method/function definitions.
-2. If the type has no default i.e. default is None, then the type is not instanciable.
-3. If default is not None then the default is not a literal e.g. an int default cannot be "7" it must be "(7)" or "int(7)"
-4. With the exception of "object" if a type does not inherit i.e. inherits is None, then it is an EGP meta-type.
-5. All instanciable types have a zero-argument constructor defined in thier codon *.json* file. [**WHY?**]
-6. UID are, in fact, unique and within a signed 32 bit twos complement range. See [End point types](../../egppy/egppy/c_graph/docs/graph.md)
-7. Type names are unique.
-
-#### A Word on EGP Types
-
-EGP only deals in concrete types to support reduce the complexity of Gene Pool searching (SQL expression and search time). However, this means there is a lot of codons with type combinations. To efficiently generate these codons meta-types such as **egp_highest**: An output type that matches the highest (closest to 'object') type of the inputs, exist to generate arithmetic operation codons etc. or **x_y** where x is an integer from 0 to 255 referencing a position of an input and y is an integer in the range 0 to 7 that references the type within that type (the same as TT) for example. if input 3 was of type 'list[dict[str, int]]' then 3_0 would be 'list[dict[str, int]]', 3_1 would be 'dict[str, int]', 3_2 would be 'str' and 3_3 would be 'int'. In practice y's of values > 1 are rarely as codons do not perform compound functions. The exceptions are special objects like Quadruplet (a 4 element tuple).
 
 ### Type (Class) Methods
 

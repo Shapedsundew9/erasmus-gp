@@ -22,10 +22,11 @@ from shutil import which
 from subprocess import CompletedProcess, run
 from tempfile import NamedTemporaryFile
 
-from egpcommon.egp_logo import header_lines
 from isort import code as isort_imports
 
+from egpcommon.egp_logo import header_lines
 from egppy.worker.executor.execution_context import ExecutionContext
+from egppy.worker.executor.fw_config import FWConfig
 
 # Header
 # from pyfiglet import figlet_format
@@ -39,7 +40,13 @@ HEADER: str = """
 """
 
 
-def write_context_to_file(ec: ExecutionContext, filepath: str = "") -> None:
+# Create the default FWConfig for writing to a file
+FWC4FILE: FWConfig = FWConfig(hints=True, lean=False)
+
+
+def write_context_to_file(
+    ec: ExecutionContext, filepath: str = "", fwconfig: FWConfig = FWC4FILE
+) -> None:
     """Write the execution context to a file.
     The file is nicely formatted and contains everything needed to execute GC
     functions. It also includes license information and a signature of authenticity.
@@ -48,11 +55,12 @@ def write_context_to_file(ec: ExecutionContext, filepath: str = "") -> None:
     ----
         ec: ExecutionContext: The execution context to write.
         filepath: str: The file to write to. If empty, a temporary file is created.
+        fwconfig: FWConfig: The function writing configuration to use.
     """
-    format_file_with_black(_context_writer(ec, filepath))
+    format_file_with_black(_context_writer(ec, filepath, fwconfig))
 
 
-def _context_writer(ec: ExecutionContext, filepath: str | Path) -> str:
+def _context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> str:
     """Write the execution context using a specified writer."""
 
     _filepath = filepath if filepath else NamedTemporaryFile(suffix=".py", delete=False).name
@@ -61,12 +69,13 @@ def _context_writer(ec: ExecutionContext, filepath: str | Path) -> str:
         filename = f.name
 
         # First write out the module header
-        f.write(f'"""EGP Execution Context generated on {datetime.now().isoformat()}"""\n')
-        f.write(HEADER.replace("\n", "\n# ") + "\n#")
-        f.write("\n# ".join(header_lines(attr="bw")))
-        # TODO: License information
-        # TODO: Author information
-        f.write("\n")
+        if not fwconfig.lean:
+            f.write(f'"""EGP Execution Context generated on {datetime.now().isoformat()}"""\n')
+            f.write(HEADER.replace("\n", "\n# ") + "\n#")
+            f.write("\n# ".join(header_lines(attr="bw")))
+            # TODO: License information
+            # TODO: Author information
+            f.write("\n")
 
         # Now the imports
         f.write(isort_imports("\n".join(str(impt) for impt in ec.imports)))
@@ -77,7 +86,7 @@ def _context_writer(ec: ExecutionContext, filepath: str | Path) -> str:
         for func in ec.function_map.values():
             for node in nec.create_graphs(func.gc, False)[1]:
                 # Write the function definition
-                f.write(nec.function_def(node, False))
+                f.write(nec.function_def(node, fwconfig))
                 f.write("\n")
 
         # TODO: Add a signature of authenticity

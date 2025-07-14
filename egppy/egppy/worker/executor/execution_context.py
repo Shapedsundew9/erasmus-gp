@@ -108,6 +108,8 @@ class ExecutionContext:
     persistent data structures that are not easy to track.
     """
 
+    __slots__ = ("namespace", "function_map", "imports", "_line_limit", "_global_index")
+
     def __init__(self, line_limit: int = 64) -> None:
         # The globals passed to exec() when defining objects in the context
         self.namespace: dict[str, Any] = {}
@@ -235,7 +237,7 @@ class ExecutionContext:
         # Return the original node with the connections made
         return root
 
-    def code_lines(self, root: GCNode, lean: bool, fwconfig: FWConfig) -> list[str]:
+    def code_lines(self, root: GCNode, fwconfig: FWConfig) -> list[str]:
         """Return the code lines for the GC function.
         First list are the function lines.
         """
@@ -244,16 +246,19 @@ class ExecutionContext:
 
         # Doc string lines are at the top of the function are done first
         # then the actual code lines.
-        code: list[str] = [] if lean else self.docstring(fwconfig, root)
+        code: list[str] = [] if fwconfig.lean else self.docstring(fwconfig, root)
         ovns: list[str] = self.name_connections(root)
 
         # Apply optimisations
-        if lean or fwconfig.const_eval:
+        if fwconfig.const_eval:
             self.constant_evaluation(root)
-        if lean or fwconfig.cse:
+        if fwconfig.cse:
             self.common_subexpression_elimination(root)
-        if lean or fwconfig.simplification:
+        if fwconfig.simplification:
             self.simplification(root)
+        if fwconfig.result_cache:
+            # TODO: Add condition to check if the GC is eligible for caching
+            self.result_cache(root)
 
         # Write a line for each terminal node in the graph
         for node in (tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn is not root):
@@ -363,12 +368,15 @@ class ExecutionContext:
         exec(execution_str, self.namespace, lns)  # pylint: disable=exec-used
         return lns["result"]
 
-    def function_def(
-        self, node: GCNode, lean: bool = True, fwconfig: FWConfig = FWCONFIG_DEFAULT
-    ) -> str:
+    def function_def(self, node: GCNode, fwconfig: FWConfig = FWCONFIG_DEFAULT) -> str:
         """Create the function definition in the execution context including the imports."""
-        code = self.code_lines(node, lean, fwconfig)
-        code.insert(0, node.function_def(fwconfig.hints and not lean))
+        code = self.code_lines(node, fwconfig)
+        fstr, idefs = node.function_def(fwconfig.hints)
+        code.insert(0, fstr)
+        # Imports required for type hints.
+        for imp in (idef for idef in idefs if idef not in self.imports):
+            self.define(str(imp))
+            self.imports.add(imp)
         return "\n\t".join(code)
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
@@ -546,6 +554,15 @@ class ExecutionContext:
                 else:
                     node_stack.append(gc_node_graph_entry)
         return gc_node_graph
+
+    def result_cache(self, root: GCNode) -> None:
+        """Apply result caching to the GC function.
+        This optimisations uses the functools lru_cache to cache the results of the function.
+        The cache is only applied if the GC is eligible for caching.
+        """
+        # Note: This is a placeholder for future implementation
+        # Need to figure out how to profile & resource manage the cache.
+        # Thoughts: Cache size is a function of usage & memory available.
 
     def simplification(self, root: GCNode) -> None:
         """Apply simplification to the GC function.

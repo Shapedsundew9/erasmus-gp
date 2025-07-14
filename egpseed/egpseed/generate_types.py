@@ -23,7 +23,7 @@ Main steps:
 from copy import deepcopy
 from itertools import count
 from json import dump, load
-from os.path import dirname, join
+from os.path import dirname, exists, join
 from re import search
 from typing import Any
 
@@ -33,6 +33,10 @@ from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 
 # The XUID_ZERO_NAMES are the names that are reserved for the xuid 0.
 XUID_ZERO_NAMES: set[str] = {"tuple"}
+
+
+# Location of the types_def.json file
+TYPES_DEF_FILE = join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "types_def.json")
 
 
 def parse_toplevel_args(type_string: str) -> list[str]:
@@ -76,332 +80,355 @@ def parse_toplevel_args(type_string: str) -> list[str]:
     return args
 
 
-# The Types Definition BitDict type defines the UID from the bit field values.
-tdbd: type[BitDictABC] = bitdict_factory(TYPESDEF_CONFIG)
+def generate_types_def() -> None:
+    # The Types Definition BitDict type defines the UID from the bit field values.
+    tdbd: type[BitDictABC] = bitdict_factory(TYPESDEF_CONFIG)
 
-# The types.json file is a raw definition of types.
-# Only non-default key:value pairs are stored in the file and
-# container types (TT > 0) are all defined with their root types e.g. "dict[Hashable, Any]"
-with open(join(dirname(__file__), "data", "types.json"), encoding="utf-8") as f:
-    types: dict[str, dict[str, Any]] = load(f)
+    # The types.json file is a raw definition of types.
+    # Only non-default key:value pairs are stored in the file and
+    # container types (TT > 0) are all defined with their root types e.g. "dict[Hashable, Any]"
+    with open(join(dirname(__file__), "data", "types.json"), encoding="utf-8") as f:
+        types: dict[str, dict[str, Any]] = load(f)
 
-# The tt_counters are used to generate unique xuid values for each type in each template type (TT).
-# NOTE: xuid 0 is reserved for the Any type, so the counters start at 1.
-tt_counters: list[count] = [count(1) for _ in range(8)]
+    # The tt_counters are used to generate unique xuid values for each type in each template type (TT).
+    # NOTE: xuid 0 is reserved for the Any type, so the counters start at 1.
+    tt_counters: list[count] = [count(1) for _ in range(8)]
 
-# Multiple passes are made of the types as some types are defined in terms of others. Pass:
-#   1. Creates a new type definition dictionary with unique names and UIDs.
-#   2. Ensures that all parent-child relationships are established correctly.
-#   3. Creates explicit sub-types e.g. Expand the 'Any' in Iterable[Any] to include all types.
-#   4. Expand types that are defined with tt == 2
-#   5. Special handling for Pair types, which are products of dicts, ItemsView etc.
-#   6: Special Pairs: Some Pairs are required as children of other base types.
-#   7: Strip remaining templated types.
-#   8. Establish parent-child relationships for new type definitions.
-#   9. Set depths. The depth is the number of edges from the root type (object) to the type.
-#  10. JSON-ize the fields and add a UID to each type definition.
-#  11: Convert the parents and children sets to sorted lists.
-#  12: Assertions
-#  11. Write the new type definition dictionary to a JSON file.
+    # Multiple passes are made of the types as some types are defined in terms of others. Pass:
+    #   1. Creates a new type definition dictionary with unique names and UIDs.
+    #   2. Ensures that all parent-child relationships are established correctly.
+    #   3. Creates explicit sub-types e.g. Expand the 'Any' in Iterable[Any] to include all types.
+    #   4. Expand types that are defined with tt == 2
+    #   5. Special handling for Pair types, which are products of dicts, ItemsView etc.
+    #   6: Special Pairs: Some Pairs are required as children of other base types.
+    #   7: Strip remaining templated types.
+    #   8. Establish parent-child relationships for new type definitions.
+    #   9. Set depths. The depth is the number of edges from the root type (object) to the type.
+    #  10. JSON-ize the fields and add a UID to each type definition.
+    #  11: Convert the parents and children sets to sorted lists.
+    #  12: Assertions
+    #  11. Write the new type definition dictionary to a JSON file.
 
-# Pass 1: Create the new type definition dictionary.
-new_tdd: dict[str, dict[str, Any]] = {}
-for name, definition in types.items():
-    if "name" not in definition:
-        definition["name"] = name
+    # Pass 1: Create the new type definition dictionary.
+    new_tdd: dict[str, dict[str, Any]] = {}
+    for name, definition in types.items():
+        if "name" not in definition:
+            definition["name"] = name
 
-    # These are the fields that are needed to create a new type definition.
-    # NOTE: That the types.json file may define other fields that are not used here.
-    # e.g. "tt"
-    new_tdd[definition["name"]] = {
-        "name": definition.get("name"),
-        "imports": definition.get("imports", []),
-        "parents": definition.get("parents", ["object"]),
-        "children": definition.get("children", set()),
-        "abstract": definition.get("abstract", False),
-        "meta": definition.get("meta", False),
-        "depth": definition.get("depth", 0),
-        "default": definition.get("default"),
-        "tt": definition.get("tt", 0),
-    }
-    if name == "object":
-        # The object type is the root type and has no parents.
-        # NOTE: Will cause an infinite loop if anything else.
-        new_tdd[definition["name"]]["parents"] = []
-    if new_tdd[definition["name"]]["tt"] > 0:
-        # If the type is a template type, then make a 0 tt ("Any") version of it.
-        tt_name: str = definition["name"].split("[")[0]
-        new_tdd[tt_name] = deepcopy(new_tdd[definition["name"]])
-        new_tdd[tt_name]["name"] = tt_name
-        new_tdd[tt_name]["tt"] = 0
-        new_tdd[tt_name]["abstract"] = True
-        new_tdd[tt_name]["parents"] = [
-            p.split("[")[0] for p in new_tdd[definition["name"]]["parents"]
-        ]
-
-# Pass 2: Establish parent-child relationships for concrete types (tt=0 initially).
-new_tdd["Any"]["children"] = set(nd["name"] for nd in new_tdd.values() if nd["tt"] == 0)
-new_tdd["Any"]["children"].remove("Any")  # Remove self-reference
-type_list = list(nd for nd in new_tdd.values() if nd["tt"] == 0)
-while type_list:
-    td = type_list.pop(0)
-    for parent in td["parents"]:
-        # If the parent is not in the new_tdd dictionary, it should be a tt=1 template type.
-        # NOTE: No other undefined parent types are supported at this time.
-        if parent not in new_tdd:
-            parent_template = None
-            for key in new_tdd:
-                if key.startswith(parent[: parent.find("[") + 1]):
-                    parent_template = key
-                    break
-            if parent_template is None:
-                raise ValueError(
-                    f"Parent template '{parent}' not found in new_tdd. "
-                    "Please define it in types.json or add the capability here."
-                )
-            template: str = parent_template[
-                parent_template.find("[") + 1 : parent_template.rfind("]")
+        # These are the fields that are needed to create a new type definition.
+        # NOTE: That the types.json file may define other fields that are not used here.
+        # e.g. "tt"
+        new_tdd[definition["name"]] = {
+            "name": definition.get("name"),
+            "imports": definition.get("imports", []),
+            "parents": definition.get("parents", ["object"]),
+            "children": definition.get("children", set()),
+            "abstract": definition.get("abstract", False),
+            "meta": definition.get("meta", False),
+            "depth": definition.get("depth", 0),
+            "default": definition.get("default"),
+            "tt": definition.get("tt", 0),
+        }
+        if name == "object":
+            # The object type is the root type and has no parents.
+            # NOTE: Will cause an infinite loop if anything else.
+            new_tdd[definition["name"]]["parents"] = []
+        if new_tdd[definition["name"]]["tt"] > 0:
+            # If the type is a template type, then make a 0 tt ("Any") version of it.
+            tt_name: str = definition["name"].split("[")[0]
+            new_tdd[tt_name] = deepcopy(new_tdd[definition["name"]])
+            new_tdd[tt_name]["name"] = tt_name
+            new_tdd[tt_name]["tt"] = 0
+            new_tdd[tt_name]["abstract"] = True
+            new_tdd[tt_name]["parents"] = [
+                p.split("[")[0] for p in new_tdd[definition["name"]]["parents"]
             ]
-            template_type: str = parent[parent.find("[") + 1 : parent.rfind("]")]
-            assert (
-                parent_template[: parent_template.find("[") + 1] + template_type + "]" == parent
-            ), f"Parent template '{parent}' does not match."
 
-            # Create a new type definition for the parent template if it doesn't exist.
-            new_tdd[parent] = deepcopy(new_tdd[parent_template])
-            new_tdd[parent]["name"] = parent
-            new_tdd[parent]["parents"] = {
-                p.replace(template, template_type) for p in new_tdd[parent_template]["parents"]
-            }
+    # Pass 2: Establish parent-child relationships for concrete types (tt=0 initially).
+    new_tdd["Any"]["children"] = set(nd["name"] for nd in new_tdd.values() if nd["tt"] == 0)
+    new_tdd["Any"]["children"].remove("Any")  # Remove self-reference
+    type_list = list(nd for nd in new_tdd.values() if nd["tt"] == 0)
+    while type_list:
+        td = type_list.pop(0)
+        for parent in td["parents"]:
+            # If the parent is not in the new_tdd dictionary, it should be a tt=1 template type.
+            # NOTE: No other undefined parent types are supported at this time.
+            if parent not in new_tdd:
+                parent_template = None
+                for key in new_tdd:
+                    if key.startswith(parent[: parent.find("[") + 1]):
+                        parent_template = key
+                        break
+                if parent_template is None:
+                    raise ValueError(
+                        f"Parent template '{parent}' not found in new_tdd. "
+                        "Please define it in types.json or add the capability here."
+                    )
+                template: str = parent_template[
+                    parent_template.find("[") + 1 : parent_template.rfind("]")
+                ]
+                template_type: str = parent[parent.find("[") + 1 : parent.rfind("]")]
+                assert (
+                    parent_template[: parent_template.find("[") + 1] + template_type + "]" == parent
+                ), f"Parent template '{parent}' does not match."
 
-            # The new type definition is a concrete type that is utilized by other types so
-            # it can be added to the type_list for further processing.
-            type_list.append(new_tdd[parent])
-            new_tdd["Any"]["children"].add(parent)
+                # Create a new type definition for the parent template if it doesn't exist.
+                new_tdd[parent] = deepcopy(new_tdd[parent_template])
+                new_tdd[parent]["name"] = parent
+                new_tdd[parent]["parents"] = {
+                    p.replace(template, template_type) for p in new_tdd[parent_template]["parents"]
+                }
 
-        # Add the current type to the parent's children set.
-        new_tdd[parent]["children"].add(td["name"])
+                # The new type definition is a concrete type that is utilized by other types so
+                # it can be added to the type_list for further processing.
+                type_list.append(new_tdd[parent])
+                new_tdd["Any"]["children"].add(parent)
 
+            # Add the current type to the parent's children set.
+            new_tdd[parent]["children"].add(td["name"])
 
-# Pass 3: Expand types that are defined with tt == 1, e.g. Iterable[Any] to include all types.
-tt1_tuple = tuple(nd for nd in new_tdd.values() if nd["tt"] == 1)
-for td in tt1_tuple:
-    # Find what base class the type is a template of.
-    name: str = td["name"]
-    start: int = name.find("[-")
-    end: int = name.rfind("0]")
+    # Pass 3: Expand types that are defined with tt == 1, e.g. Iterable[Any] to include all types.
+    tt1_tuple = tuple(nd for nd in new_tdd.values() if nd["tt"] == 1)
+    for td in tt1_tuple:
+        # Find what base class the type is a template of.
+        name: str = td["name"]
+        start: int = name.find("[-")
+        end: int = name.rfind("0]")
 
-    # Special case for tuple[x, ...] where the ellipsis is not part of the template.
-    if end == -1 and start != -1:
-        end = name.rfind("0, ...]")
-    assert start == end == -1 or start < end, f"Malformed name template: {name}"
+        # Special case for tuple[x, ...] where the ellipsis is not part of the template.
+        if end == -1 and start != -1:
+            end = name.rfind("0, ...]")
+        assert start == end == -1 or start < end, f"Malformed name template: {name}"
 
-    # Template flag indicates whether the type is a template type.
-    flag: bool = start != -1
-    if not flag:
-        base_class = name[name.find("[") + 1 : name.rfind("]")].replace(", ...", "")
-    else:
-        # Remove the ellipsis if it exists in the template name.
-        # tuple[x, ...] should be the only case where this is used.
-        base_class = name[start + 2 : end]
+        # Template flag indicates whether the type is a template type.
+        flag: bool = start != -1
+        if not flag:
+            base_class = name[name.find("[") + 1 : name.rfind("]")].replace(", ...", "")
+        else:
+            # Remove the ellipsis if it exists in the template name.
+            # tuple[x, ...] should be the only case where this is used.
+            base_class = name[start + 2 : end]
 
-    if base_class == "Any":
-        # If the base class is Any, then all types are sub-types.
-        sub_types = new_tdd["Any"]["children"].copy()
-    else:
-        # Search the type tree for all valid sub-types of the base class.
-        search_tree: set[str] = new_tdd[base_class]["children"].copy()
-        sub_types: set[str] = {base_class}  # Start with the base class itself.
-        while search_tree:
-            current = search_tree.pop()
-            search_tree.update(new_tdd[current]["children"])
-            sub_types.add(current)
-
-    # Add the sub-types to the type definition.
-    template = "-" + base_class + "0" if flag else base_class
-    for st in sub_types:
-        # Replace the template with the sub-type name and
-        # create a new concrete type definition.
-        # NOTE: That the type may already exist as a concrete parent of a scalar
-        # type (i.e. created in Phase 2)
-        new_name = name.replace(template, st)
-        if new_name not in new_tdd:
-            new_tdd[new_name] = deepcopy(td)
-            new_tdd[new_name]["name"] = new_name
-            if flag:
-                new_tdd[new_name]["parents"] = {p.replace(template, st) for p in td["parents"]}
-
-    # Remove the templated entry from the new type definition dictionary.
-    if flag:
-        del new_tdd[name]
-
-# Pass 4: Expand types that are defined with tt == 2
-# NOTE: We exclude all abstract & meta sub-types to reduce the volume of types
-# created with the exception
-# of Hashable, which is an abstract type but is used as a sub-type of many types.
-for td in tuple(nd for nd in new_tdd.values() if nd["tt"] == 2):
-    # Find what base class the type is a template of.
-    name: str = td["name"]
-    parameters: list[str] = parse_toplevel_args(name)
-    assert len(parameters) == 2, f"Malformed name template: {name}"
-    base_classes: list[str] = [p[1:-1] if p[0] == "-" else p for p in parameters]
-    sub_types_list: list[set[str]] = []
-
-    for parameter, base_class in zip(parameters, base_classes):
-        flag: bool = parameter[0] == "-"
         if base_class == "Any":
             # If the base class is Any, then all types are sub-types.
-            sub_types_list.append(
-                {
-                    c
-                    for c in new_tdd["Any"]["children"]
-                    if not (new_tdd[c]["abstract"] or new_tdd[c]["meta"]) or c == "Hashable"
-                }
-            )
-            sub_types_list[-1].add("Any")
+            sub_types = new_tdd["Any"]["children"].copy()
         else:
             # Search the type tree for all valid sub-types of the base class.
-            search_tree: set[str] = {
-                c
-                for c in new_tdd[base_class]["children"]
-                if not (new_tdd[c]["abstract"] or new_tdd[c]["meta"]) or c == "Hashable"
-            }
-            sub_types_list.append({base_class})
+            search_tree: set[str] = new_tdd[base_class]["children"].copy()
+            sub_types: set[str] = {base_class}  # Start with the base class itself.
             while search_tree:
                 current = search_tree.pop()
-                search_tree.update(
-                    {
-                        c
-                        for c in new_tdd[current]["children"]
-                        if not (new_tdd[c]["abstract"] or new_tdd[c]["meta"]) or c == "Hashable"
-                    }
-                )
-                sub_types_list[-1].add(current)
+                search_tree.update(new_tdd[current]["children"])
+                sub_types.add(current)
 
-    # Add the sub-types to the type definition.
-    for st0 in sub_types_list[0]:
-        for st1 in sub_types_list[1]:
-            # Skip [Any, Any] as it is already defined as a tt==0 type.
-            if st0 == "Any" and st1 == "Any":
-                continue
+        # Add the sub-types to the type definition.
+        template = "-" + base_class + "0" if flag else base_class
+        for st in sub_types:
             # Replace the template with the sub-type name and
             # create a new concrete type definition.
             # NOTE: That the type may already exist as a concrete parent of a scalar
             # type (i.e. created in Phase 2)
-            new_name = name.replace(parameters[1], st1).replace(parameters[0], st0)
+            new_name = name.replace(template, st)
             if new_name not in new_tdd:
                 new_tdd[new_name] = deepcopy(td)
                 new_tdd[new_name]["name"] = new_name
-                if parameters[0][0] == "-":
-                    new_tdd[new_name]["parents"] = {
-                        p.replace(parameters[0], st0) for p in td["parents"]
+                if flag:
+                    new_tdd[new_name]["parents"] = {p.replace(template, st) for p in td["parents"]}
+                # The subtype may require imports
+                impt_names = set(imp["name"] for imp in new_tdd[new_name]["imports"])
+                for imp in (
+                    impt for impt in new_tdd[st]["imports"] if impt["name"] not in impt_names
+                ):
+                    new_tdd[new_name]["imports"].append(imp)
+
+        # Remove the templated entry from the new type definition dictionary.
+        if flag:
+            del new_tdd[name]
+
+    # Pass 4: Expand types that are defined with tt == 2
+    # NOTE: We exclude all abstract & meta sub-types to reduce the volume of types
+    # created with the exception
+    # of Hashable, which is an abstract type but is used as a sub-type of many types.
+    for td in tuple(nd for nd in new_tdd.values() if nd["tt"] == 2):
+        # Find what base class the type is a template of.
+        name: str = td["name"]
+        parameters: list[str] = parse_toplevel_args(name)
+        assert len(parameters) == 2, f"Malformed name template: {name}"
+        base_classes: list[str] = [p[1:-1] if p[0] == "-" else p for p in parameters]
+        sub_types_list: list[set[str]] = []
+
+        for parameter, base_class in zip(parameters, base_classes):
+            flag: bool = parameter[0] == "-"
+            if base_class == "Any":
+                # If the base class is Any, then all types are sub-types.
+                sub_types_list.append(
+                    {
+                        c
+                        for c in new_tdd["Any"]["children"]
+                        if not (new_tdd[c]["abstract"] or new_tdd[c]["meta"]) or c == "Hashable"
                     }
-                if parameters[1][0] == "-":
-                    new_tdd[new_name]["parents"] = {
-                        p.replace(parameters[1], st1) for p in new_tdd[new_name]["parents"]
-                    }
+                )
+                sub_types_list[-1].add("Any")
+            else:
+                # Search the type tree for all valid sub-types of the base class.
+                search_tree: set[str] = {
+                    c
+                    for c in new_tdd[base_class]["children"]
+                    if not (new_tdd[c]["abstract"] or new_tdd[c]["meta"]) or c == "Hashable"
+                }
+                sub_types_list.append({base_class})
+                while search_tree:
+                    current = search_tree.pop()
+                    search_tree.update(
+                        {
+                            c
+                            for c in new_tdd[current]["children"]
+                            if not (new_tdd[c]["abstract"] or new_tdd[c]["meta"]) or c == "Hashable"
+                        }
+                    )
+                    sub_types_list[-1].add(current)
 
-# Pass 5: Pairs - since Pairs (tuple[Any, Any]) are products of dicts they are treated as
-# as a concrete type that can be used in tt == 1 Containers. Any type that has a Hashable
-# type as a parameter can be expanded to include all Pair types.
-pairs: list[str] = [p for p in new_tdd if p.startswith("Pair[")]
-for td in tt1_tuple:
-    # Find what base class the type is a template of.
-    name: str = td["name"]
-    start: int = name.find("[-")
-    end: int = name.rfind("0]")
+        # Add the sub-types to the type definition.
+        for st0 in sub_types_list[0]:
+            for st1 in sub_types_list[1]:
+                # Skip [Any, Any] as it is already defined as a tt==0 type.
+                if st0 == "Any" and st1 == "Any":
+                    continue
+                # Replace the template with the sub-type name and
+                # create a new concrete type definition.
+                # NOTE: That the type may already exist as a concrete parent of a scalar
+                # type (i.e. created in Phase 2)
+                new_name = name.replace(parameters[1], st1).replace(parameters[0], st0)
+                if new_name not in new_tdd:
+                    new_tdd[new_name] = deepcopy(td)
+                    new_tdd[new_name]["name"] = new_name
+                    if parameters[0][0] == "-":
+                        new_tdd[new_name]["parents"] = {
+                            p.replace(parameters[0], st0) for p in td["parents"]
+                        }
+                    if parameters[1][0] == "-":
+                        new_tdd[new_name]["parents"] = {
+                            p.replace(parameters[1], st1) for p in new_tdd[new_name]["parents"]
+                        }
+                    # The subtype may require imports
+                    impt_names = set(imp["name"] for imp in new_tdd[new_name]["imports"])
+                    for imp in (
+                        impt for impt in new_tdd[st0]["imports"] if impt["name"] not in impt_names
+                    ):
+                        new_tdd[new_name]["imports"].append(imp)
+                    for imp in (
+                        impt for impt in new_tdd[st1]["imports"] if impt["name"] not in impt_names
+                    ):
+                        new_tdd[new_name]["imports"].append(imp)
 
-    # Special case for tuple[x, ...] where the ellipsis is not part of the template.
-    if end == -1 and start != -1:
-        end = name.rfind("0, ...]")
-    assert start == end == -1 or start < end, f"Malformed name template: {name}"
+    # Pass 5: Pairs - since Pairs (tuple[Any, Any]) are products of dicts they are treated as
+    # as a concrete type that can be used in tt == 1 Containers. Any type that has a Hashable
+    # type as a parameter can be expanded to include all Pair types.
+    pairs: list[str] = [p for p in new_tdd if p.startswith("Pair[")]
+    for td in tt1_tuple:
+        # Find what base class the type is a template of.
+        name: str = td["name"]
+        start: int = name.find("[-")
+        end: int = name.rfind("0]")
 
-    # Template flag indicates whether the type is a template type.
-    flag: bool = start != -1
-    if not flag:
-        base_class = name[name.find("[") + 1 : name.rfind("]")].replace(", ...", "")
-    else:
-        # Remove the ellipsis if it exists in the template name.
-        # tuple[x, ...] should be the only case where this is used.
-        base_class = name[start + 2 : end]
+        # Special case for tuple[x, ...] where the ellipsis is not part of the template.
+        if end == -1 and start != -1:
+            end = name.rfind("0, ...]")
+        assert start == end == -1 or start < end, f"Malformed name template: {name}"
 
-    # Add the sub-types to the type definition.
-    template = "-" + base_class + "0" if flag else base_class
-    for st in pairs:
-        # Replace the template with the sub-type (pair) name and
-        # create a new concrete type definition.
-        # NOTE: That the type may already exist as a concrete parent of a scalar
-        # type (i.e. created in Phase 2)
-        new_name = name.replace(template, st)
-        if new_name not in new_tdd:
-            new_tdd[new_name] = deepcopy(td)
-            new_tdd[new_name]["name"] = new_name
-            if flag:
-                new_tdd[new_name]["parents"] = {p.replace(template, st) for p in td["parents"]}
+        # Template flag indicates whether the type is a template type.
+        flag: bool = start != -1
+        if not flag:
+            base_class = name[name.find("[") + 1 : name.rfind("]")].replace(", ...", "")
+        else:
+            # Remove the ellipsis if it exists in the template name.
+            # tuple[x, ...] should be the only case where this is used.
+            base_class = name[start + 2 : end]
 
-# Pass 6: Special: Some types are required as children of other base types.
-new_tdd["Triplet[str, str, str]"] = deepcopy(new_tdd["Triplet[-Any0, -Any1, -Any2]"])
-new_tdd["Triplet[str, str, str]"]["parents"] = ["tuple[str, ...]"]
-new_tdd["Triplet[str, str, str]"]["name"] = "Triplet[str, str, str]"
+        # Add the sub-types to the type definition.
+        template = "-" + base_class + "0" if flag else base_class
+        for st in pairs:
+            # Replace the template with the sub-type (pair) name and
+            # create a new concrete type definition.
+            # NOTE: That the type may already exist as a concrete parent of a scalar
+            # type (i.e. created in Phase 2)
+            new_name = name.replace(template, st)
+            if new_name not in new_tdd:
+                new_tdd[new_name] = deepcopy(td)
+                new_tdd[new_name]["name"] = new_name
+                if flag:
+                    new_tdd[new_name]["parents"] = {p.replace(template, st) for p in td["parents"]}
+                impt_names = set(imp["name"] for imp in new_tdd[new_name]["imports"])
+                for imp in (
+                    impt for impt in new_tdd[st]["imports"] if impt["name"] not in impt_names
+                ):
+                    new_tdd[new_name]["imports"].append(imp)
 
-# Pass 7: Strip remaining templated types. These may not have been expanded in the previous passes
-# because they would generate to many variants (high tt) and only the "Any" tt==0 types are needed.
-for name in list(new_tdd.keys()):
-    if "-" in name:
-        del new_tdd[name]
+    # Pass 6: Special: Some types are required as children of other base types.
+    new_tdd["Triplet[str, str, str]"] = deepcopy(new_tdd["Triplet[-Any0, -Any1, -Any2]"])
+    new_tdd["Triplet[str, str, str]"]["parents"] = ["tuple[str, ...]"]
+    new_tdd["Triplet[str, str, str]"]["name"] = "Triplet[str, str, str]"
 
-# Pass 8: Establish parent child relationships for new type definitions.
-for new_name, new_td in new_tdd.items():
-    for parent in new_td["parents"]:
-        new_tdd[parent]["children"].add(new_name)
-new_tdd["Any"]["children"] = set(new_tdd.keys())  # All types are children of Any
-new_tdd["Any"]["children"].remove("Any")  # Remove self-reference
+    # Pass 7: Strip remaining templated types. These may not have been expanded in the previous
+    # passes
+    # because they would generate to many variants (high tt) and only the "Any" tt==0 types are
+    # needed.
+    for name in list(new_tdd.keys()):
+        if "-" in name:
+            del new_tdd[name]
 
-# Pass 9: Set depths. The depth is the number of edges from the root type (object) to the type.
-stack = list(new_tdd["object"]["children"])
-while stack:
-    current = stack.pop()
-    # Object is a child of Any and is the root type, so it has a depth of 0.
-    if current != "object":
-        new_tdd[current]["depth"] = (
-            max((new_tdd[p]["depth"] for p in new_tdd[current]["parents"])) + 1
+    # Pass 8: Establish parent child relationships for new type definitions.
+    for new_name, new_td in new_tdd.items():
+        for parent in new_td["parents"]:
+            new_tdd[parent]["children"].add(new_name)
+    new_tdd["Any"]["children"] = set(new_tdd.keys())  # All types are children of Any
+    new_tdd["Any"]["children"].remove("Any")  # Remove self-reference
+
+    # Pass 9: Set depths. The depth is the number of edges from the root type (object) to the type.
+    stack = list(new_tdd["object"]["children"])
+    while stack:
+        current = stack.pop()
+        # Object is a child of Any and is the root type, so it has a depth of 0.
+        if current != "object":
+            new_tdd[current]["depth"] = (
+                max((new_tdd[p]["depth"] for p in new_tdd[current]["parents"])) + 1
+            )
+            stack.extend(new_tdd[current]["children"])
+
+    # Pass 10: JSON-ize the fields and add a UID to each type definition.
+    for definition in new_tdd.values():
+        # Create a unique identifier for the type definition.
+        xuid: int = next(tt_counters[definition["tt"]]) * (
+            not any(definition["name"] == name for name in XUID_ZERO_NAMES)
         )
-        stack.extend(new_tdd[current]["children"])
+
+        definition["uid"] = tdbd(
+            {
+                "tt": definition["tt"],
+                "xuid": xuid,
+            }
+        ).to_int()
+
+    # Pass 11: Convert the parents and children sets to sorted lists.
+    for definition in new_tdd.values():
+        # Convert the parents and children sets to sorted lists.
+        definition["parents"] = [new_tdd[p]["uid"] for p in sorted(definition["parents"])]
+        definition["children"] = [new_tdd[c]["uid"] for c in sorted(definition["children"])]
+
+    # Pass 12: Assertions
+    uids: set[int] = set()
+    for definition in new_tdd.values():
+        # Ensure that the UID is unique.
+        assert (
+            definition["uid"] not in uids
+        ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
+        uids.add(definition["uid"])
+
+    # Pass 13: Write the new type definition dictionary to a JSON file.
+    with open(TYPES_DEF_FILE, "w", encoding="utf-8") as f:
+        dump(new_tdd, f, indent=4, sort_keys=True)
 
 
-# Pass 10: JSON-ize the fields and add a UID to each type definition.
-for definition in new_tdd.values():
-    # Create a unique identifier for the type definition.
-    xuid: int = next(tt_counters[definition["tt"]]) * (
-        not any(definition["name"] == name for name in XUID_ZERO_NAMES)
-    )
-
-    definition["uid"] = tdbd(
-        {
-            "tt": definition["tt"],
-            "xuid": xuid,
-        }
-    ).to_int()
-
-
-# Pass 11: Convert the parents and children sets to sorted lists.
-for definition in new_tdd.values():
-    # Convert the parents and children sets to sorted lists.
-    definition["parents"] = [new_tdd[p]["uid"] for p in sorted(definition["parents"])]
-    definition["children"] = [new_tdd[c]["uid"] for c in sorted(definition["children"])]
-
-
-# Pass 12: Assertions
-uids: set[int] = set()
-for definition in new_tdd.values():
-    # Ensure that the UID is unique.
-    assert (
-        definition["uid"] not in uids
-    ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
-    uids.add(definition["uid"])
-
-
-# Pass 13: Write the new type definition dictionary to a JSON file.
-filename = join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "types_def.json")
-with open(filename, "w", encoding="utf-8") as f:
-    dump(new_tdd, f, indent=4, sort_keys=True)
+if __name__ == "__main__":
+    # Generate the types_def.json file.
+    generate_types_def()

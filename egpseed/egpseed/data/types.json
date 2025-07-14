@@ -102,6 +102,15 @@
     },
     "Container[-Any0]": {
         "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Container"
+            }
+        ],
         "parents": [
             "object"
         ],

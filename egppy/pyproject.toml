@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"] # Or your preferred build backend
 build-backend = "setuptools.build_meta"
 
 [project]
-name="egpseed"
+name="egppy"
 version="1.0.0"
 readme="README.md"
 authors = [{ name = "Shaped Sundew", email = "16618209+Shapedsundew9@users.noreply.github.com" }]

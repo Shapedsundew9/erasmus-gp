@@ -6,7 +6,7 @@ from array import array
 from functools import lru_cache
 from json import dumps, loads
 from os.path import dirname, join
-from typing import Any, Final, Generator, Iterable
+from typing import Any, Final, Generator, Iterable, Iterator
 
 from bitdict import BitDictABC, bitdict_factory
 
@@ -419,6 +419,11 @@ class TypesDefStore(ObjectDict):
         self._objects[ntd.name] = ntd
         self._objects[ntd.uid] = ntd
         return ntd
+
+    def values(self) -> Iterator[TypesDef]:
+        """Iterate through all the types in the store."""
+        for td in DB_STORE.select():
+            yield TypesDef(**td)
 
     @lru_cache(maxsize=128)
     def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:

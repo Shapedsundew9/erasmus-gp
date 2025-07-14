@@ -1,0 +1,24 @@
+{
+    "type_check": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "meta"
+                ],
+                "name": "raise_if_not_instance_of"
+            }
+        ],
+        "inline": "raise_if_not_instance_of({i0}, {o0_ts})",
+        "inputs": [
+            "-Any0"
+        ],
+        "outputs": [
+            "-Any1"
+        ],
+        "properties": {
+            "gctype": 2
+        }
+    }
+}

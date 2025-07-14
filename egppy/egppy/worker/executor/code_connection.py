@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 class CodeEndPoint(Hashable):
     """An code end point in the GC node graph."""
 
+    __slots__ = ("node", "row", "idx", "terminal")
+
     def __init__(self, node: GCNode, row: Row, idx: int, terminal: bool = False) -> None:
         """Create a code end point in the GC node graph.
 
@@ -58,6 +60,8 @@ class CodeEndPoint(Hashable):
 
 class CodeConnection(Hashable):
     """A connection between terminal end points in the GC node graph."""
+
+    __slots__ = ("src", "dst", "var_name")
 
     def __init__(self, src: CodeEndPoint, dst: CodeEndPoint) -> None:
         """Create a connection between code end points in the GC node graph."""

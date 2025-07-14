@@ -1,2 +1,4 @@
 pygame
 requests
+black
+isort

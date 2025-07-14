@@ -1,7 +1,6 @@
 """Generate codons."""
 
 from copy import deepcopy
-from datetime import UTC, datetime
 from glob import glob
 from itertools import product
 from math import prod
@@ -9,6 +8,7 @@ from os.path import basename, dirname, join, splitext
 from re import findall
 from typing import Any
 
+from egpcommon.common import EGP_EPOCH
 from egpcommon.egp_log import (
     CONSISTENCY,
     DEBUG,
@@ -46,7 +46,7 @@ CODON_TEMPLATE: dict[str, Any] = {
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
-    "created": datetime.now(UTC).isoformat(),
+    "created": EGP_EPOCH.isoformat(),
     "generation": 1,
     "num_codes": 1,
     "num_codons": 1,
@@ -156,7 +156,7 @@ class MethodExpander:
                 outputs = [t.replace(rt, typ) for t in outputs]
             # If EGPHighest is used, we need to replace it with the highest (closest ot object) type
             if egph_flag:
-                # Highest could be a parameter at the end of inthe inputs list
+                # Highest could be a parameter at the end of in the inputs list
                 highest = min(
                     (types_def_store[i] for i in inputs if i != "EGPHighest"), key=lambda x: x.depth
                 )
