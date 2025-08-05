@@ -4,7 +4,7 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile
     volumes:
-      -  ${DEVCONTAINER_CONTAINER_WORKSPACE_FOLDER:-/workspaces/erasmus-gp}:/workspace:cached
+      -  ..:/workspace:cached
     command: sleep infinity
     depends_on:
       - postgres
