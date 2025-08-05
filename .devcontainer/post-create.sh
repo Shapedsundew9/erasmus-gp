@@ -12,7 +12,7 @@ python3 -m venv /workspace/erasmus-gp/.venv
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
-/workspaces/erasmus-gp/.venv/bin/pip install --upgrade pip
+/workspace/erasmus-gp/.venv/bin/pip install --upgrade pip
 find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 /workspace/erasmus-gp/.venv/bin/pip install -e ./egpcommon
 /workspace/erasmus-gp/.venv/bin/pip install -e ./egppkrapi
