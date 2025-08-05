@@ -9,4 +9,4 @@ RUN git clone --depth 1 --branch devel https://github.com/Shapedsundew9/bitdict.
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/share/bitdict"
 
 # Set the working directory
-WORKDIR /workspace
+WORKDIR /workspaces
