@@ -21,12 +21,12 @@
 				"python.terminal.activateEnvironment": true,
 				"python.analysis.extraPaths": [
 					"/usr/local/share/bitdict",
-					"/workspaces/erasmus-gp/egpcommon",
-					"/workspaces/erasmus-gp/egppkrapi",
-					"/workspaces/erasmus-gp/egppy",
-					"/workspaces/erasmus-gp/egpdb",
-					"/workspaces/erasmus-gp/egpdbmgr",
-					"/workspaces/erasmus-gp/egpseed"
+					"/workspace/erasmus-gp/egpcommon",
+					"/workspace/erasmus-gp/egppkrapi",
+					"/workspace/erasmus-gp/egppy",
+					"/workspace/erasmus-gp/egpdb",
+					"/workspace/erasmus-gp/egpdbmgr",
+					"/workspace/erasmus-gp/egpseed"
 				],
 				"python.analysis.autoImportCompletions": true,
 				"python.analysis.indexing": true,
