@@ -4,7 +4,7 @@
 	"name": "Python 3.12 & PostgreSQL",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspace",
+	"workspaceFolder": "/workspaces",
     "customizations": {
 		"vscode": {
 			"extensions": [
@@ -21,12 +21,12 @@
 				"python.terminal.activateEnvironment": true,
 				"python.analysis.extraPaths": [
 					"/usr/local/share/bitdict",
-					"/workspace/erasmus-gp/egpcommon",
-					"/workspace/erasmus-gp/egppkrapi",
-					"/workspace/erasmus-gp/egppy",
-					"/workspace/erasmus-gp/egpdb",
-					"/workspace/erasmus-gp/egpdbmgr",
-					"/workspace/erasmus-gp/egpseed"
+					"${containerWorkspaceFolder}/erasmus-gp/egpcommon",
+					"${containerWorkspaceFolder}/erasmus-gp/egppkrapi",
+					"${containerWorkspaceFolder}/erasmus-gp/egppy",
+					"${containerWorkspaceFolder}/erasmus-gp/egpdb",
+					"${containerWorkspaceFolder}/erasmus-gp/egpdbmgr",
+					"${containerWorkspaceFolder}/erasmus-gp/egpseed"
 				],
 				"python.analysis.autoImportCompletions": true,
 				"python.analysis.indexing": true,
