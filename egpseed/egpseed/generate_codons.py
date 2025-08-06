@@ -2,21 +2,11 @@
 
 from copy import deepcopy
 from glob import glob
-from itertools import product
-from math import prod
 from os.path import basename, dirname, join, splitext
-from re import findall
 from typing import Any
 
 from egpcommon.common import EGP_EPOCH
-from egpcommon.egp_log import (
-    CONSISTENCY,
-    DEBUG,
-    VERIFY,
-    Logger,
-    egp_logger,
-    enable_debug_logging,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
 from egpcommon.spinner import Spinner
@@ -68,6 +58,8 @@ CODON_TEMPLATE: dict[str, Any] = {
 class MethodExpander:
     """Method class."""
 
+    trans_tbl = str.maketrans("0123456789", "-" * 10)
+
     def __init__(self, name: str, method: dict[str, Any]) -> None:
         """Initialize Method class."""
         super().__init__()
@@ -75,8 +67,13 @@ class MethodExpander:
         self.name = name
         self.num_inputs = len(method["inputs"])
         self.num_outputs = len(method["outputs"])
-        self.inputs = method["inputs"]
-        self.outputs = method["outputs"]
+        self.inputs = [i.translate(self.trans_tbl).replace("-", "") for i in method["inputs"]]
+        self.outputs = [o.translate(self.trans_tbl).replace("-", "") for o in method["outputs"]]
+        if "EGPHighest" in self.outputs:
+            # EGPHighest is a special type that is used to indicate the highest numeric
+            # type in the inputs.
+            # It is not a valid type for codons so we replace it with EGPNumber.
+            self.outputs = [o if o != "EGPHighest" else "EGPNumber" for o in self.outputs]
 
         # Method imports if there are any
         self.imports = method.get("imports", [])
@@ -85,105 +82,17 @@ class MethodExpander:
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
 
-        # Generate the input type combinations and output type combinations
-        self.io_combos = self.generate_io_combos()
-
-    def generate_io_combos(self) -> list[tuple[tuple[str, ...], tuple[str, ...]]]:
-        """Generate the valid input and output type combinations.
-
-        There are a few restrictions to prevent things from exploding:
-         - decendants of relative types must be tt==0 (not container variants)
-         - more than 4 relative types is not supported (too many combinations)
-         - more than 2 "Any" relative types is not supported (too many combinations)
-        """
-
-        # 1. Expand each input & output type into its components
-        # 2. Collect the set of types into tset
-        #       e.g. {Any0, Hashable0, int, str, ...}
-        # 3. Collect the set of relative type labels into rset
-        #       e.g. {-Any0, -Hashable0, ...}
-        # 4. Create a dictionary or relative types to valid relative type choices in rsd
-        #       e.g. {-Any0: [Any, float, ...], -Hashable0: [int, str, ...], ...}
-        #       NOTE: Relative types are "find & replace" labels and all other types are fixed.
-        io_list: list[str] = self.inputs + self.outputs
-        egph_flag: bool = "EGPHighest" in io_list
-        rset: set[str] = {t for tl in io_list for t in findall(r"-.*?[0-9]", tl)}
-        rsd: dict[str, list[str]] = {
-            rt: sorted(
-                t.name
-                for t in types_def_store.decendants(rt[1:-1])
-                if t.tt() == 0 and not t.abstract
-            )
-            for rt in rset
-        }
-
-        if prod((len(v) for v in rsd.values())) > 2**10:
-            # If there are too many combinations of relative types then first we remove
-            # any custom or abstract types i.e. those that start with a capital letter
-            rsd = {
-                rt: sorted(v for v in vs if v[0].islower() or len(vs) == 1)
-                for rt, vs in rsd.items()
-            }
-            # If there are still too many combinations then we reduce the
-            # number of relative types by halving the length of the longest list
-            # until it is less than 2**16.
-            # This is a brute force approach but it is simple and effective.
-            while prod((len(v) for v in rsd.values())) > 2**10:
-                # Find the longest list of relative types
-                max_len_rt: str = max(rsd, key=lambda k: len(rsd[k]))
-                assert (
-                    len(rsd[max_len_rt]) > 1
-                ), f"Relative type {max_len_rt} has only one value: {rsd[max_len_rt]}"
-                # Reduce the longest list by half (rounding up)
-                rsd[max_len_rt] = rsd[max_len_rt][: (len(rsd[max_len_rt]) + 1) // 2]
-
-        # rsd is a map of each relative type to all the values it can take.
-        # Each set of input and output types has each relative type replaced with one of its values.
-        # 6. Create all combinations of relative types
-        if not rsd:
-            # If there are no relative types then we can just return the single combination
-            assert not egph_flag, "EGPHighest should not be used with static types."
-            return [(tuple(self.inputs), tuple(self.outputs))]
-
-        io_combos: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
-        for rcombo in product(*[rsd[rt] for rt in rsd]):
-            # Replace relative types in input and output types with their values
-            inputs: list[str] = self.inputs.copy()
-            outputs: list[str] = self.outputs.copy()
-            # For each relative type, replace it in the inputs and outputs with the current combo
-            for rt, typ in zip(rsd.keys(), rcombo):
-                inputs = [t.replace(rt, typ) for t in inputs]
-                outputs = [t.replace(rt, typ) for t in outputs]
-            # If EGPHighest is used, we need to replace it with the highest (closest ot object) type
-            if egph_flag:
-                # Highest could be a parameter at the end of in the inputs list
-                highest = min(
-                    (types_def_store[i] for i in inputs if i != "EGPHighest"), key=lambda x: x.depth
-                )
-                inputs = [t.replace("EGPHighest", highest.name) for t in inputs]
-                outputs = [t.replace("EGPHighest", highest.name) for t in outputs]
-
-            # Make sure the types are valid. It is possible to create invalid combinations.
-            if all(i in types_def_store for i in inputs + outputs):
-                if len(io_combos) > 2**16:
-                    raise ValueError("Too many combinations of input and output types. ")
-                io_combos.append((tuple(inputs), tuple(outputs)))
-        return io_combos
-
-    def to_json(self) -> list[dict[str, Any]]:
+    def to_json(self) -> dict[str, Any]:
         """Convert to json."""
-        json_list: list[dict[str, Any]] = []
-        for io_combo in self.io_combos:
-            json_dict = deepcopy(CODON_TEMPLATE)
-            json_dict["meta_data"]["function"]["python3"]["0"]["inline"] = self.inline
-            json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
-            json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
-            json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
-            json_dict["properties"].update(self.properties)
-            json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(io_combo[0])]
-            json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(io_combo[1])]
-            json_list.append(json_dict)
-        return json_list
+        json_dict = deepcopy(CODON_TEMPLATE)
+        json_dict["meta_data"]["function"]["python3"]["0"]["inline"] = self.inline
+        json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
+        json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
+        json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
+        json_dict["properties"].update(self.properties)
+        json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
+        json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
+        return json_dict
 
 
 def generate_codons(write: bool = False) -> None:
@@ -350,13 +259,12 @@ def generate_codons(write: bool = False) -> None:
         # 7. For each codon definition create the matrix of concrete type codons.
         prev_len = len(codons)
         for name, definition in full_codon_set.items():  # Methods
-            for ggc_json in MethodExpander(name, definition).to_json():
-                new_codon = GGCDict(ggc_json)
-                new_codon.consistency()
-                codon = new_codon.to_json()
-                signature = codon["signature"]
-                assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"
-                codons[signature] = codon
+            new_codon = GGCDict(MethodExpander(name, definition).to_json())
+            new_codon.consistency()
+            codon = new_codon.to_json()
+            signature = codon["signature"]
+            assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"
+            codons[signature] = codon
         spinner.stop(f"(Added {len(codons) - prev_len} codons: Total {len(codons)})")
 
     # If we are writing the codons to a file then we need to ensure that the signatures are unique

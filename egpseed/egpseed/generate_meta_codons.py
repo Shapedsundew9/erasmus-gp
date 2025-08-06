@@ -1,30 +1,17 @@
 """Generate codons."""
 
 from copy import deepcopy
-from datetime import UTC, datetime
-from glob import glob
-from itertools import product
-from math import prod
-from os.path import basename, dirname, join, splitext
-from re import findall
+from os.path import dirname, join
 from typing import Any
 
 from egpcommon.common import EGP_EPOCH
-from egpcommon.egp_log import (
-    CONSISTENCY,
-    DEBUG,
-    VERIFY,
-    Logger,
-    egp_logger,
-    enable_debug_logging,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egpcommon.security import dump_signed_json, load_signed_json_dict
+from egpcommon.security import dump_signed_json
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
 from egppy.genetic_code.types_def import types_def_store
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
-from egpseed.generate_types import parse_toplevel_args
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -34,7 +21,9 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Constants
-OUTPUT_CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "meta_codons.json")
+OUTPUT_CODON_PATH = join(
+    dirname(__file__), "..", "..", "egpdbmgr", "egpdbmgr", "data", "meta_codons.json"
+)
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "cgraph": {"A": [["I", 0, None]], "O": [["I", 0, None]]},
@@ -85,6 +74,10 @@ def generate_meta_codons() -> None:
         (child.uid, puid) for child in types_def_store.values() for puid in child.parents
     }
 
+    # Watch progress
+    spinner = Spinner("Generating meta codons...")
+    spinner.start()
+
     # Create a type cast codon for every possible cast
     meta_codons: list[dict[str, Any]] = []
     for cuid, puid in cast_set:
@@ -106,11 +99,14 @@ def generate_meta_codons() -> None:
             base["description"] = base["description"].replace(s, r)
             base["name"] = base["name"].replace(s, r)
 
+        new_codon = GGCDict(codon)
+        new_codon.consistency()
+        codon = new_codon.to_json()
         meta_codons.append(codon)
 
     # Write the meta codons to the output file
-    with open(join(*OUTPUT_CODON_PATH), "w") as f:
-        f.write(dumps(meta_codons, indent=2))
+    spinner.stop()
+    dump_signed_json(meta_codons, OUTPUT_CODON_PATH)
 
     if _LOG_DEBUG:
         _logger.debug("Meta codons generated successfully.")

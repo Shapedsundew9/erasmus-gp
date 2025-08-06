@@ -22,13 +22,14 @@ Main steps:
 
 from copy import deepcopy
 from itertools import count
-from json import dump, load
+from json import load
 from os.path import dirname, join
 from re import search
 from typing import Any
 
 from bitdict import BitDictABC, bitdict_factory
 
+from egpcommon.security import dump_signed_json
 from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 
 # The XUID_ZERO_NAMES are the names that are reserved for the xuid 0.
@@ -81,6 +82,7 @@ def parse_toplevel_args(type_string: str) -> list[str]:
 
 
 def generate_types_def() -> None:
+    """Generate the types_def.json file from the types.json file."""
     # The Types Definition BitDict type defines the UID from the bit field values.
     tdbd: type[BitDictABC] = bitdict_factory(TYPESDEF_CONFIG)
 
@@ -90,9 +92,12 @@ def generate_types_def() -> None:
     with open(join(dirname(__file__), "data", "types.json"), encoding="utf-8") as f:
         types: dict[str, dict[str, Any]] = load(f)
 
-    # The tt_counters are used to generate unique xuid values for each type in each template type (TT).
+    # The tt_counters are used to generate unique xuid values for each type in each
+    # template type (TT).
     # NOTE: xuid 0 is reserved for the Any type, so the counters start at 1.
-    tt_counters: list[count] = [count(1) for _ in range(8)]
+    tt_counters: list[count[int]] = [  # pylint: disable=unsubscriptable-object
+        count(1) for _ in range(8)
+    ]
 
     # Multiple passes are made of the types as some types are defined in terms of others. Pass:
     #   1. Creates a new type definition dictionary with unique names and UIDs.
@@ -110,6 +115,7 @@ def generate_types_def() -> None:
     #  11. Write the new type definition dictionary to a JSON file.
 
     # Pass 1: Create the new type definition dictionary.
+    trans_tbl = str.maketrans("0123456789", "-" * 10)
     new_tdd: dict[str, dict[str, Any]] = {}
     for name, definition in types.items():
         if "name" not in definition:
@@ -142,6 +148,15 @@ def generate_types_def() -> None:
             new_tdd[tt_name]["abstract"] = True
             new_tdd[tt_name]["parents"] = [
                 p.split("[")[0] for p in new_tdd[definition["name"]]["parents"]
+            ]
+
+        # The generic type definition for tt > 1 (tt == 1 is handled in pass 2)
+        if new_tdd[definition["name"]]["tt"] > 1:
+            new_name = name.translate(trans_tbl).replace("-", "")
+            new_tdd[new_name] = deepcopy(new_tdd[name])
+            new_tdd[new_name]["name"] = new_name
+            new_tdd[new_name]["parents"] = [
+                p.translate(trans_tbl).replace("-", "") for p in new_tdd[name]["parents"]
             ]
 
     # Pass 2: Establish parent-child relationships for concrete types (tt=0 initially).
@@ -212,6 +227,7 @@ def generate_types_def() -> None:
         if base_class == "Any":
             # If the base class is Any, then all types are sub-types.
             sub_types = new_tdd["Any"]["children"].copy()
+            sub_types.add("Any")
         else:
             # Search the type tree for all valid sub-types of the base class.
             search_tree: set[str] = new_tdd[base_class]["children"].copy()
@@ -249,6 +265,8 @@ def generate_types_def() -> None:
     # NOTE: We exclude all abstract & meta sub-types to reduce the volume of types
     # created with the exception
     # of Hashable, which is an abstract type but is used as a sub-type of many types.
+    # pylint: disable=pointless-string-statement
+    """
     for td in tuple(nd for nd in new_tdd.values() if nd["tt"] == 2):
         # Find what base class the type is a template of.
         name: str = td["name"]
@@ -320,10 +338,12 @@ def generate_types_def() -> None:
                         impt for impt in new_tdd[st1]["imports"] if impt["name"] not in impt_names
                     ):
                         new_tdd[new_name]["imports"].append(imp)
+    """
 
     # Pass 5: Pairs - since Pairs (tuple[Any, Any]) are products of dicts they are treated as
     # as a concrete type that can be used in tt == 1 Containers. Any type that has a Hashable
     # type as a parameter can be expanded to include all Pair types.
+    """
     pairs: list[str] = [p for p in new_tdd if p.startswith("Pair[")]
     for td in tt1_tuple:
         # Find what base class the type is a template of.
@@ -363,11 +383,16 @@ def generate_types_def() -> None:
                     impt for impt in new_tdd[st]["imports"] if impt["name"] not in impt_names
                 ):
                     new_tdd[new_name]["imports"].append(imp)
-
+    """
     # Pass 6: Special: Some types are required as children of other base types.
     new_tdd["Triplet[str, str, str]"] = deepcopy(new_tdd["Triplet[-Any0, -Any1, -Any2]"])
-    new_tdd["Triplet[str, str, str]"]["parents"] = ["tuple[str, ...]"]
     new_tdd["Triplet[str, str, str]"]["name"] = "Triplet[str, str, str]"
+    new_tdd["Triplet[str, str, str]"]["parents"] = ["tuple[str, ...]"]
+    new_tdd["Set[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Set[Hashable]"])
+    new_tdd["Set[Pair[Hashable, Any]]"]["name"] = "Set[Pair[Hashable, Any]]"
+    new_tdd["Set[Pair[Hashable, Any]]"]["parents"] = ["Collection[Pair[Hashable, Any]]"]
+    new_tdd["Collection[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Collection[Hashable]"])
+    # ...continue expanding
 
     # Pass 7: Strip remaining templated types. These may not have been expanded in the previous
     # passes
@@ -425,8 +450,7 @@ def generate_types_def() -> None:
         uids.add(definition["uid"])
 
     # Pass 13: Write the new type definition dictionary to a JSON file.
-    with open(TYPES_DEF_FILE, "w", encoding="utf-8") as f:
-        dump(new_tdd, f, indent=4, sort_keys=True)
+    dump_signed_json(new_tdd, TYPES_DEF_FILE)
 
 
 if __name__ == "__main__":

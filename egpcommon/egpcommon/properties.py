@@ -140,6 +140,7 @@ PROPERTIES_CONFIG = {
                     ),
                 }
             },
+            {},
         ],
     },
     "consider_cache": {

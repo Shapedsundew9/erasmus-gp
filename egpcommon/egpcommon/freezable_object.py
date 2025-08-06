@@ -5,13 +5,14 @@ used in a program."""
 
 import types
 from abc import ABCMeta, abstractmethod
-from copy import copy, deepcopy
 from collections.abc import Hashable
-from typing import Self, Any, Set as TypingSet  # Using TypingSet for type hint for clarity
-from egpcommon.common_obj import CommonObj
-from egpcommon.object_set import ObjectSet
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from copy import copy, deepcopy
+from typing import Any, Self
+from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.object_set import ObjectSet
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -111,7 +112,13 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         implementation that creates an unfrozen copy."""
         if self.is_frozen():
             raise TypeError(f"'{type(self).__name__}' object is frozen; cannot copy")
-        return copy(self)
+        cls = self.__class__
+        result = cls.__new__(cls)
+        for slot in self._get_all_data_slots():
+            if hasattr(self, slot):
+                setattr(result, slot, getattr(self, slot))
+        object.__setattr__(result, "_frozen", False)
+        return result
 
     def __deepcopy__(self, memo: dict[int, Any]) -> Self:
         """Return a deep copy of the object. Deep copy is not allowed for frozen objects.
@@ -119,7 +126,14 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         an unfrozen copy."""
         if self.is_frozen():
             raise TypeError(f"'{type(self).__name__}' object is frozen; cannot deepcopy")
-        return deepcopy(self, memo)
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for slot in self._get_all_data_slots():
+            if hasattr(self, slot):
+                setattr(result, slot, deepcopy(getattr(self, slot), memo))
+        object.__setattr__(result, "_frozen", False)
+        return result
 
     def __delattr__(self, name: str) -> None:
         """Delete an attribute. Raises AttributeError if the object is frozen."""
@@ -262,7 +276,8 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
             # as that set is specifically for tracking FreezableObject instances.
             for item in value:
                 FreezableObject._recursively_freeze_member_value(
-                    item, store, _fo_visited_in_freeze_call)
+                    item, store, _fo_visited_in_freeze_call
+                )
         # Any other types of values are not processed further by this freezing logic.
         # For example, lists or dicts are not modified, nor are their contents inspected here.
 
@@ -291,8 +306,9 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         """
         return self._freeze(store)
 
-    def _freeze(self, store: bool = True,
-               _fo_visited_in_freeze_call: TypingSet[int] | None = None) -> Self:
+    def _freeze(
+        self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
+    ) -> Self:
         """
         Freezes the object, making it immutable.
         This method recursively freezes:

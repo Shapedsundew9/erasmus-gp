@@ -5,12 +5,12 @@ The GP schema is used in egppy & egpdbmgr.
 """
 
 from typing import Any, Callable
+
 from egpcommon.conversions import (
     compress_json,
+    decode_properties,
     decompress_json,
     encode_properties,
-    decode_properties,
-    list_int_to_bytes,
 )
 
 # GP GC Fields with Postgres definitions
@@ -23,7 +23,7 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     "pgc": {"db_type": "BYTEA", "nullable": True},
     "created": {"db_type": "TIMESTAMP", "nullable": False},
     "properties": {"db_type": "BIGINT", "nullable": False},
-    "signature": {"db_type": "BYTEA", "nullable": False},
+    "signature": {"db_type": "BYTEA", "nullable": False, "primary_key": True},
 }
 GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_e_count": {"db_type": "INT", "nullable": False},
@@ -71,9 +71,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
 # value.
 # {name, encode (output to DB), decode (output to application)}
 CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
-    ("graph", compress_json, decompress_json),
+    ("cgraph", compress_json, decompress_json),
     ("meta_data", compress_json, decompress_json),
     ("properties", encode_properties, decode_properties),
-    ("outputs", list_int_to_bytes, None),
-    ("inputs", list_int_to_bytes, None),
 )

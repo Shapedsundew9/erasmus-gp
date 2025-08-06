@@ -1,8 +1,10 @@
 """Unit test cases for the FreezableObject class."""
 
 import unittest
-from typing import Any
 from collections.abc import Hashable
+from copy import deepcopy
+from typing import Any
+
 from egpcommon.freezable_object import FreezableObject
 
 
@@ -468,6 +470,52 @@ class TestFreezableObject(unittest.TestCase):
         # 3. Verify that attempting to hash an instance raises TypeError
         with self.assertRaisesRegex(TypeError, "unhashable type: 'PartiallyBrokenFO'"):
             hash(pb_instance)
+
+            def test_deepcopy_mutable(self):
+                """Test __deepcopy__ on mutable (unfrozen) FreezableObject."""
+                obj = CompositeFO(SimpleValueFO([1, 2]), PointAnatomyFO(1, 2))
+                obj_copy = deepcopy(obj)
+                self.assertIsInstance(obj_copy, CompositeFO)
+                self.assertFalse(obj_copy.is_frozen())
+                self.assertIsNot(obj_copy, obj)
+                # Deepcopy should also copy members
+                self.assertIsNot(obj_copy.item_a, obj.item_a)
+                self.assertIsNot(obj_copy.item_b, obj.item_b)
+                self.assertEqual(obj_copy.item_a, obj.item_a)
+                self.assertEqual(obj_copy.item_b, obj.item_b)
+                # Changing copy does not affect original
+                obj_copy.item_a.value.append(3)
+                self.assertNotEqual(obj_copy.item_a.value, obj.item_a.value)
+
+            def test_deepcopy_frozen_raises(self):
+                """Test __deepcopy__ raises TypeError on frozen FreezableObject."""
+                obj = CompositeFO(SimpleValueFO("abc"), PointAnatomyFO(1, 2))
+                obj.freeze()
+                with self.assertRaisesRegex(TypeError, "object is frozen; cannot deepcopy"):
+                    deepcopy(obj)
+
+            def test_deepcopy_preserves_slots(self):
+                """Test __deepcopy__ preserves slot attributes and does not copy unset slots."""
+                obj = UnsetAttributeFO("foo")
+                obj_copy = deepcopy(obj)
+                self.assertTrue(hasattr(obj_copy, "val_a"))
+                self.assertFalse(hasattr(obj_copy, "val_b"))
+                self.assertEqual(obj_copy.val_a, "foo")
+                # Set val_b and test again
+                obj.val_b = "bar"
+                obj_copy2 = deepcopy(obj)
+                self.assertEqual(obj_copy2.val_b, "bar")
+                self.assertEqual(obj_copy2.val_a, "foo")
+
+            def test_deepcopy_handles_nested_freezable_objects(self):
+                """Test __deepcopy__ correctly copies nested FreezableObjects."""
+                inner = SimpleValueFO("inner")
+                outer = CompositeFO(inner, "outer")
+                outer_copy = deepcopy(outer)
+                self.assertIsInstance(outer_copy.item_a, SimpleValueFO)
+                self.assertIsNot(outer_copy.item_a, inner)
+                self.assertEqual(outer_copy.item_a.value, "inner")
+                self.assertEqual(outer_copy.item_b, "outer")
 
 
 if __name__ == "__main__":
