@@ -1,4 +1,4 @@
-"""Load the confifuration and validate it."""
+"""Load the configuration and validate it."""
 
 from typing import Any, cast
 
