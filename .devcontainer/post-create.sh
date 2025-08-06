@@ -8,18 +8,22 @@ echo "--- Running post-create script ---"
 
 # Activating the virtual environment
 echo "Creating virtual environment..."
-python3 -m venv /workspaces/erasmus-gp/.venv
+python3 -m venv .venv
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
-/workspaces/erasmus-gp/.venv/bin/pip install --upgrade pip
+.venv/bin/pip install --upgrade pip
 find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
-/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpcommon
-/workspaces/erasmus-gp/.venv/bin/pip install -e ./egppkrapi
-/workspaces/erasmus-gp/.venv/bin/pip install -e ./egppy
-/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpdb
-/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpseed
-/workspaces/erasmus-gp/.venv/bin/pip install -e ./egpdbmgr
+.venv/bin/pip install -e ./egpcommon
+.venv/bin/pip install -e ./egppkrapi
+.venv/bin/pip install -e ./egppy
+.venv/bin/pip install -e ./egpdb
+.venv/bin/pip install -e ./egpseed
+.venv/bin/pip install -e ./egpdbmgr
+
+# Pre-Push Hooks script
+chmod +x .devcontainer/pre-push-hooks.sh
+./.devcontainer/pre-push-hooks.sh
 
 # Done
 echo "--- Post-create script finished ---"

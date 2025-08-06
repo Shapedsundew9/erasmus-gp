@@ -4,8 +4,9 @@
 	"name": "Python 3.12 & PostgreSQL",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspaces",
-    "customizations": {
+	// The workspace folder is the monorepo root
+	"workspaceFolder": "/workspaces/erasmus-gp",
+	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-python.python",
@@ -14,41 +15,23 @@
 				"ms-python.isort",
 				"bierner.markdown-mermaid",
 				"DavidAnson.vscode-markdownlint",
-				"ms-python.pylint"
-			],
-			"settings": {
-				"python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
-				"python.terminal.activateEnvironment": true,
-				"python.analysis.extraPaths": [
-					"/usr/local/share/bitdict",
-					"${containerWorkspaceFolder}/erasmus-gp/egpcommon",
-					"${containerWorkspaceFolder}/erasmus-gp/egppkrapi",
-					"${containerWorkspaceFolder}/erasmus-gp/egppy",
-					"${containerWorkspaceFolder}/erasmus-gp/egpdb",
-					"${containerWorkspaceFolder}/erasmus-gp/egpdbmgr",
-					"${containerWorkspaceFolder}/erasmus-gp/egpseed"
-				],
-				"python.analysis.autoImportCompletions": true,
-				"python.analysis.indexing": true,
-				"[python]": {
-					"editor.defaultFormatter": "ms-python.black-formatter",
-					"editor.formatOnSave": true,
-					"editor.codeActionsOnSave": {
-						"source.organizeImports": "explicit"
-					}
-				},
-				"isort.args": [
-					"--profile",
-					"black"
-				]
-			}
+				"ms-python.pylint",
+				"GitHub.vscode-pull-request-github"
+			]
 		}
 	},
 	"containerEnv": {
 		// Environment variables to set in the container.
 		"EGP_PROFILE": "DEV"
 	},
-  	"postCreateCommand": "bash .devcontainer/post-create.sh",
-  	"forwardPorts": [8080, 5432],
-  	"runServices": ["app", "postgres", "pgadmin"]
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"forwardPorts": [
+		8080,
+		5432
+	],
+	"runServices": [
+		"app",
+		"postgres",
+		"pgadmin"
+	]
 }

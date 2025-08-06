@@ -4,6 +4,7 @@ in a specific format. It also makes use of PostgreSQLisms for querying.
 """
 
 from typing import LiteralString
+
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -114,4 +115,5 @@ if _LOG_DEBUG:
 if __name__ == "__main__":
     # Test the match types
     for key, match_type in IF_MATCH_TYPES.items():
+        print(f"Match type {key}: f'{match_type}'")
         print(f"Match type {key}: f'{match_type}'")
