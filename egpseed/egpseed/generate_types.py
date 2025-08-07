@@ -385,14 +385,164 @@ def generate_types_def() -> None:
                     new_tdd[new_name]["imports"].append(imp)
     """
     # Pass 6: Special: Some types are required as children of other base types.
+
+    # Needed by str.partition (and rpartition)
     new_tdd["Triplet[str, str, str]"] = deepcopy(new_tdd["Triplet[-Any0, -Any1, -Any2]"])
     new_tdd["Triplet[str, str, str]"]["name"] = "Triplet[str, str, str]"
     new_tdd["Triplet[str, str, str]"]["parents"] = ["tuple[str, ...]"]
+    new_tdd["Triplet[Bytes, Bytes, Bytes]"] = deepcopy(new_tdd["Triplet[-Any0, -Any1, -Any2]"])
+    new_tdd["Triplet[Bytes, Bytes, Bytes]"]["name"] = "Triplet[Bytes, Bytes, Bytes]"
+    new_tdd["Triplet[Bytes, Bytes, Bytes]"]["parents"] = ["tuple[Bytes, ...]"]
+
+    # Parent of Itemsview
     new_tdd["Set[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Set[Hashable]"])
     new_tdd["Set[Pair[Hashable, Any]]"]["name"] = "Set[Pair[Hashable, Any]]"
     new_tdd["Set[Pair[Hashable, Any]]"]["parents"] = ["Collection[Pair[Hashable, Any]]"]
+
+    # Parent of the above
     new_tdd["Collection[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Collection[Hashable]"])
-    # ...continue expanding
+    new_tdd["Collection[Pair[Hashable, Any]]"]["name"] = "Collection[Pair[Hashable, Any]]"
+    new_tdd["Collection[Pair[Hashable, Any]]"]["parents"] = [
+        "Iterable[Pair[Hashable, Any]]",
+        "Sized",
+        "Container[Pair[Hashable, Any]]",
+    ]
+
+    # Parent of the above
+    new_tdd["Iterable[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterable[Pair[Hashable, Any]]"]["name"] = "Iterable[Pair[Hashable, Any]]"
+    new_tdd["Iterable[Pair[Hashable, Any]]"]["parents"] = ["object"]
+
+    # Parent of the above
+    new_tdd["Container[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Container[Any]"])
+    new_tdd["Container[Pair[Hashable, Any]]"]["name"] = "Container[Pair[Hashable, Any]]"
+    new_tdd["Container[Pair[Hashable, Any]]"]["parents"] = ["object"]
+
+    # Sub-type of the above
+    new_tdd["Pair[Hashable, Any]"] = deepcopy(new_tdd["Pair[Any, Any]"])
+    new_tdd["Pair[Hashable, Any]"]["name"] = "Pair[Hashable, Any]"
+    new_tdd["Pair[Hashable, Any]"]["parents"] = ["tuple"]
+
+    # Parent of itemsview
+    new_tdd["Reversible[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Reversible[Any]"])
+    new_tdd["Reversible[Pair[Hashable, Any]]"]["name"] = "Reversible[Pair[Hashable, Any]]"
+    new_tdd["Reversible[Pair[Hashable, Any]]"]["parents"] = ["Iterable[Pair[Hashable, Any]]"]
+
+    # Needed for divmod
+    new_tdd["Pair[EGPNumber, EGPNumber]"] = deepcopy(new_tdd["Pair[Any, Any]"])
+    new_tdd["Pair[EGPNumber, EGPNumber]"]["name"] = "Pair[EGPNumber, EGPNumber]"
+    new_tdd["Pair[EGPNumber, EGPNumber]"]["parents"] = ["tuple"]
+
+    # Needed for enumeration (including of keys)
+    new_tdd["Pair[int, Any]"] = deepcopy(new_tdd["Pair[Any, Any]"])
+    new_tdd["Pair[int, Any]"]["name"] = "Pair[int, Any]"
+    new_tdd["Pair[int, Any]"]["parents"] = ["tuple"]
+    new_tdd["Pair[int, Hashable]"] = deepcopy(new_tdd["Pair[Any, Any]"])
+    new_tdd["Pair[int, Hashable]"]["name"] = "Pair[int, Hashable]"
+    new_tdd["Pair[int, Hashable]"]["parents"] = ["tuple"]
+    new_tdd["Iterator[Pair[int, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Pair[int, Any]]"]["name"] = "Iterator[Pair[int, Any]]"
+    new_tdd["Iterator[Pair[int, Any]]"]["parents"] = ["Iterable[Pair[int, Any]]"]
+    new_tdd["Iterator[Pair[int, Hashable]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Pair[int, Hashable]]"]["name"] = "Iterator[Pair[int, Hashable]]"
+    new_tdd["Iterator[Pair[int, Hashable]]"]["parents"] = ["Iterable[Pair[int, Hashable]]"]
+    new_tdd["Iterable[Pair[int, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterable[Pair[int, Any]]"]["name"] = "Iterable[Pair[int, Any]]"
+    new_tdd["Iterable[Pair[int, Any]]"]["parents"] = ["object"]
+    new_tdd["Iterable[Pair[int, Hashable]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterable[Pair[int, Hashable]]"]["name"] = "Iterable[Pair[int, Hashable]]"
+    new_tdd["Iterable[Pair[int, Hashable]]"]["parents"] = ["object"]
+
+    # Needed for mapping iteration
+    new_tdd["Iterator[Pair[Hashable, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Pair[Hashable, Any]]"]["name"] = "Iterator[Pair[Hashable, Any]]"
+    new_tdd["Iterator[Pair[Hashable, Any]]"]["parents"] = ["Iterable[Pair[Hashable, Any]]"]
+
+    # Needed for integer_as_ratio
+    new_tdd["Pair[int, int]"] = deepcopy(new_tdd["Pair[Any, Any]"])
+    new_tdd["Pair[int, int]"]["name"] = "Pair[int, int]"
+    new_tdd["Pair[int, int]"]["parents"] = ["tuple"]
+
+    # Needed for zip()
+    # Pair
+    new_tdd["Iterator[Pair[Any, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Pair[Any, Any]]"]["name"] = "Iterator[Pair[Any, Any]]"
+    new_tdd["Iterator[Pair[Any, Any]]"]["parents"] = ["Iterable[Pair[Any, Any]]"]
+    new_tdd["Iterable[Pair[Any, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterable[Pair[Any, Any]]"]["name"] = "Iterable[Pair[Any, Any]]"
+    new_tdd["Iterable[Pair[Any, Any]]"]["parents"] = ["object"]
+
+    # Triplet
+    new_tdd["Iterable[Triplet[Any, Any, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterator[Triplet[Any, Any, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Triplet[Any, Any, Any]]"]["name"] = "Iterator[Triplet[Any, Any, Any]]"
+    new_tdd["Iterator[Triplet[Any, Any, Any]]"]["parents"] = ["Iterable[Triplet[Any, Any, Any]]"]
+    new_tdd["Iterable[Triplet[Any, Any, Any]]"]["name"] = "Iterable[Triplet[Any, Any, Any]]"
+    new_tdd["Iterable[Triplet[Any, Any, Any]]"]["parents"] = ["object"]
+
+    # Quadruplet
+    new_tdd["Iterator[Quadruplet[Any, Any, Any, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Quadruplet[Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterator[Quadruplet[Any, Any, Any, Any]]"
+    new_tdd["Iterator[Quadruplet[Any, Any, Any, Any]]"]["parents"] = [
+        "Iterable[Quadruplet[Any, Any, Any, Any]]"
+    ]
+    new_tdd["Iterable[Quadruplet[Any, Any, Any, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterable[Quadruplet[Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterable[Quadruplet[Any, Any, Any, Any]]"
+    new_tdd["Iterable[Quadruplet[Any, Any, Any, Any]]"]["parents"] = ["object"]
+
+    # Quintuplet
+    new_tdd["Iterator[Quintuplet[Any, Any, Any, Any, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
+    new_tdd["Iterator[Quintuplet[Any, Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterator[Quintuplet[Any, Any, Any, Any, Any]]"
+    new_tdd["Iterator[Quintuplet[Any, Any, Any, Any, Any]]"]["parents"] = [
+        "Iterable[Quintuplet[Any, Any, Any, Any, Any]]"
+    ]
+    new_tdd["Iterable[Quintuplet[Any, Any, Any, Any, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
+    new_tdd["Iterable[Quintuplet[Any, Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterable[Quintuplet[Any, Any, Any, Any, Any]]"
+    new_tdd["Iterable[Quintuplet[Any, Any, Any, Any, Any]]"]["parents"] = ["object"]
+
+    # Sextuplet
+    new_tdd["Iterator[Sextuplet[Any, Any, Any, Any, Any, Any]]"] = deepcopy(
+        new_tdd["Iterator[Any]"]
+    )
+    new_tdd["Iterator[Sextuplet[Any, Any, Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterator[Sextuplet[Any, Any, Any, Any, Any, Any]]"
+    new_tdd["Iterator[Sextuplet[Any, Any, Any, Any, Any, Any]]"]["parents"] = [
+        "Iterable[Sextuplet[Any, Any, Any, Any, Any, Any]]"
+    ]
+    new_tdd["Iterable[Sextuplet[Any, Any, Any, Any, Any, Any]]"] = deepcopy(
+        new_tdd["Iterable[Any]"]
+    )
+    new_tdd["Iterable[Sextuplet[Any, Any, Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterable[Sextuplet[Any, Any, Any, Any, Any, Any]]"
+    new_tdd["Iterable[Sextuplet[Any, Any, Any, Any, Any, Any]]"]["parents"] = ["object"]
+
+    # Septuplet
+    new_tdd["Iterator[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"] = deepcopy(
+        new_tdd["Iterator[Any]"]
+    )
+    new_tdd["Iterator[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterator[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"
+    new_tdd["Iterator[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"]["parents"] = [
+        "Iterable[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"
+    ]
+    new_tdd["Iterable[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"] = deepcopy(
+        new_tdd["Iterable[Any]"]
+    )
+    new_tdd["Iterable[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"][
+        "name"
+    ] = "Iterable[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"
+    new_tdd["Iterable[Septuplet[Any, Any, Any, Any, Any, Any, Any]]"]["parents"] = ["object"]
 
     # Pass 7: Strip remaining templated types. These may not have been expanded in the previous
     # passes

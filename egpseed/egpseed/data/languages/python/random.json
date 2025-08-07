@@ -1,10 +1,14 @@
 {
     "getrandbits": {
         "description": "Return a Python integer with k random bits.",
-        "imports": [{
-            "name": "getrandbits",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "getrandbits",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "getrandbits({i0})",
         "inputs": [
             "int"
@@ -19,10 +23,14 @@
     },
     "randint": {
         "description": "Return a random integer N such that a <= N <= b.",
-        "imports": [{
-            "name": "randint",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "randint",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "randint({i0}, {i1})",
         "inputs": [
             "int",
@@ -38,10 +46,14 @@
     },
     "randrange1": {
         "description": "Return a randomly selected element from range(start, stop, step).",
-        "imports": [{
-            "name": "randrange",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "randrange",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "randrange({i0}, {i1}, {i2})",
         "inputs": [
             "int",
@@ -58,10 +70,14 @@
     },
     "randrange2": {
         "description": "Return a randomly selected element from range(start, stop).",
-        "imports": [{
-            "name": "randrange",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "randrange",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "randrange({i0}, {i1})",
         "inputs": [
             "int",
@@ -77,10 +93,14 @@
     },
     "randrange3": {
         "description": "Return a randomly selected element from range(stop).",
-        "imports": [{
-            "name": "randrange",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "randrange",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "randrange({i0})",
         "inputs": [
             "int"
@@ -95,11 +115,16 @@
     },
     "random": {
         "description": "Return the next random floating point number in the range [0.0, 1.0).",
-        "imports": [{
-            "name": "random",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "random",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "random()",
+        "inputs": [],
         "outputs": [
             "float"
         ],
@@ -110,10 +135,14 @@
     },
     "uniform": {
         "description": "Return a random floating point number N such that a <= N <= b for a <= b and b <= N <= a for b < a.",
-        "imports": [{
-            "name": "uniform",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "uniform",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "uniform({i0}, {i1})",
         "inputs": [
             "float",
@@ -129,10 +158,14 @@
     },
     "choice": {
         "description": "Return a random element from the non-empty sequence seq.",
-        "imports": [{
-            "name": "choice",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "choice",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "choice({i0})",
         "inputs": [
             "-Iterable0[-Any0]"
@@ -147,10 +180,14 @@
     },
     "choices1": {
         "description": "Return a k sized list of elements chosen from the population with replacement.",
-        "imports": [{
-            "name": "choices",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "choices",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "choices({i0}, k={i1})",
         "inputs": [
             "-Iterable0[-Any0]",
@@ -166,10 +203,14 @@
     },
     "choices2": {
         "description": "Return a k sized list of elements chosen from the population with replacement.",
-        "imports": [{
-            "name": "choices",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "choices",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "choices({i0}, weights={i1}, k={i2})",
         "inputs": [
             "-Iterable0[-Any0]",
@@ -186,10 +227,14 @@
     },
     "choices3": {
         "description": "Return a k sized list of elements chosen from the population with replacement.",
-        "imports": [{
-            "name": "choices",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "choices",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "choices({i0}, cum_weights={i1}, k={i2})",
         "inputs": [
             "-Iterable0[-Any0]",
@@ -206,10 +251,14 @@
     },
     "shuffle": {
         "description": "Shuffle the sequence x in place.",
-        "imports": [{
-            "name": "shuffle",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "shuffle",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "shuffle({i0})",
         "inputs": [
             "list[-Any0]"
@@ -222,10 +271,14 @@
     },
     "sample": {
         "description": "Return a k length list of unique elements chosen from the population sequence or set.",
-        "imports": [{
-            "name": "sample",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "sample",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "sample({i0}, k={i1})",
         "inputs": [
             "-Iterable0[-Any0]",
@@ -241,10 +294,14 @@
     },
     "seed": {
         "description": "Initialize the random number generator.",
-        "imports": [{
-            "name": "seed",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "seed",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "seed({i0})",
         "inputs": [
             "int"
@@ -257,10 +314,14 @@
     },
     "randbytes": {
         "description": "Return a bytes Any containing n random bytes.",
-        "imports": [{
-            "name": "randbytes",
-            "aip": ["random"]
-        }],
+        "imports": [
+            {
+                "name": "randbytes",
+                "aip": [
+                    "random"
+                ]
+            }
+        ],
         "inline": "randbytes({i0})",
         "inputs": [
             "int"
@@ -274,6 +335,3 @@
         }
     }
 }
-
-
-

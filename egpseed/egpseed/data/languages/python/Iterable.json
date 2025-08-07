@@ -182,6 +182,7 @@
             "-Iterable1[-Any1]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
             "Iterator[Pair[-Any0, -Any1]]"
         ]
@@ -194,6 +195,7 @@
             "-Iterable2[-Any2]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
             "Iterator[Triplet[-Any0, -Any1, -Any2]]"
         ]
@@ -207,6 +209,7 @@
             "-Iterable3[-Any3]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
             "Iterator[Quadruplet[-Any0, -Any1, -Any2, -Any3]]"
         ]
@@ -221,8 +224,9 @@
             "-Iterable4[-Any4]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Quadruplet[-Any0, -Any1, -Any2, -Any3, -Any4]]"
+            "Iterator[Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]]"
         ]
     },
     "zip5": {
@@ -236,6 +240,7 @@
             "-Iterable5[-Any5]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
             "Iterator[Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]]"
         ]
@@ -252,6 +257,7 @@
             "-Iterable6[-Any6]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
             "Iterator[Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]]"
         ]
