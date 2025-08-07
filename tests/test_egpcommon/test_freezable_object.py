@@ -13,6 +13,7 @@ class SimpleValueFO(FreezableObject):
     """Simple value FreezableObject for testing."""
 
     __slots__ = ("value",)
+    _hashing_in_progress = set()  # Class-level set to track objects being hashed
 
     def __init__(self, value: Any, frozen: bool = False):  # Default to mutable for test setup ease
         """Initialize a SimpleValueFO object."""
@@ -27,7 +28,17 @@ class SimpleValueFO(FreezableObject):
         return self.value == other.value
 
     def __hash__(self) -> int:
-        return hash(self.value) if isinstance(self.value, Hashable) else id(self.value)
+        obj_id = id(self)
+        if obj_id in SimpleValueFO._hashing_in_progress:
+            return obj_id  # Return a simple hash to break cycles
+
+        SimpleValueFO._hashing_in_progress.add(obj_id)
+        try:
+            return hash(self.value) if isinstance(self.value, Hashable) else id(self.value)
+        except (TypeError, RecursionError):
+            return id(self.value)
+        finally:
+            SimpleValueFO._hashing_in_progress.discard(obj_id)
 
     def __repr__(self) -> str:
         return f"SimpleValueFO({self.value!r}, frozen={self.is_frozen()})"
@@ -59,6 +70,7 @@ class CompositeFO(FreezableObject):
     """Composite FreezableObject containing two items."""
 
     __slots__ = ("item_a", "item_b")
+    _hashing_in_progress = set()  # Class-level set to track objects being hashed
 
     def __init__(self, item_a: Any, item_b: Any, frozen: bool = False):
         """Initialize a CompositeFO object."""
@@ -74,9 +86,19 @@ class CompositeFO(FreezableObject):
         return (self.item_a, self.item_b) == (other.item_a, other.item_b)
 
     def __hash__(self) -> int:  # Simplified hash for testing
-        h1 = hash(self.item_a) if isinstance(self.item_a, Hashable) else id(self.item_a)
-        h2 = hash(self.item_b) if isinstance(self.item_b, Hashable) else id(self.item_b)
-        return hash((h1, h2))
+        obj_id = id(self)
+        if obj_id in CompositeFO._hashing_in_progress:
+            return obj_id  # Return a simple hash to break cycles
+
+        CompositeFO._hashing_in_progress.add(obj_id)
+        try:
+            h1 = hash(self.item_a) if isinstance(self.item_a, Hashable) else id(self.item_a)
+            h2 = hash(self.item_b) if isinstance(self.item_b, Hashable) else id(self.item_b)
+            return hash((h1, h2))
+        except (TypeError, RecursionError):
+            return id(self)
+        finally:
+            CompositeFO._hashing_in_progress.discard(obj_id)
 
 
 class SlottedOnlyFO(FreezableObject):  # No __dict__
@@ -138,6 +160,7 @@ class UnsetAttributeFO(FreezableObject):
     """FreezableObject with one set and one unset attribute."""
 
     __slots__ = ("val_a", "val_b")
+    _hashing_in_progress = set()  # Class-level set to track objects being hashed
 
     def __init__(self, val_a: Any, frozen: bool = False):
         """Initialize an UnsetAttributeFO object."""
@@ -162,7 +185,17 @@ class UnsetAttributeFO(FreezableObject):
         )
 
     def __hash__(self) -> int:
-        return hash(self.val_a if hasattr(self, "val_a") else None)
+        obj_id = id(self)
+        if obj_id in UnsetAttributeFO._hashing_in_progress:
+            return obj_id  # Return a simple hash to break cycles
+
+        UnsetAttributeFO._hashing_in_progress.add(obj_id)
+        try:
+            return hash(self.val_a if hasattr(self, "val_a") else None)
+        except (TypeError, RecursionError):
+            return id(self)
+        finally:
+            UnsetAttributeFO._hashing_in_progress.discard(obj_id)
 
 
 class GrandchildWithSlotsFO(PointAnatomyFO):  # Inherits x, y slots

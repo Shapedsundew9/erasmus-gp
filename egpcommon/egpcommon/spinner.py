@@ -1,8 +1,8 @@
 """A simple console spinner to indicate processing status."""
 
 import sys
-import time
 import threading
+import time
 
 
 class Spinner:
@@ -38,7 +38,7 @@ class Spinner:
         self.running = False
         if self.spinner_thread and self.spinner_thread.is_alive():
             self.spinner_thread.join()  # Wait for the spinner thread to finish
-        sys.stdout.write(f"\b* {final_message}\n")  # Overwrite with final message and newline
+        sys.stdout.write(f"\r{final_message}\n")  # Overwrite with final message and newline
         sys.stdout.flush()
 
 
