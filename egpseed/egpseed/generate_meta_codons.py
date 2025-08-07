@@ -70,8 +70,13 @@ def generate_meta_codons() -> None:
     # Find the set of type "casts". Types may be cast in two ways:
     #   - To a parent
     #   - To a valid child (this implies it was previously cast to a parent)
+    # Casts use isinstance() to validate they are correct and so can only be applied
+    # to types that have tt = 0
     cast_set: set[tuple[int, int]] = {
-        (child.uid, puid) for child in types_def_store.values() for puid in child.parents
+        (child.uid, puid)
+        for child in types_def_store.values()
+        if child.tt() == 0
+        for puid in child.parents
     }
 
     # Watch progress

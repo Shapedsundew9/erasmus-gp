@@ -2,7 +2,7 @@
 
 from collections import namedtuple
 from logging import DEBUG, Logger, NullHandler, getLogger
-from typing import Any, Callable, Self, Iterable, Literal
+from typing import Any, Callable, Iterable, Literal, Self
 
 from psycopg2.extensions import cursor
 
@@ -43,7 +43,6 @@ class BaseIter:
 
     def __del__(self) -> None:
         if isinstance(self.values, cursor):
-            _logger.debug("Closing held DB cursor.")
             self.values.close()
 
 
@@ -81,8 +80,8 @@ class NamedTupleIter(BaseIter):
         return self.namedtuple(
             # No strict because pk may be tagged on the end of the values but not in the columns
             # deepcode ignore unguarded~next~call: next() is guarded by the outer next() call
-            (v if f is None else f(v) for f, v in zip(self.conversions, next(self.values))
-        ))
+            (v if f is None else f(v) for f, v in zip(self.conversions, next(self.values)))
+        )
 
 
 class DictIter(BaseIter):

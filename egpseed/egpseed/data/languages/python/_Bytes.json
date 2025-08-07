@@ -506,7 +506,7 @@
         ],
         "description": "partition",
         "outputs": [
-            "Triplet[,-Bytes0, -Bytes0, -Bytes0]"
+            "Triplet[-Bytes0, -Bytes0, -Bytes0]"
         ]
     },
     "removeprefix": {

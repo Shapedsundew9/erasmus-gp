@@ -54,17 +54,6 @@
             "ItemsView[-Hashable0, -Any0]"
         ]
     },
-    "iter": {
-        "inline": "{i0}.keys()",
-        "inputs": [
-            "-Mapping0[-Hashable0, -Any0]"
-        ],
-        "description": "iter",
-        "num_inputs": 1,
-        "outputs": [
-            "KeysView[-Hashable0]"
-        ]
-    },
     "keys": {
         "inline": "{i0}.keys()",
         "inputs": [

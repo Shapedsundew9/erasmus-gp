@@ -1,0 +1,1 @@
+{"name": "DBManagerConfig", "databases": {"erasmus_db": {}}, "local_db": "erasmus_db", "local_type": "pool", "remote_dbs": [], "remote_type": "library", "archive_db": "erasmus_archive_db"}

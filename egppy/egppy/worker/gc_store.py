@@ -23,7 +23,7 @@ DB_TABLE_CONFIG = TableConfig(
     table="local_gc_store",
     schema={k: ColumnSchema(**v) for k, v in GGCDict.GC_KEY_TYPES.items() if v},  # type: ignore
     data_file_folder=join(dirname(__file__), "..", "..", "..", "egpdbmgr", "egpdbmgr", "data"),
-    data_files=["meta_codons.json"],
+    data_files=["meta_codons.json", "codons.json"],
     delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
     create_db=True,
     create_table=True,

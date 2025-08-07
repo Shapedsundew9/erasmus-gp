@@ -2,7 +2,9 @@
     "copy": {
         "inline": "{i0}.copy()",
         "description": "copy",
-        "inputs": ["frozenset[-Hashable0]"],
+        "inputs": [
+            "frozenset[-Hashable0]"
+        ],
         "outputs": [
             "frozenset[-Hashable0]"
         ]
@@ -72,7 +74,7 @@
             "frozenset[-Hashable0]"
         ]
     },
-    "union1": {
+    "union": {
         "inline": "{i0}.union({i1})",
         "inputs": [
             "frozenset[-Hashable0]",
@@ -81,17 +83,6 @@
         "description": "union",
         "outputs": [
             "frozenset[-Hashable0]"
-        ]
-    },
-    "union2": {
-        "inline": "{i0}.union({i1})",
-        "inputs": [
-            "frozenset[-Hashable0]",
-            "-Iterable0[Hashable]"
-        ],
-        "description": "union",
-        "outputs": [
-            "frozenset[Hashable]"
         ]
     }
 }

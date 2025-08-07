@@ -8,7 +8,7 @@ of EGP's type management system.
 
 from typing import Any
 
-from egpcommon.egpcommon.parallel_exceptions import create_parallel_exceptions
+from egpcommon.parallel_exceptions import create_parallel_exceptions
 
 # Create a module with parallel exceptions for meta codons
 MetaCodonExceptionModule = create_parallel_exceptions(
