@@ -100,7 +100,7 @@ def generate_codons(write: bool = False) -> None:
         to indicate the template index. Parameters with the same type template must
         all have exactly the same type (and be of a type in the template type name hierarchy).
         These feature is not used any more for codon generation (it got too complex) but
-        remains as the effort was put in and it may be useful in the future. Foe now only the
+        remains as the effort was put in and it may be useful in the future. For now only the
         base type codons are created and it is left to EGP to expand the input and output types
         to the concrete types using meta codons (type cast codons). This is a more robust
         approach as the type cast codons can do runtime validation of the types thus proving
@@ -139,4 +139,11 @@ def generate_codons(write: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    generate_codons(True)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate codons.")
+    parser.add_argument(
+        "--write", "-w", action="store_true", help="If set, write the codons to a JSON file."
+    )
+    args = parser.parse_args()
+    generate_codons(write=args.write)
