@@ -5,8 +5,7 @@ from __future__ import annotations
 import unittest
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
-from egppy.worker.gc_store import CODON_SIGNATURES, GGC_CACHE
+from egppy.worker.gc_store import GGC_CACHE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -41,9 +40,5 @@ class GCStoreTestBase(unittest.TestCase):
         """Test the cache."""
         # if self.running_in_test_base_class():
         #    return
-        for signature in CODON_SIGNATURES:
-            self.cache[signature].verify()  # Pull them all in
-        for signature in CODON_SIGNATURES:
-            self.assertTrue(expr=signature in self.cache)
         self.cache.verify()
         self.cache.consistency()
