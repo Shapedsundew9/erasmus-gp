@@ -20,6 +20,7 @@ Mocks are used to avoid actual console output and delays during testing.
 import threading
 import time
 from unittest import TestCase, mock
+
 from egpcommon.spinner import Spinner
 
 
@@ -80,7 +81,7 @@ class TestSpinner(TestCase):
             self.spinner.spinner_thread.start()
             self.spinner.stop("Finished!")
             self.assertFalse(self.spinner.running)
-            mock_write.assert_any_call("\rFinished!\n")
+            mock_write.assert_any_call("\r\033[2KTesting...Finished!\n")
 
     def test_stop_without_thread(self) -> None:
         """Test stopping the spinner when no thread exists."""
@@ -88,7 +89,7 @@ class TestSpinner(TestCase):
             self.spinner.spinner_thread = None
             self.spinner.running = False
             self.spinner.stop("Done!")
-            mock_write.assert_any_call("\rDone!\n")
+            mock_write.assert_any_call("\r\033[2KTesting...Done!\n")
 
     def test_spinner_thread_is_daemon(self) -> None:
         """Test that the spinner thread is set as a daemon thread."""
@@ -109,8 +110,19 @@ class TestSpinner(TestCase):
         with mock.patch.object(self.spinner, "_spin"):
             self.spinner.start()
             t1 = self.spinner.spinner_thread
-            self.spinner.stop("Stopped 1")
+            with mock.patch("sys.stdout.write") as mock_write, mock.patch("sys.stdout.flush"):
+                self.spinner.stop("Stopped 1")
+                mock_write.assert_any_call("\r\033[2KTesting...Stopped 1\n")
             self.spinner.start()
             t2 = self.spinner.spinner_thread
             self.assertNotEqual(t1, t2)
-            self.spinner.stop("Stopped 2")
+            with mock.patch("sys.stdout.write") as mock_write2, mock.patch("sys.stdout.flush"):
+                self.spinner.stop("Stopped 2")
+                mock_write2.assert_any_call("\r\033[2KTesting...Stopped 2\n")
+
+    def test_stop_appends_final_message_to_message(self) -> None:
+        """Regression: final output should be '<message><final>' on same line with clear code."""
+        s = Spinner("Generating codons...")
+        with mock.patch("sys.stdout.write") as mock_write, mock.patch("sys.stdout.flush"):
+            s.stop("Done.")
+            mock_write.assert_any_call("\r\033[2KGenerating codons...Done.\n")

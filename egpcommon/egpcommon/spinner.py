@@ -33,12 +33,17 @@ class Spinner:
         )
         self.spinner_thread.start()
 
-    def stop(self, final_message="Done."):
-        """Stops the spinner animation and prints a final message."""
+    def stop(self, final_message: str = "Done.") -> None:
+        """Stops the spinner animation and prints a final message.
+
+        Replaces the spinner on the same line with '<message><final_message>'.
+        """
         self.running = False
         if self.spinner_thread and self.spinner_thread.is_alive():
             self.spinner_thread.join()  # Wait for the spinner thread to finish
-        sys.stdout.write(f"\r{final_message}\n")  # Overwrite with final message and newline
+        # Clear the current line and replace the spinner with the final message appended to the base message.
+        # Using ANSI escape code (ESC[2K) to clear the line ensures no leftover characters remain.
+        sys.stdout.write("\r\033[2K" + self.message + final_message + "\n")
         sys.stdout.flush()
 
 
