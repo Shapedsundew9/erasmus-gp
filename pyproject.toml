@@ -33,3 +33,17 @@ disable = [
     "W0107", # Unnecessary pass statement - for readability
     "fixme", # Disable all fixme messages - just whilst in development
 ]
+
+[tool.pylint.'MAIN']
+# The 'init-hook' option goes under the 'MAIN' sub-table.
+# Use triple quotes for the multi-line string.
+init-hook = """
+import sys, os;
+# Add all subdirectories that contain a pyproject.toml to the path.
+import sys;
+import os;
+# Add all subdirectories that contain a pyproject.toml to the path.
+for dir in os.listdir("."):
+    if os.path.isdir(dir) and os.path.exists(os.path.join(dir, "pyproject.toml")):
+        sys.path.append(os.path.abspath(dir))
+"""
