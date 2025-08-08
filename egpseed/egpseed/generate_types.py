@@ -81,8 +81,13 @@ def parse_toplevel_args(type_string: str) -> list[str]:
     return args
 
 
-def generate_types_def() -> None:
-    """Generate the types_def.json file from the types.json file."""
+def generate_types_def(write: bool = False) -> None:
+    """Generate the types_def.json file from the types.json file.
+
+    Arguments:
+        write: If True, write the generated types to a JSON file. When False, just perform
+               generation/validation without writing, matching the CLI pattern used elsewhere.
+    """
     # The Types Definition BitDict type defines the UID from the bit field values.
     tdbd: type[BitDictABC] = bitdict_factory(TYPESDEF_CONFIG)
 
@@ -599,10 +604,18 @@ def generate_types_def() -> None:
         ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
         uids.add(definition["uid"])
 
-    # Pass 13: Write the new type definition dictionary to a JSON file.
-    dump_signed_json(new_tdd, TYPES_DEF_FILE)
+    # Pass 13: Write the new type definition dictionary to a JSON file (optional).
+    if write:
+        dump_signed_json(new_tdd, TYPES_DEF_FILE)
 
 
 if __name__ == "__main__":
     # Generate the types_def.json file.
-    generate_types_def()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate types_def.json from types.json")
+    parser.add_argument(
+        "--write", "-w", action="store_true", help="If set, write the types to a JSON file."
+    )
+    args = parser.parse_args()
+    generate_types_def(write=args.write)

@@ -62,8 +62,12 @@ CODON_TEMPLATE: dict[str, Any] = {
 }
 
 
-def generate_meta_codons() -> None:
-    """Generate meta codons."""
+def generate_meta_codons(write: bool = False) -> None:
+    """Generate meta codons.
+
+    Arguments:
+        write: If True, write the meta codons to a JSON file.
+    """
     if _LOG_DEBUG:
         _logger.debug("Generating meta codons...")
 
@@ -109,13 +113,21 @@ def generate_meta_codons() -> None:
         codon = new_codon.to_json()
         meta_codons.append(codon)
 
-    # Write the meta codons to the output file
+    # Write the meta codons to the output file (optional)
     spinner.stop()
-    dump_signed_json(meta_codons, OUTPUT_CODON_PATH)
+    if write:
+        dump_signed_json(meta_codons, OUTPUT_CODON_PATH)
 
     if _LOG_DEBUG:
         _logger.debug("Meta codons generated successfully.")
 
 
 if __name__ == "__main__":
-    generate_meta_codons()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate meta codons.")
+    parser.add_argument(
+        "--write", "-w", action="store_true", help="If set, write the codons to a JSON file."
+    )
+    args = parser.parse_args()
+    generate_meta_codons(write=args.write)

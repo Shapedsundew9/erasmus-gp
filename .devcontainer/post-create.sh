@@ -25,5 +25,11 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 chmod +x .devcontainer/pre-push-hooks.sh
 ./.devcontainer/pre-push-hooks.sh
 
+# Generate data files
+echo "Generating data files..."
+.venv/bin/python ./egpseed/egpseed/generate_types.py --write
+.venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
+.venv/bin/python ./egpseed/egpseed/generate_codons.py --write
+
 # Done
 echo "--- Post-create script finished ---"
