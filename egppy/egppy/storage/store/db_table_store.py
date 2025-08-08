@@ -1,11 +1,11 @@
 """Database Table store module."""
 
+from ast import In
 from typing import Any, Iterator
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpdb.configuration import TableConfig
 from egpdb.table import Table
-
 from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
@@ -28,6 +28,7 @@ class DBTableStore(StoreBase, StoreABC):
         if pk is None:
             raise ValueError("Table must have a primary key")
         self._pk = pk
+        self._columns = tuple(col for col in self.table.raw.columns if col != self._pk)
         StoreBase.__init__(self, flavor=flavor)
 
     def __contains__(self, key: Any) -> bool:
@@ -40,7 +41,14 @@ class DBTableStore(StoreBase, StoreABC):
 
     def __getitem__(self, key: Any) -> Any:
         """Get an item from the store."""
-        return self.table[key]
+        try:
+            return tuple(
+                self.table.select(
+                    "WHERE {pk} = {key}", columns=self._columns, literals={"key": key}
+                )
+            )[0]
+        except IndexError as exc:
+            raise KeyError("Key not found") from exc
 
     def __setitem__(self, key: Any, value: StorableObjABC) -> None:
         """Set an item in the store. NOTE this is an UPSERT operation."""
@@ -57,15 +65,20 @@ class DBTableStore(StoreBase, StoreABC):
     def keys(self) -> Iterator:  # type: ignore
         """Get the keys of the store."""
         assert self.table.raw.primary_key is not None
-        return (
-            key[0]
-            for key in self.table.select(columns=[self.table.raw.primary_key], container="tuple")
-        )
+        return (key[0] for key in self.table.select(columns=[self._pk], container="tuple"))
 
     def items(self) -> Iterator:  # type: ignore
-        """Get the items of the store."""
-        return ((item[self.table.raw.primary_key], item) for item in self.table.select())
+        """Get the items of the store.
+        In the store interface the primary key is not returned as part of the value.
+        """
+        return (
+            (
+                item[self.table.raw.primary_key],
+                {k: v for k, v in item.items() if k != self._pk},
+            )
+            for item in self.table.select()
+        )
 
     def values(self) -> Iterator:  # type: ignore
         """Get the values of the store."""
-        return self.table.select()
+        return self.table.select(columns=self._columns)

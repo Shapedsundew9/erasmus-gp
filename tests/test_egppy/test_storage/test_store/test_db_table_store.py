@@ -7,12 +7,12 @@ from itertools import count
 
 from egpdb.configuration import TableConfig
 from egpdb.database import db_create, db_delete
-
 from egppy.storage.store.db_table_store import DBTableStore
 from egppy.storage.store.storable_obj import StorableDict
 from egppy.storage.store.storable_obj_abc import StorableObjABC
 from egppy.storage.store.store_abc import StoreABC
-from test_egppy.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
+
+from .json_file_store_test_base import JSONFileStoreTestBase
 
 # To uniquely name databases for parallel execution
 # To avoid conflicts with other test modules we just use the range 0 to 999
@@ -21,7 +21,7 @@ _START_DB_COUNTER = 2000
 
 _CONFIG = TableConfig(
     **{
-        "database": {"dbname": f"test_db_{_START_DB_COUNTER}"},
+        "database": {"dbname": f"test_db_{_START_DB_COUNTER}", "host": "postgres"},
         "table": "test_table",
         "schema": {
             "pk": {"db_type": "VARCHAR", "primary_key": True},

@@ -5,7 +5,8 @@ from typing import Callable
 from unittest import TestCase
 from uuid import UUID, uuid4
 
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.interface import Interface
 from egppy.populations.configuration import PopulationConfig, PopulationsConfig, SourceConfig
 
 
@@ -19,8 +20,7 @@ class TestSourceConfig(TestCase):
 
     def test_init_best(self):
         """Test the initialization of the BEST source."""
-        config = SourceConfig(source="BEST", scope=127,
-                              limit=20, underflow="NEXT")
+        config = SourceConfig(source="BEST", scope=127, limit=20, underflow="NEXT")
         self.assertEqual(config.source, "BEST")
         self.assertEqual(config.scope, 127)
         self.assertEqual(config.limit, 20)
@@ -182,10 +182,8 @@ class TestPopulationConfig(TestCase):
         self.assertEqual(config.uid, 7)
         self.assertEqual(config.problem, bytes.fromhex("1" * 64))
         self.assertIsInstance(config.worker_id, UUID)
-        self.assertEqual(config.inputs, tuple(
-            (types_def_store[x],) for x in ["int", "str", "bool"]))
-        self.assertEqual(config.outputs, tuple(
-            (types_def_store[x],) for x in ["int", "str", "bool"]))
+        self.assertEqual(config.inputs, Interface(["int", "str", "bool"], SrcRow.I))
+        self.assertEqual(config.outputs, Interface(["int", "str", "bool"], DstRow.O))
         self.assertEqual(config.name, "test")
         self.assertEqual(config.description, "test")
         self.assertEqual(config.meta_data, '{"test": "test"}')

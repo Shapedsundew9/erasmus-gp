@@ -42,7 +42,7 @@ PROPERTIES_CONFIG = {
         "start": 0,
         "width": 2,
         "default": 0,
-        "valid": {"range": [(2,)]},
+        "valid": {"range": [(3,)]},
         "description": ("GC type."),
     },
     "graph_type": {
