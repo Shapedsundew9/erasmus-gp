@@ -44,6 +44,6 @@ import sys;
 import os;
 # Add all subdirectories that contain a pyproject.toml to the path.
 for dir in os.listdir("."):
-    if os.path.isdir(dir) and "pyproject.toml" in os.listdir(dir):
+    if os.path.isdir(dir) and os.path.exists(os.path.join(dir, "pyproject.toml")):
         sys.path.append(os.path.abspath(dir))
 """
