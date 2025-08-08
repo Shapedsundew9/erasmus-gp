@@ -1,9 +1,9 @@
 """Tests for the configuration module."""
 
+import tempfile
 import unittest
 
 from egpdb.configuration import DatabaseConfig
-
 from egpdbmgr.configuration import DBManagerConfig
 
 
@@ -79,14 +79,14 @@ class TestDBManagerConfig(unittest.TestCase):
     def test_load_config(self):
         """Test the load_config method of the DBManagerConfig class."""
         config = DBManagerConfig()
-        config_file = "./test_config.json"
-        with open(config_file, "w", encoding="utf8") as fileptr:
-            fileptr.write(
+        with tempfile.NamedTemporaryFile("w+", encoding="utf8", delete=True) as tmpfile:
+            tmpfile.write(
                 '{"name": "DBManagerConfig", "databases": {"erasmus_db": {}}, "local_db": '
                 '"erasmus_db", "local_type": "pool", "remote_dbs": [], "remote_type": '
                 '"library", "archive_db": "erasmus_archive_db"}'
             )
-        config.load_config(config_file)
+            tmpfile.flush()
+            config.load_config(tmpfile.name)
         self.assertEqual(config.name, self.default_config["name"])
         self.assertEqual(config.databases, self.default_config["databases"])
         self.assertEqual(config.local_db, self.default_config["local_db"])
