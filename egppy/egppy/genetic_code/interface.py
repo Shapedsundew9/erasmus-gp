@@ -16,7 +16,7 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.end_point import EndPoint, TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -83,16 +83,20 @@ class Interface(FreezableObject):
     __slots__ = ("endpoints", "_hash")
 
     def __init__(
-        self, endpoints: Sequence[EndPoint] | Sequence[list | tuple], row: Row | None = None
+        self,
+        endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
+        row: Row | None = None,
     ) -> None:
         """Initialize the Interface class.
 
         Args
         ----
-        endpoints: Sequence[EndPoint] | Sequence[Sequence]: A sequence of EndPoint objects or
+        endpoints: Sequence[...]: A sequence of EndPoint objects or
             sequences that define the interface. If a sequence of sequences is provided, each
             inner sequence should contain [ref_row, ref_idx, typ] and the row parameter must
-            be != None.
+            be != None. If a sequence of (mixed) strings, integers or TypesDef is provided,
+            they will be treated as EGP types, in order, as destinations on the row specified unless
+            the row can only be a source.
         row: Row | None: The destination row associated with the interface. Ignored if endpoints are
             provided as EndPoint objects.
         frozen: bool: If True, the object will be frozen after initialization.
@@ -102,6 +106,9 @@ class Interface(FreezableObject):
         self.endpoints: list[EndPoint] | tuple[EndPoint, ...] = []
 
         # Validate row if endpoints are provided as sequences
+        row_cls = (
+            EndPointClass.DST if row is None or row in DESTINATION_ROW_SET else EndPointClass.SRC
+        )
         for idx, ep in enumerate(endpoints):
             if isinstance(ep, EndPoint):
                 if ep.idx != idx:
@@ -110,9 +117,15 @@ class Interface(FreezableObject):
             elif isinstance(ep, (list, tuple)):
                 if len(ep) != 3:
                     raise ValueError(f"Invalid endpoint sequence length: {len(ep)} != 3")
-                if row is None:
-                    raise ValueError("Destination row must be specified if using sequence format.")
+                if row is None or row not in DESTINATION_ROW_SET:
+                    raise ValueError(
+                        "A valid destination row must be specified (row in DESTINATION_ROW_SET) if using triplet format."
+                    )
                 self.endpoints.append(EndPoint(row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2]))
+            elif isinstance(ep, (str, int, TypesDef)):
+                if row is None:
+                    raise ValueError("Row must be specified if using EGP types.")
+                self.endpoints.append(EndPoint(row=row, idx=idx, cls=row_cls, typ=ep))
             else:
                 raise ValueError(
                     f"Invalid endpoint type: {type(ep)} was expecting EndPoint or Sequence"

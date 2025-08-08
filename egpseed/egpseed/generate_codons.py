@@ -125,7 +125,9 @@ def generate_codons(write: bool = False) -> None:
             definition.setdefault("inputs", ipts)
             definition.setdefault("outputs", opts)
             new_codon = GGCDict(MethodExpander(name, definition).to_json())
-            new_codon.consistency()
+            if not new_codon.verify():
+                raise ValueError(f"Invalid codon: {name}")
+            assert new_codon.consistency(), f"Invalid codon consistency: {name}"
             codon = new_codon.to_json()
             signature = codon["signature"]
             assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"

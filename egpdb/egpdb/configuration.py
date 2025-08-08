@@ -35,7 +35,7 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     def __init__(
         self,
         dbname: str = "erasmus_db",
-        host: str = "postgres",
+        host: str = "localhost",
         password: str = "/run/secrets/db_password",
         port: int = 5432,
         maintenance_db: str = "postgres",

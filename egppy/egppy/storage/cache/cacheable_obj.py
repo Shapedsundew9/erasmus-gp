@@ -99,7 +99,7 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CommonObj, CacheableObjAB
         return super().verify()
 
 
-class CacheableList(MutableSequence, CacheableObjMixin, CacheableObjABC):
+class CacheableList(MutableSequence, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable List Class.
     The CacheableList uses a builtin list for storage but implements the MutableSequence
     interface to mark the object as dirty when modified. This makes it slightly
@@ -158,7 +158,7 @@ class CacheableList(MutableSequence, CacheableObjMixin, CacheableObjABC):
         return deepcopy(x=self.data)
 
 
-class CacheableTuple(Sequence, CacheableObjMixin, CacheableObjABC):
+class CacheableTuple(Sequence, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable Tuple Class.
     Cacheable tuple objects cannot be modified so will never mark themseleves dirty.
     However, the dirty() and clean() methods are provided for consistency and can be used
@@ -195,7 +195,7 @@ class CacheableTuple(Sequence, CacheableObjMixin, CacheableObjABC):
         return list(deepcopy(self.data))
 
 
-class CacheableSet(MutableSet, CacheableObjMixin, CacheableObjABC):
+class CacheableSet(MutableSet, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable Set Class.
     The CacheableSet uses a builtin set for storage but implements the MutableSet
     interface to mark the object as dirty when modified. This makes it slightly

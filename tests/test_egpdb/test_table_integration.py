@@ -18,7 +18,7 @@ _logger.addHandler(NullHandler())
 
 _CONFIG = TableConfig(
     **{
-        "database": {"dbname": "test_db"},
+        "database": {"dbname": "test_db", "host": "postgres"},
         "table": "test_table",
         "schema": {
             "name": {"db_type": "VARCHAR", "nullable": True},
