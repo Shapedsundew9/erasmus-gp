@@ -1,6 +1,5 @@
 """Database Table store module."""
 
-from ast import In
 from typing import Any, Iterator
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger

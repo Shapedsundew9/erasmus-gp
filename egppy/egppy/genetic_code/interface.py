@@ -117,8 +117,10 @@ class Interface(FreezableObject):
             elif isinstance(ep, (list, tuple)):
                 if len(ep) != 3:
                     raise ValueError(f"Invalid endpoint sequence length: {len(ep)} != 3")
-                if row is None or row_cls == EndPointClass.SRC:
-                    raise ValueError("Destination row must be specified if using triplet format.")
+                if row is None or row not in DESTINATION_ROW_SET:
+                    raise ValueError(
+                        "A valid destination row must be specified (row in DESTINATION_ROW_SET) if using triplet format."
+                    )
                 self.endpoints.append(EndPoint(row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2]))
             elif isinstance(ep, (str, int, TypesDef)):
                 if row is None:
