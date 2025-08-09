@@ -2,41 +2,41 @@
     "bytearray1": {
         "inline": "bytearray({i0})",
         "inputs": [
-            "bytes"
+            "-bytes0"
         ],
         "description": "bytearray from bytes",
         "outputs": [
-            "bytearray"
+            "-bytearray0"
         ]
     },
     "bytearray2": {
         "inline": "bytearray({i0})",
         "inputs": [
-            "Iterable[egp_integral]"
+            "-Iterable0[-EGPIntegral0]"
         ],
         "description": "bytearray from integers",
         "outputs": [
-            "bytearray"
+            "-bytearray0"
         ]
     },
     "fromhex1": {
         "inline": "bytearray.fromhex({i0})",
         "inputs": [
-            "str"
+            "-str0"
         ],
         "description": "bytearray from hex string",
         "outputs": [
-            "bytearray"
+            "-bytearray0"
         ]
     },
     "fromhex2": {
         "inline": "bytearray.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
         "inputs": [
-            "str"
+            "-str0"
         ],
         "description": "bytearray from hex bytes",
         "outputs": [
-            "bytearray"
+            "-bytearray0"
         ]
     },
     "hex": {
@@ -44,7 +44,7 @@
         "description": "hex string",
         "num_inputs": 1,
         "outputs": [
-            "str"
+            "-str0"
         ]
     }
 }

@@ -2,86 +2,86 @@
     "Sextuplet": {
         "inline": "({i0}, {i1}, {i2}, {i3}, {i4}, {i5})",
         "inputs": [
-            "object1",
-            "object2",
-            "object3",
-            "object4",
-            "object5",
-            "object6"
+            "-Any0",
+            "-Any1",
+            "-Any2",
+            "-Any3",
+            "-Any4",
+            "-Any5"
         ],
         "description": "Sextuplet",
         "outputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "first item",
         "outputs": [
-            "object1"
+            "-Any0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "second item",
         "outputs": [
-            "object2"
+            "-Any1"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "third item",
         "outputs": [
-            "object3"
+            "-Any2"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "fourth item",
         "outputs": [
-            "object4"
+            "-Any3"
         ]
     },
     "item4": {
         "inline": "{i0}[4]",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "fifth item",
         "outputs": [
-            "object5"
+            "-Any4"
         ]
     },
     "item5": {
         "inline": "{i0}[5]",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "sixth item",
         "outputs": [
-            "object6"
+            "-Any5"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Sextuplet[object1, object2, object3, object4, object5, object6]"
+            "-Sextuplet0[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]"
         ],
         "description": "to any",
         "outputs": [
-            "object"
+            "tuple"
         ]
     }
 }

@@ -4,6 +4,10 @@ The need for type conversions is driven by:
     a) Efficient database storage types
     b) Efficient python code execution types
     c) Limitations of human readable file formats i.e. JSON
+
+Conversions behave as follows:
+    a) Output types shall be limited to the type required by the application or DB.
+    b) Input types may be any type reasonbly convertible to the output type.
 """
 
 from json import dumps, loads
@@ -13,6 +17,7 @@ from numpy import frombuffer, ndarray, uint8
 from numpy.typing import NDArray
 
 from egpcommon.common import NULL_SHA256
+from egpcommon.properties import PropertiesBD
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -124,17 +129,18 @@ def ndarray_to_bytes(obj: NDArray | bytes | None) -> bytes | None:
     assert False, "Un-encodeable type"
 
 
-def list_int_to_bytes(obj: list[int] | None) -> bytes | None:
+def list_int_to_bytes(obj: list[int] | bytes | None) -> bytes | None:
     """Convert a list of integers to a bytes object.
 
     Args
     ----
-    obj (list[int] or NoneType):
+    obj (list[int] or bytes or NoneType):
 
     Returns
     -------
     (bytes or NoneType)
     """
+    # A bytes(bytes) call returns the same object as bytes are immutable.
     return None if obj is None else bytes(obj)
 
 
@@ -164,3 +170,13 @@ def null_sha256_to_none(obj: bytes | None) -> bytes | None:
     (bytes or NoneType)
     """
     return None if obj is NULL_SHA256 or obj == NULL_SHA256 else obj
+
+
+def encode_properties(properties: dict) -> int:
+    """Encode properties."""
+    return PropertiesBD(properties).to_int()
+
+
+def decode_properties(properties: int) -> dict:
+    """Decode properties."""
+    return PropertiesBD(properties).to_json()

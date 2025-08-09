@@ -2,72 +2,50 @@
     "copy": {
         "inline": "{i0}.copy()",
         "description": "copy",
-        "num_inputs": 1,
+        "inputs": [
+            "frozenset[-Hashable0]"
+        ],
         "outputs": [
-            "frozenset[Hashable]"
+            "frozenset[-Hashable0]"
         ]
     },
-    "difference1": {
+    "difference": {
         "inline": "{i0}.difference({i1})",
         "inputs": [
-            "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "frozenset[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "difference",
         "outputs": [
-            "frozenset[Hashable]"
+            "frozenset[-Hashable0]"
         ]
     },
-    "difference2": {
-        "inline": "{i0}.difference({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "difference",
-        "outputs": [
-            "frozenset[Hashable1]"
-        ]
-    },
-    "frozenset0": {
-        "inline": "frozenset()",
-        "description": "frozenset",
-        "num_inputs": 0
-    },
-    "frozenset1": {
+    "frozenset": {
         "inline": "frozenset({i0})",
         "inputs": [
-            "Iterable[Hashable]"
+            "-Iterable0[-Hashable0]"
         ],
-        "description": "frozenset"
-    },
-    "intersection1": {
-        "inline": "{i0}.intersection({i1})",
-        "inputs": [
-            "frozenset[Hashable]",
-            "Iterable[Hashable]"
-        ],
-        "description": "intersection",
+        "description": "frozenset",
         "outputs": [
-            "frozenset[Hashable]"
+            "frozenset[-Hashable0]"
         ]
     },
-    "intersection2": {
+    "intersection": {
         "inline": "{i0}.intersection({i1})",
         "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
+            "frozenset[-Hashable0]",
+            "-Iterable0[Hashable]"
         ],
         "description": "intersection",
         "outputs": [
-            "frozenset[Hashable1]"
+            "frozenset[-Hashable0]"
         ]
     },
     "issubset": {
         "inline": "{i0}.issubset({i1})",
         "inputs": [
-            "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "frozenset[-Hashable0]",
+            "-Iterable0[Hashable]"
         ],
         "description": "issubset",
         "outputs": [
@@ -78,55 +56,33 @@
         "inline": "{i0}.issuperset({i1})",
         "inputs": [
             "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "-Iterable0[-Hashable0]"
         ],
         "description": "issuperset",
         "outputs": [
             "bool"
         ]
     },
-    "symmetric_difference1": {
+    "symmetric_difference": {
         "inline": "{i0}.symmetric_difference({i1})",
         "inputs": [
-            "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "frozenset[-Hashable0]",
+            "-Iterable0[Hashable]"
         ],
         "description": "symmetric difference",
         "outputs": [
-            "frozenset[Hashable]"
+            "frozenset[-Hashable0]"
         ]
     },
-    "symmetric_difference2": {
-        "inline": "{i0}.symmetric_difference({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "symmetric difference",
-        "outputs": [
-            "frozenset[Hashable1]"
-        ]
-    },
-    "union1": {
+    "union": {
         "inline": "{i0}.union({i1})",
         "inputs": [
-            "frozenset[Hashable]",
-            "Iterable[Hashable]"
+            "frozenset[-Hashable0]",
+            "-Iterable0[-Hashable0]"
         ],
         "description": "union",
         "outputs": [
-            "frozenset[Hashable]"
-        ]
-    },
-    "union2": {
-        "inline": "{i0}.union({i1})",
-        "inputs": [
-            "frozenset[Hashable1]",
-            "Iterable[Hashable1]"
-        ],
-        "description": "union",
-        "outputs": [
-            "frozenset[Hashable1]"
+            "frozenset[-Hashable0]"
         ]
     }
 }

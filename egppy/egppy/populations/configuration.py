@@ -8,8 +8,9 @@ from uuid import UUID
 from egpcommon.common import DictTypeAccessor
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.validator import Validator
-
-from egppy.c_graph.interface import Interface, interface, interface_to_list_str
+from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.interface import Interface, TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -389,11 +390,11 @@ class PopulationConfig(Validator, DictTypeAccessor):
 
     @inputs.setter
     def inputs(
-        self, value: Sequence[Sequence[int]] | Sequence[Sequence[str] | Sequence[str]]
+        self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
     ) -> None:
         """The inputs."""
         self._is_sequence("inputs", value)
-        self._inputs = interface(value)
+        self._inputs = Interface(value, SrcRow.I)
 
     @property
     def outputs(self) -> Interface:
@@ -402,11 +403,11 @@ class PopulationConfig(Validator, DictTypeAccessor):
 
     @outputs.setter
     def outputs(
-        self, value: Sequence[Sequence[int]] | Sequence[Sequence[str] | Sequence[str]]
+        self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
     ) -> None:
         """The inputs."""
         self._is_sequence("inputs", value)
-        self._outputs = interface(value)
+        self._outputs = Interface(value, DstRow.O)
 
     @property
     def name(self) -> str:
@@ -584,8 +585,8 @@ class PopulationConfig(Validator, DictTypeAccessor):
             "uid": self.uid,
             "problem": self.problem.hex(),
             "worker_id": str(self.worker_id),
-            "inputs": interface_to_list_str(self.inputs),
-            "outputs": interface_to_list_str(self.outputs),
+            "inputs": self.inputs.to_json(),
+            "outputs": self.outputs.to_json(),
             "name": self.name,
             "description": self.description,
             "meta_data": self.meta_data,

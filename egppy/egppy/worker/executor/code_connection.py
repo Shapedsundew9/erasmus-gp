@@ -6,8 +6,7 @@ from collections.abc import Hashable
 from typing import TYPE_CHECKING
 
 from egpcommon.common import NULL_STR
-
-from egppy.c_graph.c_graph_constants import DstRow, Row, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPClsPostfix, Row, SrcRow
 
 if TYPE_CHECKING:
     from egppy.worker.executor.gc_node import GCNode
@@ -15,6 +14,8 @@ if TYPE_CHECKING:
 
 class CodeEndPoint(Hashable):
     """An code end point in the GC node graph."""
+
+    __slots__ = ("node", "row", "idx", "terminal")
 
     def __init__(self, node: GCNode, row: Row, idx: int, terminal: bool = False) -> None:
         """Create a code end point in the GC node graph.
@@ -59,6 +60,8 @@ class CodeEndPoint(Hashable):
 
 class CodeConnection(Hashable):
     """A connection between terminal end points in the GC node graph."""
+
+    __slots__ = ("src", "dst", "var_name")
 
     def __init__(self, src: CodeEndPoint, dst: CodeEndPoint) -> None:
         """Create a connection between code end points in the GC node graph."""
@@ -106,8 +109,8 @@ def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
             dst_row = DstRow.O
     return [
         CodeConnection(
-            CodeEndPoint(node, r[0].get_row(), r[0].get_idx()),
-            CodeEndPoint(dst_node, dst_row, i, True),
+            CodeEndPoint(node, ep.refs[0][0], ep.refs[0][1]),
+            CodeEndPoint(dst_node, dst_row, ep.idx, True),
         )
-        for i, r in enumerate(node.gc["graph"][row + "dc"])
+        for ep in node.gc["cgraph"][row + EPClsPostfix.DST]
     ]

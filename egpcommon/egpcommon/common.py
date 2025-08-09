@@ -1,14 +1,16 @@
 """Common functions for the EGPPY package."""
 
+from collections.abc import Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
 from hashlib import sha256
+from json import dumps
+from os import environ
 from pprint import pformat
+from random import randint
 from typing import Any, Literal, Self
 from uuid import UUID
-from json import dumps
-from collections.abc import Sequence
-from random import randint
+
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -23,6 +25,23 @@ EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, 
 ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
 
 
+# Set the EGP profile.
+# This is used to determine the environment in which the code is running and
+# configure such things as the type of stores to use, how much memory to allocate
+# etc.
+EGP_DEV_PROFILE = "DEV"
+EGP_CI_PROFILE = "CI"
+EGP_PROD_PROFILE = "PROD"
+EGP_PROFILE: str = environ.get("EGP_PROFILE", "PROD")
+assert EGP_PROFILE in (EGP_DEV_PROFILE, EGP_CI_PROFILE, EGP_PROD_PROFILE)
+
+
+# Some common types
+JSONDictType = dict[str, list | dict | int | str | float | bool | None]
+JSONListType = list[dict | list | int | str | float | bool | None]
+JSONType = JSONDictType | JSONListType
+
+
 # Constants
 NULL_SHA256: bytes = b"\x00" * 32
 NULL_SHA256_STR: str = NULL_SHA256.hex()
@@ -30,58 +49,6 @@ NULL_UUID: UUID = UUID(int=0)
 NULL_TUPLE: tuple = tuple()
 NULL_STR: Literal[""] = ""
 NULL_FROZENSET: frozenset = frozenset()
-
-
-# GC Fields with Postgres definitions
-EGC_KVT: dict[str, dict[str, Any]] = {
-    "graph": {"db_type": "BYTEA", "nullable": False},
-    "gca": {"db_type": "BYTEA", "nullable": True},
-    "gcb": {"db_type": "BYTEA", "nullable": True},
-    "ancestora": {"db_type": "BYTEA", "nullable": True},
-    "ancestorb": {"db_type": "BYTEA", "nullable": True},
-    "pgc": {"db_type": "BYTEA", "nullable": True},
-    "created": {"db_type": "TIMESTAMP", "nullable": False},
-    "properties": {"db_type": "BIGINT", "nullable": False},
-    "signature": {"db_type": "BYTEA", "nullable": False},
-}
-GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
-    "_e_count": {"db_type": "INT", "nullable": False},
-    "_e_total": {"db_type": "FLOAT", "nullable": False},
-    "_evolvability": {"db_type": "FLOAT", "nullable": False},
-    "_f_count": {"db_type": "INT", "nullable": False},
-    "_f_total": {"db_type": "FLOAT", "nullable": False},
-    "_fitness": {"db_type": "FLOAT", "nullable": False},
-    "_lost_descendants": {"db_type": "BIGINT", "nullable": False},
-    "_reference_count": {"db_type": "BIGINT", "nullable": False},
-    "code_depth": {"db_type": "INT", "nullable": False},
-    "creator": {"db_type": "UUID", "nullable": False},
-    "descendants": {"db_type": "BIGINT", "nullable": False},
-    "e_count": {"db_type": "INT", "nullable": False},
-    "e_total": {"db_type": "FLOAT", "nullable": False},
-    "evolvability": {"db_type": "FLOAT", "nullable": False},
-    "f_count": {"db_type": "INT", "nullable": False},
-    "f_total": {"db_type": "FLOAT", "nullable": False},
-    "fitness": {"db_type": "FLOAT", "nullable": False},
-    "generation": {"db_type": "BIGINT", "nullable": False},
-    "imports": {},  # Not persisted in the database but needed for execution
-    "inline": {},  # Not persisted in the database but needed for execution
-    "input_types": {"db_type": "SMALLINT[]", "nullable": False},
-    "inputs": {"db_type": "BYTEA", "nullable": False},
-    "lost_descendants": {"db_type": "BIGINT", "nullable": False},
-    "meta_data": {"db_type": "BYTEA", "nullable": True},
-    "num_codes": {"db_type": "INT", "nullable": False},
-    "num_codons": {"db_type": "INT", "nullable": False},
-    "num_inputs": {"db_type": "SMALLINT", "nullable": False},
-    "num_outputs": {"db_type": "SMALLINT", "nullable": False},
-    "output_types": {"db_type": "SMALLINT[]", "nullable": False},
-    "outputs": {"db_type": "BYTEA", "nullable": False},
-    "population_uid": {"db_type": "SMALLINT", "nullable": False},
-    "problem": {"db_type": "BYTEA", "nullable": True},
-    "problem_set": {"db_type": "BYTEA", "nullable": True},
-    "reference_count": {"db_type": "BIGINT", "nullable": False},
-    "survivability": {"db_type": "FLOAT", "nullable": False},
-    "updated": {"db_type": "TIMESTAMP", "nullable": False},
-}
 
 
 # Local Constants
@@ -160,9 +127,11 @@ def sha256_signature(
     gcb: bytes,
     graph: dict[str, Any],
     pgc: bytes,
-    meta_data: dict[str, Any] | None,
+    imports: tuple,  # tuple[ImportDef, ...] but would be a circular reference
+    inline: str,
+    code: str,
     created: int,
-    creator: bytes
+    creator: bytes,
 ) -> bytes:
     """Return the SHA256 signature of the data.
     This function is the basis for identifying *EVERYTHING* in the EGP system.
@@ -193,14 +162,11 @@ def sha256_signature(
     hash_obj.update(pgc)
     hash_obj.update(creator)
     hash_obj.update(pformat(graph, compact=True).encode())
-    if meta_data is not None and "function" in meta_data:
-        definition = meta_data["function"]["python3"]["0"]
-        hash_obj.update(definition["inline"].encode())
-        if "code" in definition:
-            hash_obj.update(definition["code"].encode())
-        if "imports" in definition:
-            for import_def in definition["imports"]:
-                hash_obj.update(dumps(import_def.to_json()).encode())
+    if inline:
+        hash_obj.update(inline.encode())
+        hash_obj.update(code.encode())
+        for import_def in imports:
+            hash_obj.update(dumps(import_def.to_json()).encode())
     if created > 0:
         hash_obj.update(created.to_bytes(8, "big"))
     return hash_obj.digest()
@@ -208,6 +174,8 @@ def sha256_signature(
 
 class DictTypeAccessor:
     """Provide very simple get/set dictionary like access to an objects members."""
+
+    __slots__ = tuple()
 
     def __contains__(self, key: str) -> bool:
         """Check if the attribute exists."""

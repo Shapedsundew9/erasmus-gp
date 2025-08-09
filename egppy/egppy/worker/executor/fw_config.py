@@ -3,15 +3,24 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(slots=True)
 class FWConfig:
-    """Configuration class for function writing."""
+    """Configuration class for function writing.
+    By default the configuration is for lean & optimised code.
+    """
 
     # Enable type hinting in function definitions
-    hints: bool = True
+    hints: bool = False
+    # Enable debug (relatively light)
+    debug: bool = False
+    # Enable deep debug (very heavy)
+    deep_debug: bool = False
+    # Enable lean mode to remove all comments, docstrings and pretty spacing.
+    # This saves memory in the execution_context.
+    lean: bool = True
 
     # The following attributes add a comment at the top of the function
-    # with the specified information.
+    # with the specified information (if lean is False).
     # The SHA256 signature of the Genetic Code (GC)
     signature: bool = True
     # The date & time the GC was created (UTC)
@@ -31,6 +40,11 @@ class FWConfig:
     # Constant evaluation: Any constant expressions in the function are evaluated
     # prior to write time and the code is replaced with the result.
     const_eval: bool = True
+    # Result cache: Any function calls that are deterministic and do not have side effects
+    # are cached. If the function is called with the same arguments, the cached
+    # result is returned instead of calling the function again.
+    # NOTE: This optimization is only applied if the GC property `consider_cache` is True.
+    result_cache: bool = True
     # Common subexpression elimination: Any common subexpressions (that are
     # deterministic & do not have side effects) are evaluated once and the result
     # is used in place of the subexpression.

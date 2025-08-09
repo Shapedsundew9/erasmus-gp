@@ -352,6 +352,8 @@ class RawTable:
         tuple(keys), (list(list)): A consectutive batch of rows with the same keys.
         """
         set_of_columns: set[str] = set(self.columns) - set(exclude)
+        # If data is a dict then assume everything we need is in the values
+        data = data.values() if isinstance(data, dict) else data
         if ordered:
             okeys: tuple[str, ...] = tuple()
             last_datum_keys = set()

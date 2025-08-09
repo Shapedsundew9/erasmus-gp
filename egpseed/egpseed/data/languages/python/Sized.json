@@ -2,7 +2,9 @@
     "len": {
         "inline": "len({i0})",
         "description": "length of",
-        "num_inputs": 1,
+        "inputs": [
+            "-Sized0"
+        ],
         "outputs": [
             "int"
         ]

@@ -39,6 +39,9 @@ class Validator:
     like access to an object's members with validation.
     """
 
+    __slots__ = tuple()
+
+    # Designed to match strings that meet the following criteria:
     _hostname_regex_str: str = r"^(?!-)[A-Z\d-]{1,63}(?<!-)$"
     _hostname_regex: Pattern = regex_compile(_hostname_regex_str, IGNORECASE)
 
@@ -67,9 +70,6 @@ class Validator:
         r"(#\w*)?$"  # fragment identifier
     )
     _url_regex: Pattern = regex_compile(_url_regex_str, IGNORECASE)
-
-    def consistency(self) -> None:
-        """Check the consistency of the object."""
 
     def _in_range(
         self, attr: str, value: int | float, minm: float, maxm: float, _assert: bool = True

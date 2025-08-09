@@ -2,7 +2,7 @@
     "type": {
         "inline": "type({i0})",
         "inputs": [
-            "object"
+            "-Any0"
         ],
         "description": "type"
     }

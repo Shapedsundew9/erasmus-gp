@@ -7,15 +7,15 @@
     "complex1": {
         "inline": "complex({i0})",
         "inputs": [
-            "egp_number"
+            "-EGPNumber0"
         ],
         "description": "complex"
     },
     "complex2": {
         "inline": "complex({i0}, {i1})",
         "inputs": [
-            "egp_number",
-            "egp_number"
+            "-EGPNumber0",
+            "-EGPNumber1"
         ],
         "description": "complex"
     }

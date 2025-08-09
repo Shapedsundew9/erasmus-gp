@@ -2,21 +2,21 @@
     "copy": {
         "inline": "{i0}.copy()",
         "inputs": [
-            "dict[Hashable, object]"
+            "-dict0[-Hashable0, -Any0]"
         ],
         "description": "copy",
         "outputs": [
-            "dict[Hashable, object]"
+            "-dict0[-Hashable0, -Any0]"
         ]
     },
     "dict": {
         "inline": "dict({i0})",
         "inputs": [
-            "Iterable[Pair[Hashable1, object1]]"
+            "-Iterable0[Pair[-Hashable0, -Any0]]"
         ],
         "description": "dict",
         "outputs": [
-            "dict[Hashable1, object1]"
+            "-dict0[-Hashable0, -Any0]"
         ]
     },
     "{}": {
@@ -24,7 +24,7 @@
         "description": "dict",
         "num_inputs": 0,
         "outputs": [
-            "dict[Hashable, object]"
+            "-dict0[Hashable, Any]"
         ]
-    }
+    } 
 }

@@ -4,6 +4,8 @@ from json import dump, load
 from os.path import getsize
 from uuid import UUID
 
+from black.debug import T
+
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
@@ -26,7 +28,7 @@ def dump_signed_json(data: dict | list, fullpath: str) -> None:
     """
     # TODO: Implementation Needed
     with open(fullpath, "w", encoding="utf-8") as f:
-        dump(data, f, indent=None, sort_keys=True, separators=(",", ":"))
+        dump(data, f, indent=2, sort_keys=True, ensure_ascii=True)
     # Prevents continuing with a file we can't read
     _file_size_limit(fullpath, JSON_FILESIZE_LIMIT)
 
@@ -40,7 +42,7 @@ def _file_size_limit(fullpath: str, limit: int = 2**30) -> int:
 
 
 def validate_json_signature(fullpath: str) -> bool:
-    """ Validate the JSON file signature.
+    """Validate the JSON file signature.
     EGP JSON files are always a list. The first element of the list is the
     data and the second element is the signature.
     No matter how the data is formatted the signed JSON always has this format:
@@ -50,7 +52,7 @@ def validate_json_signature(fullpath: str) -> bool:
     ]
     The signature is thus always characters 1 to 64 inclusive of the penultimate line.
     The signature is the signed sha256 hash of characters from the start of the file to
-    the end of the antepenultimate line inclusive (i.e. including the comma after 
+    the end of the antepenultimate line inclusive (i.e. including the comma after
     the data object).
     Validation ensures that the format of the signature line and the last line are exact.
     """

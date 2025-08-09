@@ -1,38 +1,50 @@
 {
     "copy": {
+        "inputs": [
+            "-list0[-Any0]"
+        ],
         "inline": "{i0}.copy()",
-        "num_inputs": 1
+        "outputs": [
+            "-list0[-Any0]"
+        ]
     },
     "list0": {
         "inline": "list()",
-        "num_outputs": 1
+        "inputs": [
+            "-list0[-Any0]"
+        ],
+        "outputs": [
+            "-list0[-Any0]"
+        ]
     },
     "list1": {
         "inline": "list({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "-Iterable0[-Any0]"
         ],
         "outputs": [
-            "list[object1]"
+            "-list0[-Any0]"
         ]
     },
     "sort0": {
+        "inputs": [
+            "-list0[-Any0]"
+        ],
         "inline": "{i0}.sort()",
-        "num_inputs": 1,
         "num_outputs": 0,
         "properties": {
             "side_effects": true
         }
     },
     "sort1": {
-        "inline": "{i0}.sort(reverse={i1})",
         "inputs": [
-            "MutableSequence[object1]",
+            "-list0[-Any0]",
             "bool"
         ],
-        "num_outputs": 0,
+        "inline": "{i0}.sort(reverse={i1})",
         "properties": {
             "side_effects": true
-        }
+        },
+        "num_outputs": 0
     }
 }

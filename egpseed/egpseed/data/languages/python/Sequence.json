@@ -2,8 +2,8 @@
     "count": {
         "inline": "{i0}.count({i1})",
         "inputs": [
-            "Sequence[object]",
-            "object"
+            "-Sequence0[-Any0]",
+            "-Any0"
         ],
         "description": "total number of occurances",
         "outputs": [
@@ -13,37 +13,43 @@
     "get element": {
         "inline": "{i0}[{i1}]",
         "inputs": [
-            "Sequence[object]",
+            "-Sequence0[-Any0]",
             "int"
         ],
         "description": "element at index",
         "outputs": [
-            "object"
+            "-Any0"
         ]
     },
     "get slice": {
         "inline": "{i0}[{i1}:{i2}]",
         "inputs": [
-            "Sequence[object]",
+            "-Sequence0[-Any0]",
             "int",
             "int"
         ],
-        "description": "slice of a sequence"
+        "description": "slice of a sequence",
+        "outputs": [
+            "-Sequence0[-Any0]"
+        ]
     },
     "get slice step": {
         "inline": "{i0}[{i1}:{i2}:{i3}]",
         "inputs": [
-            "Sequence[object]",
+            "-Sequence0[-Any0]",
             "int",
             "int",
             "int"
+        ],
+        "outputs": [
+            "-Sequence0[-Any0]"
         ]
     },
     "index1": {
         "inline": "{i0}.index({i1})",
         "inputs": [
-            "Sequence[object]",
-            "object"
+            "-Sequence0[-Any0]",
+            "-Any0"
         ],
         "description": "Index of the first occurance",
         "outputs": [
@@ -53,8 +59,8 @@
     "index2": {
         "inline": "{i0}.index({i1}, {i2})",
         "inputs": [
-            "Sequence[object]",
-            "object",
+            "-Sequence0[-Any0]",
+            "-Any0",
             "int"
         ],
         "description": "Index of the first occurance from an offset",
@@ -65,8 +71,8 @@
     "index3": {
         "inline": "{i0}.index({i1}, {i2}, {i3})",
         "inputs": [
-            "Sequence[object]",
-            "object",
+            "-Sequence0[-Any0]",
+            "-Any0",
             "int",
             "int"
         ],

@@ -2,20 +2,32 @@
     "%": {
         "inline": "{i0} % {i1}",
         "description": "modulo",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "//": {
         "inline": "{i0} // {i1}",
         "description": "floor divide",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "outputs": [
-            "egp_highest"
+            "EGPHighest"
         ]
     },
     "<": {
         "inline": "{i0} < {i1}",
         "description": "less than",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "outputs": [
             "bool"
         ]
@@ -23,12 +35,20 @@
     "<=": {
         "inline": "{i0} <= {i1}",
         "description": "less than equal",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "outputs": [
             "bool"
         ]
     },
     ">": {
         "inline": "{i0} > {i1}",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "description": "greater than",
         "outputs": [
             "bool"
@@ -37,6 +57,10 @@
     ">=": {
         "inline": "{i0} >= {i1}",
         "description": "greater than equal",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "outputs": [
             "bool"
         ]
@@ -44,14 +68,21 @@
     "divmod": {
         "inline": "divmod({i0}, {i1})",
         "description": "quotient and remainder",
+        "inputs": [
+            "-EGPReal0",
+            "-EGPReal1"
+        ],
         "outputs": [
-            "Pair[egp_highest, egp_highest]"
+            "Pair[EGPHighest, EGPHighest]"
         ]
     },
     "round1": {
         "inline": "round({i0})",
         "description": "round to nearest integer",
         "num_inputs": 1,
+        "inputs": [
+            "-EGPReal0"
+        ],
         "outputs": [
             "int"
         ]
@@ -59,12 +90,12 @@
     "round2": {
         "inline": "round({i0}, {i1})",
         "inputs": [
-            "Real",
-            "egp_integral"
+            "-EGPReal0",
+            "-EGPIntegral0"
         ],
         "description": "round to decimal places",
         "outputs": [
-            "egp_wc_0_0"
+            "-EGPReal0"
         ]
     }
 }

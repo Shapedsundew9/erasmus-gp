@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Hashable
+from collections.abc import Hashable, Iterable, Iterator
 from itertools import count
 from typing import TYPE_CHECKING
 
-from egppy.c_graph.end_point.end_point_type import ept_to_str
-from egppy.c_graph.c_graph_constants import DstRow, Row, SrcRow
-from egppy.gc_types.gc import (
-    GCABC,
+from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
+from egppy.genetic_code.genetic_code import (
     MERMAID_CODON_COLOR,
     MERMAID_FOOTER,
     MERMAID_GC_COLOR,
     MERMAID_HEADER,
     MERMAID_UNKNOWN_COLOR,
-    NULL_GC,
-    NULL_SIGNATURE,
     mc_circle_str,
     mc_connect_str,
     mc_rectangle_str,
 )
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.interface import Interface
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
 from egppy.worker.gc_store import GGC_CACHE
 
@@ -38,7 +37,7 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
         color = MERMAID_GC_COLOR
         if gcnode.gc["num_codons"] == 1:
             return mc_codon_node_str(gcnode, row)
-    label = f'"{gcnode.gc.signature().hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_rectangle_str(gcnode.uid, label, color)
 
 
@@ -46,7 +45,7 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
 def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_UNKNOWN_COLOR) -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCNode in the logical structure."""
-    label = f'"{gcnode.gc.signature().hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_circle_str(gcnode.uid, label, color)
 
 
@@ -54,7 +53,7 @@ def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_UNKNOWN_C
 def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_CODON_COLOR) -> str:
     """Return a Mermaid Chart string representation of the codon structure
     GCNode in the logical structure."""
-    label = f'"{gcnode.gc.signature().hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_circle_str(gcnode.uid, label, color)
 
 
@@ -83,19 +82,15 @@ def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str
     src = connection.src
     dst = connection.dst
     arrow = f"-- {src.idx}:{dst.idx} -->"
-    namea = (
-        src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
-    )
-    nameb = (
-        dst.node.uid
-        if dst.node is not root and dst.row is not DstRow.O
-        else dst.node.uid + "O"
-    )
+    namea = src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
+    nameb = dst.node.uid if dst.node is not root and dst.row is not DstRow.O else dst.node.uid + "O"
     return mc_connect_str(namea, nameb, arrow)
 
 
 class GCNodeIterator(Iterator):
     """An iterator for the entire GCNode graph."""
+
+    __slots__ = ("_visted", "stack")
 
     def __init__(self, root) -> None:
         """Create an iterator for the GCNode graph.
@@ -139,6 +134,8 @@ class GCNodeCodeIterator(Iterator):
     i.e. nodes that have been or will be written as functions
     are not iterated deeper than the root node.
     """
+
+    __slots__ = ("_visted", "stack")
 
     def __init__(self, root) -> None:
         """Create an iterator for the GCNode graph.
@@ -196,6 +193,8 @@ class GCNodeCodeIterator(Iterator):
 class GCNodeCodeIterable(Iterable):
     """An iterable for only inline nodes of the graph."""
 
+    __slots__ = ("root",)
+
     def __init__(self, root) -> None:
         self.root = root
 
@@ -205,6 +204,28 @@ class GCNodeCodeIterable(Iterable):
 
 class GCNode(Iterable, Hashable):
     """A node in the Connection Graph."""
+
+    __slots__ = (
+        "gc",
+        "is_codon",
+        "unknown",
+        "exists",
+        "function_info",
+        "write",
+        "assess",
+        "gca",
+        "gcb",
+        "terminal",
+        "f_connection",
+        "gca_node",
+        "gcb_node",
+        "uid",
+        "iam",
+        "parent",
+        "terminal_connections",
+        "num_lines",
+        "local_counter",
+    )
 
     # For generating UIDs for GCNode instances
     _uid_counter = count()
@@ -231,9 +252,9 @@ class GCNode(Iterable, Hashable):
         # The code connection end points if this node is to be written
         self.terminal_connections: list[CodeConnection] = []
         # Calculated number of lines in the *potential* function
-        self.num_lines = self.function_info.line_count
+        self.num_lines: int = self.function_info.line_count
         # The local variable counter (used to make unique variable names)
-        self.local_counter = count()
+        self.local_counter: count[int] = count()
 
         # Context within the GC Node graph not known from within the GC
         if parent is None:
@@ -328,18 +349,26 @@ class GCNode(Iterable, Hashable):
             chart_txt.append(mc_code_connection_node_str(connection, self))
         return "\n".join(title_txt + MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
-    def function_def(self, hints: bool = False) -> str:
+    def function_def(self, hints: bool = False) -> tuple[str, list[ImportDef]]:
         """Return the function definition code line for the GC node.
-        hints: If True then include type hints in the function definition.
+        Args
+        ----
+            hints: If True then include type hints in the function definition.
+        Returns
+        -------
+            A tuple containing the function definition string and a tuple of ImportDef instances
+            that are required for any type hints.
         """
         # Define the function input parameters
-        iface = self.gc["graph"]["Is"]
-        inum = self.gc["num_inputs"]
+        iface: Interface = self.gc["cgraph"]["Is"]
+        inum: int = self.gc["num_inputs"]
         iparams = "i"
+        idefs: list[ImportDef] = []
 
         if hints:
             # Add type hints for input parameters
-            input_types = ", ".join(ept_to_str(iface[i]) for i in range(inum))
+            input_types = ", ".join(str(iface[i].typ) for i in range(inum))
+            idefs.extend(imp for i in range(inum) for imp in iface[i].typ.imports)
             iparams += f": tuple[{input_types}]"
 
         # Start building the function definition
@@ -349,19 +378,21 @@ class GCNode(Iterable, Hashable):
             # Add type hints for output parameters
             onum = self.gc["num_outputs"]
             if onum > 1:
-                oface = self.gc["graph"]["Od"]
-                output_types = ", ".join(ept_to_str(oface[i]) for i in range(onum))
+                oface = self.gc["cgraph"]["Od"]
+                output_types = ", ".join(str(oface[i].typ) for i in range(onum))
+                idefs.extend(imp for i in range(onum) for imp in oface[i].typ.imports)
                 ret_type = f"tuple[{output_types}]"
             elif onum == 1:
-                ret_type = ept_to_str(self.gc["graph"]["Od"][0])
+                ret_type = str(self.gc["cgraph"]["Od"][0].typ)
+                idefs.extend(self.gc["cgraph"]["Od"][0].typ.imports)
             elif onum == 0:
                 ret_type = "None"
             else:
                 raise ValueError(f"Invalid number of outputs: {onum}, in GC.")
-            return f"{base_def} -> {ret_type}:"
+            return f"{base_def} -> {ret_type}:", idefs
 
         # Return the function definition without type hints
-        return f"{base_def}:"
+        return f"{base_def}:", idefs
 
     def line_count(self, limit: int) -> None:
         """Calculate the best number of lines for each function and

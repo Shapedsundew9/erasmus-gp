@@ -5,26 +5,36 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 """
 
 from __future__ import annotations
+
 from itertools import count
 from typing import Any
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+
 from egpcommon.common import NULL_STR
-from egppy.c_graph.end_point.end_point_abc import XEndPointRefABC
-from egppy.c_graph.end_point.import_def import ImportDef
-from egppy.c_graph.c_graph_constants import DstRow, SrcRow
-from egppy.gc_types.gc import (
-    GCABC,
-    NULL_GC,
+from egpcommon.egp_log import (
+    CONSISTENCY,
+    DEBUG,
+    VERIFY,
+    Logger,
+    egp_logger,
+    enable_debug_logging,
 )
-from egppy.worker.gc_store import GGC_CACHE
-from egppy.worker.executor.function_info import FunctionInfo, NULL_FUNCTION_MAP, NULL_EXECUTABLE
-from egppy.worker.executor.gc_node import GCNode, GCNodeCodeIterable, NULL_GC_NODE
-from egppy.worker.executor.fw_config import FWConfig, FWCONFIG_DEFAULT
+from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.interface import NULL_INTERFACE, Interface, unpack_src_ref
 from egppy.worker.executor.code_connection import (
     CodeConnection,
     CodeEndPoint,
     code_connection_from_iface,
 )
+from egppy.worker.executor.function_info import (
+    NULL_EXECUTABLE,
+    NULL_FUNCTION_MAP,
+    FunctionInfo,
+)
+from egppy.worker.executor.fw_config import FWCONFIG_DEFAULT, FWConfig
+from egppy.worker.executor.gc_node import NULL_GC_NODE, GCNode, GCNodeCodeIterable
+from egppy.worker.gc_store import GGC_CACHE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -98,6 +108,8 @@ class ExecutionContext:
     persistent data structures that are not easy to track.
     """
 
+    __slots__ = ("namespace", "function_map", "imports", "_line_limit", "_global_index")
+
     def __init__(self, line_limit: int = 64) -> None:
         # The globals passed to exec() when defining objects in the context
         self.namespace: dict[str, Any] = {}
@@ -152,12 +164,12 @@ class ExecutionContext:
                         assert node.gca is not NULL_GC, "Should never introspect a codon graph."
                         src.node = node.gca_node
                         src.terminal = node.gca_node.terminal
-                        refs = src.node.gc["graph"]["Odc"]
+                        iface: Interface = src.node.gc["cgraph"]["Od"]
                     case SrcRow.B:
                         assert node.gcb is not NULL_GC, "GCB cannot be NULL"
                         src.node = node.gcb_node
                         src.terminal = node.gcb_node.terminal
-                        refs = src.node.gc["graph"]["Odc"]
+                        iface = src.node.gc["cgraph"]["Od"]
                     case SrcRow.I:
                         parent: GCNode = node.parent
                         # Function is the root node. Going to its parent is moving
@@ -165,10 +177,8 @@ class ExecutionContext:
                         if node is not root:
                             # When moving into the parent the src context needs
                             # to change to that of src within the parent.
-                            refs = parent.gc["graph"][node.iam + "dc"]
-                            ref: XEndPointRefABC = refs[src.idx][0]
-                            src.row = ref.get_row()
-                            src.idx = ref.get_idx()
+                            iface = parent.gc["cgraph"][node.iam + "d"]
+                            src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                             if src.row == SrcRow.I:
                                 src.node = parent
                                 node = parent
@@ -185,20 +195,18 @@ class ExecutionContext:
                                 # and this node must be B
                                 src.node = parent.gca_node
                                 assert node is parent.gcb_node, "Node must be GCB here."
-                                refs = src.node.gc["graph"]["Odc"]
+                                iface = src.node.gc["cgraph"]["Od"]
                                 node = parent
                                 src.terminal = src.node.terminal
                         else:
-                            refs = []
+                            iface = NULL_INTERFACE
                             src.terminal = True
                     case _:
                         raise ValueError(f"Invalid source row: {src.row}")
                 # In all none terminal cases the new source row and index populated from the
                 # c_graph connection.
                 if not src.terminal:
-                    ref: XEndPointRefABC = refs[src.idx][0]
-                    src.row = ref.get_row()
-                    src.idx = ref.get_idx()
+                    src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                 else:
                     # If the source is terminal then add its destination interface within the node
                     # to the connection stack if it has not already been added (visited).
@@ -221,7 +229,7 @@ class ExecutionContext:
                 node.f_connection = False
                 connection_stack.append(
                     CodeConnection(
-                        CodeEndPoint(node, SrcRow.I, node.gc["graph"]["Fdc"][0].get_idx()),
+                        CodeEndPoint(node, SrcRow.I, node.gc["cgraph"]["Fd"][0][1]),
                         CodeEndPoint(node, DstRow.F, 0, True),
                     )
                 )
@@ -229,7 +237,7 @@ class ExecutionContext:
         # Return the original node with the connections made
         return root
 
-    def code_lines(self, root: GCNode, lean: bool, fwconfig: FWConfig) -> list[str]:
+    def code_lines(self, root: GCNode, fwconfig: FWConfig) -> list[str]:
         """Return the code lines for the GC function.
         First list are the function lines.
         """
@@ -238,16 +246,19 @@ class ExecutionContext:
 
         # Doc string lines are at the top of the function are done first
         # then the actual code lines.
-        code: list[str] = [] if lean else self.docstring(fwconfig, root)
+        code: list[str] = [] if fwconfig.lean else self.docstring(fwconfig, root)
         ovns: list[str] = self.name_connections(root)
 
         # Apply optimisations
-        if lean or fwconfig.const_eval:
+        if fwconfig.const_eval:
             self.constant_evaluation(root)
-        if lean or fwconfig.cse:
+        if fwconfig.cse:
             self.common_subexpression_elimination(root)
-        if lean or fwconfig.simplification:
+        if fwconfig.simplification:
             self.simplification(root)
+        if fwconfig.result_cache:
+            # TODO: Add condition to check if the GC is eligible for caching
+            self.result_cache(root)
 
         # Write a line for each terminal node in the graph
         for node in (tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn is not root):
@@ -357,12 +368,15 @@ class ExecutionContext:
         exec(execution_str, self.namespace, lns)  # pylint: disable=exec-used
         return lns["result"]
 
-    def function_def(
-        self, node: GCNode, lean: bool = True, fwconfig: FWConfig = FWCONFIG_DEFAULT
-    ) -> str:
+    def function_def(self, node: GCNode, fwconfig: FWConfig = FWCONFIG_DEFAULT) -> str:
         """Create the function definition in the execution context including the imports."""
-        code = self.code_lines(node, lean, fwconfig)
-        code.insert(0, node.function_def(fwconfig.hints and not lean))
+        code = self.code_lines(node, fwconfig)
+        fstr, idefs = node.function_def(fwconfig.hints)
+        code.insert(0, fstr)
+        # Imports required for type hints.
+        for imp in (idef for idef in idefs if idef not in self.imports):
+            self.define(str(imp))
+            self.imports.add(imp)
         return "\n\t".join(code)
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
@@ -541,6 +555,15 @@ class ExecutionContext:
                     node_stack.append(gc_node_graph_entry)
         return gc_node_graph
 
+    def result_cache(self, root: GCNode) -> None:
+        """Apply result caching to the GC function.
+        This optimisations uses the functools lru_cache to cache the results of the function.
+        The cache is only applied if the GC is eligible for caching.
+        """
+        # Note: This is a placeholder for future implementation
+        # Need to figure out how to profile & resource manage the cache.
+        # Thoughts: Cache size is a function of usage & memory available.
+
     def simplification(self, root: GCNode) -> None:
         """Apply simplification to the GC function.
         This optimisations uses symbolic regression to simplify the code.
@@ -563,7 +586,7 @@ class ExecutionContext:
         Returns:
             GCNode: The GC node graph or None if the GC already exists as a suitable function.
         """
-        sig: bytes = gc.signature() if isinstance(gc, GCABC) else gc
+        sig: bytes = gc["signature"] if isinstance(gc, GCABC) else gc
         assert isinstance(sig, bytes), f"Invalid signature type: {type(sig)}"
 
         # Function already exists & is a reasonable size

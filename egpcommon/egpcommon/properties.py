@@ -2,8 +2,8 @@
 
 from enum import IntEnum
 
-from bitdict import bitdict_factory, BitDictABC
-from markdown import generate_markdown_tables
+from bitdict import BitDictABC, bitdict_factory
+from bitdict.markdown import generate_markdown_tables
 
 
 class GCType(IntEnum):
@@ -11,7 +11,7 @@ class GCType(IntEnum):
 
     CODON = 0
     ORDINARY = 1
-    RESERVED_2 = 2
+    META = 2
     RESERVED_3 = 3
 
 
@@ -33,7 +33,7 @@ class CGraphType(IntEnum):
     RESERVED_12 = 12
     RESERVED_13 = 13
     RESERVED_14 = 14
-    UNKNOWN = 15  # This is not a valid connection graph type. Used when constructing graphs.
+    UNKNOWN = 15  # The common subset
 
 
 PROPERTIES_CONFIG = {
@@ -42,7 +42,7 @@ PROPERTIES_CONFIG = {
         "start": 0,
         "width": 2,
         "default": 0,
-        "valid": {"range": [(2,)]},
+        "valid": {"range": [(3,)]},
         "description": ("GC type."),
     },
     "graph_type": {
@@ -104,8 +104,8 @@ PROPERTIES_CONFIG = {
     },
     "reserved2": {
         "type": "uint",
-        "start": 13,
-        "width": 3,
+        "start": 14,
+        "width": 2,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
@@ -140,14 +140,50 @@ PROPERTIES_CONFIG = {
                     ),
                 }
             },
+            {},
         ],
+    },
+    "consider_cache": {
+        "type": "bool",
+        "start": 24,
+        "width": 1,
+        "default": False,
+        "description": (
+            "Runtime property. "
+            "The genetic code is eligible for result caching. e.g. with the functool `lru_cache`."
+            "Runtime profiling and resource availability will determine if it is actually cached."
+        ),
     },
     "reserved3": {
         "type": "uint",
-        "start": 24,
-        "width": 40,
+        "start": 25,
+        "width": 7,
+        "default": 0,
+        "description": "Reserved for future 'Runtime properties'.",
+        "valid": {"value": {0}},
+    },
+    "reserved4": {
+        "type": "uint",
+        "start": 32,
+        "width": 24,
         "default": 0,
         "description": "Reserved for future use.",
+        "valid": {"value": {0}},
+    },
+    "useless": {
+        "type": "bool",
+        "start": 56,
+        "width": 1,
+        "default": False,
+        "description": "Codon management system property. Useless codons can be removed with no functional impact. They can occur through mutation and be difficult to spot.",
+        "valid": {"value": {0}},
+    },
+    "reserved5": {
+        "type": "uint",
+        "start": 57,
+        "width": 7,
+        "default": 0,
+        "description": "Reserved for future codon management use.",
         "valid": {"value": {0}},
     },
 }
@@ -183,7 +219,7 @@ PropertiesBD.assign_verification_function(_verify)
 
 # Standard Property Constants
 BASIC_CODON_PROPERTIES: int = PropertiesBD(
-    {"gc_type": GCType.CODON, "graph_type": CGraphType.STANDARD}
+    {"gc_type": GCType.CODON, "graph_type": CGraphType.PRIMITIVE}
 ).to_int()
 BASIC_ORDINARY_PROPERTIES: int = PropertiesBD(
     {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.STANDARD}

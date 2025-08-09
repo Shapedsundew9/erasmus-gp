@@ -28,7 +28,7 @@ _HEADER = b"JSON File Store for T types in EGP\n"
 class JSONFileStore(StoreBase, StoreABC):
     """A file based store for StorableObjABC objects using the json() method.
 
-    JSONFileStore is not intended to be quick or efficient in any way. It is inteded for
+    JSONFileStore is not intended to be quick or efficient in any way. It is intended for
     testing or as a place holder for a StoreABC object when a NullStore is not appropriate.
     By definition it is limited to JSONizable data types.
 

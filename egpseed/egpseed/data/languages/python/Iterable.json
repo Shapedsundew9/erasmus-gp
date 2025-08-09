@@ -2,7 +2,7 @@
     "all": {
         "inline": "all({i0})",
         "inputs": [
-            "Iterable[object]"
+            "-Iterable0[-Any0]"
         ],
         "description": "all true",
         "outputs": [
@@ -12,7 +12,7 @@
     "any": {
         "inline": "any({i0})",
         "inputs": [
-            "Iterable[object]"
+            "-Iterable0[-Any0]"
         ],
         "description": "any true",
         "outputs": [
@@ -22,238 +22,244 @@
     "enumerate": {
         "inline": "enumerate({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "-Iterable0[-Any0]"
         ],
         "description": "enumerate",
         "outputs": [
-            "Iterator[Pair[int, object1]]"
+            "Iterator[Pair[int, -Any0]]"
         ]
     },
     "iter": {
         "inline": "iter({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "-Iterable0[-Any0]"
         ],
         "description": "create iterator",
         "outputs": [
-            "Iterator[object1]"
+            "Iterator[-Any0]"
         ]
     },
     "max1": {
         "inline": "max({i0})",
         "inputs": [
-            "Iterable[egp_number1]"
+            "-Iterable0[-EGPNumber0]"
         ],
         "description": "maximum value",
         "outputs": [
-            "egp_number1"
+            "-EGPNumber0"
         ]
     },
     "max2": {
         "inline": "max({i0}, default={i1})",
         "inputs": [
-            "Iterable[egp_number1]",
-            "egp_number1"
+            "-Iterable0[-EGPNumber0]",
+            "-EGPNumber0"
         ],
         "description": "maximum value with default",
         "outputs": [
-            "egp_number1"
+            "-EGPNumber0"
         ]
     },
     "max3": {
         "inline": "max({i0}, key=len)",
         "inputs": [
-            "Iterable[Sized1]"
+            "-Iterable0[-Sized0]"
         ],
         "description": "maximum length",
         "outputs": [
-            "Sized1"
+            "-Sized0"
         ]
     },
     "max4": {
         "inline": "max({i0}, default={i1}, key=len)",
         "inputs": [
-            "Iterable[Sized1]",
-            "Sized1"
+            "-Iterable0[-Sized0]",
+            "-Sized0"
         ],
         "description": "maximum length with default",
         "outputs": [
-            "Sized1"
+            "-Sized0"
         ]
     },
     "min1": {
         "inline": "min({i0})",
         "inputs": [
-            "Iterable[egp_number1]"
+            "-Iterable0[-EGPNumber0]"
         ],
         "description": "minimum value",
         "outputs": [
-            "egp_number1"
+            "-EGPNumber0"
         ]
     },
     "min2": {
         "inline": "min({i0}, default={i1})",
         "inputs": [
-            "Iterable[egp_number1]",
-            "egp_number1"
+            "-Iterable0[-EGPNumber0]",
+            "-EGPNumber0"
         ],
         "description": "minimum value with default",
         "outputs": [
-            "egp_number1"
+            "-EGPNumber0"
         ]
     },
     "min3": {
         "inline": "min({i0}, key=len)",
         "inputs": [
-            "Iterable[Sized1]"
+            "-Iterable0[-Sized0]"
         ],
         "description": "minimum length",
         "outputs": [
-            "Sized1"
+            "-Sized0"
         ]
     },
     "min4": {
         "inline": "min({i0}, default={i1}, key=len)",
         "inputs": [
-            "Iterable[Sized1]",
-            "Sized1"
+            "-Iterable0[-Sized0]",
+            "-Sized0"
         ],
         "description": "minimum value with default",
         "outputs": [
-            "Sized1"
+            "-Sized0"
         ]
     },
     "sorted1": {
         "inline": "sorted({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "-Iterable0[-Any0]"
         ],
         "description": "sorted",
         "outputs": [
-            "list[object1]"
+            "list[-Any0]"
         ]
     },
     "sorted2": {
         "inline": "sorted({i0}, False)",
         "inputs": [
-            "Iterable[object1]"
+            "-Iterable0[-Any0]"
         ],
         "description": "sorted in reverse",
         "outputs": [
-            "list[object1]"
+            "list[-Any0]"
         ]
     },
     "sorted3": {
         "inline": "sorted({i0}, {i1})",
         "inputs": [
-            "Iterable[object1]",
+            "-Iterable0[-Any0]",
             "bool"
         ],
         "description": "optional reversible sorted",
         "outputs": [
-            "list[object1]"
+            "list[-Any0]"
         ]
     },
     "sum1": {
         "inline": "sum({i0})",
         "inputs": [
-            "Iterable[egp_number1]"
+            "-Iterable0[-EGPNumber0]"
         ],
         "description": "sum",
         "outputs": [
-            "egp_number1"
+            "-EGPNumber0"
         ]
     },
     "sum2": {
         "inline": "sum({i0}, {i1})",
         "inputs": [
-            "Iterable[egp_number1]",
-            "egp_integral"
+            "-Iterable0[-EGPNumber0]",
+            "-EGPIntegral0"
         ],
         "description": "sum from",
         "outputs": [
-            "egp_number1"
+            "-EGPNumber0"
         ]
     },
     "zip1": {
         "inline": "zip({i0}, {i1})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]"
+            "-Iterable0[-Any0]",
+            "-Iterable1[-Any1]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Pair[object1, object2]]"
+            "Iterator[Pair[-Any0, -Any1]]"
         ]
     },
     "zip2": {
         "inline": "zip({i0}, {i1}, {i2})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]"
+            "-Iterable0[-Any0]",
+            "-Iterable1[-Any1]",
+            "-Iterable2[-Any2]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Triplet[object1, object2, object3]]"
+            "Iterator[Triplet[-Any0, -Any1, -Any2]]"
         ]
     },
     "zip3": {
         "inline": "zip({i0}, {i1}, {i2}, {i3})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]"
+            "-Iterable0[-Any0]",
+            "-Iterable1[-Any1]",
+            "-Iterable2[-Any2]",
+            "-Iterable3[-Any3]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Quadruplet[object1, object2, object3, object4]]"
+            "Iterator[Quadruplet[-Any0, -Any1, -Any2, -Any3]]"
         ]
     },
     "zip4": {
         "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]",
-            "Iterable[object5]"
+            "-Iterable0[-Any0]",
+            "-Iterable1[-Any1]",
+            "-Iterable2[-Any2]",
+            "-Iterable3[-Any3]",
+            "-Iterable4[-Any4]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Quintuplet[object1, object2, object3, object4, object5]]"
+            "Iterator[Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]]"
         ]
     },
     "zip5": {
         "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]",
-            "Iterable[object5]",
-            "Iterable[object6]"
+            "-Iterable0[-Any0]",
+            "-Iterable1[-Any1]",
+            "-Iterable2[-Any2]",
+            "-Iterable3[-Any3]",
+            "-Iterable4[-Any4]",
+            "-Iterable5[-Any5]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Sextuplet[object1, object2, object3, object4, object5, object6]]"
+            "Iterator[Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]]"
         ]
     },
     "zip6": {
         "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5}, {i6})",
         "inputs": [
-            "Iterable[object1]",
-            "Iterable[object2]",
-            "Iterable[object3]",
-            "Iterable[object4]",
-            "Iterable[object5]",
-            "Iterable[object6]",
-            "Iterable[object7]"
+            "-Iterable0[-Any0]",
+            "-Iterable1[-Any1]",
+            "-Iterable2[-Any2]",
+            "-Iterable3[-Any3]",
+            "-Iterable4[-Any4]",
+            "-Iterable5[-Any5]",
+            "-Iterable6[-Any6]"
         ],
         "description": "zip",
+        "expand": false,
         "outputs": [
-            "Iterator[Septuplet[object1, object2, object3, object4, object5, object6, object7]]"
+            "Iterator[Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]]"
         ]
     }
 }

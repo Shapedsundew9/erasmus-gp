@@ -1,9 +1,9 @@
 {
-    "&1": {
+    "&=": {
         "inline": "{i0} &= {i1}",
         "inputs": [
-            "Set[Hashable]",
-            "Set[Hashable]"
+            "-MutableSet0[-Hashable0]",
+            "-Set0[-Hashable0]"
         ],
         "description": "intersection",
         "num_outputs": 0,
@@ -11,23 +11,11 @@
             "side_effects": true
         }
     },
-    "&2": {
-        "inline": "{i0} &= {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "intersection",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "-1": {
+    "-=": {
         "inline": "{i0} -= {i1}",
         "inputs": [
-            "Set[Hashable]",
-            "Set[Hashable]"
+            "-MutableSet0[-Hashable0]",
+            "-Set0[-Hashable0]"
         ],
         "description": "difference",
         "num_outputs": 0,
@@ -35,23 +23,11 @@
             "side_effects": true
         }
     },
-    "-2": {
-        "inline": "{i0} -= {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "difference",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "^1": {
+    "^=": {
         "inline": "{i0} ^= {i1}",
         "inputs": [
-            "Set[Hashable]",
-            "Set[Hashable]"
+            "-MutableSet0[-Hashable0]",
+            "-Set0[-Hashable0]"
         ],
         "description": "symmetric difference",
         "num_outputs": 0,
@@ -59,35 +35,11 @@
             "side_effects": true
         }
     },
-    "^2": {
-        "inline": "{i0} ^= {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
-        ],
-        "description": "symmetric difference",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "add1": {
+    "add": {
         "inline": "{i0}.add({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
-            "Hashable"
-        ],
-        "description": "add",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "add2": {
-        "inline": "{i0}.add({i1})",
-        "inputs": [
-            "MutableSet[Hashable1]",
-            "Hashable1"
+            "-MutableSet0[-Hashable0]",
+            "-Hashable0"
         ],
         "description": "add",
         "num_outputs": 0,
@@ -98,7 +50,7 @@
     "clear": {
         "inline": "{i0}.clear()",
         "inputs": [
-            "MutableSet[Hashable]"
+            "-MutableSet0[-Hashable0]"
         ],
         "description": "clear",
         "num_outputs": 0,
@@ -106,23 +58,11 @@
             "side_effects": true
         }
     },
-    "discard1": {
+    "discard": {
         "inline": "{i0}.discard({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
-            "Hashable"
-        ],
-        "description": "discard",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "discard2": {
-        "inline": "{i0}.discard({i1})",
-        "inputs": [
-            "MutableSet[Hashable1]",
-            "Hashable1"
+            "-MutableSet0[-Hashable0]",
+            "-Hashable0"
         ],
         "description": "discard",
         "num_outputs": 0,
@@ -133,22 +73,22 @@
     "pop": {
         "inline": "{i0}.pop()",
         "inputs": [
-            "MutableSet[Hashable1]"
+            "-MutableSet0[-Hashable0]"
         ],
         "description": "pop",
         "outputs": [
-            "Hashable1"
+            "-Hashable0"
         ],
         "properties": {
             "side_effects": true
         },
         "num_outputs": 1
     },
-    "remove1": {
+    "remove": {
         "inline": "{i0}.remove({i1})",
         "inputs": [
-            "MutableSet[Hashable]",
-            "Hashable"
+            "-MutableSet0[-Hashable0]",
+            "-Hashable0"
         ],
         "description": "remove",
         "num_outputs": 0,
@@ -156,35 +96,11 @@
             "side_effects": true
         }
     },
-    "remove2": {
-        "inline": "{i0}.remove({i1})",
-        "inputs": [
-            "MutableSet[Hashable1]",
-            "Hashable1"
-        ],
-        "description": "remove",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "|=1": {
+    "|=": {
         "inline": "{i0} |= {i1}",
-        "inputs": [
-            "Set[Hashable]",
-            "Set[Hashable]"
-        ],
-        "description": "union operator",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "|=2": {
-        "inline": "{i0} |= {i1}",
-        "inputs": [
-            "Set[Hashable1]",
-            "Set[Hashable1]"
+       "inputs": [
+            "-MutableSet0[-Hashable0]",
+            "-Set0[-Hashable0]"
         ],
         "description": "union operator",
         "num_outputs": 0,

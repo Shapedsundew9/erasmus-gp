@@ -2,7 +2,7 @@
     "bool": {
         "inline": "bool({i0})",
         "inputs": [
-            "object"
+            "-Any0"
         ],
         "description": "boolean value"
     }

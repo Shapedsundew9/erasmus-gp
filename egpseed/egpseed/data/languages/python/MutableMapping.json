@@ -2,16 +2,19 @@
     "clear": {
         "inline": "{i0}.clear()",
         "inputs": [
-            "MutableMapping[Hashable1, object1]"
+            "-MutableMapping0[-Hashable0, -Any0]"
         ],
         "description": "clear",
-        "num_outputs": 0
+        "num_outputs": 0,
+        "properties": {
+            "side_effects": true
+        }
     },
     "delitem": {
         "inline": "del {i0}[{i1}]",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1"
+            "-MutableMapping0[-Hashable0, -Any0]",
+            "-Hashable0"
         ],
         "description": "delitem",
         "num_outputs": 0,
@@ -22,12 +25,12 @@
     "pop": {
         "inline": "{i0}.pop({i1})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1"
+            "-MutableMapping0[-Hashable0, -Any0]",
+            "-Hashable0"
         ],
         "description": "pop",
         "outputs": [
-            "object1"
+            "-Any0"
         ],
         "properties": {
             "side_effects": true
@@ -36,40 +39,26 @@
     "popitem": {
         "inline": "{i0}.popitem()",
         "inputs": [
-            "MutableMapping[Hashable1, object1]"
+            "-MutableMapping0[-Hashable0, -Any0]"
         ],
         "description": "popitem",
         "outputs": [
-            "Pair[Hashable1, object1]"
+            "Pair[-Hashable0, -Any0]"
         ],
         "properties": {
             "side_effects": true
         }
     },
-    "setdefault1": {
+    "setdefault": {
         "inline": "{i0}.setdefault({i1}, {i2})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1",
-            "object1"
+            "-MutableMapping0[-Hashable0, -Any0]",
+            "-Hashable0",
+            "-Any0"
         ],
         "description": "setdefault",
         "outputs": [
-            "object1"
-        ],
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "setdefault2": {
-        "inline": "{i0}.setdefault({i1})",
-        "inputs": [
-            "MutableMapping[Hashable1, object]",
-            "Hashable1"
-        ],
-        "description": "setdefault",
-        "outputs": [
-            "object"
+            "-Any0"
         ],
         "properties": {
             "side_effects": true
@@ -78,9 +67,9 @@
     "setitem": {
         "inline": "{i0}[{i1}] = {i2}",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Hashable1",
-            "object1"
+            "-MutableMapping0[-Hashable0, -Any0]",
+            "-Hashable0",
+            "-Any0"
         ],
         "description": "setitem",
         "num_outputs": 0,
@@ -88,47 +77,11 @@
             "side_effects": true
         }
     },
-    "update1": {
+    "update": {
         "inline": "{i0}.update({i1})",
         "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Mapping[Hashable1, object1]"
-        ],
-        "description": "update",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "update2": {
-        "inline": "{i0}.update({i1})",
-        "inputs": [
-            "MutableMapping[Hashable1, object1]",
-            "Iterable[Pair[Hashable1, object1]]"
-        ],
-        "description": "update",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "update3": {
-        "inline": "{i0}.update({i1}, {i2})",
-        "inputs": [
-            "MutableMapping[Hashable, object]",
-            "Mapping[Hashable, object]"
-        ],
-        "description": "update",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "update4": {
-        "inline": "{i0}.update({i1}, {i2})",
-        "inputs": [
-            "MutableMapping[Hashable, object]",
-            "Iterable[Pair[Hashable, object]]"
+            "-MutableMapping0[-Hashable0, -Any0]",
+            "-Mapping0[-Hashable0, -Any0]"
         ],
         "description": "update",
         "num_outputs": 0,

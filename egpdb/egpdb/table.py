@@ -7,7 +7,6 @@ from typing import Any, Callable, Iterable, Literal
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.text_token import TextToken
-
 from egpdb.configuration import TableConfig
 from egpdb.raw_table import RawTable
 from egpdb.row_iterators import DictIter, GenIter, NamedTupleIter, RowIter, TupleIter
@@ -88,7 +87,7 @@ class Table:
 
         Returns
         -------
-        (dict) with the row values or an empty dict if the primary key does not exist.
+        (dict) with the row values or throws StopIteration if the primary key does not exist.
         """
         if self.raw.primary_key is None:
             raise ValueError("SELECT row on primary key but no primary key defined!")
@@ -114,17 +113,18 @@ class Table:
     def __setitem__(self, pk_value: Any, values: Any) -> None:
         """Upsert the row with primary key pk_value using values.
 
-        If values contains a different primary key value to pk_value, pk_value will
-        override it.
-
         Args
         ----
         pk_value (obj): A primary key value.
         values (obj): A dict of column:value
         """
-        new_values: Any = deepcopy(values)
-        new_values[self.raw.primary_key] = pk_value
-        self.upsert((new_values,))
+        # new_values: Any = deepcopy(values)
+        # new_values[self.raw.primary_key] = pk_value
+        if self.raw.primary_key not in values:
+            raise ValueError("Primary key must be included in upsert values")
+        if values[self.raw.primary_key] != pk_value:
+            raise ValueError("Primary key value must match")
+        self.upsert((values,))
 
     def _populate_table(self):
         """Add data to table after creation.
@@ -153,6 +153,31 @@ class Table:
     def columns(self) -> set[str]:
         """Return a tuple of all column names."""
         return self.raw.columns
+
+    def get(self, pk_value: Any, default: Any = None) -> Any:
+        """Query the table for the row with primary key value pk_value.
+
+        Args
+        ----
+        pk_value (obj): A primary key value.
+        default (obj): A default value to return if the primary key does not exist.
+
+        Returns
+        -------
+        (dict) with the row values or an empty dict if the primary key does not exist.
+        """
+        if self.raw.primary_key is None:
+            raise ValueError("SELECT row on primary key but no primary key defined!")
+        encoded_pk_value: Any = self.encode_value(self.raw.primary_key, pk_value)
+        try:
+            return next(
+                self.select(
+                    "WHERE {" + self.raw.primary_key + "} = {_pk_value}",
+                    {"_pk_value": encoded_pk_value},
+                )
+            )
+        except StopIteration:
+            return default
 
     def _return_container(self, columns: Iterable[str], values, container="dict") -> RowIter:
         _columns: Iterable[str] = self.raw.columns if columns == "*" else columns

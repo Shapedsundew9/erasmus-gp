@@ -1,23 +1,54 @@
 {
     "&": {
         "inline": "{i0} & {i1}",
-        "description": "bitwise AND"
+        "description": "bitwise AND",
+        "inputs": [
+            "-Integral0",
+            "-Integral1"
+        ],
+        "outputs": [
+            "EGPHighest"
+        ]
     },
     "<<": {
         "inline": "{i0} << {i1}",
-        "description": "left shift"
+        "description": "left shift",
+        "inputs": [
+            "-Integral0",
+            "-Integral1"
+        ],
+        "outputs": [
+            "EGPHighest"
+        ]
     },
     ">>": {
         "inline": "{i0} >> {i1}",
-        "description": "right shift"
+        "description": "right shift",
+        "inputs": [
+            "-Integral0",
+            "-Integral1"
+        ],
+        "outputs": [
+            "EGPHighest"
+        ]
     },
     "^": {
         "inline": "{i0} ^ {i1}",
-        "description": "bitwise XOR"
+        "description": "bitwise XOR",
+        "inputs": [
+            "-Integral0",
+            "-Integral1"
+        ],
+        "outputs": [
+            "EGPHighest"
+        ]
     },
     "chr": {
         "inline": "chr({i0})",
         "description": "character of the unicode",
+        "inputs": [
+            "-Integral0"
+        ],
         "outputs": [
             "str"
         ]
@@ -25,15 +56,34 @@
     "pow3": {
         "inline": "pow({i0}, {i1}, {i2})",
         "description": "raise to the power and modulo",
-        "num_inputs": 3
+        "inputs": [
+            "-Integral0",
+            "-Integral1",
+            "-Integral2"
+        ],
+        "outputs": [
+            "EGPHighest"
+        ]
     },
     "|": {
         "inline": "{i0} | {i1}",
-        "description": "bitwise OR"
+        "description": "bitwise OR",
+        "inputs": [
+            "-Integral0",
+            "-Integral1"
+        ],
+        "outputs": [
+            "EGPHighest"
+        ]
     },
     "~": {
         "inline": "~{i0}",
         "description": "bitwise NOT",
-        "num_inputs": 1
+        "inputs": [
+            "-Integral0"
+        ],
+        "outputs": [
+            "-Integral0"
+        ]
     }
 }

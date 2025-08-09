@@ -2,64 +2,64 @@
     "Quadruplet": {
         "inline": "({i0}, {i1}, {i2}, {i3})",
         "inputs": [
-            "object1",
-            "object2",
-            "object3",
-            "object4"
+            "-Any0",
+            "-Any1",
+            "-Any2",
+            "-Any3"
         ],
         "description": "Quadruplet",
         "outputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "-Quadruplet0[-Any0, -Any1, -Any2, -Any3]"
         ]
     },
     "item0": {
         "inline": "{i0}[0]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "-Quadruplet0[-Any0, -Any1, -Any2, -Any3]"
         ],
         "description": "first item",
         "outputs": [
-            "object1"
+            "-Any0"
         ]
     },
     "item1": {
         "inline": "{i0}[1]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "-Quadruplet0[-Any0, -Any1, -Any2, -Any3]"
         ],
         "description": "second item",
         "outputs": [
-            "object2"
+            "-Any1"
         ]
     },
     "item2": {
         "inline": "{i0}[2]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "-Quadruplet0[-Any0, -Any1, -Any2, -Any3]"
         ],
         "description": "third item",
         "outputs": [
-            "object3"
+            "-Any2"
         ]
     },
     "item3": {
         "inline": "{i0}[3]",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "-Quadruplet0[-Any0, -Any1, -Any2, -Any3]"
         ],
         "description": "fourth item",
         "outputs": [
-            "object4"
+            "-Any3"
         ]
     },
     "to_any": {
         "inline": "{i0}",
         "inputs": [
-            "Quadruplet[object1, object2, object3, object4]"
+            "-Quadruplet0[-Any0, -Any1, -Any2, -Any3]"
         ],
         "description": "to any",
         "outputs": [
-            "object"
+            "tuple"
         ]
     }
 }

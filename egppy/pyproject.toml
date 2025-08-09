@@ -1,3 +1,30 @@
-[tool.black]
-line-length = 100
-target-version = ['py312']
+[build-system]
+requires = ["setuptools>=61.0"] # Or your preferred build backend
+build-backend = "setuptools.build_meta"
+
+[project]
+name="egppy"
+version="1.0.0"
+readme="README.md"
+authors = [{ name = "Shaped Sundew", email = "16618209+Shapedsundew9@users.noreply.github.com" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+keywords = ["example", "package"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    # List your project's runtime dependencies here
+    # "requests",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shapedsundew9/erasumus-gp"
+"Bug Tracker" = "https://github.com/Shapedsundew9/erasumus-gp/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["egp*", "docs"]
+

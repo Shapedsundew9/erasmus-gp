@@ -3,9 +3,10 @@ FunctionInfo class for the function information in the execution context.
 This class is used to store the information about the executable function for the GC.
 """
 
-from typing import Callable, Sequence
 from dataclasses import dataclass
-from egppy.gc_types.gc import GCABC, NULL_GC
+from typing import Callable, Sequence
+
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 
 
 # For GC's with no executable (yet)
@@ -14,7 +15,7 @@ def NULL_EXECUTABLE(_: tuple) -> tuple:  # pylint: disable=invalid-name
     raise RuntimeError("NULL_EXECUTABLE should never be executed.")
 
 
-@dataclass
+@dataclass(slots=True)
 class FunctionInfo:
     """The information for a function in the execution context."""
 

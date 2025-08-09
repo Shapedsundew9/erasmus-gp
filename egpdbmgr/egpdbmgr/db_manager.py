@@ -20,17 +20,10 @@ The DB Manager is responsible for:
 from copy import deepcopy
 from os.path import dirname, join
 
-from egpcommon.common import GGC_KVT
-from egpcommon.properties import PropertiesBD
-from egpcommon.conversions import (
-    compress_json,
-    decompress_json,
-    list_int_to_bytes,
-)
+from egpcommon.gp_db_config import GGC_KVT, CONVERSIONS
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpdb.database import db_exists
 from egpdb.table import Table, TableConfig
-
 from egpdbmgr.configuration import TABLE_TYPES, DBManagerConfig
 
 # Standard EGP logging pattern
@@ -45,16 +38,6 @@ GP_SCHEMA = deepcopy(GGC_KVT)
 GP_SCHEMA["signature"] = GP_SCHEMA["signature"] | {"primary_key": True}
 SCHEMAS = {"pool": GP_SCHEMA, "library": GP_SCHEMA, "archive": GGC_KVT}
 assert set(SCHEMAS.keys()) == set(TABLE_TYPES)
-
-
-def encode_properties(properties: dict) -> int:
-    """Encode properties."""
-    return PropertiesBD(properties).to_int()
-
-
-def decode_properties(properties: int) -> dict:
-    """Decode properties."""
-    return PropertiesBD(properties).to_json()
 
 
 def initialize(config: DBManagerConfig) -> bool:
@@ -80,13 +63,7 @@ def initialize(config: DBManagerConfig) -> bool:
             create_table=True,
             data_file_folder=join(dirname(__file__), "data"),
             data_files=["codons.json"],
-            conversions=(
-                ("graph", compress_json, decompress_json),
-                ("meta_data", compress_json, decompress_json),
-                ("properties", encode_properties, decode_properties),
-                ("outputs", list_int_to_bytes, None),
-                ("inputs", list_int_to_bytes, None),
-            ),
+            conversions=CONVERSIONS,
         )
         _ = Table(table_config)
         return True

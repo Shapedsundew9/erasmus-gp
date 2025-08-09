@@ -1,2 +1,4 @@
 pygame
-bitdict
+requests
+black
+isort

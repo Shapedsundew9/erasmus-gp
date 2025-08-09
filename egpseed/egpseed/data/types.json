@@ -1,0 +1,647 @@
+{
+    "Any": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "typing"
+                ],
+                "name": "Any"
+            }
+        ]
+    },
+    "bool": {
+        "default": "True",
+        "parents": [
+            "int"
+        ]
+    },
+    "bytearray": {
+        "default": "bytearray('btwo')",
+        "parents": [
+            "MutableSequence[int]",
+            "Bytes"
+        ]
+    },
+    "bytes": {
+        "default": "bytes('btwo')",
+        "parents": [
+            "Sequence[int]",
+            "Hashable",
+            "Bytes"
+        ]
+    },
+    "Bytes": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Bytes"
+            }
+        ]
+    },
+    "Callable[list[type], Any]": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Callable"
+            }
+        ],
+        "parents": [
+            "object"
+        ],
+        "tt": 2
+    },
+    "Collection[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Collection"
+            }
+        ],
+        "parents": [
+            "Sized",
+            "Iterable[-Any0]",
+            "Container[-Any0]"
+        ],
+        "tt": 1
+    },
+    "complex": {
+        "default": "complex(2.0,-2.0)",
+        "parents": [
+            "Complex"
+        ]
+    },
+    "Complex": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Complex"
+            }
+        ],
+        "parents": [
+            "Number",
+            "EGPComplex"
+        ]
+    },
+    "Container[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Container"
+            }
+        ],
+        "parents": [
+            "object"
+        ],
+        "tt": 1
+    },
+    "dict[-Hashable0, -Any0]": {
+        "default": "{}",
+        "parents": [
+            "MutableMapping[-Hashable0, -Any0]"
+        ],
+        "tt": 2
+    },
+    "EGPComplex": {
+        "abstract": true
+    },
+    "EGPIntegral": {
+        "abstract": true
+    },
+    "EGPInvalid": {
+        "abstract": true
+    },
+    "EGPNumber": {
+        "abstract": true
+    },
+    "EGPRational": {
+        "abstract": true
+    },
+    "EGPReal": {
+        "abstract": true
+    },
+    "float": {
+        "default": "(2.0)",
+        "parents": [
+            "Real"
+        ]
+    },
+    "frozenset[-Hashable0]": {
+        "default": "frozenset()",
+        "parents": [
+            "Set[-Hashable0]",
+            "Hashable"
+        ],
+        "tt": 1
+    },
+    "Generator[-Any0, -Any1, -Any2]": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Generator"
+            }
+        ],
+        "parents": [
+            "object"
+        ],
+        "tt": 3
+    },
+    "Hashable": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Hashable"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "int": {
+        "default": "(2)",
+        "parents": [
+            "Integral"
+        ]
+    },
+    "Integral": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Integral"
+            }
+        ],
+        "parents": [
+            "Rational",
+            "EGPIntegral"
+        ]
+    },
+    "ItemsView[-Hashable0, -Any0]": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "ItemsView"
+            }
+        ],
+        "parents": [
+            "MappingView",
+            "Set[Pair[-Hashable0, -Any0]]",
+            "Reversible[Pair[-Hashable0, -Any0]]"
+        ],
+        "tt": 2
+    },
+    "Iterable[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Iterable"
+            }
+        ],
+        "parents": [
+            "object"
+        ],
+        "tt": 1
+    },
+    "Iterator[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Iterator"
+            }
+        ],
+        "parents": [
+            "Iterable[-Any0]"
+        ],
+        "tt": 1
+    },
+    "KeysView[-Hashable0]": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "KeysView"
+            }
+        ],
+        "parents": [
+            "MappingView",
+            "Set[-Hashable0]",
+            "Reversible[-Hashable0]"
+        ],
+        "tt": 1
+    },
+    "list[-Any0]": {
+        "default": "[]",
+        "parents": [
+            "MutableSequence[-Any0]"
+        ],
+        "tt": 1
+    },
+    "Mapping[-Hashable0, Any]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Mapping"
+            }
+        ],
+        "parents": [
+            "Collection[-Hashable0]"
+        ],
+        "tt": 2
+    },
+    "MappingView": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MappingView"
+            }
+        ],
+        "parents": [
+            "Sized"
+        ]
+    },
+    "MutableMapping[-Hashable0, -Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MutableMapping"
+            }
+        ],
+        "parents": [
+            "Mapping[-Hashable0, -Any0]"
+        ],
+        "tt": 2
+    },
+    "MutableSequence[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MutableSequence"
+            }
+        ],
+        "parents": [
+            "Sequence[-Any0]"
+        ],
+        "tt": 1
+    },
+    "MutableSet[-Hashable0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "MutableSet"
+            }
+        ],
+        "parents": [
+            "Set[-Hashable0]"
+        ],
+        "tt": 1
+    },
+    "None": {
+        "default": "None",
+        "parents": [
+            "object"
+        ]
+    },
+    "Number": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Number"
+            }
+        ],
+        "parents": [
+            "Hashable",
+            "EGPNumber"
+        ]
+    },
+    "object": {
+        "abstract": true,
+        "default": "object()"
+    },
+    "Pair[-Any0, -Any1]": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Pair"
+            }
+        ],
+        "parents": [
+            "tuple"
+        ],
+        "tt": 2
+    },
+    "Quadruplet[-Any0, -Any1, -Any2, -Any3]": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Quadruplet"
+            }
+        ],
+        "parents": [
+            "tuple"
+        ],
+        "tt": 4
+    },
+    "Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Quintuplet"
+            }
+        ],
+        "parents": [
+            "tuple"
+        ],
+        "tt": 5
+    },
+    "range": {
+        "default": "range(2)",
+        "parents": [
+            "Sequence[int]",
+            "Hashable"
+        ]
+    },
+    "Rational": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Rational"
+            }
+        ],
+        "parents": [
+            "Real",
+            "EGPRational"
+        ]
+    },
+    "Real": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "numbers"
+                ],
+                "name": "Real"
+            }
+        ],
+        "parents": [
+            "Complex",
+            "EGPReal"
+        ]
+    },
+    "Reversible[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Reversible"
+            }
+        ],
+        "parents": [
+            "Iterable[-Any0]"
+        ],
+        "tt": 1
+    },
+    "Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Septuplet"
+            }
+        ],
+        "parents": [
+            "tuple"
+        ],
+        "tt": 7
+    },
+    "Sequence[-Any0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Sequence"
+            }
+        ],
+        "parents": [
+            "Reversible[-Any0]",
+            "Collection[-Any0]"
+        ],
+        "tt": 1
+    },
+    "set[-Hashable0]": {
+        "default": "set()",
+        "parents": [
+            "MutableSet[-Hashable0]"
+        ],
+        "tt": 1
+    },
+    "Set[-Hashable0]": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Set"
+            }
+        ],
+        "parents": [
+            "Collection[-Hashable0]"
+        ],
+        "tt": 1
+    },
+    "Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Sextuplet"
+            }
+        ],
+        "parents": [
+            "tuple"
+        ],
+        "tt": 6
+    },
+    "Sized": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "Sized"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "str": {
+        "default": "two",
+        "parents": [
+            "Sequence[str]",
+            "Hashable"
+        ]
+    },
+    "Triplet[-Any0, -Any1, -Any2]": {
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "c_graph",
+                    "end_point",
+                    "egp_ept_types"
+                ],
+                "name": "Triplet"
+            }
+        ],
+        "parents": [
+            "tuple"
+        ],
+        "tt": 3
+    },
+    "tuple[-Any0, ...]": {
+        "default": "tuple()",
+        "parents": [
+            "Sequence[-Any0]",
+            "Hashable"
+        ],
+        "tt": 1
+    },
+    "type": {
+        "default": "type('two')",
+        "parents": [
+            "object"
+        ]
+    },
+    "ValuesView[-Any0]": {
+        "imports": [
+            {
+                "aip": [
+                    "collections",
+                    "abc"
+                ],
+                "name": "ValuesView"
+            }
+        ],
+        "parents": [
+            "MappingView",
+            "Collection[-Any0]",
+            "Reversible[-Any0]"
+        ],
+        "tt": 1
+    },
+    "XGCType": {
+        "default": "XGCType()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "gc_types",
+                    "ggc_class_factory"
+                ],
+                "name": "XGCType"
+            }
+        ]
+    }
+}

@@ -1,15 +1,18 @@
 {
     "tuple0": {
         "inline": "tuple()",
-        "num_inputs": 0
+        "num_inputs": 0,
+        "outputs": [
+            "tuple[-Any0, ...]"
+        ]
     },
     "tuple1": {
         "inline": "tuple({i0})",
         "inputs": [
-            "Iterable[object1]"
+            "-Iterable0[-Any0]"
         ],
         "outputs": [
-            "tuple[object1, ...]"
+            "tuple[-Any0, ...]"
         ]
     }
 }

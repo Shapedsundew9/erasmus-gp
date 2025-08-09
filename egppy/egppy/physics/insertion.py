@@ -5,8 +5,8 @@ Defines how a insert GC (iGC) is inserted into a target GC (tGC).
 
 from random import randint
 
-from egppy.gc_types.egc_class_factory import EGCDirtyDict
-from egppy.gc_types.gc import GCABC
+from egppy.genetic_code.egc_class_factory import EGCDict
+from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 
 
@@ -26,8 +26,9 @@ def insert_gc_case_0(tgc: GCABC, igc: GCABC, gp: GenePoolInterface, empty: bool 
         "Bs": tgc["Od"],
         "Od": tgc["Od"],
     }
-    rgc = EGCDirtyDict(
-        {"gca": tgc, "gcb": igc, "ancestora": tgc, "ancestorb": igc, "c_graph": graph}
+    rgc = EGCDict(
+        {"gca": tgc, "gcb": igc, "ancestora": tgc,
+            "ancestorb": igc, "c_graph": graph}
     )
 
     return rgc["c_graph"].stablize(gp, empty)
@@ -41,7 +42,8 @@ def insert_gc_case_1(tgc: GCABC, igc: GCABC, gp: GenePoolInterface, empty: bool 
     gp -- the gene pool
     empty -- whether the interface of the resultant GC is defined (i.e cannot be changed)
     """
-    rgc = EGCDirtyDict({"gca": igc, "gcb": tgc, "ancestora": igc, "ancestorb": tgc})
+    rgc = EGCDict(
+        {"gca": igc, "gcb": tgc, "ancestora": igc, "ancestorb": tgc})
     return rgc["c_graph"].stablize(gp, empty)
 
 

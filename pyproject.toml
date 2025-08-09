@@ -1,3 +1,49 @@
 [tool.black]
 line-length = 100
-target-version = ['py312']
+target-version = ['py312'] # Set your target Python version
+
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+
+[tool.pyright]
+# These settings will apply to Pylance in VS Code and the pre-commit hook.
+exclude = [
+    "**/__pycache__",
+    "**/.pytest_cache",
+]
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+reportUnknownArgumentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownMemberType = "none"
+reportUnnecessaryIsInstance = "none"
+
+
+[tool.pylint.format]
+max-line-length = 100
+
+
+[tool.pylint.messages-control]
+disable = [
+    "W2301", # Unnecessary use of ellipsis - for readability
+    "W0107", # Unnecessary pass statement - for readability
+    "fixme", # Disable all fixme messages - just whilst in development
+]
+
+[tool.pylint.'MAIN']
+# The 'init-hook' option goes under the 'MAIN' sub-table.
+# Use triple quotes for the multi-line string.
+init-hook = """
+import sys, os;
+# Add all subdirectories that contain a pyproject.toml to the path.
+import sys;
+import os;
+# Add all subdirectories that contain a pyproject.toml to the path.
+for dir in os.listdir("."):
+    if os.path.isdir(dir) and os.path.exists(os.path.join(dir, "pyproject.toml")):
+        sys.path.append(os.path.abspath(dir))
+"""

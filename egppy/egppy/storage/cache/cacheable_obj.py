@@ -5,8 +5,8 @@ from copy import deepcopy
 from typing import Any, Iterable, Iterator
 
 from egpcommon.common import NULL_TUPLE
+from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cacheable_obj_mixin import CacheableObjMixin
 
@@ -17,7 +17,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
+class CacheableDict(MutableMapping, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable Dictionary Class.
     The CacheableDict uses a builtin dictionary for storage but wraps the __setitem__
     and update methods to mark the object as dirty when modified. This makes it slightly
@@ -92,14 +92,14 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CacheableObjABC):
         """Return a JSON serializable dictionary."""
         return deepcopy(x=self.data)
 
-    def verify(self) -> None:
+    def verify(self) -> bool:
         """Verify the cacheable object."""
         non_str_keys = tuple(x for x in self if not isinstance(x, str))
         assert not non_str_keys, f"Keys must be strings: Non-string keys {non_str_keys}."
-        super().verify()
+        return super().verify()
 
 
-class CacheableList(MutableSequence, CacheableObjMixin, CacheableObjABC):
+class CacheableList(MutableSequence, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable List Class.
     The CacheableList uses a builtin list for storage but implements the MutableSequence
     interface to mark the object as dirty when modified. This makes it slightly
@@ -158,7 +158,7 @@ class CacheableList(MutableSequence, CacheableObjMixin, CacheableObjABC):
         return deepcopy(x=self.data)
 
 
-class CacheableTuple(Sequence, CacheableObjMixin, CacheableObjABC):
+class CacheableTuple(Sequence, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable Tuple Class.
     Cacheable tuple objects cannot be modified so will never mark themseleves dirty.
     However, the dirty() and clean() methods are provided for consistency and can be used
@@ -195,7 +195,7 @@ class CacheableTuple(Sequence, CacheableObjMixin, CacheableObjABC):
         return list(deepcopy(self.data))
 
 
-class CacheableSet(MutableSet, CacheableObjMixin, CacheableObjABC):
+class CacheableSet(MutableSet, CacheableObjMixin, CommonObj, CacheableObjABC):
     """Cacheable Set Class.
     The CacheableSet uses a builtin set for storage but implements the MutableSet
     interface to mark the object as dirty when modified. This makes it slightly
