@@ -80,7 +80,8 @@
         "inline": "{i0}.isdisjoint({i1})",
         "description": "isdisjoint",
         "inputs": [
-            "-Set0[-Hashable0]"
+            "-Set0[-Hashable0]",
+            "-Set1[-Hashable0]"
         ],
         "outputs": [
             "bool"

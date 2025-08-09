@@ -125,6 +125,7 @@
         ],
         "inline": "random()",
         "inputs": [],
+        "num_inputs": 0,
         "outputs": [
             "float"
         ],

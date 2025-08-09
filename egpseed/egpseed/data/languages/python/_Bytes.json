@@ -447,8 +447,7 @@
         "inline": "{i0}.ljust({i1})",
         "inputs": [
             "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
+            "-EGPIntegral0"
         ],
         "description": "left justify with space",
         "outputs": [
