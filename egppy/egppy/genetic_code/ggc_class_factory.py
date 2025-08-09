@@ -149,6 +149,7 @@ class GGCMixin(EGCMixin):
         self["fitness"] = self["f_total"] / self["f_count"]
         self["imports"] = gcabc.get("imports", NULL_TUPLE)
         self["inline"] = gcabc.get("inline", NULL_STR)
+        self["code"] = gcabc.get("code", NULL_STR)
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]
@@ -165,8 +166,9 @@ class GGCMixin(EGCMixin):
         ):
             base = self["meta_data"]["function"]["python3"]["0"]
             self["inline"] = base["inline"]
-            if "imports" in base and not isinstance(base["imports"], tuple):
-                base["imports"] = self["imports"] = tuple(ImportDef(**md) for md in base["imports"])
+            self["code"] = base.get("code", NULL_STR)
+            if "imports" in base:
+                self["imports"] = tuple(ImportDef(**md) for md in base["imports"])
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
@@ -195,7 +197,9 @@ class GGCMixin(EGCMixin):
                 self["gcb"],
                 self["cgraph"].to_json(),
                 self["pgc"],
-                self["meta_data"],
+                self["imports"],
+                self["inline"],
+                self["code"],
                 int(self["created"].timestamp()),
                 self["creator"].bytes,
             )

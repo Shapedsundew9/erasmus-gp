@@ -109,6 +109,8 @@ def generate_meta_codons(write: bool = False) -> None:
             base["name"] = base["name"].replace(s, r)
 
         new_codon = GGCDict(codon)
+        if not new_codon.verify():
+            raise ValueError(f"Meta codon verification failed: {codon}")
         new_codon.consistency()
         codon = new_codon.to_json()
         meta_codons.append(codon)

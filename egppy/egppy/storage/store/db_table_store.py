@@ -36,22 +36,23 @@ class DBTableStore(StoreBase, StoreABC):
 
     def __delitem__(self, key: Any) -> None:
         """Delete an item in the store."""
-        self.table.delete("{pk} = {value}", literals={"value": key})
+        self.table.delete(f"{self._pk}" + " = {_value_}", literals={"_value_": key})
 
     def __getitem__(self, key: Any) -> Any:
         """Get an item from the store."""
-        try:
-            return tuple(
-                self.table.select(
-                    "WHERE {pk} = {key}", columns=self._columns, literals={"key": key}
-                )
-            )[0]
-        except IndexError as exc:
-            raise KeyError("Key not found") from exc
+        retval = tuple(
+            self.table.select(
+                f"WHERE {self._pk}" + " = {_key_}",
+                literals={"_key_": key},
+            )
+        )
+        if len(retval) != 1:
+            raise KeyError(f"{len(retval)} keys found key = '{key}'")
+        return self.flavor(retval[0])
 
     def __setitem__(self, key: Any, value: StorableObjABC) -> None:
         """Set an item in the store. NOTE this is an UPSERT operation."""
-        self.table[key] = value.to_json()
+        self.table[key] = value  # .to_json()
 
     def __iter__(self) -> Iterator:
         """Iterate over the store."""
@@ -67,17 +68,15 @@ class DBTableStore(StoreBase, StoreABC):
         return (key[0] for key in self.table.select(columns=[self._pk], container="tuple"))
 
     def items(self) -> Iterator:  # type: ignore
-        """Get the items of the store.
-        In the store interface the primary key is not returned as part of the value.
-        """
+        """Get the items of the store."""
         return (
             (
                 item[self.table.raw.primary_key],
-                {k: v for k, v in item.items() if k != self._pk},
+                item,
             )
             for item in self.table.select()
         )
 
     def values(self) -> Iterator:  # type: ignore
         """Get the values of the store."""
-        return self.table.select(columns=self._columns)
+        return self.table.select()

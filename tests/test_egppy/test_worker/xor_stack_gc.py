@@ -21,25 +21,16 @@ from json import dump
 from random import choice, randint, random, seed, shuffle
 from tempfile import NamedTemporaryFile
 from time import time
+from typing import Any
 
 from egpcommon.common import bin_counts
-from egpcommon.egp_log import (
-    CONSISTENCY,
-    DEBUG,
-    VERIFY,
-    Logger,
-    egp_logger,
-    enable_debug_logging,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
+from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
-from egppy.worker.executor.execution_context import (
-    ExecutionContext,
-    FunctionInfo,
-    GCNode,
-)
+from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
 from egppy.worker.gc_store import GGC_CACHE
 
 # Standard EGP logging pattern
@@ -64,35 +55,55 @@ CONSISTENCY_SAMPLE = 1.0
 
 # Right shift codon
 rshift_gc = GGC_CACHE[
-    bytes.fromhex("4d8b4f80539109ab38684002bc119aadfbf2f94bf1d54e8891eb05219ab2e8d2")
+    bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
 ]
 # Literal 1 codon
 literal_1_gc = GGC_CACHE[
-    bytes.fromhex("3fde1df1a5100ca05dcdaf3449f6f1b1e4468b5651efba50aebebcd73d930acb")
+    bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
 ]
 # This is the Integral type XOR but it does not matter for this
 xor_gc = GGC_CACHE[
-    bytes.fromhex("d7bf3e6ce99ecc6bf31f90e8cf0c20e6888a07059a016e8a977dca981db57580")
+    bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
 ]
 getrandbits_gc = GGC_CACHE[
-    bytes.fromhex("39da3d58c6a28424433c9c6170e12daf261a8870f265a0e4b972f8f75d23c79e")
+    bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
 ]
 sixtyfour_gc = GGC_CACHE[
-    bytes.fromhex("bb0e0bba9a1bea22140158f52192813dec974f555323e71691ad9b1feed895e4")
+    bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
 ]
 custom_pgc = GGC_CACHE[
-    bytes.fromhex("fbe6e87558533a387c867b3669e5d1369ba1eab3a3a4a4e9f5a98024a1893d67")
+    bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")
 ]
 
+
+# Find a GC in the cache
+def find_gc(signature: bytes) -> GCABC:
+    """Find a GC in the cache."""
+    retval = GGC_CACHE[signature]
+    assert isinstance(retval, GCABC), f"GC with signature {signature.hex()} is not a GCABC object."
+    return retval
+
+
+def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
+    """Create a EGC, inherit members and create a GGC."""
+    egc = EGCDict(gc)
+    egc.resolve_inherited_members(find_gc)
+    ggc = GGCDict(egc)
+    if check and (not ggc.verify or not ggc.consistency()):
+        raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
+    GGC_CACHE[ggc["signature"]] = ggc
+    return ggc
+
+
 # random_long_gc signature:
-random_long_gc = GGCDict(
+random_long_gc = inherit_members(
     {
         "ancestora": sixtyfour_gc,
         "ancestorb": getrandbits_gc,
         "created": "2025-03-29 22:05:08.489847+00:00",
         "gca": sixtyfour_gc,
         "gcb": getrandbits_gc,
-        "graph": {
+        "cgraph": {
             "A": [],
             "B": [["A", 0, "int"]],
             "O": [["B", 0, "int"]],
@@ -103,8 +114,6 @@ random_long_gc = GGCDict(
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
-random_long_gc.consistency()
-GGC_CACHE[random_long_gc["signature"]] = random_long_gc
 
 
 # Shift right by one GC function. Note that this function needs to
@@ -118,7 +127,7 @@ def f_7fffffff(i: tuple[int]) -> int:
 
 
 # rshift_1_gc signature:
-rshift_1_gc = GGCDict(
+rshift_1_gc = inherit_members(
     {
         "ancestora": literal_1_gc,
         "ancestorb": rshift_gc,
@@ -127,7 +136,7 @@ rshift_1_gc = GGCDict(
         "gca": literal_1_gc["signature"],  # Makes the structure of this GC unknown
         "gcb": rshift_gc,
         "generation": 2,
-        "graph": {
+        "cgraph": {
             "A": [],
             "B": [["I", 0, "int"], ["A", 0, "int"]],
             "O": [["B", 0, "int"]],
@@ -140,18 +149,17 @@ rshift_1_gc = GGCDict(
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
-rshift_1_gc.consistency()
-GGC_CACHE[rshift_1_gc["signature"]] = rshift_1_gc
+
 
 # rshift_xor_gc signature:
-rshift_xor_gc = GGCDict(
+rshift_xor_gc = inherit_members(
     {
         "ancestora": rshift_1_gc,
         "ancestorb": xor_gc,
         "created": "2025-03-29 22:05:08.489847+00:00",
         "gca": rshift_1_gc,
         "gcb": xor_gc,
-        "graph": {
+        "cgraph": {
             "A": [["I", 1, "int"]],
             "B": [["I", 0, "int"], ["A", 0, "int"]],
             "O": [["B", 0, "int"]],
@@ -162,18 +170,17 @@ rshift_xor_gc = GGCDict(
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
-rshift_xor_gc.consistency()
-GGC_CACHE[rshift_xor_gc["signature"]] = rshift_xor_gc
+
 
 # one_to_two signature:
-one_to_two = GGCDict(
+one_to_two = inherit_members(
     {
         "ancestora": random_long_gc,
         "ancestorb": rshift_xor_gc,
         "created": "2025-03-29 22:05:08.489847+00:00",
         "gca": random_long_gc,
         "gcb": rshift_xor_gc,
-        "graph": {
+        "cgraph": {
             "A": [],
             "B": [["I", 0, "int"], ["A", 0, "int"]],
             "O": [["B", 0, "int"], ["A", 0, "int"]],
@@ -184,8 +191,6 @@ one_to_two = GGCDict(
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
 )
-one_to_two.consistency()
-GGC_CACHE[one_to_two["signature"]] = one_to_two
 two_to_one = rshift_xor_gc
 
 
@@ -211,13 +216,13 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """
     gca: GCABC = gc1
     gcb: GCABC = gc2
-    gcx = GGCDict(
+    return inherit_members(
         {
             "ancestora": gca,
             "ancestorb": gcb,
             "gca": gca,
             "gcb": gcb,
-            "graph": {
+            "cgraph": {
                 "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
                 "B": [["I", i, INT_T] for i in randomrange(gca["num_inputs"], gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
@@ -228,11 +233,9 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
-        }
+        },
+        random() < CONSISTENCY_SAMPLE,
     )
-    if random() < CONSISTENCY_SAMPLE:
-        gcx.consistency()
-    return gcx
 
 
 def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
@@ -244,13 +247,13 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """
     gca: GCABC = gc1
     gcb: GCABC = gc2
-    gcx = GGCDict(
+    return inherit_members(
         {
             "ancestora": gca,
             "ancestorb": gcb,
             "gca": gca,
             "gcb": gcb,
-            "graph": {
+            "cgraph": {
                 "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
                 "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
@@ -261,11 +264,9 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
-        }
+        },
+        random() < CONSISTENCY_SAMPLE,
     )
-    if random() < CONSISTENCY_SAMPLE:
-        gcx.consistency()
-    return gcx
 
 
 def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
@@ -298,13 +299,13 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     GCA's outputs are randomly connected to GCB's inputs.
     """
     assert gc1["num_outputs"] == gc2["num_inputs"], "gc1 # outputs != gc2 # inputs"
-    gcx = GGCDict(
+    return inherit_members(
         {
             "ancestora": gc1,
             "ancestorb": gc2,
             "gca": gc1,
             "gcb": gc2,
-            "graph": {
+            "cgraph": {
                 "A": [["I", i, INT_T] for i in randomrange(gc1["num_inputs"])],
                 "B": [["A", i, INT_T] for i in randomrange(gc2["num_inputs"])],
                 "O": [["B", i, INT_T] for i in randomrange(gc2["num_outputs"])],
@@ -314,11 +315,9 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gc1["num_codons"] + gc2["num_codons"],
-        }
+        },
+        random() < CONSISTENCY_SAMPLE,
     )
-    if random() < CONSISTENCY_SAMPLE:
-        gcx.consistency()
-    return gcx
 
 
 def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
@@ -370,7 +369,6 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
             gcb = choice(tuple(_gcm[num_b][num_outputs - gca["num_outputs"]]))
             ngc = append_gcs(gca, gcb)
             target_set.append(ngc)
-            GGC_CACHE[ngc["signature"]] = ngc
             assert ngc["num_inputs"] == num_inputs, f"ngx # inputs != {num_inputs}"
             assert ngc["num_outputs"] == num_outputs, f"ngx # outputs != {num_outputs}"
     return _gcm
@@ -416,7 +414,6 @@ def expand_gc_matrix(
                     gcb = choice(matrix[num_ia][num_outputs])
                     ngc = stack_gcs(gca, gcb)
                 matrix[num_inputs][num_outputs].append(ngc)
-                GGC_CACHE[ngc["signature"]] = ngc
     return matrix
 
 

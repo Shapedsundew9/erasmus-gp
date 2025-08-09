@@ -56,7 +56,7 @@ def parse_toplevel_args(type_string: str) -> list[str]:
     content = match.group(1)
 
     # Step 2: Manually parse the content to split by top-level commas.
-    args = []
+    _args = []
     bracket_level = 0
     current_arg_start_index = 0
 
@@ -69,16 +69,16 @@ def parse_toplevel_args(type_string: str) -> list[str]:
             # This comma is at the top level, so it's a delimiter.
             # Extract the argument found so far.
             arg = content[current_arg_start_index:i].strip()
-            args.append(arg)
+            _args.append(arg)
             # Set the starting point for the next argument.
             current_arg_start_index = i + 1
 
     # After the loop, add the final argument (the one after the last comma).
     last_arg = content[current_arg_start_index:].strip()
     if last_arg:
-        args.append(last_arg)
+        _args.append(last_arg)
 
-    return args
+    return _args
 
 
 def generate_types_def(write: bool = False) -> None:

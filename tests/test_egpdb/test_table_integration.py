@@ -233,46 +233,43 @@ class TableIntegrationTest(TestCase):
         self.assertTrue(all(result[k] == v for k, v in expected_decoded.items()))
         self.assertTrue(all(raw_result[k] == v for k, v in expected_raw.items()))
 
-    def test_setitem_mismatch_pk(self) -> None:
-        """When setting an item and specifying the primary key in the
-        value the setitem key takes precedence."""
+    def test_setitem_missing_pk(self) -> None:
+        """Validate setitem raises ValueError when primary key missing from values dict."""
         _logger.debug(stack()[0][3])
         config = deepcopy(_CONFIG)
         # deepcode ignore unguarded~next~call: infinite counter
         config["database"]["dbname"] = f"test_db_{next(_DB_COUNTER)}"
         t = Table(config)
-        setitem = {
-            "id": 22,
-            "left": 9,
-            "right": 12,
-            "uid": 122,
-            "metadata": [34, 78],
-            "name": "rOoT",
+        setitem_missing_pk = {
+            # 'id' intentionally omitted
+            "left": 1,
+            "right": 2,
+            "uid": 300,
+            "metadata": None,
+            "name": "no_pk",
         }
-        expected_decoded = {
-            "id": 28,
-            "left": 9,
-            "right": 12,
-            "uid": 122,
-            "metadata": [34, 78],
-            "name": "rOoT",
+        with self.assertRaises(ValueError) as context:
+            t[999] = setitem_missing_pk  # noqa: F841
+        self.assertEqual(str(context.exception), "Primary key must be included in upsert values")
+
+    def test_setitem_pk_mismatch(self) -> None:
+        """Validate setitem raises ValueError when supplied pk does not match values dict."""
+        _logger.debug(stack()[0][3])
+        config = deepcopy(_CONFIG)
+        # deepcode ignore unguarded~next~call: infinite counter
+        config["database"]["dbname"] = f"test_db_{next(_DB_COUNTER)}"
+        t = Table(config)
+        setitem_mismatch = {
+            "id": 10,  # Different from pk provided below
+            "left": 1,
+            "right": 2,
+            "uid": 300,
+            "metadata": None,
+            "name": "mismatch",
         }
-        expected_raw = {
-            "id": 28,
-            "left": 9,
-            "right": 12,
-            "uid": 122,
-            "metadata": [34, 78],
-            "name": "rOoT",
-        }
-        t[28] = setitem
-        result = t[28]
-        # deepcode ignore unguarded~next~call: test case
-        raw_result = dict(zip(t.raw.columns, next(t.raw.select("WHERE {id} = 28")), strict=True))
-        self.assertTrue(all(result[k] == v for k, v in expected_decoded.items()))
-        self.assertTrue(all(raw_result[k] == v for k, v in expected_raw.items()))
-        with self.assertRaises(KeyError):
-            _ = t[22]
+        with self.assertRaises(ValueError) as context:
+            t[11] = setitem_mismatch  # noqa: F841
+        self.assertEqual(str(context.exception), "Primary key value must match")
 
     def test_select_tuple(self) -> None:
         """Validate select returning a tuple."""

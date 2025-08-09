@@ -119,9 +119,14 @@ class Interface(FreezableObject):
                     raise ValueError(f"Invalid endpoint sequence length: {len(ep)} != 3")
                 if row is None or row not in DESTINATION_ROW_SET:
                     raise ValueError(
-                        "A valid destination row must be specified (row in DESTINATION_ROW_SET) if using triplet format."
+                        "A valid destination row must be specified (row in DESTINATION_ROW_SET)"
+                        " if using triplet format."
                     )
-                self.endpoints.append(EndPoint(row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2]))
+                self.endpoints.append(
+                    EndPoint(
+                        row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2], refs=((ep[0], ep[1]),)
+                    )
+                )
             elif isinstance(ep, (str, int, TypesDef)):
                 if row is None:
                     raise ValueError("Row must be specified if using EGP types.")

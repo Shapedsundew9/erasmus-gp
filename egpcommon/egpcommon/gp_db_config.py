@@ -34,6 +34,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "_fitness": {"db_type": "FLOAT", "nullable": False},
     "_lost_descendants": {"db_type": "BIGINT", "nullable": False},
     "_reference_count": {"db_type": "BIGINT", "nullable": False},
+    "code": {},  # Not persisted in the database but needed for execution
     "code_depth": {"db_type": "INT", "nullable": False},
     "creator": {"db_type": "UUID", "nullable": False},
     "descendants": {"db_type": "BIGINT", "nullable": False},
@@ -71,7 +72,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
 # value.
 # {name, encode (output to DB), decode (output to application)}
 CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
-    ("cgraph", compress_json, decompress_json),
+    ("cgraph", lambda x: compress_json(x.to_json()), decompress_json),
     ("meta_data", compress_json, decompress_json),
     ("properties", encode_properties, decode_properties),
 )

@@ -127,7 +127,9 @@ def sha256_signature(
     gcb: bytes,
     graph: dict[str, Any],
     pgc: bytes,
-    meta_data: dict[str, Any] | None,
+    imports: tuple,  # tuple[ImportDef, ...] but would be a circular reference
+    inline: str,
+    code: str,
     created: int,
     creator: bytes,
 ) -> bytes:
@@ -160,14 +162,11 @@ def sha256_signature(
     hash_obj.update(pgc)
     hash_obj.update(creator)
     hash_obj.update(pformat(graph, compact=True).encode())
-    if meta_data is not None and "function" in meta_data:
-        definition = meta_data["function"]["python3"]["0"]
-        hash_obj.update(definition["inline"].encode())
-        if "code" in definition:
-            hash_obj.update(definition["code"].encode())
-        if "imports" in definition:
-            for import_def in definition["imports"]:
-                hash_obj.update(dumps(import_def.to_json()).encode())
+    if inline:
+        hash_obj.update(inline.encode())
+        hash_obj.update(code.encode())
+        for import_def in imports:
+            hash_obj.update(dumps(import_def.to_json()).encode())
     if created > 0:
         hash_obj.update(created.to_bytes(8, "big"))
     return hash_obj.digest()

@@ -104,7 +104,7 @@ from pprint import pformat
 from random import choice, shuffle
 from typing import Any, Iterable
 
-from egpcommon.common import NULL_FROZENSET
+from egpcommon.common import NULL_FROZENSET, NULL_TUPLE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
@@ -409,39 +409,48 @@ class CGraph(FreezableObject):
         # Iterate over the interface definitions in the graph.
         # NOTE: The keys for a JSONCGraph are just destination row letters but for
         # a dict of Interfaces they are the row letter and the class (e.g. 'Fd', 'Ad', 'Bs', etc.)
-        src_ep_dict: dict[SrcRow, set[EndPoint]] = {}
+        src_ep_dict: dict[SrcRow, dict[int, EndPoint]] = {}
         for iface, iface_def in graph.items():
-            under_iface: str = "_" + iface + EPClsPostfix.DST
             if isinstance(iface_def, Interface):
+                under_iface: str = "_" + iface
                 assert iface in ROW_CLS_INDEXED_SET, f"Invalid interface key: {iface}"
                 setattr(self, under_iface, iface_def)
             elif isinstance(iface_def, list):
                 # Convert list to Interface
                 # Since this must be a JSONCGraph the interface is a destination interface
+                under_iface: str = "_" + iface + EPClsPostfix.DST
                 assert iface in DESTINATION_ROW_SET, f"Invalid interface key: {iface}"
                 assert isinstance(
                     iface_def, (list | tuple)
                 ), f"Expected a list or tuple for interface {iface}, got {type(iface_def)}"
                 setattr(self, under_iface, Interface(iface_def, row=DstRow(iface)))
                 for idx, ep in enumerate(getattr(self, under_iface).endpoints):
+                    # There may be 1 or 0 source endpoint references
+                    assert isinstance(ep, EndPoint), f"Expected an EndPoint, got {type(ep)}"
                     for ref in ep.refs:
                         # Create a set of source endpoints for the destination endpoint
-                        src_ep_dict.setdefault(SrcRow(ref[0]), set()).add(
-                            EndPoint(
+                        src_ep_dict.setdefault(SrcRow(ref[0]), {})
+                        if ref[1] in src_ep_dict[SrcRow(ref[0])]:
+                            refs = src_ep_dict[SrcRow(ref[0])][ref[1]].refs
+                            assert isinstance(refs, list), "Expected refs to be a list."
+                            refs.append([iface, ep.idx])
+                        else:
+                            ri = ref[1]
+                            assert isinstance(ri, int), f"Expected an integer index, got {type(ri)}"
+                            src_ep_dict[SrcRow(ref[0])][ri] = EndPoint(
                                 SrcRow(ref[0]),
                                 int(ref[1]),
                                 EndPointClass.SRC,
                                 ep.typ,
                                 [[iface, idx]],
                             )
-                        )
             else:
                 raise TypeError(f"Invalid interface definition for {iface}: {iface_def}")
 
         # If the graph is a JSONCGraph, we need to create the source interfaces
         # src_ep_dict will be empty if the graph parameter is a dict of Interfaces
         for src_row, eps in src_ep_dict.items():
-            setattr(self, "_" + src_row + EPClsPostfix.SRC, Interface(sorted(eps)))
+            setattr(self, "_" + src_row + EPClsPostfix.SRC, Interface(sorted(eps.values())))
 
         # Persistent hash will be defined when frozen. Dynamic until then.
         self._hash: int = 0
@@ -540,7 +549,7 @@ class CGraph(FreezableObject):
         # Connect the unconnected endpoints in a random order
         # First find the set of valid source rows for this graph type.
         vsrc_rows = valid_src_rows(c_graph_type(self))
-        i_iface: Interface = getattr(self, "__Is")
+        i_iface: Interface = getattr(self, "_Is")
         for dep in unconnected:
             # Gather all the viable source interfaces for this destination endpoint.
             vifs = (
@@ -566,7 +575,7 @@ class CGraph(FreezableObject):
     def copy(self) -> CGraph:
         """Return a modifiable shallow copy of the Connection Graph."""
         # Create a new CGraph instance with the same interfaces
-        return CGraph({key: getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED})
+        return CGraph({key[1:]: getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED})
 
     def stabilize(self, fixed_interface: bool = True) -> None:
         """Stablization involves making all the mandatory connections and

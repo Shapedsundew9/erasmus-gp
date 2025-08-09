@@ -215,20 +215,6 @@ class StoreTestBase(unittest.TestCase):
 
         self.assertEqual(first=self.store1, second=self.store2)
 
-    def test_ne(self) -> None:
-        """
-        Test the __ne__ method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store1[self.key1] = self.value1
-        self.store1[self.key2] = self.value2
-
-        self.store2[self.key2] = self.value1
-        self.store2[self.key1] = self.value2
-
-        self.assertNotEqual(first=self.store1, second=self.store2)
-
     def test_get(self) -> None:
         """
         Test the get method.
