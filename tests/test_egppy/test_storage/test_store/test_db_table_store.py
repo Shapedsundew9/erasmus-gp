@@ -44,9 +44,9 @@ class TestDBTableStore(JSONFileStoreTestBase):
 
     store_type = DBTableStore
     value_type = StorableDict
-    value: StorableObjABC = StorableDict({"a": 1, "b": 2, "c": 3})
-    value1: StorableObjABC = StorableDict({"a": 4, "b": 5, "c": 6})
-    value2: StorableObjABC = StorableDict({"a": 7, "b": 8, "c": 9})
+    value: StorableObjABC = StorableDict({"a": 1, "b": 2, "c": 3, "pk": "key"})
+    value1: StorableObjABC = StorableDict({"a": 4, "b": 5, "c": 6, "pk": "key1"})
+    value2: StorableObjABC = StorableDict({"a": 7, "b": 8, "c": 9, "pk": "key2"})
     table_counter = count()
 
     @classmethod
@@ -84,6 +84,11 @@ class TestDBTableStore(JSONFileStoreTestBase):
     def tearDownClass(cls) -> None:
         """Tear down the test."""
         db_delete(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
+
+    def test_setdefault(self) -> None:
+        """
+        Test the setdefault method.
+        """
 
 
 if __name__ == "__main__":

@@ -360,7 +360,7 @@ class GCNode(Iterable, Hashable):
             that are required for any type hints.
         """
         # Define the function input parameters
-        iface: Interface = self.gc["graph"]["Is"]
+        iface: Interface = self.gc["cgraph"]["Is"]
         inum: int = self.gc["num_inputs"]
         iparams = "i"
         idefs: list[ImportDef] = []
@@ -378,13 +378,13 @@ class GCNode(Iterable, Hashable):
             # Add type hints for output parameters
             onum = self.gc["num_outputs"]
             if onum > 1:
-                oface = self.gc["graph"]["Od"]
+                oface = self.gc["cgraph"]["Od"]
                 output_types = ", ".join(str(oface[i].typ) for i in range(onum))
                 idefs.extend(imp for i in range(onum) for imp in oface[i].typ.imports)
                 ret_type = f"tuple[{output_types}]"
             elif onum == 1:
-                ret_type = str(self.gc["graph"]["Od"][0].typ)
-                idefs.extend(self.gc["graph"]["Od"][0].typ.imports)
+                ret_type = str(self.gc["cgraph"]["Od"][0].typ)
+                idefs.extend(self.gc["cgraph"]["Od"][0].typ.imports)
             elif onum == 0:
                 ret_type = "None"
             else:

@@ -1,14 +1,10 @@
 """Unit tests for the common module."""
 
-from uuid import uuid4
 from typing import Any
 from unittest import TestCase
-from egpcommon.common import (
-    NULL_SHA256,
-    sha256_signature,
-    bin_counts,
-    random_int_tuple_generator,
-)
+from uuid import uuid4
+
+from egpcommon.common import NULL_SHA256, bin_counts, random_int_tuple_generator, sha256_signature
 
 
 class TestCommon(TestCase):
@@ -22,60 +18,20 @@ class TestCommon(TestCase):
         gca: bytes = b"gca"
         gcb: bytes = b"gcb"
         graph: dict[str, Any] = {"a": 1, "b": 2}
-        meta_data: dict[str, Any] = {
-            "function": {"python3": {"0": {"inline": "def f(x): return x+1"}}}
-        }
+        imports: tuple = ()
+        inline: str = "def f(x): return x+1"
+        code: str = ""
         created: int = 0
         creator: bytes = uuid4().bytes
         signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
+            ancestora, ancestorb, gca, gcb, graph, pgc, imports, inline, code, created, creator
         )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
         # Test with None meta_data
         signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, None, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
-        # Test with empty meta_data
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, {}, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
-        # Test with meta_data without function
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, {"a": 1}, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
-        # Test with meta_data with function but without code
-        meta_data = {"function": {"python3": {"0": {"inline": "def f(x): return x+1"}}}}
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
-        # Test with meta_data with function and code
-        meta_data = {
-            "function": {"python3": {"0": {"inline": "def f(x): return x+1", "code": "bytecode"}}}
-        }
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
-        # Use a created time to create a signature
-        created = 2198374
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, meta_data, created, creator
+            ancestora, ancestorb, gca, gcb, graph, pgc, imports, "", code, created, creator
         )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)

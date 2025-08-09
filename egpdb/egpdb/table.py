@@ -7,7 +7,6 @@ from typing import Any, Callable, Iterable, Literal
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.text_token import TextToken
-
 from egpdb.configuration import TableConfig
 from egpdb.raw_table import RawTable
 from egpdb.row_iterators import DictIter, GenIter, NamedTupleIter, RowIter, TupleIter
@@ -114,17 +113,18 @@ class Table:
     def __setitem__(self, pk_value: Any, values: Any) -> None:
         """Upsert the row with primary key pk_value using values.
 
-        If values contains a different primary key value to pk_value, pk_value will
-        override it.
-
         Args
         ----
         pk_value (obj): A primary key value.
         values (obj): A dict of column:value
         """
-        new_values: Any = deepcopy(values)
-        new_values[self.raw.primary_key] = pk_value
-        self.upsert((new_values,))
+        # new_values: Any = deepcopy(values)
+        # new_values[self.raw.primary_key] = pk_value
+        if self.raw.primary_key not in values:
+            raise ValueError("Primary key must be included in upsert values")
+        if values[self.raw.primary_key] != pk_value:
+            raise ValueError("Primary key value must match")
+        self.upsert((values,))
 
     def _populate_table(self):
         """Add data to table after creation.

@@ -4,7 +4,6 @@ from collections.abc import Hashable, Iterator
 from typing import Any, Callable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cache_base import CacheBase
 from egppy.storage.cache.cache_mixin import CacheMixin

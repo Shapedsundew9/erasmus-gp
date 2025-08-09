@@ -85,29 +85,33 @@ class EGCMixin(GCMixin):
         self["cgraph"] = cgraph.copy() if isinstance(cgraph, CGraph) else CGraph(cgraph)
 
         # GCA
-        tgca: str | bytes | GCABC = gcabc.get("gca", NULL_SIGNATURE)
+        tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
         gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
         self["gca"] = bytes.fromhex(gca) if isinstance(gca, str) else gca
 
         # GCB
-        tgcb: str | bytes | GCABC = gcabc.get("gcb", NULL_SIGNATURE)
+        tgcb: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gcb") is None else gcabc["gcb"]
         gcb: str | bytes = tgcb["signature"] if isinstance(tgcb, GCABC) else tgcb
         self["gcb"] = bytes.fromhex(gcb) if isinstance(gcb, str) else gcb
 
         # Ancestor A
-        taa: str | bytes | GCABC = gcabc.get("ancestora", NULL_SIGNATURE)
+        taa: str | bytes | GCABC = (
+            NULL_SIGNATURE if gcabc.get("ancestora") is None else gcabc["ancestora"]
+        )
         ancestora: str | bytes = taa["signature"] if isinstance(taa, GCABC) else taa
         self["ancestora"] = bytes.fromhex(ancestora) if isinstance(ancestora, str) else ancestora
 
         # Ancestor B
-        tab: str | bytes | GCABC = gcabc.get("ancestorb", NULL_SIGNATURE)
+        tab: str | bytes | GCABC = (
+            NULL_SIGNATURE if gcabc.get("ancestorb") is None else gcabc["ancestorb"]
+        )
         ancestorb: str | bytes = tab["signature"] if isinstance(tab, GCABC) else tab
         self["ancestorb"] = bytes.fromhex(ancestorb) if isinstance(ancestorb, str) else ancestorb
 
         # Parent Genetic Code
-        tpgc: str | bytes | GCABC = gcabc.get("pgc", NULL_SIGNATURE)
-        self["pgc"] = bytes.fromhex(tpgc) if isinstance(tpgc, str) else tpgc
-        self["pgc"] = self["pgc"] if isinstance(self["pgc"], bytes) else NULL_SIGNATURE
+        tpgc: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("pgc") is None else gcabc["pgc"]
+        pgc: str | bytes = tpgc["signature"] if isinstance(tpgc, GCABC) else tpgc
+        self["pgc"] = bytes.fromhex(pgc) if isinstance(pgc, str) else pgc
 
         # Created Timestamp
         tmp = gcabc.get("created", datetime.now(UTC))

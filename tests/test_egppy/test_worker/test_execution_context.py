@@ -4,26 +4,13 @@ import unittest
 from random import getrandbits, seed
 
 from egpcommon.common import random_int_tuple_generator
-from egpcommon.egp_log import (
-    CONSISTENCY,
-    DEBUG,
-    VERIFY,
-    Logger,
-    egp_logger,
-    enable_debug_logging,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.context_writer import FWC4FILE, write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 from egppy.worker.executor.gc_node import GCNode
 
-from .xor_stack_gc import (
-    create_gc_matrix,
-    expand_gc_matrix,
-    f_7fffffff,
-    one_to_two,
-    rshift_1_gc,
-)
+from .xor_stack_gc import create_gc_matrix, expand_gc_matrix, f_7fffffff, one_to_two, rshift_1_gc
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -72,7 +59,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885\n'
+            '\t"""Signature: 520e7957ba08f777df2f4ba1ae17860003b733ffc820b66e726a25b56844081e\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -94,7 +81,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: c3efa5f34e03343cd6efd96fed68e6309e48fd9b7d388f12851b04c25483e885\n'
+            '\t"""Signature: 520e7957ba08f777df2f4ba1ae17860003b733ffc820b66e726a25b56844081e\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"

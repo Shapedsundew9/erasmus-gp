@@ -6,13 +6,13 @@ from abc import abstractmethod
 from copy import deepcopy
 from datetime import datetime
 from itertools import count
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 from uuid import UUID
 
 from egpcommon.common import NULL_SHA256
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
-from egppy.genetic_code.c_graph import CGraphType, c_graph_type
+from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -228,6 +228,29 @@ class GCMixin:
                     chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
         return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
+    def resolve_inherited_members(self, find_gc: Callable[[bytes], GCABC]) -> None:
+        """Resolve inherited members from ancestor GCs."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        gca = self["gca"]
+        gcb = self["gcb"]
+        if gca is NULL_SIGNATURE:
+            raise ValueError("Cannot resolve inherited members. GC is a codon.")
+        gca = find_gc(gca)
+
+        # Populate inherited members as if just GCA is set
+        self["num_codons"] = gca["num_codons"]
+        self["num_codes"] = gca["num_codes"] + 1
+        self["generation"] = gca["generation"] + 1
+        self["code_depth"] = gca["code_depth"] + 1
+
+        # If GCB exists modify
+        if gcb is not NULL_SIGNATURE:
+            gcb = find_gc(gcb)
+            self["num_codons"] += gcb["num_codons"]
+            self["num_codes"] += gcb["num_codes"]
+            self["generation"] = max(self["generation"], gcb["generation"] + 1)
+            self["code_depth"] = max(self["code_depth"], gcb["code_depth"] + 1)
+
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
@@ -265,6 +288,9 @@ class GCMixin:
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
                 retval[key] = value["signature"].hex() if value is not NULL_SIGNATURE else None
+            elif isinstance(value, CGraph):
+                # Need to set json_c_graph to True so that the end points are correctly serialized
+                retval[key] = value.to_json(json_c_graph=True)
             elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()
             elif isinstance(value, bytes):
