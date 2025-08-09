@@ -274,7 +274,7 @@ class GCMixin:
                     and "imports" in md["function"]["python3"]["0"]
                 ):
                     md["function"]["python3"]["0"]["imports"] = [
-                        imp.to_json() for imp in md["function"]["python3"]["0"]["imports"]
+                        imp.to_json() for imp in self["imports"]
                     ]
                 retval[key] = md
             elif key == "properties":
