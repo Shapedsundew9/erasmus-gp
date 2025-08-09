@@ -592,8 +592,8 @@ def generate_types_def(write: bool = False) -> None:
     # Pass 11: Convert the parents and children sets to sorted lists.
     for definition in new_tdd.values():
         # Convert the parents and children sets to sorted lists.
-        definition["parents"] = [new_tdd[p]["uid"] for p in sorted(definition["parents"])]
-        definition["children"] = [new_tdd[c]["uid"] for c in sorted(definition["children"])]
+        definition["parents"] = sorted([new_tdd[p]["uid"] for p in definition["parents"]])
+        definition["children"] = sorted([new_tdd[c]["uid"] for c in definition["children"]])
 
     # Pass 12: Assertions
     uids: set[int] = set()
