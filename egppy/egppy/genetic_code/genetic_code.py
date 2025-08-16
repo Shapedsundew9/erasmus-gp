@@ -12,7 +12,7 @@ from uuid import UUID
 from egpcommon.common import NULL_SHA256
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.properties import PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type
+from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type, types_def_store
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
@@ -205,6 +205,11 @@ class GCMixin:
         cgt: CGraphType = c_graph_type(self["cgraph"])
         return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
 
+    def is_meta(self) -> bool:
+        """Return True if the genetic code is a meta-codon."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        return c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
@@ -300,8 +305,8 @@ class GCMixin:
                 assert isinstance(value, int), "Properties must be an int."
                 retval[key] = PropertiesBD(value).to_json()
             elif key.endswith("_types"):
-                # Make types humman readable.
-                retval[key] = value
+                # Make types human readable.
+                retval[key] = [types_def_store[t].name for t in value]
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.

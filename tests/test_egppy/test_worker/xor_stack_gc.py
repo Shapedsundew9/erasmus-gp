@@ -48,6 +48,7 @@ seed(0)
 
 # Python int type as an EGP type
 INT_T = "int"
+INT_TD = types_def_store[INT_T]
 
 # New GC consistency assessment sample rate
 # Slows down the code but is useful for debugging
@@ -55,7 +56,7 @@ INT_T = "int"
 CONSISTENCY_SAMPLE = 1.0
 
 # Right shift codon
-rshift_gc = GGC_CACHE[
+_rshift_gc = GGC_CACHE[
     bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
 ]
 # Literal 1 codon
@@ -63,7 +64,7 @@ literal_1_gc = GGC_CACHE[
     bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
 ]
 # This is the Integral type XOR but it does not matter for this
-xor_gc = GGC_CACHE[
+_xor_gc = GGC_CACHE[
     bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
 ]
 getrandbits_gc = GGC_CACHE[
@@ -75,6 +76,20 @@ sixtyfour_gc = GGC_CACHE[
 custom_pgc = GGC_CACHE[
     bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")
 ]
+
+
+# Meta codons
+int_to: dict[str, GGCDict] = {
+    "Integral": GGC_CACHE[
+        bytes.fromhex("1802f5fc6fd8285a20676358a63a79d56b63d68e4f28ed241d22267dae17bbc8")
+    ]
+}
+
+to_int: dict[str, GGCDict] = {
+    "EGPNumber": GGC_CACHE[
+        bytes.fromhex("c58ee808e38229e91c5187cd32e6a7ec25f3db78704e9d44b5d72c574f641ac8")
+    ]
+}
 
 
 def find_gc(signature: bytes) -> GCABC:
@@ -95,27 +110,113 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     return ggc
 
 
+def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
+    """Cast the input at the given index to 'int'.
+    This is done by stacking a meta codon that does the right conversion
+    as GCA and wiring through the inputs and outputs directly
+    to ensure the interface remains in the same order.
+
+    Args
+    ----
+    mc: The meta codon to use for the cast.
+    gc: The original GC to cast.
+    idx: The index of the input in gc to cast.
+    """
+    mcot = mc["cgraph"]["Od"][0].typ.name
+    return inherit_members(
+        {
+            "ancestora": gc,
+            "ancestorb": mc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": mc,
+            "gcb": gc,
+            "cgraph": {
+                "A": [["I", idx, mc["cgraph"]["Is"][0].typ.name]],
+                "B": [
+                    ["I", ep.idx, ep.typ.name] if ep.idx != idx else ["A", 0, mcot]
+                    for ep in gc["cgraph"]["Is"]
+                ],
+                "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
+                "U": [],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+
+def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
+    """Cast the output at the given index to 'int'.
+    This is done by stacking a meta codon that does the right conversion
+    as GCB and wiring through the inputs and outputs directly
+    to ensure the interface remains in the same order.
+
+    Args
+    ----
+    mc: The meta codon to use for the cast.
+    gc: The original GC to cast.
+    idx: The index of the output in gc to cast.
+    """
+    mcot = mc["cgraph"]["Od"][0].typ.name
+    return inherit_members(
+        {
+            "ancestora": gc,
+            "ancestorb": mc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": gc,
+            "gcb": mc,
+            "cgraph": {
+                "A": [["I", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Is"]],
+                "B": [["A", idx, gc["cgraph"]["Od"][idx].typ.name]],
+                "O": [
+                    ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
+                    for ep in gc["cgraph"]["Od"]
+                ],
+                "U": [],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+
 def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
     """Cast the interfaces of the GC to 'int'.
     The functional GC's have interfaces defined by the most generic type (usually 'Integral').
     Since EGP requires typing to be explicit each interface needs to be 'cast' to 'int' using
     meta codons.
     """
-    for iep in gc["cgraph"]["Is"]:
-        if iep.typ != types_def_store[INT_T]:
-            # Find the appropriate meta codon to cast the interface to 'int'
-            # Realized we need to search for a meta-codon so we need the gene-pool
-            # interface set up
-            # Pausing here to go and implement that part.
-            # Next steps here:
-            # 1. Set up the gene-pool interface
-            # 2. Search for the appropriate meta-codon
-            # 3. Cast the interfaces to 'int' as a new GC
-            # 4. Replace the GC's below with the new "cast" GC.
-            #      Imagining something like this:
-            #      random_log_gc = cast_interfaces_to_int(inherit_members({...}))
-            pass
+    # Find all the endpoint in the input interface that are not 'int'
+    while iepl := [iep for iep in gc["cgraph"]["Is"] if iep.typ != INT_TD]:
+        # We will only process the first endpoint in the iepl list
+        # Find the appropriate meta codon to cast the first endpoint to 'int'
+        meta_codon = int_to.get(iepl[0].typ.name)
+        if meta_codon is None:
+            raise ValueError(f"No meta-codon found to cast {iepl[0].typ.name} to int.")
+        # Create an new GC with that endpoint cast. This GC will be evaluated to see
+        # if all its inputs are 'int' in the next iteration
+        gc = cast_to_int_at_input_idx(meta_codon, gc, iepl[0].idx)
+
+    # Now do the same with the outputs
+    while oepl := [oep for oep in gc["cgraph"]["Od"] if oep.typ != INT_TD]:
+        # We will only process the first endpoint in the oepl list
+        # Find the appropriate meta codon to cast the first endpoint to 'int'
+        meta_codon = to_int.get(oepl[0].typ.name)
+        if meta_codon is None:
+            raise ValueError(f"No meta-codon found to cast {oepl[0].typ.name} to int.")
+        # Create an new GC with that endpoint cast. This GC will be evaluated to see
+        # if all its outputs are 'int' in the next iteration
+        gc = cast_to_int_at_output_idx(meta_codon, gc, oepl[0].idx)
+
+    # The original GC with the input & output types converted to 'int'
     return gc
+
+
+# Right shift and xor need interfaces casting
+rshift_gc = cast_interfaces_to_int(_rshift_gc)
+xor_gc = cast_interfaces_to_int(_xor_gc)
 
 
 # random_long_gc signature:
@@ -489,8 +590,8 @@ if __name__ == "__main__":
         gcs = tuple(enumerate(gene_pool))
         global_idx_set1 = set()
         global_idx_set2 = set()
-        for idx, gpgc in gcs[:10]:
-            f.write(f"## GC #{idx}\n\n")
+        for indx, gpgc in gcs[:10]:
+            f.write(f"## GC #{indx}\n\n")
             f.write("### Details\n\n")
             f.write(f"- Num codons: {gpgc['num_codons']}\n")
             f.write(f"- Binary signature: {gpgc['signature']}\n")

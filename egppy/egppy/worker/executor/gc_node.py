@@ -230,7 +230,9 @@ class GCNode(Iterable, Hashable):
     # For generating UIDs for GCNode instances
     _uid_counter = count()
 
-    def __init__(self, gc: GCABC, parent: GCNode | None, row: Row, finfo: FunctionInfo) -> None:
+    def __init__(
+        self, gc: GCABC, parent: GCNode | None, row: Row, finfo: FunctionInfo, wmc: bool = False
+    ) -> None:
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
 
         # Defaults. These may be changed depending on the GC structure and what
@@ -279,7 +281,8 @@ class GCNode(Iterable, Hashable):
             ), "GCB must be NULL_GC for a codon"
             self.assess = False  # No need to assess a codon. We know what it is.
             self.terminal = True  # A codon is a terminal node
-            self.num_lines = 1  # A codon is a single line of code
+            # A codon is a single line of code (unless we are supressing meta-codons)
+            self.num_lines = int(not gc.is_meta() or wmc)
 
         if not self.exists and not self.is_codon:
             # The GC may have an unknown structure but there is no existing executable

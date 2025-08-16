@@ -10,14 +10,7 @@ from itertools import count
 from typing import Any
 
 from egpcommon.common import NULL_STR
-from egpcommon.egp_log import (
-    CONSISTENCY,
-    DEBUG,
-    VERIFY,
-    Logger,
-    egp_logger,
-    enable_debug_logging,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
@@ -27,11 +20,7 @@ from egppy.worker.executor.code_connection import (
     CodeEndPoint,
     code_connection_from_iface,
 )
-from egppy.worker.executor.function_info import (
-    NULL_EXECUTABLE,
-    NULL_FUNCTION_MAP,
-    FunctionInfo,
-)
+from egppy.worker.executor.function_info import NULL_EXECUTABLE, NULL_FUNCTION_MAP, FunctionInfo
 from egppy.worker.executor.fw_config import FWCONFIG_DEFAULT, FWConfig
 from egppy.worker.executor.gc_node import NULL_GC_NODE, GCNode, GCNodeCodeIterable
 from egppy.worker.gc_store import GGC_CACHE
@@ -108,9 +97,16 @@ class ExecutionContext:
     persistent data structures that are not easy to track.
     """
 
-    __slots__ = ("namespace", "function_map", "imports", "_line_limit", "_global_index")
+    __slots__ = (
+        "namespace",
+        "function_map",
+        "imports",
+        "_line_limit",
+        "_global_index",
+        "wmc",
+    )
 
-    def __init__(self, line_limit: int = 64) -> None:
+    def __init__(self, line_limit: int = 64, wmc: bool = False) -> None:
         # The globals passed to exec() when defining objects in the context
         self.namespace: dict[str, Any] = {}
         # Used to uniquely name objects in this context
@@ -121,6 +117,8 @@ class ExecutionContext:
         self._line_limit: int = line_limit
         # Existing Imports
         self.imports: set[ImportDef] = set()
+        # Write Meta-Codons (these are usually used for debugging).
+        self.wmc: bool = wmc
 
     def code_graph(self, root: GCNode) -> GCNode:
         """The inputs and outputs of each function are determined by the connections between GC's.
@@ -507,7 +505,7 @@ class ExecutionContext:
 
         half_limit: int = self._line_limit // 2
         finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
-        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo)]
+        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo, self.wmc)]
 
         # Define the GCNode data
         while node_stack:
@@ -521,7 +519,7 @@ class ExecutionContext:
             for row, xgc in (x for x in child_nodes):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
                 fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
-                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap)
+                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap, self.wmc)
                 if row == DstRow.A:
                     node.gca_node = gc_node_graph_entry
                 else:
