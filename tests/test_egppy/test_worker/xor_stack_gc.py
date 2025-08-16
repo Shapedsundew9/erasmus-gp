@@ -29,6 +29,7 @@ from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.types_def import types_def_store
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
 from egppy.worker.gc_store import GGC_CACHE
@@ -76,7 +77,6 @@ custom_pgc = GGC_CACHE[
 ]
 
 
-# Find a GC in the cache
 def find_gc(signature: bytes) -> GCABC:
     """Find a GC in the cache."""
     retval = GGC_CACHE[signature]
@@ -85,7 +85,7 @@ def find_gc(signature: bytes) -> GCABC:
 
 
 def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
-    """Create a EGC, inherit members and create a GGC."""
+    """Create a EGC, inherit members from its sub-GCs and create a new GGC."""
     egc = EGCDict(gc)
     egc.resolve_inherited_members(find_gc)
     ggc = GGCDict(egc)
@@ -93,6 +93,29 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
         raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
     GGC_CACHE[ggc["signature"]] = ggc
     return ggc
+
+
+def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
+    """Cast the interfaces of the GC to 'int'.
+    The functional GC's have interfaces defined by the most generic type (usually 'Integral').
+    Since EGP requires typing to be explicit each interface needs to be 'cast' to 'int' using
+    meta codons.
+    """
+    for iep in gc["cgraph"]["Is"]:
+        if iep.typ != types_def_store[INT_T]:
+            # Find the appropriate meta codon to cast the interface to 'int'
+            # Realized we need to search for a meta-codon so we need the gene-pool
+            # interface set up
+            # Pausing here to go and implement that part.
+            # Next steps here:
+            # 1. Set up the gene-pool interface
+            # 2. Search for the appropriate meta-codon
+            # 3. Cast the interfaces to 'int' as a new GC
+            # 4. Replace the GC's below with the new "cast" GC.
+            #      Imagining something like this:
+            #      random_log_gc = cast_interfaces_to_int(inherit_members({...}))
+            pass
+    return gc
 
 
 # random_long_gc signature:
@@ -105,8 +128,8 @@ random_long_gc = inherit_members(
         "gcb": getrandbits_gc,
         "cgraph": {
             "A": [],
-            "B": [["A", 0, "int"]],
-            "O": [["B", 0, "int"]],
+            "B": [["A", 0, INT_T]],
+            "O": [["B", 0, INT_T]],
             "U": [],
         },
         "pgc": custom_pgc,
@@ -138,8 +161,8 @@ rshift_1_gc = inherit_members(
         "generation": 2,
         "cgraph": {
             "A": [],
-            "B": [["I", 0, "int"], ["A", 0, "int"]],
-            "O": [["B", 0, "int"]],
+            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+            "O": [["B", 0, INT_T]],
             "U": [],
         },
         "num_codes": 3,
@@ -160,9 +183,9 @@ rshift_xor_gc = inherit_members(
         "gca": rshift_1_gc,
         "gcb": xor_gc,
         "cgraph": {
-            "A": [["I", 1, "int"]],
-            "B": [["I", 0, "int"], ["A", 0, "int"]],
-            "O": [["B", 0, "int"]],
+            "A": [["I", 1, INT_T]],
+            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+            "O": [["B", 0, INT_T]],
             "U": [],
         },
         "pgc": custom_pgc,
@@ -182,8 +205,8 @@ one_to_two = inherit_members(
         "gcb": rshift_xor_gc,
         "cgraph": {
             "A": [],
-            "B": [["I", 0, "int"], ["A", 0, "int"]],
-            "O": [["B", 0, "int"], ["A", 0, "int"]],
+            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+            "O": [["B", 0, INT_T], ["A", 0, INT_T]],
             "U": [],
         },
         "pgc": custom_pgc,

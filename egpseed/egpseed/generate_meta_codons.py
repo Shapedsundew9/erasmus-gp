@@ -26,7 +26,7 @@ OUTPUT_CODON_PATH = join(
 )
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "cgraph": {"A": [["I", 0, None]], "O": [["I", 0, None]]},
+    "cgraph": {"A": [["I", 0, None]], "O": [["I", 0, None]], "U": []},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",

@@ -576,7 +576,7 @@ def generate_types_def(write: bool = False) -> None:
             stack.extend(new_tdd[current]["children"])
 
     # Pass 10: JSON-ize the fields and add a UID to each type definition.
-    for definition in new_tdd.values():
+    for definition in sorted(new_tdd.values(), key=lambda d: d["name"]):
         # Create a unique identifier for the type definition.
         xuid: int = next(tt_counters[definition["tt"]]) * (
             not any(definition["name"] == name for name in XUID_ZERO_NAMES)

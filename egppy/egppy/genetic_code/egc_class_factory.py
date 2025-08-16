@@ -65,6 +65,8 @@ class EGCMixin(GCMixin):
                     f"ancestorb = {self['ancestorb']}\n",
                 )
                 assert False, "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL."
+
+        # Run members consistency if they have it.
         for key in (k for k in self if not isinstance(self[k], GCABC)):
             if getattr(self[key], "consistency", None) is not None:
                 self[key].consistency()

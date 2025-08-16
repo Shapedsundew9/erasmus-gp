@@ -243,6 +243,15 @@ class GCMixin:
         self["generation"] = gca["generation"] + 1
         self["code_depth"] = gca["code_depth"] + 1
 
+        # Ad in this GC must be the same as Is in the GCA
+        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+        if not all(a.typ is i.typ for a, i in zip(self["cgraph"]["Ad"], gca["cgraph"]["Is"])):
+            raise ValueError("Input types do not match for GCA")
+
+        # As in this GC must be the same as Od in the GCA
+        if not all(a.typ is o.typ for a, o in zip(self["cgraph"]["As"], gca["cgraph"]["Od"])):
+            raise ValueError("Output types do not match for GCA")
+
         # If GCB exists modify
         if gcb is not NULL_SIGNATURE:
             gcb = find_gc(gcb)
@@ -250,6 +259,15 @@ class GCMixin:
             self["num_codes"] += gcb["num_codes"]
             self["generation"] = max(self["generation"], gcb["generation"] + 1)
             self["code_depth"] = max(self["code_depth"], gcb["code_depth"] + 1)
+
+            # Bd in this GC must be the same as Is in the GCB
+            # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+            if not all(b.typ is i.typ for b, i in zip(self["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
+                raise ValueError("Input types do not match for GCB")
+
+            # Bs in this GC must be the same as Od in the GCB
+            if not all(b.typ is o.typ for b, o in zip(self["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
+                raise ValueError("Output types do not match for GCB")
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
