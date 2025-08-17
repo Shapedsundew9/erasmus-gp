@@ -215,6 +215,9 @@ class ExecutionContext:
                     # inputs map directly to outputs so we can fake it.
                     src.row = SrcRow.I
                     src.terminal = False
+                    assert len(src.node.gc["cgraph"]["Is"]) == len(
+                        src.node.gc["cgraph"]["Od"]
+                    ), "Meta-codons must have matching input/output interfaces."
                     # src.idx stays the same.
                 else:
                     # If the source is terminal then add its destination interface within the node

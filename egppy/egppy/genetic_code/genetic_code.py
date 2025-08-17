@@ -284,12 +284,22 @@ class GCMixin:
 
         # Ad in this GC must be the same as Is in the GCA
         # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-        if not all(a.typ is i.typ for a, i in zip(self["cgraph"]["Ad"], gca["cgraph"]["Is"])):
-            raise ValueError("Input types do not match for GCA")
+        for idx, (a, i) in enumerate(zip(self["cgraph"]["Ad"], gca["cgraph"]["Is"])):
+            if a.typ is not i.typ:
+                raise ValueError(
+                    f"Input types do not match for GCA at position {idx}: "
+                    f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
+                    f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
+                )
 
         # As in this GC must be the same as Od in the GCA
-        if not all(a.typ is o.typ for a, o in zip(self["cgraph"]["As"], gca["cgraph"]["Od"])):
-            raise ValueError("Output types do not match for GCA")
+        for idx, (a, o) in enumerate(zip(self["cgraph"]["As"], gca["cgraph"]["Od"])):
+            if a.typ is not o.typ:
+                raise ValueError(
+                    f"Output types do not match for GCA at position {idx}: "
+                    f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
+                    f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
+                )
 
         # If GCB exists modify
         if gcb is not NULL_SIGNATURE:
