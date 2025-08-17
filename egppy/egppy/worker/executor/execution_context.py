@@ -383,15 +383,8 @@ class ExecutionContext:
     def function_def(self, node: GCNode, fwconfig: FWConfig = FWCONFIG_DEFAULT) -> str:
         """Create the function definition in the execution context including the imports."""
         code = self.code_lines(node, fwconfig)
-        fstr, idefs = node.function_def(fwconfig.hints)
+        fstr = node.function_def(fwconfig.hints)
         code.insert(0, fstr)
-        # Imports required for type hints.
-        for imp in (idef for idef in idefs if idef not in self.imports):
-            # TODO: Since we import types for codons - why would we need
-            # to do it here? A test is to put an assert in here as a trip wire.
-            assert False, "Types should be imported for codons."
-            self.define(str(imp))
-            self.imports.add(imp)
         return "\n\t".join(code)
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:

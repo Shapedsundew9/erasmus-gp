@@ -439,7 +439,7 @@ class CGraph(FreezableObject):
                             refs = src_ep.refs
                             assert isinstance(refs, list), "Expected refs to be a list."
                             # Make sure both references are for the same type.
-                            assert ep.typ == src_ep.typ, f"Type mismatch: {src_ep.typ} != {ep.typ}"
+                            assert ep.typ == src_ep.typ, f"Type mismatch: {src_ep.typ} == {ep.typ}"
                             refs.append([iface, ep.idx])
                         else:
                             ri = ref[1]

@@ -19,7 +19,6 @@ from egppy.genetic_code.genetic_code import (
     mc_rectangle_str,
 )
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
-from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.interface import Interface
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
 from egppy.worker.gc_store import GGC_CACHE
@@ -383,7 +382,7 @@ class GCNode(Iterable, Hashable):
             chart_txt.append(mc_code_connection_node_str(connection, self))
         return "\n".join(title_txt + MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
-    def function_def(self, hints: bool = False) -> tuple[str, list[ImportDef]]:
+    def function_def(self, hints: bool = False) -> str:
         """Return the function definition code line for the GC node.
         Args
         ----
@@ -397,12 +396,10 @@ class GCNode(Iterable, Hashable):
         iface: Interface = self.gc["cgraph"]["Is"]
         inum: int = self.gc["num_inputs"]
         iparams = "i"
-        idefs: list[ImportDef] = []
 
         if hints:
             # Add type hints for input parameters
             input_types = ", ".join(str(iface[i].typ) for i in range(inum))
-            idefs.extend(imp for i in range(inum) for imp in iface[i].typ.imports)
             iparams += f": tuple[{input_types}]"
 
         # Start building the function definition
@@ -414,19 +411,17 @@ class GCNode(Iterable, Hashable):
             if onum > 1:
                 oface = self.gc["cgraph"]["Od"]
                 output_types = ", ".join(str(oface[i].typ) for i in range(onum))
-                idefs.extend(imp for i in range(onum) for imp in oface[i].typ.imports)
                 ret_type = f"tuple[{output_types}]"
             elif onum == 1:
                 ret_type = str(self.gc["cgraph"]["Od"][0].typ)
-                idefs.extend(self.gc["cgraph"]["Od"][0].typ.imports)
             elif onum == 0:
                 ret_type = "None"
             else:
                 raise ValueError(f"Invalid number of outputs: {onum}, in GC.")
-            return f"{base_def} -> {ret_type}:", idefs
+            return f"{base_def} -> {ret_type}:"
 
         # Return the function definition without type hints
-        return f"{base_def}:", idefs
+        return f"{base_def}:"
 
     def line_count(self, limit: int) -> None:
         """Calculate the best number of lines for each function and
