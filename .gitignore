@@ -207,6 +207,6 @@ marimo/_lsp/
 __marimo__/
 
 # EGP
-types.json
+types_def.json
 codons.json
 meta_codons.json

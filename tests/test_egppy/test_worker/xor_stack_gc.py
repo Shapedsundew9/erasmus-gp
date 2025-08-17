@@ -29,6 +29,7 @@ from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.types_def import types_def_store
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
 from egppy.worker.gc_store import GGC_CACHE
@@ -47,6 +48,7 @@ seed(0)
 
 # Python int type as an EGP type
 INT_T = "int"
+INT_TD = types_def_store[INT_T]
 
 # New GC consistency assessment sample rate
 # Slows down the code but is useful for debugging
@@ -54,7 +56,7 @@ INT_T = "int"
 CONSISTENCY_SAMPLE = 1.0
 
 # Right shift codon
-rshift_gc = GGC_CACHE[
+_rshift_gc = GGC_CACHE[
     bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
 ]
 # Literal 1 codon
@@ -62,7 +64,7 @@ literal_1_gc = GGC_CACHE[
     bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
 ]
 # This is the Integral type XOR but it does not matter for this
-xor_gc = GGC_CACHE[
+_xor_gc = GGC_CACHE[
     bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
 ]
 getrandbits_gc = GGC_CACHE[
@@ -76,7 +78,20 @@ custom_pgc = GGC_CACHE[
 ]
 
 
-# Find a GC in the cache
+# Meta codons
+int_to: dict[str, GGCDict] = {
+    "Integral": GGC_CACHE[
+        bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
+    ]
+}
+
+to_int: dict[str, GGCDict] = {
+    "EGPNumber": GGC_CACHE[
+        bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
+    ]
+}
+
+
 def find_gc(signature: bytes) -> GCABC:
     """Find a GC in the cache."""
     retval = GGC_CACHE[signature]
@@ -85,7 +100,7 @@ def find_gc(signature: bytes) -> GCABC:
 
 
 def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
-    """Create a EGC, inherit members and create a GGC."""
+    """Create a EGC, inherit members from its sub-GCs and create a new GGC."""
     egc = EGCDict(gc)
     egc.resolve_inherited_members(find_gc)
     ggc = GGCDict(egc)
@@ -93,6 +108,115 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
         raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
     GGC_CACHE[ggc["signature"]] = ggc
     return ggc
+
+
+def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
+    """Cast the input at the given index to 'int'.
+    This is done by stacking a meta codon that does the right conversion
+    as GCA and wiring through the inputs and outputs directly
+    to ensure the interface remains in the same order.
+
+    Args
+    ----
+    mc: The meta codon to use for the cast.
+    gc: The original GC to cast.
+    idx: The index of the input in gc to cast.
+    """
+    mcot = mc["cgraph"]["Od"][0].typ.name
+    return inherit_members(
+        {
+            "ancestora": gc,
+            "ancestorb": mc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": mc,
+            "gcb": gc,
+            "cgraph": {
+                "A": [["I", idx, mc["cgraph"]["Is"][0].typ.name]],
+                "B": [
+                    ["I", ep.idx, ep.typ.name] if ep.idx != idx else ["A", 0, mcot]
+                    for ep in gc["cgraph"]["Is"]
+                ],
+                "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
+                "U": [],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+
+def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
+    """Cast the output at the given index to 'int'.
+    This is done by stacking a meta codon that does the right conversion
+    as GCB and wiring through the inputs and outputs directly
+    to ensure the interface remains in the same order.
+
+    Args
+    ----
+    mc: The meta codon to use for the cast.
+    gc: The original GC to cast.
+    idx: The index of the output in gc to cast.
+    """
+    mcot = mc["cgraph"]["Od"][0].typ.name
+    return inherit_members(
+        {
+            "ancestora": gc,
+            "ancestorb": mc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": gc,
+            "gcb": mc,
+            "cgraph": {
+                "A": [["I", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Is"]],
+                "B": [["A", idx, gc["cgraph"]["Od"][idx].typ.name]],
+                "O": [
+                    ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
+                    for ep in gc["cgraph"]["Od"]
+                ],
+                "U": [],
+            },
+            "pgc": custom_pgc,
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+
+def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
+    """Cast the interfaces of the GC to 'int'.
+    The functional GC's have interfaces defined by the most generic type (usually 'Integral').
+    Since EGP requires typing to be explicit each interface needs to be 'cast' to 'int' using
+    meta codons.
+    """
+    # Find all the endpoint in the input interface that are not 'int'
+    while iepl := [iep for iep in gc["cgraph"]["Is"] if iep.typ != INT_TD]:
+        # We will only process the first endpoint in the iepl list
+        # Find the appropriate meta codon to cast the first endpoint to 'int'
+        meta_codon = int_to.get(iepl[0].typ.name)
+        if meta_codon is None:
+            raise ValueError(f"No meta-codon found to cast {iepl[0].typ.name} to int.")
+        # Create an new GC with that endpoint cast. This GC will be evaluated to see
+        # if all its inputs are 'int' in the next iteration
+        gc = cast_to_int_at_input_idx(meta_codon, gc, iepl[0].idx)
+
+    # Now do the same with the outputs
+    while oepl := [oep for oep in gc["cgraph"]["Od"] if oep.typ != INT_TD]:
+        # We will only process the first endpoint in the oepl list
+        # Find the appropriate meta codon to cast the first endpoint to 'int'
+        meta_codon = to_int.get(oepl[0].typ.name)
+        if meta_codon is None:
+            raise ValueError(f"No meta-codon found to cast {oepl[0].typ.name} to int.")
+        # Create an new GC with that endpoint cast. This GC will be evaluated to see
+        # if all its outputs are 'int' in the next iteration
+        gc = cast_to_int_at_output_idx(meta_codon, gc, oepl[0].idx)
+
+    # The original GC with the input & output types converted to 'int'
+    return gc
+
+
+# Right shift and xor need interfaces casting
+rshift_gc = cast_interfaces_to_int(_rshift_gc)
+xor_gc = cast_interfaces_to_int(_xor_gc)
 
 
 # random_long_gc signature:
@@ -105,8 +229,8 @@ random_long_gc = inherit_members(
         "gcb": getrandbits_gc,
         "cgraph": {
             "A": [],
-            "B": [["A", 0, "int"]],
-            "O": [["B", 0, "int"]],
+            "B": [["A", 0, INT_T]],
+            "O": [["B", 0, INT_T]],
             "U": [],
         },
         "pgc": custom_pgc,
@@ -138,8 +262,8 @@ rshift_1_gc = inherit_members(
         "generation": 2,
         "cgraph": {
             "A": [],
-            "B": [["I", 0, "int"], ["A", 0, "int"]],
-            "O": [["B", 0, "int"]],
+            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+            "O": [["B", 0, INT_T]],
             "U": [],
         },
         "num_codes": 3,
@@ -160,9 +284,9 @@ rshift_xor_gc = inherit_members(
         "gca": rshift_1_gc,
         "gcb": xor_gc,
         "cgraph": {
-            "A": [["I", 1, "int"]],
-            "B": [["I", 0, "int"], ["A", 0, "int"]],
-            "O": [["B", 0, "int"]],
+            "A": [["I", 1, INT_T]],
+            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+            "O": [["B", 0, INT_T]],
             "U": [],
         },
         "pgc": custom_pgc,
@@ -182,8 +306,8 @@ one_to_two = inherit_members(
         "gcb": rshift_xor_gc,
         "cgraph": {
             "A": [],
-            "B": [["I", 0, "int"], ["A", 0, "int"]],
-            "O": [["B", 0, "int"], ["A", 0, "int"]],
+            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+            "O": [["B", 0, INT_T], ["A", 0, INT_T]],
             "U": [],
         },
         "pgc": custom_pgc,
@@ -429,7 +553,7 @@ if __name__ == "__main__":
 
     # 2 different execution contexts
     ec1 = ExecutionContext(3)
-    ec2 = ExecutionContext(50)
+    ec2 = ExecutionContext(50, wmc=True)  # Write the meta codons
     # Hack in pre-defined function
     ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
         f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
@@ -466,8 +590,8 @@ if __name__ == "__main__":
         gcs = tuple(enumerate(gene_pool))
         global_idx_set1 = set()
         global_idx_set2 = set()
-        for idx, gpgc in gcs[:10]:
-            f.write(f"## GC #{idx}\n\n")
+        for indx, gpgc in gcs[:10]:
+            f.write(f"## GC #{indx}\n\n")
             f.write("### Details\n\n")
             f.write(f"- Num codons: {gpgc['num_codons']}\n")
             f.write(f"- Binary signature: {gpgc['signature']}\n")
@@ -492,7 +616,7 @@ if __name__ == "__main__":
                     global_idx_set1.add(node.function_info.global_index)
                 else:
                     f.write(f"Duplicate global index: {node.function_info.global_index}\n")
-            f.write(f"### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
+            f.write(f"\n### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
             f.write("```mermaid\n")
             ng = ec2.node_graph(gpgc)
             ng.line_count(ec2.line_limit())

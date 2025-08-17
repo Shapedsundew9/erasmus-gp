@@ -6,18 +6,11 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 
 from __future__ import annotations
 
-from itertools import count
+from itertools import chain, count
 from typing import Any
 
 from egpcommon.common import NULL_STR
-from egpcommon.egp_log import (
-    CONSISTENCY,
-    DEBUG,
-    VERIFY,
-    Logger,
-    egp_logger,
-    enable_debug_logging,
-)
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
@@ -27,11 +20,7 @@ from egppy.worker.executor.code_connection import (
     CodeEndPoint,
     code_connection_from_iface,
 )
-from egppy.worker.executor.function_info import (
-    NULL_EXECUTABLE,
-    NULL_FUNCTION_MAP,
-    FunctionInfo,
-)
+from egppy.worker.executor.function_info import NULL_EXECUTABLE, NULL_FUNCTION_MAP, FunctionInfo
 from egppy.worker.executor.fw_config import FWCONFIG_DEFAULT, FWConfig
 from egppy.worker.executor.gc_node import NULL_GC_NODE, GCNode, GCNodeCodeIterable
 from egppy.worker.gc_store import GGC_CACHE
@@ -108,9 +97,17 @@ class ExecutionContext:
     persistent data structures that are not easy to track.
     """
 
-    __slots__ = ("namespace", "function_map", "imports", "_line_limit", "_global_index")
+    __slots__ = (
+        "namespace",
+        "function_map",
+        "imports",
+        "_line_limit",
+        "_global_index",
+        "wmc",
+        "_codon_register",
+    )
 
-    def __init__(self, line_limit: int = 64) -> None:
+    def __init__(self, line_limit: int = 64, wmc: bool = False) -> None:
         # The globals passed to exec() when defining objects in the context
         self.namespace: dict[str, Any] = {}
         # Used to uniquely name objects in this context
@@ -121,6 +118,11 @@ class ExecutionContext:
         self._line_limit: int = line_limit
         # Existing Imports
         self.imports: set[ImportDef] = set()
+        # Write Meta-Codons (these are usually used for debugging).
+        self.wmc: bool = wmc
+        # Codon register - codons that have been processed in this context
+        # Used to save trying to re-process the same codon e.g. imports.
+        self._codon_register: set[bytes] = set()
 
     def code_graph(self, root: GCNode) -> GCNode:
         """The inputs and outputs of each function are determined by the connections between GC's.
@@ -207,6 +209,16 @@ class ExecutionContext:
                 # c_graph connection.
                 if not src.terminal:
                     src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
+                elif src.node.is_meta and not self.wmc:
+                    # Meta-codons are not being written so a bypass has to be engineered.
+                    # A requirement of meta codons is that they are "straight through" i.e.
+                    # inputs map directly to outputs so we can fake it.
+                    src.row = SrcRow.I
+                    src.terminal = False
+                    assert len(src.node.gc["cgraph"]["Is"]) == len(
+                        src.node.gc["cgraph"]["Od"]
+                    ), "Meta-codons must have matching input/output interfaces."
+                    # src.idx stays the same.
                 else:
                     # If the source is terminal then add its destination interface within the node
                     # to the connection stack if it has not already been added (visited).
@@ -260,8 +272,11 @@ class ExecutionContext:
             # TODO: Add condition to check if the GC is eligible for caching
             self.result_cache(root)
 
-        # Write a line for each terminal node in the graph
-        for node in (tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn is not root):
+        # Write a line for each terminal node that has lines to write in the graph
+        # Meta codons have 0 lines when self.wmc (write meta-codons) is false
+        for node in (
+            tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn.num_lines and tn is not root
+        ):
             code.append(self.inline_cstr(root=root, node=node))
 
         # Add a return statement if the function has outputs
@@ -371,39 +386,42 @@ class ExecutionContext:
     def function_def(self, node: GCNode, fwconfig: FWConfig = FWCONFIG_DEFAULT) -> str:
         """Create the function definition in the execution context including the imports."""
         code = self.code_lines(node, fwconfig)
-        fstr, idefs = node.function_def(fwconfig.hints)
+        fstr = node.function_def(fwconfig.hints)
         code.insert(0, fstr)
-        # Imports required for type hints.
-        for imp in (idef for idef in idefs if idef not in self.imports):
-            self.define(str(imp))
-            self.imports.add(imp)
         return "\n\t".join(code)
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
         """Return the code string for the GC inline code."""
         # By default the ovns is underscore (unused) for all outputs. This is
         # then overridden by any connection that starts (is source endpoint) at this node.
-        ovns: list[str] = ["_"] * node.gc["num_outputs"]
+        ngc = node.gc
+        ovns: list[str] = ["_"] * ngc["num_outputs"]
         rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is node):
             ovns[idx] = ovn
 
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
-        ivns: list[str] = [NULL_STR] * node.gc["num_inputs"]
+        ivns: list[str] = [NULL_STR] * ngc["num_inputs"]
         for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
             ivns[idx] = ivn
 
         # Is this node a codon?
         assignment = ", ".join(ovns) + " = "
         if node.is_codon:
-            # Only codons have imports
-            # Make sure the imports are captured
-            for impt in (i for i in node.gc["imports"] if i not in self.imports):
-                self.define(str(impt))
-                self.imports.add(impt)
+            if ngc["signature"] not in self._codon_register:
+                # Only codons have imports or introduce new types (which may have imports)
+                # Make sure the imports are captured
+                self._codon_register.add(ngc["signature"])
+                # Make an import chain
+                ifc = chain(ngc["cgraph"]["Is"], ngc["cgraph"]["Od"])
+                ic = chain(ngc["imports"], chain.from_iterable(t.typ.imports for t in ifc))
+                # Only import what we have not already imported.
+                for impt in (i for i in ic if i not in self.imports):
+                    self.define(str(impt))
+                    self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
-            return assignment + node.gc["inline"].format_map(ivns_map)
+            return assignment + ngc["inline"].format_map(ivns_map)
         return assignment + node.function_info.call_str(ivns)
 
     def line_limit(self) -> int:
@@ -507,7 +525,7 @@ class ExecutionContext:
 
         half_limit: int = self._line_limit // 2
         finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
-        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo)]
+        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo, self.wmc)]
 
         # Define the GCNode data
         while node_stack:
@@ -521,7 +539,7 @@ class ExecutionContext:
             for row, xgc in (x for x in child_nodes):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
                 fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
-                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap)
+                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap, self.wmc)
                 if row == DstRow.A:
                     node.gca_node = gc_node_graph_entry
                 else:

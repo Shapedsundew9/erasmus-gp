@@ -418,7 +418,7 @@ class XGCType(GGCDict):
 # The NULL GC is a placeholder for a genetic code object that does not exist.
 NULL_GC: GCABC = GGCDict(
     {
-        "cgraph": {"A": [["I", 0, "EGPInvalid"]], "O": [["A", 0, "EGPInvalid"]]},
+        "cgraph": {"A": [["I", 0, "EGPInvalid"]], "O": [["A", 0, "EGPInvalid"]], "U": []},
         "code_depth": 1,
         "generation": 0,
         "num_codes": 1,

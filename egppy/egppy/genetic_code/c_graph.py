@@ -104,7 +104,7 @@ from pprint import pformat
 from random import choice, shuffle
 from typing import Any, Iterable
 
-from egpcommon.common import NULL_FROZENSET, NULL_TUPLE
+from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
@@ -410,6 +410,7 @@ class CGraph(FreezableObject):
         # NOTE: The keys for a JSONCGraph are just destination row letters but for
         # a dict of Interfaces they are the row letter and the class (e.g. 'Fd', 'Ad', 'Bs', etc.)
         src_ep_dict: dict[SrcRow, dict[int, EndPoint]] = {}
+        json_flag = False
         for iface, iface_def in graph.items():
             if isinstance(iface_def, Interface):
                 under_iface: str = "_" + iface
@@ -418,6 +419,9 @@ class CGraph(FreezableObject):
             elif isinstance(iface_def, list):
                 # Convert list to Interface
                 # Since this must be a JSONCGraph the interface is a destination interface
+                if not json_flag:
+                    valid_jcg(graph)  # type: ignore
+                    json_flag = True
                 under_iface: str = "_" + iface + EPClsPostfix.DST
                 assert iface in DESTINATION_ROW_SET, f"Invalid interface key: {iface}"
                 assert isinstance(
@@ -431,8 +435,11 @@ class CGraph(FreezableObject):
                         # Create a set of source endpoints for the destination endpoint
                         src_ep_dict.setdefault(SrcRow(ref[0]), {})
                         if ref[1] in src_ep_dict[SrcRow(ref[0])]:
-                            refs = src_ep_dict[SrcRow(ref[0])][ref[1]].refs
+                            src_ep = src_ep_dict[SrcRow(ref[0])][ref[1]]
+                            refs = src_ep.refs
                             assert isinstance(refs, list), "Expected refs to be a list."
+                            # Make sure both references are for the same type.
+                            assert ep.typ == src_ep.typ, f"Type mismatch: {src_ep.typ} == {ep.typ}"
                             refs.append([iface, ep.idx])
                         else:
                             ri = ref[1]

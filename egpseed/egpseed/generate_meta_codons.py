@@ -26,7 +26,7 @@ OUTPUT_CODON_PATH = join(
 )
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "cgraph": {"A": [["I", 0, None]], "O": [["I", 0, None]]},
+    "cgraph": {"A": [["I", 0, None]], "O": [["A", 0, None]], "U": []},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
@@ -72,15 +72,16 @@ def generate_meta_codons(write: bool = False) -> None:
         _logger.debug("Generating meta codons...")
 
     # Find the set of type "casts". Types may be cast in two ways:
-    #   - To a parent
+    #   - To an ancestor (parent, grandparent ... 'object' at the root)
     #   - To a valid child (this implies it was previously cast to a parent)
     # Casts use isinstance() to validate they are correct and so can only be applied
     # to types that have tt = 0
     cast_set: set[tuple[int, int]] = {
-        (child.uid, puid)
+        (child.uid, ancestor.uid)
         for child in types_def_store.values()
         if child.tt() == 0
-        for puid in child.parents
+        for ancestor in types_def_store.ancestors(child.uid)
+        if ancestor.uid != child.uid
     }
 
     # Watch progress
@@ -88,37 +89,43 @@ def generate_meta_codons(write: bool = False) -> None:
     spinner.start()
 
     # Create a type cast codon for every possible cast
-    meta_codons: list[dict[str, Any]] = []
+    meta_codons: dict[str, dict[str, Any]] = {}
     for cuid, puid in cast_set:
-        # Create a copy of the codon template
-        codon: dict[str, Any] = deepcopy(CODON_TEMPLATE)
 
         # Get the parent and child type definitions
         ptd = types_def_store[puid]
         ctd = types_def_store[cuid]
 
-        # Set the type for the connections in the connection graph
-        codon["cgraph"]["A"][0][2] = ptd.name
-        codon["cgraph"]["O"][0][2] = ctd.name
+        # Do both directions
+        for inpt, oupt in ((ctd, ptd), (ptd, ctd)):
 
-        # Replace the placeholder type strings in the meta data
-        base = codon["meta_data"]["function"]["python3"]["0"]
-        for s, r in (("itype", ptd.name), ("otype", ctd.name)):
-            base["inline"] = base["inline"].replace(s, r)
-            base["description"] = base["description"].replace(s, r)
-            base["name"] = base["name"].replace(s, r)
+            # Create a copy of the codon template
+            codon: dict[str, Any] = deepcopy(CODON_TEMPLATE)
 
-        new_codon = GGCDict(codon)
-        if not new_codon.verify():
-            raise ValueError(f"Meta codon verification failed: {codon}")
-        new_codon.consistency()
-        codon = new_codon.to_json()
-        meta_codons.append(codon)
+            # Set the type for the connections in the connection graph
+            codon["cgraph"]["A"][0][2] = inpt.name
+            codon["cgraph"]["O"][0][2] = oupt.name
+
+            # Replace the placeholder type strings in the meta data
+            base = codon["meta_data"]["function"]["python3"]["0"]
+            for s, r in (("itype", inpt.name), ("otype", oupt.name)):
+                base["inline"] = base["inline"].replace(s, r)
+                base["description"] = base["description"].replace(s, r)
+                base["name"] = base["name"].replace(s, r)
+
+            new_codon = GGCDict(codon)
+            if not new_codon.verify():
+                raise ValueError(f"Meta codon verification failed: {codon}")
+            new_codon.consistency()
+            codon = new_codon.to_json()
+            if codon["signature"] in meta_codons:
+                raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
+            meta_codons[codon["signature"]] = codon
 
     # Write the meta codons to the output file (optional)
     spinner.stop()
     if write:
-        dump_signed_json(meta_codons, OUTPUT_CODON_PATH)
+        dump_signed_json(list(meta_codons.values()), OUTPUT_CODON_PATH)
 
     if _LOG_DEBUG:
         _logger.debug("Meta codons generated successfully.")

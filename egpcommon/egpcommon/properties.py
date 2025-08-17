@@ -140,7 +140,18 @@ PROPERTIES_CONFIG = {
                     ),
                 }
             },
-            {},
+            {
+                "type_cast": {
+                    "type": "bool",
+                    "start": 0,
+                    "width": 1,
+                    "default": True,
+                    "description": (
+                        "The meta codon is a type cast which means it is guaranteed to "
+                        "just have one input and one output."
+                    ),
+                }
+            },
         ],
     },
     "consider_cache": {
