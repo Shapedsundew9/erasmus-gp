@@ -435,8 +435,11 @@ class CGraph(FreezableObject):
                         # Create a set of source endpoints for the destination endpoint
                         src_ep_dict.setdefault(SrcRow(ref[0]), {})
                         if ref[1] in src_ep_dict[SrcRow(ref[0])]:
-                            refs = src_ep_dict[SrcRow(ref[0])][ref[1]].refs
+                            src_ep = src_ep_dict[SrcRow(ref[0])][ref[1]]
+                            refs = src_ep.refs
                             assert isinstance(refs, list), "Expected refs to be a list."
+                            # Make sure both references are for the same type.
+                            assert ep.typ == src_ep.typ, f"Type mismatch: {src_ep.typ} != {ep.typ}"
                             refs.append([iface, ep.idx])
                         else:
                             ri = ref[1]

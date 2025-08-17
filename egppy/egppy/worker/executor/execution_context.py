@@ -6,7 +6,7 @@ See [The Genetic Code Executor](docs/executor.md) for more information.
 
 from __future__ import annotations
 
-from itertools import count
+from itertools import chain, count
 from typing import Any
 
 from egpcommon.common import NULL_STR
@@ -104,6 +104,7 @@ class ExecutionContext:
         "_line_limit",
         "_global_index",
         "wmc",
+        "_codon_register",
     )
 
     def __init__(self, line_limit: int = 64, wmc: bool = False) -> None:
@@ -119,6 +120,9 @@ class ExecutionContext:
         self.imports: set[ImportDef] = set()
         # Write Meta-Codons (these are usually used for debugging).
         self.wmc: bool = wmc
+        # Codon register - codons that have been processed in this context
+        # Used to save trying to re-process the same codon e.g. imports.
+        self._codon_register: set[bytes] = set()
 
     def code_graph(self, root: GCNode) -> GCNode:
         """The inputs and outputs of each function are determined by the connections between GC's.
@@ -205,6 +209,13 @@ class ExecutionContext:
                 # c_graph connection.
                 if not src.terminal:
                     src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
+                elif src.node.is_meta and not self.wmc:
+                    # Meta-codons are not being written so a bypass has to be engineered.
+                    # A requirement of meta codons is that they are "straight through" i.e.
+                    # inputs map directly to outputs so we can fake it.
+                    src.row = SrcRow.I
+                    src.terminal = False
+                    # src.idx stays the same.
                 else:
                     # If the source is terminal then add its destination interface within the node
                     # to the connection stack if it has not already been added (visited).
@@ -258,8 +269,11 @@ class ExecutionContext:
             # TODO: Add condition to check if the GC is eligible for caching
             self.result_cache(root)
 
-        # Write a line for each terminal node in the graph
-        for node in (tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn is not root):
+        # Write a line for each terminal node that has lines to write in the graph
+        # Meta codons have 0 lines when self.wmc (write meta-codons) is false
+        for node in (
+            tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn.num_lines and tn is not root
+        ):
             code.append(self.inline_cstr(root=root, node=node))
 
         # Add a return statement if the function has outputs
@@ -373,6 +387,9 @@ class ExecutionContext:
         code.insert(0, fstr)
         # Imports required for type hints.
         for imp in (idef for idef in idefs if idef not in self.imports):
+            # TODO: Since we import types for codons - why would we need
+            # to do it here? A test is to put an assert in here as a trip wire.
+            assert False, "Types should be imported for codons."
             self.define(str(imp))
             self.imports.add(imp)
         return "\n\t".join(code)
@@ -381,27 +398,34 @@ class ExecutionContext:
         """Return the code string for the GC inline code."""
         # By default the ovns is underscore (unused) for all outputs. This is
         # then overridden by any connection that starts (is source endpoint) at this node.
-        ovns: list[str] = ["_"] * node.gc["num_outputs"]
+        ngc = node.gc
+        ovns: list[str] = ["_"] * ngc["num_outputs"]
         rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is node):
             ovns[idx] = ovn
 
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
-        ivns: list[str] = [NULL_STR] * node.gc["num_inputs"]
+        ivns: list[str] = [NULL_STR] * ngc["num_inputs"]
         for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
             ivns[idx] = ivn
 
         # Is this node a codon?
         assignment = ", ".join(ovns) + " = "
         if node.is_codon:
-            # Only codons have imports
-            # Make sure the imports are captured
-            for impt in (i for i in node.gc["imports"] if i not in self.imports):
-                self.define(str(impt))
-                self.imports.add(impt)
+            if ngc["signature"] not in self._codon_register:
+                # Only codons have imports or introduce new types (which may have imports)
+                # Make sure the imports are captured
+                self._codon_register.add(ngc["signature"])
+                # Make an import chain
+                ifc = chain(ngc["cgraph"]["Is"], ngc["cgraph"]["Od"])
+                ic = chain(ngc["imports"], chain.from_iterable(t.typ.imports for t in ifc))
+                # Only import what we have not already imported.
+                for impt in (i for i in ic if i not in self.imports):
+                    self.define(str(impt))
+                    self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
-            return assignment + node.gc["inline"].format_map(ivns_map)
+            return assignment + ngc["inline"].format_map(ivns_map)
         return assignment + node.function_info.call_str(ivns)
 
     def line_limit(self) -> int:

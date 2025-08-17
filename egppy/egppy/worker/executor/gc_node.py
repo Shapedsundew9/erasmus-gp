@@ -8,13 +8,14 @@ from typing import TYPE_CHECKING
 
 from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
 from egppy.genetic_code.genetic_code import (
-    MERMAID_CODON_COLOR,
+    MERMAID_BLUE,
     MERMAID_FOOTER,
-    MERMAID_GC_COLOR,
+    MERMAID_GREEN,
     MERMAID_HEADER,
-    MERMAID_UNKNOWN_COLOR,
+    MERMAID_RED,
     mc_circle_str,
     mc_connect_str,
+    mc_hexagon_str,
     mc_rectangle_str,
 )
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
@@ -34,15 +35,17 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
     If a color is specified then that color rectangle is used.
     """
     if color == "":
-        color = MERMAID_GC_COLOR
-        if gcnode.gc["num_codons"] == 1:
+        color = MERMAID_BLUE
+        if gcnode.gc.is_codon():
+            if gcnode.gc.is_meta():
+                return mc_meta_node_str(gcnode, row)
             return mc_codon_node_str(gcnode, row)
     label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_rectangle_str(gcnode.uid, label, color)
 
 
 # Mermaid Chart creation helper function
-def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_UNKNOWN_COLOR) -> str:
+def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_RED) -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCNode in the logical structure."""
     label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
@@ -50,11 +53,19 @@ def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_UNKNOWN_C
 
 
 # Mermaid Chart creation helper function
-def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_CODON_COLOR) -> str:
+def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_GREEN) -> str:
     """Return a Mermaid Chart string representation of the codon structure
     GCNode in the logical structure."""
     label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_circle_str(gcnode.uid, label, color)
+
+
+# Mermaid Chart creation helper function
+def mc_meta_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_GREEN) -> str:
+    """Return a Mermaid Chart string representation of the meta-codon structure
+    GCNode in the logical structure."""
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    return mc_hexagon_str(gcnode.uid, label, color)
 
 
 def mc_code_node_str(gcnode: GCNode) -> str:
@@ -62,12 +73,15 @@ def mc_code_node_str(gcnode: GCNode) -> str:
     if gcnode.exists or gcnode.write:
         # Stub ivns for the call string to keep the length under control.
         label = f"{gcnode.function_info.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
-        return mc_rectangle_str(gcnode.uid, label, "green")
+        return mc_rectangle_str(gcnode.uid, label, MERMAID_GREEN)
     assert (
         gcnode.gc.is_codon()
     ), "If the GC function does not exist and is not going to, it must be a codon."
-    label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
-    return mc_circle_str(gcnode.uid, label, "green")
+    if not gcnode.gc.is_meta():
+        label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
+    label = f"is({gcnode.gc['cgraph']['Od'][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
+    return mc_hexagon_str(gcnode.uid, label, MERMAID_GREEN)
 
 
 # Mermaid Chart creation helper function
@@ -139,7 +153,8 @@ class GCNodeCodeIterator(Iterator):
 
     def __init__(self, root) -> None:
         """Create an iterator for the GCNode graph.
-        Start the iterator at the 1st codon on the execution path.
+        Start the iterator at the 1st codon on the execution path (the
+        codon terminating the GCA->GCA->GCA...->GCA chain)
         """
         self._visted: set[GCNode] = set()
         if root is NULL_GC_NODE:
@@ -208,6 +223,7 @@ class GCNode(Iterable, Hashable):
     __slots__ = (
         "gc",
         "is_codon",
+        "is_meta",
         "unknown",
         "exists",
         "function_info",
@@ -238,6 +254,7 @@ class GCNode(Iterable, Hashable):
         # Defaults. These may be changed depending on the GC structure and what
         # is found in the cache.
         self.is_codon: bool = False  # Is this node for a codon?
+        self.is_meta: bool = False  # Is this node for a meta-codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
         self.exists: bool = finfo is not NULL_FUNCTION_MAP
         self.function_info: FunctionInfo = finfo
@@ -247,6 +264,9 @@ class GCNode(Iterable, Hashable):
         self.gcb: GCABC | bytes = gc["gcb"]
         self.terminal: bool = False  # A terminal node is where a connection ends
         self.f_connection: bool = gc.is_conditional()
+        # If this node is a null GC node then it is a leaf node and we self
+        # reference with GCA & GCB to terminate the recursion.
+        # NOTE: Not entirely comfortable with this & its potential consequences.
         self.gca_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         self.gcb_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         # Uniquely identify the node in the graph
@@ -255,6 +275,10 @@ class GCNode(Iterable, Hashable):
         self.terminal_connections: list[CodeConnection] = []
         # Calculated number of lines in the *potential* function
         self.num_lines: int = self.function_info.line_count
+        # Sanity check
+        assert (
+            gc.is_codon() and not self.num_lines
+        ) or not gc.is_codon(), "At this point a codon must have 0 lines."
         # The local variable counter (used to make unique variable names)
         self.local_counter: count[int] = count()
 
@@ -273,6 +297,7 @@ class GCNode(Iterable, Hashable):
 
         if gc.is_codon():
             self.is_codon = True  # Set is_codon to True if gc indicates a codon
+            self.is_meta = gc.is_meta()  # Set is_meta if the GC is a meta-codon
             assert (
                 self.gca is NULL_GC or self.gca is NULL_SIGNATURE
             ), "GCA must be NULL_GC for a codon"
@@ -281,8 +306,9 @@ class GCNode(Iterable, Hashable):
             ), "GCB must be NULL_GC for a codon"
             self.assess = False  # No need to assess a codon. We know what it is.
             self.terminal = True  # A codon is a terminal node
-            # A codon is a single line of code (unless we are supressing meta-codons)
-            self.num_lines = int(not gc.is_meta() or wmc)
+            # A codon is a single line of code (unless we are supressing meta-codons
+            # in which case they will not be written and are thus contribute 0 lines)
+            self.num_lines = int(wmc or not self.is_meta)
 
         if not self.exists and not self.is_codon:
             # The GC may have an unknown structure but there is no existing executable
@@ -346,7 +372,12 @@ class GCNode(Iterable, Hashable):
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
-        for node in (tn for tn in GCNodeCodeIterable(self) if tn.terminal and tn is not self):
+        # The only way to know if writing meta-codons has been enabled is to check
+        # the number of lines - this is a proxy rather than a direct test of the
+        # execution contexts wmc flag.
+        for node in (
+            tn for tn in GCNodeCodeIterable(self) if tn.terminal and tn.num_lines and tn is not self
+        ):
             chart_txt.append(mc_code_node_str(node))
         for connection in self.terminal_connections:
             chart_txt.append(mc_code_connection_node_str(connection, self))
@@ -485,6 +516,6 @@ class GCNode(Iterable, Hashable):
         return chart_txt
 
 
-# The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node but
-# if bot GCA and GCB are NULL_GC_NODE then it is a leaf node.
+# The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node
+# unless both GCA and GCB are NULL_GC_NODE then it is a leaf node.
 NULL_GC_NODE = GCNode(NULL_GC, None, DstRow.O, NULL_FUNCTION_MAP)

@@ -11,7 +11,7 @@ from uuid import UUID
 
 from egpcommon.common import NULL_SHA256
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.properties import PropertiesBD
+from egpcommon.properties import GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type, types_def_store
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -32,9 +32,10 @@ NULL_PROBLEM_SET: bytes = NULL_SHA256
 
 
 # Mermaid Chart header and footer
-MERMAID_GC_COLOR = "blue"
-MERMAID_CODON_COLOR = "green"
-MERMAID_UNKNOWN_COLOR = "red"
+MERMAID_BLUE = "blue"
+MERMAID_GREEN = "green"
+MERMAID_RED = "red"
+MERMAID_BLACK = "black"
 MERMAID_HEADER: list[str] = ["flowchart TD"]
 MERMAID_FOOTER: list[str] = [
     "classDef grey fill:#444444,stroke:#333333,stroke-width:2px",
@@ -45,9 +46,9 @@ MERMAID_FOOTER: list[str] = [
 ]
 
 
-def mc_rectangle_str(name: str, label: str, color: str) -> str:
-    """Return a Mermaid Chart string representation of a rectangle."""
-    return f'    {name}("{label}"):::{color}'
+def mc_circle_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a circle."""
+    return f'    {name}(("{label}")):::{color}'
 
 
 def mc_connect_str(namea: str, nameb: str, connection: str = "-->") -> str:
@@ -55,9 +56,14 @@ def mc_connect_str(namea: str, nameb: str, connection: str = "-->") -> str:
     return f"    {namea} {connection} {nameb}"
 
 
-def mc_circle_str(name: str, label: str, color: str) -> str:
-    """Return a Mermaid Chart string representation of a circle."""
-    return f'    {name}(("{label}")):::{color}'
+def mc_hexagon_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a hexagon."""
+    return f'    {name}{{{{"{label}"}}}}:::{color}'
+
+
+def mc_rectangle_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a rectangle."""
+    return f'    {name}("{label}"):::{color}'
 
 
 # Mermaid Chart creation helper function
@@ -67,15 +73,17 @@ def mc_gc_str(gcabc: GCABC, prefix: str, row: Row, color: str = "") -> str:
     If a color is specified then that color rectangle is used.
     """
     if color == "":
-        color = MERMAID_GC_COLOR
-        if gcabc["num_codons"] == 1:
+        color = MERMAID_BLUE
+        if gcabc.is_codon():
+            if gcabc.is_meta():
+                return mc_meta_str(gcabc, prefix, row)
             return mc_codon_str(gcabc, prefix, row)
     label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
     return mc_rectangle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
 
 
 # Mermaid Chart creation helper function
-def mc_unknown_str(gcabc: bytes, prefix: str, row: Row, color: str = MERMAID_UNKNOWN_COLOR) -> str:
+def mc_unknown_str(gcabc: bytes, prefix: str, row: Row, color: str = MERMAID_RED) -> str:
     """Return a Mermaid Chart string representation of the unknown structure
     GCABC in the logical structure."""
     label = f"{row}<br>{gcabc.hex()[-8:]}"
@@ -83,11 +91,19 @@ def mc_unknown_str(gcabc: bytes, prefix: str, row: Row, color: str = MERMAID_UNK
 
 
 # Mermaid Chart creation helper function
-def mc_codon_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_CODON_COLOR) -> str:
+def mc_codon_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_GREEN) -> str:
     """Return a Mermaid Chart string representation of the codon structure
     GCABC in the logical structure."""
     label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
     return mc_circle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
+
+
+# Mermaid Chart creation helper function
+def mc_meta_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_GREEN) -> str:
+    """Return a Mermaid Chart string representation of the meta-codon structure
+    GCABC in the logical structure."""
+    label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
+    return mc_hexagon_str(prefix + gcabc["signature"].hex()[-8:], label, color)
 
 
 # Mermaid Chart creation helper function
@@ -103,9 +119,11 @@ _MERMAID_KEY: list[str] = (
     [
         "```mermaid\n",
         "flowchart TD\n",
-        mc_rectangle_str("GC", "Non-codon GC", MERMAID_GC_COLOR),
-        mc_circle_str("Codon", "Codon GC", MERMAID_CODON_COLOR),
-        mc_circle_str("Unknown", "Unknown", MERMAID_UNKNOWN_COLOR),
+        mc_rectangle_str("LogicalGC", "Logical GC", MERMAID_BLUE),
+        mc_rectangle_str("ExecGC", "Executable GC", MERMAID_GREEN),
+        mc_circle_str("Codon", "Codon", MERMAID_GREEN),
+        mc_hexagon_str("MetaCodon", "Meta-Codon", MERMAID_GREEN),
+        mc_circle_str("Unknown", "Unknown", MERMAID_RED),
         '    text["Signature[-8:]"]\n',
     ]
     + MERMAID_FOOTER
@@ -163,6 +181,11 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_conditional must be overridden")
 
     @abstractmethod
+    def is_meta(self) -> bool:
+        """Return True if the genetic code is a meta-codon."""
+        raise NotImplementedError("GCABC.is_meta must be overridden")
+
+    @abstractmethod
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
@@ -197,7 +220,13 @@ class GCMixin:
     def is_codon(self) -> bool:
         """Return True if the genetic code is a codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+        codon = PropertiesBD.fast_fetch("gc_type", self["properties"])
+        assert PropertiesBD(self["properties"])["gc_type"] in GCType, "gc_type must be a GCType."
+        retval = codon == GCType.CODON or codon == GCType.META
+        assert (
+            retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+        ) or not retval, "If gc_type is a codon or meta-codon then cgraph must be primitive."
+        return retval
 
     def is_conditional(self) -> bool:
         """Return True if the genetic code is conditional."""
@@ -208,7 +237,12 @@ class GCMixin:
     def is_meta(self) -> bool:
         """Return True if the genetic code is a meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        return c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+        meta = PropertiesBD.fast_fetch("gc_type", self["properties"])
+        assert PropertiesBD(self["properties"])["gc_type"] in GCType, "gc_type must be a GCType."
+        assert (
+            meta == GCType.META and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+        ) or meta != GCType.META, "If gc_type is a meta-codon then cgraph must be primitive."
+        return meta == GCType.META
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""

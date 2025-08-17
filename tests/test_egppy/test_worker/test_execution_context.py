@@ -39,7 +39,7 @@ class TestExecutor(unittest.TestCase):
         super().setUp()
         # 2 different execution contexts
         self.ec1 = ExecutionContext(3)
-        self.ec2 = ExecutionContext(50)
+        self.ec2 = ExecutionContext(50, wmc=True)  # Write the meta-codons
         # Hack in pre-defined function
         self.ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
             f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
@@ -59,11 +59,11 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 520e7957ba08f777df2f4ba1ae17860003b733ffc820b66e726a25b56844081e\n'
+            '\t"""Signature: 2196e54c8ae04d7665389ec4514d9f3f0d047af01c9942bee13aa6fe2164f086\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\tGeneration: 4\n"
+            "\tGeneration: 7\n"
             '\t"""\n'
             "\to1 = f_0()\n"
             "\tt0 = f_7fffffff((o1,))\n"
@@ -81,16 +81,19 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 520e7957ba08f777df2f4ba1ae17860003b733ffc820b66e726a25b56844081e\n'
+            '\t"""Signature: 2196e54c8ae04d7665389ec4514d9f3f0d047af01c9942bee13aa6fe2164f086\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\tGeneration: 4\n"
+            "\tGeneration: 7\n"
             '\t"""\n'
             "\tt0 = 64\n"
             "\to1 = getrandbits(t0)\n"
-            "\tt1 = f_7fffffff((o1,))\n"
-            "\to0 = i[0] ^ t1\n"
+            "\tt3 = f_7fffffff((o1,))\n"
+            "\tt2 = raise_if_not_instance_of(t3, Integral)\n"
+            "\tt4 = raise_if_not_instance_of(i[0], Integral)\n"
+            "\tt1 = t4 ^ t2\n"
+            "\to0 = raise_if_not_instance_of(t1, int)\n"
             "\treturn o0, o1"
         )
         self.assertEqual(ftext, expected)

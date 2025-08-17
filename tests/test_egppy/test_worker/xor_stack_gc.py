@@ -81,13 +81,13 @@ custom_pgc = GGC_CACHE[
 # Meta codons
 int_to: dict[str, GGCDict] = {
     "Integral": GGC_CACHE[
-        bytes.fromhex("1802f5fc6fd8285a20676358a63a79d56b63d68e4f28ed241d22267dae17bbc8")
+        bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
     ]
 }
 
 to_int: dict[str, GGCDict] = {
     "EGPNumber": GGC_CACHE[
-        bytes.fromhex("c58ee808e38229e91c5187cd32e6a7ec25f3db78704e9d44b5d72c574f641ac8")
+        bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
     ]
 }
 
@@ -553,7 +553,7 @@ if __name__ == "__main__":
 
     # 2 different execution contexts
     ec1 = ExecutionContext(3)
-    ec2 = ExecutionContext(50)
+    ec2 = ExecutionContext(50, wmc=True)  # Write the meta codons
     # Hack in pre-defined function
     ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
         f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
@@ -616,7 +616,7 @@ if __name__ == "__main__":
                     global_idx_set1.add(node.function_info.global_index)
                 else:
                     f.write(f"Duplicate global index: {node.function_info.global_index}\n")
-            f.write(f"### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
+            f.write(f"\n### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
             f.write("```mermaid\n")
             ng = ec2.node_graph(gpgc)
             ng.line_count(ec2.line_limit())

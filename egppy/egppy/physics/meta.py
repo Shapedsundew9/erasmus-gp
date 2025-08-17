@@ -21,10 +21,11 @@ MetaCodonValueError = MetaCodonExceptionModule.get_parallel_equivalent(ValueErro
 MetaCodonTypeError = MetaCodonExceptionModule.get_parallel_equivalent(TypeError)
 
 
-def raise_if_not_instance_of(obj: Any, t: type) -> None:
+def raise_if_not_instance_of(obj: Any, t: type) -> Any:
     """Raise an error if the object is not an instance of the given types."""
     if not isinstance(obj, t):
         raise MetaCodonTypeError(f"Expected {t}, got {type(obj)} instead.")
+    return obj
 
 
 if __name__ == "__main__":  # pragma: no cover
