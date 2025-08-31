@@ -78,7 +78,6 @@ custom_pgc = GGC_CACHE[
 ]
 
 
-# Meta codons
 int_to: dict[str, GGCDict] = {
     "Integral": GGC_CACHE[
         bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
@@ -104,7 +103,7 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     egc = EGCDict(gc)
     egc.resolve_inherited_members(find_gc)
     ggc = GGCDict(egc)
-    if check and (not ggc.verify or not ggc.consistency()):
+    if check and (not ggc.verify() or not ggc.consistency()):
         raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
     GGC_CACHE[ggc["signature"]] = ggc
     return ggc

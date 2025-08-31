@@ -159,6 +159,30 @@ class ColumnSchema(Validator, DictTypeAccessor):
     The to_json() method returns the JSON types.
     """
 
+    __slots__ = (
+        "_db_type",
+        "_volatile",
+        "_default",
+        "_description",
+        "_nullable",
+        "_primary_key",
+        "_index",
+        "_unique",
+        "_alignment",
+    )
+    # Useful for filtering keys in a dict of ColumnSchema parameters
+    parameters: set[str] = {
+        "db_type",
+        "volatile",
+        "default",
+        "description",
+        "nullable",
+        "primary_key",
+        "index",
+        "unique",
+        "alignment",
+    }
+
     def __init__(
         self,
         db_type: str = "VARCHAR",
@@ -169,6 +193,7 @@ class ColumnSchema(Validator, DictTypeAccessor):
         primary_key: bool = False,
         index: str | None = None,
         unique: bool = False,
+        alignment: int = 1,
     ) -> None:
         """Initialize the class.
 
@@ -195,6 +220,7 @@ class ColumnSchema(Validator, DictTypeAccessor):
         setattr(self, "primary_key", primary_key)
         setattr(self, "index", index)
         setattr(self, "unique", unique or primary_key)
+        setattr(self, "alignment", alignment)
         self.consistency()
 
     def consistency(self) -> None:
@@ -317,6 +343,17 @@ class ColumnSchema(Validator, DictTypeAccessor):
         """Entries in the column are unique and automatically indexed if True."""
         self._is_bool("unique", value)
         self._unique = value
+
+    @property
+    def alignment(self) -> int:
+        """Get the alignment."""
+        return self._alignment
+
+    @alignment.setter
+    def alignment(self, value: int) -> None:
+        """Set the alignment."""
+        self._is_int("alignment", value)
+        self._alignment = value
 
 
 ConversionFunc = Callable | None

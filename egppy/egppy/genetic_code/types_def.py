@@ -28,6 +28,9 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
+# SQL
+_MAX_UID_SQL = "WHERE uid >= ({tt} << 16) AND uid < (({tt} + 1) << 16)"
+
 # Initialize the database connection
 DB_STORE = Table(
     config=TableConfig(
@@ -420,11 +423,6 @@ class TypesDefStore(ObjectDict):
         self._objects[ntd.uid] = ntd
         return ntd
 
-    def values(self) -> Iterator[TypesDef]:
-        """Iterate through all the types in the store."""
-        for td in DB_STORE.select():
-            yield TypesDef(**td)
-
     @lru_cache(maxsize=128)
     def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
         """Return the type definition and all ancestors by name or UID.
@@ -446,8 +444,6 @@ class TypesDefStore(ObjectDict):
         """Return the type definition and all descendants by name or UID.
         The descendants are the children, grandchildren etc. in depth order (type "key" first).
         """
-        if not isinstance(key, (int, str)):
-            raise TypeError(f"Invalid key type: {type(key)}")
         stack: set[TypesDef] = {self[key]}
         descendants: set[TypesDef] = set()
         while stack:
@@ -459,8 +455,6 @@ class TypesDefStore(ObjectDict):
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
-        if not isinstance(base_key, str):
-            raise TypeError(f"Invalid key type: {type(base_key)}")
         tds = DB_STORE.select("WHERE name LIKE {id}", literals={"id": f"{base_key}%"})
         return tuple(TypesDef(**td) for td in tds)
 
@@ -473,6 +467,19 @@ class TypesDefStore(ObjectDict):
         )
         _logger.info(info_str)
         return info_str
+
+    def next_xuid(self, tt: int = 0) -> int:
+        """Get the next X unique ID for a type."""
+        max_uid = tuple(DB_STORE.select(_MAX_UID_SQL, literals={"tt": tt}))
+        assert max_uid, "No UIDs available for this Template Type."
+        if max_uid[0] & 0xFFFF == 0xFFFF:
+            raise OverflowError("No more UIDs available for this Template Type.")
+        return max_uid[0] & 0xFFFF + 1
+
+    def values(self) -> Iterator[TypesDef]:
+        """Iterate through all the types in the store."""
+        for td in DB_STORE.select():
+            yield TypesDef(**td)
 
 
 # Create the TypesDefStore object
