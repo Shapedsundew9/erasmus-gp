@@ -1,5 +1,6 @@
 """Load the configuration and validate it."""
 
+from enum import StrEnum
 from typing import Any, cast
 
 from egpcommon.common import DictTypeAccessor
@@ -15,9 +16,17 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
+class TableTypes(StrEnum):
+    """Enumeration of table types."""
+
+    LOCAL = "local"  # Local database: Extra meta-data, highly indexed.
+    POOL = "pool"  # Pool database: Shared resources, less indexing.
+    LIBRARY = "library"  # Library database: Remote, low indexing, large (slow)
+    ARCHIVE = "archive"  # Archive database: Long-term storage, infrequent access.
+
+
 # Constants
 _DEFAULT_DBS = {"erasmus_db": DatabaseConfig()}
-TABLE_TYPES = ("pool", "library", "archive")
 
 
 class DBManagerConfig(Validator, DictTypeAccessor):
@@ -33,9 +42,9 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         name: str = "DBManagerConfig",
         databases: dict[str, DatabaseConfig | dict[str, Any]] | None = None,
         local_db: str = "erasmus_db",
-        local_type: str = "pool",
+        local_type: TableTypes = TableTypes.POOL,
         remote_dbs: list[str] | None = None,
-        remote_type: str = "library",
+        remote_type: TableTypes = TableTypes.LIBRARY,
         remote_url: str | None = None,
         archive_db: str = "erasmus_archive_db",
     ) -> None:
@@ -92,14 +101,14 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         self._local_db = value
 
     @property
-    def local_type(self) -> str:
+    def local_type(self) -> TableTypes:
         """Get the local database type."""
         return self._local_type
 
     @local_type.setter
-    def local_type(self, value: str) -> None:
+    def local_type(self, value: TableTypes) -> None:
         """The local database type."""
-        self._is_one_of("local_type", value, TABLE_TYPES)
+        self._is_one_of("local_type", value, TableTypes)
         self._local_type = value
 
     @property
@@ -122,9 +131,9 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         return self._remote_type
 
     @remote_type.setter
-    def remote_type(self, value: str) -> None:
+    def remote_type(self, value: TableTypes) -> None:
         """The remote database type."""
-        self._is_one_of("remote_type", value, TABLE_TYPES)
+        self._is_one_of("remote_type", value, TableTypes)
         self._remote_type = value
 
     @property

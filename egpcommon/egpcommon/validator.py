@@ -5,7 +5,7 @@ from ipaddress import ip_address
 from os.path import normpath, splitext
 from re import IGNORECASE, Pattern
 from re import compile as regex_compile
-from typing import Any, Sequence
+from typing import Any, Iterable, Sequence
 from urllib.parse import urlparse, urlunparse
 from uuid import UUID
 
@@ -239,7 +239,7 @@ class Validator:
         return result
 
     def _is_one_of(
-        self, attr: str, value: Any, values: tuple[Any, ...], _assert: bool = True
+        self, attr: str, value: Any, values: Iterable[Any], _assert: bool = True
     ) -> bool:
         """Check if the value is one of a set of values."""
         result = value in values
