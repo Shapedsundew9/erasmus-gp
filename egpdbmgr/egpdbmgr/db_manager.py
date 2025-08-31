@@ -20,9 +20,10 @@ The DB Manager is responsible for:
 from copy import deepcopy
 from os.path import dirname, join
 
-from egpcommon.gp_db_config import GGC_KVT, CONVERSIONS
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.gp_db_config import CONVERSIONS, GGC_KVT
 from egpdb.database import db_exists
+from egpdb.raw_table import ColumnSchema
 from egpdb.table import Table, TableConfig
 from egpdbmgr.configuration import TABLE_TYPES, DBManagerConfig
 
@@ -58,7 +59,11 @@ def initialize(config: DBManagerConfig) -> bool:
         table_config = TableConfig(
             database=config.databases[config.local_db],
             table=config.local_type + "_table",
-            schema=schema,
+            schema={
+                # Filter out non-ColumnSchema parameters
+                k1: {k2: v2 for k2, v2 in v1.items() if k2 in ColumnSchema.parameters}
+                for k1, v1 in schema.items()
+            },
             create_db=True,
             create_table=True,
             data_file_folder=join(dirname(__file__), "data"),

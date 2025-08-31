@@ -1,4 +1,73 @@
 {
+    "AncestorASig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "AncestorASig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "AncestorSig"
+        ]
+    },
+    "AncestorBSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "AncestorBSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "AncestorSig"
+        ]
+    },
+    "AncestorSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "AncestorSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "GCSig"
+        ]
+    },
     "Any": {
         "abstract": true,
         "imports": [
@@ -60,6 +129,22 @@
         ],
         "tt": 2
     },
+    "CodeDepth": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "CodeDepth"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
     "Collection[-Any0]": {
         "abstract": true,
         "imports": [
@@ -116,12 +201,92 @@
         ],
         "tt": 1
     },
+    "Created": {
+        "default": "Created.now()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Created"
+            }
+        ],
+        "parents": [
+            "datetime"
+        ]
+    },
+    "Descendants": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Descendants"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
     "dict[-Hashable0, -Any0]": {
         "default": "{}",
         "parents": [
             "MutableMapping[-Hashable0, -Any0]"
         ],
         "tt": 2
+    },
+    "ECount": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ECount"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "ECountCL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ECountCL"
+            }
+        ],
+        "parents": [
+            "ECount"
+        ]
+    },
+    "ECountHL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ECountHL"
+            }
+        ],
+        "parents": [
+            "ECount"
+        ]
     },
     "EGPComplex": {
         "abstract": true
@@ -141,6 +306,198 @@
     "EGPReal": {
         "abstract": true
     },
+    "ETotal": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ETotal"
+            }
+        ],
+        "parents": [
+            "float"
+        ]
+    },
+    "ETotalCL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ETotalCL"
+            }
+        ],
+        "parents": [
+            "ETotal"
+        ]
+    },
+    "ETotalHL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ETotalHL"
+            }
+        ],
+        "parents": [
+            "ETotal"
+        ]
+    },
+    "Evolvability": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Evolvability"
+            }
+        ],
+        "parents": [
+            "float"
+        ]
+    },
+    "EvolvabilityCL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "EvolvabilityCL"
+            }
+        ],
+        "parents": [
+            "Evolvability"
+        ]
+    },
+    "EvolvabilityHL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "EvolvabilityHL"
+            }
+        ],
+        "parents": [
+            "Evolvability"
+        ]
+    },
+    "FCount": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FCount"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "FCountCL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FCountCL"
+            }
+        ],
+        "parents": [
+            "FCount"
+        ]
+    },
+    "FCountHL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FCountHL"
+            }
+        ],
+        "parents": [
+            "FCount"
+        ]
+    },
+    "Fitness": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Fitness"
+            }
+        ],
+        "parents": [
+            "float"
+        ]
+    },
+    "FitnessCL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FitnessCL"
+            }
+        ],
+        "parents": [
+            "Fitness"
+        ]
+    },
+    "FitnessHL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FitnessHL"
+            }
+        ],
+        "parents": [
+            "Fitness"
+        ]
+    },
     "float": {
         "default": "(2.0)",
         "parents": [
@@ -154,6 +511,162 @@
             "Hashable"
         ],
         "tt": 1
+    },
+    "FTotal": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FTotal"
+            }
+        ],
+        "parents": [
+            "float"
+        ]
+    },
+    "FTotalCL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FTotalCL"
+            }
+        ],
+        "parents": [
+            "FTotal"
+        ]
+    },
+    "FTotalHL": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "FTotalHL"
+            }
+        ],
+        "parents": [
+            "FTotal"
+        ]
+    },
+    "GCABSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "GCABSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "GCSig"
+        ]
+    },
+    "GCASig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "GCASig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "GCABSig"
+        ]
+    },
+    "GCBSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "GCBSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "GCABSig"
+        ]
+    },
+    "GCSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "GCSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "Signature"
+        ]
+    },
+    "Generation": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Generation"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
     },
     "Generator[-Any0, -Any1, -Any2]": {
         "imports": [
@@ -185,6 +698,22 @@
             "object"
         ]
     },
+    "IIndices": {
+        "default": "b''",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "IIndices"
+            }
+        ],
+        "parents": [
+            "IOIndices"
+        ]
+    },
     "int": {
         "default": "(2)",
         "parents": [
@@ -204,6 +733,46 @@
         "parents": [
             "Rational",
             "EGPIntegral"
+        ]
+    },
+    "IOIndices": {
+        "default": "b''",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "IOIndices"
+            }
+        ],
+        "parents": [
+            "bytes"
+        ]
+    },
+    "IOTypes": {
+        "default": "types_def_store['object']",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "IOTypes"
+            },
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "types_def_store"
+            }
+        ],
+        "parents": [
+            "tuple[TypesDef, ...]"
         ]
     },
     "ItemsView[-Hashable0, -Any0]": {
@@ -255,6 +824,30 @@
         ],
         "tt": 1
     },
+    "ITypes": {
+        "default": "types_def_store['object']",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ITypes"
+            },
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "types_def_store"
+            }
+        ],
+        "parents": [
+            "IOTypes"
+        ]
+    },
     "KeysView[-Hashable0]": {
         "imports": [
             {
@@ -278,6 +871,54 @@
             "MutableSequence[-Any0]"
         ],
         "tt": 1
+    },
+    "LostDescendants": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "LostDescendants"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "LostDescendantsCL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "LostDescendantsCL"
+            }
+        ],
+        "parents": [
+            "LostDescendants"
+        ]
+    },
+    "LostDescendantsHL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "LostDescendantsHL"
+            }
+        ],
+        "parents": [
+            "LostDescendants"
+        ]
     },
     "Mapping[-Hashable0, Any]": {
         "abstract": true,
@@ -379,9 +1020,113 @@
             "EGPNumber"
         ]
     },
+    "NumCodes": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "NumCodes"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "NumCodons": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "NumCodons"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "NumInputs": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "NumInputs"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "NumOutputs": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "NumOutputs"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
     "object": {
         "abstract": true,
         "default": "object()"
+    },
+    "OIndices": {
+        "default": "b''",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "OIndices"
+            }
+        ],
+        "parents": [
+            "IOIndices"
+        ]
+    },
+    "OTypes": {
+        "default": "types_def_store['object']",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "OTypes"
+            },
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "types_def_store"
+            }
+        ],
+        "parents": [
+            "IOTypes"
+        ]
     },
     "Pair[-Any0, -Any1]": {
         "imports": [
@@ -399,6 +1144,123 @@
             "tuple"
         ],
         "tt": 2
+    },
+    "PGCSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "PGCSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "GCSig"
+        ]
+    },
+    "PopulationUID": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "PopulationUID"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "ProblemSetSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ProblemSetSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "Signature"
+        ]
+    },
+    "ProblemSig": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ProblemSig"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "Signature"
+        ]
+    },
+    "PropertiesBD": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "PropertiesBD"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "PropertiesInt": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "PropertiesInt"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
     },
     "Quadruplet[-Any0, -Any1, -Any2, -Any3]": {
         "imports": [
@@ -469,6 +1331,54 @@
         "parents": [
             "Complex",
             "EGPReal"
+        ]
+    },
+    "ReferenceCount": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ReferenceCount"
+            }
+        ],
+        "parents": [
+            "int"
+        ]
+    },
+    "ReferenceCountCL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ReferenceCountCL"
+            }
+        ],
+        "parents": [
+            "ReferenceCount"
+        ]
+    },
+    "ReferenceCountHL": {
+        "default": "(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "ReferenceCountHL"
+            }
+        ],
+        "parents": [
+            "ReferenceCount"
         ]
     },
     "Reversible[-Any0]": {
@@ -561,6 +1471,29 @@
         ],
         "tt": 6
     },
+    "Signature": {
+        "default": "NULL_SHA256",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Signature"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_SHA256"
+            }
+        ],
+        "parents": [
+            "bytes"
+        ]
+    },
     "Sized": {
         "abstract": true,
         "imports": [
@@ -581,6 +1514,22 @@
         "parents": [
             "Sequence[str]",
             "Hashable"
+        ]
+    },
+    "Survivability": {
+        "default": "(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Survivability"
+            }
+        ],
+        "parents": [
+            "float"
         ]
     },
     "Triplet[-Any0, -Any1, -Any2]": {
@@ -614,6 +1563,46 @@
             "object"
         ]
     },
+    "TypesDef": {
+        "default": "types_def_store['object']",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "TypesDef"
+            },
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "types_def_store"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "Updated": {
+        "default": "Updated.now()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Updated"
+            }
+        ],
+        "parents": [
+            "datetime"
+        ]
+    },
     "ValuesView[-Any0]": {
         "imports": [
             {
@@ -631,17 +1620,46 @@
         ],
         "tt": 1
     },
-    "XGCType": {
-        "default": "XGCType()",
+    "datetime": {
+        "default": "datetime.now()",
         "imports": [
             {
                 "aip": [
-                    "egppy",
-                    "gc_types",
-                    "ggc_class_factory"
+                    "datetime"
                 ],
-                "name": "XGCType"
+                "name": "datetime"
             }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "date": {
+        "default": "date.today()",
+        "imports": [
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "date"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "timedelta": {
+        "default": "timedelta(days=1)",
+        "imports": [
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "timedelta"
+            }
+        ],
+        "parents": [
+            "object"
         ]
     }
 }

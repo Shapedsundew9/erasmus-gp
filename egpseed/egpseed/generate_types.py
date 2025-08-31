@@ -174,6 +174,9 @@ def generate_types_def(write: bool = False) -> None:
             # If the parent is not in the new_tdd dictionary, it should be a tt=1 template type.
             # NOTE: No other undefined parent types are supported at this time.
             if parent not in new_tdd:
+                assert (
+                    "[" in parent
+                ), f"Parent '{parent}' is not defined in new_tdd and is not tt==1."
                 parent_template = None
                 for key in new_tdd:
                     if key.startswith(parent[: parent.find("[") + 1]):
@@ -193,6 +196,8 @@ def generate_types_def(write: bool = False) -> None:
                 ), f"Parent template '{parent}' does not match."
 
                 # Create a new type definition for the parent template if it doesn't exist.
+                template = template.replace(", ...", "")
+                template_type = template_type.replace(", ...", "")
                 new_tdd[parent] = deepcopy(new_tdd[parent_template])
                 new_tdd[parent]["name"] = parent
                 new_tdd[parent]["parents"] = {

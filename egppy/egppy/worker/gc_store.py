@@ -2,7 +2,7 @@
 
 from os.path import dirname, join
 
-from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
+# from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.security import load_signed_json_list
 from egpdb.configuration import ColumnSchema, TableConfig
@@ -22,7 +22,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 DB_TABLE_CONFIG = TableConfig(
     database=LOCAL_DB_CONFIG,
     table="local_gc_store",
-    schema={k: ColumnSchema(**v) for k, v in GGCDict.GC_KEY_TYPES.items() if v},  # type: ignore
+    schema={k: ColumnSchema(**{k1: v1 for k1, v1 in v.items() if k1 in ColumnSchema.parameters}) for k, v in GGCDict.GC_KEY_TYPES.items() if v},  # type: ignore
     delete_table=False,  # EGP_PROFILE == EGP_DEV_PROFILE,
     create_db=True,
     create_table=True,

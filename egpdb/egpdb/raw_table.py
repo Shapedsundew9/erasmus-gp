@@ -7,10 +7,10 @@ from pprint import pformat
 from time import sleep
 from typing import Any, Generator, Iterable, Literal
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.text_token import TextToken, register_token_code
 from psycopg2 import ProgrammingError, errors, sql
 
+from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.text_token import TextToken, register_token_code
 from egpdb.common import backoff_generator
 from egpdb.configuration import ColumnSchema, TableConfig
 from egpdb.database import db_connect, db_create, db_delete, db_exists, db_transaction
