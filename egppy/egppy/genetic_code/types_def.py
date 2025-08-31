@@ -468,13 +468,7 @@ class TypesDefStore(ObjectDict):
         _logger.info(info_str)
         return info_str
 
-    def next_xuid(self, tt: int = 0) -> int:
-        """Get the next X unique ID for a type."""
-        max_uid = tuple(DB_STORE.select(_MAX_UID_SQL, literals={"tt": tt}))
-        assert max_uid, "No UIDs available for this Template Type."
-        if max_uid[0] & 0xFFFF == 0xFFFF:
-            raise OverflowError("No more UIDs available for this Template Type.")
-        return max_uid[0] & 0xFFFF
+        return (max_uid[0] & 0xFFFF) + 1
 
     def values(self) -> Iterator[TypesDef]:
         """Iterate through all the types in the store."""
