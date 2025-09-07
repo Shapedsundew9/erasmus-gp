@@ -1,12 +1,4 @@
 {
-    "#": {
-        "inline": "{i0} # {i1}",
-        "description": "SQL bitwise XOR {t0} and {t1}",
-        "properties": {
-            "bitwise": true,
-            "deterministic": true
-        }
-    },
     "%": {
         "inline": "{i0} % {i1}",
         "description": "SQL modulo {t0} by {t1}",

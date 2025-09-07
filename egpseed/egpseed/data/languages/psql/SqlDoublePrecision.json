@@ -1,0 +1,22 @@
+{
+    "|/": {
+        "inline": "|/ {i0}",
+        "description": "SQL square root of the sum of squares of {t0} and {t1}",
+        "inputs": [
+            "SqlDoublePrecision"
+        ],
+        "outputs": [
+            "SqlDoublePrecision"
+        ]
+    },
+    "||/": {
+        "inline": "||/ {i0}",
+        "description": "SQL cube root of the sum of cubes of {t0} and {t1}",
+        "inputs": [
+            "SqlDoublePrecision"
+        ],
+        "outputs": [
+            "SqlDoublePrecision"
+        ]
+    }
+}

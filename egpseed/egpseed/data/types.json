@@ -1661,5 +1661,414 @@
         "parents": [
             "object"
         ]
+    },
+    "SqlType": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlType"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "SqlBool": {
+        "default": "SqlBool(False)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlBool"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlNumber": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlNumber"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlIntegral": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlIntegral"
+            }
+        ],
+        "parents": [
+            "SqlNumeric"
+        ]
+    },
+    "SqlInt": {
+        "default": "SqlInt(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlInt"
+            }
+        ],
+        "parents": [
+            "SqlIntegral"
+        ]
+    },
+    "SqlSmallInt": {
+        "default": "SqlSmallInt(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlSmallInt"
+            }
+        ],
+        "parents": [
+            "SqlIntegral"
+        ]
+    },
+    "SqlBigInt": {
+        "default": "SqlBigInt(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlBigInt"
+            }
+        ],
+        "parents": [
+            "SqlIntegral"
+        ]
+    },
+    "SqlNumeric": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlNumeric"
+            }
+        ],
+        "parents": [
+            "SqlNumber"
+        ]
+    },
+    "SqlReal": {
+        "default": "SqlReal(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlReal"
+            }
+        ],
+        "parents": [
+            "SqlNumeric"
+        ]
+    },
+    "SqlDoublePrecision": {
+        "default": "SqlDoublePrecision(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlDoublePrecision"
+            }
+        ],
+        "parents": [
+            "SqlNumeric"
+        ]
+    },
+    "SqlChar": {
+        "default": "SqlChar('')",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlChar"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlVarChar": {
+        "default": "SqlVarChar('')",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlVarChar"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlDate": {
+        "default": "SqlDate(date.today())",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlDate"
+            },
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "date"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlTime": {
+        "default": "SqlTime(timedelta(days=0, seconds=0))",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlTime"
+            },
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "timedelta"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlTimestamp": {
+        "default": "SqlTimestamp(datetime.now())",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlTimestamp"
+            },
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "datetime"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlUuid": {
+        "default": "SqlUuid(NULL_UUID)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlUuid"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_UUID"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlBytea": {
+        "default": "SqlBytea(b'')",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlBytea"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlArray": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlArray"
+            }
+        ],
+        "parents": [
+            "SqlType"
+        ]
+    },
+    "SqlBoolArray": {
+        "default": "SqlBoolArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlBoolArray"
+            }
+        ],
+        "parents": [
+            "SqlArray"
+        ]
+    },
+    "SqlIntArray": {
+        "default": "SqlIntArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlIntArray"
+            }
+        ],
+        "parents": [
+            "SqlArray"
+        ]
+    },
+    "SqlSmallIntArray": {
+        "default": "SqlSmallIntArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlSmallIntArray"
+            }
+        ],
+        "parents": [
+            "SqlArray"
+        ]
+    },
+    "SqlBigIntArray": {
+        "default": "SqlBigIntArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlBigIntArray"
+            }
+        ],
+        "parents": [
+            "SqlArray"
+        ]
+    },
+    "SqlRealArray": {
+        "default": "SqlRealArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlRealArray"
+            }
+        ],
+        "parents": [
+            "SqlArray"
+        ]
+    },
+    "SqlDoublePrecisionArray": {
+        "default": "SqlDoublePrecisionArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "sql_types"
+                ],
+                "name": "SqlDoublePrecisionArray"
+            }
+        ],
+        "parents": [
+            "SqlArray"
+        ]
     }
 }
