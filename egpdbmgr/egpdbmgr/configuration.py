@@ -41,21 +41,33 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         self,
         name: str = "DBManagerConfig",
         databases: dict[str, DatabaseConfig | dict[str, Any]] | None = None,
-        local_db: str = "erasmus_db",
-        local_type: TableTypes = TableTypes.POOL,
-        remote_dbs: list[str] | None = None,
-        remote_type: TableTypes = TableTypes.LIBRARY,
-        remote_url: str | None = None,
+        managed_db: str = "erasmus_db",
+        managed_type: TableTypes = TableTypes.POOL,
+        upstream_dbs: list[str] | None = None,
+        upstream_type: TableTypes = TableTypes.LIBRARY,
+        upstream_url: str | None = None,  # TODO: Not sure if this is needed/why it is here
         archive_db: str = "erasmus_archive_db",
     ) -> None:
-        """Initialize the class."""
+        """Initialize the class.
+
+        Args
+        ----
+        name: The name of the configuration.
+        databases: The definitions of the database servers.
+        managed_db: The managed database name.
+        managed_type: The managed database type.
+        upstream_dbs: The remote databases to manage.
+        upstream_type: The remote database type.
+        upstream_url: The remote database URL.
+        archive_db: The archive database name.
+        """
         setattr(self, "_name", name)
         setattr(self, "databases", databases if databases is not None else _DEFAULT_DBS)
-        setattr(self, "local_db", local_db)
-        setattr(self, "local_type", local_type)
-        setattr(self, "remote_dbs", remote_dbs if remote_dbs is not None else [])
-        setattr(self, "remote_type", remote_type)
-        setattr(self, "remote_url", remote_url)
+        setattr(self, "managed_db", managed_db)
+        setattr(self, "managed_type", managed_type)
+        setattr(self, "upstream_dbs", upstream_dbs if upstream_dbs is not None else [])
+        setattr(self, "upstream_type", upstream_type)
+        setattr(self, "upstream_url", upstream_url)
         setattr(self, "archive_db", archive_db)
 
     @property
@@ -89,64 +101,64 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         self._databases = cast(dict[str, DatabaseConfig], value)
 
     @property
-    def local_db(self) -> str:
-        """Get the local database."""
-        return self._local_db
+    def managed_db(self) -> str:
+        """Get the managed database name."""
+        return self._managed_db
 
-    @local_db.setter
-    def local_db(self, value: str) -> None:
+    @managed_db.setter
+    def managed_db(self, value: str) -> None:
         """The local database name."""
-        self._is_simple_string("local_db", value)
-        self._is_length("local_db", value, 1, 64)
-        self._local_db = value
+        self._is_simple_string("managed_db", value)
+        self._is_length("managed_db", value, 1, 64)
+        self._managed_db = value
 
     @property
-    def local_type(self) -> TableTypes:
+    def managed_type(self) -> TableTypes:
         """Get the local database type."""
-        return self._local_type
+        return self._managed_type
 
-    @local_type.setter
-    def local_type(self, value: TableTypes) -> None:
+    @managed_type.setter
+    def managed_type(self, value: TableTypes) -> None:
         """The local database type."""
-        self._is_one_of("local_type", value, TableTypes)
-        self._local_type = value
+        self._is_one_of("managed_type", value, TableTypes)
+        self._managed_type = value
 
     @property
-    def remote_dbs(self) -> list[str]:
+    def upstream_dbs(self) -> list[str]:
         """Get the remote databases."""
-        return self._remote_dbs
+        return self._upstream_dbs
 
-    @remote_dbs.setter
-    def remote_dbs(self, value: list[str]) -> None:
+    @upstream_dbs.setter
+    def upstream_dbs(self, value: list[str]) -> None:
         """The remote databases."""
-        self._is_list("remote_dbs", value)
+        self._is_list("upstream_dbs", value)
         for val in value:
-            self._is_simple_string("remote_dbs", val)
-            self._is_length("remote_dbs", val, 1, 64)
-        self._remote_dbs = value
+            self._is_simple_string("upstream_dbs", val)
+            self._is_length("upstream_dbs", val, 1, 64)
+        self._upstream_dbs = value
 
     @property
-    def remote_type(self) -> str:
+    def upstream_type(self) -> str:
         """Get the remote database type."""
-        return self._remote_type
+        return self._upstream_type
 
-    @remote_type.setter
-    def remote_type(self, value: TableTypes) -> None:
+    @upstream_type.setter
+    def upstream_type(self, value: TableTypes) -> None:
         """The remote database type."""
-        self._is_one_of("remote_type", value, TableTypes)
-        self._remote_type = value
+        self._is_one_of("upstream_type", value, TableTypes)
+        self._upstream_type = value
 
     @property
-    def remote_url(self) -> str | None:
+    def upstream_url(self) -> str | None:
         """Get the remote database URL."""
-        return self._remote_url
+        return self._upstream_url
 
-    @remote_url.setter
-    def remote_url(self, value: str | None) -> None:
+    @upstream_url.setter
+    def upstream_url(self, value: str | None) -> None:
         """The remote database file URL for download."""
         if value is not None:
-            self._is_url("remote_url", value)
-        self._remote_url = value
+            self._is_url("upstream_url", value)
+        self._upstream_url = value
 
     @property
     def archive_db(self) -> str:
@@ -171,10 +183,10 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         assert isinstance(config, dict), "Configuration must be a dictionary"
         self.name = config["name"]
         self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
-        self.local_db = config["local_db"]
-        self.local_type = config["local_type"]
-        self.remote_dbs = config["remote_dbs"]
-        self.remote_type = config["remote_type"]
+        self.managed_db = config["managed_db"]
+        self.managed_type = config["managed_type"]
+        self.upstream_dbs = config["upstream_dbs"]
+        self.upstream_type = config["upstream_type"]
         self.archive_db = config["archive_db"]
 
     def to_json(self) -> dict[str, Any]:
@@ -182,9 +194,9 @@ class DBManagerConfig(Validator, DictTypeAccessor):
         return {
             "name": self.name,
             "databases": {key: val.to_json() for key, val in self.databases.items()},
-            "local_db": self.local_db,
-            "local_type": self.local_type,
-            "remote_dbs": self.remote_dbs,
-            "remote_type": self.remote_type,
+            "managed_db": self.managed_db,
+            "managed_type": self.managed_type,
+            "upstream_dbs": self.upstream_dbs,
+            "upstream_type": self.upstream_type,
             "archive_db": self.archive_db,
         }

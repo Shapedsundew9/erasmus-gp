@@ -16,7 +16,8 @@
 				"bierner.markdown-mermaid",
 				"DavidAnson.vscode-markdownlint",
 				"ms-python.pylint",
-				"GitHub.vscode-pull-request-github"
+				"GitHub.vscode-pull-request-github",
+				"ms-ossdata.vscode-pgsql"
 			],
 			"settings": {
 				// Put all your VS Code settings here.

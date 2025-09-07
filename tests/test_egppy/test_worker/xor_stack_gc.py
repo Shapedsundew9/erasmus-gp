@@ -26,13 +26,14 @@ from typing import Any
 from egpcommon.common import bin_counts
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
+from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.genetic_code.types_def import types_def_store
+from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
-from egppy.worker.gc_store import GGC_CACHE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -54,38 +55,33 @@ INT_TD = types_def_store[INT_T]
 # Slows down the code but is useful for debugging
 # Set to 0.0 to disable or a fractional value for random sampling.
 CONSISTENCY_SAMPLE = 1.0
+gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
 # Right shift codon
-_rshift_gc = GGC_CACHE[
-    bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
-]
+_rshift_gc = gpi[bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")]
 # Literal 1 codon
-literal_1_gc = GGC_CACHE[
+literal_1_gc = gpi[
     bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
 ]
 # This is the Integral type XOR but it does not matter for this
-_xor_gc = GGC_CACHE[
-    bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
-]
-getrandbits_gc = GGC_CACHE[
+_xor_gc = gpi[bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")]
+getrandbits_gc = gpi[
     bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
 ]
-sixtyfour_gc = GGC_CACHE[
+sixtyfour_gc = gpi[
     bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
 ]
-custom_pgc = GGC_CACHE[
-    bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")
-]
+custom_pgc = gpi[bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")]
 
 
 int_to: dict[str, GGCDict] = {
-    "Integral": GGC_CACHE[
+    "Integral": gpi[
         bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
     ]
 }
 
 to_int: dict[str, GGCDict] = {
-    "EGPNumber": GGC_CACHE[
+    "EGPNumber": gpi[
         bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
     ]
 }
@@ -93,7 +89,7 @@ to_int: dict[str, GGCDict] = {
 
 def find_gc(signature: bytes) -> GCABC:
     """Find a GC in the cache."""
-    retval = GGC_CACHE[signature]
+    retval = gpi[signature]
     assert isinstance(retval, GCABC), f"GC with signature {signature.hex()} is not a GCABC object."
     return retval
 
@@ -105,7 +101,7 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     ggc = GGCDict(egc)
     if check and (not ggc.verify() or not ggc.consistency()):
         raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
-    GGC_CACHE[ggc["signature"]] = ggc
+    gpi[ggc["signature"]] = ggc
     return ggc
 
 

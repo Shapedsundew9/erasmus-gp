@@ -6,6 +6,7 @@ from collections.abc import Hashable, Iterable, Iterator
 from itertools import count
 from typing import TYPE_CHECKING
 
+from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
 from egppy.genetic_code.genetic_code import (
     MERMAID_BLUE,
@@ -21,7 +22,6 @@ from egppy.genetic_code.genetic_code import (
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
 from egppy.genetic_code.interface import Interface
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
-from egppy.worker.gc_store import GGC_CACHE
 
 if TYPE_CHECKING:
     from egppy.worker.executor.code_connection import CodeConnection
@@ -312,10 +312,11 @@ class GCNode(Iterable, Hashable):
         if not self.exists and not self.is_codon:
             # The GC may have an unknown structure but there is no existing executable
             # Need to pull the GC sub-GC's into cache to assess it
+            gpi = GenePoolInterface()
             if isinstance(self.gca, bytes):
-                self.gca = GGC_CACHE[self.gca]
+                self.gca = gpi[self.gca]
             if isinstance(self.gcb, bytes):
-                self.gcb = GGC_CACHE[self.gcb]
+                self.gcb = gpi[self.gcb]
 
         if self.exists and (isinstance(self.gca, bytes) or isinstance(self.gcb, bytes)):
             # This is a unknown executable (treated like a codon in many respects)

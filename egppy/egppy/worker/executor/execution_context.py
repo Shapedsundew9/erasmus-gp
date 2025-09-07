@@ -11,6 +11,7 @@ from typing import Any
 
 from egpcommon.common import NULL_STR
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
@@ -23,7 +24,6 @@ from egppy.worker.executor.code_connection import (
 from egppy.worker.executor.function_info import NULL_EXECUTABLE, NULL_FUNCTION_MAP, FunctionInfo
 from egppy.worker.executor.fw_config import FWCONFIG_DEFAULT, FWConfig
 from egppy.worker.executor.gc_node import NULL_GC_NODE, GCNode, GCNodeCodeIterable
-from egppy.worker.gc_store import GGC_CACHE
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -614,6 +614,7 @@ class ExecutionContext:
         # The GC may have been assessed as part of another GC but not an executable in its own right
         # The GC node graph is needed to determine connectivity and so we reset the num_lines
         # and re-assess
-        _gc: GCABC = gc if isinstance(gc, GCABC) else GGC_CACHE[sig]
+        gpi = GenePoolInterface()
+        _gc: GCABC = gc if isinstance(gc, GCABC) else gpi[sig]
         root, _ = self.create_graphs(_gc, executable)
         return root

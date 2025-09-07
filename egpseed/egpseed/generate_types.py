@@ -81,6 +81,40 @@ def parse_toplevel_args(type_string: str) -> list[str]:
     return _args
 
 
+class TTCounters:
+    """Template Type Counters.
+    This class is responsible for generating unique template type IDs.
+    With knowledge of the existing type definitions it can generate
+    unique IDs for new types.
+    """
+
+    def __init__(self, existing_uid_map: dict[int, str]) -> None:
+        # NOTE: xuid 0 is reserved for the Any type, so the counters start at 1.
+        self.counters: list[count[int]] = [  # pylint: disable=unsubscriptable-object
+            count(1) for _ in range(8)
+        ]
+        self.existing_uid_map = existing_uid_map
+        self.tdbd: type[BitDictABC] = bitdict_factory(TYPESDEF_CONFIG)
+
+    def __getitem__(self, tt: int) -> int:
+        """Get the next unique ID for the given template type."""
+        if tt < 0 or tt >= len(self.counters):
+            raise ValueError(f"Invalid template type: {tt}")
+        while True:
+            uid = self.tdbd(
+                {
+                    "tt": tt,
+                    "xuid": next(self.counters[tt]),
+                }
+            ).to_int()
+            # The tt_counters are used to generate unique xuid values for each type in each
+            # template type (TT).
+            if uid in self.existing_uid_map:
+                # If the generated UID already exists, we need to find a new one.
+                continue
+            return uid
+
+
 def generate_types_def(write: bool = False) -> None:
     """Generate the types_def.json file from the types.json file.
 
@@ -88,21 +122,20 @@ def generate_types_def(write: bool = False) -> None:
         write: If True, write the generated types to a JSON file. When False, just perform
                generation/validation without writing, matching the CLI pattern used elsewhere.
     """
-    # The Types Definition BitDict type defines the UID from the bit field values.
-    tdbd: type[BitDictABC] = bitdict_factory(TYPESDEF_CONFIG)
-
     # The types.json file is a raw definition of types.
     # Only non-default key:value pairs are stored in the file and
     # container types (TT > 0) are all defined with their root types e.g. "dict[Hashable, Any]"
     with open(join(dirname(__file__), "data", "types.json"), encoding="utf-8") as f:
         types: dict[str, dict[str, Any]] = load(f)
 
-    # The tt_counters are used to generate unique xuid values for each type in each
-    # template type (TT).
-    # NOTE: xuid 0 is reserved for the Any type, so the counters start at 1.
-    tt_counters: list[count[int]] = [  # pylint: disable=unsubscriptable-object
-        count(1) for _ in range(8)
-    ]
+    # Load any existing types_def.json file to preserve UIDs where possible
+    # and create an efficient reverse mapping of UID to type name.
+    with open(TYPES_DEF_FILE, encoding="utf-8") as f:
+        existing_types_def: dict[str, dict[str, Any]] = load(f)
+    existing_uid_map: dict[int, str] = {
+        v["uid"]: k for k, v in existing_types_def.items() if "uid" in v
+    }
+    tt_counters = TTCounters(existing_uid_map)
 
     # Multiple passes are made of the types as some types are defined in terms of others. Pass:
     #   1. Creates a new type definition dictionary with unique names and UIDs.
@@ -583,17 +616,11 @@ def generate_types_def(write: bool = False) -> None:
 
     # Pass 10: JSON-ize the fields and add a UID to each type definition.
     for definition in sorted(new_tdd.values(), key=lambda d: d["name"]):
-        # Create a unique identifier for the type definition.
-        xuid: int = next(tt_counters[definition["tt"]]) * (
-            not any(definition["name"] == name for name in XUID_ZERO_NAMES)
+        definition["uid"] = (
+            tt_counters[definition["tt"]]
+            if definition["name"] not in existing_types_def
+            else existing_types_def[definition["name"]]["uid"]
         )
-
-        definition["uid"] = tdbd(
-            {
-                "tt": definition["tt"],
-                "xuid": xuid,
-            }
-        ).to_int()
 
     # Pass 11: Convert the parents and children sets to sorted lists.
     for definition in new_tdd.values():
@@ -609,6 +636,13 @@ def generate_types_def(write: bool = False) -> None:
             definition["uid"] not in uids
         ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
         uids.add(definition["uid"])
+
+        # Make sure previous definitions are not violated.
+        if definition["name"] in existing_types_def:
+            assert definition["uid"] == existing_types_def[definition["name"]]["uid"], (
+                f"UID mismatch for {definition['name']}: {definition['uid']}"
+                f" != {existing_types_def[definition['name']]['uid']}"
+            )
 
     # Pass 13: Write the new type definition dictionary to a JSON file (optional).
     if write:

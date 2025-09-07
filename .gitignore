@@ -207,6 +207,8 @@ marimo/_lsp/
 __marimo__/
 
 # EGP
-types_def.json
+# types_def.json seems stable enough now and does affect signatures of codons so
+# putting it back under version control.
+# types_def.json
 codons.json
 meta_codons.json
