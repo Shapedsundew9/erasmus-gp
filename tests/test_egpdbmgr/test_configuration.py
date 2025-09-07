@@ -14,10 +14,10 @@ class TestDBManagerConfig(unittest.TestCase):
         self.default_config = {
             "name": "DBManagerConfig",
             "databases": {"erasmus_db": DatabaseConfig()},
-            "local_db": "erasmus_db",
-            "local_type": "pool",
-            "remote_dbs": [],
-            "remote_type": "library",
+            "managed_db": "erasmus_db",
+            "managed_type": "pool",
+            "upstream_dbs": [],
+            "upstream_type": "library",
             "archive_db": "erasmus_archive_db",
         }
 
@@ -26,10 +26,10 @@ class TestDBManagerConfig(unittest.TestCase):
         config = DBManagerConfig()
         self.assertEqual(config.name, self.default_config["name"])
         self.assertEqual(config.databases, self.default_config["databases"])
-        self.assertEqual(config.local_db, self.default_config["local_db"])
-        self.assertEqual(config.local_type, self.default_config["local_type"])
-        self.assertEqual(config.remote_dbs, self.default_config["remote_dbs"])
-        self.assertEqual(config.remote_type, self.default_config["remote_type"])
+        self.assertEqual(config.managed_db, self.default_config["managed_db"])
+        self.assertEqual(config.managed_type, self.default_config["managed_type"])
+        self.assertEqual(config.upstream_dbs, self.default_config["upstream_dbs"])
+        self.assertEqual(config.upstream_type, self.default_config["upstream_type"])
         self.assertEqual(config.archive_db, self.default_config["archive_db"])
 
     def test_custom_initialization(self):
@@ -37,27 +37,27 @@ class TestDBManagerConfig(unittest.TestCase):
         custom_config = {
             "name": "CustomDBManagerConfig",
             "databases": {"custom_db": DatabaseConfig()},
-            "local_db": "custom_db",
-            "local_type": "library",
-            "remote_dbs": ["remote_db1", "remote_db2"],
-            "remote_type": "archive",
+            "managed_db": "custom_db",
+            "managed_type": "library",
+            "upstream_dbs": ["remote_db1", "remote_db2"],
+            "upstream_type": "archive",
             "archive_db": "custom_archive_db",
         }
         config = DBManagerConfig(
             name=custom_config["name"],
             databases=custom_config["databases"],
-            local_db=custom_config["local_db"],
-            local_type=custom_config["local_type"],
-            remote_dbs=custom_config["remote_dbs"],
-            remote_type=custom_config["remote_type"],
+            managed_db=custom_config["managed_db"],
+            managed_type=custom_config["managed_type"],
+            upstream_dbs=custom_config["upstream_dbs"],
+            upstream_type=custom_config["upstream_type"],
             archive_db=custom_config["archive_db"],
         )
         self.assertEqual(config.name, custom_config["name"])
         self.assertEqual(config.databases, custom_config["databases"])
-        self.assertEqual(config.local_db, custom_config["local_db"])
-        self.assertEqual(config.local_type, custom_config["local_type"])
-        self.assertEqual(config.remote_dbs, custom_config["remote_dbs"])
-        self.assertEqual(config.remote_type, custom_config["remote_type"])
+        self.assertEqual(config.managed_db, custom_config["managed_db"])
+        self.assertEqual(config.managed_type, custom_config["managed_type"])
+        self.assertEqual(config.upstream_dbs, custom_config["upstream_dbs"])
+        self.assertEqual(config.upstream_type, custom_config["upstream_type"])
         self.assertEqual(config.archive_db, custom_config["archive_db"])
 
     def test_to_json(self):
@@ -68,10 +68,10 @@ class TestDBManagerConfig(unittest.TestCase):
             "databases": {
                 key: val.to_json() for key, val in self.default_config["databases"].items()
             },
-            "local_db": self.default_config["local_db"],
-            "local_type": self.default_config["local_type"],
-            "remote_dbs": self.default_config["remote_dbs"],
-            "remote_type": self.default_config["remote_type"],
+            "managed_db": self.default_config["managed_db"],
+            "managed_type": self.default_config["managed_type"],
+            "upstream_dbs": self.default_config["upstream_dbs"],
+            "upstream_type": self.default_config["upstream_type"],
             "archive_db": self.default_config["archive_db"],
         }
         self.assertEqual(config.to_json(), expected_json)
@@ -81,18 +81,18 @@ class TestDBManagerConfig(unittest.TestCase):
         config = DBManagerConfig()
         with tempfile.NamedTemporaryFile("w+", encoding="utf8", delete=True) as tmpfile:
             tmpfile.write(
-                '{"name": "DBManagerConfig", "databases": {"erasmus_db": {}}, "local_db": '
-                '"erasmus_db", "local_type": "pool", "remote_dbs": [], "remote_type": '
+                '{"name": "DBManagerConfig", "databases": {"erasmus_db": {}}, "managed_db": '
+                '"erasmus_db", "managed_type": "pool", "upstream_dbs": [], "upstream_type": '
                 '"library", "archive_db": "erasmus_archive_db"}'
             )
             tmpfile.flush()
             config.load_config(tmpfile.name)
         self.assertEqual(config.name, self.default_config["name"])
         self.assertEqual(config.databases, self.default_config["databases"])
-        self.assertEqual(config.local_db, self.default_config["local_db"])
-        self.assertEqual(config.local_type, self.default_config["local_type"])
-        self.assertEqual(config.remote_dbs, self.default_config["remote_dbs"])
-        self.assertEqual(config.remote_type, self.default_config["remote_type"])
+        self.assertEqual(config.managed_db, self.default_config["managed_db"])
+        self.assertEqual(config.managed_type, self.default_config["managed_type"])
+        self.assertEqual(config.upstream_dbs, self.default_config["upstream_dbs"])
+        self.assertEqual(config.upstream_type, self.default_config["upstream_type"])
         self.assertEqual(config.archive_db, self.default_config["archive_db"])
 
     def test_name_validation(self):

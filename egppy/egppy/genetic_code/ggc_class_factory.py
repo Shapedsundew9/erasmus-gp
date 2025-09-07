@@ -13,7 +13,7 @@ from uuid import UUID
 
 from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE, sha256_signature
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.gp_db_config import CONVERSIONS, GGC_KVT
+from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.egc_class_factory import EGCMixin
 from egppy.genetic_code.genetic_code import GCABC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
@@ -32,7 +32,6 @@ class GGCMixin(EGCMixin):
     """General Genetic Code Mixin Class."""
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
-    CONVERSIONS: tuple[tuple[str, Any, Any], ...] = CONVERSIONS
 
     def consistency(self) -> bool:
         """Check the genetic code object for consistency."""

@@ -5,7 +5,7 @@ from abc import abstractmethod
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpdb.configuration import DatabaseConfig
-
+from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.populations.configuration import PopulationConfig
 
 # Standard EGP logging pattern
@@ -27,6 +27,16 @@ class GPIABC(CommonObjABC):
     def __init__(self, config: DatabaseConfig) -> None:
         """Initialize the Gene Pool Interface."""
         raise NotImplementedError("GPIABC.__init__ must be overridden")
+
+    @abstractmethod
+    def __getitem__(self, item: bytes) -> GGCDict:
+        """Get a Genetic Code by its signature."""
+        raise NotImplementedError("GPIABC.__getitem__ must be overridden")
+
+    @abstractmethod
+    def __setitem__(self, signature: bytes, value: GGCDict) -> None:
+        """Set a Genetic Code by its signature."""
+        raise NotImplementedError("GPIABC.__setitem__ must be overridden")
 
     @abstractmethod
     def initial_generation_query(self, pconfig: PopulationConfig) -> list[bytes]:

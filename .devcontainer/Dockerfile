@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.12-bullseye
+FROM mcr.microsoft.com/devcontainers/python:3.12-bookworm
 
 # Update and install any necessary packages
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

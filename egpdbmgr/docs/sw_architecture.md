@@ -19,9 +19,15 @@ flowchart TD
     dbm1 <--> bu1
 ```
 
-The EGP DB Manager is an independent process (container) that manages a postgres database for a storage role in EGP. The storage role (Gene Pool, Genomic Library, Archive) is defined by the DBM configuration upon creation.
+The EGP DB Manager is an independent process (container) that manages a postgres database for a storage role in EGP. The storage role (Local, Gene Pool, Genomic Library, Archive) is defined by the DBM configuration upon creation. The DBM manages its database as a cache to the upstream databases but also takes care of low value data archiving to reduce noise and data volume at the higer layers (upstream).
 
-The Postgres GP/GL DB should be more performant that the archive DB and is typically configured with more indexes & other parameters for speed. The Postgres Archive DB is used as a slower store of less frequently used GC's when the main DB reaches its size limit. When the Archive DB reaches its size limit unused GC's (the entire gene line of a poorly performing GC) are placed in to encrypted compressed database back up files.
+The database being managed by the DBM is called the 'Managed' database. It is initially populated with data from one or more upstream databases or from local static file storage in the event that the upstream storage is unavailible or not configured. Low value data, based on configuration rules, is periodically purged to the archive.
+
+The Postgres DB should be more performant that the archive DB and is typically configured with more indexes & other parameters for speed. The Postgres Archive DB is used as a slower store of less frequently used GC's when the main DB reaches its size limit. When the Archive DB reaches its size limit unused GC's (the entire gene line of a poorly performing GC) are placed in to encrypted compressed database back up files.
+
+## Configuration
+
+The Database Manager is configured.
 
 ## Initialisation
 

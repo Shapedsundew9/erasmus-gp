@@ -18,11 +18,17 @@ The DB Manager is responsible for:
 """
 
 from copy import deepcopy
-from os.path import dirname, join
+from typing import Any, Callable
 
+from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
+from egpcommon.conversions import (
+    compress_json,
+    decode_properties,
+    decompress_json,
+    encode_properties,
+)
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.gp_db_config import CONVERSIONS, GGC_KVT
-from egpdb.database import db_exists
+from egpcommon.gp_db_config import GGC_KVT
 from egpdb.raw_table import ColumnSchema
 from egpdb.table import Table, TableConfig
 from egpdbmgr.configuration import DBManagerConfig, TableTypes
@@ -34,33 +40,48 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-# Constants
-LOCAL_SCHEMA = deepcopy(GGC_KVT)
-GP_SCHEMA = deepcopy(GGC_KVT)
-GL_SCHEMA = deepcopy(GGC_KVT)
+# Note that encode conversions must produce a type that is compatible with the database type
+# and decode conversions must produce a type that is compatible with the application type.
+# The conversions *MUST* be symmetric i.e. encode followed by decode must produce the original
+# value.
+# {name, encode (output to DB), decode (output to application)}
+CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
+    (
+        "cgraph",
+        lambda x: compress_json(x.to_json()),
+        decompress_json,
+    ),
+    ("meta_data", compress_json, decompress_json),
+    ("properties", encode_properties, decode_properties),
+)
 
-SCHEMAS = {TableTypes.POOL: GP_SCHEMA, TableTypes.LIBRARY: GP_SCHEMA, TableTypes.ARCHIVE: GGC_KVT}
-assert set(SCHEMAS.keys()) == set(TableTypes)
 
+class DBManager:
+    """Database Manager for the EGP."""
 
-def initialize(config: DBManagerConfig) -> bool:
-    """Initialize the DB Manager.
+    def __init__(self, config: DBManagerConfig) -> None:
+        self.config = config
+        self.managed_table = self.create_managed_table()
 
-    Return True if a restart is required.
-    """
-    if db_exists(config.local_db, config.databases[config.local_db]):
-        _logger.info("Database '%s' exists.", config.local_db)
-        # Check table version
-        # Migrate table if necessary
-        # Check table data
-        # Spawn processes
-    else:
-        schema = SCHEMAS[config.local_type]
+    def prepare_schemas(self) -> dict[TableTypes, dict[str, Any]]:
+        """Prepare the schemas for the different table types.
+        The GenePool schema is defined by default in gp_db_config.py
+        and the other schemas are variants on that.
+        """
+        schema = {k: v for k, v in GGC_KVT.items() if v}
+        schemas = {k: deepcopy(schema) for k in TableTypes}
+        # TODO: Optimise other schemas
+        return schemas
+
+    def create_managed_table(self) -> Table:
+        """Create and return the managed Table object for the DB Manager."""
+        schemas = self.prepare_schemas()
+        schema = schemas[self.config.managed_type]
         # Check if remote DB exists. If so download from there.
         # If not download database file from remote URL: Check if it is signed.
         table_config = TableConfig(
-            database=config.databases[config.local_db],
-            table=config.local_type + "_table",
+            database=self.config.databases[self.config.managed_db],
+            table=self.config.managed_type + "_table",
             schema={
                 # Filter out non-ColumnSchema parameters
                 k1: {k2: v2 for k2, v2 in v1.items() if k2 in ColumnSchema.parameters}
@@ -68,16 +89,11 @@ def initialize(config: DBManagerConfig) -> bool:
             },
             create_db=True,
             create_table=True,
-            data_file_folder=join(dirname(__file__), "data"),
-            data_files=["codons.json"],
+            delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
             conversions=CONVERSIONS,
         )
-        _ = Table(table_config)
-        return True
-    _logger.info("Initializing the DB Manager for config named '%s'.", config.name)
-    return False
+        return Table(table_config)
 
-
-def operations(config: DBManagerConfig) -> None:
-    """Operations for the DB Manager."""
-    _logger.info("Operations for the DB Manager for config named '%s'.", config.name)
+    def operations(self) -> None:
+        """Operations for the DB Manager."""
+        _logger.info("Operations for the DB Manager for config named '%s'.", self.config.name)

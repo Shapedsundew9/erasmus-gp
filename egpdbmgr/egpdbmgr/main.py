@@ -16,9 +16,8 @@ from sys import exit as sys_exit
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.egp_logo import gallery, header, header_lines
-
 from egpdbmgr.configuration import DBManagerConfig
-from egpdbmgr.db_manager import initialize, operations
+from egpdbmgr.db_manager import DBManager
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -96,11 +95,7 @@ def init_db_manager(args: Namespace) -> None:
         _logger.error("No configuration file specified.")
         sys_exit(1)
 
-    if not initialize(config):
-        operations(config)
-    else:
-        _logger.info("Successfully initialized. Restart required. Exiting with code 10.")
-        sys_exit(10)
+    _ = DBManager(config)
     _logger.info("DB Manager operations completed. Exiting with code 0.")
 
 

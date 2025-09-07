@@ -4,14 +4,7 @@ This module contains the configuration for the Gene Pool database table.
 The GP schema is used in egppy & egpdbmgr.
 """
 
-from typing import Any, Callable
-
-from egpcommon.conversions import (
-    compress_json,
-    decode_properties,
-    decompress_json,
-    encode_properties,
-)
+from typing import Any
 
 # GP GC Fields with Postgres definitions. Value dicts must be compatible
 # with a ColumnSchema
@@ -65,15 +58,3 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "survivability": {"db_type": "FLOAT", "nullable": False, "egp_type": "Survivability"},
     "updated": {"db_type": "TIMESTAMP", "nullable": False, "egp_type": "Updated"},
 }
-
-
-# Note that encode conversions must produce a type that is compatible with the database type
-# and decode conversions must produce a type that is compatible with the application type.
-# The conversions *MUST* be symmetric i.e. encode followed by decode must produce the original
-# value.
-# {name, encode (output to DB), decode (output to application)}
-CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
-    ("cgraph", lambda x: compress_json(x.to_json()), decompress_json),
-    ("meta_data", compress_json, decompress_json),
-    ("properties", encode_properties, decode_properties),
-)
