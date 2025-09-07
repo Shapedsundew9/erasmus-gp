@@ -25,7 +25,7 @@ from egpcommon.gp_db_config import CONVERSIONS, GGC_KVT
 from egpdb.database import db_exists
 from egpdb.raw_table import ColumnSchema
 from egpdb.table import Table, TableConfig
-from egpdbmgr.configuration import TABLE_TYPES, DBManagerConfig
+from egpdbmgr.configuration import DBManagerConfig, TableTypes
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -35,10 +35,12 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Constants
+LOCAL_SCHEMA = deepcopy(GGC_KVT)
 GP_SCHEMA = deepcopy(GGC_KVT)
-GP_SCHEMA["signature"] = GP_SCHEMA["signature"] | {"primary_key": True}
-SCHEMAS = {"pool": GP_SCHEMA, "library": GP_SCHEMA, "archive": GGC_KVT}
-assert set(SCHEMAS.keys()) == set(TABLE_TYPES)
+GL_SCHEMA = deepcopy(GGC_KVT)
+
+SCHEMAS = {TableTypes.POOL: GP_SCHEMA, TableTypes.LIBRARY: GP_SCHEMA, TableTypes.ARCHIVE: GGC_KVT}
+assert set(SCHEMAS.keys()) == set(TableTypes)
 
 
 def initialize(config: DBManagerConfig) -> bool:

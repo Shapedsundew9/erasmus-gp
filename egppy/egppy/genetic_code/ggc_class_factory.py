@@ -31,7 +31,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 class GGCMixin(EGCMixin):
     """General Genetic Code Mixin Class."""
 
-    GC_KEY_TYPES: dict[str, dict[str, str | bool]] = GGC_KVT
+    GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
     CONVERSIONS: tuple[tuple[str, Any, Any], ...] = CONVERSIONS
 
     def consistency(self) -> bool:
