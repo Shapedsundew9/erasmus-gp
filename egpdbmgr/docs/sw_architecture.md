@@ -27,7 +27,7 @@ The Postgres DB should be more performant that the archive DB and is typically c
 
 ## Configuration
 
-The Database Manager is configured 
+The Database Manager is configured.
 
 ## Initialisation
 

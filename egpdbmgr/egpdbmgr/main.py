@@ -95,12 +95,7 @@ def init_db_manager(args: Namespace) -> None:
         _logger.error("No configuration file specified.")
         sys_exit(1)
 
-    db_manager = DBManager(config)
-    if not db_manager.initialize():
-        db_manager.operations()
-    else:
-        _logger.info("Successfully initialized. Restart required. Exiting with code 10.")
-        sys_exit(10)
+    _ = DBManager(config)
     _logger.info("DB Manager operations completed. Exiting with code 0.")
 
 

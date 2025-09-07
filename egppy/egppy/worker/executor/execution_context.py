@@ -614,6 +614,8 @@ class ExecutionContext:
         # The GC may have been assessed as part of another GC but not an executable in its own right
         # The GC node graph is needed to determine connectivity and so we reset the num_lines
         # and re-assess
+        # The GPI is required to be initialized before we get here and a ValueError will be raised
+        # if it is not.
         gpi = GenePoolInterface()
         _gc: GCABC = gc if isinstance(gc, GCABC) else gpi[sig]
         root, _ = self.create_graphs(_gc, executable)

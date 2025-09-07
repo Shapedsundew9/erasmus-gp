@@ -20,6 +20,7 @@ The DB Manager is responsible for:
 from copy import deepcopy
 from typing import Any, Callable
 
+from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.conversions import (
     compress_json,
     decode_properties,
@@ -60,7 +61,7 @@ class DBManager:
 
     def __init__(self, config: DBManagerConfig) -> None:
         self.config = config
-        self.managed_table = self.initialize()
+        self.managed_table = self.create_managed_table()
 
     def prepare_schemas(self) -> dict[TableTypes, dict[str, Any]]:
         """Prepare the schemas for the different table types.
@@ -72,8 +73,8 @@ class DBManager:
         # TODO: Optimise other schemas
         return schemas
 
-    def initialize(self) -> Table:
-        """Initialize the DB Manager."""
+    def create_managed_table(self) -> Table:
+        """Create and return the managed Table object for the DB Manager."""
         schemas = self.prepare_schemas()
         schema = schemas[self.config.managed_type]
         # Check if remote DB exists. If so download from there.
@@ -88,7 +89,7 @@ class DBManager:
             },
             create_db=True,
             create_table=True,
-            delete_table=True,  # TODO: for testing only
+            delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
             conversions=CONVERSIONS,
         )
         return Table(table_config)

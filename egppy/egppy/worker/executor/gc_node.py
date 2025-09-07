@@ -312,6 +312,8 @@ class GCNode(Iterable, Hashable):
         if not self.exists and not self.is_codon:
             # The GC may have an unknown structure but there is no existing executable
             # Need to pull the GC sub-GC's into cache to assess it
+            # The GPI is required to be initialized before we get here and a ValueError
+            # will be raised if it is not.
             gpi = GenePoolInterface()
             if isinstance(self.gca, bytes):
                 self.gca = gpi[self.gca]
