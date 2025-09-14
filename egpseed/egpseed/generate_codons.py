@@ -6,7 +6,7 @@ from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH
+from egpcommon.common import EGP_EPOCH, merge
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
@@ -81,7 +81,7 @@ class MethodExpander:
         json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
         json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
         json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
-        json_dict["properties"].update(self.properties)
+        merge(json_dict["properties"], self.properties)
         json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
         json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
         return json_dict
@@ -114,7 +114,7 @@ def generate_codons(write: bool = False) -> None:
     codons: dict[str, dict[str, Any]] = {}
     spinner = Spinner("Generating codons...")
     spinner.start()
-    for codon_file in glob(join(dirname(__file__), "data", "languages", "python", "*.json")):
+    for codon_file in glob(join(dirname(__file__), "data", "languages", "*", "*.json")):
         codon_json: dict[str, dict[str, Any]] = load_signed_json_dict(codon_file)
         # NOTE: If the codon file is not for a base type then the inputs and outputs
         # will already be defined so bt will not be used.

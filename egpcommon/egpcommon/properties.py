@@ -104,8 +104,8 @@ PROPERTIES_CONFIG = {
     },
     "reserved2": {
         "type": "uint",
-        "start": 14,
-        "width": 2,
+        "start": 13,
+        "width": 3,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
@@ -138,7 +138,29 @@ PROPERTIES_CONFIG = {
                         "The codon output type is a literal (which "
                         "requires special handling in some cases)."
                     ),
-                }
+                },
+                "reserved6": {
+                    "type": "uint",
+                    "start": 1,
+                    "width": 5,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
+                "python": {
+                    "type": "bool",
+                    "start": 6,
+                    "width": 1,
+                    "default": True,
+                    "description": "Codon code is Python.",
+                },
+                "psql": {
+                    "type": "bool",
+                    "start": 7,
+                    "width": 1,
+                    "default": False,
+                    "description": "Codon code is Postgres flavoured SQL.",
+                },
             },
             {
                 "type_cast": {
@@ -176,7 +198,7 @@ PROPERTIES_CONFIG = {
     "reserved4": {
         "type": "uint",
         "start": 32,
-        "width": 24,
+        "width": 16,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
@@ -186,7 +208,10 @@ PROPERTIES_CONFIG = {
         "start": 56,
         "width": 1,
         "default": False,
-        "description": "Codon management system property. Useless codons can be removed with no functional impact. They can occur through mutation and be difficult to spot.",
+        "description": (
+            "Codon management system property. Useless codons can be removed with "
+            "no functional impact. They can occur through mutation and be difficult to spot."
+        ),
         "valid": {"value": {0}},
     },
     "reserved5": {

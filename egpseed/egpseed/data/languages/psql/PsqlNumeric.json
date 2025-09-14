@@ -1,0 +1,120 @@
+{
+    "*": {
+        "inline": "psql_multiply({i0}, {i1})",
+        "description": "PSQL multiply {t0} and {t1}",
+        "inputs": [
+            "PsqlNumeric",
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "+": {
+        "inline": "psql_add({i0}, {i1})",
+        "description": "PSQL add {t0} and {t1}",
+        "inputs": [
+            "PsqlNumeric",
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "-": {
+        "inline": "psql_subtract({i0}, {i1})",
+        "description": "PSQL subtract {t1} from {t0}",
+        "inputs": [
+            "PsqlNumeric",
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "/": {
+        "inline": "psql_divide({i0}, {i1})",
+        "description": "PSQL divide  {t0} by {t1}",
+        "inputs": [
+            "PsqlNumeric",
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "%": {
+        "inline": "psql_modulo({i0}, {i1})",
+        "description": "PSQL modulo {t0} by {t1}",
+        "inputs": [
+            "PsqlNumeric",
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "^": {
+        "inline": "psql_exp({i0}, {i1})",
+        "description": "PSQL exponentiate {t0} by {t1}",
+        "inputs": [
+            "PsqlNumeric",
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "@": {
+        "inline": "psql_abs({i0})",
+        "description": "PSQL absolute {t0}",
+        "inputs": [
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "negate": {
+        "inline": "psql_negate({i0})",
+        "description": "PSQL negate {t0}",
+        "inputs": [
+            "PsqlNumeric"
+        ],
+        "outputs": [
+            "PsqlNumeric"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    }
+}

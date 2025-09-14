@@ -16,6 +16,7 @@ from datetime import datetime
 # As a result some imported objects & types are not used locally.
 # pylint: disable=unused-import
 from egpcommon.properties import PropertiesBD
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # Some types are sub-classed as they represent fundamental types that have

@@ -547,8 +547,8 @@ if __name__ == "__main__":
     CBS = 40
 
     # 2 different execution contexts
-    ec1 = ExecutionContext(3)
-    ec2 = ExecutionContext(50, wmc=True)  # Write the meta codons
+    ec1 = ExecutionContext(gpi, 3)
+    ec2 = ExecutionContext(gpi, 50, wmc=True)  # Write the meta codons
     # Hack in pre-defined function
     ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
         f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc

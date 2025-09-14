@@ -22,12 +22,15 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egpdbmgr
 
 # Pre-Push Hooks script
-chmod +x .devcontainer/pre-push-hooks.sh
-./.devcontainer/pre-push-hooks.sh
+# This has been disabled as it is not adding value.
+# May remove completely in future and replace with GitHub actions.
+# chmod +x .devcontainer/pre-push-hooks.sh
+# ./.devcontainer/pre-push-hooks.sh
 
 # Generate data files
 echo "Generating data files..."
 mkdir -p ./egpdbmgr/egpdbmgr/data
+.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write
 .venv/bin/python ./egpseed/egpseed/generate_types.py --write
 .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
 .venv/bin/python ./egpseed/egpseed/generate_codons.py --write

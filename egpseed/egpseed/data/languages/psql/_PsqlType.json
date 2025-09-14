@@ -1,0 +1,92 @@
+{
+    "<": {
+        "inline": "pqsl_lt({i0}, {i1})",
+        "description": "PSQL less than {t0} with {t1}",
+        "inputs": [
+            "PsqlType",
+            "PsqlType"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "<=": {
+        "inline": "pqsl_lte({i0}, {i1})",
+        "description": "PSQL less than equal {t0} with {t1}",
+        "inputs": [
+            "PsqlType",
+            "PsqlType"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "<>": {
+        "inline": "psql_ne({i0}, {i1})",
+        "description": "PSQL not equal {t0} with {t1}",
+        "inputs": [
+            "PsqlType",
+            "PsqlType"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    "=": {
+        "inline": "psql_eq({i0}, {i1})",
+        "description": "PSQL equal {t0} with {t1}",
+        "inputs": [
+            "PsqlType",
+            "PsqlType"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    ">": {
+        "inline": "psql_gt({i0}, {i1})",
+        "description": "PSQL greater than {t0} with {t1}",
+        "inputs": [
+            "PsqlType",
+            "PsqlType"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    },
+    ">=": {
+        "inline": "psql_gte({i0}, {i1})",
+        "description": "PSQL greater than equal {t0} with {t1}",
+        "inputs": [
+            "PsqlType",
+            "PsqlType"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "python": false,
+            "psql": true
+        }
+    }
+}

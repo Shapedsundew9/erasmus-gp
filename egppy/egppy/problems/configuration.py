@@ -1,16 +1,11 @@
 """The problem module contains the classes and functions for the problem object."""
 
 from datetime import datetime
-from hashlib import sha256
 from re import Pattern
 from re import compile as regex_compile
 
 from egpcommon.common import EGP_EPOCH, DictTypeAccessor
 from egpcommon.validator import Validator
-
-# The beginning
-# Acybergenesis: https://g.co/gemini/share/101495090943
-ACYBERGENESIS_PROBLEM = sha256(b"Acybergenesis Problem").digest()
 
 
 class ProblemConfig(Validator, DictTypeAccessor):
