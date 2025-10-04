@@ -8,8 +8,6 @@ from itertools import count
 from typing import Any
 from uuid import UUID
 
-from numpy.ma.extras import isin
-
 # This module is the sole module for type definitions for PSQL types
 # allowing EGP code to be refactored and renamed without impacting codon signatures.
 
@@ -44,7 +42,9 @@ class PsqlType(ABC):
     sql_type_name: str = "PsqlType"  # Override in subclasses
     counter: count = count(0)  # For unique IDs if needed
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlType with a value.
 
         If both is_literal and is_column are False then the value is treated as an expression.
@@ -54,6 +54,9 @@ class PsqlType(ABC):
                         column name as a string.
             is_literal: If True, 'value' is treated as a literal value
             is_column:  If True, 'value' is treated as a column name
+            uid:        Unique ID for the literal, assigned automatically if -1 and is_literal
+                        is True (the default). Typically hard codong the UID is only used for
+                        testing
 
         """
         if not is_literal and not isinstance(value, str):
@@ -66,7 +69,7 @@ class PsqlType(ABC):
         self.value = self._validate(value) if is_literal else value
         self.is_literal: bool = is_literal
         self.is_column: bool = is_column
-        self.uid: int = next(self.counter) if is_literal else -1
+        self.uid: int = next(self.counter) if is_literal and uid == -1 else uid
 
     def __eq__(self, other):
         """Compare two PsqlType objects for equality.
@@ -92,7 +95,12 @@ class PsqlType(ABC):
         return f"{self.__class__.__name__}({self.value!r})"
 
     def __str__(self):
-        """String representation for embedding in EGPDB Table PSQL expressions."""
+        """String representation for embedding in EGPDB Table PSQL expressions.
+        The string returned is an f-string for easy embedding in PSQL expressions
+        using a map to populate the column name or literal values.
+
+        e.g. "{literal0} + {literal1} * {column_name}"
+        """
         if self.is_column:
             assert isinstance(
                 self.value, str
@@ -100,7 +108,7 @@ class PsqlType(ABC):
             # Write the column name in bracers as per EGPDB convention
             return f"{{{self.value}}}"
         if self.is_literal:
-            return f"literal{{{self.uid}}}"
+            return f"{{literal{self.uid}}}"
         # Must be an expression
         assert (
             isinstance(self.value, str) and not self.is_literal and not self.is_column
@@ -500,9 +508,11 @@ class PsqlArray(PsqlType, ABC):
     element_type: type[PsqlType]  # Defined in subclasses
 
     @abstractmethod
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
     def _validate(self, value):
         """Validate the Python value for a PSQL ARRAY.
@@ -525,7 +535,7 @@ class PsqlArray(PsqlType, ABC):
         for i, item in enumerate(value):
             try:
                 # Create an instance of the element type to trigger its validation
-                validated_element = self.element_type(item, is_literal=True).value
+                validated_element = self.element_type(item, is_literal=True)
                 validated_elements.append(validated_element)
             except PsqlValueError as e:
                 raise PsqlValueError(
@@ -547,9 +557,11 @@ class PsqlBoolArray(PsqlArray):
     element_type = PsqlBool
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlBoolArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlIntArray(PsqlArray):
@@ -558,9 +570,11 @@ class PsqlIntArray(PsqlArray):
     element_type = PsqlInt
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlIntArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlSmallIntArray(PsqlArray):
@@ -569,9 +583,11 @@ class PsqlSmallIntArray(PsqlArray):
     element_type = PsqlSmallInt
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlSmallIntArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlBigIntArray(PsqlArray):
@@ -580,9 +596,11 @@ class PsqlBigIntArray(PsqlArray):
     element_type = PsqlBigInt
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlBigIntArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlRealArray(PsqlArray):
@@ -591,9 +609,11 @@ class PsqlRealArray(PsqlArray):
     element_type = PsqlReal
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlRealArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlDoublePrecisionArray(PsqlArray):
@@ -602,9 +622,11 @@ class PsqlDoublePrecisionArray(PsqlArray):
     element_type = PsqlDoublePrecision
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+    def __init__(
+        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+    ):
         """Initialize the PsqlDoublePrecisionArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 # --- Python Type to PSQL Type Mapping (Helper) ---
@@ -659,3 +681,55 @@ def py_cast(sql_value_obj: PsqlType, target_sql_type_class: type[PsqlType]) -> P
             f"Unexpected error casting {sql_value_obj!r} to "
             f"{target_sql_type_class.__name__}: {e}"
         ) from e
+
+
+class PsqlStatement:
+    """Base class for PSQL statements."""
+
+
+class PsqlFragment:
+    """Class for PSQL statement fragments."""
+
+
+class PsqlFragmentWhere(PsqlFragment):
+    """Class for PSQL WHERE clause fragments."""
+
+    def __init__(self, condition: PsqlBool):
+        if condition.is_literal:
+            raise PsqlValueError("WHERE condition must be a column or an expression.")
+        self.condition = condition
+
+    def __str__(self):
+        """Render the WHERE clause as a string."""
+        return f"WHERE {self.condition}"
+
+
+class PsqlFragmentOrderBy(PsqlFragment):
+    """Class for PSQL ORDER BY clause fragments."""
+
+    def __init__(self, column: PsqlType, ascending: bool = True):
+        if not column.is_column:
+            raise PsqlValueError("ORDER BY column must be a column.")
+        self.column = column
+        self.ascending = ascending
+
+    def __str__(self):
+        """Render the ORDER BY clause as a string."""
+        order = "ASC" if self.ascending else "DESC"
+        return f"ORDER BY {self.column} {order}"
+
+
+class PsqlStatementSelect(PsqlStatement):
+    """Class for PSQL SELECT statements.
+
+    SELECT only ever returns the signature column
+    """
+
+    def __init__(self, where: PsqlFragmentWhere, order_by: PsqlFragmentOrderBy):
+        super().__init__()
+        self.where = where
+        self.order_by = order_by
+
+    def __str__(self):
+        """Render the SELECT statement as a string."""
+        return f"SELECT {{signature}} FROM {{table}} {self.where} {self.order_by} LIMIT {{limit}}"

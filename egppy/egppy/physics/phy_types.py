@@ -10,12 +10,14 @@ cases and reduce the search space for valid and useful physical GC's."""
 # that this module is the single source of truth, avoids circular imports
 # and allows code refactoring/renaming without breaking codon signatures
 from datetime import datetime
+from uuid import UUID
 
 # This module is the sole module for type definitions for physical types
 # allowing EGP code to be refactored and renamed without impacting codon signatures.
 # As a result some imported objects & types are not used locally.
 # pylint: disable=unused-import
 from egpcommon.properties import PropertiesBD
+from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
@@ -145,6 +147,9 @@ Survivability = float
 
 
 # Other
+Creator = UUID
+
+
 class PopulationUID(int):
     "A class for population unique identifiers"
 

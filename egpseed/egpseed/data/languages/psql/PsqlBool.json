@@ -10,8 +10,10 @@
         ],
         "description": "PSQL logical AND {t0} with {t1}",
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "NOT": {
@@ -24,8 +26,10 @@
             "PsqlBool"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "OR": {
@@ -39,8 +43,10 @@
         ],
         "description": "PSQL logical OR {t0} with {t1}",
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     }
 }

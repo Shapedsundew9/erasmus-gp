@@ -4,14 +4,13 @@ from copy import deepcopy
 from os.path import dirname, join
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH
+from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
 from egppy.genetic_code.types_def import types_def_store
-from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -22,7 +21,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Constants
 OUTPUT_CODON_PATH = join(
-    dirname(__file__), "..", "..", "egpdbmgr", "egpdbmgr", "data", "meta_codons.json"
+    dirname(__file__), "..", "..", "egppy", "egppy", "data", "meta_codons.json"
 )
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,

@@ -10,8 +10,10 @@
             "PsqlIntegral"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "<<": {
@@ -25,8 +27,10 @@
             "PsqlIntegral"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     ">>": {
@@ -40,8 +44,10 @@
             "PsqlIntegral"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "|": {
@@ -55,8 +61,10 @@
             "PsqlIntegral"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "~": {
@@ -69,8 +77,10 @@
             "PsqlIntegral"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "&": {
@@ -84,8 +94,10 @@
             "PsqlIntegral"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     }
 }

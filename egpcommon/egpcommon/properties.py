@@ -126,7 +126,29 @@ PROPERTIES_CONFIG = {
                     "description": (
                         "The genetic code is eligible to be simplified by symbolic regression."
                     ),
-                }
+                },
+                "reserved7": {
+                    "type": "uint",
+                    "start": 1,
+                    "width": 5,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
+                "python": {
+                    "type": "bool",
+                    "start": 6,
+                    "width": 1,
+                    "default": True,
+                    "description": "Codon code is Python.",
+                },
+                "psql": {
+                    "type": "bool",
+                    "start": 7,
+                    "width": 1,
+                    "default": False,
+                    "description": "Codon code is Postgres flavoured SQL.",
+                },
             },
             {
                 "literal": {

@@ -9,8 +9,10 @@
             "PsqlDoublePrecision"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "cbrt": {
@@ -23,8 +25,10 @@
             "PsqlDoublePrecision"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     }
 }

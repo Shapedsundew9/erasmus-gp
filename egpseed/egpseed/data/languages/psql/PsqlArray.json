@@ -10,8 +10,10 @@
             "PsqlBool"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "<@": {
@@ -25,8 +27,10 @@
             "PsqlBool"
         ],
         "properties": {
-            "python": false,
-            "psql": true
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
         }
     },
     "&&": {

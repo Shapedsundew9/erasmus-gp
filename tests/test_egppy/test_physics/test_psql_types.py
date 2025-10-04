@@ -1,3 +1,5 @@
+"""Unit tests for the PsqlType classes."""
+
 import unittest
 from datetime import date, datetime, time
 from itertools import count
@@ -15,6 +17,8 @@ from egppy.physics.psql_types import (
     PsqlDate,
     PsqlDoublePrecision,
     PsqlDoublePrecisionArray,
+    PsqlFragmentOrderBy,
+    PsqlFragmentWhere,
     PsqlInt,
     PsqlIntArray,
     PsqlIntegral,
@@ -22,6 +26,7 @@ from egppy.physics.psql_types import (
     PsqlRealArray,
     PsqlSmallInt,
     PsqlSmallIntArray,
+    PsqlStatementSelect,
     PsqlTime,
     PsqlTimestamp,
     PsqlType,
@@ -53,6 +58,8 @@ class TestPsqlTypes(unittest.TestCase):
 
         # Test that instantiating an incomplete subclass of an abstract class raises TypeError
         class IncompletePsqlType(PsqlType):
+            """An incomplete subclass of PsqlType for testing."""
+
             sql_type_name = "INCOMPLETE"
 
         with self.assertRaises(TypeError):
@@ -224,7 +231,10 @@ class TestPsqlTypes(unittest.TestCase):
 
     def test_psql_bool_array(self):
         """Test the PsqlBoolArray type."""
-        self.assertEqual(PsqlBoolArray([True, False], is_literal=True).value, [True, False])
+        self.assertEqual(
+            PsqlBoolArray([True, False], is_literal=True).value,
+            [PsqlBool(True, is_literal=True), PsqlBool(False, is_literal=True)],
+        )
         with self.assertRaises(PsqlValueError):
             PsqlBoolArray([True, 1], is_literal=True)
         with self.assertRaises(PsqlValueError):
@@ -233,35 +243,53 @@ class TestPsqlTypes(unittest.TestCase):
 
     def test_psql_int_array(self):
         """Test the PsqlIntArray type."""
-        self.assertEqual(PsqlIntArray([1, 2], is_literal=True).value, [1, 2])
+        self.assertEqual(
+            PsqlIntArray([1, 2], is_literal=True).value,
+            [PsqlInt(1, is_literal=True), PsqlInt(2, is_literal=True)],
+        )
         with self.assertRaises(PsqlValueError):
             PsqlIntArray([1, "2"], is_literal=True)
         self.assertEqual(PsqlIntArray.get_sql_type_name(), "INT4[]")
 
     def test_psql_smallint_array(self):
         """Test the PsqlSmallIntArray type."""
-        self.assertEqual(PsqlSmallIntArray([1, 2], is_literal=True).value, [1, 2])
+        self.assertEqual(
+            PsqlSmallIntArray([1, 2], is_literal=True).value,
+            [PsqlSmallInt(1, is_literal=True), PsqlSmallInt(2, is_literal=True)],
+        )
         with self.assertRaises(PsqlValueError):
             PsqlSmallIntArray([1, PsqlSmallInt.MAX_VALUE + 1], is_literal=True)
         self.assertEqual(PsqlSmallIntArray.get_sql_type_name(), "INT2[]")
 
     def test_psql_bigint_array(self):
         """Test the PsqlBigIntArray type."""
-        self.assertEqual(PsqlBigIntArray([1, 2], is_literal=True).value, [1, 2])
+        self.assertEqual(
+            PsqlBigIntArray([1, 2], is_literal=True).value,
+            [PsqlBigInt(1, is_literal=True), PsqlBigInt(2, is_literal=True)],
+        )
         with self.assertRaises(PsqlValueError):
             PsqlBigIntArray([1, PsqlBigInt.MAX_VALUE + 1], is_literal=True)
         self.assertEqual(PsqlBigIntArray.get_sql_type_name(), "BIGINT[]")
 
     def test_psql_real_array(self):
         """Test the PsqlRealArray type."""
-        self.assertEqual(PsqlRealArray([1.0, 2.0], is_literal=True).value, [1.0, 2.0])
+        self.assertEqual(
+            PsqlRealArray([1.0, 2.0], is_literal=True).value,
+            [PsqlReal(1.0, is_literal=True), PsqlReal(2.0, is_literal=True)],
+        )
         with self.assertRaises(PsqlValueError):
             PsqlRealArray([1.0, "2.0"], is_literal=True)
         self.assertEqual(PsqlRealArray.get_sql_type_name(), "REAL[]")
 
     def test_psql_double_precision_array(self):
         """Test the PsqlDoublePrecisionArray type."""
-        self.assertEqual(PsqlDoublePrecisionArray([1.0, 2.0], is_literal=True).value, [1.0, 2.0])
+        self.assertEqual(
+            PsqlDoublePrecisionArray([1.0, 2.0], is_literal=True).value,
+            [
+                PsqlDoublePrecision(1.0, is_literal=True),
+                PsqlDoublePrecision(2.0, is_literal=True),
+            ],
+        )
         with self.assertRaises(PsqlValueError):
             PsqlDoublePrecisionArray([1.0, "2.0"], is_literal=True)
         self.assertEqual(PsqlDoublePrecisionArray.get_sql_type_name(), "DOUBLE PRECISION[]")
@@ -300,9 +328,9 @@ class TestPsqlTypes(unittest.TestCase):
         p2 = PsqlVarChar("hello", is_literal=True)
         p3 = PsqlInt("col", is_column=True)
         self.assertEqual(p1.uid, 0)
-        self.assertEqual(str(p1), "literal{0}")
+        self.assertEqual(str(p1), "{literal0}")
         self.assertEqual(p2.uid, 1)
-        self.assertEqual(str(p2), "literal{1}")
+        self.assertEqual(str(p2), "{literal1}")
         self.assertEqual(p3.uid, -1)  # Not a literal
 
     def test_inheritance_and_naming(self):
@@ -311,6 +339,29 @@ class TestPsqlTypes(unittest.TestCase):
         self.assertEqual(PsqlInt.sql_type_name, "INT4")
         self.assertEqual(PsqlReal.sql_type_name, "REAL")
         self.assertEqual(PsqlUuid.sql_type_name, "UUID")
+
+    def test_psql_fragments_and_statements(self):
+        """Test the PsqlFragment and PsqlStatement classes."""
+        # Test PsqlFragmentWhere
+        cond = PsqlBool("a > 1", is_literal=False)
+        where = PsqlFragmentWhere(cond)
+        self.assertEqual(str(where), "WHERE a > 1")
+        with self.assertRaises(PsqlValueError):
+            PsqlFragmentWhere(PsqlBool(True, is_literal=True))
+
+        # Test PsqlFragmentOrderBy
+        col = PsqlInt("my_col", is_column=True)
+        order_by_asc = PsqlFragmentOrderBy(col)
+        self.assertEqual(str(order_by_asc), "ORDER BY {my_col} ASC")
+        order_by_desc = PsqlFragmentOrderBy(col, ascending=False)
+        self.assertEqual(str(order_by_desc), "ORDER BY {my_col} DESC")
+        with self.assertRaises(PsqlValueError):
+            PsqlFragmentOrderBy(PsqlInt("a + b"))
+
+        # Test PsqlStatementSelect
+        select = PsqlStatementSelect(where, order_by_asc)
+        expected = "SELECT {signature} FROM {table} WHERE a > 1 ORDER BY {my_col} ASC LIMIT {limit}"
+        self.assertEqual(str(select), expected)
 
 
 if __name__ == "__main__":

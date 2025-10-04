@@ -32,10 +32,11 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 
 ## Testing
 
-*   Ensure the /workspaces/erasmus-gp/.venv is activated before running tests.
+*   Ensure the virtual environment /workspaces/erasmus-gp/.venv is activated before running tests.
 *   Add unit tests for new features and bug fixes using the `unittest` framework.
 *   Place new tests in the repository root `tests` directory within a folder `test_[package name]` reflecting the package source structure beneath e.g. `tests/test_egppy/test_physics/test_psql_types.py`.
 *   Ensure that all tests, including the dynamic `test_main_blocks.py`, pass before submitting code.
+*   
 
 ## Documentation
 

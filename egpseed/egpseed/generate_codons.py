@@ -6,13 +6,12 @@ from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, merge
+from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, merge
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
-from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -22,7 +21,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-OUTPUT_CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
+OUTPUT_CODON_PATH = ("..", "..", "egppy", "egppy", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "cgraph": {"A": None, "O": None, "U": []},
@@ -38,11 +37,6 @@ CODON_TEMPLATE: dict[str, Any] = {
         "gc_type": GCType.CODON,
         # NOTE: The graph type does not have to be primitive.
         "graph_type": CGraphType.PRIMITIVE,
-        "constant": False,
-        "deterministic": True,
-        "side_effects": False,
-        "static_creation": True,
-        "gctsp": {"literal": False},
     },
     "meta_data": {"function": {"python3": {"0": {}}}},
 }

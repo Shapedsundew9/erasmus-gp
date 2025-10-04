@@ -129,6 +129,22 @@
         ],
         "tt": 2
     },
+    "CGraph": {
+        "default": "CGraph()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "CGraph"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
     "CodeDepth": {
         "default": "(0)",
         "imports": [
@@ -215,6 +231,50 @@
         ],
         "parents": [
             "datetime"
+        ]
+    },
+    "Creator": {
+        "default": "Created.now()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Creator"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "date": {
+        "default": "date.today()",
+        "imports": [
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "date"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "datetime": {
+        "default": "datetime.now()",
+        "imports": [
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "datetime"
+            }
+        ],
+        "parents": [
+            "object"
         ]
     },
     "Descendants": {
@@ -558,6 +618,22 @@
         ],
         "parents": [
             "FTotal"
+        ]
+    },
+    "GCABC": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "GCABC"
+            }
+        ],
+        "parents": [
+            "object"
         ]
     },
     "GCABSig": {
@@ -1262,6 +1338,495 @@
             "int"
         ]
     },
+    "PsqlArray": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlArray"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlBigInt": {
+        "default": "PsqlBigInt(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlBigInt"
+            }
+        ],
+        "parents": [
+            "PsqlIntegral"
+        ]
+    },
+    "PsqlBigIntArray": {
+        "default": "PsqlBigIntArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlBigIntArray"
+            }
+        ],
+        "parents": [
+            "PsqlArray"
+        ]
+    },
+    "PsqlBool": {
+        "default": "PsqlBool(False)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlBool"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlBoolArray": {
+        "default": "PsqlBoolArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlBoolArray"
+            }
+        ],
+        "parents": [
+            "PsqlArray"
+        ]
+    },
+    "PsqlBytea": {
+        "default": "PsqlBytea(b'')",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlBytea"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlChar": {
+        "default": "PsqlChar('')",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlChar"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlDate": {
+        "default": "PsqlDate(date.today())",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlDate"
+            },
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "date"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlDoublePrecision": {
+        "default": "PsqlDoublePrecision(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlDoublePrecision"
+            }
+        ],
+        "parents": [
+            "PsqlNumeric"
+        ]
+    },
+    "PsqlDoublePrecisionArray": {
+        "default": "PsqlDoublePrecisionArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlDoublePrecisionArray"
+            }
+        ],
+        "parents": [
+            "PsqlArray"
+        ]
+    },
+    "PsqlFragment": {
+        "default": "PsqlFragment()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlFragment"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "PsqlFragmentOrderBy": {
+        "default": "PsqlFragmentOrderBy()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlFragmentOrderBy"
+            }
+        ],
+        "parents": [
+            "PsqlFragment"
+        ]
+    },
+    "PsqlFragmentWhere": {
+        "default": "PsqlFragmentWhere()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlFragmentWhere"
+            }
+        ],
+        "parents": [
+            "PsqlFragment"
+        ]
+    },
+    "PsqlInt": {
+        "default": "PsqlInt(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlInt"
+            }
+        ],
+        "parents": [
+            "PsqlIntegral"
+        ]
+    },
+    "PsqlIntArray": {
+        "default": "PsqlIntArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlIntArray"
+            }
+        ],
+        "parents": [
+            "PsqlArray"
+        ]
+    },
+    "PsqlIntegral": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlIntegral"
+            }
+        ],
+        "parents": [
+            "PsqlNumeric"
+        ]
+    },
+    "PsqlNumber": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlNumber"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlNumeric": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlNumeric"
+            }
+        ],
+        "parents": [
+            "PsqlNumber"
+        ]
+    },
+    "PsqlReal": {
+        "default": "PsqlReal(0.0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlReal"
+            }
+        ],
+        "parents": [
+            "PsqlNumeric"
+        ]
+    },
+    "PsqlRealArray": {
+        "default": "PsqlRealArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlRealArray"
+            }
+        ],
+        "parents": [
+            "PsqlArray"
+        ]
+    },
+    "PsqlSmallInt": {
+        "default": "PsqlSmallInt(0)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlSmallInt"
+            }
+        ],
+        "parents": [
+            "PsqlIntegral"
+        ]
+    },
+    "PsqlSmallIntArray": {
+        "default": "PsqlSmallIntArray([])",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlSmallIntArray"
+            }
+        ],
+        "parents": [
+            "PsqlArray"
+        ]
+    },
+    "PsqlStatement": {
+        "default": "PsqlStatement()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlStatement"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "PsqlStatementSelect": {
+        "default": "PsqlStatementSelect()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlStatementSelect"
+            }
+        ],
+        "parents": [
+            "PsqlStatement"
+        ]
+    },
+    "PsqlTime": {
+        "default": "PsqlTime(timedelta(days=0, seconds=0))",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlTime"
+            },
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "timedelta"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlTimestamp": {
+        "default": "PsqlTimestamp(datetime.now())",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlTimestamp"
+            },
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "datetime"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlType": {
+        "abstract": true,
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlType"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "PsqlUuid": {
+        "default": "PsqlUuid(NULL_UUID)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlUuid"
+            },
+            {
+                "aip": [
+                    "egpcommon",
+                    "common"
+                ],
+                "name": "NULL_UUID"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
+    "PsqlVarChar": {
+        "default": "PsqlVarChar('')",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "psql_types"
+                ],
+                "name": "PsqlVarChar"
+            }
+        ],
+        "parents": [
+            "PsqlType"
+        ]
+    },
     "Quadruplet[-Any0, -Any1, -Any2, -Any3]": {
         "imports": [
             {
@@ -1532,6 +2097,20 @@
             "float"
         ]
     },
+    "timedelta": {
+        "default": "timedelta(days=1)",
+        "imports": [
+            {
+                "aip": [
+                    "datetime"
+                ],
+                "name": "timedelta"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
     "Triplet[-Any0, -Any1, -Any2]": {
         "imports": [
             {
@@ -1619,472 +2198,5 @@
             "Reversible[-Any0]"
         ],
         "tt": 1
-    },
-    "datetime": {
-        "default": "datetime.now()",
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "datetime"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "date": {
-        "default": "date.today()",
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "date"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "timedelta": {
-        "default": "timedelta(days=1)",
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "timedelta"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "PsqlType": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlType"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "PsqlBool": {
-        "default": "PsqlBool(False)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBool"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlNumber": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlNumber"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlIntegral": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlIntegral"
-            }
-        ],
-        "parents": [
-            "PsqlNumeric"
-        ]
-    },
-    "PsqlInt": {
-        "default": "PsqlInt(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlInt"
-            }
-        ],
-        "parents": [
-            "PsqlIntegral"
-        ]
-    },
-    "PsqlSmallInt": {
-        "default": "PsqlSmallInt(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlSmallInt"
-            }
-        ],
-        "parents": [
-            "PsqlIntegral"
-        ]
-    },
-    "PsqlBigInt": {
-        "default": "PsqlBigInt(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBigInt"
-            }
-        ],
-        "parents": [
-            "PsqlIntegral"
-        ]
-    },
-    "PsqlNumeric": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlNumeric"
-            }
-        ],
-        "parents": [
-            "PsqlNumber"
-        ]
-    },
-    "PsqlReal": {
-        "default": "PsqlReal(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlReal"
-            }
-        ],
-        "parents": [
-            "PsqlNumeric"
-        ]
-    },
-    "PsqlDoublePrecision": {
-        "default": "PsqlDoublePrecision(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlDoublePrecision"
-            }
-        ],
-        "parents": [
-            "PsqlNumeric"
-        ]
-    },
-    "PsqlChar": {
-        "default": "PsqlChar('')",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlChar"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlVarChar": {
-        "default": "PsqlVarChar('')",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlVarChar"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlDate": {
-        "default": "PsqlDate(date.today())",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlDate"
-            },
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "date"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlTime": {
-        "default": "PsqlTime(timedelta(days=0, seconds=0))",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlTime"
-            },
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "timedelta"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlTimestamp": {
-        "default": "PsqlTimestamp(datetime.now())",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlTimestamp"
-            },
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "datetime"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlUuid": {
-        "default": "PsqlUuid(NULL_UUID)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlUuid"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_UUID"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlBytea": {
-        "default": "PsqlBytea(b'')",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBytea"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlArray": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlArray"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlBoolArray": {
-        "default": "PsqlBoolArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBoolArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlIntArray": {
-        "default": "PsqlIntArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlIntArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlSmallIntArray": {
-        "default": "PsqlSmallIntArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlSmallIntArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlBigIntArray": {
-        "default": "PsqlBigIntArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBigIntArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlRealArray": {
-        "default": "PsqlRealArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlRealArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlDoublePrecisionArray": {
-        "default": "PsqlDoublePrecisionArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlDoublePrecisionArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "GCABC": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "GCABC"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
     }
 }
