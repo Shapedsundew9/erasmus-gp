@@ -5,14 +5,19 @@ from random import getrandbits, seed
 
 from egpcommon.common import random_int_tuple_generator
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
-from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.ggc_class_factory import GCABC
-from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.worker.executor.context_writer import FWC4FILE, write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 from egppy.worker.executor.gc_node import GCNode
 
-from .xor_stack_gc import create_gc_matrix, expand_gc_matrix, f_7fffffff, one_to_two, rshift_1_gc
+from .xor_stack_gc import (
+    create_gc_matrix,
+    expand_gc_matrix,
+    f_7fffffff,
+    gpi,
+    one_to_two,
+    rshift_1_gc,
+)
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -32,7 +37,7 @@ class TestExecutor(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Setup class method for test setup."""
-        cls.gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
+        cls.gpi = gpi
         cls.gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
         cls.gene_pool: list[GCABC] = [
             gc for ni in cls.gcm.values() for rs in ni.values() for gc in rs

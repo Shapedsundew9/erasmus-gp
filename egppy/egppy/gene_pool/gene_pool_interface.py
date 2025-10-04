@@ -65,7 +65,9 @@ class GenePoolInterface(GPIABC):
         return self._ggc_cache[signature]
 
     def __setitem__(self, signature: bytes, value: GGCDict) -> None:
-        """Set a Genetic Code by its signature."""
+        """Set a Genetic Code by its signature.
+        NOTE: This will be an UPSERT operation in the database.
+        """
         self._ggc_cache[signature] = value
 
     def consistency(self) -> bool:

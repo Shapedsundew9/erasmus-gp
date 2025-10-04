@@ -23,7 +23,7 @@ from tempfile import NamedTemporaryFile
 from time import time
 from typing import Any
 
-from egpcommon.common import bin_counts
+from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
@@ -32,7 +32,6 @@ from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.genetic_code.types_def import types_def_store
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
-from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
 
 # Standard EGP logging pattern

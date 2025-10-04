@@ -69,12 +69,26 @@ class PsqlType(ABC):
         self.uid: int = next(self.counter) if is_literal else -1
 
     def __eq__(self, other):
+        """Compare two PsqlType objects for equality.
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            True if the objects are of the same class and their values are equal,
+            NotImplemented otherwise.
+        """
         # Basic equality for potential use in GP state
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value == other.value
 
     def __repr__(self):
+        """Return a string representation of the PsqlType object.
+
+        Returns:
+            A string that can be used to recreate the object.
+        """
         return f"{self.__class__.__name__}({self.value!r})"
 
     def __str__(self):
@@ -86,7 +100,7 @@ class PsqlType(ABC):
             # Write the column name in bracers as per EGPDB convention
             return f"{{{self.value}}}"
         if self.is_literal:
-            return "literal{self.uid}"
+            return f"literal{{{self.uid}}}"
         # Must be an expression
         assert (
             isinstance(self.value, str) and not self.is_literal and not self.is_column
@@ -126,6 +140,17 @@ class PsqlBool(PsqlType):
     sql_type_name = "BOOL"
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL BOOL.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated boolean value.
+
+        Raises:
+            PsqlValueError: If the value is not a boolean.
+        """
         if not isinstance(value, bool):
             # Allow 0/1? GP might generate ints. Let's be strict for now.
             raise PsqlValueError(f"Invalid value for BOOL: {value!r}. Must be True or False.")
@@ -140,6 +165,17 @@ class PsqlSmallInt(PsqlIntegral):
     MAX_VALUE = 32767
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL SMALLINT.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated integer value.
+
+        Raises:
+            PsqlValueError: If the value is not an int or is out of range.
+        """
         if not isinstance(value, int):
             raise PsqlValueError(f"Invalid type for SMALLINT: {type(value).__name__}. Must be int.")
         if not self.MIN_VALUE <= value <= self.MAX_VALUE:
@@ -157,6 +193,17 @@ class PsqlInt(PsqlIntegral):
     MAX_VALUE = 2147483647
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL INTEGER.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated integer value.
+
+        Raises:
+            PsqlValueError: If the value is not an int or is out of range.
+        """
         if not isinstance(value, int):
             raise PsqlValueError(f"Invalid type for INTEGER: {type(value).__name__}. Must be int.")
         if not self.MIN_VALUE <= value <= self.MAX_VALUE:
@@ -174,6 +221,17 @@ class PsqlBigInt(PsqlIntegral):
     MAX_VALUE = 9223372036854775807
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL BIGINT.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated integer value.
+
+        Raises:
+            PsqlValueError: If the value is not an int or is out of range.
+        """
         if not isinstance(value, int):
             raise PsqlValueError(f"Invalid type for BIGINT: {type(value).__name__}. Must be int.")
         if not self.MIN_VALUE <= value <= self.MAX_VALUE:
@@ -189,6 +247,17 @@ class PsqlReal(PsqlNumeric):
     sql_type_name = "REAL"
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL REAL.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated float value.
+
+        Raises:
+            PsqlValueError: If the value is not a float or int.
+        """
         if not isinstance(value, (float, int)):  # Allow ints to become floats
             raise PsqlValueError(
                 f"Invalid type for REAL: {type(value).__name__}. Must be float or int."
@@ -202,6 +271,17 @@ class PsqlDoublePrecision(PsqlNumeric):
     sql_type_name = "DOUBLE PRECISION"
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL DOUBLE PRECISION.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated float value.
+
+        Raises:
+            PsqlValueError: If the value is not a float or int.
+        """
         if not isinstance(value, (float, int)):
             raise PsqlValueError(
                 f"Invalid type for DOUBLE PRECISION: {type(value).__name__}. Must be float or int."
@@ -215,11 +295,37 @@ class PsqlChar(PsqlType):
     sql_type_name = "CHAR"  # Note: CHAR has fixed length semantics in PSQL
 
     # Add length validation if needed, passed to __init__?
-    def __init__(self, value, length=None):  # Example if length needed
+    def __init__(
+        self,
+        value: Any,
+        is_literal: bool = False,
+        is_column: bool = False,
+        length: int | None = None,
+    ):  # Example if length needed
+        """Initialize the PsqlChar object.
+
+        Args:
+            value: The Python variable value to use as a literal or the
+                   column name as a string.
+            is_literal: If True, 'value' is treated as a literal value.
+            is_column: If True, 'value' is treated as a column name.
+            length: The fixed length of the character type.
+        """
         self.length = length
-        super().__init__(value)
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL CHAR.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated string value.
+
+        Raises:
+            PsqlValueError: If the value is not a string.
+        """
         if not isinstance(value, str):
             raise PsqlValueError(f"Invalid type for CHAR: {type(value).__name__}. Must be str.")
         # Optional: Add length check if self.length is set
@@ -234,11 +340,37 @@ class PsqlVarChar(PsqlType):
     sql_type_name = "VARCHAR"
 
     # Add length validation if needed
-    def __init__(self, value, length=None):  # Example if length needed
+    def __init__(
+        self,
+        value: Any,
+        is_literal: bool = False,
+        is_column: bool = False,
+        length: int | None = None,
+    ):  # Example if length needed
+        """Initialize the PsqlVarChar object.
+
+        Args:
+            value: The Python variable value to use as a literal or the
+                   column name as a string.
+            is_literal: If True, 'value' is treated as a literal value.
+            is_column: If True, 'value' is treated as a column name.
+            length: The maximum length of the character type.
+        """
         self.length = length
-        super().__init__(value)
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL VARCHAR.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated string value.
+
+        Raises:
+            PsqlValueError: If the value is not a string.
+        """
         if not isinstance(value, str):
             raise PsqlValueError(f"Invalid type for VARCHAR: {type(value).__name__}. Must be str.")
         # Optional: Add length check if self.length is set
@@ -253,7 +385,18 @@ class PsqlDate(PsqlType):
     sql_type_name = "DATE"
 
     def _validate(self, value):
-        if not isinstance(value, date):
+        """Validate the Python value for a PSQL DATE.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated date value.
+
+        Raises:
+            PsqlValueError: If the value is not a date object.
+        """
+        if not isinstance(value, date) or isinstance(value, datetime):
             # Allow datetime objects? Truncate? Be strict for now.
             raise PsqlValueError(f"Invalid type for DATE: {type(value).__name__}. Must be date.")
         return value
@@ -265,6 +408,17 @@ class PsqlTime(PsqlType):
     sql_type_name = "TIME"
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL TIME.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated time value.
+
+        Raises:
+            PsqlValueError: If the value is not a time object.
+        """
         if not isinstance(value, time):
             raise PsqlValueError(f"Invalid type for TIME: {type(value).__name__}. Must be time.")
         return value
@@ -276,6 +430,17 @@ class PsqlTimestamp(PsqlType):
     sql_type_name = "TIMESTAMP"  # Assumes 'timestamp without time zone'
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL TIMESTAMP.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated datetime value.
+
+        Raises:
+            PsqlValueError: If the value is not a datetime object.
+        """
         if not isinstance(value, datetime):
             raise PsqlValueError(
                 f"Invalid type for TIMESTAMP: {type(value).__name__}. Must be datetime"
@@ -289,6 +454,17 @@ class PsqlUuid(PsqlType):
     sql_type_name = "UUID"
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL UUID.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated UUID value.
+
+        Raises:
+            PsqlValueError: If the value is not a UUID object.
+        """
         if not isinstance(value, UUID):
             raise PsqlValueError(f"Invalid type for UUID: {type(value).__name__}. Must be UUID.")
         return value
@@ -300,19 +476,46 @@ class PsqlBytea(PsqlType):
     sql_type_name = "BYTEA"
 
     def _validate(self, value):
+        """Validate the Python value for a PSQL BYTEA.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated bytes value.
+
+        Raises:
+            PsqlValueError: If the value is not a bytes object.
+        """
         if not isinstance(value, bytes):
             raise PsqlValueError(f"Invalid type for BYTEA: {type(value).__name__}. Must be bytes.")
         return value
 
 
 # --- Array Types ---
-class PsqlArray(PsqlType):
+class PsqlArray(PsqlType, ABC):
     """Base for array types."""
 
     sql_type_name = "ARRAY"  # Needs element type
     element_type: type[PsqlType]  # Defined in subclasses
 
+    @abstractmethod
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
+
     def _validate(self, value):
+        """Validate the Python value for a PSQL ARRAY.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated list of elements.
+
+        Raises:
+            PsqlValueError: If the value is not a list or if any element is invalid.
+        """
         if not isinstance(value, list):
             raise PsqlValueError(
                 f"Invalid type for {self.sql_type_name}: {type(value).__name__}. Must be list."
@@ -322,7 +525,7 @@ class PsqlArray(PsqlType):
         for i, item in enumerate(value):
             try:
                 # Create an instance of the element type to trigger its validation
-                validated_element = self.element_type(item).value
+                validated_element = self.element_type(item, is_literal=True).value
                 validated_elements.append(validated_element)
             except PsqlValueError as e:
                 raise PsqlValueError(
@@ -344,12 +547,20 @@ class PsqlBoolArray(PsqlArray):
     element_type = PsqlBool
     sql_type_name = element_type.sql_type_name + "[]"
 
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlBoolArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
+
 
 class PsqlIntArray(PsqlArray):
     """Integer array type (32 bits)"""
 
     element_type = PsqlInt
     sql_type_name = element_type.sql_type_name + "[]"
+
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlIntArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
 
 
 class PsqlSmallIntArray(PsqlArray):
@@ -358,12 +569,20 @@ class PsqlSmallIntArray(PsqlArray):
     element_type = PsqlSmallInt
     sql_type_name = element_type.sql_type_name + "[]"
 
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlSmallIntArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
+
 
 class PsqlBigIntArray(PsqlArray):
     """Big integer array type (64 bits)"""
 
     element_type = PsqlBigInt
     sql_type_name = element_type.sql_type_name + "[]"
+
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlBigIntArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
 
 
 class PsqlRealArray(PsqlArray):
@@ -372,12 +591,20 @@ class PsqlRealArray(PsqlArray):
     element_type = PsqlReal
     sql_type_name = element_type.sql_type_name + "[]"
 
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlRealArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
+
 
 class PsqlDoublePrecisionArray(PsqlArray):
     """Double precision floating point array type (64 bits)"""
 
     element_type = PsqlDoublePrecision
     sql_type_name = element_type.sql_type_name + "[]"
+
+    def __init__(self, value: Any, is_literal: bool = False, is_column: bool = False):
+        """Initialize the PsqlDoublePrecisionArray object."""
+        super().__init__(value, is_literal=is_literal, is_column=is_column)
 
 
 # --- Python Type to PSQL Type Mapping (Helper) ---
@@ -402,12 +629,25 @@ def py_cast(sql_value_obj: PsqlType, target_sql_type_class: type[PsqlType]) -> P
     Attempts to convert a Python value held by one PsqlType object
     into another PsqlType object. Performs validation.
     This does *NOT* generate PSQL CAST functions.
+
+    Args:
+        sql_value_obj: The PsqlType object to cast from.
+        target_sql_type_class: The PsqlType class to cast to.
+
+    Returns:
+        A new PsqlType object of the target type.
+
+    Raises:
+        PsqlTypeError: If the cast is not possible.
     """
     # Simplistic example: try creating the target type with the source value
     # More sophisticated logic might be needed for some conversions (e.g., int -> str)
     try:
         # Extract the raw Python value and try to create the target type
-        return target_sql_type_class(sql_value_obj.value)
+        value = sql_value_obj.value
+        if issubclass(target_sql_type_class, (PsqlVarChar, PsqlChar)):
+            value = str(value)
+        return target_sql_type_class(value, is_literal=True)
     except (PsqlValueError, PsqlTypeError) as e:
         raise PsqlTypeError(
             f"Cannot cast {sql_value_obj!r} "

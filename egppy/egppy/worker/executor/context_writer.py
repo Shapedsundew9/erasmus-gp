@@ -82,7 +82,7 @@ def _context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConf
         f.write("\n\n")
 
         # Finally the function definitions
-        nec = ExecutionContext(ec.line_limit())
+        nec = ExecutionContext(ec.gpi, ec.line_limit())
         for func in ec.function_map.values():
             for node in nec.create_graphs(func.gc, False)[1]:
                 # Write the function definition
