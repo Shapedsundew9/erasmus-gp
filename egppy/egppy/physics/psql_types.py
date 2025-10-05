@@ -406,7 +406,9 @@ class PsqlDate(PsqlType):
         """
         if not isinstance(value, date) or isinstance(value, datetime):
             # Allow datetime objects? Truncate? Be strict for now.
-            raise PsqlValueError(f"Invalid type for DATE: {type(value).__name__}. Must be date.")
+            raise PsqlValueError(
+                f"Invalid type for DATE: {type(value).__name__}. Must be date  (not datetime)."
+            )
         return value
 
 

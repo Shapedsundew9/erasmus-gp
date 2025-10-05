@@ -42,7 +42,13 @@
         ],
         "outputs": [
             "PsqlBool"
-        ]
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
     },
     "||": {
         "inline": "psql_concat({i0}, {i1})",
@@ -54,5 +60,11 @@
         "outputs": [
             "PsqlArray"
         ]
+    },
+    "properties": {
+        "gctsp": {
+            "python": false,
+            "psql": true
+        }
     }
 }

@@ -1,6 +1,6 @@
 {
     "<": {
-        "inline": "pqsl_lt({i0}, {i1})",
+        "inline": "psql_lt({i0}, {i1})",
         "description": "PSQL less than {t0} with {t1}",
         "inputs": [
             "PsqlType",
@@ -17,7 +17,7 @@
         }
     },
     "<=": {
-        "inline": "pqsl_lte({i0}, {i1})",
+        "inline": "psql_lte({i0}, {i1})",
         "description": "PSQL less than equal {t0} with {t1}",
         "inputs": [
             "PsqlType",
