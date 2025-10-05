@@ -246,7 +246,13 @@ class GCNode(Iterable, Hashable):
     _uid_counter = count()
 
     def __init__(
-        self, gc: GCABC, parent: GCNode | None, row: Row, finfo: FunctionInfo, wmc: bool = False
+        self,
+        gc: GCABC,
+        parent: GCNode | None,
+        row: Row,
+        finfo: FunctionInfo,
+        gpi: GenePoolInterface | None = None,
+        wmc: bool = False,
     ) -> None:
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
 
@@ -314,7 +320,7 @@ class GCNode(Iterable, Hashable):
             # Need to pull the GC sub-GC's into cache to assess it
             # The GPI is required to be initialized before we get here and a ValueError
             # will be raised if it is not.
-            gpi = GenePoolInterface()
+            assert gpi is not None, "A GenePoolInterface must be provided."
             if isinstance(self.gca, bytes):
                 self.gca = gpi[self.gca]
             if isinstance(self.gcb, bytes):

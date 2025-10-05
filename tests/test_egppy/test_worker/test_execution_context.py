@@ -10,7 +10,14 @@ from egppy.worker.executor.context_writer import FWC4FILE, write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 from egppy.worker.executor.gc_node import GCNode
 
-from .xor_stack_gc import create_gc_matrix, expand_gc_matrix, f_7fffffff, one_to_two, rshift_1_gc
+from .xor_stack_gc import (
+    create_gc_matrix,
+    expand_gc_matrix,
+    f_7fffffff,
+    gpi,
+    one_to_two,
+    rshift_1_gc,
+)
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -30,6 +37,7 @@ class TestExecutor(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Setup class method for test setup."""
+        cls.gpi = gpi
         cls.gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
         cls.gene_pool: list[GCABC] = [
             gc for ni in cls.gcm.values() for rs in ni.values() for gc in rs
@@ -38,8 +46,8 @@ class TestExecutor(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         # 2 different execution contexts
-        self.ec1 = ExecutionContext(3)
-        self.ec2 = ExecutionContext(50, wmc=True)  # Write the meta-codons
+        self.ec1 = ExecutionContext(self.gpi, 3)
+        self.ec2 = ExecutionContext(self.gpi, 50, wmc=True)  # Write the meta-codons
         # Hack in pre-defined function
         self.ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
             f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
@@ -114,8 +122,8 @@ class TestExecutor(unittest.TestCase):
 
     def test_execute_advanced_single(self) -> None:
         """This test case is used to reproduce single instances from the matrix test case below."""
-        ec1 = ExecutionContext(3)
-        ec2 = ExecutionContext(5)
+        ec1 = ExecutionContext(self.gpi, 3)
+        ec2 = ExecutionContext(self.gpi, 5)
         gci = 0
         idx = 0
         ec1.write_executable(self.gene_pool[gci])
@@ -143,7 +151,7 @@ class TestExecutor(unittest.TestCase):
 
         for num_lines in NUM_LINES:
             # Create a new execution context
-            ec = ExecutionContext(num_lines)
+            ec = ExecutionContext(self.gpi, num_lines)
             # Add the functions to the execution context
             for idx, gci in enumerate(the_one_hundred):
                 ec.write_executable(self.gene_pool[gci])

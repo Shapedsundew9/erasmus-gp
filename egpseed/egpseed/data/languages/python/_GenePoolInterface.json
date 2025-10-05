@@ -1,0 +1,12 @@
+{
+    "select": {
+        "inline": "GPI.select({i0})",
+        "description": "Run the PSQL query and return a single GGC.",
+        "inputs": [
+            "PsqlBool"
+        ],
+        "outputs": [
+            "GCABC"
+        ]
+    }
+}

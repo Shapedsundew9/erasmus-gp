@@ -105,11 +105,15 @@ class ExecutionContext:
         "_global_index",
         "wmc",
         "_codon_register",
+        "gpi",
     )
 
-    def __init__(self, line_limit: int = 64, wmc: bool = False) -> None:
+    def __init__(self, gpi: GenePoolInterface, line_limit: int = 64, wmc: bool = False) -> None:
         # The globals passed to exec() when defining objects in the context
-        self.namespace: dict[str, Any] = {}
+        # The GenePoolInterface instance is stored in the namespace as "GPI"
+        # is explicitly used in the selector codons.
+        self.gpi: GenePoolInterface = gpi
+        self.namespace: dict[str, Any] = {"GPI": gpi}
         # Used to uniquely name objects in this context
         self._global_index = count()
         # Map signatures to functions, global index & line count
@@ -525,7 +529,9 @@ class ExecutionContext:
 
         half_limit: int = self._line_limit // 2
         finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
-        node_stack: list[GCNode] = [gc_node_graph := GCNode(gc, None, SrcRow.I, finfo, self.wmc)]
+        node_stack: list[GCNode] = [
+            gc_node_graph := GCNode(gc, None, SrcRow.I, finfo, gpi=self.gpi, wmc=self.wmc)
+        ]
 
         # Define the GCNode data
         while node_stack:
@@ -539,7 +545,9 @@ class ExecutionContext:
             for row, xgc in (x for x in child_nodes):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
                 fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
-                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap, self.wmc)
+                gc_node_graph_entry: GCNode = GCNode(
+                    xgc, node, row, fmap, gpi=self.gpi, wmc=self.wmc
+                )
                 if row == DstRow.A:
                     node.gca_node = gc_node_graph_entry
                 else:
@@ -614,9 +622,6 @@ class ExecutionContext:
         # The GC may have been assessed as part of another GC but not an executable in its own right
         # The GC node graph is needed to determine connectivity and so we reset the num_lines
         # and re-assess
-        # The GPI is required to be initialized before we get here and a ValueError will be raised
-        # if it is not.
-        gpi = GenePoolInterface()
-        _gc: GCABC = gc if isinstance(gc, GCABC) else gpi[sig]
+        _gc: GCABC = gc if isinstance(gc, GCABC) else self.gpi[sig]
         root, _ = self.create_graphs(_gc, executable)
         return root

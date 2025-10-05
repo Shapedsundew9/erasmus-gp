@@ -25,6 +25,11 @@ EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, 
 ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
 
 
+# The beginning
+# Acybergenesis: https://g.co/gemini/share/101495090943
+ACYBERGENESIS_PROBLEM = sha256(b"Acybergenesis Problem").digest()
+
+
 # Set the EGP profile.
 # This is used to determine the environment in which the code is running and
 # configure such things as the type of stores to use, how much memory to allocate

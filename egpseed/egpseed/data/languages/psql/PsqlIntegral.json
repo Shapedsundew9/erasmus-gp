@@ -1,0 +1,103 @@
+{
+    "#": {
+        "inline": "psql_bitwise_xor({i0}, {i1})",
+        "description": "PSQL bitwise XOR {t0} and {t1}",
+        "inputs": [
+            "PsqlIntegral",
+            "PsqlIntegral"
+        ],
+        "outputs": [
+            "PsqlIntegral"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "<<": {
+        "inline": "psql_lshift({i0}, {i1})",
+        "description": "left shift {t0} by {t1}",
+        "inputs": [
+            "PsqlIntegral",
+            "PsqlIntegral"
+        ],
+        "outputs": [
+            "PsqlIntegral"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    ">>": {
+        "inline": "psql_rshift({i0}, {i1})",
+        "description": "right shift {t0} by {t1}",
+        "inputs": [
+            "PsqlIntegral",
+            "PsqlIntegral"
+        ],
+        "outputs": [
+            "PsqlIntegral"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "|": {
+        "inline": "psql_bitwise_or({i0}, {i1})",
+        "description": "PSQL bitwise OR {t0} and {t1}",
+        "inputs": [
+            "PsqlIntegral",
+            "PsqlIntegral"
+        ],
+        "outputs": [
+            "PsqlIntegral"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "~": {
+        "inline": "psql_bitwise_not({i0})",
+        "description": "PSQL bitwise NOT {t0}",
+        "inputs": [
+            "PsqlIntegral"
+        ],
+        "outputs": [
+            "PsqlIntegral"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "&": {
+        "inline": "psql_bitwise_and({i0}, {i1})",
+        "description": "PSQL bitwise AND {t0} and {t1}",
+        "inputs": [
+            "PsqlIntegral",
+            "PsqlIntegral"
+        ],
+        "outputs": [
+            "PsqlIntegral"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    }
+}

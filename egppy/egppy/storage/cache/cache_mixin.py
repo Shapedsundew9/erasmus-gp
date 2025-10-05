@@ -3,7 +3,6 @@
 from collections.abc import Hashable
 
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.store_abc import StoreABC

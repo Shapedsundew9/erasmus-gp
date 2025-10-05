@@ -1,0 +1,19 @@
+{
+    "SELECT": {
+        "inline": "psql_statement_select({i0}, {i1})",
+        "description": "PSQL SELECT statement with WHERE clause {t0} and ORDER BY clause {t1}",
+        "inputs": [
+            "PsqlFragmentWhere",
+            "PsqlFragmentOrderBy"
+        ],
+        "outputs": [
+            "PsqlStatementSelect"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    }
+}

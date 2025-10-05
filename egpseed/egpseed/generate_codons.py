@@ -6,13 +6,12 @@ from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH
+from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, merge
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
-from egppy.problems.configuration import ACYBERGENESIS_PROBLEM
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -22,7 +21,7 @@ _LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
 _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-OUTPUT_CODON_PATH = ("..", "..", "egpdbmgr", "egpdbmgr", "data", "codons.json")
+OUTPUT_CODON_PATH = ("..", "..", "egppy", "egppy", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "cgraph": {"A": None, "O": None, "U": []},
@@ -38,11 +37,6 @@ CODON_TEMPLATE: dict[str, Any] = {
         "gc_type": GCType.CODON,
         # NOTE: The graph type does not have to be primitive.
         "graph_type": CGraphType.PRIMITIVE,
-        "constant": False,
-        "deterministic": True,
-        "side_effects": False,
-        "static_creation": True,
-        "gctsp": {"literal": False},
     },
     "meta_data": {"function": {"python3": {"0": {}}}},
 }
@@ -81,7 +75,7 @@ class MethodExpander:
         json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
         json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
         json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
-        json_dict["properties"].update(self.properties)
+        merge(json_dict["properties"], self.properties)
         json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
         json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
         return json_dict
@@ -114,7 +108,7 @@ def generate_codons(write: bool = False) -> None:
     codons: dict[str, dict[str, Any]] = {}
     spinner = Spinner("Generating codons...")
     spinner.start()
-    for codon_file in glob(join(dirname(__file__), "data", "languages", "python", "*.json")):
+    for codon_file in glob(join(dirname(__file__), "data", "languages", "*", "*.json")):
         codon_json: dict[str, dict[str, Any]] = load_signed_json_dict(codon_file)
         # NOTE: If the codon file is not for a base type then the inputs and outputs
         # will already be defined so bt will not be used.

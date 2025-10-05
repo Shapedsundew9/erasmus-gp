@@ -1,0 +1,70 @@
+{
+    "@>": {
+        "inline": "psql_contains({i0}, {i1})",
+        "description": "PSQL array {t0} contains {t1}",
+        "inputs": [
+            "PsqlArray",
+            "PsqlArray"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "<@": {
+        "inline": "psql_is_contained_by({i0}, {i1})",
+        "description": "PSQL array {t0} is contained by {t1}",
+        "inputs": [
+            "PsqlArray",
+            "PsqlArray"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "&&": {
+        "inline": "psql_overlaps({i0}, {i1})",
+        "description": "PSQL array overlaps {t0} and {t1}",
+        "inputs": [
+            "PsqlArray",
+            "PsqlArray"
+        ],
+        "outputs": [
+            "PsqlBool"
+        ],
+        "properties": {
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "||": {
+        "inline": "psql_concat({i0}, {i1})",
+        "description": "PSQL array concatenate {t0} and {t1}",
+        "inputs": [
+            "PsqlArray",
+            "PsqlArray"
+        ],
+        "outputs": [
+            "PsqlArray"
+        ]
+    },
+    "properties": {
+        "gctsp": {
+            "python": false,
+            "psql": true
+        }
+    }
+}
