@@ -38,5 +38,7 @@ class CommonObjABC(ABC):
         """Verify the CommonObjABC object.
         The verify() method is used to check the CommonObjABC objects data for validity.
         e.g. correct value ranges, lengths, types etc.
+
+        *IMPORTANT*
         """
         raise NotImplementedError("CommonObjABC.verify must be overridden")

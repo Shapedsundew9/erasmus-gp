@@ -7,10 +7,13 @@ from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_set import ObjectSet
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
-    ROWS,
+    ROW_SET,
+    SINGLE_ONLY_ROWS,
     SOURCE_ROW_SET,
+    DstRow,
     EndPointClass,
     Row,
+    SrcRow,
 )
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
@@ -70,20 +73,24 @@ class EndPoint(FreezableObject):
                 if _logger.isEnabledFor(level=DEBUG):
                     if not len(ref) == 4:
                         raise ValueError(f"Invalid reference string length: {len(ref)} != 4")
-                    if not ref[0] in ROWS:
+                    if not ref[0] in ROW_SET:
                         raise ValueError(f"Invalid reference row: {ref[0]}")
                     if not 0 <= int(ref[1:]) < 256:
                         raise ValueError(f"Invalid reference index: {ref[1:]}")
+                    if ref[0] in SINGLE_ONLY_ROWS and int(ref[1:]) != 0:
+                        raise ValueError(f"Row {ref[0]} can only have single connections.")
                 r: str = ref[0]
                 i = int(ref[1:])
             elif isinstance(ref, (list, tuple)):
                 if _logger.isEnabledFor(level=DEBUG):
                     if not len(ref) == 2:
                         raise ValueError(f"Invalid reference sequence length: {len(ref)} != 2")
-                    if not ref[0] in ROWS:
+                    if not ref[0] in ROW_SET:
                         raise ValueError(f"Invalid reference row: {ref[0]}")
                     if not (isinstance(ref[1], int) and 0 <= ref[1] < 256):
                         raise ValueError(f"Invalid reference index: {ref[1]}")
+                    if ref[0] in SINGLE_ONLY_ROWS and ref[1] != 0:
+                        raise ValueError(f"Row {ref[0]} can only have single connections.")
                 assert isinstance(ref[0], str), f"Invalid reference row type: {type(ref[0])}"
                 assert isinstance(ref[1], int), f"Invalid reference index type: {type(ref[1])}"
                 r: str = ref[0]
@@ -170,7 +177,7 @@ class EndPoint(FreezableObject):
                 raise TypeError(f"Expected EndPoint, got {type(other)}")
             if other.is_frozen():
                 raise RuntimeError("Cannot connect to a frozen EndPoint")
-            if self.cls == EndPointClass.DST and len(self.refs) > 0:
+            if self.cls == EndPointClass.DST and len(self.refs) > 1:
                 raise ValueError("Destination endpoints can only have one reference.")
         if self.cls == EndPointClass.DST:
             self.refs = [[other.row, other.idx]]
@@ -192,7 +199,7 @@ class EndPoint(FreezableObject):
         """Freeze the endpoint, making it immutable."""
         if not self.is_frozen():
             # Need to make references immutable
-            self.refs = ref_tuple_store.add(tuple(ref_store.add(tuple(ref)) for ref in self.refs))
+            object.__setattr__(self, "_refs", tuple(tuple(ref) for ref in self.refs))
             retval = super().freeze(store)
             # Need to jump through hoops to set the persistent hash
             object.__setattr__(
@@ -264,3 +271,47 @@ class EndPoint(FreezableObject):
             "typ": str(self.typ),
             "refs": [list(ref) for ref in self.refs],
         }
+
+    def verify(self) -> bool:
+        """Verify the integrity of the endpoint."""
+        if self.idx < 0 or self.idx > 255:
+            raise ValueError("Endpoint index must be between 0 and 255.")
+        if self.row in SINGLE_ONLY_ROWS and self.idx != 0:
+            raise ValueError(f"Row {self.row} can only have a single endpoint with index 0.")
+        if self.row not in DESTINATION_ROW_SET and self.cls == EndPointClass.DST:
+            raise ValueError("Destination endpoint row must be a destination row.")
+        if self.row not in SOURCE_ROW_SET and self.cls == EndPointClass.SRC:
+            raise ValueError("Source endpoint row must be a source row.")
+        if self.row in SINGLE_ONLY_ROWS and len(self.refs) > 1:
+            raise ValueError(f"Row {self.row} can only have a single reference.")
+        return True
+
+
+class SourceEndPoint(EndPoint):
+    """Source EndPoint class."""
+
+    def __init__(
+        self,
+        row: SrcRow,
+        idx: int,
+        typ: TypesDef | int | str,
+        refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...] | None = None,
+        frozen: bool = False,
+    ) -> None:
+        """Initialize the source endpoint."""
+        super().__init__(row, idx, EndPointClass.SRC, typ, refs, frozen)
+
+
+class DestinationEndPoint(EndPoint):
+    """Destination EndPoint class."""
+
+    def __init__(
+        self,
+        row: DstRow,
+        idx: int,
+        typ: TypesDef | int | str,
+        refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...] | None = None,
+        frozen: bool = False,
+    ) -> None:
+        """Initialize the destination endpoint."""
+        super().__init__(row, idx, EndPointClass.DST, typ, refs, frozen)

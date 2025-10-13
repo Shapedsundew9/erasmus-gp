@@ -92,6 +92,7 @@ SOURCE_ROW_SET: set[SrcRow] = set(SrcRow)
 DST_ONLY_ROWS: tuple[DstRow, ...] = tuple(
     sorted({DstRow.F, DstRow.O, DstRow.P, DstRow.W, DstRow.U})
 )
+SINGLE_ONLY_ROWS = {DstRow.F, DstRow.W, DstRow.L, SrcRow.L}
 SRC_ONLY_ROWS: tuple[SrcRow, ...] = tuple(sorted({SrcRow.I}))
 ROWS: tuple[Row, ...] = tuple(sorted({*SrcRow, *DstRow}))
 ROW_MAP: dict[str, SrcRow | DstRow] = {str(row): row for row in ROWS}
