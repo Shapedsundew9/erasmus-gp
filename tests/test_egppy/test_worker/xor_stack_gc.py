@@ -56,34 +56,26 @@ INT_TD = types_def_store[INT_T]
 CONSISTENCY_SAMPLE = 1.0
 gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
-# Right shift codon
-_rshift_gc = gpi[bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")]
-# Literal 1 codon
-literal_1_gc = gpi[
-    bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
-]
-# This is the Integral type XOR but it does not matter for this
-_xor_gc = gpi[bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")]
-getrandbits_gc = gpi[
-    bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
-]
-sixtyfour_gc = gpi[
-    bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
-]
-custom_pgc = gpi[bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")]
 
+# Load the primitive codons from the gene pool
+RSHIFT_SIG = bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
+XOR_SIG = bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
+GETRANDBITS_SIG = bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
+LITERAL_1_SIG = bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
+SIXTYFOUR_SIG = bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
+CUSTOM_PGC_SIG = bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")
+INT_TO_SIG = bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
+TO_INT_SIG = bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
 
-int_to: dict[str, GGCDict] = {
-    "Integral": gpi[
-        bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
-    ]
-}
+RSHIFT_GC = gpi[RSHIFT_SIG]
+LITERAL_1_GC = gpi[LITERAL_1_SIG]
+XOR_GC = gpi[XOR_SIG]
+GETRANDBITS_GC = gpi[GETRANDBITS_SIG]
+SIXTYFOUR_GC = gpi[SIXTYFOUR_SIG]
+CUSTOM_PGC = gpi[CUSTOM_PGC_SIG]
 
-to_int: dict[str, GGCDict] = {
-    "EGPNumber": gpi[
-        bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
-    ]
-}
+int_to: dict[str, GGCDict] = {"Integral": gpi[INT_TO_SIG]}
+to_int: dict[str, GGCDict] = {"EGPNumber": gpi[TO_INT_SIG]}
 
 
 def find_gc(signature: bytes) -> GCABC:
@@ -133,7 +125,7 @@ def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                 "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": CUSTOM_PGC,
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -169,7 +161,7 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                 ],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": CUSTOM_PGC,
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -209,25 +201,25 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
 
 
 # Right shift and xor need interfaces casting
-rshift_gc = cast_interfaces_to_int(_rshift_gc)
-xor_gc = cast_interfaces_to_int(_xor_gc)
+rshift_gc = cast_interfaces_to_int(RSHIFT_GC)
+xor_gc = cast_interfaces_to_int(XOR_GC)
 
 
 # random_long_gc signature:
 random_long_gc = inherit_members(
     {
-        "ancestora": sixtyfour_gc,
-        "ancestorb": getrandbits_gc,
+        "ancestora": SIXTYFOUR_GC,
+        "ancestorb": GETRANDBITS_GC,
         "created": "2025-03-29 22:05:08.489847+00:00",
-        "gca": sixtyfour_gc,
-        "gcb": getrandbits_gc,
+        "gca": SIXTYFOUR_GC,
+        "gcb": GETRANDBITS_GC,
         "cgraph": {
             "A": [],
             "B": [["A", 0, INT_T]],
             "O": [["B", 0, INT_T]],
             "U": [],
         },
-        "pgc": custom_pgc,
+        "pgc": CUSTOM_PGC,
         "problem": ACYBERGENESIS_PROBLEM,
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
@@ -247,11 +239,11 @@ def f_7fffffff(i: tuple[int]) -> int:
 # rshift_1_gc signature:
 rshift_1_gc = inherit_members(
     {
-        "ancestora": literal_1_gc,
+        "ancestora": LITERAL_1_GC,
         "ancestorb": rshift_gc,
         "created": "2025-03-29 22:05:08.489847+00:00",
         "code_depth": 2,
-        "gca": literal_1_gc["signature"],  # Makes the structure of this GC unknown
+        "gca": LITERAL_1_GC["signature"],  # Makes the structure of this GC unknown
         "gcb": rshift_gc,
         "generation": 2,
         "cgraph": {
@@ -262,7 +254,7 @@ rshift_1_gc = inherit_members(
         },
         "num_codes": 3,
         "num_codons": 2,
-        "pgc": custom_pgc,
+        "pgc": CUSTOM_PGC,
         "problem": ACYBERGENESIS_PROBLEM,
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
@@ -283,7 +275,7 @@ rshift_xor_gc = inherit_members(
             "O": [["B", 0, INT_T]],
             "U": [],
         },
-        "pgc": custom_pgc,
+        "pgc": CUSTOM_PGC,
         "problem": ACYBERGENESIS_PROBLEM,
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
@@ -304,7 +296,7 @@ one_to_two = inherit_members(
             "O": [["B", 0, INT_T], ["A", 0, INT_T]],
             "U": [],
         },
-        "pgc": custom_pgc,
+        "pgc": CUSTOM_PGC,
         "problem": ACYBERGENESIS_PROBLEM,
         "properties": BASIC_ORDINARY_PROPERTIES,
     }
@@ -347,7 +339,7 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": CUSTOM_PGC,
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
@@ -378,7 +370,7 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": CUSTOM_PGC,
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
@@ -429,7 +421,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "O": [["B", i, INT_T] for i in randomrange(gc2["num_outputs"])],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": CUSTOM_PGC,
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gc1["num_codons"] + gc2["num_codons"],

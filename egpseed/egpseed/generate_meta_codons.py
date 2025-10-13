@@ -25,7 +25,6 @@ OUTPUT_CODON_PATH = join(
 )
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "cgraph": {"A": [["I", 0, None]], "O": [["A", 0, None]], "U": []},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
     "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
@@ -44,6 +43,10 @@ CODON_TEMPLATE: dict[str, Any] = {
         "side_effects": False,
         "static_creation": True,
     },
+}
+
+CODON_ONE_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
+    "cgraph": {"A": [["I", 0, None]], "O": [["A", 0, None]], "U": []},
     "meta_data": {
         "function": {
             "python3": {
@@ -53,6 +56,31 @@ CODON_TEMPLATE: dict[str, Any] = {
                     "name": "raise_if_not_instance_of(itype, otype)",
                     "imports": [
                         {"aip": ["egppy", "physics", "meta"], "name": "raise_if_not_instance_of"}
+                    ],
+                }
+            }
+        }
+    },
+}
+
+CODON_TWO_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
+    "cgraph": {
+        "A": [["I", 0, None], ["I", 1, None]],
+        "O": [["A", 0, None], ["A", 1, None]],
+        "U": [],
+    },
+    "meta_data": {
+        "function": {
+            "python3": {
+                "0": {
+                    "inline": "raise_if_not_both_instances_of({i0}, {i1}, otype)",
+                    "description": "Raise if i0 or i1 (itype) is not an instance (or child) of otype.",
+                    "name": "raise_if_not_both_instances_of(itype, itype, otype)",
+                    "imports": [
+                        {
+                            "aip": ["egppy", "physics", "meta"],
+                            "name": "raise_if_not_both_instances_of",
+                        }
                     ],
                 }
             }
@@ -95,31 +123,35 @@ def generate_meta_codons(write: bool = False) -> None:
         ptd = types_def_store[puid]
         ctd = types_def_store[cuid]
 
-        # Do both directions
-        for inpt, oupt in ((ctd, ptd), (ptd, ctd)):
+        # One and two parameter variants
+        for codon_template in (CODON_ONE_PARAMETER, CODON_TWO_PARAMETER):
+            # Do both directions
+            for inpt, oupt in ((ctd, ptd), (ptd, ctd)):
 
-            # Create a copy of the codon template
-            codon: dict[str, Any] = deepcopy(CODON_TEMPLATE)
+                # Create a copy of the codon template
+                codon: dict[str, Any] = deepcopy(codon_template)
 
-            # Set the type for the connections in the connection graph
-            codon["cgraph"]["A"][0][2] = inpt.name
-            codon["cgraph"]["O"][0][2] = oupt.name
+                # Set the type for the connections in the connection graph
+                for ept in codon["cgraph"]["A"]:
+                    ept[2] = inpt.name
+                for ept in codon["cgraph"]["O"]:
+                    ept[2] = oupt.name
 
-            # Replace the placeholder type strings in the meta data
-            base = codon["meta_data"]["function"]["python3"]["0"]
-            for s, r in (("itype", inpt.name), ("otype", oupt.name)):
-                base["inline"] = base["inline"].replace(s, r)
-                base["description"] = base["description"].replace(s, r)
-                base["name"] = base["name"].replace(s, r)
+                # Replace the placeholder type strings in the meta data
+                base = codon["meta_data"]["function"]["python3"]["0"]
+                for s, r in (("itype", inpt.name), ("otype", oupt.name)):
+                    base["inline"] = base["inline"].replace(s, r)
+                    base["description"] = base["description"].replace(s, r)
+                    base["name"] = base["name"].replace(s, r)
 
-            new_codon = GGCDict(codon)
-            if not new_codon.verify():
-                raise ValueError(f"Meta codon verification failed: {codon}")
-            new_codon.consistency()
-            codon = new_codon.to_json()
-            if codon["signature"] in meta_codons:
-                raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
-            meta_codons[codon["signature"]] = codon
+                new_codon = GGCDict(codon)
+                if not new_codon.verify():
+                    raise ValueError(f"Meta codon verification failed: {codon}")
+                new_codon.consistency()
+                codon = new_codon.to_json()
+                if codon["signature"] in meta_codons:
+                    raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
+                meta_codons[codon["signature"]] = codon
 
     # Write the meta codons to the output file (optional)
     spinner.stop()

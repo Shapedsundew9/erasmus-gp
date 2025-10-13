@@ -32,6 +32,28 @@ class EPClsPostfix(StrEnum):
     DST = "d"
 
 
+class SrcIfKey(StrEnum):
+    """Source Interfaces."""
+
+    IS = SrcRow.I + EPClsPostfix.SRC
+    LS = SrcRow.L + EPClsPostfix.SRC
+    AS = SrcRow.A + EPClsPostfix.SRC
+    BS = SrcRow.B + EPClsPostfix.SRC
+
+
+class DstIfKey(StrEnum):
+    """Destination Interfaces."""
+
+    AD = DstRow.A + EPClsPostfix.DST
+    BD = DstRow.B + EPClsPostfix.DST
+    FD = DstRow.F + EPClsPostfix.DST
+    LD = DstRow.L + EPClsPostfix.DST
+    WD = DstRow.W + EPClsPostfix.DST
+    OD = DstRow.O + EPClsPostfix.DST
+    PD = DstRow.P + EPClsPostfix.DST
+    UD = DstRow.U + EPClsPostfix.DST
+
+
 class EndPointClass(IntEnum):
     """End Point Class."""
 
@@ -62,24 +84,20 @@ EMPTY_JSON_CGRAPH: JSONCGraph = {DstRow.O: [], DstRow.U: []}
 
 
 # Constants
-DESTINATION_ROWS: tuple[DstRow, ...] = tuple(sorted(DstRow))
-DESTINATION_ROW_MAP: dict[str, DstRow] = {str(row): row for row in DESTINATION_ROWS}
+DESTINATION_ROW_MAP: dict[str, DstRow] = {str(row): row for row in DstRow}
 DESTINATION_ROW_SET: set[DstRow] = set(DstRow)
 DESTINATION_ROW_SET_AND_U: set[str] = DESTINATION_ROW_SET | {"U"}
-SOURCE_ROWS: tuple[SrcRow, ...] = tuple(sorted(SrcRow))
-SOURCE_ROW_MAP: dict[str, SrcRow] = {str(row): row for row in SOURCE_ROWS}
+SOURCE_ROW_MAP: dict[str, SrcRow] = {str(row): row for row in SrcRow}
 SOURCE_ROW_SET: set[SrcRow] = set(SrcRow)
 DST_ONLY_ROWS: tuple[DstRow, ...] = tuple(
     sorted({DstRow.F, DstRow.O, DstRow.P, DstRow.W, DstRow.U})
 )
 SRC_ONLY_ROWS: tuple[SrcRow, ...] = tuple(sorted({SrcRow.I}))
-ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
+ROWS: tuple[Row, ...] = tuple(sorted({*SrcRow, *DstRow}))
 ROW_MAP: dict[str, SrcRow | DstRow] = {str(row): row for row in ROWS}
 ROW_SET: set[Row] = set(ROWS)
 EPC_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
 EPC_MAP: dict[str, EndPointClass] = {"s": EndPointClass.SRC, "d": EndPointClass.DST}
 ALL_ROWS_STR: str = "".join(ROWS)
-ROW_CLS_INDEXED: tuple[str, ...] = tuple(f"{row}{EPClsPostfix.SRC}" for row in SOURCE_ROWS) + tuple(
-    f"{row}{EPClsPostfix.DST}" for row in DESTINATION_ROWS
-)
+ROW_CLS_INDEXED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
 ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED)

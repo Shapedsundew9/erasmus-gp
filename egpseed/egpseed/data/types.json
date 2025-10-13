@@ -300,6 +300,38 @@
         ],
         "tt": 2
     },
+    "DstIf": {
+        "default": "DstIf.O",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "DstIf"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "DstInterface": {
+        "default": "Interface()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Interface"
+            }
+        ],
+        "parents": [
+            "Interface"
+        ]
+    },
     "ECount": {
         "default": "(0)",
         "imports": [
@@ -809,6 +841,22 @@
         "parents": [
             "Rational",
             "EGPIntegral"
+        ]
+    },
+    "Interface": {
+        "default": "Interface()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Interface"
+            }
+        ],
+        "parents": [
+            "object"
         ]
     },
     "IOIndices": {
@@ -2072,6 +2120,38 @@
         ],
         "parents": [
             "object"
+        ]
+    },
+    "SrcIf": {
+        "default": "SrcIf.I",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "SrcIf"
+            }
+        ],
+        "parents": [
+            "object"
+        ]
+    },
+    "SrcInterface": {
+        "default": "Interface()",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "phy_types"
+                ],
+                "name": "Interface"
+            }
+        ],
+        "parents": [
+            "Interface"
         ]
     },
     "str": {

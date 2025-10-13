@@ -174,12 +174,34 @@ class Interface(FreezableObject):
                 raise TypeError(f"Expected EndPoint, got {type(value)}")
             if idx < 0 or idx >= len(self.endpoints):
                 raise IndexError("Index out of range")
+            if len(self.endpoints) > 0:
+                if value.row != self.endpoints[0].row:
+                    raise ValueError("All endpoints must have the same row.")
+                if value.cls != self.endpoints[0].cls:
+                    raise ValueError("All endpoints must have the same class.")
         assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        value.idx = idx  # Ensure the index is correct
         self.endpoints[idx] = value
 
     def __str__(self) -> str:
         """Return the string representation of the interface."""
         return f"Interface({', '.join(str(ep.typ) for ep in self.endpoints)})"
+
+    def append(self, value: EndPoint) -> None:
+        """Append an endpoint to the interface."""
+        if _logger.isEnabledFor(level=DEBUG):
+            if self.is_frozen():
+                raise RuntimeError("Cannot modify a frozen Interface")
+            if not isinstance(value, EndPoint):
+                raise TypeError(f"Expected EndPoint, got {type(value)}")
+            if len(self.endpoints) > 0:
+                if value.row != self.endpoints[0].row:
+                    raise ValueError("All endpoints must have the same row.")
+                if value.cls != self.endpoints[0].cls:
+                    raise ValueError("All endpoints must have the same class.")
+        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        value.idx = len(self.endpoints)  # Ensure the index is correct
+        self.endpoints.append(value)
 
     def cls(self) -> EndPointClass:
         """Return the class of the interface. Defaults to destination if no endpoints."""
@@ -188,6 +210,27 @@ class Interface(FreezableObject):
     def copy(self) -> Interface:
         """Return a modifiable shallow copy of the interface."""
         return Interface(self.endpoints)
+
+    def extend(self, values: list[EndPoint] | tuple[EndPoint, ...]) -> None:
+        """Append an endpoint to the interface."""
+        if _logger.isEnabledFor(level=DEBUG):
+            if self.is_frozen():
+                raise RuntimeError("Cannot modify a frozen Interface")
+            if not isinstance(values, (list, tuple)):
+                raise TypeError(f"Expected list or tuple, got {type(values)}")
+            for value in values:
+                if not isinstance(value, EndPoint):
+                    raise TypeError(f"Expected EndPoint, got {type(value)}")
+            if len(self.endpoints) > 0:
+                for value in values:
+                    if value.row != self.endpoints[0].row:
+                        raise ValueError("All endpoints must have the same row.")
+                    if value.cls != self.endpoints[0].cls:
+                        raise ValueError("All endpoints must have the same class.")
+        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        for idx, value in enumerate(values, start=len(self.endpoints)):
+            value.idx = idx  # Ensure the index is correct
+        self.endpoints.extend(values)
 
     def freeze(self, store: bool = True) -> Interface:
         """Freeze the interface, making it immutable."""

@@ -111,7 +111,6 @@ from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     DESTINATION_ROW_SET,
-    DESTINATION_ROWS,
     ROW_CLS_INDEXED,
     ROW_CLS_INDEXED_SET,
     SOURCE_ROW_MAP,
@@ -138,9 +137,7 @@ _LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Constants
 _UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED)
-_UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple(
-    "_" + row + EPClsPostfix.DST for row in DESTINATION_ROWS
-)
+_UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple("_" + row + EPClsPostfix.DST for row in DstRow)
 
 
 # NOTE: There are a lot of duplicate frozensets in this module. They have not been reduced to
@@ -536,7 +533,7 @@ class CGraph(FreezableObject):
     def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
         """Convert the Connection Graph to a JSON-compatible dictionary."""
         jcg: JSONCGraph = {}
-        for key in DESTINATION_ROWS:
+        for key in DstRow:
             iface: Interface = getattr(self, "_" + key + EPClsPostfix.DST)
             if iface is not NULL_INTERFACE:
                 jcg[key] = iface.to_json(json_c_graph=json_c_graph)

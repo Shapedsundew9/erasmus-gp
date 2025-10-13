@@ -1,7 +1,7 @@
 {
     "_e_count": {
         "description": "GCABC _e_count field extraction",
-        "inline": "{i0}['_e_count]",
+        "inline": "{i0}['_e_count']",
         "inputs": [
             "GCABC"
         ],
@@ -11,7 +11,7 @@
     },
     "_e_total": {
         "description": "GCABC _e_total field extraction",
-        "inline": "{i0}['_e_total]",
+        "inline": "{i0}['_e_total']",
         "inputs": [
             "GCABC"
         ],
@@ -21,7 +21,7 @@
     },
     "_evolvability": {
         "description": "GCABC _evolvability field extraction",
-        "inline": "{i0}['_evolvability]",
+        "inline": "{i0}['_evolvability']",
         "inputs": [
             "GCABC"
         ],
@@ -31,7 +31,7 @@
     },
     "_f_count": {
         "description": "GCABC _f_count field extraction",
-        "inline": "{i0}['_f_count]",
+        "inline": "{i0}['_f_count']",
         "inputs": [
             "GCABC"
         ],
@@ -41,7 +41,7 @@
     },
     "_f_total": {
         "description": "GCABC _f_total field extraction",
-        "inline": "{i0}['_f_total]",
+        "inline": "{i0}['_f_total']",
         "inputs": [
             "GCABC"
         ],
@@ -51,7 +51,7 @@
     },
     "_fitness": {
         "description": "GCABC _fitness field extraction",
-        "inline": "{i0}['_fitness]",
+        "inline": "{i0}['_fitness']",
         "inputs": [
             "GCABC"
         ],
@@ -61,7 +61,7 @@
     },
     "_lost_descendants": {
         "description": "GCABC _lost_descendants field extraction",
-        "inline": "{i0}['_lost_descendants]",
+        "inline": "{i0}['_lost_descendants']",
         "inputs": [
             "GCABC"
         ],
@@ -71,7 +71,7 @@
     },
     "_reference_count": {
         "description": "GCABC _reference_count field extraction",
-        "inline": "{i0}['_reference_count]",
+        "inline": "{i0}['_reference_count']",
         "inputs": [
             "GCABC"
         ],
@@ -81,7 +81,7 @@
     },
     "ancestora": {
         "description": "GCABC ancestora field extraction",
-        "inline": "{i0}['ancestora]",
+        "inline": "{i0}['ancestora']",
         "inputs": [
             "GCABC"
         ],
@@ -91,7 +91,7 @@
     },
     "ancestorb": {
         "description": "GCABC ancestorb field extraction",
-        "inline": "{i0}['ancestorb]",
+        "inline": "{i0}['ancestorb']",
         "inputs": [
             "GCABC"
         ],
@@ -101,7 +101,7 @@
     },
     "cgraph": {
         "description": "GCABC cgraph field extraction",
-        "inline": "{i0}['cgraph]",
+        "inline": "{i0}['cgraph']",
         "inputs": [
             "GCABC"
         ],
@@ -111,7 +111,7 @@
     },
     "code_depth": {
         "description": "GCABC code_depth field extraction",
-        "inline": "{i0}['code_depth]",
+        "inline": "{i0}['code_depth']",
         "inputs": [
             "GCABC"
         ],
@@ -121,7 +121,7 @@
     },
     "created": {
         "description": "GCABC created field extraction",
-        "inline": "{i0}['created]",
+        "inline": "{i0}['created']",
         "inputs": [
             "GCABC"
         ],
@@ -131,7 +131,7 @@
     },
     "creator": {
         "description": "GCABC creator field extraction",
-        "inline": "{i0}['creator]",
+        "inline": "{i0}['creator']",
         "inputs": [
             "GCABC"
         ],
@@ -141,7 +141,7 @@
     },
     "descendants": {
         "description": "GCABC descendants field extraction",
-        "inline": "{i0}['descendants]",
+        "inline": "{i0}['descendants']",
         "inputs": [
             "GCABC"
         ],
@@ -151,7 +151,7 @@
     },
     "e_count": {
         "description": "GCABC e_count field extraction",
-        "inline": "{i0}['e_count]",
+        "inline": "{i0}['e_count']",
         "inputs": [
             "GCABC"
         ],
@@ -161,7 +161,7 @@
     },
     "e_total": {
         "description": "GCABC e_total field extraction",
-        "inline": "{i0}['e_total]",
+        "inline": "{i0}['e_total']",
         "inputs": [
             "GCABC"
         ],
@@ -171,7 +171,7 @@
     },
     "evolvability": {
         "description": "GCABC evolvability field extraction",
-        "inline": "{i0}['evolvability]",
+        "inline": "{i0}['evolvability']",
         "inputs": [
             "GCABC"
         ],
@@ -181,7 +181,7 @@
     },
     "f_count": {
         "description": "GCABC f_count field extraction",
-        "inline": "{i0}['f_count]",
+        "inline": "{i0}['f_count']",
         "inputs": [
             "GCABC"
         ],
@@ -191,7 +191,7 @@
     },
     "f_total": {
         "description": "GCABC f_total field extraction",
-        "inline": "{i0}['f_total]",
+        "inline": "{i0}['f_total']",
         "inputs": [
             "GCABC"
         ],
@@ -201,7 +201,7 @@
     },
     "fitness": {
         "description": "GCABC fitness field extraction",
-        "inline": "{i0}['fitness]",
+        "inline": "{i0}['fitness']",
         "inputs": [
             "GCABC"
         ],
@@ -211,7 +211,7 @@
     },
     "gca": {
         "description": "GCABC gca field extraction",
-        "inline": "{i0}['gca]",
+        "inline": "{i0}['gca']",
         "inputs": [
             "GCABC"
         ],
@@ -221,7 +221,7 @@
     },
     "gcb": {
         "description": "GCABC gcb field extraction",
-        "inline": "{i0}['gcb]",
+        "inline": "{i0}['gcb']",
         "inputs": [
             "GCABC"
         ],
@@ -231,7 +231,7 @@
     },
     "generation": {
         "description": "GCABC generation field extraction",
-        "inline": "{i0}['generation]",
+        "inline": "{i0}['generation']",
         "inputs": [
             "GCABC"
         ],
@@ -241,7 +241,7 @@
     },
     "input_types": {
         "description": "GCABC input_types field extraction",
-        "inline": "{i0}['input_types]",
+        "inline": "{i0}['input_types']",
         "inputs": [
             "GCABC"
         ],
@@ -251,7 +251,7 @@
     },
     "inputs": {
         "description": "GCABC inputs field extraction",
-        "inline": "{i0}['inputs]",
+        "inline": "{i0}['inputs']",
         "inputs": [
             "GCABC"
         ],
@@ -261,7 +261,7 @@
     },
     "lost_descendants": {
         "description": "GCABC lost_descendants field extraction",
-        "inline": "{i0}['lost_descendants]",
+        "inline": "{i0}['lost_descendants']",
         "inputs": [
             "GCABC"
         ],
@@ -271,7 +271,7 @@
     },
     "num_codes": {
         "description": "GCABC num_codes field extraction",
-        "inline": "{i0}['num_codes]",
+        "inline": "{i0}['num_codes']",
         "inputs": [
             "GCABC"
         ],
@@ -281,7 +281,7 @@
     },
     "num_codons": {
         "description": "GCABC num_codons field extraction",
-        "inline": "{i0}['num_codons]",
+        "inline": "{i0}['num_codons']",
         "inputs": [
             "GCABC"
         ],
@@ -291,7 +291,7 @@
     },
     "num_inputs": {
         "description": "GCABC num_inputs field extraction",
-        "inline": "{i0}['num_inputs]",
+        "inline": "{i0}['num_inputs']",
         "inputs": [
             "GCABC"
         ],
@@ -301,7 +301,7 @@
     },
     "num_outputs": {
         "description": "GCABC num_outputs field extraction",
-        "inline": "{i0}['num_outputs]",
+        "inline": "{i0}['num_outputs']",
         "inputs": [
             "GCABC"
         ],
@@ -311,7 +311,7 @@
     },
     "output_types": {
         "description": "GCABC output_types field extraction",
-        "inline": "{i0}['output_types]",
+        "inline": "{i0}['output_types']",
         "inputs": [
             "GCABC"
         ],
@@ -321,7 +321,7 @@
     },
     "outputs": {
         "description": "GCABC outputs field extraction",
-        "inline": "{i0}['outputs]",
+        "inline": "{i0}['outputs']",
         "inputs": [
             "GCABC"
         ],
@@ -331,7 +331,7 @@
     },
     "pgc": {
         "description": "GCABC pgc field extraction",
-        "inline": "{i0}['pgc]",
+        "inline": "{i0}['pgc']",
         "inputs": [
             "GCABC"
         ],
@@ -341,7 +341,7 @@
     },
     "population_uid": {
         "description": "GCABC population_uid field extraction",
-        "inline": "{i0}['population_uid]",
+        "inline": "{i0}['population_uid']",
         "inputs": [
             "GCABC"
         ],
@@ -351,7 +351,7 @@
     },
     "problem": {
         "description": "GCABC problem field extraction",
-        "inline": "{i0}['problem]",
+        "inline": "{i0}['problem']",
         "inputs": [
             "GCABC"
         ],
@@ -361,7 +361,7 @@
     },
     "problem_set": {
         "description": "GCABC problem_set field extraction",
-        "inline": "{i0}['problem_set]",
+        "inline": "{i0}['problem_set']",
         "inputs": [
             "GCABC"
         ],
@@ -371,7 +371,7 @@
     },
     "properties": {
         "description": "GCABC properties field extraction",
-        "inline": "{i0}['properties]",
+        "inline": "{i0}['properties']",
         "inputs": [
             "GCABC"
         ],
@@ -381,7 +381,7 @@
     },
     "reference_count": {
         "description": "GCABC reference_count field extraction",
-        "inline": "{i0}['reference_count]",
+        "inline": "{i0}['reference_count']",
         "inputs": [
             "GCABC"
         ],
@@ -391,7 +391,7 @@
     },
     "signature": {
         "description": "GCABC signature field extraction",
-        "inline": "{i0}['signature]",
+        "inline": "{i0}['signature']",
         "inputs": [
             "GCABC"
         ],
@@ -401,7 +401,7 @@
     },
     "survivability": {
         "description": "GCABC survivability field extraction",
-        "inline": "{i0}['survivability]",
+        "inline": "{i0}['survivability']",
         "inputs": [
             "GCABC"
         ],
@@ -411,7 +411,7 @@
     },
     "updated": {
         "description": "GCABC updated field extraction",
-        "inline": "{i0}['updated]",
+        "inline": "{i0}['updated']",
         "inputs": [
             "GCABC"
         ],
