@@ -269,7 +269,7 @@ class EndPoint(FreezableObject):
             "refs": [list(ref) for ref in self.refs],
         }
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the integrity of the endpoint."""
         if self.idx < 0 or self.idx > 255:
             raise ValueError("Endpoint index must be between 0 and 255.")
@@ -281,7 +281,6 @@ class EndPoint(FreezableObject):
             raise ValueError("Source endpoint row must be a source row.")
         if self.row in SINGLE_ONLY_ROWS and len(self.refs) > 1:
             raise ValueError(f"Row {self.row} can only have a single reference.")
-        return True
 
 
 class SourceEndPoint(EndPoint):

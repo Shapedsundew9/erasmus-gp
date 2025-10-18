@@ -80,7 +80,7 @@ class ObjectDict(Collection, CommonObj):
         """Remove a object from the dict."""
         del self._objects[key]
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the ObjectDict object."""
         self.info()
-        return super().verify()
+        super().verify()

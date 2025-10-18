@@ -30,7 +30,7 @@ class GGCMixin(EGCMixin):
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         super().consistency()
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
@@ -101,7 +101,6 @@ class GGCMixin(EGCMixin):
         assert self["updated"] <= datetime.now(
             UTC
         ), "updated time must be less than or equal to the current time."
-        return True
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the GGC.
@@ -199,7 +198,7 @@ class GGCMixin(EGCMixin):
         if _logger.isEnabledFor(DEBUG):
             self.verify()
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the genetic code object."""
         super().verify()
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
@@ -379,7 +378,6 @@ class GGCMixin(EGCMixin):
         ), "Updated must be less than or equal to the current date and time."
         assert self["updated"] >= EGP_EPOCH, "Updated must be greater than or equal to EGP_EPOCH."
         assert self["updated"].tzinfo == UTC, "Updated must be in the UTC time zone."
-        return True
 
 
 class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
@@ -391,15 +389,17 @@ class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
         # CacheableDict.__init__(self)
         self.set_members(gcabc if gcabc is not None else {})
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         # Need to call consistency down both MRO paths.
-        return CacheableDict.consistency(self) and GGCMixin.consistency(self)
+        CacheableDict.consistency(self)
+        GGCMixin.consistency(self)
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the genetic code object."""
         # Need to call verify down both MRO paths.
-        return CacheableDict.verify(self) and GGCMixin.verify(self)
+        CacheableDict.verify(self)
+        GGCMixin.verify(self)
 
 
 # XGC is an execution genetic code object. It is a read-only GGC object.

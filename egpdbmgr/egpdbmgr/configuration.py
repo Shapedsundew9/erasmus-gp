@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any, cast
 
 from egpcommon.common import DictTypeAccessor
-from egpcommon.egp_log import VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.security import dump_signed_json, load_signed_json
 from egpcommon.validator import Validator
 from egpdb.configuration import DatabaseConfig

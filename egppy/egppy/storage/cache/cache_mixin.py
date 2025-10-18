@@ -14,14 +14,14 @@ _logger: Logger = egp_logger(name=__name__)
 class CacheMixin:
     """Cache Base class has methods generic to all cache classes."""
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the cache for self consistency."""
         assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
         for value in (v for v in self.values() if getattr(v, "consistency", None) is not None):
             value.consistency()
         _super = super()
         assert isinstance(_super, StoreABC), "CacheMixin method called on non-StoreABC object."
-        return _super.consistency()
+        _super.consistency()
 
     def copyback(self) -> None:
         """Copy the cache back to the next level."""
@@ -66,7 +66,7 @@ class CacheMixin:
             )
             self.purge(num=self.purge_count)
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the cache.
         Every object stored in the cache is verified as well as basic
         cache parameters.
@@ -78,4 +78,4 @@ class CacheMixin:
         assert len(self) <= self.max_items, "Cache size exceeds max_items."
         _super = super()
         assert isinstance(_super, StoreABC), "CacheMixin method called on non-StoreABC object."
-        return _super.verify()
+        _super.verify()

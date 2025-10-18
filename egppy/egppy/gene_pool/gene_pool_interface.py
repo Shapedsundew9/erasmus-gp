@@ -67,9 +67,9 @@ class GenePoolInterface(GPIABC):
         """
         self._ggc_cache[signature] = value
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the consistency of the Gene Pool."""
-        return True
+        pass
 
     def initial_generation_query(self, pconfig: PopulationConfig) -> list[bytes]:
         """Query the Gene Pool for the initial generation of this population."""
@@ -104,6 +104,6 @@ class GenePoolInterface(GPIABC):
         # Place holder for the actual implementation
         return None
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the Gene Pool."""
-        return True
+        pass

@@ -89,11 +89,11 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CommonObj, CacheableObjAB
         """Return a JSON serializable dictionary."""
         return deepcopy(x=self.data)
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the cacheable object."""
         non_str_keys = tuple(x for x in self if not isinstance(x, str))
         assert not non_str_keys, f"Keys must be strings: Non-string keys {non_str_keys}."
-        return super().verify()
+        super().verify()
 
 
 class CacheableList(MutableSequence, CacheableObjMixin, CommonObj, CacheableObjABC):

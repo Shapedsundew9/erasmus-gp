@@ -9,7 +9,7 @@ genetic code object avoiding all the derived data.
 from datetime import UTC, datetime
 from typing import Any
 
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
@@ -31,11 +31,11 @@ class EGCMixin(GCMixin):
     # Keys that reference other GC's
     REFERENCE_KEYS: set[str] = {"gca", "gcb", "ancestora", "ancestorb", "pgc"}
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the genetic code object for consistency.
 
         Raises:
-            ValueError: If the genetic code object is inconsistent.
+            RuntimeError: If the genetic code object is inconsistent.
         """
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
 
@@ -67,8 +67,6 @@ class EGCMixin(GCMixin):
         for key in (k for k in self if not isinstance(self[k], GCABC)):
             if getattr(self[key], "consistency", None) is not None:
                 self[key].consistency()
-
-        return True
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
@@ -124,7 +122,7 @@ class EGCMixin(GCMixin):
         tmp: str | bytes = gcabc.get("signature", NULL_SIGNATURE)
         self["signature"] = bytes.fromhex(tmp) if isinstance(tmp, str) else tmp
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the genetic code object."""
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
@@ -146,7 +144,6 @@ class EGCMixin(GCMixin):
             # Recursively calling verify on GCABC's can take a long time.
             if getattr(self[key], "verify", None) is not None and not isinstance(self[key], GCABC):
                 self[key].verify()
-        return True
 
 
 class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore
@@ -168,12 +165,14 @@ class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore
         super().__init__()
         self.set_members(gcabc if gcabc is not None else {})
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         # Need to call consistency down both MRO paths.
-        return CacheableDict.consistency(self) and EGCMixin.consistency(self)
+        CacheableDict.consistency(self)
+        EGCMixin.consistency(self)
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the genetic code object."""
         # Need to call verify down both MRO paths.
-        return CacheableDict.verify(self) and EGCMixin.verify(self)
+        CacheableDict.verify(self)
+        EGCMixin.verify(self)
