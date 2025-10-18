@@ -15,11 +15,15 @@ class CommonObj:
     The Common Object Class, CommonObj, is the base class for all custom objects in EGP.
     EGP has the philosophy that all objects should be able to verify their own data and check
     their own consistency. The methods defined here shall always be called by derived classes.
+
+    Derived classes shall validate their data on input to the class (via init or setters). If
+    a parameter is derived from a CommonObj derived class then it shall be verified by calling
+    its verify() method.
     """
 
     __slots__ = tuple()
 
-    def consistency(self, _result: bool = False) -> bool:
+    def consistency(self) -> bool:
         """Check the consistency of the CommonObj.
 
         The consistency() method is used to check the semantic of the CommonObj
@@ -34,25 +38,28 @@ class CommonObj:
         if the object is not consistent.
         If the object is consistent the consistency() method shall return True.
 
+        Derived classes shall override this method to add their own checks but
+        shall always call the base class consistency() method at the *end* of their own
+        consistency() method. This is to ensure that the consistency() method is only called
+        once all other checks have passed.
+
         Failed checks shall be logged at the CONSISTENCY level with a message indicating
         the reason for the failure. Ideally containing the invalid value and
-        the valid range of values if it can be displayed concisely.
+        the valid range of values if it can be displayed concisely. The method will then
+        immediately return False to avoid unnecessary further checks.
 
         NOTE: Likely to significantly slow down the code.
 
-        Args:
-            _result: Internal use only. AND'd with the result of any tests in derived classes.
-                Defaults to False to ensure derived class tests are run and properly pass
-                results through to this base class method.
+        *IMPORTANT*: This method shall only ever be called by the base class verify() method
+        (defined below) after all other checks have passed.
 
         Returns:
             bool: True if the object is consistent, False otherwise.
         """
-        if _LOG_CONSISTENCY:
-            _logger.log(level=CONSISTENCY, msg=f"Consistency check passed for {self}")
+        _logger.log(level=CONSISTENCY, msg=f"Consistency check passed for {self}")
         return True
 
-    def verify(self, _result: bool = False) -> bool:
+    def verify(self) -> bool:
         """Verify the CommonObj object.
 
         The verify() method is used to check the CommonObj objects data for validity.
@@ -65,18 +72,21 @@ class CommonObj:
         if the object is not valid.
         If the object is valid the verify() method shall return True.
 
+        Derived classes shall override this method to add their own checks but
+        shall always call the base class verify() method at the *end* of their own
+        verify() method. This is to ensure that the consistency() method is only called
+        once all other checks have passed.
+
         Failed checks shall be logged at the VERIFY level with a message indicating
         the reason for the failure. Ideally containing the invalid value and
-        the valid range of values if it can be displayed concisely.
-
-        Args:
-            _result: Internal use only. AND'd with the result of any tests in derived classes.
-                Defaults to False to ensure derived class tests are run and properly pass
-                results through to this base class method.
+        the valid range of values if it can be displayed concisely. The method will then
+        immediately return False to avoid unnecessary further checks.
 
         Returns:
             bool: True if the object is valid, False otherwise.
         """
-        if _logger.isEnabledFor(level=CONSISTENCY) and _result:
+        if _logger.isEnabledFor(level=CONSISTENCY):
             _logger.log(level=CONSISTENCY, msg=f"Verify check passed for {self}")
-        return _result
+            _result = self.consistency()
+            return _result
+        return True
