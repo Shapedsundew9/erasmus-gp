@@ -97,7 +97,8 @@ class SourceConfig(Validator, DictTypeAccessor):
     @source.setter
     def source(self, value: str) -> None:
         """The source of the genetic code."""
-        self._is_one_of("source", value, INITIAL_POPULATION_SOURCES)
+        if not self._is_one_of("source", value, INITIAL_POPULATION_SOURCES):
+            raise ValueError(f"source must be one of {INITIAL_POPULATION_SOURCES}, but is {value}")
         self._source = value
 
     @property

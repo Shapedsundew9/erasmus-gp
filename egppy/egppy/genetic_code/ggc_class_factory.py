@@ -75,9 +75,6 @@ class GGCMixin(EGCMixin):
 
         assert self["created"] <= self["updated"], "created time must be less than updated time."
 
-        if self["generation"] == 0:
-            assert self is NULL_SIGNATURE, "A generation of 0 can only be the NULL_SIGNATURE."
-
         if self["generation"] == 1:
             assert (
                 self["gca"] is NULL_SIGNATURE or self["gca"] is NULL_SIGNATURE

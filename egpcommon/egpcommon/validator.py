@@ -331,15 +331,13 @@ class Validator:
         presult = urlparse(value)
         # Ensure the scheme is HTTPS and the network location is present
         if presult.scheme != "https" or not presult.netloc:
-            if _logger.isEnabledFor(VERIFY):
-                _logger.log(VERIFY, "%s must be a valid URL: %s is not valid.", attr, value)
+            _logger.log(VERIFY, "%s must be a valid URL: %s is not valid.", attr, value)
             return False
 
         # Rebuild the URL to ensure it is properly formed
         reconstructed_url = urlunparse(presult)
         if reconstructed_url != value:
-            if _logger.isEnabledFor(VERIFY):
-                _logger.log(VERIFY, "%s must be a valid URL: %s is not valid.", attr, value)
+            _logger.log(VERIFY, "%s must be a valid URL: %s is not valid.", attr, value)
             return False
         return True
 

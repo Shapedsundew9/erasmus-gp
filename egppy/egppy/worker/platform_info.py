@@ -80,8 +80,10 @@ class PlatformInfo(Validator, DictTypeAccessor):
     @machine.setter
     def machine(self, value: str) -> None:
         """The machine  type, e.g. 'i386'. An empty string if the value cannot be determined."""
-        self._is_string("machine", value)
-        self._is_length("machine", value, 0, 128)
+        if not self._is_string("machine", value):
+            raise ValueError(f"machine must be a string, but is {type(value)}")
+        if not self._is_length("machine", value, 0, 128):
+            raise ValueError(f"machine length must be between 0 and 128, but is {len(value)}")
         self._machine = value
 
     @property

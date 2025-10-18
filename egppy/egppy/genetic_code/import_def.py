@@ -8,11 +8,9 @@ type definitions use imports as do codons.
 from typing import Any, Sequence
 
 from egpcommon.common import DictTypeAccessor
-from egpcommon.validator import Validator
-from egpcommon.object_set import ObjectSet
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.freezable_object import FreezableObject
+from egpcommon.validator import Validator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -69,10 +67,12 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     @aip.setter
     def aip(self, value: Sequence[str]) -> None:
         """Set the Absolute Import Path."""
-        if _logger.isEnabledFor(level=DEBUG):
-            self._is_sequence("aip", value)
-            assert len(value) > 0, "The aip must have at least one element."
-            assert all(isinstance(x, str) for x in value), "All elements of aip must be strings."
+        if not self._is_sequence("aip", value):
+            raise ValueError(f"aip must be a sequence, but is {type(value)}")
+        if not value:
+            raise ValueError("The aip must have at least one element.")
+        if not all(isinstance(x, str) for x in value):
+            raise ValueError("All elements of aip must be strings.")
         self._aip = tuple(value)
 
     @property

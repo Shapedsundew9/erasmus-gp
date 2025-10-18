@@ -198,7 +198,8 @@ class TypesDef(FreezableObject, Validator):
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
-        self._is_bool("abstract", abstract)
+        if not self._is_bool("abstract", abstract):
+            raise ValueError(f"abstract must be a bool, but is {type(abstract)}")
         return abstract
 
     def _children(self, children: Iterable[int | TypesDef]) -> array[int]:

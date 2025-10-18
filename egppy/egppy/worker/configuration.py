@@ -7,7 +7,6 @@ from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.security import dump_signed_json, load_signed_json
 from egpcommon.validator import Validator
 from egpdb.configuration import DatabaseConfig
-
 from egppy.populations.configuration import PopulationsConfig
 
 # Standard EGP logging pattern
@@ -57,9 +56,11 @@ class WorkerConfig(Validator, DictTypeAccessor):
     @databases.setter
     def databases(self, value: dict[str, DatabaseConfig | dict[str, Any]]) -> None:
         """The databases for the workers."""
-        self._is_dict("databases", value)
+        if not self._is_dict("databases", value):
+            raise ValueError(f"databases must be a dict, but is {type(value)}")
         for key, val in value.items():
-            self._is_simple_string("databases key", key)
+            if not self._is_simple_string("databases key", key):
+                raise ValueError(f"databases key must be a simple string, but is {key}")
             if isinstance(val, dict):
                 value[key] = DatabaseConfig(**val)
             assert isinstance(val, DatabaseConfig), "databases value must be a DatabaseConfig"

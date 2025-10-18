@@ -98,9 +98,9 @@ class TestDBManagerConfig(unittest.TestCase):
     def test_name_validation(self):
         """Test the validation of the name attribute."""
         config = DBManagerConfig()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             config.name = ""
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             config.name = "a" * 65
         config.name = "ValidName"
         self.assertEqual(config.name, "ValidName")

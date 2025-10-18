@@ -96,7 +96,8 @@ class ProblemConfig(Validator, DictTypeAccessor):
             value = "0" * 24 + value
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self._is_sha256("git_hash", value)
+        if not self._is_sha256("git_hash", value):
+            raise ValueError(f"git_hash must be a SHA256 hash, but is {value}")
         self._git_hash = value
 
     @property

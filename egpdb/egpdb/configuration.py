@@ -59,8 +59,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @dbname.setter
     def dbname(self, value: str) -> None:
         """The name of the database."""
-        self._is_string("dbname", value)
-        self._is_regex("dbname", value, self._dbname_regex)
+        if not self._is_string("dbname", value):
+            raise ValueError(f"dbname must be a string, but is {type(value)}")
+        if not self._is_regex("dbname", value, self._dbname_regex):
+            raise ValueError(f"dbname must match regex {self._dbname_regex_str}, but is {value}")
         self._dbname = value
 
     @property
@@ -71,8 +73,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @host.setter
     def host(self, value: str) -> None:
         """The host of the database."""
-        self._is_string("host", value)
-        self._is_ip_or_hostname("host", value)
+        if not self._is_string("host", value):
+            raise ValueError(f"host must be a string, but is {type(value)}")
+        if not self._is_ip_or_hostname("host", value):
+            raise ValueError(f"host must be an IP or hostname, but is {value}")
         self._host = value
 
     @property
@@ -84,9 +88,11 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @password.setter
     def password(self, value: str) -> None:
         """The file that contains the password for the database."""
-        self._is_filename("password", value)
+        if not self._is_filename("password", value):
+            raise ValueError(f"password must be a filename, but is {value}")
         value = expanduser(normpath(value))
-        self._is_accessible("password", value)
+        if not self._is_accessible("password", value):
+            raise ValueError(f"password file is not accessible: {value}")
         self._password = value
 
     @property
@@ -97,8 +103,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @port.setter
     def port(self, value: int) -> None:
         """The port of the database."""
-        self._is_int("port", value)
-        self._in_range("port", value, 1024, 65535)
+        if not self._is_int("port", value):
+            raise ValueError(f"port must be an int, but is {type(value)}")
+        if not self._in_range("port", value, 1024, 65535):
+            raise ValueError(f"port must be between 1024 and 65535, but is {value}")
         self._port = value
 
     @property
@@ -109,8 +117,12 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @maintenance_db.setter
     def maintenance_db(self, value: str) -> None:
         """The maintenance database."""
-        self._is_string("maintenance_db", value)
-        self._is_regex("maintenance_db", value, self._dbname_regex)
+        if not self._is_string("maintenance_db", value):
+            raise ValueError(f"maintenance_db must be a string, but is {type(value)}")
+        if not self._is_regex("maintenance_db", value, self._dbname_regex):
+            raise ValueError(
+                f"maintenance_db must match regex {self._dbname_regex_str}, but is {value}"
+            )
         self._maintenance_db = value
 
     @property
@@ -121,8 +133,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @retries.setter
     def retries(self, value: int) -> None:
         """The number of retries."""
-        self._is_int("retries", value)
-        self._in_range("retries", value, 1, 10)
+        if not self._is_int("retries", value):
+            raise ValueError(f"retries must be an int, but is {type(value)}")
+        if not self._in_range("retries", value, 1, 10):
+            raise ValueError(f"retries must be between 1 and 10, but is {value}")
         self._retries = value
 
     def to_json(self) -> dict:
@@ -146,8 +160,10 @@ class DatabaseConfig(Validator, DictTypeAccessor):
     @user.setter
     def user(self, value: str) -> None:
         """The user for the database."""
-        self._is_string("user", value)
-        self._is_regex("user", value, self._user_regex)
+        if not self._is_string("user", value):
+            raise ValueError(f"user must be a string, but is {type(value)}")
+        if not self._is_regex("user", value, self._user_regex):
+            raise ValueError(f"user must match regex {self._user_regex}, but is {value}")
         self._user = value
 
 
@@ -257,9 +273,12 @@ class ColumnSchema(Validator, DictTypeAccessor):
     @db_type.setter
     def db_type(self, value: str) -> None:
         """The Postgresql type expression."""
-        self._is_not_none("db_type", value)
-        self._is_printable_string("db_type", value)
-        self._is_length("db_type", value, 1, 64)
+        if not self._is_not_none("db_type", value):
+            raise ValueError("db_type cannot be None")
+        if not self._is_printable_string("db_type", value):
+            raise ValueError(f"db_type must be a printable string, but is {value}")
+        if not self._is_length("db_type", value, 1, 64):
+            raise ValueError(f"db_type length must be between 1 and 64, but is {len(value)}")
         self._db_type = value
 
     @property
@@ -270,7 +289,8 @@ class ColumnSchema(Validator, DictTypeAccessor):
     @volatile.setter
     def volatile(self, value: bool) -> None:
         """Application hint that the column may be updated after initialisation when True."""
-        self._is_bool("volatile", value)
+        if not self._is_bool("volatile", value):
+            raise ValueError(f"volatile must be a bool, but is {type(value)}")
         self._volatile = value
 
     @property
@@ -282,8 +302,10 @@ class ColumnSchema(Validator, DictTypeAccessor):
     def default(self, value: str | None) -> None:
         """Default value of the column specified as an SQL string after 'DEFAULT '."""
         if value is not None:
-            self._is_string("default", value)
-            self._is_length("default", value, 1, 64)
+            if not self._is_string("default", value):
+                raise ValueError(f"default must be a string, but is {type(value)}")
+            if not self._is_length("default", value, 1, 64):
+                raise ValueError(f"default length must be between 1 and 64, but is {len(value)}")
         self._default = value
 
     @property
@@ -295,8 +317,12 @@ class ColumnSchema(Validator, DictTypeAccessor):
     def description(self, value: str | None) -> None:
         """Description of the table."""
         if value is not None:
-            self._is_printable_string("description", value)
-            self._is_length("description", value, 1, 256)
+            if not self._is_printable_string("description", value):
+                raise ValueError(f"description must be a printable string, but is {value}")
+            if not self._is_length("description", value, 1, 256):
+                raise ValueError(
+                    f"description length must be between 1 and 256, but is {len(value)}"
+                )
         self._description = value
 
     @property
@@ -307,7 +333,8 @@ class ColumnSchema(Validator, DictTypeAccessor):
     @nullable.setter
     def nullable(self, value: bool) -> None:
         """If True the column can contain NULL values."""
-        self._is_bool("nullable", value)
+        if not self._is_bool("nullable", value):
+            raise ValueError(f"nullable must be a bool, but is {type(value)}")
         self._nullable = value
 
     @property
@@ -318,7 +345,8 @@ class ColumnSchema(Validator, DictTypeAccessor):
     @primary_key.setter
     def primary_key(self, value: bool) -> None:
         """Column is the primary key and automatically indexed if True."""
-        self._is_bool("primary_key", value)
+        if not self._is_bool("primary_key", value):
+            raise ValueError(f"primary_key must be a bool, but is {type(value)}")
         self._primary_key = value
 
     @property
@@ -330,7 +358,10 @@ class ColumnSchema(Validator, DictTypeAccessor):
     def index(self, value: str | None) -> None:
         """Column is indexed with the selected algorithm."""
         if value is not None:
-            self._is_one_of("index", value, ("btree", "hash", "gist", "gin"))
+            if not self._is_one_of("index", value, ("btree", "hash", "gist", "gin")):
+                raise ValueError(
+                    f"index must be one of ('btree', 'hash', 'gist', 'gin'), but is {value}"
+                )
         self._index = value
 
     @property
@@ -341,7 +372,8 @@ class ColumnSchema(Validator, DictTypeAccessor):
     @unique.setter
     def unique(self, value: bool) -> None:
         """Entries in the column are unique and automatically indexed if True."""
-        self._is_bool("unique", value)
+        if not self._is_bool("unique", value):
+            raise ValueError(f"unique must be a bool, but is {type(value)}")
         self._unique = value
 
     @property
@@ -352,7 +384,8 @@ class ColumnSchema(Validator, DictTypeAccessor):
     @alignment.setter
     def alignment(self, value: int) -> None:
         """Set the alignment."""
-        self._is_int("alignment", value)
+        if not self._is_int("alignment", value):
+            raise ValueError(f"alignment must be an int, but is {type(value)}")
         self._alignment = value
 
 
@@ -482,7 +515,8 @@ class TableConfig(Validator, DictTypeAccessor):
         """Normalized DB configuration."""
         if isinstance(value, dict):
             value = DatabaseConfig(**value)
-        self._is_instance("database", value, DatabaseConfig)
+        if not self._is_instance("database", value, DatabaseConfig):
+            raise ValueError(f"database must be a DatabaseConfig, but is {type(value)}")
         self._database = value
 
     @property
@@ -493,8 +527,10 @@ class TableConfig(Validator, DictTypeAccessor):
     @table.setter
     def table(self, value: str) -> None:
         """The table name."""
-        self._is_printable_string("table", value)
-        self._is_length("table", value, 1, 64)
+        if not self._is_printable_string("table", value):
+            raise ValueError(f"table must be a printable string, but is {value}")
+        if not self._is_length("table", value, 1, 64):
+            raise ValueError(f"table length must be between 1 and 64, but is {len(value)}")
         self._table = value
 
     @property
@@ -505,7 +541,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @schema.setter
     def schema(self, value: TableSchema | dict[str, dict[str, Any]]) -> None:
         """Table schema."""
-        self._is_dict("schema", value)
+        if not self._is_dict("schema", value):
+            raise ValueError(f"schema must be a dict, but is {type(value)}")
         _value: TableSchema = {}
         for k, v in value.items():
             _value[k] = ColumnSchema(**v) if isinstance(v, dict) else v
@@ -519,12 +556,17 @@ class TableConfig(Validator, DictTypeAccessor):
     @ptr_map.setter
     def ptr_map(self, value: PtrMap) -> None:
         """Pointer map."""
-        self._is_dict("ptr_map", value)
+        if not self._is_dict("ptr_map", value):
+            raise ValueError(f"ptr_map must be a dict, but is {type(value)}")
         for k, v in value.items():
-            self._is_printable_string("ptr_map", k)
-            self._is_printable_string("ptr_map", v)
-            self._is_length("ptr_map", k, 1, 64)
-            self._is_length("ptr_map", v, 1, 64)
+            if not self._is_printable_string("ptr_map", k):
+                raise ValueError(f"ptr_map key must be a printable string, but is {k}")
+            if not self._is_printable_string("ptr_map", v):
+                raise ValueError(f"ptr_map value must be a printable string, but is {v}")
+            if not self._is_length("ptr_map", k, 1, 64):
+                raise ValueError(f"ptr_map key length must be between 1 and 64, but is {len(k)}")
+            if not self._is_length("ptr_map", v, 1, 64):
+                raise ValueError(f"ptr_map value length must be between 1 and 64, but is {len(v)}")
         self._ptr_map = value
 
     @property
@@ -535,8 +577,12 @@ class TableConfig(Validator, DictTypeAccessor):
     @data_file_folder.setter
     def data_file_folder(self, value: str) -> None:
         """The data file folder."""
-        self._is_path("data_file_folder", value)
-        self._is_length("data_file_folder", value, 0, 1024)
+        if not self._is_path("data_file_folder", value):
+            raise ValueError(f"data_file_folder must be a path, but is {value}")
+        if not self._is_length("data_file_folder", value, 0, 1024):
+            raise ValueError(
+                f"data_file_folder length must be between 0 and 1024, but is {len(value)}"
+            )
         self._data_file_folder = expanduser(normpath(value))
 
     @property
@@ -547,9 +593,11 @@ class TableConfig(Validator, DictTypeAccessor):
     @data_files.setter
     def data_files(self, value: list[str]) -> None:
         """The data files."""
-        self._is_list("data_files", value)
+        if not self._is_list("data_files", value):
+            raise ValueError(f"data_files must be a list, but is {type(value)}")
         for v in value:
-            self._is_filename("data_files", v)
+            if not self._is_filename("data_files", v):
+                raise ValueError(f"data_files value must be a filename, but is {v}")
         self._data_files = value
 
     @property
@@ -560,7 +608,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @delete_db.setter
     def delete_db(self, value: bool) -> None:
         """Delete the database."""
-        self._is_bool("delete_db", value)
+        if not self._is_bool("delete_db", value):
+            raise ValueError(f"delete_db must be a bool, but is {type(value)}")
         self._delete_db = value
 
     @property
@@ -571,7 +620,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @delete_table.setter
     def delete_table(self, value: bool) -> None:
         """Delete the table."""
-        self._is_bool("delete_table", value)
+        if not self._is_bool("delete_table", value):
+            raise ValueError(f"delete_table must be a bool, but is {type(value)}")
         self._delete_table = value
 
     @property
@@ -582,7 +632,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @create_db.setter
     def create_db(self, value: bool) -> None:
         """Create the database."""
-        self._is_bool("create_db", value)
+        if not self._is_bool("create_db", value):
+            raise ValueError(f"create_db must be a bool, but is {type(value)}")
         self._create_db = value
 
     @property
@@ -593,7 +644,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @create_table.setter
     def create_table(self, value: bool) -> None:
         """Create the table."""
-        self._is_bool("create_table", value)
+        if not self._is_bool("create_table", value):
+            raise ValueError(f"create_table must be a bool, but is {type(value)}")
         self._create_table = value
 
     @property
@@ -604,7 +656,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @wait_for_db.setter
     def wait_for_db(self, value: bool) -> None:
         """Wait for the database."""
-        self._is_bool("wait_for_db", value)
+        if not self._is_bool("wait_for_db", value):
+            raise ValueError(f"wait_for_db must be a bool, but is {type(value)}")
         self._wait_for_db = value
 
     @property
@@ -615,7 +668,8 @@ class TableConfig(Validator, DictTypeAccessor):
     @wait_for_table.setter
     def wait_for_table(self, value: bool) -> None:
         """Wait for the table."""
-        self._is_bool("wait_for_table", value)
+        if not self._is_bool("wait_for_table", value):
+            raise ValueError(f"wait_for_table must be a bool, but is {type(value)}")
         self._wait_for_table = value
 
     @property
