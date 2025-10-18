@@ -9,6 +9,7 @@ genetic code object avoiding all the derived data.
 from datetime import UTC, datetime
 from typing import Any
 
+from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import PropertiesBD
@@ -38,6 +39,7 @@ class EGCMixin(GCMixin):
             RuntimeError: If the genetic code object is inconsistent.
         """
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
+        assert isinstance(self, CommonObj), "EGC must be a CommonObj."
 
         # Only codons can have GCA, PGC or Ancestor A NULL. Then all must be NULL.
         if (
@@ -61,12 +63,17 @@ class EGCMixin(GCMixin):
                     f"ancestora = {self['ancestora']}\n"
                     f"ancestorb = {self['ancestorb']}\n",
                 )
-                assert False, "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL."
+                self.raise_re(
+                    False, "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL."
+                )
 
         # Run members consistency if they have it.
         for key in (k for k in self if not isinstance(self[k], GCABC)):
             if getattr(self[key], "consistency", None) is not None:
                 self[key].consistency()
+
+        # Call base class consistency at the end
+        super().consistency()
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
@@ -74,7 +81,8 @@ class EGCMixin(GCMixin):
         Args:
             gcabc: The genetic code object or dictionary to set the attributes.
         """
-        assert isinstance(self, GCABC), "EGC must be a GCABC object."
+        if not isinstance(self, GCABC):
+            raise ValueError("EGC must be a GCABC object.")
 
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
@@ -125,25 +133,30 @@ class EGCMixin(GCMixin):
     def verify(self) -> None:
         """Verify the genetic code object."""
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
-        assert isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
-        assert isinstance(self["gca"], bytes), "gca must be a bytes object"
-        assert len(self["gca"]) == 32, "gca must be 32 bytes"
-        assert isinstance(self["gcb"], bytes), "gcb must be a bytes object"
-        assert len(self["gcb"]) == 32, "gcb must be 32 bytes"
-        assert isinstance(self["ancestora"], bytes), "ancestora must be a bytes object"
-        assert len(self["ancestora"]) == 32, "ancestora must be 32 bytes"
-        assert isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object"
+        assert isinstance(self, CommonObj), "GGC must be a CommonObj."
+
+        self.raise_ve(isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object")
+        self.raise_ve(isinstance(self["gca"], bytes), "gca must be a bytes object")
+        self.raise_ve(len(self["gca"]) == 32, "gca must be 32 bytes")
+        self.raise_ve(isinstance(self["gcb"], bytes), "gcb must be a bytes object")
+        self.raise_ve(len(self["gcb"]) == 32, "gcb must be 32 bytes")
+        self.raise_ve(isinstance(self["ancestora"], bytes), "ancestora must be a bytes object")
+        self.raise_ve(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
+        self.raise_ve(isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object")
         if isinstance(self["ancestorb"], bytes):
-            assert len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes"
-        assert isinstance(self["pgc"], bytes), "pgc must be a bytes object"
-        assert len(self["pgc"]) == 32, "pgc must be 32 bytes"
-        assert isinstance(self["signature"], bytes), "signature must be a bytes object"
-        assert len(self["signature"]) == 32, "signature must be 32 bytes"
+            self.raise_ve(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
+        self.raise_ve(isinstance(self["pgc"], bytes), "pgc must be a bytes object")
+        self.raise_ve(len(self["pgc"]) == 32, "pgc must be 32 bytes")
+        self.raise_ve(isinstance(self["signature"], bytes), "signature must be a bytes object")
+        self.raise_ve(len(self["signature"]) == 32, "signature must be 32 bytes")
         for key in self:
-            assert key in self.GC_KEY_TYPES, f"Invalid key: {key}"
+            self.raise_ve(key in self.GC_KEY_TYPES, f"Invalid key: {key}")
             # Recursively calling verify on GCABC's can take a long time.
             if getattr(self[key], "verify", None) is not None and not isinstance(self[key], GCABC):
                 self[key].verify()
+
+        # Call base class verify at the end
+        super().verify()
 
 
 class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore

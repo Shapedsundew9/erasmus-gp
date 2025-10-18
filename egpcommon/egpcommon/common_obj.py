@@ -20,6 +20,34 @@ class CommonObj:
 
     __slots__ = tuple()
 
+    @staticmethod
+    def raise_ve(condition: bool, message: str) -> None:
+        """Helper method to verify a condition and raise ValueError if false.
+
+        Args:
+            condition: The condition to verify.
+            message: The error message to include in the ValueError if condition is False.
+
+        Raises:
+            ValueError: If condition is False.
+        """
+        if not condition:
+            raise ValueError(message)
+
+    @staticmethod
+    def raise_re(condition: bool, message: str) -> None:
+        """Helper method to check consistency and raise RuntimeError if false.
+
+        Args:
+            condition: The condition to check.
+            message: The error message to include in the RuntimeError if condition is False.
+
+        Raises:
+            RuntimeError: If condition is False.
+        """
+        if not condition:
+            raise RuntimeError(message)
+
     def consistency(self):
         """Check the consistency of the CommonObj.
 

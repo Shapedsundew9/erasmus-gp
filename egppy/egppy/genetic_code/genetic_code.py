@@ -10,6 +10,7 @@ from typing import Any, Callable, Iterator
 from uuid import UUID
 
 from egpcommon.common import NULL_SHA256
+from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type, types_def_store
@@ -198,7 +199,7 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.set_members must be overridden")
 
 
-class GCMixin:
+class GCMixin(CommonObj):
     """Genetic Code Mixin Class."""
 
     def __eq__(self, other: object) -> bool:
