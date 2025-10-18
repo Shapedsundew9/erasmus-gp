@@ -11,7 +11,7 @@ from typing import Any, Final, Generator, Iterable, Iterator
 from bitdict import BitDictABC, bitdict_factory
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_dict import ObjectDict
 from egpcommon.validator import Validator
@@ -23,9 +23,6 @@ from egppy.local_db_config import LOCAL_DB_CONFIG
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # SQL

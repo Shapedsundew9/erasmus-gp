@@ -10,7 +10,7 @@ from itertools import chain, count
 from typing import Any
 
 from egpcommon.common import NULL_STR
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
@@ -28,9 +28,6 @@ from egppy.worker.executor.gc_node import NULL_GC_NODE, GCNode, GCNodeCodeIterab
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 enable_debug_logging()
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Constants
@@ -498,9 +495,9 @@ class ExecutionContext:
         code = self.function_def(node)
 
         # Debugging
-        if _LOG_DEBUG:
-            _logger.debug("Function:\n%s", node.function_info.name())
-            _logger.debug("Code:\n%s", code)
+        if _logger.isEnabledFor(DEBUG):
+            _logger.log(DEBUG, "Function:\n%s", node.function_info.name())
+            _logger.log(DEBUG, "Code:\n%s", code)
 
         # Add to the execution context
         self.define(code)

@@ -1,14 +1,11 @@
 """Bit dict definition for an EGP type."""
 
 from typing import Any
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 
+from egpcommon.egp_log import Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
@@ -42,5 +39,5 @@ TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
         "width": 16,
         "default": 0,
         "description": "Single concrete type XUID.",
-    }
+    },
 }

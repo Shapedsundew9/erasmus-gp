@@ -3,15 +3,11 @@
 from random import random
 from typing import Any, Callable, Generator
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.egp_log import Logger, egp_logger
 from egpdb.configuration import DatabaseConfig
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 def backoff_generator(

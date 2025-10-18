@@ -9,7 +9,7 @@ genetic code object avoiding all the derived data.
 from datetime import UTC, datetime
 from typing import Any
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
@@ -20,9 +20,6 @@ from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class EGCMixin(GCMixin):

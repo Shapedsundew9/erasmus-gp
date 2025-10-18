@@ -7,7 +7,7 @@ from re import sub
 from typing import Any
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, merge
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
 from egpcommon.spinner import Spinner
@@ -16,9 +16,6 @@ from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
 # Standard EGP logging pattern
 enable_debug_logging()
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 OUTPUT_CODON_PATH = ("..", "..", "egppy", "egppy", "data", "codons.json")

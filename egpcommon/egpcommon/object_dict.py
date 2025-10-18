@@ -10,14 +10,10 @@ from typing import Any, Iterator
 from weakref import WeakValueDictionary
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class ObjectDict(Collection, CommonObj):
@@ -69,8 +65,7 @@ class ObjectDict(Collection, CommonObj):
         self._objects.clear()
         self._dupes = 0
         self._added = 0
-        if _LOG_DEBUG:
-            _logger.debug("Object %s '%s' cleared.", self.__class__, self.name)
+        _logger.log(DEBUG, "Object %s '%s' cleared.", self.__class__, self.name)
 
     def info(self) -> str:
         """Print information about the object dict."""

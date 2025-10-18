@@ -4,16 +4,13 @@ from enum import StrEnum
 from typing import Any, cast
 
 from egpcommon.common import DictTypeAccessor
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import VERIFY, Logger, egp_logger
 from egpcommon.security import dump_signed_json, load_signed_json
 from egpcommon.validator import Validator
 from egpdb.configuration import DatabaseConfig
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class TableTypes(StrEnum):

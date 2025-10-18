@@ -12,7 +12,7 @@ from typing import Any
 from uuid import UUID
 
 from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE, sha256_signature
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.egc_class_factory import EGCMixin
@@ -22,9 +22,6 @@ from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # pylint: disable=abstract-method
@@ -199,7 +196,7 @@ class GGCMixin(EGCMixin):
                 int(self["created"].timestamp()),
                 self["creator"].bytes,
             )
-        if _LOG_DEBUG:
+        if _logger.isEnabledFor(DEBUG):
             self.verify()
 
     def verify(self) -> bool:

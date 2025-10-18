@@ -11,14 +11,11 @@ from typing import Any, Self
 from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_set import ObjectSet
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Define tuples of known types for efficient checking.

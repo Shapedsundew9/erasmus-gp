@@ -9,7 +9,7 @@ from typing import Any, Generator, Iterable, Literal
 
 from psycopg2 import ProgrammingError, errors, sql
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.text_token import TextToken, register_token_code
 from egpdb.common import backoff_generator
 from egpdb.configuration import ColumnSchema, TableConfig
@@ -18,9 +18,6 @@ from egpdb.row_iterators import RawCType
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 register_token_code("I05000", "SQL: {sql}")
@@ -267,8 +264,7 @@ class RawTable:
 
     def _db_transaction(self, sql_str, read=True, ctype="tuple"):
         """Wrap db_transaction."""
-        if _LOG_DEBUG:
-            _logger.debug(self._sql_to_string(sql_str))
+        _logger.log(DEBUG, "SQL: %s", self._sql_to_string(sql_str))
         return db_transaction(
             self.config["database"]["dbname"],
             self.config["database"],

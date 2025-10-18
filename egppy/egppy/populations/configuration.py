@@ -6,7 +6,7 @@ from typing import Any, Callable, Sequence
 from uuid import UUID
 
 from egpcommon.common import DictTypeAccessor
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.validator import Validator
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.end_point import EndPoint
@@ -14,9 +14,6 @@ from egppy.genetic_code.interface import Interface, TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Locally uniquie population id generator

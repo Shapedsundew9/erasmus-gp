@@ -10,7 +10,7 @@ from typing import Any, Callable, Iterator
 from uuid import UUID
 
 from egpcommon.common import NULL_SHA256
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type, types_def_store
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
@@ -18,9 +18,6 @@ from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # GC signature None type management
@@ -368,7 +365,7 @@ class GCMixin:
                 retval[key] = str(value)
             else:
                 retval[key] = value
-                if _LOG_DEBUG:
+                if _logger.isEnabledFor(DEBUG):
                     assert isinstance(
                         value, (int, str, float, list, dict, tuple)
                     ), f"Invalid type: {type(value)}"

@@ -6,9 +6,9 @@ from threading import get_ident
 from unittest import TestCase
 from unittest.mock import patch
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
 from psycopg2 import OperationalError, ProgrammingError, errors
 
+from egpcommon.egp_log import Logger, egp_logger
 from egpdb import database
 from egpdb.common import backoff_generator
 from egpdb.database import (
@@ -26,9 +26,6 @@ from egpdb.database import (
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 _MOCK_CONFIG = {

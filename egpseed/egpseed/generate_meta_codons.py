@@ -5,7 +5,7 @@ from os.path import dirname, join
 from typing import Any
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json
 from egpcommon.spinner import Spinner
@@ -15,9 +15,6 @@ from egppy.genetic_code.types_def import types_def_store
 # Standard EGP logging pattern
 enable_debug_logging()
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # Constants
 OUTPUT_CODON_PATH = join(
@@ -95,8 +92,7 @@ def generate_meta_codons(write: bool = False) -> None:
     Arguments:
         write: If True, write the meta codons to a JSON file.
     """
-    if _LOG_DEBUG:
-        _logger.debug("Generating meta codons...")
+    _logger.log(DEBUG, "Generating meta codons...")
 
     # Find the set of type "casts". Types may be cast in two ways:
     #   - To an ancestor (parent, grandparent ... 'object' at the root)
@@ -158,8 +154,7 @@ def generate_meta_codons(write: bool = False) -> None:
     if write:
         dump_signed_json(list(meta_codons.values()), OUTPUT_CODON_PATH)
 
-    if _LOG_DEBUG:
-        _logger.debug("Meta codons generated successfully.")
+    _logger.log(DEBUG, "Meta codons generated successfully.")
 
 
 if __name__ == "__main__":
