@@ -149,8 +149,6 @@ class Validator:
         if not self._is_length(attr, value, 1, 256):
             return False
         if not self._is_regex(attr, value, self._illegal_filename_regex):
-            pass
-        else:
             if _logger.isEnabledFor(VERIFY):
                 _logger.log(
                     VERIFY,
