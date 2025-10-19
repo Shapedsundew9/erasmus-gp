@@ -318,3 +318,63 @@ class TestSecurity(TestCase):  # pylint: disable=too-many-instance-attributes
         # Verify signature is valid
         result = verify_file_signature(filepath, self.ed25519_public_pem)
         self.assertTrue(result)
+
+    def test_metadata_tampering_detection(self) -> None:
+        """Test that tampering with metadata (creator_uuid or algorithm) is detected."""
+        # Create and sign test file
+        filepath = self._create_test_file("Test content for metadata tampering")
+        sig_filepath = sign_file(
+            filepath, self.ed25519_private_pem, self.creator_uuid, algorithm="Ed25519"
+        )
+
+        # Load signature file
+        with open(sig_filepath, "r", encoding="utf-8") as f:
+            sig_data = json.load(f)
+
+        # Tamper with creator_uuid
+        original_uuid = sig_data["creator_uuid"]
+        sig_data["creator_uuid"] = str(uuid4())
+        with open(sig_filepath, "w", encoding="utf-8") as f:
+            json.dump(sig_data, f)
+
+        # Verify should fail due to signature not covering tampered metadata
+        with self.assertRaises(InvalidSignatureError):
+            verify_file_signature(filepath, self.ed25519_public_pem, sig_filepath)
+
+        # Restore and tamper with file_hash (but keep file unchanged)
+        sign_file(filepath, self.ed25519_private_pem, self.creator_uuid, algorithm="Ed25519")
+        with open(sig_filepath, "r", encoding="utf-8") as f:
+            sig_data = json.load(f)
+
+        # Tamper with the hash directly
+        sig_data["file_hash"] = "0" * 64  # Invalid hash
+        with open(sig_filepath, "w", encoding="utf-8") as f:
+            json.dump(sig_data, f)
+
+        # Should fail with hash mismatch first
+        with self.assertRaises(HashMismatchError):
+            verify_file_signature(filepath, self.ed25519_public_pem, sig_filepath)
+
+    def test_invalid_base64_signature(self) -> None:
+        """Test that invalid base64 in signature is properly rejected."""
+        # Create and sign test file
+        filepath = self._create_test_file("Test content")
+        sig_filepath = sign_file(
+            filepath, self.ed25519_private_pem, self.creator_uuid, algorithm="Ed25519"
+        )
+
+        # Load and corrupt signature with invalid base64
+        with open(sig_filepath, "r", encoding="utf-8") as f:
+            sig_data = json.load(f)
+
+        # Add invalid characters to base64
+        sig_data["signature"] = "not!valid@base64#"
+
+        with open(sig_filepath, "w", encoding="utf-8") as f:
+            json.dump(sig_data, f)
+
+        # Verify should fail with ValueError mentioning base64
+        with self.assertRaises(ValueError) as context:
+            verify_file_signature(filepath, self.ed25519_public_pem, sig_filepath)
+
+        self.assertIn("base64", str(context.exception).lower())

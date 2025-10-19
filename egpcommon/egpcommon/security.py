@@ -1,6 +1,7 @@
 """Security functions for EGPPY."""
 
 import base64
+import binascii
 import hashlib
 import json
 import os
@@ -36,6 +37,25 @@ class HashMismatchError(Exception):
 JSON_FILESIZE_LIMIT = 2**30  # 1 GB
 
 
+def _create_signature_payload(file_hash: str, creator_uuid: str, algorithm: str) -> str:
+    """Create a canonical payload for signing that includes critical metadata.
+
+    This ensures that the signature covers not just the file hash, but also
+    the creator UUID and algorithm, preventing tampering with these fields.
+
+    Args:
+        file_hash: SHA-256 hash of the file.
+        creator_uuid: UUID of the creator as a string.
+        algorithm: Signature algorithm used.
+
+    Returns:
+        Canonical JSON string with sorted keys and compact separators.
+    """
+    payload = {"file_hash": file_hash, "creator_uuid": creator_uuid, "algorithm": algorithm}
+    # Use sorted keys and compact separators for canonical representation
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
 def _compute_file_hash(filepath: str) -> str:
     """Compute the SHA-256 hash of a file.
 
@@ -61,6 +81,9 @@ def sign_file(
 ) -> str:
     """Sign a file using its SHA-256 hash and create a detached signature file.
 
+    The signature covers the file hash, creator UUID, and algorithm to prevent
+    tampering with these critical metadata fields.
+
     Args:
         filepath: Path to the file to sign.
         private_key_pem: Private key in PEM format.
@@ -80,6 +103,10 @@ def sign_file(
     # Compute the SHA-256 hash of the file
     file_hash = _compute_file_hash(filepath)
 
+    # Create canonical payload that includes critical metadata
+    creator_uuid_str = str(creator_uuid)
+    payload = _create_signature_payload(file_hash, creator_uuid_str, algorithm)
+
     # Load the private key
     private_key_bytes = private_key_pem.encode("utf-8")
 
@@ -91,8 +118,8 @@ def sign_file(
         except Exception as e:
             raise ValueError(f"Failed to load Ed25519 private key: {e}") from e
 
-        # Sign the hash
-        signature_bytes = private_key.sign(file_hash.encode("utf-8"))
+        # Sign the canonical payload
+        signature_bytes = private_key.sign(payload.encode("utf-8"))
 
     elif algorithm == "RSA":
         try:
@@ -102,9 +129,9 @@ def sign_file(
         except Exception as e:
             raise ValueError(f"Failed to load RSA private key: {e}") from e
 
-        # Sign the hash using RSA with PSS padding
+        # Sign the canonical payload using RSA with PSS padding
         signature_bytes = private_key.sign(
-            file_hash.encode("utf-8"),
+            payload.encode("utf-8"),
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
                 salt_length=padding.PSS.MAX_LENGTH,
@@ -119,7 +146,7 @@ def sign_file(
 
     # Create signature metadata
     sig_data: dict[str, Any] = {
-        "creator_uuid": str(creator_uuid),
+        "creator_uuid": creator_uuid_str,
         "file_hash": file_hash,
         "signature": signature_b64,
         "algorithm": algorithm,
@@ -134,12 +161,15 @@ def sign_file(
     return sig_filepath
 
 
-def verify_file_signature(  # pylint: disable=too-many-branches
+def verify_file_signature(  # pylint: disable=too-many-branches,too-many-locals
     filepath: str,
     public_key_pem: str,
     sig_filepath: str | None = None,
 ) -> bool:
     """Verify a file's signature using a detached signature file.
+
+    The verification checks both the file integrity and that the signature
+    covers the file hash, creator UUID, and algorithm to prevent tampering.
 
     Args:
         filepath: Path to the file to verify.
@@ -177,6 +207,7 @@ def verify_file_signature(  # pylint: disable=too-many-branches
     stored_hash = sig_data["file_hash"]
     signature_b64 = sig_data["signature"]
     algorithm = sig_data["algorithm"]
+    creator_uuid_str = sig_data["creator_uuid"]
 
     # Compute current file hash
     current_hash = _compute_file_hash(filepath)
@@ -185,11 +216,14 @@ def verify_file_signature(  # pylint: disable=too-many-branches
     if current_hash != stored_hash:
         raise HashMismatchError(f"File hash mismatch. Expected: {stored_hash}, Got: {current_hash}")
 
-    # Decode signature
+    # Create the same canonical payload that was signed
+    payload = _create_signature_payload(stored_hash, creator_uuid_str, algorithm)
+
+    # Decode signature with strict validation
     try:
-        signature_bytes = base64.b64decode(signature_b64)
-    except Exception as e:
-        raise ValueError(f"Failed to decode signature: {e}") from e
+        signature_bytes = base64.b64decode(signature_b64, validate=True)
+    except binascii.Error as e:
+        raise ValueError("Failed to decode signature: invalid base64 encoding") from e
 
     # Load public key and verify signature
     public_key_bytes = public_key_pem.encode("utf-8")
@@ -203,7 +237,7 @@ def verify_file_signature(  # pylint: disable=too-many-branches
             raise ValueError(f"Failed to load Ed25519 public key: {e}") from e
 
         try:
-            public_key.verify(signature_bytes, stored_hash.encode("utf-8"))
+            public_key.verify(signature_bytes, payload.encode("utf-8"))
         except CryptographyInvalidSignature as e:
             raise InvalidSignatureError("Signature verification failed") from e
 
@@ -218,7 +252,7 @@ def verify_file_signature(  # pylint: disable=too-many-branches
         try:
             public_key.verify(
                 signature_bytes,
-                stored_hash.encode("utf-8"),
+                payload.encode("utf-8"),
                 padding.PSS(
                     mgf=padding.MGF1(hashes.SHA256()),
                     salt_length=padding.PSS.MAX_LENGTH,
@@ -226,7 +260,9 @@ def verify_file_signature(  # pylint: disable=too-many-branches
                 hashes.SHA256(),
             )
         except CryptographyInvalidSignature as e:
-            raise InvalidSignatureError(f"Signature verification failed (algorithm: {algorithm})") from e
+            raise InvalidSignatureError(
+                f"Signature verification failed (algorithm: {algorithm})"
+            ) from e
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
