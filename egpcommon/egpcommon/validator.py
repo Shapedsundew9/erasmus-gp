@@ -191,7 +191,7 @@ class Validator:
         """Check if the value is a historical datetime."""
         if not self._is_datetime(attr, value):
             return False
-        result = value >= EGP_EPOCH and value <= datetime.now(UTC)
+        result = EGP_EPOCH <= value <= datetime.now(UTC)
         if not result:
             _logger.log(
                 VERIFY, "%s must be a post-EGP epoch historical datetime but is %s", attr, value
