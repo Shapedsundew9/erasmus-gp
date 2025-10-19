@@ -67,7 +67,7 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
         self.raise_ve(
             self._is_sequence("aip", value), f"aip must be a sequence, but is {type(value)}"
         )
-        self.raise_ve(bool(value), "The aip must have at least one element.")
+        self.raise_ve(len(value) > 0, "The aip must have at least one element.")
         self.raise_ve(
             all(isinstance(x, str) for x in value), "All elements of aip must be strings."
         )
