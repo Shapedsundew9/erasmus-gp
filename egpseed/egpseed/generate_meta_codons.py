@@ -4,7 +4,7 @@ from copy import deepcopy
 from os.path import dirname, join
 from typing import Any
 
-from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH
+from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, SHAPEDSUNDEW9_UUID
 from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json
@@ -24,7 +24,7 @@ CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
-    "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
+    "creator": SHAPEDSUNDEW9_UUID,
     "created": EGP_EPOCH.isoformat(),
     "generation": 1,
     "num_codes": 1,

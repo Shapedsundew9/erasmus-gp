@@ -35,5 +35,9 @@ mkdir -p ./egpdbmgr/egpdbmgr/data
 .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
 .venv/bin/python ./egpseed/egpseed/generate_codons.py --write
 
+# Copy public keys to the devcontainer shared folder
+echo "Copying public keys to devcontainer shared folder..."
+cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
+
 # Done
 echo "--- Post-create script finished ---"

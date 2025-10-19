@@ -6,7 +6,7 @@ from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, merge
+from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, SHAPEDSUNDEW9_UUID, merge
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_dict
@@ -24,7 +24,7 @@ CODON_TEMPLATE: dict[str, Any] = {
     "cgraph": {"A": None, "O": None, "U": []},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
-    "creator": "22c23596-df90-4b87-88a4-9409a0ea764f",
+    "creator": SHAPEDSUNDEW9_UUID,
     "created": EGP_EPOCH.isoformat(),
     "generation": 1,
     "num_codes": 1,

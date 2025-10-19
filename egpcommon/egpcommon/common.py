@@ -20,7 +20,7 @@ _logger: Logger = egp_logger(name=__name__)
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)
 ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
-
+SHAPEDSUNDEW9_UUID = UUID("22c23596-df90-4b87-88a4-9409a0ea764f")
 
 # The beginning
 # Acybergenesis: https://g.co/gemini/share/101495090943
