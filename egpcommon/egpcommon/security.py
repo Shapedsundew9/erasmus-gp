@@ -166,7 +166,7 @@ def verify_file_signature(  # pylint: disable=too-many-branches
 
     # Load signature metadata
     with open(sig_filepath, "r", encoding="utf-8") as f:
-        sig_data = json.load(f)
+        sig_data = load(f)
 
     # Validate required fields
     required_fields = ["file_hash", "signature", "algorithm", "creator_uuid"]
