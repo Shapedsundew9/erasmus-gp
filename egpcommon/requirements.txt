@@ -1,2 +1,2 @@
 numpy
-cryptography
+cryptography>=46.0.3
