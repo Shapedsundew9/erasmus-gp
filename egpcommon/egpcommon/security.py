@@ -226,7 +226,7 @@ def verify_file_signature(  # pylint: disable=too-many-branches
                 hashes.SHA256(),
             )
         except CryptographyInvalidSignature as e:
-            raise InvalidSignatureError("Signature verification failed") from e
+            raise InvalidSignatureError(f"Signature verification failed (algorithm: {algorithm})") from e
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
