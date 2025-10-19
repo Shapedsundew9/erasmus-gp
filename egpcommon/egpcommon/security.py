@@ -270,11 +270,25 @@ def verify_file_signature(  # pylint: disable=too-many-branches,too-many-locals
 
 
 def dump_signed_json(data: dict | list, fullpath: str) -> None:
-    """Dump a signed JSON file.
+    """
+    Dump a signed JSON file with canonical formatting and embedded signature.
 
-    The most compact JSON format is used to reduce file size. The assumption is that
-    the file, if viewed will be done with a JSON capable viewer.
-    Sign with this creator's UUID & signature and dump the JSON object.
+    The function serializes the provided data (dict or list) to JSON using sorted keys and compact separators
+    to ensure a canonical representation. It then generates a digital signature over the canonical JSON payload,
+    including critical metadata such as the creator UUID and signature algorithm. The resulting file includes
+    both the signed data and the signature, allowing for later verification of integrity and authenticity.
+
+    Args:
+        data: The data to serialize and sign (dict or list).
+        fullpath: The path to the output JSON file.
+
+    Raises:
+        ValueError: If the file size exceeds the JSON_FILESIZE_LIMIT.
+        InvalidSignatureError: If signing fails.
+
+    Note:
+        The implementation must ensure that the signature covers both the data and relevant metadata,
+        and that the file is written in a format suitable for later verification.
     """
     # TODO: Implementation Needed
     with open(fullpath, "w", encoding="utf-8") as f:

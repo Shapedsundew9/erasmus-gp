@@ -1,7 +1,6 @@
 """Cache Base class module."""
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cache_abc import CacheConfig
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.store_abc import StoreABC
@@ -9,9 +8,6 @@ from egppy.storage.store.store_base import StoreBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class CacheBase(StoreBase):

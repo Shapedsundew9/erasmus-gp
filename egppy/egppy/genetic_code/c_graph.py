@@ -105,7 +105,7 @@ from random import choice, shuffle
 from typing import Any, Iterable
 
 from egpcommon.common import NULL_FROZENSET
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import (
@@ -130,9 +130,6 @@ from egppy.genetic_code.types_def import types_def_store
 # and setting up boolean flags to check if certain logging levels (DEBUG, VERIFY, CONSISTENCY)
 # are enabled. This allows for conditional logging based on the configured log level.
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Constants

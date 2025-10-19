@@ -3,8 +3,7 @@
 from collections.abc import Hashable
 from typing import Any, Callable
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cache_base import CacheBase
 from egppy.storage.cache.cache_mixin import CacheMixin
@@ -12,9 +11,6 @@ from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Function to select sequence numbers for sorting

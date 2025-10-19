@@ -238,13 +238,19 @@ class TestObjectDict(unittest.TestCase):
 
     def test_verify(self):
         """Test the verify method."""
-        # CommonObj.verify() returns True, so ObjectDict.verify() should too.
+        # CommonObj.verify() raises exceptions on failure, so no exception means success.
         # It also calls info(), which is tested separately.
-        self.assertTrue(self.obj_dict.verify())
+        try:
+            self.obj_dict.verify()
+        except Exception as e:
+            self.fail(f"verify() raised an exception unexpectedly: {e}")
 
         # Add some items and verify again
         self.obj_dict.add("key1", Freezy("value1"))
-        self.assertTrue(self.obj_dict.verify())
+        try:
+            self.obj_dict.verify()
+        except Exception as e:
+            self.fail(f"verify() raised an exception unexpectedly after adding: {e}")
 
     def test_is_collection(self):
         """Test if ObjectDict instance is a Collection."""

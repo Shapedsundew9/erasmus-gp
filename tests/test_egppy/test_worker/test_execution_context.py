@@ -4,7 +4,7 @@ import unittest
 from random import getrandbits, seed
 
 from egpcommon.common import random_int_tuple_generator
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.context_writer import FWC4FILE, write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
@@ -21,9 +21,6 @@ from .xor_stack_gc import (
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 enable_debug_logging()
 
 

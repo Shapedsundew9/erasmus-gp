@@ -1,6 +1,6 @@
 """Test the Multi-level Caches."""
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.cache.cacheable_obj import CacheableDict, CacheableList
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -13,9 +13,6 @@ from tests.test_egppy.test_storage.test_cache.multilevel_cache_test_base import 
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class TestMultiLevelCache11(MultilevelCacheTestBase):

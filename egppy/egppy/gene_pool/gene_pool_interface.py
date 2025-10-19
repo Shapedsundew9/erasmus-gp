@@ -3,7 +3,7 @@
 from os.path import dirname, join
 from typing import Any
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.security import load_signed_json_list
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
@@ -15,9 +15,6 @@ from egppy.storage.store.db_table_store import DBTableStore
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class GenePoolInterface(GPIABC):
@@ -70,9 +67,9 @@ class GenePoolInterface(GPIABC):
         """
         self._ggc_cache[signature] = value
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the consistency of the Gene Pool."""
-        return True
+        pass
 
     def initial_generation_query(self, pconfig: PopulationConfig) -> list[bytes]:
         """Query the Gene Pool for the initial generation of this population."""
@@ -107,6 +104,6 @@ class GenePoolInterface(GPIABC):
         # Place holder for the actual implementation
         return None
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the Gene Pool."""
-        return True
+        pass

@@ -2,17 +2,17 @@
 
 # pylint: disable=unused-import
 # Logging levels are imported from this module in other EGP modules
+from logging import INFO  # type: ignore
 from logging import (
     CRITICAL,
     DEBUG,
     ERROR,
     FATAL,
-    INFO,  # type: ignore
     WARNING,
     Logger,
     NullHandler,
-    getLogger,
     basicConfig,
+    getLogger,
 )
 
 # Custom log levels
@@ -34,8 +34,12 @@ def egp_logger(name: str) -> Logger:
 
 def enable_debug_logging():
     """Enable debug logging."""
-    basicConfig(level=DEBUG, filename="egp.log", filemode="w",
-        format="%(asctime)s:%(filename)s:%(lineno)d:%(levelname)s:%(message)s")
+    basicConfig(
+        level=CONSISTENCY,
+        filename="egp.log",
+        filemode="w",
+        format="%(asctime)s:%(filename)s:%(lineno)d:%(levelname)s:%(message)s",
+    )
 
 
 _logger: Logger = egp_logger(name=__name__)

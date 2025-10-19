@@ -11,9 +11,8 @@ from sys import argv
 from sys import exit as sys_exit
 from uuid import UUID, uuid4
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.egp_logo import gallery, header, header_lines
-
 from egppy.populations.configuration import PopulationConfig
 from egppy.problems.genesis import EGP_PROBLEM_CONFIG
 from egppy.worker.configuration import WorkerConfig
@@ -21,9 +20,6 @@ from egppy.worker.init_generation import init_generation
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 # EGP Worker header
 # From pyfiglet: print(figlet_format("EGP Worker"))

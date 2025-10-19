@@ -6,19 +6,16 @@ used in a program."""
 import types
 from abc import ABCMeta, abstractmethod
 from collections.abc import Hashable
-from copy import copy, deepcopy
+from copy import deepcopy
 from typing import Any, Self
 from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_set import ObjectSet
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Define tuples of known types for efficient checking.
@@ -281,15 +278,6 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # Any other types of values are not processed further by this freezing logic.
         # For example, lists or dicts are not modified, nor are their contents inspected here.
 
-    def consistency(self) -> bool:
-        """
-        Check the consistency of the object.
-
-        This method checks if the object is frozen and if all its members are
-        recursively immutable. It returns True if both conditions are met, False otherwise.
-        """
-        return (self.is_frozen() and self.is_immutable()) or not self.is_frozen()
-
     def freeze(self, store: bool = True) -> Self:
         """
         Freeze the object, making it immutable.
@@ -304,7 +292,9 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         Returns:
             Self: The frozen version of this object.
         """
-        return self._freeze(store)
+        retval = self._freeze(store)
+        retval.verify()  # Verify the object after freezing to ensure consistency.
+        return retval
 
     def _freeze(
         self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None

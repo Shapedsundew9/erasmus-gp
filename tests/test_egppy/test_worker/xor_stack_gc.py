@@ -24,7 +24,7 @@ from time import time
 from typing import Any
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.egc_class_factory import EGCDict
@@ -36,9 +36,6 @@ from egppy.worker.executor.execution_context import ExecutionContext, FunctionIn
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 enable_debug_logging()
 
 
@@ -90,8 +87,11 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     egc = EGCDict(gc)
     egc.resolve_inherited_members(find_gc)
     ggc = GGCDict(egc)
-    if check and (not ggc.verify() or not ggc.consistency()):
-        raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
+    if check:
+        try:
+            ggc.verify()
+        except (ValueError, RuntimeError) as e:
+            raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.") from e
     gpi[ggc["signature"]] = ggc
     return ggc
 

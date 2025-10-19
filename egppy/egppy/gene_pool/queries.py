@@ -9,7 +9,6 @@ from egpcommon.egp_log import DEBUG, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 # Steady state exception filters.
@@ -107,9 +106,9 @@ IF_MATCH_TYPES: dict[str, str] = {
 }
 
 
-if _LOG_DEBUG:
+if _logger.isEnabledFor(DEBUG):
     for key, match_type in IF_MATCH_TYPES.items():
-        _logger.debug("Match type %s SQL: %s", key, match_type)
+        _logger.log(DEBUG, "Match type %s SQL: %s", key, match_type)
 
 
 if __name__ == "__main__":

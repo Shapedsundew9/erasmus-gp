@@ -8,17 +8,12 @@ type definitions use imports as do codons.
 from typing import Any, Sequence
 
 from egpcommon.common import DictTypeAccessor
-from egpcommon.validator import Validator
-from egpcommon.object_set import ObjectSet
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.validator import Validator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Constants
@@ -69,10 +64,13 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     @aip.setter
     def aip(self, value: Sequence[str]) -> None:
         """Set the Absolute Import Path."""
-        if _logger.isEnabledFor(level=DEBUG):
-            self._is_sequence("aip", value)
-            assert len(value) > 0, "The aip must have at least one element."
-            assert all(isinstance(x, str) for x in value), "All elements of aip must be strings."
+        self.raise_ve(
+            self._is_sequence("aip", value), f"aip must be a sequence, but is {type(value)}"
+        )
+        self.raise_ve(len(value) > 0, "The aip must have at least one element.")
+        self.raise_ve(
+            all(isinstance(x, str) for x in value), "All elements of aip must be strings."
+        )
         self._aip = tuple(value)
 
     @property

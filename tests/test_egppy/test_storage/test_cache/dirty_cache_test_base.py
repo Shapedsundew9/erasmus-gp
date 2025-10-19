@@ -3,7 +3,7 @@
 from json import load
 from os.path import dirname, join
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cache_abc import CacheABC, CacheConfig
 from egppy.storage.cache.cacheable_obj import CacheableDict
 from egppy.storage.cache.dirty_cache import DirtyDictCache
@@ -12,9 +12,6 @@ from tests.test_egppy.test_storage.store_test_base import StoreTestBase
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Number of items to put in the cache for testing

@@ -5,8 +5,7 @@ from __future__ import annotations
 import unittest
 from random import choices, sample
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
-
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj import CacheableDict
@@ -18,9 +17,6 @@ from egppy.storage.store.store_abc import StoreABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Log base 2 second level cache size

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_set import ObjectSet
 from egppy.genetic_code.c_graph_constants import (
@@ -19,9 +19,6 @@ from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # Create object sets for references and tuples of references
@@ -272,7 +269,7 @@ class EndPoint(FreezableObject):
             "refs": [list(ref) for ref in self.refs],
         }
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the integrity of the endpoint."""
         if self.idx < 0 or self.idx > 255:
             raise ValueError("Endpoint index must be between 0 and 255.")
@@ -284,7 +281,6 @@ class EndPoint(FreezableObject):
             raise ValueError("Source endpoint row must be a source row.")
         if self.row in SINGLE_ONLY_ROWS and len(self.refs) > 1:
             raise ValueError(f"Row {self.row} can only have a single reference.")
-        return True
 
 
 class SourceEndPoint(EndPoint):

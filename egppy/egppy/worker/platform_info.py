@@ -5,18 +5,16 @@ from datetime import datetime
 from hashlib import sha256
 
 from egpcommon.common import DictTypeAccessor
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.validator import Validator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
-class PlatformInfo(Validator, DictTypeAccessor):
-    """Worker plaftorm information.
+class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
+    """Worker platform information.
     i.e. details of the hardware it is running on.
 
     Must set from the JSON or internal types and validate the values.
@@ -80,8 +78,13 @@ class PlatformInfo(Validator, DictTypeAccessor):
     @machine.setter
     def machine(self, value: str) -> None:
         """The machine  type, e.g. 'i386'. An empty string if the value cannot be determined."""
-        self._is_string("machine", value)
-        self._is_length("machine", value, 0, 128)
+        self.raise_ve(
+            self._is_string("machine", value), f"machine must be a string, but is {type(value)}"
+        )
+        self.raise_ve(
+            self._is_length("machine", value, 0, 128),
+            f"machine length must be between 0 and 128, but is {len(value)}",
+        )
         self._machine = value
 
     @property
@@ -94,8 +97,10 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The SHA256 signature of the platform data."""
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self._is_sha256("signature", value)
-        assert self._generate_signature() == value, "Signature does not match the platform."
+        self.raise_ve(
+            self._is_sha256("signature", value), "signature must be a valid SHA256 digest"
+        )
+        self.raise_ve(self._generate_signature() == value, "Signature does not match the platform.")
         self._signature = value
 
     @property
@@ -108,8 +113,13 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The (real) processor name, e.g. 'amdk6'.
         An empty string if the value cannot be determined.
         """
-        self._is_string("processor", value)
-        self._is_length("processor", value, 0, 128)
+        self.raise_ve(
+            self._is_string("processor", value), f"processor must be a string, but is {type(value)}"
+        )
+        self.raise_ve(
+            self._is_length("processor", value, 0, 128),
+            f"processor length must be between 0 and 128, but is {len(value)}",
+        )
         self._processor = value
 
     @property
@@ -122,8 +132,13 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The underlying platform with as much useful information as possible.
         The output is intended to be human readable rather than machine parseable.
         """
-        self._is_string("platform", value)
-        self._is_length("platform", value, 0, 1024)
+        self.raise_ve(
+            self._is_string("platform", value), f"platform must be a string, but is {type(value)}"
+        )
+        self.raise_ve(
+            self._is_length("platform", value, 0, 1024),
+            f"platform length must be between 0 and 1024, but is {len(value)}",
+        )
         self._platform = value
 
     @property
@@ -134,8 +149,14 @@ class PlatformInfo(Validator, DictTypeAccessor):
     @python_version.setter
     def python_version(self, value: str) -> None:
         """The Python version as string 'major.minor.patchlevel'."""
-        self._is_string("python_version", value)
-        self._is_length("python_version", value, 0, 64)
+        self.raise_ve(
+            self._is_string("python_version", value),
+            f"python_version must be a string, but is {type(value)}",
+        )
+        self.raise_ve(
+            self._is_length("python_version", value, 0, 64),
+            f"python_version length must be between 0 and 64, but is {len(value)}",
+        )
         self._python_version = value
 
     @property
@@ -148,8 +169,13 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The system/OS name, such as 'Linux', 'Darwin', 'Java', 'Windows'.
         An empty string if the value cannot be determined.
         """
-        self._is_string("system", value)
-        self._is_length("system", value, 0, 64)
+        self.raise_ve(
+            self._is_string("system", value), f"system must be a string, but is {type(value)}"
+        )
+        self.raise_ve(
+            self._is_length("system", value, 0, 64),
+            f"system length must be between 0 and 64, but is {len(value)}",
+        )
         self._system = value
 
     @property
@@ -162,8 +188,13 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The system’s release, e.g. '2.2.0' or 'NT'.
         An empty string if the value cannot be determined.
         """
-        self._is_string("release", value)
-        self._is_length("release", value, 0, 64)
+        self.raise_ve(
+            self._is_string("release", value), f"release must be a string, but is {type(value)}"
+        )
+        self.raise_ve(
+            self._is_length("release", value, 0, 64),
+            f"release length must be between 0 and 64, but is {len(value)}",
+        )
         self._release = value
 
     @property
@@ -177,7 +208,9 @@ class PlatformInfo(Validator, DictTypeAccessor):
         power of the system for typical Erasmus GP tasks in units of notional operations
         per second. Bigger = faster.
         """
-        self._is_float("EGPOps", value)
+        self.raise_ve(
+            self._is_float("EGPOps", value), f"EGPOps must be a float, but is {type(value)}"
+        )
         self._egp_ops = value
 
     @property

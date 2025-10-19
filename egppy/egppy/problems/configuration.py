@@ -5,10 +5,11 @@ from re import Pattern
 from re import compile as regex_compile
 
 from egpcommon.common import EGP_EPOCH, DictTypeAccessor
+from egpcommon.common_obj import CommonObj
 from egpcommon.validator import Validator
 
 
-class ProblemConfig(Validator, DictTypeAccessor):
+class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
     """Configuration for the problem in EGP.
 
     Must set from the JSON or internal types and validate the values.
@@ -89,14 +90,16 @@ class ProblemConfig(Validator, DictTypeAccessor):
         NOTE: Older git hashes may be 160 bit SHA1. These are extended
         to 256 bit SHA256 by prefixing zeros.
         """
-        assert value is not None, "git_hash must be a bytes or string"
+        self.raise_ve(value is not None, "git_hash must be a bytes or string")
         if isinstance(value, bytes) and len(value) == 20:
             value = b"0" * 12 + value
         elif isinstance(value, str) and len(value) == 40:
             value = "0" * 24 + value
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self._is_sha256("git_hash", value)
+        self.raise_ve(
+            self._is_sha256("git_hash", value), f"git_hash must be a SHA256 hash, but is {value}"
+        )
         self._git_hash = value
 
     @property
@@ -109,7 +112,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
         """URL/git_repo.git must be a valid git repo url.
         i.e. the git repo name without the 'URL/' and '.git' parts.
         """
-        self._is_regex("git_repo", value, self.git_repo_regex)
+        self.raise_ve(
+            self._is_regex("git_repo", value, self.git_repo_regex),
+            f"git_repo must match the pattern {self.git_repo_regex_str}, but is {value}",
+        )
         self._git_repo = value
 
     @property
@@ -121,8 +127,13 @@ class ProblemConfig(Validator, DictTypeAccessor):
     def git_url(self, value: str) -> None:
         """The Git base URL *NOT* including the repo name.
         URL/git_repo.git must be a valid git repo url."""
-        self._is_url("git_url", value)
-        self._is_length("git_url", value, 0, 256)
+        self.raise_ve(
+            self._is_url("git_url", value), f"git_url must be a valid URL, but is {value}"
+        )
+        self.raise_ve(
+            self._is_length("git_url", value, 0, 256),
+            f"git_url must be between 0 and 256 characters, but is {len(value)} characters",
+        )
         self._git_url = value
 
     @property
@@ -135,7 +146,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
         """The hash of the ordered interface."""
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self._is_hash8("ordered_interface_hash", value)
+        self.raise_ve(
+            self._is_hash8("ordered_interface_hash", value),
+            f"ordered_interface_hash must be an 8-byte hash, but is {len(value) if isinstance(value, bytes) else type(value)}",
+        )
         self._ordered_interface_hash = value
 
     @property
@@ -148,7 +162,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
         """The hash of the unordered interface."""
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self._is_hash8("unordered_interface_hash", value)
+        self.raise_ve(
+            self._is_hash8("unordered_interface_hash", value),
+            f"unordered_interface_hash must be an 8-byte hash, but is {len(value) if isinstance(value, bytes) else type(value)}",
+        )
         self._unordered_interface_hash = value
 
     @property
@@ -160,8 +177,14 @@ class ProblemConfig(Validator, DictTypeAccessor):
     def description(self, value: str) -> None:
         """User defined arbitrary string. Not used by Erasmus for any
         internal processing or logic."""
-        self._is_printable_string("description", value)
-        self._is_length("description", value, 0, 1024)
+        self.raise_ve(
+            self._is_printable_string("description", value),
+            "description must be a printable string, but contains non-printable characters",
+        )
+        self.raise_ve(
+            self._is_length("description", value, 0, 1024),
+            f"description must be between 0 and 1024 characters, but is {len(value)} characters",
+        )
         self._description = value
 
     @property
@@ -172,7 +195,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
     @ff_code_file.setter
     def ff_code_file(self, value: str) -> None:
         """The name of the fitness function code file."""
-        self._is_filename("ff_code_file", value)
+        self.raise_ve(
+            self._is_filename("ff_code_file", value),
+            f"ff_code_file must be a valid filename, but is {value}",
+        )
         self._ff_code_file = value
 
     @property
@@ -185,7 +211,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
         """The last verified live timestamp."""
         if isinstance(value, str):
             value = datetime.fromisoformat(value)
-        self._is_historical_datetime("last_verified_live", value)
+        self.raise_ve(
+            self._is_historical_datetime("last_verified_live", value),
+            f"last_verified_live must be a historical datetime (not in the future), but is {value}",
+        )
         self._last_verified_live = value
 
     @property
@@ -196,7 +225,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
     @name.setter
     def name(self, value: str) -> None:
         """User defined name for the problem. This field is not utilized by the Erasmus system."""
-        self._is_printable_string("name", value)
+        self.raise_ve(
+            self._is_printable_string("name", value),
+            "name must be a printable string, but contains non-printable characters",
+        )
         self._name = value
 
     @property
@@ -207,7 +239,10 @@ class ProblemConfig(Validator, DictTypeAccessor):
     @requirements_file_name.setter
     def requirements_file_name(self, value: str) -> None:
         """The name of the requirements file."""
-        self._is_filename("requirements_file_name", value)
+        self.raise_ve(
+            self._is_filename("requirements_file_name", value),
+            f"requirements_file_name must be a valid filename, but is {value}",
+        )
         self._requirements_file_name = value
 
     @property
@@ -218,7 +253,9 @@ class ProblemConfig(Validator, DictTypeAccessor):
     @root_path.setter
     def root_path(self, value: str) -> None:
         """The root path of the problem."""
-        self._is_path("root_path", value)
+        self.raise_ve(
+            self._is_path("root_path", value), f"root_path must be a valid path, but is {value}"
+        )
         self._root_path = value
 
     def to_json(self) -> dict:

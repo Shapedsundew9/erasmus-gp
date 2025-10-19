@@ -2,53 +2,54 @@
 
 from collections.abc import Hashable
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cache_abc import CacheABC
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.store.store_abc import StoreABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class CacheMixin:
     """Cache Base class has methods generic to all cache classes."""
 
-    def consistency(self) -> bool:
+    def consistency(self) -> None:
         """Check the cache for self consistency."""
-        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
-        for value in (v for v in self.values() if getattr(v, "consistency", None) is not None):
-            value.consistency()
+        if not isinstance(self, CacheABC):
+            raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
         _super = super()
-        assert isinstance(_super, StoreABC), "CacheMixin method called on non-StoreABC object."
-        return _super.consistency()
+        if not isinstance(_super, StoreABC):
+            raise RuntimeError("CacheMixin method called on non-StoreABC object.")
+        _super.consistency()
 
     def copyback(self) -> None:
         """Copy the cache back to the next level."""
-        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
+        if not isinstance(self, CacheABC):
+            raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
         for key, value in (x for x in self.items() if x[1].is_dirty()):
             self.next_level[key] = value
             value.clean()
 
     def copythrough(self) -> None:
         """Copy all dirty items back to the store."""
-        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
+        if not isinstance(self, CacheABC):
+            raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
         self.copyback()
         if isinstance(self.next_level, CacheABC):
             self.next_level.copythrough()
 
     def flush(self) -> None:
         """Flush the cache to the next level."""
-        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
+        if not isinstance(self, CacheABC):
+            raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
         self.copyback()
         self.clear()
 
     def purge(self, num: int) -> None:
         """Purge num items from the cache."""
-        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
+        if not isinstance(self, CacheABC):
+            raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
         if num >= len(self):
             self.flush()
             return
@@ -64,21 +65,25 @@ class CacheMixin:
         assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
         length: int = len(self)
         if length >= self.max_items:
-            assert length == self.max_items, (
-                f"Cache length ({length}) is greater" f" than max_items ({self.max_items})"
-            )
+            if length != self.max_items:
+                raise RuntimeError(
+                    f"Cache length ({length}) is greater than max_items ({self.max_items})"
+                )
             self.purge(num=self.purge_count)
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the cache.
         Every object stored in the cache is verified as well as basic
         cache parameters.
         """
-        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
+        if not isinstance(self, CacheABC):
+            raise ValueError("CacheMixin consistency called on non-CacheABC object.")
         for value in (v for v in self.values() if getattr(v, "verify", None) is not None):
             value.verify()
 
-        assert len(self) <= self.max_items, "Cache size exceeds max_items."
+        if len(self) > self.max_items:
+            raise ValueError("Cache size exceeds max_items.")
         _super = super()
-        assert isinstance(_super, StoreABC), "CacheMixin method called on non-StoreABC object."
-        return _super.verify()
+        if not isinstance(_super, StoreABC):
+            raise ValueError("CacheMixin method called on non-StoreABC object.")
+        _super.verify()
