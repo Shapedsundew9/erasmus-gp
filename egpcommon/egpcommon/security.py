@@ -129,7 +129,7 @@ def sign_file(
     # Write signature to .sig file
     sig_filepath = f"{filepath}.sig"
     with open(sig_filepath, "w", encoding="utf-8") as f:
-        json.dump(sig_data, f, indent=2)
+        dump(sig_data, f, indent=2)
 
     return sig_filepath
 
