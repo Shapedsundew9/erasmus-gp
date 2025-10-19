@@ -3,7 +3,6 @@
 import json
 import os
 import tempfile
-import time
 from unittest import TestCase
 from uuid import uuid4
 
@@ -289,7 +288,7 @@ class TestSecurity(TestCase):  # pylint: disable=too-many-instance-attributes
         self.assertTrue(result)
 
     def test_multiple_signatures(self) -> None:
-        """Test that signing the same file multiple times produces different timestamps."""
+        """Test that signing the same file multiple times produces valid signatures."""
         filepath = self._create_test_file("Test content")
 
         # Sign twice
@@ -300,8 +299,7 @@ class TestSecurity(TestCase):  # pylint: disable=too-many-instance-attributes
         with open(sig_filepath1, "r", encoding="utf-8") as f:
             sig_data1 = json.load(f)
 
-        # Wait a moment and sign again (overwriting the first signature)
-        time.sleep(0.01)
+        # Sign again (overwriting the first signature)
         sig_filepath2 = sign_file(
             filepath, self.ed25519_private_pem, self.creator_uuid, algorithm="Ed25519"
         )
@@ -309,11 +307,14 @@ class TestSecurity(TestCase):  # pylint: disable=too-many-instance-attributes
         with open(sig_filepath2, "r", encoding="utf-8") as f:
             sig_data2 = json.load(f)
 
-        # Timestamps should be different (or at least, signatures should be valid)
         # The file hash and creator should be the same
         self.assertEqual(sig_data1["file_hash"], sig_data2["file_hash"])
         self.assertEqual(sig_data1["creator_uuid"], sig_data2["creator_uuid"])
 
-        # Verify both signatures are valid
+        # Verify timestamp field exists
+        self.assertIsNotNone(sig_data2["timestamp"])
+        self.assertIsNotNone(sig_data2["algorithm"])
+
+        # Verify signature is valid
         result = verify_file_signature(filepath, self.ed25519_public_pem)
         self.assertTrue(result)
