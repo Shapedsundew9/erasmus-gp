@@ -328,7 +328,7 @@ class TestColumnSchema(TestCase):
         with self.assertRaises(RuntimeError):
             # However, this will raise an error
             config.unique = False
-            config.consistency()
+            config.verify()
 
     def test_index_consistency(self):
         """Test the consistency method for index."""
@@ -494,7 +494,7 @@ class TestTableConfig(TestCase):
             create_db=True,
             create_table=True,
         )
-        config.consistency()  # Should not raise any exceptions
+        config.verify()  # Should not raise any exceptions
 
     def test_table_config_consistency_invalid_ptr_map(self):
         """Test the consistency method with invalid ptr_map."""

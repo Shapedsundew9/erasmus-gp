@@ -78,8 +78,10 @@ class PlatformInfo(Validator, DictTypeAccessor):
     def machine(self, value: str) -> None:
         """The machine  type, e.g. 'i386'. An empty string if the value cannot be determined."""
         if not self._is_string("machine", value):
+            _logger.error("machine must be a string, but is %s", type(value))
             raise ValueError(f"machine must be a string, but is {type(value)}")
         if not self._is_length("machine", value, 0, 128):
+            _logger.error("machine length must be between 0 and 128, but is %d", len(value))
             raise ValueError(f"machine length must be between 0 and 128, but is {len(value)}")
         self._machine = value
 
@@ -93,8 +95,12 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The SHA256 signature of the platform data."""
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self._is_sha256("signature", value)
-        assert self._generate_signature() == value, "Signature does not match the platform."
+        if not self._is_sha256("signature", value):
+            _logger.error("signature must be a valid SHA256 digest")
+            raise ValueError("signature must be a valid SHA256 digest")
+        if self._generate_signature() != value:
+            _logger.error("Signature does not match the platform.")
+            raise ValueError("Signature does not match the platform.")
         self._signature = value
 
     @property
@@ -107,8 +113,12 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The (real) processor name, e.g. 'amdk6'.
         An empty string if the value cannot be determined.
         """
-        self._is_string("processor", value)
-        self._is_length("processor", value, 0, 128)
+        if not self._is_string("processor", value):
+            _logger.error("processor must be a string, but is %s", type(value))
+            raise ValueError(f"processor must be a string, but is {type(value)}")
+        if not self._is_length("processor", value, 0, 128):
+            _logger.error("processor length must be between 0 and 128, but is %d", len(value))
+            raise ValueError(f"processor length must be between 0 and 128, but is {len(value)}")
         self._processor = value
 
     @property
@@ -121,8 +131,12 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The underlying platform with as much useful information as possible.
         The output is intended to be human readable rather than machine parseable.
         """
-        self._is_string("platform", value)
-        self._is_length("platform", value, 0, 1024)
+        if not self._is_string("platform", value):
+            _logger.error("platform must be a string, but is %s", type(value))
+            raise ValueError(f"platform must be a string, but is {type(value)}")
+        if not self._is_length("platform", value, 0, 1024):
+            _logger.error("platform length must be between 0 and 1024, but is %d", len(value))
+            raise ValueError(f"platform length must be between 0 and 1024, but is {len(value)}")
         self._platform = value
 
     @property
@@ -133,8 +147,12 @@ class PlatformInfo(Validator, DictTypeAccessor):
     @python_version.setter
     def python_version(self, value: str) -> None:
         """The Python version as string 'major.minor.patchlevel'."""
-        self._is_string("python_version", value)
-        self._is_length("python_version", value, 0, 64)
+        if not self._is_string("python_version", value):
+            _logger.error("python_version must be a string, but is %s", type(value))
+            raise ValueError(f"python_version must be a string, but is {type(value)}")
+        if not self._is_length("python_version", value, 0, 64):
+            _logger.error("python_version length must be between 0 and 64, but is %d", len(value))
+            raise ValueError(f"python_version length must be between 0 and 64, but is {len(value)}")
         self._python_version = value
 
     @property
@@ -147,8 +165,12 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The system/OS name, such as 'Linux', 'Darwin', 'Java', 'Windows'.
         An empty string if the value cannot be determined.
         """
-        self._is_string("system", value)
-        self._is_length("system", value, 0, 64)
+        if not self._is_string("system", value):
+            _logger.error("system must be a string, but is %s", type(value))
+            raise ValueError(f"system must be a string, but is {type(value)}")
+        if not self._is_length("system", value, 0, 64):
+            _logger.error("system length must be between 0 and 64, but is %d", len(value))
+            raise ValueError(f"system length must be between 0 and 64, but is {len(value)}")
         self._system = value
 
     @property
@@ -161,8 +183,12 @@ class PlatformInfo(Validator, DictTypeAccessor):
         """The system’s release, e.g. '2.2.0' or 'NT'.
         An empty string if the value cannot be determined.
         """
-        self._is_string("release", value)
-        self._is_length("release", value, 0, 64)
+        if not self._is_string("release", value):
+            _logger.error("release must be a string, but is %s", type(value))
+            raise ValueError(f"release must be a string, but is {type(value)}")
+        if not self._is_length("release", value, 0, 64):
+            _logger.error("release length must be between 0 and 64, but is %d", len(value))
+            raise ValueError(f"release length must be between 0 and 64, but is {len(value)}")
         self._release = value
 
     @property
@@ -176,7 +202,9 @@ class PlatformInfo(Validator, DictTypeAccessor):
         power of the system for typical Erasmus GP tasks in units of notional operations
         per second. Bigger = faster.
         """
-        self._is_float("EGPOps", value)
+        if not self._is_float("EGPOps", value):
+            _logger.error("EGPOps must be a float, but is %s", type(value))
+            raise ValueError(f"EGPOps must be a float, but is {type(value)}")
         self._egp_ops = value
 
     @property

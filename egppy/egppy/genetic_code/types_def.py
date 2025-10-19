@@ -195,8 +195,9 @@ class TypesDef(FreezableObject, Validator):
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
-        if not self._is_bool("abstract", abstract):
-            raise ValueError(f"abstract must be a bool, but is {type(abstract)}")
+        self.raise_ve(
+            self._is_bool("abstract", abstract), f"abstract must be a bool, but is {type(abstract)}"
+        )
         return abstract
 
     def _children(self, children: Iterable[int | TypesDef]) -> array[int]:
@@ -216,7 +217,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(child, TypesDef):
                 child_list.append(child.uid)
             else:
-                raise ValueError("Invalid children definition.")
+                self.raise_ve(False, "Invalid children definition.")
         return array("i", child_list)
 
     def _default(self, default: str | None) -> str | None:
@@ -243,12 +244,13 @@ class TypesDef(FreezableObject, Validator):
                 # The import store will ensure that the same import is not duplicated.
                 import_list.append(ImportDef(**import_def).freeze())
             elif isinstance(import_def, ImportDef):
-                assert (
-                    import_def in ImportDef.object_store
-                ), "ImportDef must be in the import store."
+                self.raise_ve(
+                    import_def in ImportDef.object_store,
+                    "ImportDef must be in the import store.",
+                )
                 import_list.append(import_def)
             else:
-                raise ValueError("Invalid imports definition.")
+                self.raise_ve(False, "Invalid imports definition.")
         return tuple(import_list)
 
     def _name(self, name: str) -> str:
@@ -274,7 +276,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(parent, TypesDef):
                 parent_list.append(parent.uid)
             else:
-                raise ValueError("Invalid parents definition.")
+                self.raise_ve(False, "Invalid parents definition.")
         return array("i", parent_list)
 
     def _uid(self, uid: int | dict[str, Any]) -> int:
@@ -288,7 +290,7 @@ class TypesDef(FreezableObject, Validator):
             # The BitDict will handle the validation.
             return TypesDefBD(uid).to_int()
         else:
-            raise ValueError("Invalid UID definition.")
+            self.raise_ve(False, "Invalid UID definition.")
 
     @property
     def abstract(self) -> bool:

@@ -141,9 +141,7 @@ def generate_meta_codons(write: bool = False) -> None:
                     base["name"] = base["name"].replace(s, r)
 
                 new_codon = GGCDict(codon)
-                if not new_codon.verify():
-                    raise ValueError(f"Meta codon verification failed: {codon}")
-                new_codon.consistency()
+                new_codon.verify()
                 codon = new_codon.to_json()
                 if codon["signature"] in meta_codons:
                     raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")

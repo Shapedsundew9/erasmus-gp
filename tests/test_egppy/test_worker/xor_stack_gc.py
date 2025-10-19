@@ -90,7 +90,6 @@ def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     if check:
         try:
             ggc.verify()
-            ggc.consistency()
         except (ValueError, RuntimeError) as e:
             raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.") from e
     gpi[ggc["signature"]] = ggc

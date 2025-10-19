@@ -18,8 +18,6 @@ class CacheMixin:
         """Check the cache for self consistency."""
         if not isinstance(self, CacheABC):
             raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
-        for value in (v for v in self.values() if getattr(v, "consistency", None) is not None):
-            value.consistency()
         _super = super()
         if not isinstance(_super, StoreABC):
             raise RuntimeError("CacheMixin method called on non-StoreABC object.")

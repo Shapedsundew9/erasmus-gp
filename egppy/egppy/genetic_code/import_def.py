@@ -64,12 +64,13 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
     @aip.setter
     def aip(self, value: Sequence[str]) -> None:
         """Set the Absolute Import Path."""
-        if not self._is_sequence("aip", value):
-            raise ValueError(f"aip must be a sequence, but is {type(value)}")
-        if not value:
-            raise ValueError("The aip must have at least one element.")
-        if not all(isinstance(x, str) for x in value):
-            raise ValueError("All elements of aip must be strings.")
+        self.raise_ve(
+            self._is_sequence("aip", value), f"aip must be a sequence, but is {type(value)}"
+        )
+        self.raise_ve(bool(value), "The aip must have at least one element.")
+        self.raise_ve(
+            all(isinstance(x, str) for x in value), "All elements of aip must be strings."
+        )
         self._aip = tuple(value)
 
     @property
