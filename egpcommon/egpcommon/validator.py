@@ -148,7 +148,9 @@ class Validator:
             return False
         if not self._is_length(attr, value, 1, 256):
             return False
-        if self._is_regex(attr, value, self._illegal_filename_regex):
+        if not self._is_regex(attr, value, self._illegal_filename_regex):
+            pass
+        else:
             if _logger.isEnabledFor(VERIFY):
                 _logger.log(
                     VERIFY,
@@ -176,14 +178,16 @@ class Validator:
         result = isinstance(value, float)
         if not result:
             _logger.log(VERIFY, "%s must be a float but is %s", attr, type(value))
-        return result
+            return result
 
-    def _is_hash8(self, attr: str, value: Any) -> bool:
-        """Check if the value is a hash8."""
-        result = self._is_bytes(attr, value) and len(value) == 8
+        if not self._is_bytes(attr, value):
+            _logger.log(VERIFY, "%s must be a hash8 but is %s", attr, value)
+            return False
+        result = len(value) == 8
         if not result:
             _logger.log(VERIFY, "%s must be a hash8 but is %s", attr, value)
-        return result
+            return result
+        return True
 
     def _is_historical_datetime(self, attr: str, value: Any) -> bool:
         """Check if the value is a historical datetime."""

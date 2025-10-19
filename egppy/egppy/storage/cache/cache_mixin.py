@@ -62,8 +62,7 @@ class CacheMixin:
 
     def purge_check(self) -> None:
         """Check if the cache needs to be purged."""
-        if not isinstance(self, CacheABC):
-            raise RuntimeError("CacheMixin consistency called on non-CacheABC object.")
+        assert isinstance(self, CacheABC), "CacheMixin consistency called on non-CacheABC object."
         length: int = len(self)
         if length >= self.max_items:
             if length != self.max_items:

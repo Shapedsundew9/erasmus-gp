@@ -71,13 +71,13 @@ class GGCMixin(EGCMixin):
         self.raise_re(self["code_depth"] >= 0, "code_depth must be greater than or equal to zero.")
         if self["code_depth"] == 1:
             self.raise_re(
-                self["gca"] is NULL_SIGNATURE or self["gca"] is NULL_SIGNATURE,
+                self["gca"] is NULL_SIGNATURE,
                 "A code depth of 1 is a codon or empty GC and must have a NULL GCA.",
             )
 
         if self["code_depth"] > 1:
             self.raise_re(
-                self["gca"] is not NULL_SIGNATURE and self["gca"] is not NULL_SIGNATURE,
+                self["gca"] is not NULL_SIGNATURE,
                 "A code depth greater than 1 must have a non-NULL GCA.",
             )
 
@@ -87,7 +87,7 @@ class GGCMixin(EGCMixin):
 
         if self["generation"] == 1:
             self.raise_re(
-                self["gca"] is NULL_SIGNATURE or self["gca"] is NULL_SIGNATURE,
+                self["gca"] is NULL_SIGNATURE,
                 "A generation of 1 is a codon and can only have a NULL GCA.",
             )
 
