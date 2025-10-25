@@ -4,10 +4,10 @@ import base64
 import binascii
 import hashlib
 import json
-import os
 from datetime import UTC, datetime
 from json import dump, load
-from os.path import getsize
+from os import environ
+from os.path import exists, getsize, join
 from typing import Any
 from uuid import UUID
 
@@ -25,7 +25,7 @@ _logger: Logger = egp_logger(name=__name__)
 
 # Constants
 PUBLIC_KEY_FOLDER = "/usr/local/share/egp/public_keys"
-PRIVATE_KEY_FILE = "/run/secrets/private_key"
+PRIVATE_KEY_FILE = environ.get("EGP_PRIVATE_KEY_FILE", "/run/secrets/private_key")
 
 
 # Custom Exceptions
@@ -166,7 +166,7 @@ def sign_file(
         FileNotFoundError: If the file to sign does not exist.
         ValueError: If the algorithm is not supported or key format is invalid.
     """
-    if not os.path.exists(filepath):
+    if not exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
 
     # Compute the SHA-256 hash of the file
@@ -243,6 +243,9 @@ def load_signature_data(path: str) -> dict[str, Any]:
             "algorithm": str,
             "creator_uuid": str
         }
+    Raises:
+        FileNotFoundError: If the signature file does not exist.
+        ValueError: If required fields are missing in the signature file.
     """
     with open(path, "r", encoding="utf-8") as f:
         data = load(f)
@@ -278,13 +281,13 @@ def verify_file_signature(  # pylint: disable=too-many-branches,too-many-locals
         HashMismatchError: If the file hash doesn't match the hash in the signature file.
         ValueError: If the algorithm is not supported or signature data is invalid.
     """
-    if not os.path.exists(filepath):
+    if not exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
 
     if sig_filepath is None:
         sig_filepath = f"{filepath}.sig"
 
-    if not os.path.exists(sig_filepath):
+    if not exists(sig_filepath):
         raise FileNotFoundError(f"Signature file not found: {sig_filepath}")
 
     sig_data = load_signature_data(sig_filepath)
@@ -402,11 +405,11 @@ def dump_signed_json(data: dict | list, fullpath: str) -> None:
     )
 
     # Make sure the signature file is created and valid
-    if not os.path.exists(sig_file_path):
+    if not exists(sig_file_path):
         raise InvalidSignatureError(f"Failed to create signature file: {sig_file_path}")
 
     # TODO: Determine the right public key to use for verification
-    public_key = load_public_key(os.path.join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
+    public_key = load_public_key(join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
     public_key_str = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -431,7 +434,7 @@ def load_signed_json(fullpath: str) -> dict | list:
     _file_size_limit(fullpath, JSON_FILESIZE_LIMIT)
 
     # TODO: Try public keys with the UUID until we find one that works
-    public_key = load_public_key(os.path.join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
+    public_key = load_public_key(join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
     public_key_str = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,

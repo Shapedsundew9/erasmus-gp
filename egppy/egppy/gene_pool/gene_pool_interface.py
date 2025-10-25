@@ -94,7 +94,9 @@ class GenePoolInterface(GPIABC):
         Returns:
             True if sources should be reloaded, False otherwise.
         """
-        if EGP_PROFILE == EGP_DEV_PROFILE and self._dbm.managed_sources_table:
+        if EGP_PROFILE == EGP_DEV_PROFILE and len(self._dbm.managed_sources_table) >= len(
+            SOURCE_FILES
+        ):
             sources: RowIter = self._dbm.managed_sources_table.select()
             hashes: set[bytes] = {row["file_hash"] for row in sources}
             for filename in SOURCE_FILES:
