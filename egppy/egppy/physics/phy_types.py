@@ -26,7 +26,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcIfKey,
     SrcRow,
 )
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.end_point import DstEndPoint, EndPoint, SrcEndPoint
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 

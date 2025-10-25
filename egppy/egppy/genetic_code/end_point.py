@@ -283,7 +283,7 @@ class EndPoint(FreezableObject):
             raise ValueError(f"Row {self.row} can only have a single reference.")
 
 
-class SourceEndPoint(EndPoint):
+class SrcEndPoint(EndPoint):
     """Source EndPoint class."""
 
     def __init__(
@@ -298,7 +298,7 @@ class SourceEndPoint(EndPoint):
         super().__init__(row, idx, EndPointClass.SRC, typ, refs, frozen)
 
 
-class DestinationEndPoint(EndPoint):
+class DstEndPoint(EndPoint):
     """Destination EndPoint class."""
 
     def __init__(

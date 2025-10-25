@@ -62,13 +62,13 @@ META_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
     "created": {"db_type": "TIMESTAMP", "nullable": False},
     "creator": {"db_type": "UUID", "nullable": False},
 }
-SOURCES_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
-    "source_path": {"db_type": "VARCHAR", "nullable": False},
-    "creator_uuid": {"db_type": "VARCHAR", "nullable": False},
-    "timestamp": {"db_type": "VARCHAR", "nullable": False},
-    "file_hash": {"db_type": "VARCHAR", "nullable": False},
-    "signature": {"db_type": "VARCHAR", "nullable": False},
-    "algorithm": {"db_type": "VARCHAR", "nullable": False},
+SOURCES_TABLE_SCHEMA: dict[str, ColumnSchema] = {
+    "source_path": ColumnSchema(db_type="VARCHAR", nullable=False),
+    "creator_uuid": ColumnSchema(db_type="VARCHAR", nullable=False),
+    "timestamp": ColumnSchema(db_type="VARCHAR", nullable=False),
+    "file_hash": ColumnSchema(db_type="VARCHAR", nullable=False),
+    "signature": ColumnSchema(db_type="VARCHAR", nullable=False),
+    "algorithm": ColumnSchema(db_type="VARCHAR", nullable=False),
 }
 
 

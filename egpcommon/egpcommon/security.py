@@ -426,20 +426,36 @@ def _file_size_limit(fullpath: str, limit: int = 2**30) -> int:
     return size
 
 
+def verify_signed_file(fullpath: str) -> bool:
+    """Verify a signed file using its detached signature file.
+
+    Args:
+        fullpath: Path to the file to verify.
+
+    Returns:
+        True if the signature is valid.
+
+    Raises:
+        FileNotFoundError: If the file or signature file does not exist.
+        InvalidSignatureError: If the signature verification fails.
+        HashMismatchError: If the file hash doesn't match the hash in the signature file.
+        ValueError: If the algorithm is not supported or signature data is invalid.
+    """
+    public_key = load_public_key(join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
+    public_key_str = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("utf-8")
+    return verify_file_signature(fullpath, public_key_str, sig_filepath=f"{fullpath}.sig")
+
+
 def load_signed_json(fullpath: str) -> dict | list:
     """Load a signed JSON file.
 
     Validate that creator UUID and signature is correct and return the JSON object.
     """
     _file_size_limit(fullpath, JSON_FILESIZE_LIMIT)
-
-    # TODO: Try public keys with the UUID until we find one that works
-    public_key = load_public_key(join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
-    public_key_str = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    ).decode("utf-8")
-    if not verify_file_signature(fullpath, public_key_str, sig_filepath=f"{fullpath}.sig"):
+    if not verify_signed_file(fullpath):
         raise InvalidSignatureError(f"Signature verification failed for file: {fullpath}")
     with open(fullpath, "r", encoding="ascii") as fileptr:
         return load(fileptr)

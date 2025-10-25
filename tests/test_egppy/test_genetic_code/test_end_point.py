@@ -3,7 +3,7 @@
 import unittest
 
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import DestinationEndPoint, EndPoint, SourceEndPoint
+from egppy.genetic_code.end_point import DstEndPoint, EndPoint, SrcEndPoint
 from egppy.genetic_code.types_def import TypesDef
 
 
@@ -195,7 +195,7 @@ class TestEndPointSubclasses(unittest.TestCase):
         idx = 0
         typ: TypesDef | int | str = "int"
         refs = [["A", 1]]
-        ep = SourceEndPoint(row, idx, typ, refs)
+        ep = SrcEndPoint(row, idx, typ, refs)
         self.assertIsInstance(ep, EndPoint)
         self.assertEqual(ep.row, row)
         self.assertEqual(ep.idx, idx)
@@ -209,7 +209,7 @@ class TestEndPointSubclasses(unittest.TestCase):
         idx = 0
         typ: TypesDef | int | str = "float"
         refs = [["B", 2]]
-        ep = DestinationEndPoint(row, idx, typ, refs)
+        ep = DstEndPoint(row, idx, typ, refs)
         self.assertIsInstance(ep, EndPoint)
         self.assertEqual(ep.row, row)
         self.assertEqual(ep.idx, idx)
@@ -218,7 +218,7 @@ class TestEndPointSubclasses(unittest.TestCase):
         self.assertEqual(ep.refs, refs)
 
         with self.assertRaises(ValueError):
-            DestinationEndPoint(DstRow.F, 1, "float").verify()
+            DstEndPoint(DstRow.F, 1, "float").verify()
 
 
 if __name__ == "__main__":

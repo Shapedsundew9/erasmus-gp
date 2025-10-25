@@ -14,9 +14,10 @@ from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_dict import ObjectDict
+from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
-from egpdb.table import Table, TableConfig
+from egpdb.table import RowIter, Table, TableConfig
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 from egppy.local_db_config import LOCAL_DB_CONFIG
@@ -29,28 +30,42 @@ _logger: Logger = egp_logger(name=__name__)
 _MAX_UID_SQL = "WHERE uid >= ({tt} << 16) AND uid < (({tt} + 1) << 16)"
 
 # Initialize the database connection
-DB_STORE = Table(
-    config=TableConfig(
-        database=LOCAL_DB_CONFIG,
-        table="types_def",
-        schema={
-            "uid": ColumnSchema(db_type="int4", primary_key=True),
-            "name": ColumnSchema(db_type="VARCHAR", index="btree"),
-            "default": ColumnSchema(db_type="VARCHAR", nullable=True),
-            "depth": ColumnSchema(db_type="int4"),
-            "abstract": ColumnSchema(db_type="bool"),
-            "imports": ColumnSchema(db_type="VARCHAR"),
-            "parents": ColumnSchema(db_type="INT4[]"),
-            "children": ColumnSchema(db_type="INT4[]"),
-        },
-        data_file_folder=join(dirname(__file__), "..", "data"),
-        data_files=["types_def.json"],
-        delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
-        create_db=True,
-        create_table=True,
-        conversions=(("imports", dumps, loads),),
-    ),
+DB_STORE_TABLE_CONFIG = TableConfig(
+    database=LOCAL_DB_CONFIG,
+    table="types_def",
+    schema={
+        "uid": ColumnSchema(db_type="int4", primary_key=True),
+        "name": ColumnSchema(db_type="VARCHAR", index="btree"),
+        "default": ColumnSchema(db_type="VARCHAR", nullable=True),
+        "depth": ColumnSchema(db_type="int4"),
+        "abstract": ColumnSchema(db_type="bool"),
+        "imports": ColumnSchema(db_type="VARCHAR"),
+        "parents": ColumnSchema(db_type="INT4[]"),
+        "children": ColumnSchema(db_type="INT4[]"),
+    },
+    data_file_folder=join(dirname(__file__), "..", "data"),
+    data_files=["types_def.json"],
+    delete_table=False,
+    create_db=True,
+    create_table=True,
+    conversions=(("imports", dumps, loads),),
 )
+DB_SOURCES_TABLE_CONFIG = TableConfig(
+    database=LOCAL_DB_CONFIG,
+    table="types_def_sources",
+    schema={
+        "source_path": ColumnSchema(db_type="VARCHAR", nullable=False),
+        "creator_uuid": ColumnSchema(db_type="VARCHAR", nullable=False),
+        "timestamp": ColumnSchema(db_type="VARCHAR", nullable=False),
+        "file_hash": ColumnSchema(db_type="VARCHAR", nullable=False),
+        "signature": ColumnSchema(db_type="VARCHAR", nullable=False),
+        "algorithm": ColumnSchema(db_type="VARCHAR", nullable=False),
+    },
+    delete_table=False,
+    create_db=True,
+    create_table=True,
+)
+
 
 # The generic tuple type UID
 _TUPLE_UID: int = 0
@@ -383,11 +398,29 @@ class TypesDefStore(ObjectDict):
     call is required to create a new type.
     """
 
+    _db_store: Final[Table] | None = None
+    _db_sources: Final[Table] | None = None
+
     def __init__(self) -> None:
         """Initialize the TypesDefStore."""
         super().__init__("TypesDefStore")
         self._cache_hit: int = 0
         self._cache_miss: int = 0
+        if TypesDefStore._db_store is None:
+            TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
+            DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
+            if DB_STORE_TABLE_CONFIG.delete_table:
+                TypesDefStore._db_sources.raw.delete_table()
+                for name in DB_STORE_TABLE_CONFIG.data_files:
+                    filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
+                    if not verify_signed_file(filename):
+                        raise InvalidSignatureError(
+                            f"Signature verification failed for file: {filename}"
+                        )
+                    sig_data = load_signature_data(filename + ".sig")
+                    sig_data["source_path"] = filename
+                    TypesDefStore._db_sources.insert((sig_data,))
+            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
     def __contains__(self, key: Any) -> bool:
         """Check if the key is in the store."""
@@ -404,10 +437,11 @@ class TypesDefStore(ObjectDict):
             self._cache_hit += 1
             return self._objects[key]
         self._cache_miss += 1
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
         if isinstance(key, int):
-            td = DB_STORE.get(key, {})
+            td = TypesDefStore._db_store.get(key, {})
         elif isinstance(key, str):
-            tds = tuple(DB_STORE.select("WHERE name = {id}", literals={"id": key}))
+            tds = tuple(TypesDefStore._db_store.select("WHERE name = {id}", literals={"id": key}))
             td = tds[0] if len(tds) == 1 else {}
         else:
             raise TypeError(f"Invalid key type: {type(key)}")
@@ -422,6 +456,26 @@ class TypesDefStore(ObjectDict):
         self._objects[ntd.name] = ntd
         self._objects[ntd.uid] = ntd
         return ntd
+
+    def _should_reload_table(self) -> bool:
+        """Determine if the types_def table should be reloaded."""
+        db_sources = TypesDefStore._db_sources
+        assert db_sources is not None, "DB sources must be initialized."
+        folder = DB_SOURCES_TABLE_CONFIG.data_file_folder
+        num_entries = len(db_sources)
+        num_files = len(DB_SOURCES_TABLE_CONFIG.data_files)
+        if EGP_PROFILE == EGP_DEV_PROFILE and num_entries >= num_files:
+            sources: RowIter = db_sources.select()
+            hashes: set[bytes] = {row["file_hash"] for row in sources}
+            for filename in DB_SOURCES_TABLE_CONFIG.data_files:
+                data = load_signature_data(join(folder, filename + ".sig"))
+                file_hash = data["file_hash"]
+                if file_hash not in hashes:
+                    return True
+                hashes.remove(file_hash)
+            return bool(hashes)
+        TypesDefStore._db_sources = db_sources
+        return num_entries < num_files
 
     @lru_cache(maxsize=128)
     def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
@@ -440,7 +494,7 @@ class TypesDefStore(ObjectDict):
         return tuple(sorted(ancestors, key=lambda td: td.depth, reverse=True))
 
     @lru_cache(maxsize=128)
-    def decendants(self, key: str | int) -> tuple[TypesDef, ...]:
+    def descendants(self, key: str | int) -> tuple[TypesDef, ...]:
         """Return the type definition and all descendants by name or UID.
         The descendants are the children, grandchildren etc. in depth order (type "key" first).
         """
@@ -455,7 +509,10 @@ class TypesDefStore(ObjectDict):
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
-        tds = DB_STORE.select("WHERE name LIKE {id}", literals={"id": f"{base_key}%"})
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
+        tds = TypesDefStore._db_store.select(
+            "WHERE name LIKE {id}", literals={"id": f"{base_key}%"}
+        )
         return tuple(TypesDef(**td) for td in tds)
 
     def info(self) -> str:
@@ -470,7 +527,8 @@ class TypesDefStore(ObjectDict):
 
     def next_xuid(self, tt: int = 0) -> int:
         """Get the next X unique ID for a type."""
-        max_uid = tuple(DB_STORE.select(_MAX_UID_SQL, literals={"tt": tt}))
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
+        max_uid = tuple(TypesDefStore._db_store.select(_MAX_UID_SQL, literals={"tt": tt}))
         assert max_uid, "No UIDs available for this Template Type."
         if max_uid[0] & 0xFFFF == 0xFFFF:
             raise OverflowError("No more UIDs available for this Template Type.")
@@ -478,7 +536,8 @@ class TypesDefStore(ObjectDict):
 
     def values(self) -> Iterator[TypesDef]:
         """Iterate through all the types in the store."""
-        for td in DB_STORE.select():
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
+        for td in TypesDefStore._db_store.select():
             yield TypesDef(**td)
 
 

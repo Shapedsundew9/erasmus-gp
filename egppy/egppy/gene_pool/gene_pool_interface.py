@@ -94,9 +94,8 @@ class GenePoolInterface(GPIABC):
         Returns:
             True if sources should be reloaded, False otherwise.
         """
-        if EGP_PROFILE == EGP_DEV_PROFILE and len(self._dbm.managed_sources_table) >= len(
-            SOURCE_FILES
-        ):
+        num_entries = len(self._dbm.managed_sources_table)
+        if EGP_PROFILE == EGP_DEV_PROFILE and num_entries >= len(SOURCE_FILES):
             sources: RowIter = self._dbm.managed_sources_table.select()
             hashes: set[bytes] = {row["file_hash"] for row in sources}
             for filename in SOURCE_FILES:
@@ -106,7 +105,7 @@ class GenePoolInterface(GPIABC):
                     return True
                 hashes.remove(file_hash)
             return bool(hashes)
-        return False
+        return num_entries < len(SOURCE_FILES)
 
     def consistency(self) -> None:
         """Check the consistency of the Gene Pool."""
