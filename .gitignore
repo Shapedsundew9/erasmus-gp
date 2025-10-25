@@ -212,3 +212,5 @@ __marimo__/
 # types_def.json
 codons.json
 meta_codons.json
+codons.json.sig
+meta_codons.json.sig

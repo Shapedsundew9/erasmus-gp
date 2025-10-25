@@ -4,8 +4,9 @@ from collections.abc import Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
 from hashlib import sha256
-from json import dumps
+from json import dump, dumps, load
 from os import environ
+from pathlib import Path
 from pprint import pformat
 from random import randint
 from typing import Any, Literal, Self
@@ -264,3 +265,54 @@ def random_int_tuple_generator(n: int, x: int) -> tuple[int, ...]:
 
     # random.randint(a, b) includes both endpoints a and b.
     return tuple(randint(0, x - 1) for _ in range(n))
+
+
+def ensure_sorted_json_keys(file_path: Path | str) -> None:
+    """Load a JSON file, validate it, and ensure keys are sorted.
+
+    This function loads a JSON file, checks that it's a dictionary with string keys,
+    verifies if the keys are in sorted order, and rewrites the file with sorted keys
+    if necessary.
+
+    Args
+    ----
+    file_path: Path to the JSON file to check and potentially sort.
+
+    Raises
+    ------
+    FileNotFoundError: If the file does not exist.
+    ValueError: If the JSON content is not a dictionary or if any key is not a string.
+    json.JSONDecodeError: If the file does not contain valid JSON.
+    """
+    # Convert to Path object if string
+    path = Path(file_path) if isinstance(file_path, str) else file_path
+
+    # Load the JSON file
+    with path.open("r", encoding="utf-8") as file:
+        data = load(file)
+
+    # Validate that it's a dictionary
+    if not isinstance(data, dict):
+        raise ValueError(f"JSON file {path} must contain a dictionary at the root level")
+
+    # Validate that all keys are strings
+    for key in data.keys():
+        if not isinstance(key, str):
+            raise ValueError(f"All keys must be strings, found {type(key).__name__}: {key}")
+
+    # Check if keys are already sorted
+    keys = list(data.keys())
+    sorted_keys = sorted(keys)
+
+    # If keys are not in sorted order, rewrite the file
+    if keys != sorted_keys:
+        _logger.info("Rewriting %s with sorted keys", path)
+        sorted_data = {key: data[key] for key in sorted_keys}
+
+        with path.open("w", encoding="utf-8") as file:
+            dump(sorted_data, file, indent=2, ensure_ascii=False)
+            file.write("\n")  # Add trailing newline
+
+        _logger.info("Successfully sorted keys in %s", path)
+    else:
+        _logger.debug("Keys in %s are already sorted", path)

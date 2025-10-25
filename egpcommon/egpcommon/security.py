@@ -25,7 +25,7 @@ _logger: Logger = egp_logger(name=__name__)
 
 # Constants
 PUBLIC_KEY_FOLDER = "/usr/local/share/egp/public_keys"
-PRIVATE_KEY_FILE = "/run/secrets/private_key.pem"
+PRIVATE_KEY_FILE = "/run/secrets/private_key"
 
 
 # Custom Exceptions
@@ -406,7 +406,7 @@ def dump_signed_json(data: dict | list, fullpath: str) -> None:
         raise InvalidSignatureError(f"Failed to create signature file: {sig_file_path}")
 
     # TODO: Determine the right public key to use for verification
-    public_key = load_public_key(os.path.join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID), ".pub"))
+    public_key = load_public_key(os.path.join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
     public_key_str = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -431,7 +431,7 @@ def load_signed_json(fullpath: str) -> dict | list:
     _file_size_limit(fullpath, JSON_FILESIZE_LIMIT)
 
     # TODO: Try public keys with the UUID until we find one that works
-    public_key = load_public_key(os.path.join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID), ".pub"))
+    public_key = load_public_key(os.path.join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
     public_key_str = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,

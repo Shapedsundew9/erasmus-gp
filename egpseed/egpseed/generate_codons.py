@@ -2,14 +2,21 @@
 
 from copy import deepcopy
 from glob import glob
+from json import load
 from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import ACYBERGENESIS_PROBLEM, EGP_EPOCH, SHAPEDSUNDEW9_UUID, merge
+from egpcommon.common import (
+    ACYBERGENESIS_PROBLEM,
+    EGP_EPOCH,
+    SHAPEDSUNDEW9_UUID,
+    ensure_sorted_json_keys,
+    merge,
+)
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egpcommon.security import dump_signed_json, load_signed_json_dict
+from egpcommon.security import dump_signed_json
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
 
@@ -39,6 +46,18 @@ CODON_TEMPLATE: dict[str, Any] = {
 }
 
 
+def load_json_dict(file_path: str) -> dict[str, Any]:
+    """Load a JSON file and return the dictionary.
+
+    Arguments:
+        file_path: Path to the JSON file.
+    Returns:
+        The JSON file as a dictionary.
+    """
+    with open(file_path, "r", encoding="utf-8") as json_file:
+        return load(json_file)
+
+
 class MethodExpander:
     """Method class."""
 
@@ -60,6 +79,12 @@ class MethodExpander:
 
         # Method imports if there are any
         self.imports = method.get("imports", [])
+
+        # All EGP types and methods must come from the physics module
+        # This maintains the abstraction from the structure of egp* modules
+        for imp in self.imports:
+            if imp["aip"] and imp["aip"][0] == "egppy":
+                assert imp["aip"][1] == "physics", f"Invalid EGP physical import: {imp['aip']}"
 
         # Other members
         self.description = method.get("description", "N/A")
@@ -106,7 +131,8 @@ def generate_codons(write: bool = False) -> None:
     spinner = Spinner("Generating codons...")
     spinner.start()
     for codon_file in glob(join(dirname(__file__), "data", "languages", "*", "*.json")):
-        codon_json: dict[str, dict[str, Any]] = load_signed_json_dict(codon_file)
+        ensure_sorted_json_keys(codon_file)
+        codon_json: dict[str, dict[str, Any]] = load_json_dict(codon_file)
         # NOTE: If the codon file is not for a base type then the inputs and outputs
         # will already be defined so bt will not be used.
         bt = splitext(basename(codon_file))[0].removeprefix("_")
@@ -126,7 +152,10 @@ def generate_codons(write: bool = False) -> None:
 
     # If we are writing the codons to a file then we need to ensure that the signatures are unique
     if write:
-        dump_signed_json(list(codons.values()), join(dirname(__file__), *OUTPUT_CODON_PATH))
+        dump_signed_json(
+            list(codons.values()),
+            join(dirname(__file__), *OUTPUT_CODON_PATH),
+        )
 
 
 if __name__ == "__main__":

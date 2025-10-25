@@ -238,6 +238,19 @@
       141,
       142,
       143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
       268435457,
       268435458,
       268435459,
@@ -2235,6 +2248,136 @@
       268437451,
       268437452,
       268437453,
+      268437454,
+      268437455,
+      268437456,
+      268437457,
+      268437458,
+      268437459,
+      268437460,
+      268437461,
+      268437462,
+      268437463,
+      268437464,
+      268437465,
+      268437466,
+      268437467,
+      268437468,
+      268437469,
+      268437470,
+      268437471,
+      268437472,
+      268437473,
+      268437474,
+      268437475,
+      268437476,
+      268437477,
+      268437478,
+      268437479,
+      268437480,
+      268437481,
+      268437482,
+      268437483,
+      268437484,
+      268437485,
+      268437486,
+      268437487,
+      268437488,
+      268437489,
+      268437490,
+      268437491,
+      268437492,
+      268437493,
+      268437494,
+      268437495,
+      268437496,
+      268437497,
+      268437498,
+      268437499,
+      268437500,
+      268437501,
+      268437502,
+      268437503,
+      268437504,
+      268437505,
+      268437506,
+      268437507,
+      268437508,
+      268437509,
+      268437510,
+      268437511,
+      268437512,
+      268437513,
+      268437514,
+      268437515,
+      268437516,
+      268437517,
+      268437518,
+      268437519,
+      268437520,
+      268437521,
+      268437522,
+      268437523,
+      268437524,
+      268437525,
+      268437526,
+      268437527,
+      268437528,
+      268437529,
+      268437530,
+      268437531,
+      268437532,
+      268437533,
+      268437534,
+      268437535,
+      268437536,
+      268437537,
+      268437538,
+      268437539,
+      268437540,
+      268437541,
+      268437542,
+      268437543,
+      268437544,
+      268437545,
+      268437546,
+      268437547,
+      268437548,
+      268437549,
+      268437550,
+      268437551,
+      268437552,
+      268437553,
+      268437554,
+      268437555,
+      268437556,
+      268437557,
+      268437558,
+      268437559,
+      268437560,
+      268437561,
+      268437562,
+      268437563,
+      268437564,
+      268437565,
+      268437566,
+      268437567,
+      268437568,
+      268437569,
+      268437570,
+      268437571,
+      268437572,
+      268437573,
+      268437574,
+      268437575,
+      268437576,
+      268437577,
+      268437578,
+      268437579,
+      268437580,
+      268437581,
+      268437582,
+      268437583,
       536870913,
       536870914,
       536870915,
@@ -2285,9 +2428,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -2322,6 +2464,29 @@
     ],
     "tt": 0,
     "uid": 142
+  },
+  "CPI": {
+    "abstract": false,
+    "children": [],
+    "default": "CPI.IDX",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "CPI",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 154
   },
   "Callable": {
     "abstract": true,
@@ -2600,9 +2765,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -2651,6 +2815,41 @@
     ],
     "tt": 1,
     "uid": 268437434
+  },
+  "Collection[CPI]": {
+    "abstract": true,
+    "children": [
+      268437560,
+      268437561
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[CPI]",
+    "parents": [
+      89,
+      268437555,
+      268437556
+    ],
+    "tt": 1,
+    "uid": 268437554
   },
   "Collection[Callable]": {
     "abstract": true,
@@ -3107,6 +3306,146 @@
     "tt": 1,
     "uid": 268435474
   },
+  "Collection[DstEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437499,
+      268437525
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[DstEndPoint]",
+    "parents": [
+      89,
+      268437462,
+      268437469
+    ],
+    "tt": 1,
+    "uid": 268437454
+  },
+  "Collection[DstIfKey]": {
+    "abstract": true,
+    "children": [
+      268437516,
+      268437518
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[DstIfKey]",
+    "parents": [
+      89,
+      268437506,
+      268437508
+    ],
+    "tt": 1,
+    "uid": 268437504
+  },
+  "Collection[DstInterface]": {
+    "abstract": true,
+    "children": [
+      268437485,
+      268437490
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[DstInterface]",
+    "parents": [
+      89,
+      268437460,
+      268437465
+    ],
+    "tt": 1,
+    "uid": 268437455
+  },
+  "Collection[DstRow]": {
+    "abstract": true,
+    "children": [
+      268437546,
+      268437548
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[DstRow]",
+    "parents": [
+      89,
+      268437536,
+      268437538
+    ],
+    "tt": 1,
+    "uid": 268437534
+  },
   "Collection[ECountCL]": {
     "abstract": true,
     "children": [
@@ -3377,6 +3716,41 @@
     "tt": 1,
     "uid": 268435483
   },
+  "Collection[EPClsPostfix]": {
+    "abstract": true,
+    "children": [
+      268437570,
+      268437571
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[EPClsPostfix]",
+    "parents": [
+      89,
+      268437565,
+      268437566
+    ],
+    "tt": 1,
+    "uid": 268437564
+  },
   "Collection[ETotalCL]": {
     "abstract": true,
     "children": [
@@ -3484,6 +3858,76 @@
     ],
     "tt": 1,
     "uid": 268435486
+  },
+  "Collection[EndPointClass]": {
+    "abstract": true,
+    "children": [
+      268437580,
+      268437581
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[EndPointClass]",
+    "parents": [
+      89,
+      268437575,
+      268437576
+    ],
+    "tt": 1,
+    "uid": 268437574
+  },
+  "Collection[EndPoint]": {
+    "abstract": true,
+    "children": [
+      268437502,
+      268437526
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[EndPoint]",
+    "parents": [
+      89,
+      268437464,
+      268437472
+    ],
+    "tt": 1,
+    "uid": 268437457
   },
   "Collection[EvolvabilityCL]": {
     "abstract": true,
@@ -4424,6 +4868,41 @@
     "tt": 1,
     "uid": 268435510
   },
+  "Collection[Interface]": {
+    "abstract": true,
+    "children": [
+      268437486,
+      268437491
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[Interface]",
+    "parents": [
+      89,
+      268437461,
+      268437466
+    ],
+    "tt": 1,
+    "uid": 268437456
+  },
   "Collection[ItemsView]": {
     "abstract": true,
     "children": [
@@ -5355,9 +5834,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -6625,9 +7103,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -6662,9 +7139,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -7011,9 +7487,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -7218,9 +7693,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -7312,6 +7786,146 @@
     "tt": 1,
     "uid": 268435562
   },
+  "Collection[SrcEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437524,
+      268437527
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[SrcEndPoint]",
+    "parents": [
+      89,
+      268437467,
+      268437474
+    ],
+    "tt": 1,
+    "uid": 268437459
+  },
+  "Collection[SrcIfKey]": {
+    "abstract": true,
+    "children": [
+      268437517,
+      268437519
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[SrcIfKey]",
+    "parents": [
+      89,
+      268437507,
+      268437509
+    ],
+    "tt": 1,
+    "uid": 268437505
+  },
+  "Collection[SrcInterface]": {
+    "abstract": true,
+    "children": [
+      268437488,
+      268437493
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[SrcInterface]",
+    "parents": [
+      89,
+      268437463,
+      268437468
+    ],
+    "tt": 1,
+    "uid": 268437458
+  },
+  "Collection[SrcRow]": {
+    "abstract": true,
+    "children": [
+      268437547,
+      268437549
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[SrcRow]",
+    "parents": [
+      89,
+      268437537,
+      268437539
+    ],
+    "tt": 1,
+    "uid": 268437535
+  },
   "Collection[Survivability]": {
     "abstract": true,
     "children": [
@@ -7368,9 +7982,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -8237,9 +8850,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -8283,6 +8895,38 @@
     ],
     "tt": 1,
     "uid": 268437435
+  },
+  "Container[CPI]": {
+    "abstract": true,
+    "children": [
+      268437554
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "Container[CPI]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437555
   },
   "Container[Callable]": {
     "abstract": true,
@@ -8694,6 +9338,134 @@
     "tt": 1,
     "uid": 268435604
   },
+  "Container[DstEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437454
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Container[DstEndPoint]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437462
+  },
+  "Container[DstIfKey]": {
+    "abstract": true,
+    "children": [
+      268437504
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Container[DstIfKey]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437506
+  },
+  "Container[DstInterface]": {
+    "abstract": true,
+    "children": [
+      268437455
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Container[DstInterface]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437460
+  },
+  "Container[DstRow]": {
+    "abstract": true,
+    "children": [
+      268437534
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "Container[DstRow]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437536
+  },
   "Container[ECountCL]": {
     "abstract": true,
     "children": [
@@ -8934,6 +9706,38 @@
     "tt": 1,
     "uid": 268435613
   },
+  "Container[EPClsPostfix]": {
+    "abstract": true,
+    "children": [
+      268437564
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "Container[EPClsPostfix]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437565
+  },
   "Container[ETotalCL]": {
     "abstract": true,
     "children": [
@@ -9029,6 +9833,70 @@
     ],
     "tt": 1,
     "uid": 268435616
+  },
+  "Container[EndPointClass]": {
+    "abstract": true,
+    "children": [
+      268437574
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "Container[EndPointClass]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437575
+  },
+  "Container[EndPoint]": {
+    "abstract": true,
+    "children": [
+      268437457
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Container[EndPoint]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437464
   },
   "Container[EvolvabilityCL]": {
     "abstract": true,
@@ -9870,6 +10738,38 @@
     "tt": 1,
     "uid": 268435640
   },
+  "Container[Interface]": {
+    "abstract": true,
+    "children": [
+      268437456
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Container[Interface]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437461
+  },
   "Container[ItemsView]": {
     "abstract": true,
     "children": [
@@ -10710,9 +11610,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -11870,9 +12769,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -11903,9 +12801,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -12216,9 +13113,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -12404,9 +13300,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -12489,6 +13384,134 @@
     "tt": 1,
     "uid": 268435692
   },
+  "Container[SrcEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437459
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Container[SrcEndPoint]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437467
+  },
+  "Container[SrcIfKey]": {
+    "abstract": true,
+    "children": [
+      268437505
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Container[SrcIfKey]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437507
+  },
+  "Container[SrcInterface]": {
+    "abstract": true,
+    "children": [
+      268437458
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Container[SrcInterface]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437463
+  },
+  "Container[SrcRow]": {
+    "abstract": true,
+    "children": [
+      268437535
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "Container[SrcRow]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437537
+  },
   "Container[Survivability]": {
     "abstract": true,
     "children": [
@@ -12539,9 +13562,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -13184,6 +14206,98 @@
     "tt": 0,
     "uid": 12
   },
+  "DstEndPoint": {
+    "abstract": false,
+    "children": [],
+    "default": "DstEndPoint()",
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "DstEndPoint",
+    "parents": [
+      147
+    ],
+    "tt": 0,
+    "uid": 144
+  },
+  "DstIfKey": {
+    "abstract": false,
+    "children": [],
+    "default": "DstIfKey.OD",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "DstIfKey",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 149
+  },
+  "DstInterface": {
+    "abstract": false,
+    "children": [],
+    "default": "Interface()",
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "DstInterface",
+    "parents": [
+      146
+    ],
+    "tt": 0,
+    "uid": 145
+  },
+  "DstRow": {
+    "abstract": false,
+    "children": [],
+    "default": "DstRow.O",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "DstRow",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 152
+  },
   "ECount": {
     "abstract": false,
     "children": [
@@ -13350,6 +14464,29 @@
     "tt": 0,
     "uid": 21
   },
+  "EPClsPostfix": {
+    "abstract": false,
+    "children": [],
+    "default": "EPClsPostfix.SRC",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "EPClsPostfix",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 155
+  },
   "ETotal": {
     "abstract": false,
     "children": [
@@ -13421,6 +14558,55 @@
     ],
     "tt": 0,
     "uid": 24
+  },
+  "EndPoint": {
+    "abstract": false,
+    "children": [
+      144,
+      151
+    ],
+    "default": "EndPoint()",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "EndPoint",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 147
+  },
+  "EndPointClass": {
+    "abstract": false,
+    "children": [],
+    "default": "EndPointClass.SRC",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "EndPointClass",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 156
   },
   "Evolvability": {
     "abstract": false,
@@ -14169,7 +15355,20 @@
       268437432,
       268437433,
       268437443,
-      268437453
+      268437453,
+      268437500,
+      268437501,
+      268437503,
+      268437522,
+      268437523,
+      268437531,
+      268437532,
+      268437533,
+      268437552,
+      268437553,
+      268437563,
+      268437573,
+      268437583
     ],
     "default": null,
     "depth": 1,
@@ -14327,6 +15526,32 @@
     ],
     "tt": 0,
     "uid": 48
+  },
+  "Interface": {
+    "abstract": false,
+    "children": [
+      145,
+      148
+    ],
+    "default": "Interface()",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Interface",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 146
   },
   "ItemsView": {
     "abstract": true,
@@ -14577,9 +15802,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -14625,6 +15849,40 @@
     ],
     "tt": 1,
     "uid": 268437436
+  },
+  "Iterable[CPI]": {
+    "abstract": true,
+    "children": [
+      268437554,
+      268437557,
+      268437559
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[CPI]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437556
   },
   "Iterable[Callable]": {
     "abstract": true,
@@ -15092,6 +16350,142 @@
     "tt": 1,
     "uid": 268435734
   },
+  "Iterable[DstEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437454,
+      268437477,
+      268437492
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[DstEndPoint]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437469
+  },
+  "Iterable[DstIfKey]": {
+    "abstract": true,
+    "children": [
+      268437504,
+      268437510,
+      268437514
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[DstIfKey]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437508
+  },
+  "Iterable[DstInterface]": {
+    "abstract": true,
+    "children": [
+      268437455,
+      268437470,
+      268437480
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[DstInterface]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437465
+  },
+  "Iterable[DstRow]": {
+    "abstract": true,
+    "children": [
+      268437534,
+      268437540,
+      268437544
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[DstRow]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437538
+  },
   "Iterable[ECountCL]": {
     "abstract": true,
     "children": [
@@ -15350,6 +16744,40 @@
     "tt": 1,
     "uid": 268435743
   },
+  "Iterable[EPClsPostfix]": {
+    "abstract": true,
+    "children": [
+      268437564,
+      268437567,
+      268437569
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[EPClsPostfix]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437566
+  },
   "Iterable[ETotalCL]": {
     "abstract": true,
     "children": [
@@ -15451,6 +16879,74 @@
     ],
     "tt": 1,
     "uid": 268435746
+  },
+  "Iterable[EndPointClass]": {
+    "abstract": true,
+    "children": [
+      268437574,
+      268437577,
+      268437579
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[EndPointClass]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437576
+  },
+  "Iterable[EndPoint]": {
+    "abstract": true,
+    "children": [
+      268437457,
+      268437479,
+      268437494
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[EndPoint]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437472
   },
   "Iterable[EvolvabilityCL]": {
     "abstract": true,
@@ -16341,6 +17837,40 @@
     ],
     "tt": 1,
     "uid": 268435770
+  },
+  "Iterable[Interface]": {
+    "abstract": true,
+    "children": [
+      268437456,
+      268437471,
+      268437481
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[Interface]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437466
   },
   "Iterable[ItemsView]": {
     "abstract": true,
@@ -17298,9 +18828,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -18558,9 +20087,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -18623,9 +20151,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -18986,9 +20513,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -19216,9 +20742,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -19305,6 +20830,142 @@
     "tt": 1,
     "uid": 268435829
   },
+  "Iterable[SrcEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437459,
+      268437482,
+      268437497
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[SrcEndPoint]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437474
+  },
+  "Iterable[SrcIfKey]": {
+    "abstract": true,
+    "children": [
+      268437505,
+      268437511,
+      268437515
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[SrcIfKey]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437509
+  },
+  "Iterable[SrcInterface]": {
+    "abstract": true,
+    "children": [
+      268437458,
+      268437473,
+      268437483
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[SrcInterface]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437468
+  },
+  "Iterable[SrcRow]": {
+    "abstract": true,
+    "children": [
+      268437535,
+      268437541,
+      268437545
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[SrcRow]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268437539
+  },
   "Iterable[Survivability]": {
     "abstract": true,
     "children": [
@@ -19389,9 +21050,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -20186,9 +21846,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -20230,6 +21889,36 @@
     ],
     "tt": 1,
     "uid": 268437437
+  },
+  "Iterator[CPI]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[CPI]",
+    "parents": [
+      268437556
+    ],
+    "tt": 1,
+    "uid": 268437557
   },
   "Iterator[Callable]": {
     "abstract": true,
@@ -20641,6 +22330,126 @@
     "tt": 1,
     "uid": 268435872
   },
+  "Iterator[DstEndPoint]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[DstEndPoint]",
+    "parents": [
+      268437469
+    ],
+    "tt": 1,
+    "uid": 268437477
+  },
+  "Iterator[DstIfKey]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[DstIfKey]",
+    "parents": [
+      268437508
+    ],
+    "tt": 1,
+    "uid": 268437510
+  },
+  "Iterator[DstInterface]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[DstInterface]",
+    "parents": [
+      268437465
+    ],
+    "tt": 1,
+    "uid": 268437470
+  },
+  "Iterator[DstRow]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[DstRow]",
+    "parents": [
+      268437538
+    ],
+    "tt": 1,
+    "uid": 268437540
+  },
   "Iterator[ECountCL]": {
     "abstract": true,
     "children": [],
@@ -20863,6 +22672,36 @@
     "tt": 1,
     "uid": 268435881
   },
+  "Iterator[EPClsPostfix]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[EPClsPostfix]",
+    "parents": [
+      268437566
+    ],
+    "tt": 1,
+    "uid": 268437567
+  },
   "Iterator[ETotalCL]": {
     "abstract": true,
     "children": [],
@@ -20952,6 +22791,66 @@
     ],
     "tt": 1,
     "uid": 268435884
+  },
+  "Iterator[EndPointClass]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[EndPointClass]",
+    "parents": [
+      268437576
+    ],
+    "tt": 1,
+    "uid": 268437577
+  },
+  "Iterator[EndPoint]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[EndPoint]",
+    "parents": [
+      268437472
+    ],
+    "tt": 1,
+    "uid": 268437479
   },
   "Iterator[EvolvabilityCL]": {
     "abstract": true,
@@ -21742,6 +23641,36 @@
     ],
     "tt": 1,
     "uid": 268435908
+  },
+  "Iterator[Interface]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[Interface]",
+    "parents": [
+      268437466
+    ],
+    "tt": 1,
+    "uid": 268437471
   },
   "Iterator[ItemsView]": {
     "abstract": true,
@@ -22606,9 +24535,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -23724,9 +25652,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -23783,9 +25710,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -24104,9 +26030,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -24308,9 +26233,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -24389,6 +26313,126 @@
     "tt": 1,
     "uid": 268435967
   },
+  "Iterator[SrcEndPoint]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[SrcEndPoint]",
+    "parents": [
+      268437474
+    ],
+    "tt": 1,
+    "uid": 268437482
+  },
+  "Iterator[SrcIfKey]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[SrcIfKey]",
+    "parents": [
+      268437509
+    ],
+    "tt": 1,
+    "uid": 268437511
+  },
+  "Iterator[SrcInterface]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[SrcInterface]",
+    "parents": [
+      268437468
+    ],
+    "tt": 1,
+    "uid": 268437473
+  },
+  "Iterator[SrcRow]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[SrcRow]",
+    "parents": [
+      268437539
+    ],
+    "tt": 1,
+    "uid": 268437541
+  },
   "Iterator[Survivability]": {
     "abstract": true,
     "children": [],
@@ -24463,9 +26507,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -26597,9 +28640,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -26772,9 +28814,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -26805,9 +28846,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -26994,9 +29034,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -27027,9 +29066,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -27131,9 +29169,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -27724,6 +29761,19 @@
       268437373,
       268437441,
       268437451,
+      268437490,
+      268437491,
+      268437493,
+      268437518,
+      268437519,
+      268437525,
+      268437526,
+      268437527,
+      268437548,
+      268437549,
+      268437561,
+      268437571,
+      268437581,
       536870914
     ],
     "default": null,
@@ -28006,9 +30056,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -28052,6 +30101,38 @@
     ],
     "tt": 1,
     "uid": 268437438
+  },
+  "MutableSequence[CPI]": {
+    "abstract": true,
+    "children": [
+      268437562
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[CPI]",
+    "parents": [
+      268437560
+    ],
+    "tt": 1,
+    "uid": 268437558
   },
   "MutableSequence[Callable]": {
     "abstract": true,
@@ -28491,6 +30572,134 @@
     "tt": 1,
     "uid": 268436083
   },
+  "MutableSequence[DstEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437528
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[DstEndPoint]",
+    "parents": [
+      268437499
+    ],
+    "tt": 1,
+    "uid": 268437484
+  },
+  "MutableSequence[DstIfKey]": {
+    "abstract": true,
+    "children": [
+      268437520
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[DstIfKey]",
+    "parents": [
+      268437516
+    ],
+    "tt": 1,
+    "uid": 268437512
+  },
+  "MutableSequence[DstInterface]": {
+    "abstract": true,
+    "children": [
+      268437495
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[DstInterface]",
+    "parents": [
+      268437485
+    ],
+    "tt": 1,
+    "uid": 268437475
+  },
+  "MutableSequence[DstRow]": {
+    "abstract": true,
+    "children": [
+      268437550
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[DstRow]",
+    "parents": [
+      268437546
+    ],
+    "tt": 1,
+    "uid": 268437542
+  },
   "MutableSequence[ECountCL]": {
     "abstract": true,
     "children": [
@@ -28731,6 +30940,38 @@
     "tt": 1,
     "uid": 268436092
   },
+  "MutableSequence[EPClsPostfix]": {
+    "abstract": true,
+    "children": [
+      268437572
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[EPClsPostfix]",
+    "parents": [
+      268437570
+    ],
+    "tt": 1,
+    "uid": 268437568
+  },
   "MutableSequence[ETotalCL]": {
     "abstract": true,
     "children": [
@@ -28826,6 +31067,70 @@
     ],
     "tt": 1,
     "uid": 268436095
+  },
+  "MutableSequence[EndPointClass]": {
+    "abstract": true,
+    "children": [
+      268437582
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[EndPointClass]",
+    "parents": [
+      268437580
+    ],
+    "tt": 1,
+    "uid": 268437578
+  },
+  "MutableSequence[EndPoint]": {
+    "abstract": true,
+    "children": [
+      268437529
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[EndPoint]",
+    "parents": [
+      268437502
+    ],
+    "tt": 1,
+    "uid": 268437487
   },
   "MutableSequence[EvolvabilityCL]": {
     "abstract": true,
@@ -29667,6 +31972,38 @@
     "tt": 1,
     "uid": 268436119
   },
+  "MutableSequence[Interface]": {
+    "abstract": true,
+    "children": [
+      268437496
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[Interface]",
+    "parents": [
+      268437486
+    ],
+    "tt": 1,
+    "uid": 268437476
+  },
   "MutableSequence[ItemsView]": {
     "abstract": true,
     "children": [
@@ -30463,9 +32800,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -31623,9 +33959,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -31656,9 +33991,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -31969,9 +34303,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -32157,9 +34490,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -32242,6 +34574,134 @@
     "tt": 1,
     "uid": 268436170
   },
+  "MutableSequence[SrcEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437530
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[SrcEndPoint]",
+    "parents": [
+      268437524
+    ],
+    "tt": 1,
+    "uid": 268437489
+  },
+  "MutableSequence[SrcIfKey]": {
+    "abstract": true,
+    "children": [
+      268437521
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[SrcIfKey]",
+    "parents": [
+      268437517
+    ],
+    "tt": 1,
+    "uid": 268437513
+  },
+  "MutableSequence[SrcInterface]": {
+    "abstract": true,
+    "children": [
+      268437498
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[SrcInterface]",
+    "parents": [
+      268437488
+    ],
+    "tt": 1,
+    "uid": 268437478
+  },
+  "MutableSequence[SrcRow]": {
+    "abstract": true,
+    "children": [
+      268437551
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[SrcRow]",
+    "parents": [
+      268437547
+    ],
+    "tt": 1,
+    "uid": 268437543
+  },
   "MutableSequence[Survivability]": {
     "abstract": true,
     "children": [
@@ -32292,9 +34752,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -34473,9 +36932,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -34648,9 +37106,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -34681,9 +37138,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -34870,9 +37326,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -34903,9 +37358,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -35007,9 +37461,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -35485,9 +37938,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -35509,9 +37961,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -35533,9 +37984,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -35557,9 +38007,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -35581,9 +38030,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -35605,9 +38053,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -35629,9 +38076,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -36507,9 +38953,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -36531,9 +38976,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -36555,9 +38999,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -36579,9 +39022,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -36915,9 +39357,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -36962,6 +39403,39 @@
     ],
     "tt": 1,
     "uid": 268437439
+  },
+  "Reversible[CPI]": {
+    "abstract": true,
+    "children": [
+      268437560,
+      268437561
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[CPI]",
+    "parents": [
+      268437556
+    ],
+    "tt": 1,
+    "uid": 268437559
   },
   "Reversible[Callable]": {
     "abstract": true,
@@ -37418,6 +39892,138 @@
     "tt": 1,
     "uid": 268436285
   },
+  "Reversible[DstEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437499,
+      268437525
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[DstEndPoint]",
+    "parents": [
+      268437469
+    ],
+    "tt": 1,
+    "uid": 268437492
+  },
+  "Reversible[DstIfKey]": {
+    "abstract": true,
+    "children": [
+      268437516,
+      268437518
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[DstIfKey]",
+    "parents": [
+      268437508
+    ],
+    "tt": 1,
+    "uid": 268437514
+  },
+  "Reversible[DstInterface]": {
+    "abstract": true,
+    "children": [
+      268437485,
+      268437490
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[DstInterface]",
+    "parents": [
+      268437465
+    ],
+    "tt": 1,
+    "uid": 268437480
+  },
+  "Reversible[DstRow]": {
+    "abstract": true,
+    "children": [
+      268437546,
+      268437548
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[DstRow]",
+    "parents": [
+      268437538
+    ],
+    "tt": 1,
+    "uid": 268437544
+  },
   "Reversible[ECountCL]": {
     "abstract": true,
     "children": [
@@ -37670,6 +40276,39 @@
     "tt": 1,
     "uid": 268436294
   },
+  "Reversible[EPClsPostfix]": {
+    "abstract": true,
+    "children": [
+      268437570,
+      268437571
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[EPClsPostfix]",
+    "parents": [
+      268437566
+    ],
+    "tt": 1,
+    "uid": 268437569
+  },
   "Reversible[ETotalCL]": {
     "abstract": true,
     "children": [
@@ -37771,6 +40410,72 @@
     ],
     "tt": 1,
     "uid": 268436297
+  },
+  "Reversible[EndPointClass]": {
+    "abstract": true,
+    "children": [
+      268437580,
+      268437581
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[EndPointClass]",
+    "parents": [
+      268437576
+    ],
+    "tt": 1,
+    "uid": 268437579
+  },
+  "Reversible[EndPoint]": {
+    "abstract": true,
+    "children": [
+      268437502,
+      268437526
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[EndPoint]",
+    "parents": [
+      268437472
+    ],
+    "tt": 1,
+    "uid": 268437494
   },
   "Reversible[EvolvabilityCL]": {
     "abstract": true,
@@ -38660,6 +41365,39 @@
     "tt": 1,
     "uid": 268436321
   },
+  "Reversible[Interface]": {
+    "abstract": true,
+    "children": [
+      268437486,
+      268437491
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[Interface]",
+    "parents": [
+      268437466
+    ],
+    "tt": 1,
+    "uid": 268437481
+  },
   "Reversible[ItemsView]": {
     "abstract": true,
     "children": [
@@ -39538,9 +42276,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -40738,9 +43475,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -40773,9 +43509,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -41074,9 +43809,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -41269,9 +44003,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -41357,6 +44090,138 @@
     "tt": 1,
     "uid": 268436373
   },
+  "Reversible[SrcEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437524,
+      268437527
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[SrcEndPoint]",
+    "parents": [
+      268437474
+    ],
+    "tt": 1,
+    "uid": 268437497
+  },
+  "Reversible[SrcIfKey]": {
+    "abstract": true,
+    "children": [
+      268437517,
+      268437519
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[SrcIfKey]",
+    "parents": [
+      268437509
+    ],
+    "tt": 1,
+    "uid": 268437515
+  },
+  "Reversible[SrcInterface]": {
+    "abstract": true,
+    "children": [
+      268437488,
+      268437493
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[SrcInterface]",
+    "parents": [
+      268437468
+    ],
+    "tt": 1,
+    "uid": 268437483
+  },
+  "Reversible[SrcRow]": {
+    "abstract": true,
+    "children": [
+      268437547,
+      268437549
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[SrcRow]",
+    "parents": [
+      268437539
+    ],
+    "tt": 1,
+    "uid": 268437545
+  },
   "Reversible[Survivability]": {
     "abstract": true,
     "children": [
@@ -41411,9 +44276,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -42028,9 +44892,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -42052,9 +44915,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -42267,9 +45129,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -42316,6 +45177,40 @@
     ],
     "tt": 1,
     "uid": 268437440
+  },
+  "Sequence[CPI]": {
+    "abstract": true,
+    "children": [
+      268437558,
+      268437563
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[CPI]",
+    "parents": [
+      268437554,
+      268437559
+    ],
+    "tt": 1,
+    "uid": 268437560
   },
   "Sequence[Callable]": {
     "abstract": true,
@@ -42783,6 +45678,142 @@
     "tt": 1,
     "uid": 268436415
   },
+  "Sequence[DstEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437484,
+      268437531
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[DstEndPoint]",
+    "parents": [
+      268437454,
+      268437492
+    ],
+    "tt": 1,
+    "uid": 268437499
+  },
+  "Sequence[DstIfKey]": {
+    "abstract": true,
+    "children": [
+      268437512,
+      268437522
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[DstIfKey]",
+    "parents": [
+      268437504,
+      268437514
+    ],
+    "tt": 1,
+    "uid": 268437516
+  },
+  "Sequence[DstInterface]": {
+    "abstract": true,
+    "children": [
+      268437475,
+      268437500
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[DstInterface]",
+    "parents": [
+      268437455,
+      268437480
+    ],
+    "tt": 1,
+    "uid": 268437485
+  },
+  "Sequence[DstRow]": {
+    "abstract": true,
+    "children": [
+      268437542,
+      268437552
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[DstRow]",
+    "parents": [
+      268437534,
+      268437544
+    ],
+    "tt": 1,
+    "uid": 268437546
+  },
   "Sequence[ECountCL]": {
     "abstract": true,
     "children": [
@@ -43041,6 +46072,40 @@
     "tt": 1,
     "uid": 268436424
   },
+  "Sequence[EPClsPostfix]": {
+    "abstract": true,
+    "children": [
+      268437568,
+      268437573
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[EPClsPostfix]",
+    "parents": [
+      268437564,
+      268437569
+    ],
+    "tt": 1,
+    "uid": 268437570
+  },
   "Sequence[ETotalCL]": {
     "abstract": true,
     "children": [
@@ -43142,6 +46207,74 @@
     ],
     "tt": 1,
     "uid": 268436427
+  },
+  "Sequence[EndPointClass]": {
+    "abstract": true,
+    "children": [
+      268437578,
+      268437583
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[EndPointClass]",
+    "parents": [
+      268437574,
+      268437579
+    ],
+    "tt": 1,
+    "uid": 268437580
+  },
+  "Sequence[EndPoint]": {
+    "abstract": true,
+    "children": [
+      268437487,
+      268437532
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[EndPoint]",
+    "parents": [
+      268437457,
+      268437494
+    ],
+    "tt": 1,
+    "uid": 268437502
   },
   "Sequence[EvolvabilityCL]": {
     "abstract": true,
@@ -44033,6 +47166,40 @@
     "tt": 1,
     "uid": 268436451
   },
+  "Sequence[Interface]": {
+    "abstract": true,
+    "children": [
+      268437476,
+      268437501
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[Interface]",
+    "parents": [
+      268437456,
+      268437481
+    ],
+    "tt": 1,
+    "uid": 268437486
+  },
   "Sequence[ItemsView]": {
     "abstract": true,
     "children": [
@@ -44894,9 +48061,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -46124,9 +49290,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -46159,9 +49324,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -46492,9 +49656,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -46664,9 +49827,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -46754,6 +49916,142 @@
     "tt": 1,
     "uid": 268436502
   },
+  "Sequence[SrcEndPoint]": {
+    "abstract": true,
+    "children": [
+      268437489,
+      268437533
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[SrcEndPoint]",
+    "parents": [
+      268437459,
+      268437497
+    ],
+    "tt": 1,
+    "uid": 268437524
+  },
+  "Sequence[SrcIfKey]": {
+    "abstract": true,
+    "children": [
+      268437513,
+      268437523
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[SrcIfKey]",
+    "parents": [
+      268437505,
+      268437515
+    ],
+    "tt": 1,
+    "uid": 268437517
+  },
+  "Sequence[SrcInterface]": {
+    "abstract": true,
+    "children": [
+      268437478,
+      268437503
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[SrcInterface]",
+    "parents": [
+      268437458,
+      268437483
+    ],
+    "tt": 1,
+    "uid": 268437488
+  },
+  "Sequence[SrcRow]": {
+    "abstract": true,
+    "children": [
+      268437543,
+      268437553
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[SrcRow]",
+    "parents": [
+      268437535,
+      268437545
+    ],
+    "tt": 1,
+    "uid": 268437547
+  },
   "Sequence[Survivability]": {
     "abstract": true,
     "children": [
@@ -46807,9 +50105,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -49147,9 +52444,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -49332,9 +52628,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -49367,9 +52662,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -49568,9 +52862,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -49603,9 +52896,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -49713,9 +53005,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -49997,9 +53288,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -50021,9 +53311,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -50236,7 +53525,20 @@
       268437162,
       268437163,
       268437434,
-      268437444
+      268437444,
+      268437454,
+      268437455,
+      268437456,
+      268437457,
+      268437458,
+      268437459,
+      268437504,
+      268437505,
+      268437534,
+      268437535,
+      268437554,
+      268437564,
+      268437574
     ],
     "default": null,
     "depth": 1,
@@ -50256,6 +53558,98 @@
     ],
     "tt": 0,
     "uid": 89
+  },
+  "SrcEndPoint": {
+    "abstract": false,
+    "children": [],
+    "default": "SrcEndPoint()",
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "SrcEndPoint",
+    "parents": [
+      147
+    ],
+    "tt": 0,
+    "uid": 151
+  },
+  "SrcIfKey": {
+    "abstract": false,
+    "children": [],
+    "default": "SrcIfKey.IS",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "SrcIfKey",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 150
+  },
+  "SrcInterface": {
+    "abstract": false,
+    "children": [],
+    "default": "Interface()",
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "SrcInterface",
+    "parents": [
+      146
+    ],
+    "tt": 0,
+    "uid": 148
+  },
+  "SrcRow": {
+    "abstract": false,
+    "children": [],
+    "default": "SrcRow.I",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "SrcRow",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 153
   },
   "Survivability": {
     "abstract": false,
@@ -50289,9 +53683,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -50313,9 +53706,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -50337,9 +53729,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -50361,9 +53752,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -50617,9 +54007,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -50665,6 +54054,38 @@
     ],
     "tt": 1,
     "uid": 268437441
+  },
+  "ValuesView[CPI]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[CPI]",
+    "parents": [
+      57,
+      268437554,
+      268437559
+    ],
+    "tt": 1,
+    "uid": 268437561
   },
   "ValuesView[Callable]": {
     "abstract": false,
@@ -51104,6 +54525,134 @@
     "tt": 1,
     "uid": 268436618
   },
+  "ValuesView[DstEndPoint]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[DstEndPoint]",
+    "parents": [
+      57,
+      268437454,
+      268437492
+    ],
+    "tt": 1,
+    "uid": 268437525
+  },
+  "ValuesView[DstIfKey]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[DstIfKey]",
+    "parents": [
+      57,
+      268437504,
+      268437514
+    ],
+    "tt": 1,
+    "uid": 268437518
+  },
+  "ValuesView[DstInterface]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[DstInterface]",
+    "parents": [
+      57,
+      268437455,
+      268437480
+    ],
+    "tt": 1,
+    "uid": 268437490
+  },
+  "ValuesView[DstRow]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[DstRow]",
+    "parents": [
+      57,
+      268437534,
+      268437544
+    ],
+    "tt": 1,
+    "uid": 268437548
+  },
   "ValuesView[ECountCL]": {
     "abstract": false,
     "children": [],
@@ -51344,6 +54893,38 @@
     "tt": 1,
     "uid": 268436627
   },
+  "ValuesView[EPClsPostfix]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[EPClsPostfix]",
+    "parents": [
+      57,
+      268437564,
+      268437569
+    ],
+    "tt": 1,
+    "uid": 268437571
+  },
   "ValuesView[ETotalCL]": {
     "abstract": false,
     "children": [],
@@ -51439,6 +55020,70 @@
     ],
     "tt": 1,
     "uid": 268436630
+  },
+  "ValuesView[EndPointClass]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[EndPointClass]",
+    "parents": [
+      57,
+      268437574,
+      268437579
+    ],
+    "tt": 1,
+    "uid": 268437581
+  },
+  "ValuesView[EndPoint]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[EndPoint]",
+    "parents": [
+      57,
+      268437457,
+      268437494
+    ],
+    "tt": 1,
+    "uid": 268437526
   },
   "ValuesView[EvolvabilityCL]": {
     "abstract": false,
@@ -52280,6 +55925,38 @@
     "tt": 1,
     "uid": 268436654
   },
+  "ValuesView[Interface]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[Interface]",
+    "parents": [
+      57,
+      268437456,
+      268437481
+    ],
+    "tt": 1,
+    "uid": 268437491
+  },
   "ValuesView[ItemsView]": {
     "abstract": false,
     "children": [],
@@ -53088,9 +56765,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -54248,9 +57924,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -54281,9 +57956,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -54594,9 +58268,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -54782,9 +58455,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -54869,6 +58541,134 @@
     "tt": 1,
     "uid": 268436705
   },
+  "ValuesView[SrcEndPoint]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[SrcEndPoint]",
+    "parents": [
+      57,
+      268437459,
+      268437497
+    ],
+    "tt": 1,
+    "uid": 268437527
+  },
+  "ValuesView[SrcIfKey]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[SrcIfKey]",
+    "parents": [
+      57,
+      268437505,
+      268437515
+    ],
+    "tt": 1,
+    "uid": 268437519
+  },
+  "ValuesView[SrcInterface]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[SrcInterface]",
+    "parents": [
+      57,
+      268437458,
+      268437483
+    ],
+    "tt": 1,
+    "uid": 268437493
+  },
+  "ValuesView[SrcRow]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[SrcRow]",
+    "parents": [
+      57,
+      268437535,
+      268437545
+    ],
+    "tt": 1,
+    "uid": 268437549
+  },
   "ValuesView[Survivability]": {
     "abstract": false,
     "children": [],
@@ -54917,9 +58717,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -56861,9 +60660,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -56996,9 +60794,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -57021,9 +60818,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -57162,9 +60958,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -57187,9 +60982,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -57267,9 +61061,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -57596,9 +61389,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -57633,6 +61425,29 @@
     ],
     "tt": 1,
     "uid": 268437442
+  },
+  "list[CPI]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "list[CPI]",
+    "parents": [
+      268437558
+    ],
+    "tt": 1,
+    "uid": 268437562
   },
   "list[Callable]": {
     "abstract": false,
@@ -57946,6 +61761,98 @@
     "tt": 1,
     "uid": 268436820
   },
+  "list[DstEndPoint]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "list[DstEndPoint]",
+    "parents": [
+      268437484
+    ],
+    "tt": 1,
+    "uid": 268437528
+  },
+  "list[DstIfKey]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "list[DstIfKey]",
+    "parents": [
+      268437512
+    ],
+    "tt": 1,
+    "uid": 268437520
+  },
+  "list[DstInterface]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "list[DstInterface]",
+    "parents": [
+      268437475
+    ],
+    "tt": 1,
+    "uid": 268437495
+  },
+  "list[DstRow]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "list[DstRow]",
+    "parents": [
+      268437542
+    ],
+    "tt": 1,
+    "uid": 268437550
+  },
   "list[ECountCL]": {
     "abstract": false,
     "children": [],
@@ -58099,6 +62006,29 @@
     "tt": 1,
     "uid": 268436829
   },
+  "list[EPClsPostfix]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "list[EPClsPostfix]",
+    "parents": [
+      268437568
+    ],
+    "tt": 1,
+    "uid": 268437572
+  },
   "list[ETotalCL]": {
     "abstract": false,
     "children": [],
@@ -58167,6 +62097,52 @@
     ],
     "tt": 1,
     "uid": 268436832
+  },
+  "list[EndPointClass]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "list[EndPointClass]",
+    "parents": [
+      268437578
+    ],
+    "tt": 1,
+    "uid": 268437582
+  },
+  "list[EndPoint]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "list[EndPoint]",
+    "parents": [
+      268437487
+    ],
+    "tt": 1,
+    "uid": 268437529
   },
   "list[EvolvabilityCL]": {
     "abstract": false,
@@ -58783,6 +62759,29 @@
     "tt": 1,
     "uid": 268436856
   },
+  "list[Interface]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "list[Interface]",
+    "parents": [
+      268437476
+    ],
+    "tt": 1,
+    "uid": 268437496
+  },
   "list[ItemsView]": {
     "abstract": false,
     "children": [],
@@ -59358,9 +63357,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -60203,9 +64201,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -60227,9 +64224,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -60450,9 +64446,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -60584,9 +64579,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -60651,6 +64645,98 @@
     "tt": 1,
     "uid": 268436907
   },
+  "list[SrcEndPoint]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "list[SrcEndPoint]",
+    "parents": [
+      268437489
+    ],
+    "tt": 1,
+    "uid": 268437530
+  },
+  "list[SrcIfKey]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "list[SrcIfKey]",
+    "parents": [
+      268437513
+    ],
+    "tt": 1,
+    "uid": 268437521
+  },
+  "list[SrcInterface]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "list[SrcInterface]",
+    "parents": [
+      268437478
+    ],
+    "tt": 1,
+    "uid": 268437498
+  },
+  "list[SrcRow]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "list[SrcRow]",
+    "parents": [
+      268437543
+    ],
+    "tt": 1,
+    "uid": 268437551
+  },
   "list[Survivability]": {
     "abstract": false,
     "children": [],
@@ -60683,9 +64769,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -61091,6 +65176,15 @@
       139,
       142,
       143,
+      146,
+      147,
+      149,
+      150,
+      152,
+      153,
+      154,
+      155,
+      156,
       268435587,
       268435588,
       268435589,
@@ -61423,6 +65517,32 @@
       268437436,
       268437445,
       268437446,
+      268437460,
+      268437461,
+      268437462,
+      268437463,
+      268437464,
+      268437465,
+      268437466,
+      268437467,
+      268437468,
+      268437469,
+      268437472,
+      268437474,
+      268437506,
+      268437507,
+      268437508,
+      268437509,
+      268437536,
+      268437537,
+      268437538,
+      268437539,
+      268437555,
+      268437556,
+      268437565,
+      268437566,
+      268437575,
+      268437576,
       536870913,
       805306369
     ],
@@ -62605,9 +66725,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -62735,9 +66854,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -62759,9 +66877,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -62894,9 +67011,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -62918,9 +67034,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -62995,9 +67110,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }
@@ -63345,9 +67459,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Bytes"
       }
@@ -63384,6 +67497,30 @@
     ],
     "tt": 1,
     "uid": 268437443
+  },
+  "tuple[CPI, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[CPI, ...]",
+    "parents": [
+      43,
+      268437560
+    ],
+    "tt": 1,
+    "uid": 268437563
   },
   "tuple[Callable, ...]": {
     "abstract": false,
@@ -63711,6 +67848,102 @@
     "tt": 1,
     "uid": 268437022
   },
+  "tuple[DstEndPoint, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[DstEndPoint, ...]",
+    "parents": [
+      43,
+      268437499
+    ],
+    "tt": 1,
+    "uid": 268437531
+  },
+  "tuple[DstIfKey, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[DstIfKey, ...]",
+    "parents": [
+      43,
+      268437516
+    ],
+    "tt": 1,
+    "uid": 268437522
+  },
+  "tuple[DstInterface, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[DstInterface, ...]",
+    "parents": [
+      43,
+      268437485
+    ],
+    "tt": 1,
+    "uid": 268437500
+  },
+  "tuple[DstRow, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[DstRow, ...]",
+    "parents": [
+      43,
+      268437546
+    ],
+    "tt": 1,
+    "uid": 268437552
+  },
   "tuple[ECount, ...]": {
     "abstract": false,
     "children": [],
@@ -63873,6 +68106,30 @@
     "tt": 1,
     "uid": 268437031
   },
+  "tuple[EPClsPostfix, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[EPClsPostfix, ...]",
+    "parents": [
+      43,
+      268437570
+    ],
+    "tt": 1,
+    "uid": 268437573
+  },
   "tuple[ETotal, ...]": {
     "abstract": false,
     "children": [],
@@ -63944,6 +68201,54 @@
     ],
     "tt": 1,
     "uid": 268437034
+  },
+  "tuple[EndPoint, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[EndPoint, ...]",
+    "parents": [
+      43,
+      268437502
+    ],
+    "tt": 1,
+    "uid": 268437532
+  },
+  "tuple[EndPointClass, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[EndPointClass, ...]",
+    "parents": [
+      43,
+      268437580
+    ],
+    "tt": 1,
+    "uid": 268437583
   },
   "tuple[Evolvability, ...]": {
     "abstract": false,
@@ -64585,6 +68890,30 @@
     "tt": 1,
     "uid": 268437058
   },
+  "tuple[Interface, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[Interface, ...]",
+    "parents": [
+      43,
+      268437486
+    ],
+    "tt": 1,
+    "uid": 268437501
+  },
   "tuple[ItemsView, ...]": {
     "abstract": false,
     "children": [],
@@ -65185,9 +69514,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Pair"
       }
@@ -66065,9 +70393,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quadruplet"
       }
@@ -66090,9 +70417,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Quintuplet"
       }
@@ -66323,9 +70649,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Septuplet"
       }
@@ -66463,9 +70788,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Sextuplet"
       }
@@ -66533,6 +70857,102 @@
     "tt": 1,
     "uid": 268437109
   },
+  "tuple[SrcEndPoint, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[SrcEndPoint, ...]",
+    "parents": [
+      43,
+      268437524
+    ],
+    "tt": 1,
+    "uid": 268437533
+  },
+  "tuple[SrcIfKey, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[SrcIfKey, ...]",
+    "parents": [
+      43,
+      268437517
+    ],
+    "tt": 1,
+    "uid": 268437523
+  },
+  "tuple[SrcInterface, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[SrcInterface, ...]",
+    "parents": [
+      43,
+      268437488
+    ],
+    "tt": 1,
+    "uid": 268437503
+  },
+  "tuple[SrcRow, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "phy_types"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[SrcRow, ...]",
+    "parents": [
+      43,
+      268437547
+    ],
+    "tt": 1,
+    "uid": 268437553
+  },
   "tuple[Survivability, ...]": {
     "abstract": false,
     "children": [],
@@ -66566,9 +70986,8 @@
       {
         "aip": [
           "egppy",
-          "c_graph",
-          "end_point",
-          "egp_ept_types"
+          "physics",
+          "ept_types"
         ],
         "name": "Triplet"
       }

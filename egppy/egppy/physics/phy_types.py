@@ -18,6 +18,15 @@ from uuid import UUID
 # pylint: disable=unused-import
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_constants import (
+    CPI,
+    DstIfKey,
+    DstRow,
+    EPClsPostfix,
+    SrcIfKey,
+    SrcRow,
+)
+from egppy.genetic_code.end_point import EndPoint
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 

@@ -71,7 +71,8 @@ CODON_TWO_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
             "python3": {
                 "0": {
                     "inline": "raise_if_not_both_instances_of({i0}, {i1}, otype)",
-                    "description": "Raise if i0 or i1 (itype) is not an instance (or child) of otype.",
+                    "description": "Raise if i0 or i1 (itype) is not an instance"
+                    " (or child) of otype.",
                     "name": "raise_if_not_both_instances_of(itype, itype, otype)",
                     "imports": [
                         {

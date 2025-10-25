@@ -1,24 +1,24 @@
 {
-    "getSrcIf": {
-        "inline": "{i0}[{i1}]",
-        "description": "Return a source interface.",
-        "inputs": [
-            "CGraph",
-            "SrcIfKey"
-        ],
-        "outputs": [
-            "SrcInterface"
-        ]
-    },
-    "getDstIf": {
-        "inline": "{i0}[{i1}]",
-        "description": "Return a destination interface.",
-        "inputs": [
-            "CGraph",
-            "DstIfKey"
-        ],
-        "outputs": [
-            "DstInterface"
-        ]
-    }
+  "getDstIf": {
+    "inline": "{i0}[{i1}]",
+    "description": "Return a destination interface.",
+    "inputs": [
+      "CGraph",
+      "DstIfKey"
+    ],
+    "outputs": [
+      "DstInterface"
+    ]
+  },
+  "getSrcIf": {
+    "inline": "{i0}[{i1}]",
+    "description": "Return a source interface.",
+    "inputs": [
+      "CGraph",
+      "SrcIfKey"
+    ],
+    "outputs": [
+      "SrcInterface"
+    ]
+  }
 }
