@@ -74,6 +74,22 @@ def memoryview_to_bytes(obj: memoryview | None) -> bytes | None:
     return None if obj is None else bytes(obj)
 
 
+def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
+    """Convert a memory view to a signature bytes object.
+
+    None is converted to NULL_SHA256.
+
+    Args
+    ----
+    obj (memoryview or NoneType):
+
+    Returns
+    -------
+    (bytes or NoneType)
+    """
+    return NULL_SHA256 if obj is None else bytes(obj)
+
+
 def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
     """Convert a memory view to a 32 uint8 numpy ndarray.
 
@@ -86,6 +102,22 @@ def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
     (numpy.ndarray or NoneType)
     """
     return None if obj is None else frombuffer(obj, dtype=uint8, count=32)
+
+
+def signature_to_bytes(obj: bytes | None) -> bytes | None:
+    """Convert a signature to None as needed.
+
+    NULL_SHA256 is converted to None.
+
+    Args
+    ----
+    obj (bytes or None):
+
+    Returns
+    -------
+    (bytes or None)
+    """
+    return None if obj is NULL_SHA256 else obj
 
 
 def ndarray_to_memoryview(obj: NDArray | bytes | None) -> memoryview | None:

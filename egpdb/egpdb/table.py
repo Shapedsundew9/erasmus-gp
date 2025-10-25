@@ -1,6 +1,5 @@
 """Application layer wrapper for raw_table."""
 
-from copy import deepcopy
 from json import load
 from os.path import join
 from typing import Any, Callable, Iterable, Literal
