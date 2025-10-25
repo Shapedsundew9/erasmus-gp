@@ -20,10 +20,7 @@ class TestGenerateScripts(TestCase):
         This test verifies that the generate_codons function can run successfully
         without actually writing any files, ensuring the core logic executes cleanly.
         """
-        try:
-            generate_codons(write=False)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            self.fail(f"generate_codons(write=False) raised an exception: {e}")
+        generate_codons(write=False)
 
     def test_generate_meta_codons_no_write(self) -> None:
         """Test that generate_meta_codons executes without exceptions when write=False.
@@ -31,10 +28,7 @@ class TestGenerateScripts(TestCase):
         This test verifies that the generate_meta_codons function can run successfully
         without actually writing any files, ensuring the core logic executes cleanly.
         """
-        try:
-            generate_meta_codons(write=False)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            self.fail(f"generate_meta_codons(write=False) raised an exception: {e}")
+        generate_meta_codons(write=False)
 
     def test_generate_types_def_no_write(self) -> None:
         """Test that generate_types_def executes without exceptions when write=False.
@@ -42,7 +36,4 @@ class TestGenerateScripts(TestCase):
         This test verifies that the generate_types_def function can run successfully
         without actually writing any files, ensuring the core logic executes cleanly.
         """
-        try:
-            generate_types_def(write=False)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            self.fail(f"generate_types_def(write=False) raised an exception: {e}")
+        generate_types_def(write=False)

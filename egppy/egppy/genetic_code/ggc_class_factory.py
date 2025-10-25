@@ -151,7 +151,10 @@ class GGCMixin(EGCMixin):
         self["_reference_count"] = gcabc.get("_reference_count", 0)
         tmp = gcabc.get("created", datetime.now(UTC))
         self["created"] = (
-            tmp.replace(tzinfo=UTC) if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+            # If the datetime exists it is from the database and has no timezone info.
+            tmp.replace(tzinfo=UTC)
+            if isinstance(tmp, datetime)
+            else datetime.fromisoformat(tmp)
         )
         # TODO: creator can be a reference into an object set as there will be many duplicates
         self["creator"] = gcabc.get("creator", ANONYMOUS_CREATOR)
@@ -207,7 +210,10 @@ class GGCMixin(EGCMixin):
         self["survivability"] = gcabc.get("survivability", 0.0)
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = (
-            tmp.replace(tzinfo=UTC) if isinstance(tmp, datetime) else datetime.fromisoformat(tmp)
+            # If the datetime exists it is from the database and has no timezone info.
+            tmp.replace(tzinfo=UTC)
+            if isinstance(tmp, datetime)
+            else datetime.fromisoformat(tmp)
         )
 
         if self["signature"] is None or self["signature"] == NULL_SIGNATURE:

@@ -43,7 +43,7 @@ class GenePoolInterface(GPIABC):
         if config is None:
             raise ValueError("A DBManagerConfig must be provided for the first initialization.")
         self._dbm = DBManager(config)
-        if self._dev_check():
+        if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
             self._dbm = DBManager(config, delete=True)
         self._local_dbt = DBTableStore(self._dbm.managed_gc_table.raw.config, GGCDict)
@@ -85,12 +85,14 @@ class GenePoolInterface(GPIABC):
         """
         self._ggc_cache[signature] = value
 
-    def _dev_check(self) -> bool:
-        """If we are in developer mode and the data sources are different
-        # from those in the database then we need to reload them.
+    def _should_reload_sources(self) -> bool:
+        """Determine if the Gene Pool sources should be reloaded.
+
+        If we are in developer mode and the data sources are different
+        from those in the database, then we need to reload them.
 
         Returns:
-            True if we reloaded the data, False otherwise.
+            True if sources should be reloaded, False otherwise.
         """
         if EGP_PROFILE == EGP_DEV_PROFILE and self._dbm.managed_sources_table:
             sources: RowIter = self._dbm.managed_sources_table.select()
@@ -98,7 +100,7 @@ class GenePoolInterface(GPIABC):
             for filename in SOURCE_FILES:
                 data = load_signature_data(filename + ".sig")
                 file_hash = data["file_hash"]
-                if not file_hash in hashes:
+                if file_hash not in hashes:
                     return True
                 hashes.remove(file_hash)
             return bool(hashes)
