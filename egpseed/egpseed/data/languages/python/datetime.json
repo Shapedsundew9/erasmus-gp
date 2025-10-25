@@ -1,185 +1,185 @@
 {
-    "datetime.now": {
-        "inline": "datetime.now()",
-        "description": "Current date and time",
-        "outputs": [
-            "datetime"
-        ]
-    },
-    "datetime.utcnow": {
-        "inline": "datetime.utcnow()",
-        "description": "Current UTC date and time",
-        "outputs": [
-            "datetime"
-        ]
-    },
-    "datetime.fromtimestamp": {
-        "inline": "datetime.fromtimestamp({i0}, tz=timezone.utc)",
-        "inputs": [
-            "float"
+  "add_timedelta": {
+    "inline": "{i0} + {i1}",
+    "inputs": [
+      "datetime",
+      "timedelta"
+    ],
+    "description": "Add a timedelta to a datetime",
+    "outputs": [
+      "datetime"
+    ]
+  },
+  "datetime.fromtimestamp": {
+    "inline": "datetime.fromtimestamp({i0}, tz=timezone.utc)",
+    "inputs": [
+      "float"
+    ],
+    "description": "datetime from POSIX timestamp",
+    "outputs": [
+      "datetime"
+    ],
+    "imports": [
+      {
+        "aip": [
+          "datetime"
         ],
-        "description": "datetime from POSIX timestamp",
-        "outputs": [
-            "datetime"
-        ],
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "timezone"
-            }
-        ]
-    },
-    "datetime.strptime": {
-        "inline": "datetime.strptime({i0}, {i1})",
-        "inputs": [
-            "str",
-            "str"
-        ],
-        "description": "datetime from string",
-        "outputs": [
-            "datetime"
-        ]
-    },
-    "isoformat": {
-        "inline": "{i0}.isoformat()",
-        "inputs": [
-            "datetime"
-        ],
-        "description": "ISO 8601 format",
-        "outputs": [
-            "str"
-        ]
-    },
-    "strftime": {
-        "inline": "{i0}.strftime({i1})",
-        "inputs": [
-            "datetime",
-            "str"
-        ],
-        "description": "Format datetime into a string",
-        "outputs": [
-            "str"
-        ]
-    },
-    "weekday": {
-        "inline": "{i0}.weekday()",
-        "inputs": [
-            "datetime"
-        ],
-        "description": "Day of the week as integer (Monday is 0)",
-        "outputs": [
-            "int"
-        ]
-    },
-    "isoweekday": {
-        "inline": "{i0}.isoweekday()",
-        "inputs": [
-            "datetime"
-        ],
-        "description": "Day of the week as integer (Monday is 1)",
-        "outputs": [
-            "int"
-        ]
-    },
-    "lt": {
-        "inline": "{i0} < {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Less than",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "le": {
-        "inline": "{i0} <= {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Less than or equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "gt": {
-        "inline": "{i0} > {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Greater than",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "ge": {
-        "inline": "{i0} >= {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Greater than or equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "eq": {
-        "inline": "{i0} == {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "ne": {
-        "inline": "{i0} != {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Not equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "sub_datetime": {
-        "inline": "{i0} - {i1}",
-        "inputs": [
-            "datetime",
-            "datetime"
-        ],
-        "description": "Subtract two datetimes",
-        "outputs": [
-            "timedelta"
-        ]
-    },
-    "add_timedelta": {
-        "inline": "{i0} + {i1}",
-        "inputs": [
-            "datetime",
-            "timedelta"
-        ],
-        "description": "Add a timedelta to a datetime",
-        "outputs": [
-            "datetime"
-        ]
-    },
-    "sub_timedelta": {
-        "inline": "{i0} - {i1}",
-        "inputs": [
-            "datetime",
-            "timedelta"
-        ],
-        "description": "Subtract a timedelta from a datetime",
-        "outputs": [
-            "datetime"
-        ]
-    }
+        "name": "timezone"
+      }
+    ]
+  },
+  "datetime.now": {
+    "inline": "datetime.now()",
+    "description": "Current date and time",
+    "outputs": [
+      "datetime"
+    ]
+  },
+  "datetime.strptime": {
+    "inline": "datetime.strptime({i0}, {i1})",
+    "inputs": [
+      "str",
+      "str"
+    ],
+    "description": "datetime from string",
+    "outputs": [
+      "datetime"
+    ]
+  },
+  "datetime.utcnow": {
+    "inline": "datetime.utcnow()",
+    "description": "Current UTC date and time",
+    "outputs": [
+      "datetime"
+    ]
+  },
+  "eq": {
+    "inline": "{i0} == {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Equal to",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "ge": {
+    "inline": "{i0} >= {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Greater than or equal to",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "gt": {
+    "inline": "{i0} > {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Greater than",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isoformat": {
+    "inline": "{i0}.isoformat()",
+    "inputs": [
+      "datetime"
+    ],
+    "description": "ISO 8601 format",
+    "outputs": [
+      "str"
+    ]
+  },
+  "isoweekday": {
+    "inline": "{i0}.isoweekday()",
+    "inputs": [
+      "datetime"
+    ],
+    "description": "Day of the week as integer (Monday is 1)",
+    "outputs": [
+      "int"
+    ]
+  },
+  "le": {
+    "inline": "{i0} <= {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Less than or equal to",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "lt": {
+    "inline": "{i0} < {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Less than",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "ne": {
+    "inline": "{i0} != {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Not equal to",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "strftime": {
+    "inline": "{i0}.strftime({i1})",
+    "inputs": [
+      "datetime",
+      "str"
+    ],
+    "description": "Format datetime into a string",
+    "outputs": [
+      "str"
+    ]
+  },
+  "sub_datetime": {
+    "inline": "{i0} - {i1}",
+    "inputs": [
+      "datetime",
+      "datetime"
+    ],
+    "description": "Subtract two datetimes",
+    "outputs": [
+      "timedelta"
+    ]
+  },
+  "sub_timedelta": {
+    "inline": "{i0} - {i1}",
+    "inputs": [
+      "datetime",
+      "timedelta"
+    ],
+    "description": "Subtract a timedelta from a datetime",
+    "outputs": [
+      "datetime"
+    ]
+  },
+  "weekday": {
+    "inline": "{i0}.weekday()",
+    "inputs": [
+      "datetime"
+    ],
+    "description": "Day of the week as integer (Monday is 0)",
+    "outputs": [
+      "int"
+    ]
+  }
 }

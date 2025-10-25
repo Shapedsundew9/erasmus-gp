@@ -31,6 +31,7 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 
 *   **Style:** Write clean, well-documented, and idiomatic Python code. Adhere to the coding style enforced by `black` (100-character line length) and `isort`, as configured in the root `pyproject.toml`.
 *   **Type Hinting:** Use type hints for all function signatures and variables where appropriate. The project uses `pyright` for static type checking.
+*   **Imports:** Use explicit imports e.g. `from json import dump, load` rather than `import json` to improve code clarity.
 *   **Logging:** Use the custom logger from `egpcommon.egp_log` for any new log messages and lazy formatting in log calls.
 *   **Immutability:** The function `sha256_signature` in `egpcommon/egpcommon/common.py` is critical for data integrity and **must not be changed**. Its behavior is fundamental to the entire system.
 *   **Dependencies:** Add new dependencies to the appropriate `pyproject.toml` and `requirements.txt` file for the relevant package.

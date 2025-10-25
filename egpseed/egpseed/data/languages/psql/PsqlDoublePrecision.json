@@ -1,34 +1,34 @@
 {
-    "sqrt": {
-        "inline": "psql_sqrt({i0})",
-        "description": "PSQL square root of {t0}",
-        "inputs": [
-            "PsqlDoublePrecision"
-        ],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
-    },
-    "cbrt": {
-        "inline": "psql_cbrt({i0})",
-        "description": "PSQL cube root of {t0}",
-        "inputs": [
-            "PsqlDoublePrecision"
-        ],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
+  "cbrt": {
+    "inline": "psql_cbrt({i0})",
+    "description": "PSQL cube root of {t0}",
+    "inputs": [
+      "PsqlDoublePrecision"
+    ],
+    "outputs": [
+      "PsqlDoublePrecision"
+    ],
+    "properties": {
+      "gctsp": {
+        "python": false,
+        "psql": true
+      }
     }
+  },
+  "sqrt": {
+    "inline": "psql_sqrt({i0})",
+    "description": "PSQL square root of {t0}",
+    "inputs": [
+      "PsqlDoublePrecision"
+    ],
+    "outputs": [
+      "PsqlDoublePrecision"
+    ],
+    "properties": {
+      "gctsp": {
+        "python": false,
+        "psql": true
+      }
+    }
+  }
 }

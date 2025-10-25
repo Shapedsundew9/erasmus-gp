@@ -29,6 +29,7 @@ from typing import Any
 
 from bitdict import BitDictABC, bitdict_factory
 
+from egpcommon.common import ensure_sorted_json_keys
 from egpcommon.security import dump_signed_json
 from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
 
@@ -125,7 +126,9 @@ def generate_types_def(write: bool = False) -> None:
     # The types.json file is a raw definition of types.
     # Only non-default key:value pairs are stored in the file and
     # container types (TT > 0) are all defined with their root types e.g. "dict[Hashable, Any]"
-    with open(join(dirname(__file__), "data", "types.json"), encoding="utf-8") as f:
+    types_file = join(dirname(__file__), "data", "types.json")
+    ensure_sorted_json_keys(types_file)
+    with open(types_file, encoding="utf-8") as f:
         types: dict[str, dict[str, Any]] = load(f)
 
     # Load any existing types_def.json file to preserve UIDs where possible
@@ -636,6 +639,12 @@ def generate_types_def(write: bool = False) -> None:
             definition["uid"] not in uids
         ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
         uids.add(definition["uid"])
+
+        # All EGP types and methods must come from the physics module
+        # This maintains the abstraction from the structure of egp* modules
+        for imp in definition.get("imports", []):
+            if imp["aip"] and imp["aip"][0] == "egppy":
+                assert imp["aip"][1] == "physics", f"Invalid EGP physical import: {imp['aip']}"
 
         # Make sure previous definitions are not violated.
         if definition["name"] in existing_types_def:

@@ -3,6 +3,7 @@
 import tempfile
 import unittest
 
+from egpcommon.security import dump_signed_json
 from egpdb.configuration import DatabaseConfig
 from egpdbmgr.configuration import DBManagerConfig
 
@@ -79,21 +80,44 @@ class TestDBManagerConfig(unittest.TestCase):
     def test_load_config(self):
         """Test the load_config method of the DBManagerConfig class."""
         config = DBManagerConfig()
-        with tempfile.NamedTemporaryFile("w+", encoding="utf8", delete=True) as tmpfile:
-            tmpfile.write(
-                '{"name": "DBManagerConfig", "databases": {"erasmus_db": {}}, "managed_db": '
-                '"erasmus_db", "managed_type": "pool", "upstream_dbs": [], "upstream_type": '
-                '"library", "archive_db": "erasmus_archive_db"}'
-            )
-            tmpfile.flush()
-            config.load_config(tmpfile.name)
-        self.assertEqual(config.name, self.default_config["name"])
-        self.assertEqual(config.databases, self.default_config["databases"])
-        self.assertEqual(config.managed_db, self.default_config["managed_db"])
-        self.assertEqual(config.managed_type, self.default_config["managed_type"])
-        self.assertEqual(config.upstream_dbs, self.default_config["upstream_dbs"])
-        self.assertEqual(config.upstream_type, self.default_config["upstream_type"])
-        self.assertEqual(config.archive_db, self.default_config["archive_db"])
+        with tempfile.NamedTemporaryFile(
+            "w+", encoding="utf8", delete=False, suffix=".json"
+        ) as tmpfile:
+            tmpfile_path = tmpfile.name
+
+        try:
+            # Create the test data
+            test_data = {
+                "name": "DBManagerConfig",
+                "databases": {"erasmus_db": {}},
+                "managed_db": "erasmus_db",
+                "managed_type": "pool",
+                "upstream_dbs": [],
+                "upstream_type": "library",
+                "archive_db": "erasmus_archive_db",
+            }
+
+            # Use dump_signed_json to create a signed JSON file
+            dump_signed_json(test_data, tmpfile_path)
+
+            # Load the configuration from the signed JSON file
+            config.load_config(tmpfile_path)
+
+            self.assertEqual(config.name, self.default_config["name"])
+            self.assertEqual(config.databases, self.default_config["databases"])
+            self.assertEqual(config.managed_db, self.default_config["managed_db"])
+            self.assertEqual(config.managed_type, self.default_config["managed_type"])
+            self.assertEqual(config.upstream_dbs, self.default_config["upstream_dbs"])
+            self.assertEqual(config.upstream_type, self.default_config["upstream_type"])
+            self.assertEqual(config.archive_db, self.default_config["archive_db"])
+        finally:
+            # Clean up the temporary file and its signature file
+            import os
+
+            if os.path.exists(tmpfile_path):
+                os.unlink(tmpfile_path)
+            if os.path.exists(f"{tmpfile_path}.sig"):
+                os.unlink(f"{tmpfile_path}.sig")
 
     def test_name_validation(self):
         """Test the validation of the name attribute."""

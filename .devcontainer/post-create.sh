@@ -27,6 +27,11 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 # chmod +x .devcontainer/pre-push-hooks.sh
 # ./.devcontainer/pre-push-hooks.sh
 
+
+# Copy public keys to the devcontainer shared folder
+echo "Copying public keys to devcontainer shared folder..."
+sudo cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
+
 # Generate data files
 echo "Generating data files..."
 mkdir -p ./egpdbmgr/egpdbmgr/data

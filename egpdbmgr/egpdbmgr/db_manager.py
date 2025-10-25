@@ -18,14 +18,17 @@ The DB Manager is responsible for:
 """
 
 from copy import deepcopy
+from datetime import UTC, datetime
 from typing import Any, Callable
 
-from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
+from egpcommon.common import SHAPEDSUNDEW9_UUID
 from egpcommon.conversions import (
     compress_json,
     decode_properties,
     decompress_json,
     encode_properties,
+    memoryview_to_signature,
+    signature_to_bytes,
 )
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
@@ -42,23 +45,53 @@ _logger: Logger = egp_logger(name=__name__)
 # The conversions *MUST* be symmetric i.e. encode followed by decode must produce the original
 # value.
 # {name, encode (output to DB), decode (output to application)}
-CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
+GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
     (
         "cgraph",
-        lambda x: compress_json(x.to_json()),
+        lambda x: compress_json(x.to_json(True)),
         decompress_json,
     ),
     ("meta_data", compress_json, decompress_json),
     ("properties", encode_properties, decode_properties),
+) + tuple(
+    (name, signature_to_bytes, memoryview_to_signature)
+    for name, field in GGC_KVT.items()
+    if field.get("phy_type", "").endswith("Sig")
 )
+META_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
+    "created": {"db_type": "TIMESTAMP", "nullable": False},
+    "creator": {"db_type": "UUID", "nullable": False},
+}
+SOURCES_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
+    "source_path": {"db_type": "VARCHAR", "nullable": False},
+    "creator_uuid": {"db_type": "VARCHAR", "nullable": False},
+    "timestamp": {"db_type": "VARCHAR", "nullable": False},
+    "file_hash": {"db_type": "VARCHAR", "nullable": False},
+    "signature": {"db_type": "VARCHAR", "nullable": False},
+    "algorithm": {"db_type": "VARCHAR", "nullable": False},
+}
 
 
 class DBManager:
     """Database Manager for the EGP."""
 
-    def __init__(self, config: DBManagerConfig) -> None:
+    def __init__(self, config: DBManagerConfig, delete: bool = False) -> None:
         self.config = config
-        self.managed_table = self.create_managed_table()
+        self._delete = delete  # Delete existing tables if True
+        self.managed_gc_table = self.create_managed_table()
+        self.managed_gc_meta_table = self.create_managed_meta_table()
+        self.managed_sources_table = self.create_managed_sources_table()
+
+        if self.managed_gc_meta_table.raw.creator:
+            self.managed_gc_meta_table.insert(
+                # TODO: Need to get the creator from the commandline or config
+                (
+                    {
+                        "creator": str(SHAPEDSUNDEW9_UUID),
+                        "created": datetime.now(UTC).isoformat(),
+                    },
+                )
+            )
 
     def prepare_schemas(self) -> dict[TableTypes, dict[str, Any]]:
         """Prepare the schemas for the different table types.
@@ -86,8 +119,36 @@ class DBManager:
             },
             create_db=True,
             create_table=True,
-            delete_table=EGP_PROFILE == EGP_DEV_PROFILE,
-            conversions=CONVERSIONS,
+            delete_table=self._delete,
+            conversions=GC_TABLE_CONVERSIONS,
+        )
+        return Table(table_config)
+
+    def create_managed_meta_table(self) -> Table:
+        """Create and return the managed meta Table object for the DB Manager."""
+        # Check if remote DB exists. If so download from there.
+        # If not download database file from remote URL: Check if it is signed.
+        table_config = TableConfig(
+            database=self.config.databases[self.config.managed_db],
+            table=self.config.managed_type + "_meta_table",
+            schema=META_TABLE_SCHEMA,
+            create_db=True,
+            create_table=True,
+            delete_table=self._delete,
+        )
+        return Table(table_config)
+
+    def create_managed_sources_table(self) -> Table:
+        """Create and return the managed sources Table object for the DB Manager."""
+        # Check if remote DB exists. If so download from there.
+        # If not download database file from remote URL: Check if it is signed.
+        table_config = TableConfig(
+            database=self.config.databases[self.config.managed_db],
+            table=self.config.managed_type + "_sources_table",
+            schema=SOURCES_TABLE_SCHEMA,
+            create_db=True,
+            create_table=True,
+            delete_table=self._delete,
         )
         return Table(table_config)
 

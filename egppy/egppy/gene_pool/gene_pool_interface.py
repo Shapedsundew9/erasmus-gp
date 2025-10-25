@@ -3,8 +3,10 @@
 from os.path import dirname, join
 from typing import Any
 
+from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
-from egpcommon.security import load_signed_json_list
+from egpcommon.security import load_signature_data, load_signed_json_list
+from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.ggc_class_factory import GGCDict
@@ -15,6 +17,13 @@ from egppy.storage.store.db_table_store import DBTableStore
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
+
+
+# Source files
+SOURCE_FILES = tuple(
+    join(dirname(__file__), "..", "data", filename)
+    for filename in ("codons.json", "meta_codons.json")
+)
 
 
 class GenePoolInterface(GPIABC):
@@ -34,7 +43,10 @@ class GenePoolInterface(GPIABC):
         if config is None:
             raise ValueError("A DBManagerConfig must be provided for the first initialization.")
         self._dbm = DBManager(config)
-        self._local_dbt = DBTableStore(self._dbm.managed_table.raw.config, GGCDict)
+        if self._should_reload_sources():
+            _logger.info("Developer mode: Reloading Gene Pool data sources.")
+            self._dbm = DBManager(config, delete=True)
+        self._local_dbt = DBTableStore(self._dbm.managed_gc_table.raw.config, GGCDict)
         self._ggc_cache = DictCache(
             {
                 "max_items": cache_size,
@@ -48,14 +60,20 @@ class GenePoolInterface(GPIABC):
         # based on the configuration.
         # TODO: Make this controllable via the configuration.
         if not self._local_dbt:
-            for filename in ("codons.json", "meta_codons.json"):
-                for ggc_json in load_signed_json_list(
-                    join(dirname(__file__), "..", "data", filename)
-                ):
+            for filename in SOURCE_FILES:
+
+                # Load the data into the GGC cache
+                for ggc_json in load_signed_json_list(filename):
                     ggc = GGCDict(ggc_json)
                     self._ggc_cache[ggc["signature"]] = ggc
+
+                # Add the source file to the sources table
+                data = load_signature_data(filename + ".sig")
+                data["source_path"] = filename
+                self._dbm.managed_sources_table.insert((data,))
+
+            # Make sure all data is written to the database
             self._ggc_cache.copyback()
-        self._initialization_complete = True
 
     def __getitem__(self, signature: bytes) -> GGCDict:
         """Get a Genetic Code by its signature."""
@@ -66,6 +84,29 @@ class GenePoolInterface(GPIABC):
         NOTE: This will be an UPSERT operation in the database.
         """
         self._ggc_cache[signature] = value
+
+    def _should_reload_sources(self) -> bool:
+        """Determine if the Gene Pool sources should be reloaded.
+
+        If we are in developer mode and the data sources are different
+        from those in the database, then we need to reload them.
+
+        Returns:
+            True if sources should be reloaded, False otherwise.
+        """
+        if EGP_PROFILE == EGP_DEV_PROFILE and len(self._dbm.managed_sources_table) >= len(
+            SOURCE_FILES
+        ):
+            sources: RowIter = self._dbm.managed_sources_table.select()
+            hashes: set[bytes] = {row["file_hash"] for row in sources}
+            for filename in SOURCE_FILES:
+                data = load_signature_data(filename + ".sig")
+                file_hash = data["file_hash"]
+                if file_hash not in hashes:
+                    return True
+                hashes.remove(file_hash)
+            return bool(hashes)
+        return False
 
     def consistency(self) -> None:
         """Check the consistency of the Gene Pool."""
@@ -94,7 +135,7 @@ class GenePoolInterface(GPIABC):
             literals: The literals to use in the SQL query.
         """
         query_str = f" WHERE {filter_sql} ORDER BY {order_sql} LIMIT {max(1, min(limit, 16))}"
-        row_iter = self._dbm.managed_table.select(
+        row_iter = self._dbm.managed_gc_table.select(
             query_str, literals, columns=["signature"], container="tuple"
         )
         return tuple(row[0] for row in row_iter)

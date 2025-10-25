@@ -4,15 +4,22 @@ import json
 import os
 import tempfile
 from unittest import TestCase
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519, rsa
 
+from egpcommon.common import SHAPEDSUNDEW9_UUID
 from egpcommon.security import (
+    JSON_FILESIZE_LIMIT,
     HashMismatchError,
     InvalidSignatureError,
     _compute_file_hash,
+    dump_signed_json,
+    load_signed_json,
+    load_signed_json_dict,
+    load_signed_json_list,
     sign_file,
     verify_file_signature,
 )
@@ -378,3 +385,404 @@ class TestSecurity(TestCase):  # pylint: disable=too-many-instance-attributes
             verify_file_signature(filepath, self.ed25519_public_pem, sig_filepath)
 
         self.assertIn("base64", str(context.exception).lower())
+
+
+class TestSignedJSON(TestCase):  # pylint: disable=too-many-instance-attributes
+    """Test cases for signed JSON functions."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        # Create a temporary directory for test files
+        self.test_dir = tempfile.mkdtemp()
+
+        # Generate Ed25519 key pair for testing
+        self.ed25519_private_key = ed25519.Ed25519PrivateKey.generate()
+        self.ed25519_public_key = self.ed25519_private_key.public_key()
+
+        # Serialize keys to PEM format
+        self.ed25519_private_pem = self.ed25519_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
+        self.ed25519_public_pem = self.ed25519_public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        # Generate RSA key pair for testing
+        self.rsa_private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        self.rsa_public_key = self.rsa_private_key.public_key()
+
+        # Serialize RSA keys to PEM format
+        self.rsa_private_pem = self.rsa_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
+        self.rsa_public_pem = self.rsa_public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+    def tearDown(self) -> None:
+        """Clean up test files."""
+        # Remove all files in test directory
+        for filename in os.listdir(self.test_dir):
+            filepath = os.path.join(self.test_dir, filename)
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+        os.rmdir(self.test_dir)
+
+    def _mock_load_private_key(self, path: str) -> ed25519.Ed25519PrivateKey:
+        """Mock function for load_private_key."""
+        return self.ed25519_private_key
+
+    def _mock_load_public_key(self, path: str) -> ed25519.Ed25519PublicKey:
+        """Mock function for load_public_key."""
+        return self.ed25519_public_key
+
+    def test_dump_signed_json_dict(self) -> None:
+        """Test dumping a signed JSON dictionary."""
+        test_data = {"key1": "value1", "key2": 42, "key3": [1, 2, 3]}
+        filepath = os.path.join(self.test_dir, "test_dict.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Verify the JSON file was created
+        self.assertTrue(os.path.exists(filepath))
+
+        # Verify the signature file was created
+        sig_filepath = f"{filepath}.sig"
+        self.assertTrue(os.path.exists(sig_filepath))
+
+        # Verify the JSON content is correct
+        with open(filepath, "r", encoding="utf-8") as f:
+            loaded_data = json.load(f)
+        self.assertEqual(loaded_data, test_data)
+
+        # Verify signature metadata
+        with open(sig_filepath, "r", encoding="utf-8") as f:
+            sig_data = json.load(f)
+        self.assertIn("creator_uuid", sig_data)
+        self.assertIn("file_hash", sig_data)
+        self.assertIn("signature", sig_data)
+        self.assertIn("algorithm", sig_data)
+        self.assertEqual(sig_data["creator_uuid"], str(SHAPEDSUNDEW9_UUID))
+
+    def test_dump_signed_json_list(self) -> None:
+        """Test dumping a signed JSON list."""
+        test_data = [1, 2, 3, "four", {"five": 5}]
+        filepath = os.path.join(self.test_dir, "test_list.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Verify the JSON file was created
+        self.assertTrue(os.path.exists(filepath))
+        self.assertTrue(os.path.exists(f"{filepath}.sig"))
+
+        # Verify the JSON content is correct
+        with open(filepath, "r", encoding="utf-8") as f:
+            loaded_data = json.load(f)
+        self.assertEqual(loaded_data, test_data)
+
+    def test_dump_signed_json_canonical_format(self) -> None:
+        """Test that dump_signed_json creates canonical JSON with sorted keys."""
+        test_data = {"z_key": 1, "a_key": 2, "m_key": 3}
+        filepath = os.path.join(self.test_dir, "test_canonical.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Read the raw file content
+        with open(filepath, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Verify keys are sorted (a_key should come before m_key, which comes before z_key)
+        a_pos = content.find('"a_key"')
+        m_pos = content.find('"m_key"')
+        z_pos = content.find('"z_key"')
+        self.assertLess(a_pos, m_pos)
+        self.assertLess(m_pos, z_pos)
+
+    def test_load_signed_json_dict(self) -> None:
+        """Test loading a signed JSON dictionary."""
+        test_data = {"key1": "value1", "key2": 42}
+        filepath = os.path.join(self.test_dir, "test_load_dict.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Load the signed JSON
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_data = load_signed_json_dict(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+        self.assertIsInstance(loaded_data, dict)
+
+    def test_load_signed_json_list(self) -> None:
+        """Test loading a signed JSON list."""
+        test_data = [1, 2, 3, "test"]
+        filepath = os.path.join(self.test_dir, "test_load_list.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Load the signed JSON
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_data = load_signed_json_list(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+        self.assertIsInstance(loaded_data, list)
+
+    def test_load_signed_json_generic(self) -> None:
+        """Test loading signed JSON with generic function."""
+        test_data_dict = {"test": "data"}
+        test_data_list = [1, 2, 3]
+
+        filepath_dict = os.path.join(self.test_dir, "test_generic_dict.json")
+        filepath_list = os.path.join(self.test_dir, "test_generic_list.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data_dict, filepath_dict)
+                dump_signed_json(test_data_list, filepath_list)
+
+        # Load both types
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_dict = load_signed_json(filepath_dict)
+            loaded_list = load_signed_json(filepath_list)
+
+        self.assertEqual(loaded_dict, test_data_dict)
+        self.assertEqual(loaded_list, test_data_list)
+
+    def test_load_signed_json_dict_wrong_type(self) -> None:
+        """Test that load_signed_json_dict raises ValueError for non-dict data."""
+        test_data = [1, 2, 3]  # List, not dict
+        filepath = os.path.join(self.test_dir, "test_wrong_type.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Try to load as dict should fail
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            with self.assertRaises(ValueError) as context:
+                load_signed_json_dict(filepath)
+
+        self.assertIn("Expected a dictionary", str(context.exception))
+
+    def test_load_signed_json_list_wrong_type(self) -> None:
+        """Test that load_signed_json_list raises ValueError for non-list data."""
+        test_data = {"key": "value"}  # Dict, not list
+        filepath = os.path.join(self.test_dir, "test_wrong_type_list.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Try to load as list should fail
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            with self.assertRaises(ValueError) as context:
+                load_signed_json_list(filepath)
+
+        self.assertIn("Expected a list", str(context.exception))
+
+    def test_load_signed_json_invalid_signature(self) -> None:
+        """Test that loading fails with tampered signature."""
+        test_data = {"key": "value"}
+        filepath = os.path.join(self.test_dir, "test_tampered.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Tamper with the JSON content
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump({"key": "tampered_value"}, f)
+
+        # Try to load should fail due to hash mismatch
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            with self.assertRaises(HashMismatchError):
+                load_signed_json(filepath)
+
+    def test_load_signed_json_missing_signature_file(self) -> None:
+        """Test that loading fails when signature file is missing."""
+        test_data = {"key": "value"}
+        filepath = os.path.join(self.test_dir, "test_no_sig.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Remove signature file
+        sig_filepath = f"{filepath}.sig"
+        os.remove(sig_filepath)
+
+        # Try to load should fail
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            with self.assertRaises(FileNotFoundError):
+                load_signed_json(filepath)
+
+    def test_dump_signed_json_file_size_limit(self) -> None:
+        """Test that dumping very large JSON raises ValueError."""
+        # Create data that will exceed the limit when serialized
+        # Using a large string to make the JSON file very large
+        large_data = {"data": "x" * (JSON_FILESIZE_LIMIT + 1000)}
+        filepath = os.path.join(self.test_dir, "test_large.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                with self.assertRaises(ValueError) as context:
+                    dump_signed_json(large_data, filepath)
+
+        self.assertIn("exceeds limit", str(context.exception))
+
+    def test_load_signed_json_file_size_limit(self) -> None:
+        """Test that loading a file exceeding size limit raises ValueError."""
+        # Create a valid signed JSON file first
+        test_data = {"key": "value"}
+        filepath = os.path.join(self.test_dir, "test_size_check.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Mock getsize to return a value exceeding the limit
+        with patch("egpcommon.security.getsize", return_value=JSON_FILESIZE_LIMIT + 1):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                with self.assertRaises(ValueError) as context:
+                    load_signed_json(filepath)
+
+        self.assertIn("exceeds limit", str(context.exception))
+
+    def test_dump_signed_json_complex_nested_structure(self) -> None:
+        """Test dumping and loading complex nested JSON structures."""
+        test_data = {
+            "level1": {
+                "level2": {
+                    "level3": ["item1", "item2", {"level4": "value"}],
+                    "numbers": [1, 2, 3.14, -42],
+                },
+                "boolean": True,
+                "null_value": None,
+            },
+            "list_of_dicts": [{"a": 1}, {"b": 2}, {"c": 3}],
+        }
+        filepath = os.path.join(self.test_dir, "test_complex.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Load and verify
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_data = load_signed_json_dict(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+
+    def test_dump_signed_json_unicode_characters(self) -> None:
+        """Test dumping and loading JSON with unicode characters."""
+        test_data = {
+            "english": "Hello",
+            "spanish": "¡Hola!",
+            "chinese": "你好",
+            "emoji": "🚀🐍",
+            "special": "\\n\\t\\r",
+        }
+        filepath = os.path.join(self.test_dir, "test_unicode.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Load and verify
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_data = load_signed_json_dict(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+
+    def test_dump_signed_json_empty_dict(self) -> None:
+        """Test dumping and loading an empty dictionary."""
+        test_data: dict = {}
+        filepath = os.path.join(self.test_dir, "test_empty_dict.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Load and verify
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_data = load_signed_json_dict(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+
+    def test_dump_signed_json_empty_list(self) -> None:
+        """Test dumping and loading an empty list."""
+        test_data: list = []
+        filepath = os.path.join(self.test_dir, "test_empty_list.json")
+
+        with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Load and verify
+        with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+            loaded_data = load_signed_json_list(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+
+    def test_dump_signed_json_rsa_algorithm(self) -> None:
+        """Test that dump_signed_json works with RSA keys."""
+
+        def mock_load_rsa_private_key(path: str) -> rsa.RSAPrivateKey:
+            return self.rsa_private_key
+
+        def mock_load_rsa_public_key(path: str) -> rsa.RSAPublicKey:
+            return self.rsa_public_key
+
+        test_data = {"algorithm": "RSA"}
+        filepath = os.path.join(self.test_dir, "test_rsa.json")
+
+        with patch("egpcommon.security.load_private_key", mock_load_rsa_private_key):
+            with patch("egpcommon.security.load_public_key", mock_load_rsa_public_key):
+                dump_signed_json(test_data, filepath)
+
+        # Verify signature file has RSA algorithm
+        sig_filepath = f"{filepath}.sig"
+        with open(sig_filepath, "r", encoding="utf-8") as f:
+            sig_data = json.load(f)
+        self.assertEqual(sig_data["algorithm"], "RSA")
+
+        # Load and verify
+        with patch("egpcommon.security.load_public_key", mock_load_rsa_public_key):
+            loaded_data = load_signed_json_dict(filepath)
+
+        self.assertEqual(loaded_data, test_data)
+
+    def test_multiple_dump_load_cycles(self) -> None:
+        """Test multiple dump and load cycles preserve data integrity."""
+        test_data = {"cycle": 0, "data": "test"}
+        filepath = os.path.join(self.test_dir, "test_cycles.json")
+
+        for i in range(3):
+            test_data["cycle"] = i
+
+            with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
+                with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                    dump_signed_json(test_data, filepath)
+
+            with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
+                loaded_data = load_signed_json_dict(filepath)
+
+            self.assertEqual(loaded_data, test_data)
+            self.assertEqual(loaded_data["cycle"], i)

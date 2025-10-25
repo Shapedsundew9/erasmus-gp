@@ -4,24 +4,28 @@ import base64
 import binascii
 import hashlib
 import json
-import os
 from datetime import UTC, datetime
 from json import dump, load
-from os.path import getsize
+from os import environ
+from os.path import exists, getsize, join
 from typing import Any
 from uuid import UUID
 
 from cryptography.exceptions import InvalidSignature as CryptographyInvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519, padding, rsa
+from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, PublicKeyTypes
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.common import SHAPEDSUNDEW9_UUID
+from egpcommon.egp_log import Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
+
+
+# Constants
+PUBLIC_KEY_FOLDER = "/usr/local/share/egp/public_keys"
+PRIVATE_KEY_FILE = environ.get("EGP_PRIVATE_KEY_FILE", "/run/secrets/private_key")
 
 
 # Custom Exceptions
@@ -35,6 +39,71 @@ class HashMismatchError(Exception):
 
 # JSON filesize limit
 JSON_FILESIZE_LIMIT = 2**30  # 1 GB
+
+
+def load_private_key(private_key_path: str) -> PrivateKeyTypes:
+    """Load a private key from a PEM file.
+
+    This function reads a private key from the specified file path and returns
+    a private key object that can be used for signing operations.
+
+    Args:
+        private_key_path: The absolute or relative path to the private key file
+                          (e.g., 'private_key.pem').
+    Returns:
+        A private key object from the cryptography library (e.g., Ed25519PrivateKey,
+        RSAPrivateKey, etc.).
+    """
+    with open(private_key_path, "rb") as key_file:
+        key_bytes = key_file.read()
+
+    return serialization.load_pem_private_key(key_bytes, password=None)
+
+
+def private_key_type(private_key: PrivateKeyTypes) -> str:
+    """Return the type of the private key as a string."""
+    if isinstance(private_key, ed25519.Ed25519PrivateKey):
+        return "Ed25519"
+    if isinstance(private_key, rsa.RSAPrivateKey):
+        return "RSA"
+    return "Unknown"
+
+
+def load_public_key(file_path: str) -> PublicKeyTypes:
+    """
+    Loads a public key from a PEM-formatted file.
+
+    This function reads a public key from the specified file path and returns
+    a public key object that can be used for operations like signature
+    verification.
+
+    Args:
+        file_path: The absolute or relative path to the public key file
+                   (e.g., 'public_key.pub' or 'user.pem').
+
+    Returns:
+        A public key object from the cryptography library (e.g., Ed25519PublicKey,
+        RSAPublicKey, etc.).
+
+    Raises:
+        FileNotFoundError: If the file at the specified path does not exist.
+        ValueError: If the file content is not a valid PEM-encoded public key
+                    or is malformed.
+        UnsupportedAlgorithm: If the key type is not supported by the backend.
+    """
+    with open(file_path, "rb") as key_file:
+        key_bytes = key_file.read()
+
+    return serialization.load_pem_public_key(key_bytes)
+
+
+def public_key_type(public_key: PublicKeyTypes) -> str:
+    """Return the type of the public key as a string."""
+    if isinstance(public_key, ed25519.Ed25519PublicKey):
+        return "Ed25519"
+    if isinstance(public_key, rsa.RSAPublicKey):
+        return "RSA"
+    return "Unknown"
 
 
 def _create_signature_payload(file_hash: str, creator_uuid: str, algorithm: str) -> str:
@@ -97,7 +166,7 @@ def sign_file(
         FileNotFoundError: If the file to sign does not exist.
         ValueError: If the algorithm is not supported or key format is invalid.
     """
-    if not os.path.exists(filepath):
+    if not exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
 
     # Compute the SHA-256 hash of the file
@@ -161,6 +230,33 @@ def sign_file(
     return sig_filepath
 
 
+def load_signature_data(path: str) -> dict[str, Any]:
+    """Load and validate signature metadata from a .sig JSON file.
+
+    Args:
+        path: Path to the .sig JSON file.
+    Returns:
+        Dictionary containing signature metadata with the structure:
+        {
+            "file_hash": str,  # sha256 hexdigest
+            "signature": str,  # b64 encoded
+            "algorithm": str,
+            "creator_uuid": str
+        }
+    Raises:
+        FileNotFoundError: If the signature file does not exist.
+        ValueError: If required fields are missing in the signature file.
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        data = load(f)
+
+    required_fields = ["file_hash", "signature", "algorithm", "creator_uuid"]
+    for field in required_fields:
+        if field not in data:
+            raise ValueError(f"Missing required field in signature file: {field}")
+    return data
+
+
 def verify_file_signature(  # pylint: disable=too-many-branches,too-many-locals
     filepath: str,
     public_key_pem: str,
@@ -185,24 +281,16 @@ def verify_file_signature(  # pylint: disable=too-many-branches,too-many-locals
         HashMismatchError: If the file hash doesn't match the hash in the signature file.
         ValueError: If the algorithm is not supported or signature data is invalid.
     """
-    if not os.path.exists(filepath):
+    if not exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
 
     if sig_filepath is None:
         sig_filepath = f"{filepath}.sig"
 
-    if not os.path.exists(sig_filepath):
+    if not exists(sig_filepath):
         raise FileNotFoundError(f"Signature file not found: {sig_filepath}")
 
-    # Load signature metadata
-    with open(sig_filepath, "r", encoding="utf-8") as f:
-        sig_data = load(f)
-
-    # Validate required fields
-    required_fields = ["file_hash", "signature", "algorithm", "creator_uuid"]
-    for field in required_fields:
-        if field not in sig_data:
-            raise ValueError(f"Missing required field in signature file: {field}")
+    sig_data = load_signature_data(sig_filepath)
 
     stored_hash = sig_data["file_hash"]
     signature_b64 = sig_data["signature"]
@@ -273,10 +361,14 @@ def dump_signed_json(data: dict | list, fullpath: str) -> None:
     """
     Dump a signed JSON file with canonical formatting and embedded signature.
 
-    The function serializes the provided data (dict or list) to JSON using sorted keys and compact separators
-    to ensure a canonical representation. It then generates a digital signature over the canonical JSON payload,
-    including critical metadata such as the creator UUID and signature algorithm. The resulting file includes
-    both the signed data and the signature, allowing for later verification of integrity and authenticity.
+    The function serializes the provided data (dict or list) to JSON using sorted keys and
+    compact separators
+    to ensure a canonical representation. It then generates a digital signature over the canonical
+    JSON payload,
+    including critical metadata such as the creator UUID and signature algorithm.
+    The resulting file includes
+    both the signed data and the signature, allowing for later verification of integrity and
+    authenticity.
 
     Args:
         data: The data to serialize and sign (dict or list).
@@ -287,14 +379,43 @@ def dump_signed_json(data: dict | list, fullpath: str) -> None:
         InvalidSignatureError: If signing fails.
 
     Note:
-        The implementation must ensure that the signature covers both the data and relevant metadata,
+        The implementation must ensure that the signature covers both the data and
+        relevant metadata,
         and that the file is written in a format suitable for later verification.
     """
-    # TODO: Implementation Needed
     with open(fullpath, "w", encoding="utf-8") as f:
         dump(data, f, indent=2, sort_keys=True, ensure_ascii=True)
     # Prevents continuing with a file we can't read
     _file_size_limit(fullpath, JSON_FILESIZE_LIMIT)
+
+    # Load the private key for signing
+    private_key = load_private_key(PRIVATE_KEY_FILE)
+    private_key_type_str = private_key_type(private_key)
+    private_key_str = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode("utf-8")
+    # TODO:
+    #   1. Encrypted private key should be default, with password retrieval mechanism.
+    #   2. Need UUID associated with the private key for creator_uuid.
+    # For now we use the SHAPEDSUNDEW9_UUID as a placeholder.
+    sig_file_path = sign_file(
+        fullpath, private_key_str, SHAPEDSUNDEW9_UUID, algorithm=private_key_type_str
+    )
+
+    # Make sure the signature file is created and valid
+    if not exists(sig_file_path):
+        raise InvalidSignatureError(f"Failed to create signature file: {sig_file_path}")
+
+    # TODO: Determine the right public key to use for verification
+    public_key = load_public_key(join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
+    public_key_str = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("utf-8")
+    if not verify_file_signature(fullpath, public_key_str, sig_filepath=sig_file_path):
+        raise InvalidSignatureError(f"Signature verification failed for file: {fullpath}")
 
 
 def _file_size_limit(fullpath: str, limit: int = 2**30) -> int:
@@ -305,38 +426,21 @@ def _file_size_limit(fullpath: str, limit: int = 2**30) -> int:
     return size
 
 
-def validate_json_signature(fullpath: str) -> bool:  # pylint: disable=unused-argument
-    """Validate the JSON file signature.
-    EGP JSON files are always a list. The first element of the list is the
-    data and the second element is the signature.
-    No matter how the data is formatted the signed JSON always has this format:
-    [
-    <data object>,
-    "lowercase hexadecimal signature[64]",
-    ]
-    The signature is thus always characters 1 to 64 inclusive of the penultimate line.
-    The signature is the signed sha256 hash of characters from the start of the file to
-    the end of the antepenultimate line inclusive (i.e. including the comma after
-    the data object).
-    Validation ensures that the format of the signature line and the last line are exact.
-    """
-    # TODO: Implementation Needed
-    return True
-
-
-def get_signature(creator: UUID) -> bytes:  # pylint: disable=unused-argument
-    """Get the creators signature.
-    May be the local creator, Erasmus, or a validated community creator.
-    """
-    return bytes()  # TODO: Implementation Needed
-
-
 def load_signed_json(fullpath: str) -> dict | list:
     """Load a signed JSON file.
 
     Validate that creator UUID and signature is correct and return the JSON object.
     """
     _file_size_limit(fullpath, JSON_FILESIZE_LIMIT)
+
+    # TODO: Try public keys with the UUID until we find one that works
+    public_key = load_public_key(join(PUBLIC_KEY_FOLDER, str(SHAPEDSUNDEW9_UUID) + ".pub"))
+    public_key_str = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("utf-8")
+    if not verify_file_signature(fullpath, public_key_str, sig_filepath=f"{fullpath}.sig"):
+        raise InvalidSignatureError(f"Signature verification failed for file: {fullpath}")
     with open(fullpath, "r", encoding="ascii") as fileptr:
         return load(fileptr)
 
