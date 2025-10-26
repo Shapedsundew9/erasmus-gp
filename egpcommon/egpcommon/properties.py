@@ -90,7 +90,7 @@ PROPERTIES_CONFIG = {
         "width": 1,
         "default": False,
         "description": (
-            "The genetic code has side effects that are not " "related to the return value."
+            "The genetic code has side effects that are not related to the return value."
         ),
     },
     "static_creation": {

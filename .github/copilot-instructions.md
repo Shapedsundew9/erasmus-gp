@@ -24,8 +24,10 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 
 ## Design Patterns
 
-*   **Custom Classes**: All custom classes inherit from `egpcommon.common_obj.CommonObj`, which provides validation methods and defines a validation pattern to be used consistently across the codebase.
+*   **Common Classes**: All common classes inherit from `egpcommon.common_obj.CommonObj`, which provides validation methods that shall be used to raise exceptions in verify() and consistency(). It also defines a validation pattern in the doc strings to be used consistently across the codebase. All members in a common class shall be slotted.
 *   **Validator Pattern:** The `egpcommon.validator` module implements a Validator class that encapsulates validation logic for various data types and formats.
+*   **Defensive Programming:** Functions and methods must validate their inputs and raise appropriate exceptions as early as possible to prevent propagation of invalid data and reduce additional wasted time & resources.
+*   **Immutable object de-duplication:** Standard python immutable objects (e.g., tuples, frozensets) and freeable objects, once frozen, shall use `egpcommon.object_deduplicator` ObjectDeduplicator to ensure de-duplication and memory efficiency.
 
 ## Coding
 

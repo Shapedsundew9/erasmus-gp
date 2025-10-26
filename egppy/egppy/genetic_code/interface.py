@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Sequence
 
-from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
@@ -163,20 +163,41 @@ class Interface(FreezableObject):
         return len(self.endpoints)
 
     def __setitem__(self, idx: int, value: EndPoint) -> None:
-        """Set an endpoint at a specific index."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self.is_frozen():
-                raise RuntimeError("Cannot modify a frozen Interface")
-            if not isinstance(value, EndPoint):
-                raise TypeError(f"Expected EndPoint, got {type(value)}")
-            if idx < 0 or idx >= len(self.endpoints):
-                raise IndexError("Index out of range")
-            if len(self.endpoints) > 0:
-                if value.row != self.endpoints[0].row:
-                    raise ValueError("All endpoints must have the same row.")
-                if value.cls != self.endpoints[0].cls:
-                    raise ValueError("All endpoints must have the same class.")
-        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        """Set an endpoint at a specific index.
+
+        Args
+        ----
+        idx: int: The index at which to set the endpoint.
+        value: EndPoint: The endpoint to set.
+
+        Raises
+        ------
+        RuntimeError: If the interface is frozen.
+        TypeError: If value is not an EndPoint instance.
+        IndexError: If idx is out of range.
+        ValueError: If the endpoint's row or class doesn't match existing endpoints.
+        """
+        if self.is_frozen():
+            raise RuntimeError("Cannot modify a frozen Interface")
+        if not isinstance(value, EndPoint):
+            raise TypeError(f"Expected EndPoint, got {type(value)}")
+        if idx < 0 or idx >= len(self.endpoints):
+            raise IndexError(
+                f"Index {idx} out of range for interface with {len(self.endpoints)} endpoints"
+            )
+        if not isinstance(self.endpoints, list):
+            raise RuntimeError("Endpoints must be a list to allow item assignment")
+        if len(self.endpoints) > 0:
+            if value.row != self.endpoints[0].row:
+                raise ValueError(
+                    "All endpoints must have the same row. Expected"
+                    f" {self.endpoints[0].row}, got {value.row}"
+                )
+            if value.cls != self.endpoints[0].cls:
+                raise ValueError(
+                    "All endpoints must have the same class. Expected"
+                    f" {self.endpoints[0].cls}, got {value.cls}"
+                )
         value.idx = idx  # Ensure the index is correct
         self.endpoints[idx] = value
 
@@ -185,18 +206,35 @@ class Interface(FreezableObject):
         return f"Interface({', '.join(str(ep.typ) for ep in self.endpoints)})"
 
     def append(self, value: EndPoint) -> None:
-        """Append an endpoint to the interface."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self.is_frozen():
-                raise RuntimeError("Cannot modify a frozen Interface")
-            if not isinstance(value, EndPoint):
-                raise TypeError(f"Expected EndPoint, got {type(value)}")
-            if len(self.endpoints) > 0:
-                if value.row != self.endpoints[0].row:
-                    raise ValueError("All endpoints must have the same row.")
-                if value.cls != self.endpoints[0].cls:
-                    raise ValueError("All endpoints must have the same class.")
-        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        """Append an endpoint to the interface.
+
+        Args
+        ----
+        value: EndPoint: The endpoint to append.
+
+        Raises
+        ------
+        RuntimeError: If the interface is frozen.
+        TypeError: If value is not an EndPoint instance or endpoints is not a list.
+        ValueError: If the endpoint's row or class doesn't match existing endpoints.
+        """
+        if self.is_frozen():
+            raise RuntimeError("Cannot modify a frozen Interface")
+        if not isinstance(value, EndPoint):
+            raise TypeError(f"Expected EndPoint, got {type(value)}")
+        if not isinstance(self.endpoints, list):
+            raise RuntimeError("Endpoints must be a list to allow appending")
+        if len(self.endpoints) > 0:
+            if value.row != self.endpoints[0].row:
+                raise ValueError(
+                    "All endpoints must have the same row. Expected"
+                    f" {self.endpoints[0].row}, got {value.row}"
+                )
+            if value.cls != self.endpoints[0].cls:
+                raise ValueError(
+                    "All endpoints must have the same class. Expected"
+                    f" {self.endpoints[0].cls}, got {value.cls}"
+                )
         value.idx = len(self.endpoints)  # Ensure the index is correct
         self.endpoints.append(value)
 
@@ -209,46 +247,112 @@ class Interface(FreezableObject):
         return Interface(self.endpoints)
 
     def extend(self, values: list[EndPoint] | tuple[EndPoint, ...]) -> None:
-        """Append an endpoint to the interface."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self.is_frozen():
-                raise RuntimeError("Cannot modify a frozen Interface")
-            if not isinstance(values, (list, tuple)):
-                raise TypeError(f"Expected list or tuple, got {type(values)}")
+        """Extend the interface with multiple endpoints.
+
+        Args
+        ----
+        values: list[EndPoint] | tuple[EndPoint, ...]: The endpoints to add.
+
+        Raises
+        ------
+        RuntimeError: If the interface is frozen.
+        TypeError: If values is not a list or tuple, if any value is not an EndPoint,
+                   or if endpoints is not a list.
+        ValueError: If any endpoint's row or class doesn't match existing endpoints.
+        """
+        if self.is_frozen():
+            raise RuntimeError("Cannot modify a frozen Interface")
+        if not isinstance(values, (list, tuple)):
+            raise TypeError(f"Expected list or tuple, got {type(values)}")
+        if not isinstance(self.endpoints, list):
+            raise RuntimeError("Endpoints must be a list to allow extending")
+        for value in values:
+            if not isinstance(value, EndPoint):
+                raise TypeError(f"Expected EndPoint, got {type(value)}")
+        if len(self.endpoints) > 0:
             for value in values:
-                if not isinstance(value, EndPoint):
-                    raise TypeError(f"Expected EndPoint, got {type(value)}")
-            if len(self.endpoints) > 0:
-                for value in values:
-                    if value.row != self.endpoints[0].row:
-                        raise ValueError("All endpoints must have the same row.")
-                    if value.cls != self.endpoints[0].cls:
-                        raise ValueError("All endpoints must have the same class.")
-        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+                if value.row != self.endpoints[0].row:
+                    raise ValueError(
+                        "All endpoints must have the same row. Expected"
+                        f" {self.endpoints[0].row}, got {value.row}"
+                    )
+                if value.cls != self.endpoints[0].cls:
+                    raise ValueError(
+                        "All endpoints must have the same class. Expected"
+                        f" {self.endpoints[0].cls}, got {value.cls}"
+                    )
         for idx, value in enumerate(values, start=len(self.endpoints)):
             value.idx = idx  # Ensure the index is correct
         self.endpoints.extend(values)
 
     def freeze(self, store: bool = True) -> Interface:
-        """Freeze the interface, making it immutable."""
+        """Freeze the interface, making it immutable.
+
+        Args
+        ----
+        store: bool: If True, store the frozen interface in the object store.
+
+        Returns
+        -------
+        Interface: The frozen interface (may be a different instance if stored).
+        """
         if not self._frozen:
             self.endpoints = tuple(ep.freeze() for ep in self.endpoints)
             retval = super().freeze(store)
             # Need to jump through hoops to set the persistent hash
             object.__setattr__(self, "_hash", hash(self.endpoints))
-
-            # Some sanity checks
-            if _logger.isEnabledFor(level=VERIFY):
-                if not len(self.endpoints) > 0:
-                    raise ValueError("Interface must have at least one endpoint.")
-                if not all(isinstance(ep, EndPoint) for ep in self.endpoints):
-                    raise ValueError("All endpoints must be EndPoint instances.")
-                if not all(ep.row == self.endpoints[0].row for ep in self.endpoints):
-                    raise ValueError("All endpoints must have the same row.")
-                if not all(ep.cls == self.endpoints[0].cls for ep in self.endpoints):
-                    raise ValueError("All endpoints must have the same class.")
             return retval
         return self
+
+    def verify(self) -> None:
+        """Verify the Interface object.
+
+        Validates that the interface has valid structure and all endpoints are consistent.
+        Empty interfaces (like NULL_INTERFACE) are allowed as sentinel values.
+
+        Raises
+        ------
+        ValueError: If the interface is invalid.
+        """
+        # Allow empty interfaces (e.g., NULL_INTERFACE) as sentinel values
+        if len(self.endpoints) == 0:
+            super().verify()
+            return
+
+        # Check all endpoints are EndPoint instances
+        if not all(isinstance(ep, EndPoint) for ep in self.endpoints):
+            raise ValueError("All endpoints must be EndPoint instances.")
+
+        # Check all endpoints have the same row
+        first_row = self.endpoints[0].row
+        if not all(ep.row == first_row for ep in self.endpoints):
+            raise ValueError(f"All endpoints must have the same row. Expected {first_row}.")
+
+        # Check all endpoints have the same class
+        first_cls = self.endpoints[0].cls
+        if not all(ep.cls == first_cls for ep in self.endpoints):
+            raise ValueError(f"All endpoints must have the same class. Expected {first_cls}.")
+
+        # Verify each endpoint
+        for ep in self.endpoints:
+            ep.verify()
+
+        # Call parent verify() which will trigger consistency() if CONSISTENCY logging is enabled
+        super().verify()
+
+    def consistency(self) -> None:
+        """Check the consistency of the Interface.
+
+        Performs semantic validation that may be expensive. This method is called
+        by verify() when CONSISTENCY logging is enabled.
+        """
+        _logger.log(
+            level=CONSISTENCY,
+            msg=f"Consistency check for Interface with {len(self.endpoints)} endpoints",
+        )
+
+        # Call parent consistency()
+        super().consistency()
 
     def types(self) -> tuple[list[int], bytes]:
         """Return a tuple of the ordered type UIDs and the indices into to it."""

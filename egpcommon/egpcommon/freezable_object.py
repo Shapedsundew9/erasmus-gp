@@ -12,7 +12,7 @@ from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
-from egpcommon.object_set import ObjectSet
+from egpcommon.object_deduplicator import ObjectDeduplicator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -75,10 +75,9 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
     """
 
     __slots__ = ("_frozen", "__weakref__")
-    object_store: ObjectSet  # pylint: disable=declare-non-slot
 
     @classmethod
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, size: int = 2**12, **kwargs):
         """
         This hook is called when a class inherits from FreezableObject.
         'cls' is the new subclass being created.
@@ -86,9 +85,16 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # Call the parent's __init_subclass__ to be cooperative
         super().__init_subclass__(**kwargs)
 
-        # Create the ObjectSet instance, labeled with the new class's name
+        # Ensure that subclasses define __slots__ to avoid __dict__
+        if not hasattr(cls, "__slots__"):
+            raise TypeError(
+                f"Subclass '{cls.__name__}' of FreezableObject "
+                "must define __slots__ to avoid __dict__."
+            )
+
+        # Create the ObjectDeduplicator instance, labeled with the new class's name
         # Attach the store as a CLASS ATTRIBUTE to the new subclass
-        cls.object_store = ObjectSet(name=cls.__name__)
+        cls.object_store = ObjectDeduplicator(name=cls.__name__, size=size)
 
     def __init__(self, frozen: bool = False) -> None:
         """
@@ -294,7 +300,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         """
         retval = self._freeze(store)
         retval.verify()  # Verify the object after freezing to ensure consistency.
-        return retval
+        return self.object_store[retval] if store else retval
 
     def _freeze(
         self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
@@ -365,7 +371,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # to signify it has been processed.
 
         # Return the object itself, or add it to the store if requested.
-        return self.object_store.add(self) if store else self
+        return self
 
     def is_frozen(self) -> bool:
         """Returns True if the object is marked as frozen, False otherwise."""

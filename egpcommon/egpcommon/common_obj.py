@@ -21,7 +21,7 @@ class CommonObj:
     __slots__ = tuple()
 
     @staticmethod
-    def raise_ve(condition: bool, message: str) -> None:
+    def value_error(condition: bool, message: str) -> None:
         """Helper method to verify a condition and raise ValueError if false.
 
         Args:
@@ -35,7 +35,7 @@ class CommonObj:
             raise ValueError(message)
 
     @staticmethod
-    def raise_re(condition: bool, message: str) -> None:
+    def runtime_error(condition: bool, message: str) -> None:
         """Helper method to check consistency and raise RuntimeError if false.
 
         Args:
@@ -48,6 +48,19 @@ class CommonObj:
         if not condition:
             raise RuntimeError(message)
 
+    @staticmethod
+    def type_error(condition: bool, message: str) -> None:
+        """Helper method to verify a condition and raise TypeError if false.
+
+        Args:
+            condition: The condition to verify.
+            message: The error message to include in the TypeError if condition is False.
+        Raises:
+            TypeError: If condition is False.
+        """
+        if not condition:
+            raise TypeError(message)
+
     def consistency(self):
         """Check the consistency of the CommonObj.
 
@@ -57,7 +70,7 @@ class CommonObj:
         an invalid relationship between values that is expensive to check. Typically examples
         would involve heavy IO or complex calculations.
 
-        The consistency() method shall raise a RuntimeError if the object is not
+        The consistency() method shall raise an exception if the object is not
         consistent. The exception message shall
         indicate the reason for the failure. Ideally containing the invalid value and
         the valid range of values if it can be displayed concisely.
@@ -66,6 +79,9 @@ class CommonObj:
         shall always call the base class consistency() method at the *end* of their own
         consistency() method. This is to ensure that the consistency() method is only called
         once all other checks have passed.
+
+        Derived classes shall use the static helper methods defined in this class to
+        raise exceptions in this method. e.g. value_error(), type_error() etc.
 
         NOTE: Likely to significantly slow down the code.
 
@@ -81,7 +97,7 @@ class CommonObj:
         e.g. correct value ranges, lengths, types etc. with relatively fast checks.
 
         *IMPORTANT*
-        The verify() method shall raise a ValueError if the object is not valid at the
+        The verify() method shall raise an exception if the object is not valid at the
         first check that fails (for performance reasons). The exception message shall
         indicate the reason for the failure. Ideally containing the invalid value and
         the valid range of values if it can be displayed concisely.
@@ -90,6 +106,9 @@ class CommonObj:
         shall always call the base class verify() method at the *end* of their own
         verify() method. This is to ensure that the consistency() method is only called
         once all other checks have passed.
+
+        Derived classes shall use the static helper methods defined in this class to
+        raise exceptions in this method. e.g. value_error(), type_error() etc.
         """
         if _logger.isEnabledFor(level=CONSISTENCY):
             _logger.log(level=CONSISTENCY, msg=f"Verify check passed for {self}")

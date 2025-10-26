@@ -9,5 +9,31 @@
             "side_effects": true,
             "static_creation": true
         }
+    },
+    "sca": {
+        "name": "sca",
+        "description": "Spontaneous Codon Aggregation mutation.",
+        "inputs": [
+            "GCABC",
+            "GCABC"
+        ],
+        "outputs": [
+            "GCABC"
+        ],
+        "inline": "sca({i0}, {i1}, GPI)",
+        "imports": [
+            {
+                "aip": [
+                    "egppy",
+                    "physics",
+                    "insertion"
+                ],
+                "name": "sca"
+            }
+        ],
+        "properties": {
+            "side_effects": false,
+            "static_creation": false
+        }
     }
 }

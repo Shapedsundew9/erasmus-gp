@@ -4,8 +4,8 @@ Defines how GC's are selected based on certain criteria.
 The selectors defined here are selector codons (primitives).
 """
 
-from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
+from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
 from egppy.genetic_code.interface import Interface
 
 
@@ -24,7 +24,10 @@ def exact_input_types_selector(gp: GenePoolInterface, _: int, ept_types: Interfa
         A GC with the exact input types.
     """
     # Select a GC with the exact input types
-    gc = gp.select_gc(ept_types)
+    its, inpts = ept_types.types()
+    gc = gp.select(
+        "{input_types} = {its} and {inputs} = {inpts}", literals={"its": its, "inpts": inpts}
+    )
     if gc is None:
         raise ValueError("No GC found with the exact input types.")
     return GGCDict()

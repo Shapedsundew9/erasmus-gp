@@ -105,7 +105,7 @@ from random import choice, shuffle
 from typing import Any, Iterable
 
 from egpcommon.common import NULL_FROZENSET
-from egpcommon.egp_log import DEBUG, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import (
@@ -536,7 +536,7 @@ class CGraph(FreezableObject):
                 jcg[key] = iface.to_json(json_c_graph=json_c_graph)
         return jcg
 
-    def connect_all(self, fixed_interface: bool = True) -> None:
+    def connect_all(self, if_locked: bool = True) -> None:
         """Connect all the unconnected destination endpoints in the Connection Graph."""
         # Make a list of unconnected endpoints and shuffle it
         ifaces = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
@@ -561,13 +561,13 @@ class CGraph(FreezableObject):
             # If the interface of the GC is not fixed (i.e. it is not an empty GC) then
             # a new input interface endpoint is an option.
             len_is = len(i_iface)
-            if not fixed_interface:
+            if not if_locked:
                 vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ, []))
             if vsrcs:
                 # Randomly choose a valid source endpoint
                 sep: EndPoint = choice(vsrcs)
                 # If it is a new input interface endpoint then add it to input interface
-                if not fixed_interface and sep.idx == len_is and sep.row == SrcRow.I:
+                if not if_locked and sep.idx == len_is and sep.row == SrcRow.I:
                     assert isinstance(i_iface.endpoints, list), "Input interface must be a list"
                     i_iface.endpoints.append(sep)
                 # Connect the destination endpoint to the source endpoint
@@ -578,9 +578,15 @@ class CGraph(FreezableObject):
         # Create a new CGraph instance with the same interfaces
         return CGraph({key[1:]: getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED})
 
-    def stabilize(self, fixed_interface: bool = True) -> None:
+    def stabilize(self, if_locked: bool = True) -> None:
         """Stablization involves making all the mandatory connections and
         connecting all the remaining unconnected destination endpoints.
         Destinations are connected to sources in a random order.
-        Stabilization is not guaranteed to be successful.
+        Stabilization is not guaranteed to be successful unless if_locked is False
+        in which case unconnected destinations create new source endpoints in the
+        input interface as needed.
         """
+        self.connect_all(if_locked)
+        assert self.is_stable(), "Connection graph stabilization failed."
+        if _logger.isEnabledFor(level=VERIFY):
+            self.verify()

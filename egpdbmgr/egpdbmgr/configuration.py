@@ -78,10 +78,10 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
         """The name of the configuration.
         User defined and arbitary. Not used by EGP.
         """
-        self.raise_ve(
+        self.value_error(
             self._is_simple_string("name", value), f"name must be a simple string, but is {value}"
         )
-        self.raise_ve(
+        self.value_error(
             self._is_length("name", value, 1, 64),
             f"name length must be between 1 and 64, but is {len(value)}",
         )
@@ -95,17 +95,17 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     @databases.setter
     def databases(self, value: dict[str, DatabaseConfig | dict[str, Any]]) -> None:
         """The databases for the workers."""
-        self.raise_ve(
+        self.value_error(
             self._is_dict("databases", value), f"databases must be a dict, but is {type(value)}"
         )
         for key, val in value.items():
-            self.raise_ve(
+            self.value_error(
                 self._is_simple_string("databases key", key),
                 f"databases key must be a simple string, but is {key}",
             )
             if isinstance(val, dict):
                 value[key] = DatabaseConfig(**val)
-            self.raise_ve(
+            self.value_error(
                 isinstance(val, DatabaseConfig), "databases value must be a DatabaseConfig"
             )
         self._databases = cast(dict[str, DatabaseConfig], value)
@@ -118,11 +118,11 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     @managed_db.setter
     def managed_db(self, value: str) -> None:
         """The local database name."""
-        self.raise_ve(
+        self.value_error(
             self._is_simple_string("managed_db", value),
             f"managed_db must be a simple string, but is {value}",
         )
-        self.raise_ve(
+        self.value_error(
             self._is_length("managed_db", value, 1, 64),
             f"managed_db length must be between 1 and 64, but is {len(value)}",
         )
@@ -136,7 +136,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     @managed_type.setter
     def managed_type(self, value: TableTypes) -> None:
         """The local database type."""
-        self.raise_ve(
+        self.value_error(
             self._is_one_of("managed_type", value, TableTypes),
             f"managed_type must be one of {TableTypes}, but is {value}",
         )
@@ -150,16 +150,16 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     @upstream_dbs.setter
     def upstream_dbs(self, value: list[str]) -> None:
         """The remote databases."""
-        self.raise_ve(
+        self.value_error(
             self._is_list("upstream_dbs", value),
             f"upstream_dbs must be a list, but is {type(value)}",
         )
         for val in value:
-            self.raise_ve(
+            self.value_error(
                 self._is_simple_string("upstream_dbs", val),
                 f"upstream_dbs value must be a simple string, but is {val}",
             )
-            self.raise_ve(
+            self.value_error(
                 self._is_length("upstream_dbs", val, 1, 64),
                 f"upstream_dbs value length must be between 1 and 64, but is {len(val)}",
             )
@@ -173,7 +173,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     @upstream_type.setter
     def upstream_type(self, value: TableTypes) -> None:
         """The remote database type."""
-        self.raise_ve(
+        self.value_error(
             self._is_one_of("upstream_type", value, TableTypes),
             f"upstream_type must be one of {TableTypes}, but is {value}",
         )
@@ -188,7 +188,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     def upstream_url(self, value: str | None) -> None:
         """The remote database file URL for download."""
         if value is not None:
-            self.raise_ve(
+            self.value_error(
                 self._is_url("upstream_url", value),
                 f"upstream_url must be a valid URL, but is {value}",
             )
@@ -202,11 +202,11 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     @archive_db.setter
     def archive_db(self, value: str) -> None:
         """The archive database name."""
-        self.raise_ve(
+        self.value_error(
             self._is_simple_string("archive_db", value),
             f"archive_db must be a simple string, but is {value}",
         )
-        self.raise_ve(
+        self.value_error(
             self._is_length("archive_db", value, 1, 64),
             f"archive_db length must be between 1 and 64, but is {len(value)}",
         )

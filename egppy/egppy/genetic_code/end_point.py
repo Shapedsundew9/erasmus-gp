@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egpcommon.object_set import ObjectSet
+from egpcommon.object_deduplicator import ObjectDeduplicator
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -22,8 +22,8 @@ _logger: Logger = egp_logger(name=__name__)
 
 
 # Create object sets for references and tuples of references
-ref_store = ObjectSet("Endpoint reference store")
-ref_tuple_store = ObjectSet("Endpoint reference tuple store")
+ref_store = ObjectDeduplicator("Endpoint reference store", 2**12)
+ref_tuple_store = ObjectDeduplicator("Endpoint reference tuple store", 2**12)
 
 
 class EndPoint(FreezableObject):
@@ -196,7 +196,9 @@ class EndPoint(FreezableObject):
         """Freeze the endpoint, making it immutable."""
         if not self.is_frozen():
             # Need to make references immutable
-            object.__setattr__(self, "_refs", tuple(tuple(ref) for ref in self.refs))
+            object.__setattr__(
+                self, "_refs", ref_tuple_store[tuple(ref_store[tuple(ref)] for ref in self.refs)]
+            )
             retval = super().freeze(store)
             # Need to jump through hoops to set the persistent hash
             object.__setattr__(

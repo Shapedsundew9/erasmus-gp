@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from egpcommon.common_obj import CommonObj
+from egpcommon.deduplication import properties_store, signature_store
 from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import PropertiesBD
@@ -63,7 +64,7 @@ class EGCMixin(GCMixin):
                     f"ancestora = {self['ancestora']}\n"
                     f"ancestorb = {self['ancestorb']}\n",
                 )
-                self.raise_re(
+                self.runtime_error(
                     False, "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL."
                 )
 
@@ -87,31 +88,35 @@ class EGCMixin(GCMixin):
         # GCA
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
         gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
-        self["gca"] = bytes.fromhex(gca) if isinstance(gca, str) else gca
+        self["gca"] = signature_store[bytes.fromhex(gca) if isinstance(gca, str) else gca]
 
         # GCB
         tgcb: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gcb") is None else gcabc["gcb"]
         gcb: str | bytes = tgcb["signature"] if isinstance(tgcb, GCABC) else tgcb
-        self["gcb"] = bytes.fromhex(gcb) if isinstance(gcb, str) else gcb
+        self["gcb"] = signature_store[bytes.fromhex(gcb) if isinstance(gcb, str) else gcb]
 
         # Ancestor A
         taa: str | bytes | GCABC = (
             NULL_SIGNATURE if gcabc.get("ancestora") is None else gcabc["ancestora"]
         )
         ancestora: str | bytes = taa["signature"] if isinstance(taa, GCABC) else taa
-        self["ancestora"] = bytes.fromhex(ancestora) if isinstance(ancestora, str) else ancestora
+        self["ancestora"] = signature_store[
+            bytes.fromhex(ancestora) if isinstance(ancestora, str) else ancestora
+        ]
 
         # Ancestor B
         tab: str | bytes | GCABC = (
             NULL_SIGNATURE if gcabc.get("ancestorb") is None else gcabc["ancestorb"]
         )
         ancestorb: str | bytes = tab["signature"] if isinstance(tab, GCABC) else tab
-        self["ancestorb"] = bytes.fromhex(ancestorb) if isinstance(ancestorb, str) else ancestorb
+        self["ancestorb"] = signature_store[
+            bytes.fromhex(ancestorb) if isinstance(ancestorb, str) else ancestorb
+        ]
 
         # Parent Genetic Code
         tpgc: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("pgc") is None else gcabc["pgc"]
         pgc: str | bytes = tpgc["signature"] if isinstance(tpgc, GCABC) else tpgc
-        self["pgc"] = bytes.fromhex(pgc) if isinstance(pgc, str) else pgc
+        self["pgc"] = signature_store[bytes.fromhex(pgc) if isinstance(pgc, str) else pgc]
 
         # Created Timestamp
         tmp = gcabc.get("created", datetime.now(UTC))
@@ -119,33 +124,37 @@ class EGCMixin(GCMixin):
 
         # Properties
         prps: int | dict[str, Any] = gcabc.get("properties", 0)
-        self["properties"] = prps if isinstance(prps, int) else PropertiesBD(prps, False).to_int()
+        self["properties"] = properties_store[
+            prps if isinstance(prps, int) else PropertiesBD(prps, False).to_int()
+        ]
 
         # Signature
         tmp: str | bytes = gcabc.get("signature", NULL_SIGNATURE)
-        self["signature"] = bytes.fromhex(tmp) if isinstance(tmp, str) else tmp
+        self["signature"] = signature_store[bytes.fromhex(tmp) if isinstance(tmp, str) else tmp]
 
     def verify(self) -> None:
         """Verify the genetic code object."""
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
 
-        self.raise_ve(isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object")
-        self.raise_ve(isinstance(self["gca"], bytes), "gca must be a bytes object")
-        self.raise_ve(len(self["gca"]) == 32, "gca must be 32 bytes")
-        self.raise_ve(isinstance(self["gcb"], bytes), "gcb must be a bytes object")
-        self.raise_ve(len(self["gcb"]) == 32, "gcb must be 32 bytes")
-        self.raise_ve(isinstance(self["ancestora"], bytes), "ancestora must be a bytes object")
-        self.raise_ve(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
-        self.raise_ve(isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object")
+        self.value_error(
+            isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
+        )
+        self.value_error(isinstance(self["gca"], bytes), "gca must be a bytes object")
+        self.value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
+        self.value_error(isinstance(self["gcb"], bytes), "gcb must be a bytes object")
+        self.value_error(len(self["gcb"]) == 32, "gcb must be 32 bytes")
+        self.value_error(isinstance(self["ancestora"], bytes), "ancestora must be a bytes object")
+        self.value_error(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
+        self.value_error(isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object")
         if isinstance(self["ancestorb"], bytes):
-            self.raise_ve(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
-        self.raise_ve(isinstance(self["pgc"], bytes), "pgc must be a bytes object")
-        self.raise_ve(len(self["pgc"]) == 32, "pgc must be 32 bytes")
-        self.raise_ve(isinstance(self["signature"], bytes), "signature must be a bytes object")
-        self.raise_ve(len(self["signature"]) == 32, "signature must be 32 bytes")
+            self.value_error(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
+        self.value_error(isinstance(self["pgc"], bytes), "pgc must be a bytes object")
+        self.value_error(len(self["pgc"]) == 32, "pgc must be 32 bytes")
+        self.value_error(isinstance(self["signature"], bytes), "signature must be a bytes object")
+        self.value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
         for key in self:
-            self.raise_ve(key in self.GC_KEY_TYPES, f"Invalid key: {key}")
+            self.value_error(key in self.GC_KEY_TYPES, f"Invalid key: {key}")
             # Recursively calling verify on GCABC's can take a long time.
             if getattr(self[key], "verify", None) is not None and not isinstance(self[key], GCABC):
                 self[key].verify()

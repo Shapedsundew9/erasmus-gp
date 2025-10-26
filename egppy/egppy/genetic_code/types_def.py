@@ -13,7 +13,6 @@ from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egpcommon.object_dict import ObjectDict
 from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
@@ -210,7 +209,7 @@ class TypesDef(FreezableObject, Validator):
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
-        self.raise_ve(
+        self.value_error(
             self._is_bool("abstract", abstract), f"abstract must be a bool, but is {type(abstract)}"
         )
         return abstract
@@ -232,7 +231,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(child, TypesDef):
                 child_list.append(child.uid)
             else:
-                self.raise_ve(False, "Invalid children definition.")
+                self.value_error(False, "Invalid children definition.")
         return array("i", child_list)
 
     def _default(self, default: str | None) -> str | None:
@@ -259,13 +258,9 @@ class TypesDef(FreezableObject, Validator):
                 # The import store will ensure that the same import is not duplicated.
                 import_list.append(ImportDef(**import_def).freeze())
             elif isinstance(import_def, ImportDef):
-                self.raise_ve(
-                    import_def in ImportDef.object_store,
-                    "ImportDef must be in the import store.",
-                )
                 import_list.append(import_def)
             else:
-                self.raise_ve(False, "Invalid imports definition.")
+                self.value_error(False, "Invalid imports definition.")
         return tuple(import_list)
 
     def _name(self, name: str) -> str:
@@ -291,7 +286,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(parent, TypesDef):
                 parent_list.append(parent.uid)
             else:
-                self.raise_ve(False, "Invalid parents definition.")
+                self.value_error(False, "Invalid parents definition.")
         return array("i", parent_list)
 
     def _uid(self, uid: int | dict[str, Any]) -> int:
@@ -305,7 +300,7 @@ class TypesDef(FreezableObject, Validator):
             # The BitDict will handle the validation.
             return TypesDefBD(uid).to_int()
         else:
-            self.raise_ve(False, "Invalid UID definition.")
+            self.value_error(False, "Invalid UID definition.")
 
     @property
     def abstract(self) -> bool:
@@ -381,7 +376,7 @@ class TypesDef(FreezableObject, Validator):
         return retval
 
 
-class TypesDefStore(ObjectDict):
+class TypesDefStore:
     """Types Definition Database.
 
     The TDDB is a double dictionary that maps type names to TypesDef objects
@@ -403,9 +398,6 @@ class TypesDefStore(ObjectDict):
 
     def __init__(self) -> None:
         """Initialize the TypesDefStore."""
-        super().__init__("TypesDefStore")
-        self._cache_hit: int = 0
-        self._cache_miss: int = 0
         if TypesDefStore._db_store is None:
             TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
             DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
@@ -422,21 +414,17 @@ class TypesDefStore(ObjectDict):
                     TypesDefStore._db_sources.insert((sig_data,))
             TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
-    def __contains__(self, key: Any) -> bool:
+    def __contains__(self, key: int | str) -> bool:
         """Check if the key is in the store."""
-        if not super().__contains__(key):
-            try:
-                self[key]  # This will populate the cache if the key exists.
-            except KeyError:
-                return False
+        try:
+            self[key]  # This will populate the cache if the key exists.
+        except KeyError:
+            return False
         return True
 
-    def __getitem__(self, key: Any) -> Any:
+    @lru_cache(maxsize=1024)
+    def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
-        if key in self._objects:
-            self._cache_hit += 1
-            return self._objects[key]
-        self._cache_miss += 1
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         if isinstance(key, int):
             td = TypesDefStore._db_store.get(key, {})
@@ -453,8 +441,6 @@ class TypesDefStore(ObjectDict):
         # Create a frozen TypesDef object but do not put it in the object_store as
         # we will cache it here.
         ntd = TypesDef(**td).freeze(store=False)
-        self._objects[ntd.name] = ntd
-        self._objects[ntd.uid] = ntd
         return ntd
 
     def _should_reload_table(self) -> bool:
@@ -517,10 +503,11 @@ class TypesDefStore(ObjectDict):
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""
+        info = self.__getitem__.cache_info()  # pylint: disable=E1120
         info_str = (
-            f"TypesDefStore Cache hits: {self._cache_hit}\n"
-            f"TypesDefStore Cache misses: {self._cache_miss}\n"
-            f"{super().info()}"
+            f"TypesDefStore Cache hits: {info.hits}\n"
+            f"TypesDefStore Cache misses: {info.misses}\n"
+            f"TypesDefStore Cache hit rate: {info.hits / (info.hits + info.misses):.2%}"
         )
         _logger.info(info_str)
         return info_str

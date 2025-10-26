@@ -24,7 +24,6 @@ from typing import Any, Callable
 from egpcommon.common import SHAPEDSUNDEW9_UUID
 from egpcommon.conversions import (
     compress_json,
-    decode_properties,
     decompress_json,
     encode_properties,
     memoryview_to_signature,
@@ -52,7 +51,7 @@ GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] =
         decompress_json,
     ),
     ("meta_data", compress_json, decompress_json),
-    ("properties", encode_properties, decode_properties),
+    ("properties", encode_properties, None),
 ) + tuple(
     (name, signature_to_bytes, memoryview_to_signature)
     for name, field in GGC_KVT.items()
