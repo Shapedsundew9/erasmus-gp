@@ -99,10 +99,11 @@ Additional to the Common Rules Primitive connection graphs have the following ru
 
 from __future__ import annotations
 
+from collections.abc import Collection, Iterator
 from itertools import chain
 from pprint import pformat
 from random import choice, shuffle
-from typing import Any, Iterable
+from typing import Any
 
 from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
@@ -382,7 +383,7 @@ def c_graph_type(jcg: JSONCGraph | CGraph) -> CGraphType:
     return CGraphType.PRIMITIVE if DstRow.A in jcg else CGraphType.EMPTY
 
 
-class CGraph(FreezableObject):
+class CGraph(FreezableObject, Collection):
     """Builtin graph class for the Connection Graph.
 
     Frozen graphs are created once and then never modified.
@@ -456,12 +457,13 @@ class CGraph(FreezableObject):
         # Persistent hash will be defined when frozen. Dynamic until then.
         self._hash: int = 0
 
-    def __contains__(self, key: str) -> bool:
+    def __contains__(self, key: object) -> bool:
         """Check if the interface exists in the Connection Graph.
 
         Args:
             key (str): May be a row or a row with class postfix (e.g. 'Fd', 'Ad', etc.).
         """
+        assert isinstance(key, str), f"Key must be a string, got {type(key)}"
         if len(key) == 1:
             return (
                 getattr(self, "_" + key + EPClsPostfix.DST, NULL_INTERFACE) is not NULL_INTERFACE
@@ -501,9 +503,13 @@ class CGraph(FreezableObject):
             raise KeyError(f"Invalid Connection Graph key: {key}")
         return getattr(self, "_" + key)
 
-    def __iter__(self) -> Iterable[str]:
+    def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the Connection Graph."""
         return (key for key in ROW_CLS_INDEXED if getattr(self, "_" + key) is not NULL_INTERFACE)
+
+    def __len__(self) -> int:
+        """Return the number of interfaces in the Connection Graph."""
+        return sum(1 for key in ROW_CLS_INDEXED if getattr(self, "_" + key) is not NULL_INTERFACE)
 
     def __repr__(self) -> str:
         """Return a string representation of the Connection Graph."""

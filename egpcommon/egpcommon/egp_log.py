@@ -16,6 +16,14 @@ from logging import (
 )
 
 # Custom log levels
+# These custom logging levels shall only be used within blocks that are wrapped with
+# `if _logger.isEnabledFor(level=DEBUG)`. They are developer debug deep verification and
+# validation options. The DEBUG level should be light and quick to enable unit tests to
+# execute in a few 10s of seconds. Verify should not extend that time by more than a
+# factor of three and consistency may take 10 or 20 times as long to execute, but perform
+# much deeper debugging and consistency checking. These levels should only raise
+# `egpcommon.common.debug_exceptions`.
+
 # Verify the correctness of values and types of data. e.g. right type, range, length etc.
 # Slows down execution possibly significantly where large volumes of data are involved.
 VERIFY: int = 7

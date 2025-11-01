@@ -1,6 +1,27 @@
-"""Maps EGP GC fields to EGP types that can be extracted and manipulated
-by physical GC's. The typing structure is designed to map to the field use
-cases and reduce the search space for valid and useful physical GC's."""
+"""PGC API module.
+
+This module defines the canonical physical genetic-code (PGC) API types and
+classes consumed by generated genetic code and by the EGP application. It is
+the single source of truth for codon signatures, physical types and aliases,
+ensuring that refactors or renames do not break codon signatures.
+
+Responsibilities:
+- Declare all public physical types and aliases consumed by generated code.
+- Import any dependent EGP custom types so this module centralises type
+    dependencies and avoids circular imports.
+- Document verification expectations: application code invoked through this
+    interface must perform aggressive verification and raise debug/fatal
+    exceptions for API implementation or integration errors. Normal exceptions
+    raised during execution of generated genetic code are expected and should be
+    handled by the caller as part of normal operation.
+
+Important:
+- This module should remain stable in its exported types to preserve binary
+    compatibility with generated code.
+- The behaviour of critical helpers elsewhere (for example
+    egpcommon.common.sha256_signature) must not be altered because other parts
+    of the system depend on their exact semantics.
+"""
 
 # TODO: Presently types are restricted to DB searchable fields. These need to
 # be expanded to include all relevant fields for physical GC's manipluation

@@ -24,9 +24,10 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 
 ## Design Patterns
 
-*   **Common Classes**: All common classes inherit from `egpcommon.common_obj.CommonObj`, which provides validation methods that shall be used to raise exceptions in verify() and consistency(). It also defines a validation pattern in the doc strings to be used consistently across the codebase. All members in a common class shall be slotted.
+*   **Common Classes**: All common classes inherit from `egpcommon.common_obj.CommonObj`, which provides validation methods that shall be used to raise exceptions in verify() and consistency(). It also defines a validation pattern in the doc strings to be used consistently across the codebase. All members in a derived common_obj class shall be slotted.
 *   **Validator Pattern:** The `egpcommon.validator` module implements a Validator class that encapsulates validation logic for various data types and formats.
-*   **Defensive Programming:** Functions and methods must validate their inputs and raise appropriate exceptions as early as possible to prevent propagation of invalid data and reduce additional wasted time & resources.
+*   **Defensive Programming:** Functions and methods must validate their inputs and raise appropriate standard exceptions as early as possible to prevent propagation of invalid data and reduce additional wasted time & resources when used by runtime evolved code through the `egppy.physics.pgc_api` defined API. Runtime type validation shall use assert statements when not enclosed in a `_logger.isEnabledFor(level=DEBUG)` block.
+*   **Debug Pattern:** When `_logger.isEnabledFor(level=DEBUG)` is true aggressive verification of the internal data structures, types and object self consistency shall be performed to catch EGP application errors (raising `egpcommon.common.debug_exceptions`).
 *   **Immutable object de-duplication:** Standard python immutable objects (e.g., tuples, frozensets) and freeable objects, once frozen, shall use `egpcommon.object_deduplicator` ObjectDeduplicator to ensure de-duplication and memory efficiency.
 
 ## Coding

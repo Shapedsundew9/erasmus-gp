@@ -11,7 +11,7 @@ from typing import Any
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import properties_store, signature_store
-from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
@@ -33,52 +33,13 @@ class EGCMixin(GCMixin):
     # Keys that reference other GC's
     REFERENCE_KEYS: set[str] = {"gca", "gcb", "ancestora", "ancestorb", "pgc"}
 
-    def consistency(self) -> None:
-        """Check the genetic code object for consistency.
-
-        Raises:
-            RuntimeError: If the genetic code object is inconsistent.
-        """
-        assert isinstance(self, GCABC), "EGC must be a GCABC object."
-        assert isinstance(self, CommonObj), "EGC must be a CommonObj."
-
-        # Only codons can have GCA, PGC or Ancestor A NULL. Then all must be NULL.
-        if (
-            self["gca"] is NULL_SIGNATURE
-            or self["pgc"] is NULL_SIGNATURE
-            or self["ancestora"] is NULL_SIGNATURE
-        ):
-            if (
-                self["gca"] is not NULL_SIGNATURE
-                or self["gcb"] is not NULL_SIGNATURE
-                or self["pgc"] is not NULL_SIGNATURE
-                or self["ancestora"] is not NULL_SIGNATURE
-                or self["ancestorb"] is not NULL_SIGNATURE
-            ):
-                _logger.log(
-                    level=CONSISTENCY,
-                    msg="\n"
-                    f"gca = {self['gca']}\n"
-                    f"gcb = {self['gcb']}\n"
-                    f"pgc = {self['pgc']}\n"
-                    f"ancestora = {self['ancestora']}\n"
-                    f"ancestorb = {self['ancestorb']}\n",
-                )
-                self.runtime_error(
-                    False, "One or more of GCA, PGC or Ancestor A is NULL but not all are NULL."
-                )
-
-        # Call base class consistency at the end
-        super().consistency()
-
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
 
         Args:
             gcabc: The genetic code object or dictionary to set the attributes.
         """
-        if not isinstance(self, GCABC):
-            raise ValueError("EGC must be a GCABC object.")
+        assert isinstance(self, GCABC), "EGC must be a GCABC object."
 
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
@@ -137,27 +98,30 @@ class EGCMixin(GCMixin):
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
 
-        self.value_error(
-            isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
-        )
-        self.value_error(isinstance(self["gca"], bytes), "gca must be a bytes object")
-        self.value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
-        self.value_error(isinstance(self["gcb"], bytes), "gcb must be a bytes object")
-        self.value_error(len(self["gcb"]) == 32, "gcb must be 32 bytes")
-        self.value_error(isinstance(self["ancestora"], bytes), "ancestora must be a bytes object")
-        self.value_error(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
-        self.value_error(isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object")
-        if isinstance(self["ancestorb"], bytes):
-            self.value_error(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
-        self.value_error(isinstance(self["pgc"], bytes), "pgc must be a bytes object")
-        self.value_error(len(self["pgc"]) == 32, "pgc must be 32 bytes")
-        self.value_error(isinstance(self["signature"], bytes), "signature must be a bytes object")
-        self.value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
-        for key in self:
-            self.value_error(key in self.GC_KEY_TYPES, f"Invalid key: {key}")
-            # Recursively calling verify on GCABC's can take a long time.
-            if getattr(self[key], "verify", None) is not None and not isinstance(self[key], GCABC):
-                self[key].verify()
+        if _logger.isEnabledFor(level=DEBUG):
+
+            # Check types and lengths
+            self.debug_type_error(
+                isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
+            )
+            self.debug_type_error(isinstance(self["gca"], bytes), "gca must be a bytes object")
+            self.debug_value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
+            self.debug_type_error(isinstance(self["gcb"], bytes), "gcb must be a bytes object")
+            self.debug_value_error(len(self["gcb"]) == 32, "gcb must be 32 bytes")
+            self.debug_type_error(
+                isinstance(self["ancestora"], bytes), "ancestora must be a bytes object"
+            )
+            self.debug_value_error(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
+            self.debug_type_error(
+                isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object"
+            )
+            self.debug_value_error(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
+            self.debug_type_error(isinstance(self["pgc"], bytes), "pgc must be a bytes object")
+            self.debug_value_error(len(self["pgc"]) == 32, "pgc must be 32 bytes")
+            self.debug_type_error(
+                isinstance(self["signature"], bytes), "signature must be a bytes object"
+            )
+            self.debug_value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
 
         # Call base class verify at the end
         super().verify()

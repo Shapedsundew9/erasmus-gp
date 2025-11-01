@@ -25,9 +25,9 @@ class ObjectDeduplicator(CommonObj):
     dictionary returning the existing object if it already exists.
     """
 
-    __slots__ = ("_objects", "name")
+    __slots__ = ("_objects", "name", "target_rate")
 
-    def __init__(self, name: str, size: int = 2**16) -> None:
+    def __init__(self, name: str, size: int = 2**16, target_rate: float = 0.811) -> None:
         """Initialize a ObjectDeduplicator object.
 
         Up to `size` unique objects will be deduplicated. If more unique objects are added
@@ -37,9 +37,12 @@ class ObjectDeduplicator(CommonObj):
         The size should be chosen to be large enough to hold the most frequently created
         unique hash objects as these will be the 'least recently used'.
 
+        See `egpcommon.docs.object_deduplicator.md` for more information.
+
         Args:
             name: Name of the object deduplicator.
             size: Size of the LRU cache.
+            target_rate: Break even cache hit rate (information purposes only).
         """
 
         @lru_cache(maxsize=size)
@@ -48,11 +51,8 @@ class ObjectDeduplicator(CommonObj):
 
         self._objects = cached_hash
         self.name: str = name
+        self.target_rate: float = target_rate
         # TODO: In MONITOR mode and below send stats to prometheus
-
-    def __del__(self) -> None:
-        """Destructor to clear the cache."""
-        self.info()
 
     def __getitem__(self, obj: Hashable) -> Any:
         """Get a object from the dict."""
@@ -69,6 +69,9 @@ class ObjectDeduplicator(CommonObj):
             f"{self.name} Cache hits: {info.hits}\n"
             f"{self.name} Cache misses: {info.misses}\n"
             f"{self.name} Cache hit rate: {rate:.2%}"
+            f" (target rate: {self.target_rate:.2%})"
+            f" Cache max size: {info.maxsize}\n"
+            f"{self.name} Current cache size: {info.currsize}"
         )
         _logger.info(info_str)
         return info_str

@@ -13,10 +13,19 @@ from typing import Any, Literal, Self
 from uuid import UUID
 
 from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.parallel_exceptions import create_parallel_exceptions
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
+
+# Create the Debug exception hierarchy
+# A debug exception hierarchy is needed to differenciate from when there is an error
+# in the EGP application versus an error in the generated code that calls the PGC API.
+# A complete set of parallel standard exceptions is created for this purpose. e.g.
+# debug_exceptions.DebugValueError, debug_exceptions.DebugTypeError,
+# debug_exceptions.DebugRuntimeError etc.
+debug_exceptions = create_parallel_exceptions(prefix="Debug", verbose=False)
 
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)

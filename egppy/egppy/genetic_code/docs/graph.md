@@ -1,28 +1,45 @@
 # Connection Graphs
 
 A Genetic Code graph defines how values from the GC input are passed to sub-GC's and outputs from sub-GC's
-(and directly from the input) are connected to the GC's outputs. There are 6 types of Connection Graph.
+(and directly from the input) are connected to the GC's outputs. There are 7 types of Connection Graph.
 
 | Type | Comments |
 |------|------------|
-| Codon | Defines an interface & represents a primitive operator such addition or logical OR. Has no sub-GC's. |
-| Conditional | Chooses an execution path through one of the sub-GCs based the inputs. |
+| If-Then | Conditional graph with a single execution path (GCA) chosen when condition is true. |
+| If-Then-Else | Conditional graph with two execution paths (GCA/GCB) chosen based on condition. |
 | Empty | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
-| Standard | Connects two sub-GC's together to make a new GC. This is by far the most common type.|
+| For-Loop | Loop graph that iterates over an iterable, executing GCA for each element. |
+| While-Loop | Loop graph that executes GCA while a condition remains true. |
+| Standard | Connects two sub-GC's together to make a new GC. This is by far the most common type. |
+| Primitive | Simplified graph representing a primitive operator (e.g., addition, logical OR). Has no sub-GC's. |
 
 ## Row Requirements
 
-Note that both GCA and GCB are present or neither are present. This simplifies the rules for insertion.
 All Connection Graphs may have either an input interface or an output interface or both but cannot have neither.
-GC's with just inputs store data in memory, more presistant storage or send it to an output port. GC's that
-just have an output interface are constants, read from memory, storage or input ports.
+GC's with just inputs store data in memory, more persistent storage or send it to a peripheral. GC's that
+just have an output interface are constants, read from memory, storage or peripherals.
 
-| Type | I | F | A | B | O | P |
-|------|---|---| ---|---|---|---|
-| Codon | o | - | - | - | o | - |
-| Conditional | X | X | X | X | m | m |
-| Empty | o | - | - | - | o | - |
-| Standard | o | - | X | X | o | - |
+### Row Definitions
+
+- **I** = Input interface (source)
+- **F** = Condition evaluation destination (for conditionals)
+- **L** = Loop iterable/condition destination (for loops) and loop object source
+- **W** = While loop condition destination
+- **A** = GCA input (destination) / GCA output (source)
+- **B** = GCB input (destination) / GCB output (source)
+- **O** = Output interface (destination)
+- **P** = Alternate output interface (destination) - used when condition is false or loop has zero iterations
+- **U** = Unconnected source endpoints (destination) - JSON format only
+
+| Type | I | F | L | W | A | B | O | P | U |
+|------|---|---|---|---|---|---|---|---|---|
+| If-Then | X | X | - | - | X | - | m | m | o |
+| If-Then-Else | X | X | - | - | X | X | m | m | o |
+| Empty | o | - | - | - | - | - | o | - | o |
+| For-Loop | X | - | X | - | X | - | m | m | o |
+| While-Loop | X | - | X | X | X | - | m | m | o |
+| Standard | o | - | - | - | X | X | o | - | o |
+| Primitive | o | - | - | - | X | - | o | - | - |
 
 - **X** = Must be present i.e. have at least 1 endpoint for that row.
 - **-** = Must _not_ be present
@@ -31,25 +48,155 @@ just have an output interface are constants, read from memory, storage or input 
 
 ## Connectivity Requirements
 
-Codons and Empty graphs have no connections only Input and Output row definitions i.e. an IO interface definition. Standard, Hardened and Conditional graphs have connections between row interfaces but not all combinations are permitted. In the matrix below the source of the connection is the column label and the destination of the connection is the row label.
+Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-Loop, While-Loop, and Standard graphs have connections between row interfaces but not all combinations are permitted. In the matrix below the source of the connection is the column label and the destination of the connection is the row label.
 
-| Dst | I | F | A | B | O | P |
-|------|---|---|---|---|---|---|
-|  I  | - | - | - | - | - | - |
-| F | **C** | - | - | - | - | - |
-|  A  | SC | - |  - | - | - | - |
-|  B  | SC | - | S | - | - | - |
-|  O  | SC | - | SC | S | - | - |
-|  P  | C | - | - | C | - | - |
+| Dst\Src | I | L | A | B |
+|---------|---|---|---|---|
+| F | IT,IE | - | - | - |
+| L | FL,WL | - | - | - |
+| W | - | - | WL | - |
+| A | IT,IE,FL,WL,S,P | FL,WL | - | - |
+| B | IE,S | - | S | - |
+| O | IT,IE,FL,WL,S,P | - | IT,IE,FL,WL,S,P | S |
+| P | IT,IE,FL,WL | - | - | IE |
+| U | All | All | All | All |
 
-- S = Allowed in a Standard graph
-- C = Allowed in a Conditional graph
-- \- = Not allowed in any case
-- **bold** = Required
+**Legend:**
 
-Note that the required connections are a consequence of the rule that an interface must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist.
+- **IT** = If-Then graph
+- **IE** = If-Then-Else graph
+- **FL** = For-Loop graph
+- **WL** = While-Loop graph
+- **S** = Standard graph
+- **P** = Primitive graph
+- **-** = Not allowed
 
-Flow charts of the allowed connectivity standard and conditional graphs are below.
+Note that required connections are a consequence of the rule that an interface must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist.
+
+Flow charts of the allowed connectivity for each graph type are below.
+
+### If-Then Connectivity Graph
+
+```mermaid
+%% If-Then GC
+flowchart TB
+    I["[I]nputs"]
+    F["i[F] condition"]
+    A["GC[A]"]
+    O["[O]utputs"]
+    P["Out[P]uts (false path)"]
+    I --> F
+    I --> A --> O
+    I --> O
+    I --> P
+    
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Fcd fill:#aa6622,stroke:#333,stroke-width:1px
+classDef Acd fill:#882222,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
+classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
+
+class I Icd
+class F Fcd
+class A Acd
+class O Ocd
+class P Pcd
+```
+
+### If-Then-Else Connectivity Graph
+
+```mermaid
+%% If-Then-Else GC
+flowchart TB
+    I["[I]nputs"]
+    F["i[F] condition"]
+    A["GC[A] (true)"]
+    B["GC[B] (false)"]
+    O["[O]utputs"]
+    P["Out[P]uts (false path)"]
+    I --> F
+    I --> A --> O
+    I --> B --> P
+    I --> O
+    I --> P
+    
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Fcd fill:#aa6622,stroke:#333,stroke-width:1px
+classDef Acd fill:#882222,stroke:#333,stroke-width:1px
+classDef Bcd fill:#222288,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
+classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
+
+class I Icd
+class F Fcd
+class A Acd
+class B Bcd
+class O Ocd
+class P Pcd
+```
+
+### For-Loop Connectivity Graph
+
+```mermaid
+%% For-Loop GC
+flowchart TB
+    I["[I]nputs"]
+    L["[L]oop iterable (dst) / object (src)"]
+    A["GC[A] loop body"]
+    O["[O]utputs"]
+    P["Out[P]uts (zero iteration)"]
+    I --> L
+    L --> A --> O
+    I --> A
+    I --> O
+    I --> P
+    
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Lcd fill:#228822,stroke:#333,stroke-width:1px
+classDef Acd fill:#882222,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
+classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
+
+class I Icd
+class L Lcd
+class A Acd
+class O Ocd
+class P Pcd
+```
+
+### While-Loop Connectivity Graph
+
+```mermaid
+%% While-Loop GC
+flowchart TB
+    I["[I]nputs"]
+    L["[L]oop object (dst/src)"]
+    W["[W]hile condition"]
+    A["GC[A] loop body"]
+    O["[O]utputs"]
+    P["Out[P]uts (zero iteration)"]
+    I --> L
+    L --> A
+    I --> A
+    A --> W
+    A --> O
+    I --> O
+    I --> P
+    
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Lcd fill:#228822,stroke:#333,stroke-width:1px
+classDef Wcd fill:#888822,stroke:#333,stroke-width:1px
+classDef Acd fill:#882222,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
+classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
+
+class I Icd
+class L Lcd
+class W Wcd
+class A Acd
+class O Ocd
+class P Pcd
+```
 
 ### Standard Connectivity Graph
 
@@ -65,10 +212,10 @@ flowchart TB
     I --> B
     I --> O
     
-classDef Icd fill:#999,stroke:#333,stroke-width:1px
-classDef Acd fill:#900,stroke:#333,stroke-width:1px
-classDef Bcd fill:#009,stroke:#333,stroke-width:1px
-classDef Ocd fill:#000,stroke:#333,stroke-width:1px
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Acd fill:#882222,stroke:#333,stroke-width:1px
+classDef Bcd fill:#222288,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
 
 class I Icd
 class A Acd
@@ -76,47 +223,36 @@ class B Bcd
 class O Ocd
 ```
 
-### Conditional Connectivity Graph
+### Primitive Connectivity Graph
 
 ```mermaid
-%% Conditional GC
+%% Primitive GC
 flowchart TB
     I["[I]nputs"]
-    F["i[F]"]
-    A["GC[A]"]
-    B["GC[B]"]
+    A["GC[A] primitive operation"]
     O["[O]utputs"]
-    P["Out[P]uts"]
-    I --> F
     I --> A --> O
-    B --> P
-    I --> B
     I --> O
-    I --> P
     
-classDef Icd fill:#999,stroke:#333,stroke-width:1px
-classDef Acd fill:#900,stroke:#333,stroke-width:1px
-classDef Bcd fill:#009,stroke:#333,stroke-width:1px
-classDef Ocd fill:#000,stroke:#333,stroke-width:1px
-classDef Pcd fill:#099,stroke:#333,stroke-width:1px
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Acd fill:#882222,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
 
 class I Icd
 class A Acd
-class B Bcd
 class O Ocd
-class P Pcd
 ```
 
-### Codon & Empty Connectivity Graphs
+### Empty Connectivity Graph
 
 ```mermaid
-%% Codon & Empty GC
+%% Empty GC
 flowchart LR
     I["[I]nputs"]
     O["[O]utputs"]
     
-classDef Icd fill:#999,stroke:#333,stroke-width:1px
-classDef Ocd fill:#000,stroke:#333,stroke-width:1px
+classDef Icd fill:#888888,stroke:#333,stroke-width:1px
+classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
 
 class I Icd
 class O Ocd

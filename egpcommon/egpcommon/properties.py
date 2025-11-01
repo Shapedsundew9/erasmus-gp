@@ -191,10 +191,17 @@ PROPERTIES_CONFIG = {
                     "width": 1,
                     "default": True,
                     "description": (
-                        "The meta codon is a type cast which means it is guaranteed to "
-                        "just have one input and one output."
+                        "The meta codon is a type cast which means it is a functional no-op."
                     ),
-                }
+                },
+                "reserved8": {
+                    "type": "uint",
+                    "start": 1,
+                    "width": 7,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
             },
         ],
     },
@@ -247,7 +254,7 @@ PROPERTIES_CONFIG = {
 }
 
 
-PropertiesBD: type[BitDictABC] = bitdict_factory(
+PropertiesBD: type = bitdict_factory(
     PROPERTIES_CONFIG, "PropertiesBD", title="Genetic Code Properties"
 )
 PropertiesBD.__doc__ = "BitDict for Genetic Code properties."

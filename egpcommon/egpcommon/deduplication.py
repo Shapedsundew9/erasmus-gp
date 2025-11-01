@@ -13,3 +13,18 @@ properties_store = ObjectDeduplicator("Properties Store", 2**12)
 
 # 256 integers
 int256_store = ObjectDeduplicator("Integer Store", 2**8)
+
+
+# Deduplication information
+def deduplication_info() -> str:
+    """Return deduplication cache statistics for all deduplicators."""
+    info = (
+        signature_store.info()
+        + "\n\n"
+        + uuid_store.info()
+        + "\n\n"
+        + properties_store.info()
+        + "\n\n"
+        + int256_store.info()
+    )
+    return info

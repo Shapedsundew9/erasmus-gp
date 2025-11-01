@@ -276,20 +276,6 @@ class TestObjectDeduplicator(unittest.TestCase):
 
         self.assertIs(result1, result2, "Complex frozensets should be deduplicated")
 
-    def test_destructor_calls_info(self):
-        """Test that destructor logs cache info."""
-        # This test verifies the __del__ method is defined
-        dedup = ObjectDeduplicator(name="destructor_test", size=8)
-        _ = dedup[(1, 2)]
-
-        # Get info before deletion to verify it works
-        info_str = dedup.info()
-        self.assertIn("destructor_test", info_str)
-
-        # The actual destructor will be called when dedup is garbage collected
-        # We can't easily test the logging output, but we can verify the method exists
-        self.assertTrue(hasattr(dedup, "__del__"))
-
     def test_cache_statistics_accuracy(self):
         """Test that cache statistics are accurate."""
         dedup = ObjectDeduplicator(name="stats_test", size=16)
@@ -381,7 +367,7 @@ class TestObjectDeduplicator(unittest.TestCase):
 
         # Check that __slots__ is defined
         self.assertTrue(hasattr(ObjectDeduplicator, "__slots__"))
-        self.assertEqual(ObjectDeduplicator.__slots__, ("_objects", "name"))
+        self.assertEqual(ObjectDeduplicator.__slots__, ("_objects", "name", "target_rate"))
 
         # Check that instance doesn't have __dict__
         self.assertFalse(hasattr(dedup, "__dict__"))

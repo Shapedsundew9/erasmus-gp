@@ -24,6 +24,7 @@ from time import time
 from typing import Any
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
+from egpcommon.deduplication import deduplication_info
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
@@ -623,3 +624,5 @@ if __name__ == "__main__":
     # Dump as JSON so we can take a deeper look at the GC's
     with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)
+
+    print(f"GC markdown and JSON files created.\n\n{deduplication_info()}")
