@@ -13,8 +13,8 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import properties_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
-from egpcommon.properties import PropertiesBD
-from egppy.genetic_code.c_graph import CGraph
+from egpcommon.properties import GCType, PropertiesBD
+from egppy.genetic_code.c_graph import CGraph, CGraphType
 from egppy.genetic_code.c_graph_constants import JSONCGraph
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
 from egppy.genetic_code.interface import Interface
@@ -94,15 +94,32 @@ class EGCMixin(GCMixin):
         self["signature"] = signature_store[bytes.fromhex(tmp) if isinstance(tmp, str) else tmp]
 
     def verify(self) -> None:
-        """Verify the genetic code object."""
-        assert isinstance(self, GCABC), "GGC must be a GCABC object."
-        assert isinstance(self, CommonObj), "GGC must be a CommonObj."
+        """Verify the genetic code object.
+
+        Performs comprehensive runtime validation of the EGC structure including:
+        - Type and length validation of all members
+        - GC type and connection graph consistency checks
+        - Ancestral relationship validation based on GC type
+        - Properties validation
+
+        Raises:
+            DebugTypeError: If any member has an incorrect type (DEBUG mode only).
+            DebugValueError: If any value constraint is violated (DEBUG mode only).
+            ValueError: If GC type and connection graph constraints are violated.
+            RuntimeError: If properties validation fails.
+        """
+        assert isinstance(self, GCABC), "EGC must be a GCABC object."
+        assert isinstance(self, CommonObj), "EGC must be a CommonObj."
+
+        # Get properties for validation
+        properties = PropertiesBD(self["properties"])
+        gc_type = properties["gc_type"]
+        graph_type = properties["graph_type"]
 
         if _logger.isEnabledFor(level=DEBUG):
-
-            # Check types and lengths
+            # Type and length validation for all members
             self.debug_type_error(
-                isinstance(self["cgraph"], CGraph), "graph must be a Connection Graph object"
+                isinstance(self["cgraph"], CGraph), "cgraph must be a Connection Graph object"
             )
             self.debug_type_error(isinstance(self["gca"], bytes), "gca must be a bytes object")
             self.debug_value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
@@ -122,6 +139,146 @@ class EGCMixin(GCMixin):
                 isinstance(self["signature"], bytes), "signature must be a bytes object"
             )
             self.debug_value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
+            self.debug_type_error(isinstance(self["created"], datetime), "created must be datetime")
+            self.debug_type_error(isinstance(self["properties"], int), "properties must be int")
+
+            # Verify the connection graph
+            self["cgraph"].verify()
+
+            # Validate properties bitdict
+            self.debug_runtime_error(properties.valid(), "Properties bitdict is invalid")
+
+            # GC Type and Connection Graph Type Constraints
+            # Reference: egppy/egppy/genetic_code/docs/gc_types.md
+
+            if graph_type == CGraphType.PRIMITIVE:
+                # PRIMITIVE graphs can only be used with CODON or META types
+                self.debug_value_error(
+                    gc_type in (GCType.CODON, GCType.META),
+                    f"PRIMITIVE connection graph requires gc_type to be CODON or META, "
+                    f"but got {GCType(gc_type).name}",
+                )
+            elif gc_type == GCType.CODON:
+                # CODON type must use PRIMITIVE graph
+                self.debug_value_error(
+                    graph_type == CGraphType.PRIMITIVE,
+                    f"CODON gc_type requires PRIMITIVE connection graph, "
+                    f"but got {CGraphType(graph_type).name}",
+                )
+            elif gc_type == GCType.META:
+                # META type must use PRIMITIVE or STANDARD graph
+                self.debug_value_error(
+                    graph_type in (CGraphType.PRIMITIVE, CGraphType.STANDARD),
+                    f"META gc_type requires PRIMITIVE or STANDARD connection graph, "
+                    f"but got {CGraphType(graph_type).name}",
+                )
+            elif gc_type == GCType.ORDINARY:
+                # ORDINARY can use STANDARD, IF_THEN, IF_THEN_ELSE, FOR_LOOP, WHILE_LOOP, EMPTY
+                self.debug_value_error(
+                    graph_type
+                    in (
+                        CGraphType.STANDARD,
+                        CGraphType.IF_THEN,
+                        CGraphType.IF_THEN_ELSE,
+                        CGraphType.FOR_LOOP,
+                        CGraphType.WHILE_LOOP,
+                        CGraphType.EMPTY,
+                    ),
+                    f"ORDINARY gc_type cannot use {CGraphType(graph_type).name} connection graph",
+                )
+
+        # Ancestral Relationship Validation based on Connection Graph Structure
+        # Reference: egppy/egppy/genetic_code/docs/gc_types.md - Validation Rules
+        cgraph = self["cgraph"]
+        has_row_a = "Ad" in cgraph or "As" in cgraph
+        has_row_b = "Bd" in cgraph or "Bs" in cgraph
+
+        # Validate gca against connection graph structure
+        if has_row_a and graph_type != CGraphType.PRIMITIVE:
+            self.value_error(
+                self["gca"] != NULL_SIGNATURE,
+                "Connection graph has Row A defined, but gca is NULL signature",
+            )
+        else:
+            self.value_error(
+                self["gca"] == NULL_SIGNATURE,
+                "Connection graph has no Row A defined, but gca is not NULL signature",
+            )
+
+        # Validate gcb against connection graph structure
+        if has_row_b:
+            self.value_error(
+                self["gcb"] != NULL_SIGNATURE,
+                "Connection graph has Row B defined, but gcb is NULL signature",
+            )
+        else:
+            self.value_error(
+                self["gcb"] == NULL_SIGNATURE,
+                "Connection graph has no Row B defined, but gcb is not NULL signature",
+            )
+
+        # PRIMITIVE graphs have no ancestors or pgc
+        if graph_type == CGraphType.PRIMITIVE:
+            self.value_error(
+                self["ancestora"] == NULL_SIGNATURE,
+                "PRIMITIVE connection graph requires ancestora to be NULL signature",
+            )
+            self.value_error(
+                self["ancestorb"] == NULL_SIGNATURE,
+                "PRIMITIVE connection graph requires ancestorb to be NULL signature",
+            )
+            self.value_error(
+                self["pgc"] == NULL_SIGNATURE,
+                "PRIMITIVE connection graph requires pgc to be NULL signature",
+            )
+
+        # CODON type validation (codons have no ancestors)
+        if gc_type == GCType.CODON:
+            self.value_error(
+                self["gca"] == NULL_SIGNATURE, "CODON gc_type requires gca to be NULL signature"
+            )
+            self.value_error(
+                self["gcb"] == NULL_SIGNATURE, "CODON gc_type requires gcb to be NULL signature"
+            )
+            self.value_error(
+                self["ancestora"] == NULL_SIGNATURE,
+                "CODON gc_type requires ancestora to be NULL signature",
+            )
+            self.value_error(
+                self["ancestorb"] == NULL_SIGNATURE,
+                "CODON gc_type requires ancestorb to be NULL signature",
+            )
+            self.value_error(
+                self["pgc"] == NULL_SIGNATURE, "CODON gc_type requires pgc to be NULL signature"
+            )
+
+        # META type validation (meta-codons have no ancestors)
+        if gc_type == GCType.META and graph_type == CGraphType.PRIMITIVE:
+            self.value_error(
+                self["gca"] == NULL_SIGNATURE, "META codon requires gca to be NULL signature"
+            )
+            self.value_error(
+                self["gcb"] == NULL_SIGNATURE, "META codon requires gcb to be NULL signature"
+            )
+            self.value_error(
+                self["ancestora"] == NULL_SIGNATURE,
+                "META codon requires ancestora to be NULL signature",
+            )
+            self.value_error(
+                self["ancestorb"] == NULL_SIGNATURE,
+                "META codon requires ancestorb to be NULL signature",
+            )
+            self.value_error(
+                self["pgc"] == NULL_SIGNATURE, "META codon requires pgc to be NULL signature"
+            )
+
+        # ORDINARY type validation (ordinary codes have ancestors and pgc)
+        if gc_type == GCType.ORDINARY:
+            # At least one of gca or gcb must be present for ordinary codes
+            self.value_error(
+                self["gca"] != NULL_SIGNATURE or self["gcb"] != NULL_SIGNATURE,
+                "ORDINARY gc_type requires at least one of gca or gcb to be non-NULL",
+            )
 
         # Call base class verify at the end
         super().verify()

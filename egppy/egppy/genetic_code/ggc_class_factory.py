@@ -15,7 +15,7 @@ from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE,
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
-from egpcommon.properties import PropertiesBD
+from egpcommon.properties import BASIC_CODON_PROPERTIES, PropertiesBD
 from egppy.genetic_code.egc_class_factory import EGCMixin
 from egppy.genetic_code.genetic_code import GCABC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
 from egppy.genetic_code.import_def import ImportDef
@@ -544,5 +544,6 @@ NULL_GC: GCABC = GGCDict(
         "generation": 0,
         "num_codes": 1,
         "num_codons": 1,
+        "properties": BASIC_CODON_PROPERTIES,
     }
 )

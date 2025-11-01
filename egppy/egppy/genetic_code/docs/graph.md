@@ -3,15 +3,15 @@
 A Genetic Code graph defines how values from the GC input are passed to sub-GC's and outputs from sub-GC's
 (and directly from the input) are connected to the GC's outputs. There are 7 types of Connection Graph.
 
-| Type | Comments |
-|------|------------|
-| If-Then | Conditional graph with a single execution path (GCA) chosen when condition is true. |
-| If-Then-Else | Conditional graph with two execution paths (GCA/GCB) chosen based on condition. |
-| Empty | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
-| For-Loop | Loop graph that iterates over an iterable, executing GCA for each element. |
-| While-Loop | Loop graph that executes GCA while a condition remains true. |
-| Standard | Connects two sub-GC's together to make a new GC. This is by far the most common type. |
-| Primitive | Simplified graph representing a primitive operator (e.g., addition, logical OR). Has no sub-GC's. |
+| Type | GC Type | Comments |
+|------|---------|----------|
+| If-Then | Ordinary | Conditional graph with a single execution path (GCA) chosen when condition is true. |
+| If-Then-Else | Ordinary | Conditional graph with two execution paths (GCA/GCB) chosen based on condition. |
+| Empty | Ordinary | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
+| For-Loop | Ordinary | Loop graph that iterates over an iterable, executing GCA for each element. |
+| While-Loop | Ordinary | Loop graph that executes GCA while a condition remains true. |
+| Standard | Ordinary, Meta | Connects two sub-GC's together to make a new GC. This is by far the most common type. |
+| Primitive | Codon, Meta | Simplified graph representing a primitive operator (e.g., addition, logical OR). Has no sub-GC's. |
 
 ## Row Requirements
 

@@ -559,15 +559,15 @@ class CGraph(FreezableObject, Collection):
         i_iface: Interface = getattr(self, "_Is")
         for dep in unconnected:
             # Gather all the viable source interfaces for this destination endpoint.
-            vifs = (
-                getattr(self, "_" + row + EPClsPostfix.SRC) for row in vsrc_rows[DstRow(dep.row)]
-            )
+            valid_src_rows_for_dst = vsrc_rows[DstRow(dep.row)]
+            vifs = (getattr(self, "_" + row + EPClsPostfix.SRC) for row in valid_src_rows_for_dst)
             # Gather all the source endpoints that match the type of the destination endpoint.
             vsrcs = [sep for vif in vifs for sep in vif if sep.typ == dep.typ]
             # If the interface of the GC is not fixed (i.e. it is not an empty GC) then
-            # a new input interface endpoint is an option.
+            # a new input interface endpoint is an option, BUT only if I is a valid source
+            # for this destination row according to the graph type rules.
             len_is = len(i_iface)
-            if not if_locked:
+            if not if_locked and SrcRow.I in valid_src_rows_for_dst:
                 vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ, []))
             if vsrcs:
                 # Randomly choose a valid source endpoint
@@ -591,8 +591,198 @@ class CGraph(FreezableObject, Collection):
         Stabilization is not guaranteed to be successful unless if_locked is False
         in which case unconnected destinations create new source endpoints in the
         input interface as needed.
+
+        After stabilization, check is_stable() to determine if all destinations
+        were successfully connected.
         """
         self.connect_all(if_locked)
-        assert self.is_stable(), "Connection graph stabilization failed."
         if _logger.isEnabledFor(level=VERIFY):
             self.verify()
+
+    def verify(self) -> None:
+        """Verify the Connection Graph structure and connectivity rules.
+
+        This method validates:
+        - All interfaces are properly typed
+        - Graph type identification is consistent
+        - Interface presence matches graph type rules
+        - Endpoint connectivity follows graph type rules
+        - Type consistency across connections
+        - Reference validity (endpoints reference existing endpoints)
+
+        For stable graphs (frozen or explicitly stable):
+        - All destination endpoints must be connected
+        - All connections must follow the graph type rules
+
+        For unstable graphs:
+        - Connections are validated but may be incomplete
+
+        Raises:
+            ValueError: If any validation check fails.
+            TypeError: If any type check fails.
+        """
+        # Verify all interfaces
+        for key in _UNDER_ROW_CLS_INDEXED:
+            iface = getattr(self, key)
+            if iface is not NULL_INTERFACE:
+                self.type_error(
+                    isinstance(iface, Interface),
+                    f"Interface {key} must be an Interface, got {type(iface)}",
+                )
+                iface.verify()
+
+        # Identify the graph type
+        graph_type = c_graph_type(self)
+
+        # Get valid rows for this graph type
+        valid_rows_set = CGT_VALID_ROWS[graph_type]
+        valid_src_rows_dict = CGT_VALID_SRC_ROWS[graph_type]
+        valid_dst_rows_dict = CGT_VALID_DST_ROWS[graph_type]
+
+        # Verify interfaces present match graph type rules
+        self._verify_interface_presence(graph_type, valid_rows_set)
+
+        # Verify endpoint connectivity rules
+        self._verify_connectivity_rules(graph_type, valid_src_rows_dict, valid_dst_rows_dict)
+
+        # Verify single endpoint rules for F, L, W interfaces
+        self._verify_single_endpoint_interfaces()
+
+        # Verify type consistency across connections
+        self._verify_type_consistency()
+
+        # For frozen or explicitly stable graphs, verify all destinations are connected
+        if self.is_frozen() or self.is_stable():
+            self._verify_all_destinations_connected()
+
+        # Call parent verify
+        super().verify()
+
+    def _verify_interface_presence(
+        self, graph_type: CGraphType, valid_rows_set: frozenset[Row]
+    ) -> None:
+        """Verify that only valid interfaces for the graph type are present."""
+        for key in ROW_CLS_INDEXED:
+            iface = getattr(self, "_" + key)
+            if iface is not NULL_INTERFACE:
+                # Extract the row from the key (first character)
+                row_str = key[0]
+                self.value_error(
+                    row_str in valid_rows_set,
+                    f"Interface {key} is not valid for graph type {graph_type}. "
+                    f"Valid rows: {valid_rows_set}",
+                )
+
+    def _verify_connectivity_rules(
+        self,
+        graph_type: CGraphType,
+        valid_src_rows_dict: dict[DstRow, frozenset[SrcRow]],
+        valid_dst_rows_dict: dict[SrcRow, frozenset[DstRow]],
+    ) -> None:
+        """Verify that endpoint connections follow the graph type rules."""
+        # Check destination endpoints connect to valid source rows
+        for dst_row in DstRow:
+            dst_iface = getattr(self, "_" + dst_row + EPClsPostfix.DST)
+            if dst_iface is NULL_INTERFACE:
+                continue
+
+            valid_srcs = valid_src_rows_dict.get(dst_row, frozenset())
+            for ep in dst_iface.endpoints:
+                if ep.is_connected():
+                    for ref in ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Check that the source row is valid for this destination
+                        self.value_error(
+                            ref_row_str in valid_srcs,
+                            f"Destination {dst_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str} is not a valid source for"
+                            f" {dst_row} in {graph_type} graphs. "
+                            f"Valid sources: {valid_srcs}",
+                        )
+
+        # Check source endpoints connect to valid destination rows
+        for src_row in SrcRow:
+            src_iface = getattr(self, "_" + src_row + EPClsPostfix.SRC)
+            if src_iface is NULL_INTERFACE:
+                continue
+
+            valid_dsts = valid_dst_rows_dict.get(src_row, frozenset())
+            for ep in src_iface.endpoints:
+                if ep.is_connected():
+                    for ref in ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Check that the destination row is valid for this source
+                        self.value_error(
+                            ref_row_str in valid_dsts,
+                            f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str} is not a valid destination for "
+                            f"{src_row} in {graph_type} graphs. "
+                            f"Valid destinations: {valid_dsts}",
+                        )
+
+    def _verify_single_endpoint_interfaces(self) -> None:
+        """Verify that F, L, W interfaces have at most 1 endpoint."""
+        for row in [DstRow.F, DstRow.L, DstRow.W]:
+            iface = getattr(self, "_" + row + EPClsPostfix.DST)
+            if iface is not NULL_INTERFACE:
+                self.value_error(
+                    len(iface) <= 1,
+                    f"Interface {row}d must have at most 1 endpoint, found {len(iface)}",
+                )
+
+        # L source interface must also have at most 1 endpoint
+        ls_iface = getattr(self, "_" + SrcRow.L + EPClsPostfix.SRC)
+        if ls_iface is not NULL_INTERFACE:
+            self.value_error(
+                len(ls_iface) <= 1,
+                f"Interface Ls must have at most 1 endpoint, found {len(ls_iface)}",
+            )
+
+    def _verify_type_consistency(self) -> None:
+        """Verify that connected endpoints have matching types."""
+        # Check all destination endpoints
+        for dst_row in DstRow:
+            dst_iface = getattr(self, "_" + dst_row + EPClsPostfix.DST)
+            if dst_iface is NULL_INTERFACE:
+                continue
+
+            for dst_ep in dst_iface.endpoints:
+                if dst_ep.is_connected():
+                    for ref in dst_ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Get the source endpoint
+                        src_iface = getattr(self, "_" + ref_row_str + EPClsPostfix.SRC)
+                        self.value_error(
+                            src_iface is not NULL_INTERFACE,
+                            f"Destination {dst_row}{dst_ep.idx} references non-existent"
+                            f" source interface {ref_row_str}s",
+                        )
+                        self.value_error(
+                            ref_idx < len(src_iface),
+                            f"Destination {dst_row}{dst_ep.idx} references {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str}s only has {len(src_iface)} endpoints",
+                        )
+                        src_ep = src_iface[ref_idx]
+                        # Verify type consistency
+                        self.value_error(
+                            dst_ep.typ == src_ep.typ,
+                            f"Type mismatch: {dst_row}{dst_ep.idx} has type {dst_ep.typ} "
+                            f"but connects to {ref_row_str}{ref_idx} with type {src_ep.typ}",
+                        )
+
+    def _verify_all_destinations_connected(self) -> None:
+        """Verify that all destination endpoints are connected."""
+        unconnected: list[str] = []
+        for dst_row in DstRow:
+            dst_iface = getattr(self, "_" + dst_row + EPClsPostfix.DST)
+            if dst_iface is NULL_INTERFACE:
+                continue
+
+            for ep in dst_iface.endpoints:
+                if not ep.is_connected():
+                    unconnected.append(f"{dst_row}{ep.idx}")
+
+        self.value_error(
+            len(unconnected) == 0,
+            f"Stable/frozen graph has unconnected destination endpoints: {unconnected}",
+        )

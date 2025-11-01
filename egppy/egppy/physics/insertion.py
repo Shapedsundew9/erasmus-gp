@@ -3,8 +3,6 @@
 Defines how a insert GC (iGC) is inserted into a target GC (tGC).
 """
 
-from random import randint
-
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.ggc_class_factory import GCABC
