@@ -14,11 +14,11 @@
         "name": "sca",
         "description": "Spontaneous Codon Aggregation mutation.",
         "inputs": [
-            "GCABC",
-            "GCABC"
+            "EGCode",
+            "EGCode"
         ],
         "outputs": [
-            "GCABC"
+            "EGCode"
         ],
         "inline": "sca({i0}, {i1}, GPI)",
         "imports": [

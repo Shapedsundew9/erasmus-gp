@@ -55,7 +55,7 @@ GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] =
 ) + tuple(
     (name, signature_to_bytes, memoryview_to_signature)
     for name, field in GGC_KVT.items()
-    if field.get("phy_type", "").endswith("Sig")
+    if field.get("signature", False)
 )
 META_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
     "created": {"db_type": "TIMESTAMP", "nullable": False},

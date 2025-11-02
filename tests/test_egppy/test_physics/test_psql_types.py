@@ -31,7 +31,7 @@ from egppy.physics.psql_types import (
     PsqlTimestamp,
     PsqlType,
     PsqlTypeError,
-    PsqlUuid,
+    PsqlUUID,
     PsqlValueError,
     PsqlVarChar,
     py_cast,
@@ -211,9 +211,9 @@ class TestPsqlTypes(unittest.TestCase):
     def test_psql_uuid(self):
         """Test the PsqlUuid type."""
         u = uuid4()
-        self.assertEqual(PsqlUuid(u, is_literal=True).value, u)
+        self.assertEqual(PsqlUUID(u, is_literal=True).value, u)
         with self.assertRaises(PsqlValueError):
-            PsqlUuid(str(u), is_literal=True)
+            PsqlUUID(str(u), is_literal=True)
 
     def test_psql_bytea(self):
         """Test the PsqlBytea type."""
@@ -338,7 +338,7 @@ class TestPsqlTypes(unittest.TestCase):
         self.assertTrue(issubclass(PsqlSmallInt, PsqlIntegral))
         self.assertEqual(PsqlInt.sql_type_name, "INT4")
         self.assertEqual(PsqlReal.sql_type_name, "REAL")
-        self.assertEqual(PsqlUuid.sql_type_name, "UUID")
+        self.assertEqual(PsqlUUID.sql_type_name, "UUID")
 
     def test_psql_fragments_and_statements(self):
         """Test the PsqlFragment and PsqlStatement classes."""

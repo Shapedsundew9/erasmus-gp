@@ -67,24 +67,26 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 
 ### 3. Meta (GCType.META = 2)
 
-**Meta** genetic codes are special-purpose primitives for type operations and monitoring that have no functional impact on evolved solutions.
+**Meta** genetic codes are special-purpose primitives for type operations and monitoring that have no functional impact on evolved solutions. Meta genetic codes are also codons and meet all constraints on codon structure and usage.
 
 **Key Characteristics:**
 
 - **Type System Operations**: Primarily used for type casting, type checking, and validation
-- **No Functional Impact**: Do not alter the logic of evolved genetic codes; they are transparent to fitness evaluation
+- **Functional No-Op**: Do not alter the logical behavior of evolved genetic codes; they are transparent to fitness evaluation
+- **Primitive Structure**: Must use `CGraphType.PRIMITIVE` connection graphs (same as codons)
+- **No Ancestors**: Like codons, have no parent genetic codes (all ancestor fields are NULL signatures)
 - **System Infrastructure**: Support validation, debugging, and performance monitoring
 
 **Example Use Cases:**
 
-- Type casting: Converting between compatible types
+- Type casting: Converting between compatible types (functional no-op with type transformation)
 - Type checking: Runtime type validation
 - Performance monitoring: Instrumentation for profiling
 - Debugging: Assertions and invariant checking
 
 **Properties (gctsp when gc_type=2):**
 
-- `type_cast` (bool): Indicates a type cast meta-codon (default: True)
+- `type_cast` (bool): The meta codon is a type cast, meaning it is a functional no-op that transforms types (default: True)
 
 ## GC Type and Connection Graph Constraints
 
@@ -94,11 +96,11 @@ The GC Type constrains which connection graph types can be used:
 |---------|---------------------|
 | **CODON** | `PRIMITIVE` only |
 | **ORDINARY** | `STANDARD`, `IF_THEN`, `IF_THEN_ELSE`, `FOR_LOOP`, `WHILE_LOOP`, `EMPTY` |
-| **META** | `PRIMITIVE`, `STANDARD` |
+| **META** | `PRIMITIVE` only |
 
 **Validation Rules:**
 
-- If the connection graph is `PRIMITIVE` `gc_type` **must** be `CODON` or `META`
+- If the connection graph is `PRIMITIVE` `gc_type` **must** be `CODON` or `META` and vice-versa.
 - If the connection graph does not have a Row A defined, then `gca` **must** be NULL signature
 - If the connection graph does not have a Row B defined, then `gcb` **must** be NULL signature
 - If the connection graph has a Row A defined, then `gca` **must not** be NULL signature
@@ -113,5 +115,5 @@ The GC Type constrains which connection graph types can be used:
 
 - [GC Properties](gc_properties.md) - Complete properties bitfield specification
 - [GC Logical Structure](gc_logical_structure.md) - Hierarchical structure of genetic codes
-- [Connection Graphs](../../c_graph/docs/graph.md) - Connection graph types and rules
+- [Connection Graphs](graph.md) - Connection graph types and rules
 - [GC Relationships](gc_relationships.md) - Ancestral and network relationships

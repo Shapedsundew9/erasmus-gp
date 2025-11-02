@@ -458,7 +458,7 @@ class PsqlTimestamp(PsqlType):
         return value
 
 
-class PsqlUuid(PsqlType):
+class PsqlUUID(PsqlType):
     """UUID type"""
 
     sql_type_name = "UUID"
@@ -641,7 +641,7 @@ PYTHON_TO_PSQL_TYPE_MAP = {
     date: PsqlDate,
     time: PsqlTime,
     datetime: PsqlTimestamp,
-    UUID: PsqlUuid,
+    UUID: PsqlUUID,
     bytes: PsqlBytea,
     # List mapping needs explicit target type from user
 }

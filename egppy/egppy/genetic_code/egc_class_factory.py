@@ -168,8 +168,8 @@ class EGCMixin(GCMixin):
             elif gc_type == GCType.META:
                 # META type must use PRIMITIVE or STANDARD graph
                 self.debug_value_error(
-                    graph_type in (CGraphType.PRIMITIVE, CGraphType.STANDARD),
-                    f"META gc_type requires PRIMITIVE or STANDARD connection graph, "
+                    graph_type == CGraphType.PRIMITIVE,
+                    f"META gc_type requires a PRIMITIVE connection graph, "
                     f"but got {CGraphType(graph_type).name}",
                 )
             elif gc_type == GCType.ORDINARY:
@@ -253,7 +253,11 @@ class EGCMixin(GCMixin):
             )
 
         # META type validation (meta-codons have no ancestors)
-        if gc_type == GCType.META and graph_type == CGraphType.PRIMITIVE:
+        if gc_type == GCType.META:
+            self.value_error(
+                graph_type == CGraphType.PRIMITIVE,
+                "META gc_type requires PRIMITIVE connection graph",
+            )
             self.value_error(
                 self["gca"] == NULL_SIGNATURE, "META codon requires gca to be NULL signature"
             )
@@ -270,6 +274,10 @@ class EGCMixin(GCMixin):
             )
             self.value_error(
                 self["pgc"] == NULL_SIGNATURE, "META codon requires pgc to be NULL signature"
+            )
+            self.value_error(
+                not (properties["gctsp"]["type_upcast"] and properties["gctsp"]["type_downcast"]),
+                "META codon cannot be both type upcast and type downcast",
             )
 
         # ORDINARY type validation (ordinary codes have ancestors and pgc)

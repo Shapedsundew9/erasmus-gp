@@ -640,11 +640,13 @@ def generate_types_def(write: bool = False) -> None:
         ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
         uids.add(definition["uid"])
 
-        # All EGP types and methods must come from the physics module
+        # All EGP types and methods must come from the physics.pgc_api module
         # This maintains the abstraction from the structure of egp* modules
         for imp in definition.get("imports", []):
-            if imp["aip"] and imp["aip"][0] == "egppy":
+            if imp["aip"] and imp["aip"][0].startswith("egp"):
+                assert imp["aip"][0] == "egppy", f"Invalid EGP import: {imp['aip']}"
                 assert imp["aip"][1] == "physics", f"Invalid EGP physical import: {imp['aip']}"
+                assert imp["aip"][2] == "pgc_api", f"Invalid EGP physical import: {imp['aip']}"
 
         # Make sure previous definitions are not violated.
         if definition["name"] in existing_types_def:

@@ -131,14 +131,14 @@ class TestStabilizeLocked(unittest.TestCase):
         a_ep = ad_interface[0]
         self.assertEqual(a_ep.typ.name, "int")
         # The reference should be to I0 (the only int source)
-        ref_row, ref_idx = a_ep.refs[0]
+        ref_row, _ = a_ep.refs[0]
         self.assertEqual(ref_row, "I")
 
         od_interface = cgraph["Od"]
         o_ep = od_interface[0]
         self.assertEqual(o_ep.typ.name, "bool")
         # The reference should be to I1 (the bool source)
-        ref_row, ref_idx = o_ep.refs[0]
+        ref_row, _ = o_ep.refs[0]
         self.assertEqual(ref_row, "I")
 
     def test_stabilize_locked_standard_graph(self) -> None:

@@ -41,4 +41,4 @@
 
 | Name | Type | Bitfield | Default | Description |
 |---|:-:|:-:|:-:|---|
-| type_cast | bool | 0 | True | The meta codon is a type cast which means it is guaranteed to just have one input and one output. |
+| type_cast | bool | 0 | True | The meta codon is a type cast, meaning it is a functional no-op that transforms types. |

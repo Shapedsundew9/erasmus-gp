@@ -1,422 +1,432 @@
 {
     "_e_count": {
-        "description": "GCABC _e_count field extraction",
+        "description": "GCABC _e_count Python field extraction",
         "inline": "{i0}['_e_count']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ECountHL"
+            "int"
         ]
     },
     "_e_total": {
-        "description": "GCABC _e_total field extraction",
+        "description": "GCABC _e_total Python field extraction",
         "inline": "{i0}['_e_total']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ETotalHL"
+            "float"
         ]
     },
     "_evolvability": {
-        "description": "GCABC _evolvability field extraction",
+        "description": "GCABC _evolvability Python field extraction",
         "inline": "{i0}['_evolvability']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "EvolvabilityHL"
+            "float"
         ]
     },
     "_f_count": {
-        "description": "GCABC _f_count field extraction",
+        "description": "GCABC _f_count Python field extraction",
         "inline": "{i0}['_f_count']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "FCountHL"
+            "int"
         ]
     },
     "_f_total": {
-        "description": "GCABC _f_total field extraction",
+        "description": "GCABC _f_total Python field extraction",
         "inline": "{i0}['_f_total']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "FTotalHL"
+            "float"
         ]
     },
     "_fitness": {
-        "description": "GCABC _fitness field extraction",
+        "description": "GCABC _fitness Python field extraction",
         "inline": "{i0}['_fitness']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "FitnessHL"
+            "float"
         ]
     },
     "_lost_descendants": {
-        "description": "GCABC _lost_descendants field extraction",
+        "description": "GCABC _lost_descendants Python field extraction",
         "inline": "{i0}['_lost_descendants']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "LostDescendantsHL"
+            "int"
         ]
     },
     "_reference_count": {
-        "description": "GCABC _reference_count field extraction",
+        "description": "GCABC _reference_count Python field extraction",
         "inline": "{i0}['_reference_count']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ReferenceCountHL"
+            "int"
         ]
     },
     "ancestora": {
-        "description": "GCABC ancestora field extraction",
+        "description": "GCABC ancestora Python field extraction",
         "inline": "{i0}['ancestora']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "AncestorASig"
+            "bytes"
         ]
     },
     "ancestorb": {
-        "description": "GCABC ancestorb field extraction",
+        "description": "GCABC ancestorb Python field extraction",
         "inline": "{i0}['ancestorb']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "AncestorBSig"
+            "bytes"
         ]
     },
     "cgraph": {
-        "description": "GCABC cgraph field extraction",
+        "description": "GCABC cgraph Python field extraction",
         "inline": "{i0}['cgraph']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "CGraph"
+            "bytes"
         ]
     },
     "code_depth": {
-        "description": "GCABC code_depth field extraction",
+        "description": "GCABC code_depth Python field extraction",
         "inline": "{i0}['code_depth']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "CodeDepth"
+            "int"
         ]
     },
     "created": {
-        "description": "GCABC created field extraction",
+        "description": "GCABC created Python field extraction",
         "inline": "{i0}['created']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "Created"
+            "datetime"
         ]
     },
     "creator": {
-        "description": "GCABC creator field extraction",
+        "description": "GCABC creator Python field extraction",
         "inline": "{i0}['creator']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "Creator"
+            "UUID"
         ]
     },
     "descendants": {
-        "description": "GCABC descendants field extraction",
+        "description": "GCABC descendants Python field extraction",
         "inline": "{i0}['descendants']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "Descendants"
+            "int"
         ]
     },
     "e_count": {
-        "description": "GCABC e_count field extraction",
+        "description": "GCABC e_count Python field extraction",
         "inline": "{i0}['e_count']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ECountCL"
+            "int"
         ]
     },
     "e_total": {
-        "description": "GCABC e_total field extraction",
+        "description": "GCABC e_total Python field extraction",
         "inline": "{i0}['e_total']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ETotalCL"
+            "float"
         ]
     },
     "evolvability": {
-        "description": "GCABC evolvability field extraction",
+        "description": "GCABC evolvability Python field extraction",
         "inline": "{i0}['evolvability']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "EvolvabilityCL"
+            "float"
         ]
     },
     "f_count": {
-        "description": "GCABC f_count field extraction",
+        "description": "GCABC f_count Python field extraction",
         "inline": "{i0}['f_count']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "FCountCL"
+            "int"
         ]
     },
     "f_total": {
-        "description": "GCABC f_total field extraction",
+        "description": "GCABC f_total Python field extraction",
         "inline": "{i0}['f_total']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "FTotalCL"
+            "float"
         ]
     },
     "fitness": {
-        "description": "GCABC fitness field extraction",
+        "description": "GCABC fitness Python field extraction",
         "inline": "{i0}['fitness']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "FitnessCL"
+            "float"
         ]
     },
     "gca": {
-        "description": "GCABC gca field extraction",
+        "description": "GCABC gca Python field extraction",
         "inline": "{i0}['gca']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "GCASig"
+            "bytes"
         ]
     },
     "gcb": {
-        "description": "GCABC gcb field extraction",
+        "description": "GCABC gcb Python field extraction",
         "inline": "{i0}['gcb']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "GCBSig"
+            "bytes"
         ]
     },
     "generation": {
-        "description": "GCABC generation field extraction",
+        "description": "GCABC generation Python field extraction",
         "inline": "{i0}['generation']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "Generation"
+            "int"
         ]
     },
     "input_types": {
-        "description": "GCABC input_types field extraction",
+        "description": "GCABC input_types Python field extraction",
         "inline": "{i0}['input_types']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ITypes"
+            "list[int]"
         ]
     },
     "inputs": {
-        "description": "GCABC inputs field extraction",
+        "description": "GCABC inputs Python field extraction",
         "inline": "{i0}['inputs']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "IIndices"
+            "bytes"
         ]
     },
     "lost_descendants": {
-        "description": "GCABC lost_descendants field extraction",
+        "description": "GCABC lost_descendants Python field extraction",
         "inline": "{i0}['lost_descendants']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "LostDescendantsCL"
+            "int"
+        ]
+    },
+    "meta_data": {
+        "description": "GCABC meta_data Python field extraction",
+        "inline": "{i0}['meta_data']",
+        "inputs": [
+            "GGCode"
+        ],
+        "outputs": [
+            "bytes"
         ]
     },
     "num_codes": {
-        "description": "GCABC num_codes field extraction",
+        "description": "GCABC num_codes Python field extraction",
         "inline": "{i0}['num_codes']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "NumCodes"
+            "int"
         ]
     },
     "num_codons": {
-        "description": "GCABC num_codons field extraction",
+        "description": "GCABC num_codons Python field extraction",
         "inline": "{i0}['num_codons']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "NumCodons"
+            "int"
         ]
     },
     "num_inputs": {
-        "description": "GCABC num_inputs field extraction",
+        "description": "GCABC num_inputs Python field extraction",
         "inline": "{i0}['num_inputs']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "NumInputs"
+            "int"
         ]
     },
     "num_outputs": {
-        "description": "GCABC num_outputs field extraction",
+        "description": "GCABC num_outputs Python field extraction",
         "inline": "{i0}['num_outputs']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "NumOutputs"
+            "int"
         ]
     },
     "output_types": {
-        "description": "GCABC output_types field extraction",
+        "description": "GCABC output_types Python field extraction",
         "inline": "{i0}['output_types']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "OTypes"
+            "list[int]"
         ]
     },
     "outputs": {
-        "description": "GCABC outputs field extraction",
+        "description": "GCABC outputs Python field extraction",
         "inline": "{i0}['outputs']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "OIndices"
+            "bytes"
         ]
     },
     "pgc": {
-        "description": "GCABC pgc field extraction",
+        "description": "GCABC pgc Python field extraction",
         "inline": "{i0}['pgc']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "PGCSig"
+            "bytes"
         ]
     },
     "population_uid": {
-        "description": "GCABC population_uid field extraction",
+        "description": "GCABC population_uid Python field extraction",
         "inline": "{i0}['population_uid']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "PopulationUID"
+            "int"
         ]
     },
     "problem": {
-        "description": "GCABC problem field extraction",
+        "description": "GCABC problem Python field extraction",
         "inline": "{i0}['problem']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ProblemSig"
+            "bytes"
         ]
     },
     "problem_set": {
-        "description": "GCABC problem_set field extraction",
+        "description": "GCABC problem_set Python field extraction",
         "inline": "{i0}['problem_set']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ProblemSetSig"
+            "bytes"
         ]
     },
     "properties": {
-        "description": "GCABC properties field extraction",
+        "description": "GCABC properties Python field extraction",
         "inline": "{i0}['properties']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "PropertiesInt"
+            "int"
         ]
     },
     "reference_count": {
-        "description": "GCABC reference_count field extraction",
+        "description": "GCABC reference_count Python field extraction",
         "inline": "{i0}['reference_count']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "ReferenceCountCL"
+            "int"
         ]
     },
     "signature": {
-        "description": "GCABC signature field extraction",
+        "description": "GCABC signature Python field extraction",
         "inline": "{i0}['signature']",
         "inputs": [
-            "GCABC"
+            "EGCode"
         ],
         "outputs": [
-            "GCSig"
+            "bytes"
         ]
     },
     "survivability": {
-        "description": "GCABC survivability field extraction",
+        "description": "GCABC survivability Python field extraction",
         "inline": "{i0}['survivability']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "Survivability"
+            "float"
         ]
     },
     "updated": {
-        "description": "GCABC updated field extraction",
+        "description": "GCABC updated Python field extraction",
         "inline": "{i0}['updated']",
         "inputs": [
-            "GCABC"
+            "GGCode"
         ],
         "outputs": [
-            "Updated"
+            "datetime"
         ]
     }
 }

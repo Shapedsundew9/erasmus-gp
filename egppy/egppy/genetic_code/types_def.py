@@ -402,7 +402,7 @@ class TypesDefStore:
             TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
             DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
             if DB_STORE_TABLE_CONFIG.delete_table:
-                TypesDefStore._db_sources.raw.delete_table()
+                TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
                 for name in DB_STORE_TABLE_CONFIG.data_files:
                     filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
                     if not verify_signed_file(filename):
@@ -447,13 +447,13 @@ class TypesDefStore:
         """Determine if the types_def table should be reloaded."""
         db_sources = TypesDefStore._db_sources
         assert db_sources is not None, "DB sources must be initialized."
-        folder = DB_SOURCES_TABLE_CONFIG.data_file_folder
+        folder = DB_STORE_TABLE_CONFIG.data_file_folder
         num_entries = len(db_sources)
-        num_files = len(DB_SOURCES_TABLE_CONFIG.data_files)
+        num_files = len(DB_STORE_TABLE_CONFIG.data_files)
         if EGP_PROFILE == EGP_DEV_PROFILE and num_entries >= num_files:
             sources: RowIter = db_sources.select()
             hashes: set[bytes] = {row["file_hash"] for row in sources}
-            for filename in DB_SOURCES_TABLE_CONFIG.data_files:
+            for filename in DB_STORE_TABLE_CONFIG.data_files:
                 data = load_signature_data(join(folder, filename + ".sig"))
                 file_hash = data["file_hash"]
                 if file_hash not in hashes:

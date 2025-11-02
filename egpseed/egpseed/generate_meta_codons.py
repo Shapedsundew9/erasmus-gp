@@ -39,6 +39,7 @@ CODON_TEMPLATE: dict[str, Any] = {
         "deterministic": True,
         "side_effects": False,
         "static_creation": True,
+        "gctsp": {"type_upcast": False, "type_downcast": True},
     },
 }
 
@@ -123,10 +124,12 @@ def generate_meta_codons(write: bool = False) -> None:
         # One and two parameter variants
         for codon_template in (CODON_ONE_PARAMETER, CODON_TWO_PARAMETER):
             # Do both directions
-            for inpt, oupt in ((ctd, ptd), (ptd, ctd)):
+            for inpt, oupt, upcast in ((ctd, ptd, True), (ptd, ctd, False)):
 
                 # Create a copy of the codon template
                 codon: dict[str, Any] = deepcopy(codon_template)
+                codon["properties"]["gctsp"]["type_upcast"] = upcast
+                codon["properties"]["gctsp"]["type_downcast"] = not upcast
 
                 # Set the type for the connections in the connection graph
                 for ept in codon["cgraph"]["A"]:

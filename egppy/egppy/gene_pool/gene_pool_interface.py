@@ -1,7 +1,8 @@
 """The Gene Pool Interface."""
 
+from collections.abc import Iterable
 from os.path import dirname, join
-from typing import Any
+from typing import Any, Literal
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
@@ -10,7 +11,6 @@ from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.ggc_class_factory import GGCDict
-from egppy.genetic_code.interface import Interface
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.db_table_store import DBTableStore
@@ -122,7 +122,8 @@ class GenePoolInterface(GPIABC):
         order_sql: str = "RANDOM()",
         limit: int = 1,
         literals: dict[str, Any] | None = None,
-    ) -> tuple[bytes, ...]:
+        columns: Iterable[str] | Literal["*"] = "*",
+    ) -> tuple[dict[str, Any], ...]:
         """Select Genetic Codes based on a SQL query.
 
         The format of the arguments is for the underlying egpdb.Table.select()
@@ -135,14 +136,9 @@ class GenePoolInterface(GPIABC):
         """
         query_str = f" WHERE {filter_sql} ORDER BY {order_sql} LIMIT {max(1, min(limit, 16))}"
         row_iter = self._dbm.managed_gc_table.select(
-            query_str, literals, columns=["signature"], container="tuple"
+            query_str, literals, columns=columns, container="dict"
         )
-        return tuple(row[0] for row in row_iter)
-
-    def select_interface(self, _: Interface) -> bytes | None:
-        """Select a Genetic Code with the exact input types."""
-        # Place holder for the actual implementation
-        return None
+        return tuple(row_iter)
 
     def verify(self) -> None:
         """Verify the Gene Pool."""

@@ -10,7 +10,7 @@ A Genetic Code graph defines how values from the GC input are passed to sub-GC's
 | Empty | Ordinary | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
 | For-Loop | Ordinary | Loop graph that iterates over an iterable, executing GCA for each element. |
 | While-Loop | Ordinary | Loop graph that executes GCA while a condition remains true. |
-| Standard | Ordinary, Meta | Connects two sub-GC's together to make a new GC. This is by far the most common type. |
+| Standard | Ordinary | Connects two sub-GC's together to make a new GC. This is by far the most common type. |
 | Primitive | Codon, Meta | Simplified graph representing a primitive operator (e.g., addition, logical OR). Has no sub-GC's. |
 
 ## Row Requirements

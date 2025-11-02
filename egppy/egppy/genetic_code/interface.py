@@ -380,5 +380,43 @@ class Interface(FreezableObject):
         return [ep for ep in self.endpoints if not ep.is_connected()]
 
 
+class SrcInterface(Interface):
+    """Source Interface class."""
+
+    def __init__(
+        self,
+        endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
+        row: SrcRow | None = None,
+    ) -> None:
+        """Initialize the Source Interface class.
+
+        Args
+        ----
+        endpoints: Sequence[...]: A sequence of EndPoint objects or
+            sequences that define the interface. If a sequence of sequences is provided, each
+            inner sequence should contain [ref_row, ref_idx, typ].
+        """
+        super().__init__(endpoints=endpoints, row=row)
+
+
+class DstInterface(Interface):
+    """Destination Interface class."""
+
+    def __init__(
+        self,
+        endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
+        row: DstRow | None = None,
+    ) -> None:
+        """Initialize the Destination Interface class.
+
+        Args
+        ----
+        endpoints: Sequence[...]: A sequence of EndPoint objects or
+            sequences that define the interface. If a sequence of sequences is provided, each
+            inner sequence should contain [ref_row, ref_idx, typ].
+        """
+        super().__init__(endpoints=endpoints, row=row)
+
+
 # The NULL Interface, used as a placeholder.
 NULL_INTERFACE: Interface = Interface(endpoints=[]).freeze()

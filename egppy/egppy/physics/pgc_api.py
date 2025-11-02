@@ -23,20 +23,19 @@ Important:
     of the system depend on their exact semantics.
 """
 
-# TODO: Presently types are restricted to DB searchable fields. These need to
-# be expanded to include all relevant fields for physical GC's manipluation
-# e.g. CGraph, Interface, EndPoint etc.
-
 # ALL types and EGP custom type dependencies MUST be imported here so
 # that this module is the single source of truth, avoids circular imports
 # and allows code refactoring/renaming without breaking codon signatures
+
+# THIS IS A VERSIONED API MODULE
+
+# pylint: disable=unused-import
+
 from datetime import datetime
+from numbers import Complex, Integral, Number, Rational, Real
 from uuid import UUID
 
-# This module is the sole module for type definitions for physical types
-# allowing EGP code to be refactored and renamed without impacting codon signatures.
-# As a result some imported objects & types are not used locally.
-# pylint: disable=unused-import
+from egpcommon.common import NULL_UUID
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import (
@@ -47,140 +46,50 @@ from egppy.genetic_code.c_graph_constants import (
     SrcIfKey,
     SrcRow,
 )
+from egppy.genetic_code.egc_class_factory import EGCDict as EGCode
 from egppy.genetic_code.end_point import DstEndPoint, EndPoint, SrcEndPoint
-from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_class_factory import GGCDict as GGCode
+from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
-# Some types are sub-classed as they represent fundamental types that have
-# properties that could be validated rather than just use cases.
+# PSQL Types - Import all types used in types.json
+from egppy.physics.psql_types import (
+    PsqlArray,
+    PsqlBigInt,
+    PsqlBigIntArray,
+    PsqlBool,
+    PsqlBoolArray,
+    PsqlBytea,
+    PsqlChar,
+    PsqlDate,
+    PsqlDoublePrecision,
+    PsqlDoublePrecisionArray,
+    PsqlFragment,
+    PsqlFragmentOrderBy,
+    PsqlFragmentWhere,
+    PsqlInt,
+    PsqlIntArray,
+    PsqlIntegral,
+    PsqlNumber,
+    PsqlNumeric,
+    PsqlReal,
+    PsqlRealArray,
+    PsqlSmallInt,
+    PsqlSmallIntArray,
+    PsqlStatement,
+    PsqlStatementSelect,
+    PsqlTime,
+    PsqlTimestamp,
+    PsqlType,
+    PsqlUUID,
+    PsqlVarChar,
+)
 
-
-# A signature is a bytes object but a bytes object is not a Signature
-class Signature(bytes):
-    "A base class for all signature types"
-
-    pass
-
-
-# There are multiple types of signatures that do not overlap
-class GCSig(Signature):
-    "A signature for GC"
-
-    pass
-
-
-class ProblemSig(Signature):
-    "A signature for Problem"
-
-    pass
-
-
-class ProblemSetSig(Signature):
-    "A signature for Problem Set"
-
-    pass
-
-
-# The various ways a GC signature can be used
-# Since they are interchangable they are aliases
-# The existence of these aliases allows for more readable code
-# and a bias toward using them for the role they have but not
-# restricting them to it.
-AncestorSig = GCSig
-GCABSig = GCSig
-PGCSig = GCSig
-
-# Ancestor signatures
-AncestorASig = AncestorSig
-AncestorBSig = AncestorSig
-
-# GCA & GCB
-GCASig = GCABSig
-GCBSig = GCABSig
-
-
-# Properties are integers when pulled from the GP
-class PropertiesInt(int):
-    "A class for properties represented as integers"
-
-    pass
-
-
-# Created and Updated are datetime objects
-class Created(datetime):
-    "A class for created timestamps"
-
-    pass
-
-
-class Updated(datetime):
-    "A class for updated timestamps"
-
-    pass
-
-
-# Interfaces & types
-class IOTypes(tuple[TypesDef, ...]):
-    "A class for input/output types (tuple of TypesDef)"
-
-    pass
-
-
-class IOIndices(bytes):
-    "A class for input/output indices (bytes)"
-
-    pass
-
-
-ITypes = IOTypes
-IIndices = IOIndices
-OTypes = IOTypes
-OIndices = IOIndices
-
-# Dynamic, context independent, metrics have a higher layer, HL, and a current layer, CL type
-ECount = int
-ECountHL = ECount
-ECountCL = ECount
-ETotal = float
-ETotalHL = ETotal
-ETotalCL = ETotal
-Evolvability = float
-EvolvabilityHL = Evolvability
-EvolvabilityCL = Evolvability
-FCount = int
-FCountHL = FCount
-FCountCL = FCount
-FTotal = float
-FTotalHL = FTotal
-FTotalCL = FTotal
-Fitness = float
-FitnessHL = Fitness
-FitnessCL = Fitness
-LostDescendants = int
-LostDescendantsHL = LostDescendants
-LostDescendantsCL = LostDescendants
-ReferenceCount = int
-ReferenceCountHL = ReferenceCount
-ReferenceCountCL = ReferenceCount
-
-# Static metrics
-CodeDepth = int
-Descendants = int
-Generation = int
-NumCodes = int
-NumCodons = int
-NumInputs = int
-NumOutputs = int
-
-# Dynamic, context dependent, metrics
-Survivability = float
-
-
-# Other
-Creator = UUID
-
-
-class PopulationUID(int):
-    "A class for population unique identifiers"
-
-    pass
+# Public Physical Types and Aliases
+Pair = tuple
+Triplet = tuple
+Quadruplet = tuple
+Quintuplet = tuple
+Sextuplet = tuple
+Septuplet = tuple
+Bytes = bytes | bytearray
