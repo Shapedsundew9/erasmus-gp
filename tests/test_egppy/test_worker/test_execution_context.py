@@ -12,11 +12,11 @@ from egppy.worker.executor.gc_node import GCNode
 
 from .xor_stack_gc import (
     create_gc_matrix,
+    create_primitive_gcs,
     expand_gc_matrix,
     f_7fffffff,
     gpi,
-    one_to_two,
-    rshift_1_gc,
+    primitive_gcs,
 )
 
 # Standard EGP logging pattern
@@ -39,6 +39,7 @@ class TestExecutor(unittest.TestCase):
         cls.gene_pool: list[GCABC] = [
             gc for ni in cls.gcm.values() for rs in ni.values() for gc in rs
         ]
+        create_primitive_gcs()
 
     def setUp(self) -> None:
         super().setUp()
@@ -46,18 +47,18 @@ class TestExecutor(unittest.TestCase):
         self.ec1 = ExecutionContext(self.gpi, 3)
         self.ec2 = ExecutionContext(self.gpi, 50, wmc=True)  # Write the meta-codons
         # Hack in pre-defined function
-        self.ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
-            f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+        self.ec1.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
+            f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]
         )
-        self.ec2.function_map[rshift_1_gc["signature"]] = FunctionInfo(
-            f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+        self.ec2.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
+            f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]
         )
         self.ec1.namespace["f_7fffffff"] = f_7fffffff
         self.ec2.namespace["f_7fffffff"] = f_7fffffff
 
     def test_write_function_ec1_basic(self) -> None:
         """Test the write_function function."""
-        node = self.ec1.write_executable(one_to_two)
+        node = self.ec1.write_executable(primitive_gcs["one_to_two"])
         self.assertIsInstance(node, GCNode)
         assert isinstance(node, GCNode), "node is not a GCNode"
         ftext = self.ec1.function_def(node, FWC4FILE)
@@ -79,7 +80,7 @@ class TestExecutor(unittest.TestCase):
 
     def test_write_function_ec2_basic(self) -> None:
         """Test the write_function function."""
-        node = self.ec2.write_executable(one_to_two)
+        node = self.ec2.write_executable(primitive_gcs["one_to_two"])
         self.assertIsInstance(node, GCNode)
         assert isinstance(node, GCNode), "node is not a GCNode"
         ftext = self.ec2.function_def(node, FWC4FILE)
@@ -105,14 +106,14 @@ class TestExecutor(unittest.TestCase):
 
     def test_execute_basic(self) -> None:
         """Test the execute function."""
-        self.ec1.write_executable(one_to_two)
+        self.ec1.write_executable(primitive_gcs["one_to_two"])
         write_context_to_file(self.ec1)
-        self.ec2.write_executable(one_to_two)
+        self.ec2.write_executable(primitive_gcs["one_to_two"])
         write_context_to_file(self.ec2)
         seed(0)
-        r1 = self.ec1.execute(one_to_two["signature"], (0x12345678,))
+        r1 = self.ec1.execute(primitive_gcs["one_to_two"]["signature"], (0x12345678,))
         seed(0)
-        r2 = self.ec2.execute(one_to_two["signature"], (0x12345678,))
+        r2 = self.ec2.execute(primitive_gcs["one_to_two"]["signature"], (0x12345678,))
         self.assertIsInstance(r1, tuple)
         self.assertIsInstance(r2, tuple)
         self.assertEqual(r1, r2)

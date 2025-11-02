@@ -10,6 +10,7 @@ from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
@@ -139,6 +140,23 @@ class GenePoolInterface(GPIABC):
             query_str, literals, columns=columns, container="dict"
         )
         return tuple(row_iter)
+
+    def select_gc(self, where: str, order_by: str) -> GCABC:
+        """Select a single Genetic Code based on PSQL fragments.
+
+        Args:
+            where: The PSQL WHERE fragment (stringized)
+            order_by: The PSQL ORDER BY fragment (stringized)
+
+        Returns:
+            The selected Genetic Code.
+        """
+        row_iter = self._dbm.managed_gc_table.select(
+            f" WHERE {where} {order_by} LIMIT 1", literals=None, columns="*", container="dict"
+        )
+        for ggc in row_iter:
+            return GGCDict(ggc)
+        raise KeyError("No Genetic Code found matching the query.")
 
     def verify(self) -> None:
         """Verify the Gene Pool."""

@@ -76,8 +76,6 @@ from egppy.physics.psql_types import (
     PsqlRealArray,
     PsqlSmallInt,
     PsqlSmallIntArray,
-    PsqlStatement,
-    PsqlStatementSelect,
     PsqlTime,
     PsqlTimestamp,
     PsqlType,

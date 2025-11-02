@@ -685,10 +685,6 @@ def py_cast(sql_value_obj: PsqlType, target_sql_type_class: type[PsqlType]) -> P
         ) from e
 
 
-class PsqlStatement:
-    """Base class for PSQL statements."""
-
-
 class PsqlFragment:
     """Class for PSQL statement fragments."""
 
@@ -709,29 +705,15 @@ class PsqlFragmentWhere(PsqlFragment):
 class PsqlFragmentOrderBy(PsqlFragment):
     """Class for PSQL ORDER BY clause fragments."""
 
-    def __init__(self, column: PsqlType, ascending: bool = True):
-        if not column.is_column:
+    def __init__(self, column: PsqlType | None = None, ascending: bool = True):
+        if column is not None and not column.is_column:
             raise PsqlValueError("ORDER BY column must be a column.")
         self.column = column
         self.ascending = ascending
 
     def __str__(self):
         """Render the ORDER BY clause as a string."""
+        if self.column is None:
+            return "ORDER BY RANDOM()"
         order = "ASC" if self.ascending else "DESC"
         return f"ORDER BY {self.column} {order}"
-
-
-class PsqlStatementSelect(PsqlStatement):
-    """Class for PSQL SELECT statements.
-
-    SELECT only ever returns the signature column
-    """
-
-    def __init__(self, where: PsqlFragmentWhere, order_by: PsqlFragmentOrderBy):
-        super().__init__()
-        self.where = where
-        self.order_by = order_by
-
-    def __str__(self):
-        """Render the SELECT statement as a string."""
-        return f"SELECT {{signature}} FROM {{table}} {self.where} {self.order_by} LIMIT {{limit}}"

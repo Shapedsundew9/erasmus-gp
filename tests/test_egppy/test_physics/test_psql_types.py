@@ -26,7 +26,6 @@ from egppy.physics.psql_types import (
     PsqlRealArray,
     PsqlSmallInt,
     PsqlSmallIntArray,
-    PsqlStatementSelect,
     PsqlTime,
     PsqlTimestamp,
     PsqlType,
@@ -357,11 +356,6 @@ class TestPsqlTypes(unittest.TestCase):
         self.assertEqual(str(order_by_desc), "ORDER BY {my_col} DESC")
         with self.assertRaises(PsqlValueError):
             PsqlFragmentOrderBy(PsqlInt("a + b"))
-
-        # Test PsqlStatementSelect
-        select = PsqlStatementSelect(where, order_by_asc)
-        expected = "SELECT {signature} FROM {table} WHERE a > 1 ORDER BY {my_col} ASC LIMIT {limit}"
-        self.assertEqual(str(select), expected)
 
 
 if __name__ == "__main__":

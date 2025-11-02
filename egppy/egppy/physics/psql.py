@@ -7,6 +7,7 @@ from egppy.physics.psql_types import (
     PsqlArray,
     PsqlBool,
     PsqlDoublePrecision,
+    PsqlFragmentOrderBy,
     PsqlIntegral,
     PsqlNumber,
     PsqlType,
@@ -302,9 +303,8 @@ def psql_parentheses(i0: PsqlType) -> PsqlType:
 
 
 # -- Structure
-def psql_orderby(i0: PsqlType, ascending: bool = True) -> PsqlType:
+def psql_order_by(i0: PsqlType, ascending: bool = True) -> PsqlFragmentOrderBy:
     """Return the PSQL expression with an ORDER BY clause."""
     if not i0.is_column:
         raise PsqlTypeError("ORDER BY can only be applied to column references.")
-    direction = "ASC" if ascending else "DESC"
-    return type(i0)(f"ORDER BY {i0} {direction}")
+    return PsqlFragmentOrderBy(i0, ascending)

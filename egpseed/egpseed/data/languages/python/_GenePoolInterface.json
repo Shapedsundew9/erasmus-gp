@@ -1,9 +1,10 @@
 {
-    "select_gc": {
-        "inline": "GPI.select-gc({i0})",
+    "select": {
+        "inline": "GPI.select_gc(str({i0}), str({i1}))",
         "description": "Run the PSQL query and return a single GGC.",
         "inputs": [
-            "PsqlBool"
+            "PsqlFragmentWhere",
+            "PsqlFragmentOrderBy"
         ],
         "outputs": [
             "GGCode"
