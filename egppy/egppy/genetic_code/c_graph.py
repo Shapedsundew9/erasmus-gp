@@ -444,7 +444,7 @@ class CGraph(FreezableObject, Collection):
                                 int(ref[1]),
                                 EndPointClass.SRC,
                                 ep.typ,
-                                [[iface, idx]],
+                                refs=[[iface, idx]],
                             )
             else:
                 raise TypeError(f"Invalid interface definition for {iface}: {iface_def}")

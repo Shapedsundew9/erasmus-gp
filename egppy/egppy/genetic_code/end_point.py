@@ -189,7 +189,7 @@ class EndPoint(FreezableObject):
             self.idx,
             self.cls,
             self.typ,
-            [] if clean else [list(ref) for ref in self.refs],
+            refs=[] if clean else [list(ref) for ref in self.refs],
         )
 
     def freeze(self, store: bool = True) -> EndPoint:
