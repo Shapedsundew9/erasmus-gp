@@ -186,6 +186,7 @@ class EGCMixin(GCMixin):
                     ),
                     f"ORDINARY gc_type cannot use {CGraphType(graph_type).name} connection graph",
                 )
+            PropertiesBD(self["properties"]).verify()
 
         # Ancestral Relationship Validation based on Connection Graph Structure
         # Reference: egppy/egppy/genetic_code/docs/gc_types.md - Validation Rules

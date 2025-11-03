@@ -15,9 +15,9 @@ from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE,
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
-from egpcommon.properties import BASIC_CODON_PROPERTIES, PropertiesBD
+from egpcommon.properties import BASIC_CODON_PROPERTIES
 from egppy.genetic_code.egc_class_factory import EGCMixin
-from egppy.genetic_code.genetic_code import GCABC, NULL_PROBLEM, NULL_PROBLEM_SET, NULL_SIGNATURE
+from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE
 from egppy.genetic_code.import_def import ImportDef
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -145,12 +145,6 @@ class GGCMixin(EGCMixin):
         self["generation"] = gcabc["generation"]
         self["num_codes"] = gcabc["num_codes"]
         self["num_codons"] = gcabc["num_codons"]
-        self["_e_count"] = gcabc.get("_e_count", 1)
-        self["_e_total"] = gcabc.get("_e_total", 0.0)
-        self["_evolvability"] = self["_e_total"] / self["_e_count"]
-        self["_f_count"] = gcabc.get("_f_count", 1)
-        self["_f_total"] = gcabc.get("_f_total", 0.0)
-        self["_fitness"] = self["_f_total"] / self["_f_count"]
         self["_lost_descendants"] = gcabc.get("_lost_descendants", 0)
         self["_reference_count"] = gcabc.get("_reference_count", 0)
         tmp = gcabc.get("created", datetime.now(UTC))
@@ -165,12 +159,6 @@ class GGCMixin(EGCMixin):
         if isinstance(self["creator"], str):
             self["creator"] = UUID(self["creator"])
         self["descendants"] = gcabc.get("descendants", 0)
-        self["e_count"] = gcabc.get("e_count", self["_e_count"])
-        self["e_total"] = gcabc.get("e_total", self["_e_total"])
-        self["evolvability"] = self["e_total"] / self["e_count"]
-        self["f_count"] = gcabc.get("f_count", self["_f_count"])
-        self["f_total"] = gcabc.get("f_total", self["_f_total"])
-        self["fitness"] = self["f_total"] / self["f_count"]
         self["imports"] = gcabc.get("imports", NULL_TUPLE)
         self["inline"] = gcabc.get("inline", NULL_STR)
         self["code"] = gcabc.get("code", NULL_STR)
@@ -196,22 +184,9 @@ class GGCMixin(EGCMixin):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
-        self["num_inputs"] = len(self["inputs"])
-        self["num_outputs"] = 0  # To keep alphabetical ordering in keys.
         self["output_types"], self["outputs"] = self["cgraph"]["Od"].types()
-        self["num_outputs"] = len(self["outputs"])
 
-        self["population_uid"] = gcabc.get("population_uid", 0)
-        tmp = gcabc.get("problem") if gcabc.get("problem") is not None else NULL_PROBLEM
-        if isinstance(tmp, (bytearray, memoryview)) or tmp is None:
-            raise ValueError("problem must not be a bytearray, memoryview, or None")
-        self["problem"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
-        tmp = gcabc.get("problem_set") if gcabc.get("problem_set") is not None else NULL_PROBLEM_SET
-        if isinstance(tmp, (bytearray, memoryview)) or tmp is None:
-            raise ValueError("problem_set must not be a bytearray, memoryview, or None")
-        self["problem_set"] = tmp if isinstance(tmp, bytes) else bytes.fromhex(tmp)
         self["reference_count"] = gcabc.get("reference_count", 0)
-        self["survivability"] = gcabc.get("survivability", 0.0)
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = (
             # If the datetime exists it is from the database and has no timezone info.
@@ -241,44 +216,6 @@ class GGCMixin(EGCMixin):
         """Verify the genetic code object."""
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
-
-        # The evolvability update count when the genetic code was copied from the higher layer.
-        self.value_error(
-            self["_e_count"] >= 0, "Evolvability count must be greater than or equal to 0."
-        )
-        self.value_error(
-            self["_e_count"] <= 2**31 - 1, "Evolvability count must be less than 2**31-1."
-        )
-
-        # The total evolvability when the genetic code was copied from the higher layer.
-        self.value_error(
-            self["_e_total"] >= 0.0, "Evolvability total must be greater than or equal to 0.0."
-        )
-        self.value_error(
-            self["_e_total"] <= 2**31 - 1, "Evolvability total must be less than 2**31-1."
-        )
-
-        # The evolvability when the genetic code was copied from the higher layer.
-        self.value_error(
-            self["_evolvability"] >= 0.0, "Evolvability must be greater than or equal to 0.0."
-        )
-        self.value_error(
-            self["_evolvability"] <= 1.0, "Evolvability must be less than or equal to 1.0."
-        )
-
-        # The fitness update count when the genetic code was copied from the higher layer.
-        self.value_error(self["_f_count"] >= 0, "Fitness count must be greater than or equal to 0.")
-        self.value_error(self["_f_count"] <= 2**31 - 1, "Fitness count must be less than 2**31-1.")
-
-        # The total fitness when the genetic code was copied from the higher layer.
-        self.value_error(
-            self["_f_total"] >= 0.0, "Fitness total must be greater than or equal to 0.0."
-        )
-        self.value_error(self["_f_total"] <= 2**31 - 1, "Fitness total must be less than 2**31-1.")
-
-        # The fitness when the genetic code was copied from the higher layer.
-        self.value_error(self["_fitness"] >= 0.0, "Fitness must be greater than or equal to 0.0.")
-        self.value_error(self["_fitness"] <= 1.0, "Fitness must be less than or equal to 1.0.")
 
         # The number of descendants when the genetic code was copied from the higher layer.
         self.value_error(
@@ -327,49 +264,11 @@ class GGCMixin(EGCMixin):
             self["generation"] <= 2**63 - 1, "generation must be less than or equal to 2**63-1."
         )
 
-        # The number of evolvability updates in this genetic codes life time.
-        self.value_error(
-            self["e_count"] >= 0, "Evolvability count must be greater than or equal to 0."
-        )
-        self.value_error(
-            self["e_count"] <= 2**31 - 1, "Evolvability count must be less than 2**31-1."
-        )
-
-        # The total evolvability in this genetic codes life time.
-        self.value_error(
-            self["e_total"] >= 0.0, "Evolvability total must be greater than or equal to 0.0."
-        )
-        self.value_error(
-            self["e_total"] <= 2**31 - 1, "Evolvability total must be less than 2**31-1."
-        )
-
         # The number of descendants.
         self.value_error(
             self["descendants"] >= 0, "Descendants must be greater than or equal to 0."
         )
         self.value_error(self["descendants"] <= 2**31 - 1, "Descendants must be less than 2**31-1.")
-
-        # The current evolvability.
-        self.value_error(
-            self["evolvability"] >= 0.0, "Evolvability must be greater than or equal to 0.0."
-        )
-        self.value_error(
-            self["evolvability"] <= 1.0, "Evolvability must be less than or equal to 1.0."
-        )
-
-        # The number of fitness updates in this genetic codes life time.
-        self.value_error(self["f_count"] >= 0, "Fitness count must be greater than or equal to 0.")
-        self.value_error(self["f_count"] <= 2**31 - 1, "Fitness count must be less than 2**31-1.")
-
-        # The total fitness in this genetic codes life time.
-        self.value_error(
-            self["f_total"] >= 0.0, "Fitness total must be greater than or equal to 0.0."
-        )
-        self.value_error(self["f_total"] <= 2**31 - 1, "Fitness total must be less than 2**31-1.")
-
-        # The current fitness.
-        self.value_error(self["fitness"] >= 0.0, "Fitness must be greater than or equal to 0.0.")
-        self.value_error(self["fitness"] <= 1.0, "Fitness must be less than or equal to 1.0.")
 
         # The set of types of the inputs in ascending order of type number.
         itypes = self["input_types"]
@@ -416,20 +315,6 @@ class GGCMixin(EGCMixin):
             self["num_codons"] <= 2**31 - 1, "num_codons must be less than or equal to 2**31-1."
         )
 
-        # The number of input parameters required by the genetic code (function).
-        self.value_error(
-            self["num_inputs"] >= 0, "num_inputs must be greater than or equal to zero."
-        )
-        self.value_error(self["num_inputs"] <= 256, "num_inputs must be less than or equal to 256.")
-
-        # The number of output parameters returned by the genetic code (function).
-        self.value_error(
-            self["num_outputs"] >= 0, "num_outputs must be greater than or equal to zero."
-        )
-        self.value_error(
-            self["num_outputs"] <= 256, "num_outputs must be less than or equal to 256."
-        )
-
         # The set of types of the outputs in ascending order of type number.
         otypes = self["output_types"]
         self.value_error(
@@ -448,24 +333,6 @@ class GGCMixin(EGCMixin):
         )
         self.value_error(all(x < 256 for x in self["outputs"]), "outputs indexes must be < 256.")
 
-        # The population UID.
-        self.value_error(
-            self["population_uid"] >= 0, "Population UID must be greater than or equal to 0."
-        )
-        self.value_error(
-            self["population_uid"] <= 2**16 - 1, "Population UID must be less than 2**16-1."
-        )
-
-        # The problem the genetic code solves.
-        self.value_error(isinstance(self["problem"], bytes), "problem must be a bytes object.")
-        self.value_error(len(self["problem"]) == 32, "problem must be 32 bytes long.")
-
-        # The problem set the genetic code belongs to.
-        self.value_error(
-            isinstance(self["problem_set"], bytes), "problem_set must be a bytes object."
-        )
-        self.value_error(len(self["problem_set"]) == 32, "problem_set must be 32 bytes long.")
-
         # The properties of the genetic code.
         self.value_error(isinstance(self["properties"], int), "properties must be an integer.")
         self.value_error(
@@ -474,7 +341,6 @@ class GGCMixin(EGCMixin):
         self.value_error(
             self["properties"] <= 2**63 - 1, "properties must be less than or equal to 2**63-1."
         )
-        PropertiesBD(self["properties"]).verify()
 
         # The reference count of the genetic code.
         self.value_error(
@@ -484,14 +350,6 @@ class GGCMixin(EGCMixin):
         self.value_error(
             self["reference_count"] <= 2**63 - 1,
             "reference_count must be less than or equal to 2**63-1.",
-        )
-
-        # The survivability.
-        self.value_error(
-            self["survivability"] >= 0.0, "Survivability must be greater than or equal to 0.0."
-        )
-        self.value_error(
-            self["survivability"] <= 1.0, "Survivability must be less than or equal to 1.0."
         )
 
         # The date and time the genetic code was last updated.

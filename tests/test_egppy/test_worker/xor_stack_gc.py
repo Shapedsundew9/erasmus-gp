@@ -341,10 +341,10 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
-                "B": [["I", i, INT_T] for i in randomrange(gca["num_inputs"], gcb["num_inputs"])],
-                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
-                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
+                "B": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]), len(gcb["inputs"]))],
+                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
+                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
                 "U": [],
             },
             "pgc": gpi[CUSTOM_PGC_SIG],
@@ -372,10 +372,12 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
-                "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
-                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
-                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
+                "B": [
+                    ["I", i + len(gca["inputs"]), INT_T] for i in randomrange(len(gcb["inputs"]))
+                ],
+                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
+                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
                 "U": [],
             },
             "pgc": gpi[CUSTOM_PGC_SIG],
@@ -398,10 +400,10 @@ def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
     # gc1 outputs.
     Connections on each interface are randomly assigned.
     """
-    assert (
-        gc1["num_outputs"] + gc2["num_outputs"] == narrow_gc["num_inputs"]
+    assert len(gc1["outputs"]) + len(gc2["outputs"]) == len(
+        narrow_gc["inputs"]
     ), "gc1 + gc2 outputs != narrow_gc # inputs."
-    assert gc1["num_outputs"] == narrow_gc["num_outputs"], "gc1 outputs != narrow_gc outputs."
+    assert len(gc1["outputs"]) == len(narrow_gc["outputs"]), "gc1 outputs != narrow_gc outputs."
     gca: GCABC = append_gcs(gc1, gc2)
     gcb: GCABC = narrow_gc
     return stack_gcs(gca, gcb)
@@ -416,7 +418,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     It is assumed that GCA has the same number of outputs as GCB has inputs.
     GCA's outputs are randomly connected to GCB's inputs.
     """
-    assert gc1["num_outputs"] == gc2["num_inputs"], "gc1 # outputs != gc2 # inputs"
+    assert len(gc1["outputs"]) == len(gc2["inputs"]), "gc1 # outputs != gc2 # inputs"
     return inherit_members(
         {
             "ancestora": gc1,
@@ -424,9 +426,9 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gc1,
             "gcb": gc2,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(gc1["num_inputs"])],
-                "B": [["A", i, INT_T] for i in randomrange(gc2["num_inputs"])],
-                "O": [["B", i, INT_T] for i in randomrange(gc2["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(len(gc1["inputs"]))],
+                "B": [["A", i, INT_T] for i in randomrange(len(gc2["inputs"]))],
+                "O": [["B", i, INT_T] for i in randomrange(len(gc2["outputs"]))],
                 "U": [],
             },
             "pgc": gpi[CUSTOM_PGC_SIG],
@@ -488,11 +490,11 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
             # allowed outputs so that there is the possibility of finding an output
             # solution that meets the constraint.
             gca = choice([gc for no in _gcm[num_a] for gc in _gcm[num_a][no] if no < num_outputs])
-            gcb = choice(tuple(_gcm[num_b][num_outputs - gca["num_outputs"]]))
+            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["outputs"])]))
             ngc = append_gcs(gca, gcb)
             target_set.append(ngc)
-            assert ngc["num_inputs"] == num_inputs, f"ngx # inputs != {num_inputs}"
-            assert ngc["num_outputs"] == num_outputs, f"ngx # outputs != {num_outputs}"
+            assert len(ngc["inputs"]) == num_inputs, f"ngx # inputs != {num_inputs}"
+            assert len(ngc["outputs"]) == num_outputs, f"ngx # outputs != {num_outputs}"
     return _gcm
 
 

@@ -7,13 +7,7 @@ from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import (
-    ACYBERGENESIS_PROBLEM,
-    EGP_EPOCH,
-    SHAPEDSUNDEW9_UUID,
-    ensure_sorted_json_keys,
-    merge,
-)
+from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID, ensure_sorted_json_keys, merge
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json
@@ -36,7 +30,6 @@ CODON_TEMPLATE: dict[str, Any] = {
     "generation": 1,
     "num_codes": 1,
     "num_codons": 1,
-    "problem": ACYBERGENESIS_PROBLEM,
     "properties": {
         "gc_type": GCType.CODON,
         # NOTE: The graph type does not have to be primitive.

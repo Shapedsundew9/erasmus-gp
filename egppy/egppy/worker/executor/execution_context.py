@@ -281,7 +281,7 @@ class ExecutionContext:
             code.append(self.inline_cstr(root=root, node=node))
 
         # Add a return statement if the function has outputs
-        if root.gc["num_outputs"] > 0:
+        if len(root.gc["outputs"]) > 0:
             code.append(f"return {', '.join(ovns)}")
         return code
 
@@ -396,14 +396,14 @@ class ExecutionContext:
         # By default the ovns is underscore (unused) for all outputs. This is
         # then overridden by any connection that starts (is source endpoint) at this node.
         ngc = node.gc
-        ovns: list[str] = ["_"] * ngc["num_outputs"]
+        ovns: list[str] = ["_"] * len(ngc["outputs"])
         rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is node):
             ovns[idx] = ovn
 
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
-        ivns: list[str] = [NULL_STR] * ngc["num_inputs"]
+        ivns: list[str] = [NULL_STR] * len(ngc["inputs"])
         for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
             ivns[idx] = ivn
 
@@ -434,7 +434,7 @@ class ExecutionContext:
 
         # Gather the output variable names to catch the case where an input is
         # directly connected to an output
-        _ovns: list[str] = ["" for _ in range(root.gc["num_outputs"])]
+        _ovns: list[str] = ["" for _ in range(len(root.gc["outputs"]))]
         root.terminal_connections.sort(key=connection_key)
         src_connection_map: dict[CodeEndPoint, CodeConnection] = {}
         for connection in root.terminal_connections:

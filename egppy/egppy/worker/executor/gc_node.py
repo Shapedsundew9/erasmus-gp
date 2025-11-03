@@ -373,9 +373,9 @@ class GCNode(Iterable, Hashable):
             "---",
         ]
         chart_txt: list[str] = []
-        if self.gc["num_inputs"] > 0:
+        if len(self.gc["inputs"]) > 0:
             chart_txt.append(f'    {self.uid}I["inputs"]')
-        if self.gc["num_outputs"] > 0:
+        if len(self.gc["outputs"]) > 0:
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
@@ -402,7 +402,7 @@ class GCNode(Iterable, Hashable):
         """
         # Define the function input parameters
         iface: Interface = self.gc["cgraph"]["Is"]
-        inum: int = self.gc["num_inputs"]
+        inum: int = len(self.gc["inputs"])
         iparams = "i"
 
         if hints:
@@ -415,7 +415,7 @@ class GCNode(Iterable, Hashable):
 
         if hints:
             # Add type hints for output parameters
-            onum = self.gc["num_outputs"]
+            onum = len(self.gc["outputs"])
             if onum > 1:
                 oface = self.gc["cgraph"]["Od"]
                 output_types = ", ".join(str(oface[i].typ) for i in range(onum))

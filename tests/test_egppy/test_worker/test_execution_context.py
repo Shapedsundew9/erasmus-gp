@@ -157,7 +157,7 @@ class TestExecutor(unittest.TestCase):
                 # Execute the function
                 gc: GCABC = self.gene_pool[gci]
                 result = ec.execute(
-                    gc["signature"], tuple(getrandbits(64) for _ in range(gc["num_inputs"]))
+                    gc["signature"], tuple(getrandbits(64) for _ in range(len(gc["inputs"])))
                 )
                 baseline[num_lines].append(result)
                 if num_lines != NUM_LINES[0]:

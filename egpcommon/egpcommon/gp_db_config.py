@@ -82,32 +82,6 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     },
 }
 GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
-    "_e_count": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
-    "_e_total": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
-    "_evolvability": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
-    "_f_count": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
-    "_f_total": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
-    "_fitness": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
     "_lost_descendants": {
         "db_type": "BIGINT",
         "nullable": False,
@@ -128,32 +102,6 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "nullable": False,
         "phy_type": "int",
         "psql_type": "PsqlBigInt",
-    },
-    "e_count": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
-    "e_total": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
-    "evolvability": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
-    "f_count": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
-    "f_total": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
-    },
-    "fitness": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
     },
     "generation": {
         "db_type": "BIGINT",
@@ -189,18 +137,6 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     },
     "num_codes": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
     "num_codons": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
-    "num_inputs": {
-        "db_type": "SMALLINT",
-        "nullable": False,
-        "phy_type": "int",
-        "psql_type": "PsqlSmallInt",
-    },
-    "num_outputs": {
-        "db_type": "SMALLINT",
-        "nullable": False,
-        "phy_type": "int",
-        "psql_type": "PsqlSmallInt",
-    },
     "output_types": {
         "db_type": "INT[]",
         "nullable": False,
@@ -213,37 +149,11 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "phy_type": "bytes",
         "psql_type": "PsqlBytea",
     },
-    "population_uid": {
-        "db_type": "SMALLINT",
-        "nullable": False,
-        "phy_type": "int",
-        "psql_type": "PsqlSmallInt",
-    },
-    "problem": {
-        "db_type": "BYTEA",
-        "nullable": True,
-        "phy_type": "bytes",
-        "psql_type": "PsqlBytea",
-        "signature": True,
-    },
-    "problem_set": {
-        "db_type": "BYTEA",
-        "nullable": True,
-        "phy_type": "bytes",
-        "psql_type": "PsqlBytea",
-        "signature": True,
-    },
     "reference_count": {
         "db_type": "BIGINT",
         "nullable": False,
         "phy_type": "int",
         "psql_type": "PsqlBigInt",
-    },
-    "survivability": {
-        "db_type": "FLOAT",
-        "nullable": False,
-        "phy_type": "float",
-        "psql_type": "PsqlDoublePrecision",
     },
     "updated": {
         "db_type": "TIMESTAMP",
