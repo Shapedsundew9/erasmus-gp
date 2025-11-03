@@ -285,7 +285,8 @@ def generate_types_def(write: bool = False) -> None:
                 sub_types.add(current)
 
         # Add the sub-types to the type definition.
-        template = "-" + base_class + "0" if flag else base_class
+        # OPTIMIZE: Use f-string for faster string formatting
+        template = f"-{base_class}0" if flag else base_class
         for st in sub_types:
             # Replace the template with the sub-type name and
             # create a new concrete type definition.
@@ -413,7 +414,8 @@ def generate_types_def(write: bool = False) -> None:
             base_class = name[start + 2 : end]
 
         # Add the sub-types to the type definition.
-        template = "-" + base_class + "0" if flag else base_class
+        # OPTIMIZE: Use f-string for faster string formatting
+        template = f"-{base_class}0" if flag else base_class
         for st in pairs:
             # Replace the template with the sub-type (pair) name and
             # create a new concrete type definition.
