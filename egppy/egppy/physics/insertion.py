@@ -59,4 +59,5 @@ def sca(gp: GenePoolInterface, tgc: GCABC, igc: GCABC) -> GCABC:
     Note that SCA is *always* unlocked, i.e., the resultant GC's interface can be
     modified.
     """
+    # TODO: How does PGC percolate up?
     return stack(gp, tgc, igc, False)

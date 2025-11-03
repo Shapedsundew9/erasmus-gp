@@ -1,64 +1,4 @@
 {
-    "_e_count": {
-        "description": "GCABC _e_count Python field extraction",
-        "inline": "{i0}['_e_count']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "_e_total": {
-        "description": "GCABC _e_total Python field extraction",
-        "inline": "{i0}['_e_total']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
-    "_evolvability": {
-        "description": "GCABC _evolvability Python field extraction",
-        "inline": "{i0}['_evolvability']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
-    "_f_count": {
-        "description": "GCABC _f_count Python field extraction",
-        "inline": "{i0}['_f_count']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "_f_total": {
-        "description": "GCABC _f_total Python field extraction",
-        "inline": "{i0}['_f_total']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
-    "_fitness": {
-        "description": "GCABC _fitness Python field extraction",
-        "inline": "{i0}['_fitness']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
     "_lost_descendants": {
         "description": "GCABC _lost_descendants Python field extraction",
         "inline": "{i0}['_lost_descendants']",
@@ -147,66 +87,6 @@
         ],
         "outputs": [
             "int"
-        ]
-    },
-    "e_count": {
-        "description": "GCABC e_count Python field extraction",
-        "inline": "{i0}['e_count']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "e_total": {
-        "description": "GCABC e_total Python field extraction",
-        "inline": "{i0}['e_total']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
-    "evolvability": {
-        "description": "GCABC evolvability Python field extraction",
-        "inline": "{i0}['evolvability']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
-    "f_count": {
-        "description": "GCABC f_count Python field extraction",
-        "inline": "{i0}['f_count']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "f_total": {
-        "description": "GCABC f_total Python field extraction",
-        "inline": "{i0}['f_total']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
-        ]
-    },
-    "fitness": {
-        "description": "GCABC fitness Python field extraction",
-        "inline": "{i0}['fitness']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
         ]
     },
     "gca": {
@@ -299,26 +179,6 @@
             "int"
         ]
     },
-    "num_inputs": {
-        "description": "GCABC num_inputs Python field extraction",
-        "inline": "{i0}['num_inputs']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "num_outputs": {
-        "description": "GCABC num_outputs Python field extraction",
-        "inline": "{i0}['num_outputs']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
     "output_types": {
         "description": "GCABC output_types Python field extraction",
         "inline": "{i0}['output_types']",
@@ -344,36 +204,6 @@
         "inline": "{i0}['pgc']",
         "inputs": [
             "EGCode"
-        ],
-        "outputs": [
-            "bytes"
-        ]
-    },
-    "population_uid": {
-        "description": "GCABC population_uid Python field extraction",
-        "inline": "{i0}['population_uid']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "problem": {
-        "description": "GCABC problem Python field extraction",
-        "inline": "{i0}['problem']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "bytes"
-        ]
-    },
-    "problem_set": {
-        "description": "GCABC problem_set Python field extraction",
-        "inline": "{i0}['problem_set']",
-        "inputs": [
-            "GGCode"
         ],
         "outputs": [
             "bytes"
@@ -407,16 +237,6 @@
         ],
         "outputs": [
             "bytes"
-        ]
-    },
-    "survivability": {
-        "description": "GCABC survivability Python field extraction",
-        "inline": "{i0}['survivability']",
-        "inputs": [
-            "GGCode"
-        ],
-        "outputs": [
-            "float"
         ]
     },
     "updated": {

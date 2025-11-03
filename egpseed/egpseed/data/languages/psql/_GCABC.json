@@ -1,88 +1,4 @@
 {
-    "_e_count": {
-        "description": "GCABC _e_count PSQL column",
-        "inline": "PsqlInt('_e_count', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "_e_total": {
-        "description": "GCABC _e_total PSQL column",
-        "inline": "PsqlDoublePrecision('_e_total', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "_evolvability": {
-        "description": "GCABC _evolvability PSQL column",
-        "inline": "PsqlDoublePrecision('_evolvability', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "_f_count": {
-        "description": "GCABC _f_count PSQL column",
-        "inline": "PsqlInt('_f_count', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "_f_total": {
-        "description": "GCABC _f_total PSQL column",
-        "inline": "PsqlDoublePrecision('_f_total', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "_fitness": {
-        "description": "GCABC _fitness PSQL column",
-        "inline": "PsqlDoublePrecision('_fitness', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
     "_lost_descendants": {
         "description": "GCABC _lost_descendants PSQL column",
         "inline": "PsqlBigInt('_lost_descendants', is_column=True)",
@@ -201,90 +117,6 @@
         "inputs": [],
         "outputs": [
             "PsqlBigInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "e_count": {
-        "description": "GCABC e_count PSQL column",
-        "inline": "PsqlInt('e_count', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "e_total": {
-        "description": "GCABC e_total PSQL column",
-        "inline": "PsqlDoublePrecision('e_total', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "evolvability": {
-        "description": "GCABC evolvability PSQL column",
-        "inline": "PsqlDoublePrecision('evolvability', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "f_count": {
-        "description": "GCABC f_count PSQL column",
-        "inline": "PsqlInt('f_count', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "f_total": {
-        "description": "GCABC f_total PSQL column",
-        "inline": "PsqlDoublePrecision('f_total', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "fitness": {
-        "description": "GCABC fitness PSQL column",
-        "inline": "PsqlDoublePrecision('fitness', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
         ],
         "properties": {
             "gctsp": {
@@ -419,34 +251,6 @@
             }
         }
     },
-    "num_inputs": {
-        "description": "GCABC num_inputs PSQL column",
-        "inline": "PsqlSmallInt('num_inputs', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlSmallInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "num_outputs": {
-        "description": "GCABC num_outputs PSQL column",
-        "inline": "PsqlSmallInt('num_outputs', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlSmallInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
     "output_types": {
         "description": "GCABC output_types PSQL column",
         "inline": "PsqlIntArray('output_types', is_column=True)",
@@ -478,48 +282,6 @@
     "pgc": {
         "description": "GCABC pgc PSQL column",
         "inline": "PsqlBytea('pgc', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlBytea"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "population_uid": {
-        "description": "GCABC population_uid PSQL column",
-        "inline": "PsqlSmallInt('population_uid', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlSmallInt"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "problem": {
-        "description": "GCABC problem PSQL column",
-        "inline": "PsqlBytea('problem', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlBytea"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "problem_set": {
-        "description": "GCABC problem_set PSQL column",
-        "inline": "PsqlBytea('problem_set', is_column=True)",
         "inputs": [],
         "outputs": [
             "PsqlBytea"
@@ -565,20 +327,6 @@
         "inputs": [],
         "outputs": [
             "PsqlBytea"
-        ],
-        "properties": {
-            "gctsp": {
-                "psql": true,
-                "python": false
-            }
-        }
-    },
-    "survivability": {
-        "description": "GCABC survivability PSQL column",
-        "inline": "PsqlDoublePrecision('survivability', is_column=True)",
-        "inputs": [],
-        "outputs": [
-            "PsqlDoublePrecision"
         ],
         "properties": {
             "gctsp": {

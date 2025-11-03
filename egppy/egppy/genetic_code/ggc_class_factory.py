@@ -36,30 +36,6 @@ class GGCMixin(EGCMixin):
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
         self.runtime_error(
-            self["e_count"] >= self["_e_count"],
-            "Evolvability count must be greater than or equal to the higher layer count.",
-        )
-        self.runtime_error(
-            self["e_total"] >= self["_e_total"],
-            "Evolvability total must be greater than or equal to the higher layer total.",
-        )
-        self.runtime_error(
-            isclose(self["_evolvability"], self["_e_total"] / self["_e_count"]),
-            "Evolvability must be the total evolvability divided by the count.",
-        )
-        self.runtime_error(
-            self["f_count"] >= self["_f_count"],
-            "Fitness count must be greater than or equal to the higher layer count.",
-        )
-        self.runtime_error(
-            self["f_total"] >= self["_f_total"],
-            "Fitness total must be greater than or equal to the higher layer total.",
-        )
-        self.runtime_error(
-            isclose(self["_fitness"], self["_f_total"] / self["_f_count"]),
-            "Fitness must be the total fitness divided by the count.",
-        )
-        self.runtime_error(
             self["_lost_descendants"] <= self["lost_descendants"],
             "_lost_descendants must be less than or equal to lost_descendants.",
         )
