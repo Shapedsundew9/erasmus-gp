@@ -219,7 +219,6 @@ class GCMixin(CommonObj):
         """Return True if the genetic code is a codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         codon = PropertiesBD.fast_fetch("gc_type", self["properties"])
-        assert PropertiesBD(self["properties"])["gc_type"] in GCType, "gc_type must be a GCType."
         retval = codon == GCType.CODON or codon == GCType.META
         assert (
             retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
@@ -236,7 +235,6 @@ class GCMixin(CommonObj):
         """Return True if the genetic code is a meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         meta = PropertiesBD.fast_fetch("gc_type", self["properties"])
-        assert PropertiesBD(self["properties"])["gc_type"] in GCType, "gc_type must be a GCType."
         assert (
             meta == GCType.META and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or meta != GCType.META, "If gc_type is a meta-codon then cgraph must be primitive."
