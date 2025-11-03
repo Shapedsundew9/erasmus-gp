@@ -52,6 +52,9 @@ from egppy.genetic_code.ggc_class_factory import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
+# PGC operations
+from egppy.physics.insertion import insert_gc_case_0, insert_gc_case_1, sca
+
 # PSQL Types - Import all types used in types.json
 from egppy.physics.psql_types import (
     PsqlArray,

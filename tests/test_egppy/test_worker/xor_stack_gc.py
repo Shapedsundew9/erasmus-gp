@@ -542,7 +542,6 @@ def expand_gc_matrix(
 if __name__ == "__main__":
     # Seed the random number generator for reproducibility
     start = time()
-    create_primitive_gcs()
     gcm: dict[int, dict[int, list[GCABC]]] = expand_gc_matrix(create_gc_matrix(8), 10)
     print(f"GCM Elapsed time: {time() - start:.2f} seconds")
     gene_pool: list[GCABC] = [gc for ni in gcm.values() for rs in ni.values() for gc in rs]

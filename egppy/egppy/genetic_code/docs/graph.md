@@ -71,7 +71,7 @@ Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-
 - **P** = Primitive graph
 - **-** = Not allowed
 
-Note that required connections are a consequence of the rule that an interface must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist.
+Note that required connections are a consequence of the rule that an interface must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist. Note that these rules do allow for a standard graph to have an A and B row that do not connect to each other. The GC is then functionaly equivilent to its sub-GC's. This arrangement is called a _harmony_.
 
 Flow charts of the allowed connectivity for each graph type are below.
 

@@ -543,7 +543,38 @@ class CGraph(FreezableObject, Collection):
         return jcg
 
     def connect_all(self, if_locked: bool = True) -> None:
-        """Connect all the unconnected destination endpoints in the Connection Graph."""
+        """
+        Connect all unconnected destination endpoints in the Connection Graph to randomly
+        selected valid source endpoints.
+
+        This method iterates through all unconnected destination endpoints in the graph and randomly
+        connects each to a valid source endpoint. The validity of source endpoints is determined by
+        the graph type's structural rules.
+
+        Args:
+            if_locked (bool): If True, prevents the creation of new input interface endpoints.
+                If False, allows extending the input interface ('I') with new endpoints when needed
+                and when 'I' is a valid source row for the destination. Defaults to True.
+
+        Returns:
+            None: Modifies the graph in-place by establishing connections between endpoints.
+
+        Process:
+            1. Collects all unconnected destination endpoints from all destination interfaces
+            2. Shuffles them to ensure random connection order
+            3. For each unconnected destination endpoint:
+                - Identifies valid source rows based on graph type rules
+                - Finds all source endpoints matching the destination's type
+                - If if_locked is False and 'I' is a valid source, may create a new input endpoint
+                - Randomly selects and connects to a valid source endpoint
+                - Creates new input interface endpoint if selected and not locked
+
+        Note:
+            - Source endpoint selection respects type compatibility (sep.typ == dep.typ)
+            - Graph type rules define which source rows can connect to which destination rows
+            - New input interface endpoints are only added when if_locked=False
+            and structurally valid
+        """
         # Make a list of unconnected endpoints and shuffle it
         ifaces = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         unconnected: list[EndPoint] = list(
@@ -568,6 +599,10 @@ class CGraph(FreezableObject, Collection):
             # for this destination row according to the graph type rules.
             len_is = len(i_iface)
             if not if_locked and SrcRow.I in valid_src_rows_for_dst:
+                # Add a new input interface endpoint as a valid source option regardless of whether
+                # there are other valid source endpoints. This prevents the sub-GC interfaces from
+                # being completely dependent on each other if their types match. Sub-GC interfaces
+                # that are not connected to each other at all result in a GC called a _harmony_.
                 vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ, []))
             if vsrcs:
                 # Randomly choose a valid source endpoint
