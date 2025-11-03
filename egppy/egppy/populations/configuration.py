@@ -407,7 +407,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         self.value_error(
             self._is_sequence("inputs", value), f"inputs must be a sequence, but is {type(value)}"
         )
-        self._inputs = Interface(value, SrcRow.I)
+        self._inputs = Interface(value, None, SrcRow.I)
 
     @property
     def outputs(self) -> Interface:
@@ -422,7 +422,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         self.value_error(
             self._is_sequence("inputs", value), f"outputs must be a sequence, but is {type(value)}"
         )
-        self._outputs = Interface(value, DstRow.O)
+        self._outputs = Interface(value, None, DstRow.O)
 
     @property
     def name(self) -> str:

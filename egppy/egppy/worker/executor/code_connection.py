@@ -107,10 +107,21 @@ def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
         case _:
             dst_node = node
             dst_row = DstRow.O
-    return [
-        CodeConnection(
-            CodeEndPoint(node, ep.refs[0][0], ep.refs[0][1]),
-            CodeEndPoint(dst_node, dst_row, ep.idx, True),
-        )
-        for ep in node.gc["cgraph"][row + EPClsPostfix.DST]
-    ]
+
+    # Get the interface for this row
+    iface = node.gc["cgraph"][row + EPClsPostfix.DST]
+    result = []
+
+    # Iterate through endpoints and their connections
+    for ep in iface:
+        conns = iface.get_connections(ep.idx)
+        for conn in conns:
+            # Create code connection from source to destination
+            result.append(
+                CodeConnection(
+                    CodeEndPoint(node, conn.src_row, conn.src_idx),
+                    CodeEndPoint(dst_node, dst_row, ep.idx, True),
+                )
+            )
+
+    return result

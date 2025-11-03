@@ -56,14 +56,14 @@ gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
 
 # Load the primitive codons from the gene pool
-RSHIFT_SIG = bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
-XOR_SIG = bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
-GETRANDBITS_SIG = bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
-LITERAL_1_SIG = bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
-SIXTYFOUR_SIG = bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
+RSHIFT_SIG = bytes.fromhex("ec97cb95fcf70da5db82d95da1ac64452e889f64e9f979baec22841a4c128172")
+XOR_SIG = bytes.fromhex("d5318a71fb651cdebe2826f554170e955dc4e321b349880d90e3f77d1806845d")
+GETRANDBITS_SIG = bytes.fromhex("66b46af7308ada6a035b6d6a3da06a5b0af142cc482f4b48a1fe6b64adbc6154")
+LITERAL_1_SIG = bytes.fromhex("8cc9af9b39601b165410ca622e76c6378900dfc95b193cb08b09c1f9b91d90cb")
+SIXTYFOUR_SIG = bytes.fromhex("1b949bc2bd875fbb2fdc2ac2080b1c228ad3f7337f9f71f6ab06ea8a5c5474bc")
 CUSTOM_PGC_SIG = bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")
-INT_TO_SIG = bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
-TO_INT_SIG = bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
+INT_TO_SIG = bytes.fromhex("bcc7a4ca9c2d224227742a016ad5158cd7b1e49ae6c2a03c43b86422dd2313ff")
+TO_INT_SIG = bytes.fromhex("0b060e0533f36ff2f5f9c06d369c288baf1b342cedaa68ee319afaaedfed27de")
 
 
 # Dictionary of primitive GCs
