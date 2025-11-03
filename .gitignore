@@ -61,6 +61,10 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Profile data
+*.prof
+*.out
+
 # Flask stuff:
 instance/
 .webassets-cache
@@ -213,4 +217,4 @@ codons.json.sig
 meta_codons.json.sig
 types_def.json
 types_def.json.sig
-
+profile_analysis.txt

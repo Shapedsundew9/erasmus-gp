@@ -35,8 +35,8 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
     """
     if color == "":
         color = MERMAID_BLUE
-        if gcnode.gc.is_codon():
-            if gcnode.gc.is_meta():
+        if gcnode.is_codon:
+            if gcnode.is_meta:
                 return mc_meta_node_str(gcnode, row)
             return mc_codon_node_str(gcnode, row)
     label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
@@ -74,9 +74,9 @@ def mc_code_node_str(gcnode: GCNode) -> str:
         label = f"{gcnode.function_info.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_rectangle_str(gcnode.uid, label, MERMAID_GREEN)
     assert (
-        gcnode.gc.is_codon()
+        gcnode.is_codon
     ), "If the GC function does not exist and is not going to, it must be a codon."
-    if not gcnode.gc.is_meta():
+    if not gcnode.is_meta:
         label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
     label = f"is({gcnode.gc['cgraph']['Od'][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
@@ -258,7 +258,7 @@ class GCNode(Iterable, Hashable):
 
         # Defaults. These may be changed depending on the GC structure and what
         # is found in the cache.
-        self.is_codon: bool = False  # Is this node for a codon?
+        self.is_codon: bool = gc.is_codon()  # Is this node for a codon?
         self.is_meta: bool = False  # Is this node for a meta-codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
         self.exists: bool = finfo is not NULL_FUNCTION_MAP
@@ -282,8 +282,8 @@ class GCNode(Iterable, Hashable):
         self.num_lines: int = self.function_info.line_count
         # Sanity check
         assert (
-            gc.is_codon() and not self.num_lines
-        ) or not gc.is_codon(), "At this point a codon must have 0 lines."
+            self.is_codon and not self.num_lines
+        ) or not self.is_codon, "At this point a codon must have 0 lines."
         # The local variable counter (used to make unique variable names)
         self.local_counter: count[int] = count()
 
@@ -300,8 +300,7 @@ class GCNode(Iterable, Hashable):
             assert parent.gcb is gc or parent.gca is gc, "GC is neither GCA or GCB"
             self.parent = parent
 
-        if gc.is_codon():
-            self.is_codon = True  # Set is_codon to True if gc indicates a codon
+        if self.is_codon:
             self.is_meta = gc.is_meta()  # Set is_meta if the GC is a meta-codon
             assert (
                 self.gca is NULL_GC or self.gca is NULL_SIGNATURE

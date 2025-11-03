@@ -669,4 +669,5 @@ if __name__ == "__main__":
         "--write", "-w", action="store_true", help="If set, write the types to a JSON file."
     )
     args = parser.parse_args()
+    print("Generating types...")
     generate_types_def(write=args.write)

@@ -9,6 +9,7 @@ echo "--- Running post-create script ---"
 # Activating the virtual environment
 echo "Creating virtual environment..."
 python3 -m venv .venv
+./.venv/bin/pip install -r requirements-dev.txt
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
@@ -21,13 +22,6 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egpseed
 .venv/bin/pip install -e ./egpdbmgr
 
-# Pre-Push Hooks script
-# This has been disabled as it is not adding value.
-# May remove completely in future and replace with GitHub actions.
-# chmod +x .devcontainer/pre-push-hooks.sh
-# ./.devcontainer/pre-push-hooks.sh
-
-
 # Copy public keys to the devcontainer shared folder
 echo "Copying public keys to devcontainer shared folder..."
 sudo cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
@@ -39,6 +33,12 @@ mkdir -p ./egpdbmgr/egpdbmgr/data
 .venv/bin/python ./egpseed/egpseed/generate_types.py --write
 .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
 .venv/bin/python ./egpseed/egpseed/generate_codons.py --write
+
+# Add aliases to .bashrc
+echo "Adding custom aliases to .bashrc..."
+echo "# My Custom Aliases" >> ~/.bashrc
+echo "alias profile='.venv/bin/python -m cProfile -o profile.prof -m unittest discover && .venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
+echo "alias generate='.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write && .venv/bin/python ./egpseed/egpseed/generate_types.py --write && .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write && .venv/bin/python ./egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 
 # Done
 echo "--- Post-create script finished ---"
