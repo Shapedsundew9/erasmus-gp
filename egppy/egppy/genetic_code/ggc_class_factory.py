@@ -7,7 +7,6 @@ by considered to be a dict[str, Any] object with the additional constraints of t
 """
 
 from datetime import UTC, datetime
-from math import isclose
 from typing import Any
 from uuid import UUID
 

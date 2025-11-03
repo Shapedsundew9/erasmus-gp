@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterator
 from typing import Sequence
 
 from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
@@ -150,11 +150,58 @@ class Interface(FreezableObject):
         # If not frozen, calculate the hash dynamically
         return hash(tuple(self.endpoints))
 
+    def __add__(self, other: Interface) -> Interface:
+        """Concatenate two interfaces to create a new interface.
+
+        Args
+        ----
+        other: Interface: The interface to concatenate with this interface.
+
+        Returns
+        -------
+        Interface: A new interface containing endpoints from both interfaces.
+
+        Raises
+        ------
+        TypeError: If other is not an Interface instance.
+        ValueError: If the interfaces have incompatible row or class properties.
+        """
+        if not isinstance(other, Interface):
+            raise TypeError(f"Can only add Interface to Interface, got {type(other)}")
+
+        # Handle empty interfaces
+        if len(self.endpoints) == 0:
+            return other.copy()
+        if len(other.endpoints) == 0:
+            return self.copy()
+
+        # Check that both interfaces have the same row and class
+        if self.endpoints[0].row != other.endpoints[0].row:
+            raise ValueError(
+                f"Cannot concatenate interfaces with different rows: "
+                f"{self.endpoints[0].row} != {other.endpoints[0].row}"
+            )
+        if self.endpoints[0].cls != other.endpoints[0].cls:
+            raise ValueError(
+                f"Cannot concatenate interfaces with different classes: "
+                f"{self.endpoints[0].cls} != {other.endpoints[0].cls}"
+            )
+
+        # Create new interface with copied endpoints from both
+        # Create copies of endpoints with updated indices (with clean references)
+        new_endpoints: list[EndPoint] = [ep.copy(True) for ep in self.endpoints]
+        for idx, ep in enumerate(other.endpoints, len(self.endpoints)):
+            ep_copy = ep.copy(True)
+            ep_copy.idx = idx
+            new_endpoints.append(ep_copy)
+
+        return Interface(endpoints=new_endpoints)
+
     def __getitem__(self, idx: int) -> EndPoint:
         """Get an endpoint by index."""
         return self.endpoints[idx]
 
-    def __iter__(self) -> Iterable[EndPoint]:
+    def __iter__(self) -> Iterator[EndPoint]:
         """Return an iterator over the endpoints."""
         return iter(self.endpoints)
 

@@ -19,12 +19,12 @@ def insert_gc_case_0(
     if_locked -- whether the interface of the resultant GC is defined (i.e cannot be changed)
     """
     graph = {
-        "Is": igc["Is"],
-        "Ad": igc["Is"],
-        "As": igc["Od"],
-        "Bd": tgc["Is"],
-        "Bs": tgc["Od"],
-        "Od": tgc["Od"],
+        "Is": igc["Is"].copy(True),
+        "Ad": igc["Is"].copy(True),
+        "As": igc["Od"].copy(True),
+        "Bd": tgc["Is"].copy(True),
+        "Bs": tgc["Od"].copy(True),
+        "Od": tgc["Od"].copy(True),
     }
     rgc = EGCDict({"gca": tgc, "gcb": igc, "ancestora": tgc, "ancestorb": igc, "c_graph": graph})
     rgc["c_graph"].stablize(gp, if_locked)
@@ -61,3 +61,20 @@ def sca(gp: GenePoolInterface, tgc: GCABC, igc: GCABC) -> GCABC:
     """
     # TODO: How does PGC percolate up?
     return stack(gp, tgc, igc, False)
+
+
+def harmony(_: GenePoolInterface, gca: GCABC, gcb: GCABC) -> GCABC:
+    """Creates a harmony GC by placing gca and gcb in a GC but with inputs and outputs
+    directly passed through (no connection between gca and gcb).
+    """
+    graph = {
+        "Is": gca["Is"] + gcb["Is"],
+        "Ad": gca["Is"].copy(),
+        "As": gca["Od"].copy(),
+        "Bd": gcb["Is"].copy(),
+        "Bs": gcb["Od"].copy(),
+        "Od": gca["Od"] + gcb["Od"],
+    }
+
+    rgc = EGCDict({"gca": gca, "gcb": gcb, "ancestora": gca, "ancestorb": gcb, "c_graph": graph})
+    return rgc

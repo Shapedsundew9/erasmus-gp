@@ -1,39 +1,65 @@
 {
-    "custom": {
-        "name": "custom",
-        "description": "Manually created GC. This is a placeholder no-op representing a custom mutation function.",
-        "num_inputs": 0,
-        "num_outputs": 0,
-        "inline": "()",
-        "properties": {
-            "side_effects": true,
-            "static_creation": true
-        }
-    },
-    "sca": {
-        "name": "sca",
-        "description": "Spontaneous Codon Aggregation mutation.",
-        "inputs": [
-            "EGCode",
-            "EGCode"
-        ],
-        "outputs": [
-            "EGCode"
-        ],
-        "inline": "GPI, sca({i0}, {i1})",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "pgc_api"
-                ],
-                "name": "sca"
-            }
-        ],
-        "properties": {
-            "side_effects": false,
-            "static_creation": false
-        }
+  "custom": {
+    "name": "custom",
+    "description": "Manually created GC. This is a placeholder no-op representing a custom mutation function.",
+    "num_inputs": 0,
+    "num_outputs": 0,
+    "inline": "()",
+    "properties": {
+      "side_effects": true,
+      "static_creation": true
     }
+  },
+  "harmony": {
+    "name": "harmony",
+    "description": "Harmony mutation.",
+    "inputs": [
+      "EGCode",
+      "EGCode"
+    ],
+    "outputs": [
+      "EGCode"
+    ],
+    "inline": "harmony(GPI, {i0}, {i1})",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "harmony"
+      }
+    ],
+    "properties": {
+      "side_effects": false,
+      "static_creation": false
+    }
+  },
+  "sca": {
+    "name": "sca",
+    "description": "Spontaneous Codon Aggregation mutation.",
+    "inputs": [
+      "EGCode",
+      "EGCode"
+    ],
+    "outputs": [
+      "EGCode"
+    ],
+    "inline": "sca(GPI, {i0}, {i1})",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "sca"
+      }
+    ],
+    "properties": {
+      "side_effects": false,
+      "static_creation": false
+    }
+  }
 }
