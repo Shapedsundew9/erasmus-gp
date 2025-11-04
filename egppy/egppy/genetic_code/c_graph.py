@@ -122,9 +122,8 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.genetic_code.connection import Connection
 from egppy.genetic_code.end_point import EndPoint
-from egppy.genetic_code.interface import NULL_INTERFACE, DstInterface, Interface, SrcInterface
+from egppy.genetic_code.interface import NULL_INTERFACE, Interface, SrcInterface
 from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
@@ -423,33 +422,29 @@ class CGraph(FreezableObject, Collection):
                 assert isinstance(
                     iface_def, (list | tuple)
                 ), f"Expected a list or tuple for interface {iface}, got {type(iface_def)}"
-                dst_iface = DstInterface(iface_def, row=DstRow(iface))
-                setattr(self, under_iface, dst_iface)
-                for idx, ep in enumerate(dst_iface.endpoints):
+                setattr(self, under_iface, Interface(iface_def, row=DstRow(iface)))
+                for idx, ep in enumerate(getattr(self, under_iface).endpoints):
                     # There may be 1 or 0 source endpoint references
                     assert isinstance(ep, EndPoint), f"Expected an EndPoint, got {type(ep)}"
-                    # Get connections for this endpoint from the interface
-                    conns = dst_iface.get_connections(idx)
-                    for conn in conns:
-                        # Extract source row and index from connection
-                        src_row = conn.src_row
-                        src_idx = conn.src_idx
+                    for ref in ep.refs:
                         # Create a set of source endpoints for the destination endpoint
-                        src_ep_dict.setdefault(src_row, {})
-                        if src_idx in src_ep_dict[src_row]:
-                            src_ep = src_ep_dict[src_row][src_idx]
+                        src_ep_dict.setdefault(SrcRow(ref[0]), {})
+                        if ref[1] in src_ep_dict[SrcRow(ref[0])]:
+                            src_ep = src_ep_dict[SrcRow(ref[0])][ref[1]]
+                            refs = src_ep.refs
+                            assert isinstance(refs, list), "Expected refs to be a list."
                             # Make sure both references are for the same type.
                             assert ep.typ == src_ep.typ, f"Type mismatch: {src_ep.typ} == {ep.typ}"
-                            # Connection already tracked in dst_iface, no need to store in src_ep
+                            refs.append([iface, ep.idx])
                         else:
-                            assert isinstance(
-                                src_idx, int
-                            ), f"Expected an integer index, got {type(src_idx)}"
-                            src_ep_dict[src_row][src_idx] = EndPoint(
-                                src_row,
-                                src_idx,
+                            ri = ref[1]
+                            assert isinstance(ri, int), f"Expected an integer index, got {type(ri)}"
+                            src_ep_dict[SrcRow(ref[0])][ri] = EndPoint(
+                                SrcRow(ref[0]),
+                                int(ref[1]),
                                 EndPointClass.SRC,
                                 ep.typ,
+                                refs=[[iface, idx]],
                             )
             else:
                 raise TypeError(f"Invalid interface definition for {iface}: {iface_def}")
@@ -608,7 +603,7 @@ class CGraph(FreezableObject, Collection):
                 # there are other valid source endpoints. This prevents the sub-GC interfaces from
                 # being completely dependent on each other if their types match. Sub-GC interfaces
                 # that are not connected to each other at all result in a GC called a _harmony_.
-                vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ))
+                vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ, []))
             if vsrcs:
                 # Randomly choose a valid source endpoint
                 sep: EndPoint = choice(vsrcs)
@@ -617,12 +612,7 @@ class CGraph(FreezableObject, Collection):
                     assert isinstance(i_iface.endpoints, list), "Input interface must be a list"
                     i_iface.endpoints.append(sep)
                 # Connect the destination endpoint to the source endpoint
-                # Get the destination interface to add the connection
-                dst_iface_key = "_" + dep.row + EPClsPostfix.DST
-                dst_iface: Interface = getattr(self, dst_iface_key)
-                # Create connection from source to destination and add to dst interface
-                conn = Connection(sep.row, sep.idx, dep.row, dep.idx)
-                dst_iface.add_connection(dep.idx, conn)
+                dep.connect(sep)
 
     def copy(self) -> CGraph:
         """Return a modifiable shallow copy of the Connection Graph."""
@@ -733,18 +723,17 @@ class CGraph(FreezableObject, Collection):
 
             valid_srcs = valid_src_rows_dict.get(dst_row, frozenset())
             for ep in dst_iface.endpoints:
-                conns = dst_iface.get_connections(ep.idx)
-                for conn in conns:
-                    ref_row_str = conn.src_row
-                    ref_idx = conn.src_idx
-                    # Check that the source row is valid for this destination
-                    self.value_error(
-                        ref_row_str in valid_srcs,
-                        f"Destination {dst_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
-                        f"but {ref_row_str} is not a valid source for"
-                        f" {dst_row} in {graph_type} graphs. "
-                        f"Valid sources: {valid_srcs}",
-                    )
+                if ep.is_connected():
+                    for ref in ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Check that the source row is valid for this destination
+                        self.value_error(
+                            ref_row_str in valid_srcs,
+                            f"Destination {dst_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str} is not a valid source for"
+                            f" {dst_row} in {graph_type} graphs. "
+                            f"Valid sources: {valid_srcs}",
+                        )
 
         # Check source endpoints connect to valid destination rows
         for src_row in SrcRow:
@@ -754,18 +743,17 @@ class CGraph(FreezableObject, Collection):
 
             valid_dsts = valid_dst_rows_dict.get(src_row, frozenset())
             for ep in src_iface.endpoints:
-                conns = src_iface.get_connections(ep.idx)
-                for conn in conns:
-                    ref_row_str = conn.dst_row
-                    ref_idx = conn.dst_idx
-                    # Check that the destination row is valid for this source
-                    self.value_error(
-                        ref_row_str in valid_dsts,
-                        f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
-                        f"but {ref_row_str} is not a valid destination for "
-                        f"{src_row} in {graph_type} graphs. "
-                        f"Valid destinations: {valid_dsts}",
-                    )
+                if ep.is_connected():
+                    for ref in ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Check that the destination row is valid for this source
+                        self.value_error(
+                            ref_row_str in valid_dsts,
+                            f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str} is not a valid destination for "
+                            f"{src_row} in {graph_type} graphs. "
+                            f"Valid destinations: {valid_dsts}",
+                        )
 
     def _verify_single_endpoint_interfaces(self) -> None:
         """Verify that F, L, W interfaces have at most 1 endpoint."""
@@ -794,29 +782,28 @@ class CGraph(FreezableObject, Collection):
                 continue
 
             for dst_ep in dst_iface.endpoints:
-                conns = dst_iface.get_connections(dst_ep.idx)
-                for conn in conns:
-                    ref_row_str = conn.src_row
-                    ref_idx = conn.src_idx
-                    # Get the source endpoint
-                    src_iface = getattr(self, "_" + ref_row_str + EPClsPostfix.SRC)
-                    self.value_error(
-                        src_iface is not NULL_INTERFACE,
-                        f"Destination {dst_row}{dst_ep.idx} references non-existent"
-                        f" source interface {ref_row_str}s",
-                    )
-                    self.value_error(
-                        ref_idx < len(src_iface),
-                        f"Destination {dst_row}{dst_ep.idx} references {ref_row_str}{ref_idx}, "
-                        f"but {ref_row_str}s only has {len(src_iface)} endpoints",
-                    )
-                    src_ep = src_iface[ref_idx]
-                    # Verify type consistency
-                    self.value_error(
-                        dst_ep.typ == src_ep.typ,
-                        f"Type mismatch: {dst_row}{dst_ep.idx} has type {dst_ep.typ} "
-                        f"but connects to {ref_row_str}{ref_idx} with type {src_ep.typ}",
-                    )
+                if dst_ep.is_connected():
+                    for ref in dst_ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Get the source endpoint
+                        src_iface = getattr(self, "_" + ref_row_str + EPClsPostfix.SRC)
+                        self.value_error(
+                            src_iface is not NULL_INTERFACE,
+                            f"Destination {dst_row}{dst_ep.idx} references non-existent"
+                            f" source interface {ref_row_str}s",
+                        )
+                        self.value_error(
+                            ref_idx < len(src_iface),
+                            f"Destination {dst_row}{dst_ep.idx} references {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str}s only has {len(src_iface)} endpoints",
+                        )
+                        src_ep = src_iface[ref_idx]
+                        # Verify type consistency
+                        self.value_error(
+                            dst_ep.typ == src_ep.typ,
+                            f"Type mismatch: {dst_row}{dst_ep.idx} has type {dst_ep.typ} "
+                            f"but connects to {ref_row_str}{ref_idx} with type {src_ep.typ}",
+                        )
 
     def _verify_all_destinations_connected(self) -> None:
         """Verify that all destination endpoints are connected."""
@@ -827,7 +814,7 @@ class CGraph(FreezableObject, Collection):
                 continue
 
             for ep in dst_iface.endpoints:
-                if not dst_iface.is_connected(ep.idx):
+                if not ep.is_connected():
                     unconnected.append(f"{dst_row}{ep.idx}")
 
         self.value_error(

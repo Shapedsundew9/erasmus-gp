@@ -15,7 +15,7 @@ from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
-from egppy.genetic_code.interface import NULL_INTERFACE, Interface
+from egppy.genetic_code.interface import NULL_INTERFACE, Interface, unpack_src_ref
 from egppy.worker.executor.code_connection import (
     CodeConnection,
     CodeEndPoint,
@@ -181,13 +181,7 @@ class ExecutionContext:
                             # When moving into the parent the src context needs
                             # to change to that of src within the parent.
                             iface = parent.gc["cgraph"][node.iam + "d"]
-                            # Get the connection for this endpoint
-                            conns = iface.get_connections(src.idx)
-                            if conns:
-                                conn = conns[0]  # Should have exactly one connection
-                                src.row, src.idx = conn.src_row, conn.src_idx
-                            else:
-                                raise ValueError(f"No connection found for endpoint {src.idx}")
+                            src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                             if src.row == SrcRow.I:
                                 src.node = parent
                                 node = parent
@@ -215,13 +209,7 @@ class ExecutionContext:
                 # In all none terminal cases the new source row and index populated from the
                 # c_graph connection.
                 if not src.terminal:
-                    # Get the connection for this endpoint
-                    conns = iface.get_connections(src.idx)
-                    if conns:
-                        conn = conns[0]  # Should have exactly one connection
-                        src.row, src.idx = conn.src_row, conn.src_idx
-                    else:
-                        raise ValueError(f"No connection found for endpoint {src.idx}")
+                    src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                 elif src.node.is_meta and not self.wmc:
                     # Meta-codons are not being written so a bypass has to be engineered.
                     # A requirement of meta codons is that they are "straight through" i.e.

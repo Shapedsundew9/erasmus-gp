@@ -110,8 +110,10 @@ class TestInterface(unittest.TestCase):
 
     def test_freeze(self) -> None:
         """Test freezing an interface."""
-        # Create interface with endpoints (connections will be added during init if using triplet format)
-        interface = Interface([["I", 0, "int"], ["I", 1, "float"]], row=DstRow.A)
+        # Create endpoints with references for freezing
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", refs=[["I", 0]])
+        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float", refs=[["I", 1]])
+        interface = Interface([ep1, ep2])
         frozen = interface.freeze()
         self.assertTrue(frozen.is_frozen())
 
@@ -138,30 +140,27 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(result[2].idx, 2)
 
     def test_add_operator_refs_empty(self) -> None:
-        """Test that adding interfaces correctly updates connections."""
-        # Create endpoints and interface with connections
-        interface1 = Interface([["I", 0, "int"], ["I", 1, "float"]], row=DstRow.A)
+        """Test that all endpoint references are empty lists in the new interface."""
+        # Create endpoints with some references
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", refs=[["I", 0]])
+        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float", refs=[["I", 1]])
+        ep3 = EndPoint(DstRow.A, 0, EndPointClass.DST, "bool", refs=[["I", 2]])
 
-        # Create another endpoint with connection
-        interface2 = Interface([["I", 2, "bool"]], row=DstRow.A)
+        interface1 = Interface([ep1, ep2])
+        interface2 = Interface([ep3])
 
-        # Get connections before adding
-        conns1_before = interface1.get_connections(0)
-        conns2_before = interface1.get_connections(1)
-        conns3_before = interface2.get_connections(0)
-
-        self.assertEqual(len(conns1_before), 1)
-        self.assertEqual(len(conns2_before), 1)
-        self.assertEqual(len(conns3_before), 1)
+        # Verify source endpoints have references
+        self.assertEqual(len(ep1.refs), 1)
+        self.assertEqual(len(ep2.refs), 1)
+        self.assertEqual(len(ep3.refs), 1)
 
         # Add the interfaces
-        interface3 = interface1 + interface2
+        result = interface1 + interface2
 
-        # Check that connections are preserved in the result
-        for ep in interface3:
-            conns = interface3.get_connections(ep.idx)
-            self.assertGreater(
-                len(conns), 0, f"Endpoint {ep.idx} should have connections after adding"
+        # Verify all endpoints in result have empty references
+        for ep in result:
+            self.assertEqual(
+                ep.refs, [], f"Endpoint {ep.idx} should have empty refs, got {ep.refs}"
             )
 
     def test_add_operator_empty_left(self) -> None:
@@ -228,20 +227,17 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(len(interface2), original_len2)
 
     def test_add_operator_with_frozen(self) -> None:
-        """Test that adding frozen interfaces works correctly."""
-        # Create interfaces with connections
-        interface1 = Interface([["I", 0, "int"]], row=DstRow.A).freeze()
-        interface2 = Interface([["I", 1, "float"]], row=DstRow.A).freeze()
+        """Test adding frozen interfaces."""
+        # Create endpoints with references for freezing
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", refs=[["I", 0]])
+        ep2 = EndPoint(DstRow.A, 0, EndPointClass.DST, "float", refs=[["I", 1]])
+        interface1 = Interface([ep1]).freeze()
+        interface2 = Interface([ep2]).freeze()
 
-        # Adding should work with frozen interfaces
-        interface3 = interface1 + interface2
-        self.assertEqual(len(interface3), 2)
+        result = interface1 + interface2
 
-        # Check that connections are preserved
-        conns0 = interface3.get_connections(0)
-        conns1 = interface3.get_connections(1)
-        self.assertEqual(len(conns0), 1)
-        self.assertEqual(len(conns1), 1)
+        self.assertEqual(len(result), 2)
+        self.assertFalse(result.is_frozen())  # Result should not be frozen
 
     def test_add_operator_chaining(self) -> None:
         """Test chaining multiple additions."""

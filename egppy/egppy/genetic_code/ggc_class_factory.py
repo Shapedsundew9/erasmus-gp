@@ -181,7 +181,7 @@ class GGCMixin(EGCMixin):
                 self["ancestorb"],
                 self["gca"],
                 self["gcb"],
-                self["cgraph"].to_json(True),
+                self["cgraph"].to_json(),
                 self["pgc"],
                 self["imports"],
                 self["inline"],
