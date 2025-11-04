@@ -135,6 +135,7 @@ def generate_codons(write: bool = False) -> None:
             definition.setdefault("inputs", ipts)
             definition.setdefault("outputs", opts)
             new_codon = GGCDict(MethodExpander(name, definition).to_json())
+            # NOTE: verify() now raises exceptions on failure rather than returning False.
             new_codon.verify()
             codon = new_codon.to_json()
             signature = codon["signature"]
