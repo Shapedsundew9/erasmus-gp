@@ -124,7 +124,7 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.connection import Connection
 from egppy.genetic_code.end_point import EndPoint
-from egppy.genetic_code.interface import NULL_INTERFACE, Interface
+from egppy.genetic_code.interface import NULL_INTERFACE, DstInterface, Interface, SrcInterface
 from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
@@ -423,7 +423,7 @@ class CGraph(FreezableObject, Collection):
                 assert isinstance(
                     iface_def, (list | tuple)
                 ), f"Expected a list or tuple for interface {iface}, got {type(iface_def)}"
-                dst_iface = Interface(iface_def, row=DstRow(iface))
+                dst_iface = DstInterface(iface_def, row=DstRow(iface))
                 setattr(self, under_iface, dst_iface)
                 for idx, ep in enumerate(dst_iface.endpoints):
                     # There may be 1 or 0 source endpoint references
@@ -457,7 +457,7 @@ class CGraph(FreezableObject, Collection):
         # If the graph is a JSONCGraph, we need to create the source interfaces
         # src_ep_dict will be empty if the graph parameter is a dict of Interfaces
         for src_row, eps in src_ep_dict.items():
-            setattr(self, "_" + src_row + EPClsPostfix.SRC, Interface(sorted(eps.values())))
+            setattr(self, "_" + src_row + EPClsPostfix.SRC, SrcInterface(sorted(eps.values())))
 
         # Persistent hash will be defined when frozen. Dynamic until then.
         self._hash: int = 0

@@ -4,14 +4,10 @@ from __future__ import annotations
 
 from egpcommon.egp_log import VERIFY, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egpcommon.object_deduplicator import ObjectDeduplicator
 from egppy.genetic_code.c_graph_constants import DESTINATION_ROW_SET, SOURCE_ROW_SET, DstRow, SrcRow
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-
-# Create object deduplicator for Connection objects
-connection_store = ObjectDeduplicator("Connection store", 2**14)
 
 
 class Connection(FreezableObject):

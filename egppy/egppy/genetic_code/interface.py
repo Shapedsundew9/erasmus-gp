@@ -184,7 +184,8 @@ class Interface(FreezableObject):
             raise TypeError(f"Expected Connection, got {type(connection)}")
         if ep_idx < 0 or ep_idx >= len(self.endpoints):
             raise IndexError(
-                f"Endpoint index {ep_idx} out of range for interface with {len(self.endpoints)} endpoints"
+                f"Endpoint index {ep_idx} out of range for interface with"
+                " {len(self.endpoints)} endpoints"
             )
 
         # Type narrowing: if not frozen, _connections is dict[int, list[Connection]]
@@ -607,7 +608,8 @@ class Interface(FreezableObject):
         return [ep for idx, ep in enumerate(self.endpoints) if not self.is_connected(idx)]
 
 
-class SrcInterface(Interface):
+# Re-use the Interface object deduplicator for both SrcInterface and DstInterface
+class SrcInterface(Interface, name="Interface"):
     """Source Interface class."""
 
     def __init__(
@@ -629,7 +631,7 @@ class SrcInterface(Interface):
         super().__init__(endpoints=endpoints, connections=connections, row=row)
 
 
-class DstInterface(Interface):
+class DstInterface(Interface, name="Interface"):
     """Destination Interface class."""
 
     def __init__(

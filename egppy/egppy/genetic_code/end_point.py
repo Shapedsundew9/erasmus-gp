@@ -178,7 +178,8 @@ class EndPoint(FreezableObject):
             raise ValueError("Source endpoint row must be a source row.")
 
 
-class SrcEndPoint(EndPoint):
+# Re-use the EndPoint object deduplicator for both SrcEndPoint and DstEndPoint
+class SrcEndPoint(EndPoint, name="Endpoint"):
     """Source EndPoint class."""
 
     def __init__(
@@ -192,7 +193,7 @@ class SrcEndPoint(EndPoint):
         super().__init__(row, idx, EndPointClass.SRC, typ, frozen)
 
 
-class DstEndPoint(EndPoint):
+class DstEndPoint(EndPoint, name="Endpoint"):
     """Destination EndPoint class."""
 
     def __init__(
