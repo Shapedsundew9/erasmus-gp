@@ -10,7 +10,7 @@ from copy import deepcopy
 from typing import Any, Self
 from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
-from egpcommon.common_obj import CommonObj
+from egpcommon.common_obj import DEBUG, CommonObj
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_deduplicator import ObjectDeduplicator
 
@@ -77,7 +77,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
     __slots__ = ("_frozen", "__weakref__")
 
     @classmethod
-    def __init_subclass__(cls, size: int = 2**12, **kwargs):
+    def __init_subclass__(cls, name: str | None = None, size: int = 2**12, **kwargs):
         """
         This hook is called when a class inherits from FreezableObject.
         'cls' is the new subclass being created.
@@ -94,7 +94,8 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
 
         # Create the ObjectDeduplicator instance, labeled with the new class's name
         # Attach the store as a CLASS ATTRIBUTE to the new subclass
-        cls.object_store = ObjectDeduplicator(name=cls.__name__, size=size)
+        name = name if name is not None else cls.__name__
+        cls.object_store = ObjectDeduplicator(name=name, size=size)
 
     def __init__(self, frozen: bool = False) -> None:
         """
@@ -298,8 +299,10 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         Returns:
             Self: The frozen version of this object.
         """
+        was_already_frozen = self.is_frozen()
         retval = self._freeze(store)
-        retval.verify()  # Verify the object after freezing to ensure consistency.
+        if _logger.isEnabledFor(DEBUG) and not was_already_frozen:
+            retval.verify()  # Verify the object after freezing to ensure consistency.
         return self.object_store[retval] if store else retval
 
     def _freeze(

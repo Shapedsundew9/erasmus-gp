@@ -427,7 +427,8 @@ class Interface(FreezableObject):
         return [ep for ep in self.endpoints if not ep.is_connected()]
 
 
-class SrcInterface(Interface):
+# Re-use the Interface object deduplicator for both SrcInterface and DstInterface
+class SrcInterface(Interface, name="Interface"):
     """Source Interface class."""
 
     def __init__(
@@ -446,7 +447,7 @@ class SrcInterface(Interface):
         super().__init__(endpoints=endpoints, row=row)
 
 
-class DstInterface(Interface):
+class DstInterface(Interface, name="Interface"):
     """Destination Interface class."""
 
     def __init__(

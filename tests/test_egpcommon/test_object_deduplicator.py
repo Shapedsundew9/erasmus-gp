@@ -167,7 +167,10 @@ class TestObjectDeduplicator(unittest.TestCase):
     def test_lru_cache_eviction(self):
         """Test that LRU cache evicts least recently used items."""
         # Use a very small cache size to test eviction
-        dedup = ObjectDeduplicator(name="lru_test", size=2)
+        dedup = ObjectDeduplicator(name="lru_test_simple", size=2)
+
+        # Clear any existing cache (if test ran previously)
+        dedup.clear()
 
         obj1 = SimpleHashable("obj1")
         obj2 = SimpleHashable("obj2")
@@ -278,7 +281,10 @@ class TestObjectDeduplicator(unittest.TestCase):
 
     def test_cache_statistics_accuracy(self):
         """Test that cache statistics are accurate."""
-        dedup = ObjectDeduplicator(name="stats_test", size=16)
+        dedup = ObjectDeduplicator(name="stats_test_simple", size=16)
+
+        # Clear any existing cache (if test ran previously)
+        dedup.clear()
 
         obj1 = (1, 2)
         obj2 = (1, 2)  # Equal to obj1

@@ -4,7 +4,7 @@ import json
 import os
 import tempfile
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 from cryptography.hazmat.primitives import serialization
@@ -339,7 +339,6 @@ class TestSecurity(TestCase):  # pylint: disable=too-many-instance-attributes
             sig_data = json.load(f)
 
         # Tamper with creator_uuid
-        original_uuid = sig_data["creator_uuid"]
         sig_data["creator_uuid"] = str(uuid4())
         with open(sig_filepath, "w", encoding="utf-8") as f:
             json.dump(sig_data, f)
@@ -436,11 +435,11 @@ class TestSignedJSON(TestCase):  # pylint: disable=too-many-instance-attributes
                 os.remove(filepath)
         os.rmdir(self.test_dir)
 
-    def _mock_load_private_key(self, path: str) -> ed25519.Ed25519PrivateKey:
+    def _mock_load_private_key(self, _: str) -> ed25519.Ed25519PrivateKey:
         """Mock function for load_private_key."""
         return self.ed25519_private_key
 
-    def _mock_load_public_key(self, path: str) -> ed25519.Ed25519PublicKey:
+    def _mock_load_public_key(self, _: str) -> ed25519.Ed25519PublicKey:
         """Mock function for load_public_key."""
         return self.ed25519_public_key
 
@@ -635,15 +634,19 @@ class TestSignedJSON(TestCase):  # pylint: disable=too-many-instance-attributes
 
     def test_dump_signed_json_file_size_limit(self) -> None:
         """Test that dumping very large JSON raises ValueError."""
-        # Create data that will exceed the limit when serialized
+        # Mock the limit to a small value to speed up the test
+        small_limit = 1000
+
+        # Create data that will exceed the mocked limit when serialized
         # Using a large string to make the JSON file very large
-        large_data = {"data": "x" * (JSON_FILESIZE_LIMIT + 1000)}
+        large_data = {"data": "x" * (small_limit + 100)}
         filepath = os.path.join(self.test_dir, "test_large.json")
 
         with patch("egpcommon.security.load_private_key", self._mock_load_private_key):
             with patch("egpcommon.security.load_public_key", self._mock_load_public_key):
-                with self.assertRaises(ValueError) as context:
-                    dump_signed_json(large_data, filepath)
+                with patch("egpcommon.security.JSON_FILESIZE_LIMIT", small_limit):
+                    with self.assertRaises(ValueError) as context:
+                        dump_signed_json(large_data, filepath)
 
         self.assertIn("exceeds limit", str(context.exception))
 
@@ -744,10 +747,10 @@ class TestSignedJSON(TestCase):  # pylint: disable=too-many-instance-attributes
     def test_dump_signed_json_rsa_algorithm(self) -> None:
         """Test that dump_signed_json works with RSA keys."""
 
-        def mock_load_rsa_private_key(path: str) -> rsa.RSAPrivateKey:
+        def mock_load_rsa_private_key(_: str) -> rsa.RSAPrivateKey:
             return self.rsa_private_key
 
-        def mock_load_rsa_public_key(path: str) -> rsa.RSAPublicKey:
+        def mock_load_rsa_public_key(_: str) -> rsa.RSAPublicKey:
             return self.rsa_public_key
 
         test_data = {"algorithm": "RSA"}

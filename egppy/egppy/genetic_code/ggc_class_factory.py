@@ -12,6 +12,7 @@ from uuid import UUID
 
 from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE, sha256_signature
 from egpcommon.common_obj import CommonObj
+from egpcommon.deduplication import int_store, uuid_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES
@@ -116,12 +117,16 @@ class GGCMixin(EGCMixin):
         super().set_members(gcabc)
         if not isinstance(self, GCABC):
             raise ValueError("GGC must be a GCABC object.")
-        self["code_depth"] = gcabc["code_depth"]
-        self["generation"] = gcabc["generation"]
-        self["num_codes"] = gcabc["num_codes"]
-        self["num_codons"] = gcabc["num_codons"]
-        self["_lost_descendants"] = gcabc.get("_lost_descendants", 0)
-        self["_reference_count"] = gcabc.get("_reference_count", 0)
+
+        # Freeze the cgraph if it is not already frozen.
+        self["cgraph"].freeze()
+
+        self["code_depth"] = int_store[gcabc["code_depth"]]
+        self["generation"] = int_store[gcabc["generation"]]
+        self["num_codes"] = int_store[gcabc["num_codes"]]
+        self["num_codons"] = int_store[gcabc["num_codons"]]
+        self["_lost_descendants"] = int_store[gcabc.get("_lost_descendants", 0)]
+        self["_reference_count"] = int_store[gcabc.get("_reference_count", 0)]
         tmp = gcabc.get("created", datetime.now(UTC))
         self["created"] = (
             # If the datetime exists it is from the database and has no timezone info.
@@ -130,10 +135,10 @@ class GGCMixin(EGCMixin):
             else datetime.fromisoformat(tmp)
         )
         # TODO: creator can be a reference into an object set as there will be many duplicates
-        self["creator"] = gcabc.get("creator", ANONYMOUS_CREATOR)
-        if isinstance(self["creator"], str):
-            self["creator"] = UUID(self["creator"])
-        self["descendants"] = gcabc.get("descendants", 0)
+        creator = gcabc.get("creator", ANONYMOUS_CREATOR)
+        creator = UUID(creator) if isinstance(creator, str) else creator
+        self["creator"] = uuid_store[creator]
+        self["descendants"] = int_store[gcabc.get("descendants", 0)]
         self["imports"] = gcabc.get("imports", NULL_TUPLE)
         self["inline"] = gcabc.get("inline", NULL_STR)
         self["code"] = gcabc.get("code", NULL_STR)
@@ -141,7 +146,7 @@ class GGCMixin(EGCMixin):
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]
         self["input_types"], self["inputs"] = self["cgraph"]["Is"].types()
-        self["lost_descendants"] = gcabc.get("lost_descendants", 0)
+        self["lost_descendants"] = int_store[gcabc.get("lost_descendants", 0)]
 
         # TODO: Need to resolve the meta_data references. Too deep.
         # Need to pull relevant data in and then destroy the meta data dictionary.
@@ -161,7 +166,7 @@ class GGCMixin(EGCMixin):
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
         self["output_types"], self["outputs"] = self["cgraph"]["Od"].types()
 
-        self["reference_count"] = gcabc.get("reference_count", 0)
+        self["reference_count"] = int_store[gcabc.get("reference_count", 0)]
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = (
             # If the datetime exists it is from the database and has no timezone info.

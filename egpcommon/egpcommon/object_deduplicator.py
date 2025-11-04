@@ -16,6 +16,19 @@ from egpcommon.egp_log import Logger, egp_logger
 _logger: Logger = egp_logger(name=__name__)
 
 
+# Deduplicator register
+# This is a global registry of all deduplicators for monitoring purposes.
+deduplicators_registry: dict[str, "ObjectDeduplicator"] = {}
+
+
+def deduplicators_info() -> str:
+    """Get information about all deduplicators."""
+    info = ""
+    for deduplicator in deduplicators_registry.values():
+        info += deduplicator.info() + "\n\n"
+    return info
+
+
 class ObjectDeduplicator(CommonObj):
     """ObjectDeduplicator class.
 
@@ -27,7 +40,14 @@ class ObjectDeduplicator(CommonObj):
 
     __slots__ = ("_objects", "name", "target_rate")
 
-    def __init__(self, name: str, size: int = 2**16, target_rate: float = 0.811) -> None:
+    def __new__(cls, *args, **kwargs):
+        """Prevent duplicate deduplicators with the same name."""
+        name = args[0] if args else kwargs.get("name")
+        if name in deduplicators_registry:
+            return deduplicators_registry[name]
+        return super().__new__(cls)
+
+    def __init__(self, name: str, size: int = 2**12, target_rate: float = 0.811) -> None:
         """Initialize a ObjectDeduplicator object.
 
         Up to `size` unique objects will be deduplicated. If more unique objects are added
@@ -44,15 +64,18 @@ class ObjectDeduplicator(CommonObj):
             size: Size of the LRU cache.
             target_rate: Break even cache hit rate (information purposes only).
         """
+        # Register & initialize the deduplicator if this is not a duplicate
+        if name not in deduplicators_registry:
+            deduplicators_registry[name] = self
 
-        @lru_cache(maxsize=size)
-        def cached_hash(obj: Hashable) -> Hashable:
-            return obj
+            @lru_cache(maxsize=size)
+            def cached_hash(obj: Hashable) -> Hashable:
+                return obj
 
-        self._objects = cached_hash
-        self.name: str = name
-        self.target_rate: float = target_rate
-        # TODO: In MONITOR mode and below send stats to prometheus
+            self._objects = cached_hash
+            self.name: str = name
+            self.target_rate: float = target_rate
+            # TODO: In MONITOR mode and below send stats to prometheus
 
     def __getitem__(self, obj: Hashable) -> Any:
         """Get a object from the dict."""
@@ -60,6 +83,10 @@ class ObjectDeduplicator(CommonObj):
             "FreezableObjects must be frozen to be placed in an ObjectDeduplicator."
         )
         return self._objects(obj)
+
+    def clear(self) -> None:
+        """Clear the deduplicator cache."""
+        self._objects.cache_clear()
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""
@@ -75,3 +102,36 @@ class ObjectDeduplicator(CommonObj):
         )
         _logger.info(info_str)
         return info_str
+
+
+class IntDeduplicator(ObjectDeduplicator):
+    """IntDeduplicator class for deduplicating immutable integer objects."""
+
+    __slots__ = ("lmin", "lmax")
+
+    def __init__(
+        self,
+        name: str,
+        size: int = 2**12,
+        target_rate: float = 0.811,
+        lmin: int = 0,
+        lmax: int = 2**12 - 1,
+    ) -> None:
+        """Initialize a IntDeduplicator object.
+
+        Args:
+            name: Name of the integer deduplicator.
+            size: Size of the LRU cache.
+            target_rate: Break even cache hit rate (information purposes only).
+            lmin: Minimum integer value to deduplicate (inclusive).
+            lmax: Maximum integer value to deduplicate (inclusive).
+        """
+        super().__init__(name, size, target_rate)
+        self.lmin = lmin
+        self.lmax = lmax
+
+    def __getitem__(self, value: int) -> int:  # type: ignore
+        """Get a deduplicated integer from the dict."""
+        if self.lmin <= value <= self.lmax:
+            return super().__getitem__(value)
+        return value
