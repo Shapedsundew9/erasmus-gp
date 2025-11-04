@@ -305,8 +305,7 @@ class Interface(FreezableObject):
         new_endpoints: list[EndPoint] = [ep.copy() for ep in self.endpoints]
         offset = len(self.endpoints)
         for idx, ep in enumerate(other.endpoints, offset):
-            ep_copy = ep.copy()
-            ep_copy.idx = idx
+            ep_copy = ep.copy(new_idx=idx)
             new_endpoints.append(ep_copy)
 
         # Create the new interface
@@ -390,7 +389,9 @@ class Interface(FreezableObject):
                     "All endpoints must have the same class. Expected"
                     f" {self.endpoints[0].cls}, got {value.cls}"
                 )
-        value.idx = idx  # Ensure the index is correct
+        # Create a copy with the correct index if needed
+        if value.idx != idx:
+            value = value.copy(new_idx=idx)
         self.endpoints[idx] = value
 
     def __str__(self) -> str:
@@ -427,7 +428,10 @@ class Interface(FreezableObject):
                     "All endpoints must have the same class. Expected"
                     f" {self.endpoints[0].cls}, got {value.cls}"
                 )
-        value.idx = len(self.endpoints)  # Ensure the index is correct
+        # Create a copy with the correct index if needed
+        new_idx = len(self.endpoints)
+        if value.idx != new_idx:
+            value = value.copy(new_idx=new_idx)
         self.endpoints.append(value)
 
     def cls(self) -> EndPointClass:
@@ -473,9 +477,13 @@ class Interface(FreezableObject):
                         "All endpoints must have the same class. Expected"
                         f" {self.endpoints[0].cls}, got {value.cls}"
                     )
+        # Create copies with correct indices if needed
+        adjusted_values = []
         for idx, value in enumerate(values, start=len(self.endpoints)):
-            value.idx = idx  # Ensure the index is correct
-        self.endpoints.extend(values)
+            if value.idx != idx:
+                value = value.copy(new_idx=idx)
+            adjusted_values.append(value)
+        self.endpoints.extend(adjusted_values)
 
     def freeze(self, store: bool = True) -> Interface:
         """Freeze the interface, making it immutable.
