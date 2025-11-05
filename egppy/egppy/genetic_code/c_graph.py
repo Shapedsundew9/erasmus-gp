@@ -112,7 +112,6 @@ from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     ROW_CLS_INDEXED,
-    ROW_CLS_INDEXED_SET,
     SOURCE_ROW_MAP,
     DstIfKey,
     DstRow,
@@ -483,7 +482,6 @@ class CGraph(FreezableObject, Collection):
         # Process interface definitions
         for iface, iface_def in graph.items():
             if isinstance(iface_def, Interface):
-                assert iface in ROW_CLS_INDEXED_SET, f"Invalid interface key: {iface}"
                 under_iface: str = _UNDER_KEY_DICT[iface]
                 setattr(self, under_iface, iface_def)
             else:
@@ -514,7 +512,7 @@ class CGraph(FreezableObject, Collection):
             raise RuntimeError("Cannot modify a frozen connection graph.")
         if key not in ROW_CLS_INDEXED:
             raise KeyError(f"Invalid Connection Graph key: {key}")
-        setattr(self, _UNDER_KEY_DICT.get(key, "_"), NULL_INTERFACE)
+        setattr(self, _UNDER_KEY_DICT[key], NULL_INTERFACE)
 
     def __eq__(self, value: object) -> bool:
         """Check equality of Connection Graphs."""
@@ -538,14 +536,14 @@ class CGraph(FreezableObject, Collection):
         """Get the endpoint with the given key."""
         if key not in ROW_CLS_INDEXED:
             raise KeyError(f"Invalid Connection Graph key: {key}")
-        return getattr(self, _UNDER_KEY_DICT.get(key, "_"))
+        return getattr(self, _UNDER_KEY_DICT[key])
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the Connection Graph."""
         return (
             key
             for key in ROW_CLS_INDEXED
-            if getattr(self, _UNDER_KEY_DICT.get(key, "_"), NULL_INTERFACE) is not NULL_INTERFACE
+            if getattr(self, _UNDER_KEY_DICT[key], NULL_INTERFACE) is not NULL_INTERFACE
         )
 
     def __len__(self) -> int:
@@ -553,7 +551,7 @@ class CGraph(FreezableObject, Collection):
         return sum(
             1
             for key in ROW_CLS_INDEXED
-            if getattr(self, _UNDER_KEY_DICT.get(key, "_"), NULL_INTERFACE) is not NULL_INTERFACE
+            if getattr(self, _UNDER_KEY_DICT[key], NULL_INTERFACE) is not NULL_INTERFACE
         )
 
     def __repr__(self) -> str:
@@ -568,7 +566,7 @@ class CGraph(FreezableObject, Collection):
             raise KeyError(f"Invalid Connection Graph key: {key}")
         if not isinstance(value, Interface):
             raise TypeError(f"Value must be an Interface, got {type(value)}")
-        setattr(self, _UNDER_KEY_DICT.get(key, "_"), value)
+        setattr(self, _UNDER_KEY_DICT[key], value)
 
     def is_stable(self) -> bool:
         """Return True if the Connection Graph is stable, i.e. all destinations are connected."""
