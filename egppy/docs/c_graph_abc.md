@@ -39,7 +39,7 @@ All concrete implementations must provide the following methods:
 
 ### Mapping Protocol
 
-- `__getitem__(self, key: str) -> Interface`
+- `__getitem__(self, key: str) -> InterfaceABC`
 - `__setitem__(self, key: str, value: Interface) -> None`
 - `__delitem__(self, key: str) -> None`
 
