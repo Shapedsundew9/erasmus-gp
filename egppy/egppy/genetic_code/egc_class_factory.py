@@ -47,7 +47,9 @@ class EGCMixin(GCMixin):
         if isinstance(cgraph, CGraph):
             self["cgraph"] = cgraph.copy()
         else:
-            self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))  # type: ignore
+            # json_cgraph_to_interfaces may return a type not statically recognized as valid input for CGraph,
+            # but runtime checks ensure correctness; type ignore is required for pyright/mypy compatibility.
+            self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))  # type: ignore[call-arg]
 
         # GCA
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]

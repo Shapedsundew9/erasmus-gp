@@ -402,7 +402,7 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, Interface]:
                         raise ValueError(
                             f"Type inconsistency for source endpoint {src_row},{src_idx}: "
                             f"existing type '{src_ep.typ.name}' "
-                            "conflicts with new type '{ep.typ.name}'"
+                            f"conflicts with new type '{ep.typ.name}'"
                         )
                     refs = src_ep.refs
                     assert isinstance(refs, list), "Expected refs to be a list."
