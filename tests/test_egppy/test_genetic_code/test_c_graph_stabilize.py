@@ -12,7 +12,7 @@ import unittest
 from random import seed
 
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph import CGraph, c_graph_type
+from egppy.genetic_code.c_graph import CGraph, c_graph_type, json_cgraph_to_interfaces
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
 from egppy.genetic_code.end_point import EndPoint
 from egppy.genetic_code.interface import Interface
@@ -32,11 +32,13 @@ class TestStabilizeLocked(unittest.TestCase):
     def test_stabilize_locked_already_stable(self) -> None:
         """Test stabilize with if_locked=True when graph is already stable."""
         # Create a fully connected primitive graph
-        jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.A: [["I", 0, "int"]],
+                DstRow.O: [["A", 0, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Should already be stable
@@ -651,7 +653,12 @@ class TestStabilizeEdgeCases(unittest.TestCase):
 
     def test_stabilize_empty_graph(self) -> None:
         """Test stabilize on an empty graph (no connections needed)."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.O: [],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Should already be stable (empty graphs have no connections)
@@ -665,11 +672,13 @@ class TestStabilizeEdgeCases(unittest.TestCase):
 
     def test_stabilize_frozen_graph_no_error(self) -> None:
         """Test that stabilizing a frozen graph doesn't error if already stable."""
-        jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.A: [["I", 0, "int"]],
+                DstRow.O: [["A", 0, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Graph is already stable

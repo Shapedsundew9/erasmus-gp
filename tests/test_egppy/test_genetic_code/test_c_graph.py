@@ -14,6 +14,7 @@ from egppy.genetic_code.c_graph import (
     CGT_VALID_SRC_ROWS,
     CGraph,
     c_graph_type,
+    json_cgraph_to_interfaces,
     valid_dst_rows,
     valid_jcg,
     valid_rows,
@@ -388,14 +389,16 @@ class TestCGraph(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         # Create a simple primitive graph for testing
-        self.primitive_jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
-        }
+        self.primitive_jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.A: [["I", 0, "int"]],
+                DstRow.O: [["A", 0, "int"]],
+                DstRow.U: [],
+            }
+        )
 
         # Create an empty graph
-        self.empty_jcg = {DstRow.O: [], DstRow.U: []}
+        self.empty_jcg = json_cgraph_to_interfaces({DstRow.O: [], DstRow.U: []})
 
     def test_cgraph_init_from_json(self) -> None:
         """Test CGraph initialization from JSON."""
@@ -573,13 +576,15 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_if_then_graph_rules(self) -> None:
         """Test If-Then graph follows its specific rules."""
-        jcg = {
-            DstRow.F: [["I", 0, "bool"]],
-            DstRow.A: [["I", 1, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.F: [["I", 0, "bool"]],
+                DstRow.A: [["I", 1, "int"]],
+                DstRow.O: [["A", 0, "int"]],
+                DstRow.P: [["I", 1, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Must not have L, W, B interfaces
@@ -596,14 +601,16 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_if_then_else_graph_rules(self) -> None:
         """Test If-Then-Else graph follows its specific rules."""
-        jcg = {
-            DstRow.F: [["I", 0, "bool"]],
-            DstRow.A: [["I", 1, "int"]],
-            DstRow.B: [["I", 2, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["B", 0, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.F: [["I", 0, "bool"]],
+                DstRow.A: [["I", 1, "int"]],
+                DstRow.B: [["I", 2, "int"]],
+                DstRow.O: [["A", 0, "int"]],
+                DstRow.P: [["B", 0, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Must not have L, W
@@ -619,7 +626,7 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_empty_graph_rules(self) -> None:
         """Test Empty graph follows its specific rules."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = json_cgraph_to_interfaces({DstRow.O: [], DstRow.U: []})
         cgraph = CGraph(jcg)
 
         # Must only have O (and potentially I if provided)
@@ -634,13 +641,15 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_for_loop_graph_rules(self) -> None:
         """Test For-Loop graph follows its specific rules."""
-        jcg = {
-            DstRow.L: [["I", 0, "list"]],
-            DstRow.A: [["L", 0, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.L: [["I", 0, "list"]],
+                DstRow.A: [["L", 0, "int"]],
+                DstRow.O: [["A", 0, "int"]],
+                DstRow.P: [["I", 1, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Must not have F, W, B
@@ -657,14 +666,16 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_while_loop_graph_rules(self) -> None:
         """Test While-Loop graph follows its specific rules."""
-        jcg = {
-            DstRow.L: [["I", 0, "int"]],
-            DstRow.W: [["A", 0, "bool"]],
-            DstRow.A: [["L", 0, "int"]],
-            DstRow.O: [["A", 1, "int"]],
-            DstRow.P: [["I", 0, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.L: [["I", 0, "int"]],
+                DstRow.W: [["A", 0, "bool"]],
+                DstRow.A: [["L", 0, "int"]],
+                DstRow.O: [["A", 1, "int"]],
+                DstRow.P: [["I", 0, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Must not have F, B
@@ -681,12 +692,14 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_standard_graph_rules(self) -> None:
         """Test Standard graph follows its specific rules."""
-        jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.B: [["A", 0, "int"]],
-            DstRow.O: [["B", 0, "int"]],
-            DstRow.U: [],
-        }
+        jcg = json_cgraph_to_interfaces(
+            {
+                DstRow.A: [["I", 0, "int"]],
+                DstRow.B: [["A", 0, "int"]],
+                DstRow.O: [["B", 0, "int"]],
+                DstRow.U: [],
+            }
+        )
         cgraph = CGraph(jcg)
 
         # Must not have F, L, W, P
@@ -702,7 +715,9 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_primitive_graph_rules(self) -> None:
         """Test Primitive graph follows its specific rules."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = json_cgraph_to_interfaces(
+            {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        )
         cgraph = CGraph(jcg)
 
         # Must not have F, L, W, P, B
