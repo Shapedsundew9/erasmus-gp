@@ -14,7 +14,7 @@ from egpcommon.deduplication import properties_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType
+from egppy.genetic_code.c_graph import CGraph, CGraphType, json_cgraph_to_interfaces
 from egppy.genetic_code.c_graph_constants import JSONCGraph
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
 from egppy.genetic_code.interface import Interface
@@ -44,7 +44,10 @@ class EGCMixin(GCMixin):
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
         cgraph: CGraph | dict[str, Interface] | JSONCGraph = gcabc["cgraph"]
-        self["cgraph"] = cgraph.copy() if isinstance(cgraph, CGraph) else CGraph(cgraph)
+        if isinstance(cgraph, CGraph):
+            self["cgraph"] = cgraph.copy()
+        else:
+            self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))  # type: ignore
 
         # GCA
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
