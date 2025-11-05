@@ -413,7 +413,7 @@ def generate_types_def(write: bool = False) -> None:
             base_class = name[start + 2 : end]
 
         # Add the sub-types to the type definition.
-        # OPTIMIZE: Use f-string for faster string formatting
+        # NOTE: Using f-string here is a stylistic choice for consistency, not a performance optimization.
         template = f"-{base_class}0" if flag else base_class
         for st in pairs:
             # Replace the template with the sub-type (pair) name and

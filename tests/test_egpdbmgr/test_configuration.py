@@ -1,5 +1,6 @@
 """Tests for the configuration module."""
 
+import os
 import tempfile
 import unittest
 
@@ -112,8 +113,6 @@ class TestDBManagerConfig(unittest.TestCase):
             self.assertEqual(config.archive_db, self.default_config["archive_db"])
         finally:
             # Clean up the temporary file and its signature file
-            import os
-
             if os.path.exists(tmpfile_path):
                 os.unlink(tmpfile_path)
             if os.path.exists(f"{tmpfile_path}.sig"):
