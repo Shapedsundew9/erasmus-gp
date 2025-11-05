@@ -26,6 +26,12 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 echo "Copying public keys to devcontainer shared folder..."
 sudo cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
 
+# Add aliases to .bashrc
+echo "Adding custom aliases to .bashrc..."
+echo "# My Custom Aliases" >> ~/.bashrc
+echo "alias profile='.venv/bin/python -m cProfile -o profile.prof -m unittest discover && .venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
+echo "alias generate='.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write && .venv/bin/python ./egpseed/egpseed/generate_types.py --write && .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write && .venv/bin/python ./egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+
 # Generate data files
 echo "Generating data files..."
 mkdir -p ./egpdbmgr/egpdbmgr/data
@@ -33,12 +39,6 @@ mkdir -p ./egpdbmgr/egpdbmgr/data
 .venv/bin/python ./egpseed/egpseed/generate_types.py --write
 .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
 .venv/bin/python ./egpseed/egpseed/generate_codons.py --write
-
-# Add aliases to .bashrc
-echo "Adding custom aliases to .bashrc..."
-echo "# My Custom Aliases" >> ~/.bashrc
-echo "alias profile='.venv/bin/python -m cProfile -o profile.prof -m unittest discover && .venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
-echo "alias generate='.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write && .venv/bin/python ./egpseed/egpseed/generate_types.py --write && .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write && .venv/bin/python ./egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 
 # Done
 echo "--- Post-create script finished ---"

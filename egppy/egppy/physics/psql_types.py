@@ -706,6 +706,17 @@ class PsqlFragmentOrderBy(PsqlFragment):
     """Class for PSQL ORDER BY clause fragments."""
 
     def __init__(self, column: PsqlType | None = None, ascending: bool = True):
+        """
+        Initialize the PsqlFragmentOrderBy object.
+
+        Args:
+            column: The column to order by. If None, 'ORDER BY RANDOM()' will be generated.
+            ascending: If True, order ascending; otherwise, descending.
+
+        Note:
+            If column is None, the generated SQL will use 'ORDER BY RANDOM()'.
+            This is a special case and changes the API contract from previous versions.
+        """
         if column is not None and not column.is_column:
             raise PsqlValueError("ORDER BY column must be a column.")
         self.column = column

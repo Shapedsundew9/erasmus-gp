@@ -99,7 +99,7 @@ Additional to the Common Rules Primitive connection graphs have the following ru
 
 from __future__ import annotations
 
-from collections.abc import Collection, Iterator
+from collections.abc import Iterator
 from itertools import chain
 from pprint import pformat
 from random import choice, shuffle
@@ -107,8 +107,8 @@ from typing import Any
 
 from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     ROW_CLS_INDEXED,
@@ -461,7 +461,7 @@ def c_graph_type(jcg: JSONCGraph | CGraph) -> CGraphType:
     return CGraphType.PRIMITIVE if DstRow.A in jcg else CGraphType.EMPTY
 
 
-class CGraph(FreezableObject, Collection):
+class CGraph(CGraphABC):
     """Builtin graph class for the Connection Graph.
 
     Frozen graphs are created once and then never modified.
@@ -473,7 +473,7 @@ class CGraph(FreezableObject, Collection):
 
     def __init__(self, graph: dict[str, Interface]) -> None:
         """Initialize the Connection Graph."""
-        FreezableObject.__init__(self, False)
+        super().__init__(False)
 
         # Set defaults
         for key in _UNDER_ROW_CLS_INDEXED:
@@ -576,6 +576,10 @@ class CGraph(FreezableObject, Collection):
         difs = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         return all(not iface.unconnected_eps() for iface in difs if iface is not NULL_INTERFACE)
 
+    def graph_type(self) -> CGraphType:
+        """Identify and return the type of this connection graph."""
+        return c_graph_type(self)
+
     def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
         """Convert the Connection Graph to a JSON-compatible dictionary."""
         jcg: JSONCGraph = {}
@@ -657,7 +661,7 @@ class CGraph(FreezableObject, Collection):
                 # Connect the destination endpoint to the source endpoint
                 dep.connect(sep)
 
-    def copy(self) -> CGraph:
+    def copy(self) -> CGraphABC:
         """Return a modifiable shallow copy of the Connection Graph."""
         # Create a new CGraph instance with the same interfaces
         return CGraph({key[1:]: getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED})

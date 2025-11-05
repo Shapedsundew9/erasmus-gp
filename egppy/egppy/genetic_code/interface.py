@@ -6,7 +6,6 @@ from collections.abc import Iterator
 from typing import Sequence
 
 from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -17,6 +16,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.end_point import EndPoint, TypesDef
+from egppy.genetic_code.interface_abc import InterfaceABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -74,7 +74,7 @@ def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]
     return DstRow(row), idx
 
 
-class Interface(FreezableObject):
+class Interface(InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
     __slots__ = ("endpoints", "_hash")
@@ -150,7 +150,7 @@ class Interface(FreezableObject):
         # If not frozen, calculate the hash dynamically
         return hash(tuple(self.endpoints))
 
-    def __add__(self, other: Interface) -> Interface:
+    def __add__(self, other: InterfaceABC) -> InterfaceABC:
         """Concatenate two interfaces to create a new interface.
 
         Args
@@ -289,7 +289,7 @@ class Interface(FreezableObject):
         """Return the class of the interface. Defaults to destination if no endpoints."""
         return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
 
-    def copy(self) -> Interface:
+    def copy(self) -> InterfaceABC:
         """Return a modifiable shallow copy of the interface."""
         return Interface(self.endpoints)
 

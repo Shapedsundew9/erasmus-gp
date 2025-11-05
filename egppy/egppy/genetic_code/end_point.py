@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_deduplicator import ObjectDeduplicator
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
@@ -15,6 +14,7 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
+from egppy.genetic_code.end_point_abc import EndPointABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # Standard EGP logging pattern
@@ -26,8 +26,13 @@ ref_store = ObjectDeduplicator("Endpoint reference store", 2**12)
 ref_tuple_store = ObjectDeduplicator("Endpoint reference tuple store", 2**12)
 
 
-class EndPoint(FreezableObject):
-    """Endpoint class using builtin collections."""
+class EndPoint(EndPointABC):
+    """Endpoint class using builtin collections.
+
+    This concrete implementation of EndPointABC uses builtin collections for
+    efficient storage and manipulation of endpoint data. It supports both mutable
+    and immutable (frozen) states with object deduplication for memory efficiency.
+    """
 
     __slots__ = ("row", "idx", "cls", "_typ", "_refs", "_hash")
 
@@ -165,7 +170,7 @@ class EndPoint(FreezableObject):
             f", typ={self.typ}, refs=[{self.refs}])"
         )
 
-    def connect(self, other: EndPoint) -> None:
+    def connect(self, other: EndPointABC) -> None:
         """Connect this endpoint to another endpoint."""
         if _logger.isEnabledFor(level=DEBUG):
             if self._frozen:
