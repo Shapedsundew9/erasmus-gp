@@ -13,7 +13,7 @@ from egppy.genetic_code.interface import (
     unpack_ref,
     unpack_src_ref,
 )
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import types_def_store
 
 
 class TestInterface(unittest.TestCase):
@@ -351,13 +351,13 @@ class TestInterface(unittest.TestCase):
 
     def test_consistency_with_logging(self) -> None:
         """Test the consistency() method with CONSISTENCY logging enabled."""
-        import logging
-
+        # pylint: disable=import-outside-toplevel
         from egpcommon.egp_log import CONSISTENCY
 
         # Get the logger
         from egppy.genetic_code import interface as interface_module
 
+        # pylint: disable=protected-access
         logger = interface_module._logger
 
         # Save original level
