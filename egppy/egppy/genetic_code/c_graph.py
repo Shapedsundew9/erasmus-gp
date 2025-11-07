@@ -1,144 +1,4 @@
-"""
-This module provides classes for creating and managing Connection Graphs (CGraph),
-which are used to represent graph structures in the Genetic Code (GC) system.
-
-Genetic Codes, GCs, have a property called a 'connection graph'
-(a CGraphABC instance) which defines the connectivity between the constituent GC A and GC B
-genetic codes and the GC's inputs and outputs. In the connection graph, edges arer called
-connections and are directed, nodes are called
-end points and come in two classes. A source endpoint and a destination endpoints. The class
-of the end point defines at what end of a connection the endpoint resides. An in-order
-collection of end points with the same row and end point class is called an interface and
-thus an interface is also either a source or a destination interface.
-Connections are defined by references stored in the end points. A source endpoint
-can connect to multiple destination endpoints, while a destination endpoint can
-only connect to a single source endpoint.
-
-There are several types of connection graph:
-    - Conditional
-        - If-then
-        - If-then-else
-    - Empty
-    - Loop
-        - For
-        - While
-    - Standard
-    - Primitive
-
-The type of connection graph determines the rules for what interfaces exist and how they
-can be connected.
-
-All connection graphs may be in one of two states, stable or unstable. A stable connection graph
-is one in which all destination endpoints are connected to a source endpoint. An unstable
-connection graph is one in which at least one destination endpoint is not connected to any
-source endpoint.
-
-Interfaces are identified by a two characters: A Row character and a Class character.
-The Row character identifies the interface's row (one of IFLWABOPU) and the Class character
-identifies whether the interface is a source (s) or destination (d) interface.
-
-There are two representations of connection graphs:
-    - JSON Connection Graph format, JSONCGraph type
-    - CGraphABC class instance
-The JSON Connection Graph format is a compact representation suitable for serialization
-and storage of stable connection graphs only. The format specifies only the destination
-endpoints and their connections, including a unique to JSON format destination row U for
-otherwise unconnected source endpoints if needed, this allows all sources to be represented.
-The CGraphABC class provides a common interfaces a mutable connection graph class CGraph
-and an immutable frozen connection graph class FrozenCGraph. Mutable connection graphs
-may be stable or unstable which allows them to be modified incrementally. Immutable
-connection graphs are always stable.
-To be efficient for their intended use cases, both concrete classes have specific internal
-representations for storing end point data and connections. These representations are optimized
-for performance characteristics and trade-offs. Thus CGraphABC makes use of abstract base
-classes for endpoints (EndPointABC) and interfaces (InterfaceABC).
-
-Below are the rules governing the permitted interfaces and connections for each type of
-connection graph. Unless otherwise stated, these rules apply to both stable and unstable graphs.
-
-Using the nomenclature:
-    - Is: GC Node input source interface
-    - Fd: GC Node conditional destination interface
-    - Ld: GC Node loop iterable destination interface (for both for and while loops)
-    - Ls: GC Node loop object source interface
-    - Wd: GC Node while loop object destination interface
-    - Ad: GCA input interface as a destination in the GC Node graph
-    - As: GCA output interface as a source in the GC Node graph
-    - Bd: GCB input interface as a destination in the GC Node graph
-    - Bs: GCB output interface as a source in the GC Node graph
-    - Od: GC Node output destination interface
-    - Pd: GC Node output destination interface alternate route (conditional False,
-      zero iteration loop)
-    - Ud: GC Node destination interface for otherwise unconnected source endpoints
-      (JSON format only)
-
-Common Rules
-    - Endpoints can only be connected to end points of the same or a compatible type.
-    - Source endpoints may be connected to 0, 1 or multiple destination endpoints.
-    - Destination endpoints must have 1 and only 1 connection to it to be stable.
-    - Destination endpoints may only be unconnected (have no connections) in unstable graphs.
-    - Interfaces may have 0 to MAX_NUM_ENDPOINTS (inclusive) endpoints
-    - MAX_NUM_ENDPOINTS == 255
-    - Fd, Ld, Wd and Ls, when present, must have exactly 1 endpoint in the interface
-    - Pd must have the same interface, i.e. endpoint number, order and types as Od.
-    - Any Is endpoint may be a source to any destination endpoint with the exception of Wd
-    - Any source endpoint that is not connected to any other destination endpoint is connected
-      to the Ud interface in a JSON Connection Graph representation.
-    - An interface still exists even if it has zero endpoints.
-    - "x can only connect to y" does not restrict what can connect to y.
-    - "y can connect to x" does not imply that x can connect to y.
-    - An empty interface has zero endpoints and is not the same as a non-existent interface.
-    - Is and Od must exist (and so Pd must exist in graph types that have Pd)
-    - Either both of As and Ad exist or neither exist
-    - Either both of Bs and Bd exist or neither exist
-    - Interfaces on the same row cannot connect to each other (e.g. Bs cannot connect to Bd)
-    - References must be consistent, i.e. if a destination endpoint references a source endpoint,
-      the source endpoint must also reference the destination endpoint. This is still just a
-      single directed connection. (NB: This is to facilitate verification of integrity.)
-
-Additional to the Common Rules Conditional If-Then graphs have the following rules
-    - Must not have Ld, Wd, Bd, Bs or Ls interfaces
-    - Only Is can connect to Fd
-    - As can only connect to Od or Ud
-    - Only Is can connect to Pd
-
-Additional to the Common Rules Conditional If-Then-Else graphs have the following rules
-    - Must not have Ld, Wd or Ls interfaces
-    - Only Is can connect to Fd
-    - As can only connect to Od or Ud
-    - Bs can only connect to Pd or Ud
-
-Additional to the Common Rules Empty graphs have the following rules
-    - An empty graph only has Is and Od interfaces
-    - May have a Ud interface (in JSON format only)
-    - An empty graph has no connections (and is thus always unstable if Od has endpoints)
-
-Additional to the Common Rules For-Loop graphs have the following rules
-    - Must not have an Fd, Wd, Bs, or Bd interface
-    - Only Is can connect to Ld
-    - Ls can only connect to Ad
-    - Ld must be an iterable compatible endpoint type.
-    - Ls must be the object type returned by iterating Ld.
-    - As can only connect to Od or Ud
-    - Only Is can connect to Pd
-
-Additional to the Common Rules While-Loop graphs have the following rules
-    - Must not have an Fd, Bs or Bd interface
-    - Only Is can connect to Ld
-    - Ls can only connect to Ad
-    - Only As can connect to Wd
-    - Wd and Ls must be the same type as Ld
-    - Is and As can connect to Od or Ud
-    - Only Is can connect to Pd
-
-Additional to the Common Rules Standard graphs have the following rules
-    - Must not have an Fd, Ld, Wd, Ls or Pd interface
-    - Bs can only connect to Od or Ud
-
-Additional to the Common Rules Primitive connection graphs have the following rules
-    - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
-    - All sources must be connected to destinations
-"""
+"""The mutable Connection Graph (CGraph) class implementation."""
 
 from __future__ import annotations
 
@@ -235,16 +95,23 @@ class CGraph(CommonObj, CGraphABC):
         return getattr(self, _UNDER_KEY_DICT[key]) is not None
 
     def __delitem__(self, key: str) -> None:
-        """Delete the endpoint with the given key."""
+        """Delete the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
         setattr(self, _UNDER_KEY_DICT[key], None)
 
     def __eq__(self, value: object) -> bool:
-        """Check equality of Connection Graphs."""
+        """Check equality of Connection Graphs.
+        This implements deep equality checking between two Connection Graph instances
+        which can be quite expensive for large graphs.
+        """
         if not isinstance(value, CGraphABC):
             return False
-        return hash(self) == hash(value)
+        if len(self) != len(value):
+            return False
+        if not all(key in value for key in self):
+            return False
+        return all(a == b for a, b in zip(self.values(), value.values()))
 
     def __hash__(self) -> int:
         """Return the hash of the Connection Graph.
@@ -293,10 +160,18 @@ class CGraph(CommonObj, CGraphABC):
     def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
         """Convert the Connection Graph to a JSON-compatible dictionary."""
         jcg: JSONCGraph = {}
+        row_u = []
         for key in DstRow:
             iface: Interface = getattr(self, _UNDER_DST_KEY_DICT[key])
             if iface is not None:
                 jcg[key] = iface.to_json(json_c_graph=json_c_graph)
+        for key in SrcRow:
+            iface: Interface = getattr(self, _UNDER_SRC_KEY_DICT[key])
+            if iface is not None:
+                unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
+                row_u.extend([ep.row, ep.idx, ep.typ.name] for ep in unconnected_srcs)
+        if row_u:
+            jcg[DstRow.U] = row_u
         return jcg
 
     def connect_all(self, if_locked: bool = True) -> None:
@@ -370,7 +245,9 @@ class CGraph(CommonObj, CGraphABC):
                 dep.connect(sep)
 
     def get(self, key: str, default: InterfaceABC | None = None) -> InterfaceABC | None:
-        """Get the interface with the given key, or return default if not found."""
+        """Get the interface with the given key, or return default if not found.
+        NOTE: This method does not raise KeyError if key is not a valid interface key.
+        """
         return getattr(self, _UNDER_KEY_DICT[key], default)
 
     def keys(self) -> Iterator[str]:

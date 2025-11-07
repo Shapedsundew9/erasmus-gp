@@ -135,9 +135,9 @@ class ExecutionContext:
         2. Create code_connection objects for each output of the GC.
         3. Push them individually onto the work stack.
         4. Work through the stack until all connections are terminal.
-            a. If a source code end point is not terminal find what it is connected to
+            a. If a source code endpoint is not terminal find what it is connected to
             and push it onto the stack.
-            b. If a destination code end point is not terminal find what it is connected to
+            b. If a destination code endpoint is not terminal find what it is connected to
             and push it onto the stack.
         """
         node: GCNode = root  # This is the root of the graph for the GC function to be written
@@ -432,7 +432,7 @@ class ExecutionContext:
         return self._line_limit
 
     def name_connections(self, root: GCNode) -> list[str]:
-        """Name the source variable of the connection between two code end points."""
+        """Name the source variable of the connection between two code endpoints."""
 
         # Gather the output variable names to catch the case where an input is
         # directly connected to an output
@@ -450,7 +450,7 @@ class ExecutionContext:
                 src: CodeEndPoint = connection.src
                 idx: int = src.idx
 
-                # If the source end point already has a variable name assigned
+                # If the source endpoint already has a variable name assigned
                 # from another connection then this connection must use that name.
                 if src in src_connection_map:
                     connection.var_name = src_connection_map[src].var_name

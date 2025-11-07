@@ -353,7 +353,7 @@ class GCMixin(CommonObj):
                 # call this function.
                 retval[key] = value["signature"].hex() if value is not NULL_SIGNATURE else None
             elif isinstance(value, CGraph):
-                # Need to set json_c_graph to True so that the end points are correctly serialized
+                # Need to set json_c_graph to True so that the endpoints are correctly serialized
                 retval[key] = value.to_json(json_c_graph=True)
             elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()

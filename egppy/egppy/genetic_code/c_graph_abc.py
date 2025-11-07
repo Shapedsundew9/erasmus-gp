@@ -8,6 +8,143 @@ for different concrete implementations.
 The abstract base class ensures consistency in the API across different graph types
 and implementations while maintaining the flexibility to optimize specific graph
 variants.
+
+Genetic Codes, GCs, have a property called a 'connection graph'
+(a CGraphABC instance) which defines the connectivity between the constituent GC A and GC B
+genetic codes and the GC's inputs and outputs. In the connection graph, edges are called
+connections and are directed, nodes are called
+endpoints and come in two classes. A source endpoint and a destination endpoints. The class
+of the endpoint defines at what end of a connection the endpoint resides. An in-order
+collection of endpoints with the same row and endpoint class is called an interface and
+thus an interface is also either a source or a destination interface.
+Connections are defined by references stored in the endpoints. A source endpoint
+can connect to multiple destination endpoints, while a destination endpoint can
+only connect to a single source endpoint.
+
+There are several types of connection graph:
+    - Conditional
+        - If-then
+        - If-then-else
+    - Empty
+    - Loop
+        - For
+        - While
+    - Standard
+    - Primitive
+
+The type of connection graph determines the rules for what interfaces exist and how they
+can be connected.
+
+All connection graphs may be in one of two states, stable or unstable. A stable connection graph
+is one in which all destination endpoints are connected to a source endpoint. An unstable
+connection graph is one in which at least one destination endpoint is not connected to any
+source endpoint.
+
+Interfaces are identified by a two character key: A Row character and a Class character.
+The Row character identifies the interface's row (one of IFLWABOPU) and the Class character
+identifies whether the interface is a source (s) or destination (d) interface.
+
+There are two representations of connection graphs:
+    - JSON Connection Graph format, JSONCGraph type
+    - CGraphABC class instance
+The JSON Connection Graph format is a compact representation suitable for serialization
+and storage of stable connection graphs only. The format specifies only the destination
+endpoints and their connections, including a unique to JSON format destination row U for
+otherwise unconnected source endpoints if needed, this allows all sources to be represented.
+The CGraphABC class provides a common interfaces a mutable connection graph class CGraph
+and an immutable frozen connection graph class FrozenCGraph. Mutable connection graphs
+may be stable or unstable which allows them to be modified incrementally. Immutable
+connection graphs are always stable.
+To be efficient for their intended use cases, both concrete classes have specific internal
+representations for storing endpoint data and connections. These representations are optimized
+for performance characteristics and trade-offs. Thus CGraphABC makes use of abstract base
+classes for endpoints (EndPointABC) and interfaces (InterfaceABC).
+
+Below are the rules governing the permitted interfaces and connections for each type of
+connection graph. Unless otherwise stated, these rules apply to both stable and unstable graphs.
+
+Using the nomenclature:
+    - Is: GC Node input source interface
+    - Fd: GC Node conditional destination interface
+    - Ld: GC Node loop iterable destination interface (for both for and while loops)
+    - Ls: GC Node loop object source interface
+    - Wd: GC Node while loop object destination interface
+    - Ad: GCA input interface as a destination in the GC Node graph
+    - As: GCA output interface as a source in the GC Node graph
+    - Bd: GCB input interface as a destination in the GC Node graph
+    - Bs: GCB output interface as a source in the GC Node graph
+    - Od: GC Node output destination interface
+    - Pd: GC Node output destination interface alternate route (conditional False,
+      zero iteration loop)
+    - Ud: GC Node destination interface for otherwise unconnected source endpoints
+      (JSON format only)
+
+Common Rules
+    - Endpoints can only be connected to endpoints of the same or a compatible type.
+    - Source endpoints may be connected to 0, 1 or multiple destination endpoints.
+    - Destination endpoints must have 1 and only 1 connection to it to be stable.
+    - Destination endpoints may only be unconnected (have no connections) in unstable graphs.
+    - Interfaces may have 0 to MAX_NUM_ENDPOINTS (inclusive) endpoints
+    - MAX_NUM_ENDPOINTS == 255
+    - Fd, Ld, Wd and Ls, if they exist, must have exactly 1 endpoint in the interface when stable.
+    - Pd must have the same interface, i.e. endpoint number, order and types as Od.
+    - Any Is endpoint may be a source to any destination endpoint with the exception of Wd
+    - Any source endpoint that is not connected to any other destination endpoint is connected
+      to the Ud interface in a JSON Connection Graph representation.
+    - An interface still exists even if it has zero endpoints.
+    - "x can only connect to y" does not restrict what can connect to y.
+    - "y can connect to x" does not imply that x can connect to y.
+    - An empty interface has zero endpoints and is not the same as a non-existent interface.
+    - Is and Od must exist (and so Pd must exist in graph types that have Pd)
+    - Either both of As and Ad exist or neither exist
+    - Either both of Bs and Bd exist or neither exist
+    - Interfaces on the same row cannot connect to each other (e.g. Bs cannot connect to Bd)
+    - References must be consistent, i.e. if a destination endpoint references a source endpoint,
+      the source endpoint must also reference the destination endpoint. This is still just a
+      single directed connection. (NB: This is to facilitate verification of integrity.)
+
+Additional to the Common Rules Conditional If-Then graphs have the following rules
+    - Must not have Ld, Wd, Bd, Bs or Ls interfaces
+    - Only Is can connect to Fd
+    - As can only connect to Od or Ud
+    - Only Is can connect to Pd
+
+Additional to the Common Rules Conditional If-Then-Else graphs have the following rules
+    - Must not have Ld, Wd or Ls interfaces
+    - Only Is can connect to Fd
+    - As can only connect to Od or Ud
+    - Bs can only connect to Pd or Ud
+
+Additional to the Common Rules Empty graphs have the following rules
+    - An empty graph only has Is and Od interfaces
+    - May have a Ud interface (in JSON format only)
+    - An empty graph has no connections (and is thus always unstable if Od has endpoints)
+
+Additional to the Common Rules For-Loop graphs have the following rules
+    - Must not have an Fd, Wd, Bs, or Bd interface
+    - Only Is can connect to Ld
+    - Ls can only connect to Ad
+    - Ld must be an iterable compatible endpoint type.
+    - Ls must be the object type returned by iterating Ld.
+    - As can only connect to Od or Ud
+    - Only Is can connect to Pd
+
+Additional to the Common Rules While-Loop graphs have the following rules
+    - Must not have an Fd, Bs or Bd interface
+    - Only Is can connect to Ld
+    - Ls can only connect to Ad
+    - Only As can connect to Wd
+    - Wd and Ls must be the same type as Ld
+    - Is and As can connect to Od or Ud
+    - Only Is can connect to Pd
+
+Additional to the Common Rules Standard graphs have the following rules
+    - Must not have an Fd, Ld, Wd, Ls or Pd interface
+    - Bs can only connect to Od or Ud
+
+Additional to the Common Rules Primitive connection graphs have the following rules
+    - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
+    - All sources must be connected to destinations
 """
 
 from __future__ import annotations
@@ -25,8 +162,8 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Connection Graphs.
 
     This class defines the essential interface that all Connection Graph
-    implementations must provide. It inherits from FreezableObject to support
-    immutability when frozen, Collection for standard container operations,
+    implementations must provide. It inherits Collection for standard container
+    operations, and CommonObjABC for validation methods.
     and CommonObjABC for validation methods.
 
     Connection Graphs represent the internal connectivity structure of genetic
@@ -125,6 +262,8 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
 
         Returns:
             The Interface object for the given key, or default if not found.
+        Raises:
+            KeyError: If the key is not a valid interface key.
         """
         raise NotImplementedError("CGraphABC.get must be overridden")
 

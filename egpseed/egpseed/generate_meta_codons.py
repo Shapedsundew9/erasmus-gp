@@ -30,7 +30,7 @@ CODON_TEMPLATE: dict[str, Any] = {
     "num_codes": 1,
     "num_codons": 1,
     "properties": {
-        # The META type allows connections between different end point types.
+        # The META type allows connections between different endpoint types.
         "gc_type": GCType.META,
         # NOTE: The graph type does not have to be primitive.
         "graph_type": CGraphType.PRIMITIVE,

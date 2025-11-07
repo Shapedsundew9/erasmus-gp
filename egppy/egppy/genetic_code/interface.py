@@ -134,10 +134,15 @@ class Interface(CommonObj, InterfaceABC):
         self._hash: int = 0
 
     def __eq__(self, value: object) -> bool:
-        """Check equality of Interface instances."""
+        """Check equality of Interface instances.
+        This implements deep equality checking between two Interface instances
+        which can be quite expensive for large interfaces.
+        """
         if not isinstance(value, InterfaceABC):
             return False
-        return hash(self) == hash(value)
+        if len(self) != len(value):
+            return False
+        return all(a == b for a, b in zip(self, value))
 
     def __hash__(self) -> int:
         """Return the hash of the interface."""

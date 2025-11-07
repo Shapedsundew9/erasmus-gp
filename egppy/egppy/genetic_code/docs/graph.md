@@ -305,7 +305,7 @@ NOTE: EPT's are an internal concept. The database storage (e.g. Gene Pool, Genom
 
 ### End Points
 
-End Points are parameters in a connection graph definition. They have a position, EGP type, row and 0, 1 or more references (connections to other end points) depending on their class: Source or destination. Destination end points must have 1 and only one reference (source that defines them) as they are input parameters to a GC function. Source endpoints may have 0 or more references as they are output parameters from a GC function. The function result may not be used or may be used in 1 or more places.
+End Points are parameters in a connection graph definition. They have a position, EGP type, row and 0, 1 or more references (connections to other endpoints) depending on their class: Source or destination. Destination endpoints must have 1 and only one reference (source that defines them) as they are input parameters to a GC function. Source endpoints may have 0 or more references as they are output parameters from a GC function. The function result may not be used or may be used in 1 or more places.
 
 ### Interfaces
 

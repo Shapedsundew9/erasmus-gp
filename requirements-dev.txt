@@ -3,3 +3,4 @@ isort
 pylint
 pyright
 snakeviz
+coverage

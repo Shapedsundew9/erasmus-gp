@@ -276,7 +276,7 @@ class GCNode(Iterable, Hashable):
         self.gcb_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         # Uniquely identify the node in the graph
         self.uid: str = f"uid{next(self._uid_counter):04x}"
-        # The code connection end points if this node is to be written
+        # The code connection endpoints if this node is to be written
         self.terminal_connections: list[CodeConnection] = []
         # Calculated number of lines in the *potential* function
         self.num_lines: int = self.function_info.line_count
