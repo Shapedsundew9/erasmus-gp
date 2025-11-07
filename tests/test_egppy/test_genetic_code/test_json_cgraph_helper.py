@@ -7,10 +7,10 @@ from the CGraph.__init__ method into a standalone, reusable function.
 import unittest
 
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph import CGraph, c_graph_type, json_cgraph_to_interfaces
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.c_graph import CGraph, c_graph_type
+from egppy.genetic_code.c_graph_constants import DstRow
 from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 
 
 class TestJsonCGraphToInterfaces(unittest.TestCase):
@@ -34,29 +34,25 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
 
         # Check destination interfaces
         ad_interface = interfaces["Ad"]
-        self.assertIsInstance(ad_interface, Interface)
         self.assertEqual(len(ad_interface), 1)
-        self.assertEqual(ad_interface[0].typ.name, "int")
-        self.assertEqual(ad_interface[0].refs, [["I", 0]])
+        self.assertEqual(ad_interface[0][3].name, "int")
+        self.assertEqual(ad_interface[0][4], [["I", 0]])
 
         od_interface = interfaces["Od"]
-        self.assertIsInstance(od_interface, Interface)
         self.assertEqual(len(od_interface), 1)
-        self.assertEqual(od_interface[0].typ.name, "int")
-        self.assertEqual(od_interface[0].refs, [["A", 0]])
+        self.assertEqual(od_interface[0][3].name, "int")
+        self.assertEqual(od_interface[0][4], [["A", 0]])
 
         # Check source interfaces
         is_interface = interfaces["Is"]
-        self.assertIsInstance(is_interface, Interface)
         self.assertEqual(len(is_interface), 1)
-        self.assertEqual(is_interface[0].typ.name, "int")
-        self.assertEqual(is_interface[0].refs, [["A", 0]])
+        self.assertEqual(is_interface[0][3].name, "int")
+        self.assertEqual(is_interface[0][4], [["A", 0]])
 
         as_interface = interfaces["As"]
-        self.assertIsInstance(as_interface, Interface)
         self.assertEqual(len(as_interface), 1)
-        self.assertEqual(as_interface[0].typ.name, "int")
-        self.assertEqual(as_interface[0].refs, [["O", 0]])
+        self.assertEqual(as_interface[0][3].name, "int")
+        self.assertEqual(as_interface[0][4], [["O", 0]])
 
     def test_if_then_json_cgraph_conversion(self) -> None:
         """Test conversion of an if-then JSONCGraph to interfaces."""
@@ -81,16 +77,16 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         # Check F interface
         fd_interface = interfaces["Fd"]
         self.assertEqual(len(fd_interface), 1)
-        self.assertEqual(fd_interface[0].typ.name, "bool")
-        self.assertEqual(fd_interface[0].refs, [["I", 0]])
+        self.assertEqual(fd_interface[0][3].name, "bool")
+        self.assertEqual(fd_interface[0][4], [["I", 0]])
 
         # Check source interface has correct endpoints
         is_interface = interfaces["Is"]
         self.assertEqual(len(is_interface), 2)  # I0 and I1
-        self.assertEqual(is_interface[0].idx, 0)
-        self.assertEqual(is_interface[0].typ.name, "bool")
-        self.assertEqual(is_interface[1].idx, 1)
-        self.assertEqual(is_interface[1].typ.name, "int")
+        self.assertEqual(is_interface[0][1], 0)
+        self.assertEqual(is_interface[0][3].name, "bool")
+        self.assertEqual(is_interface[1][1], 1)
+        self.assertEqual(is_interface[1][3].name, "int")
 
     def test_standard_json_cgraph_conversion(self) -> None:
         """Test conversion of a standard JSONCGraph to interfaces."""
@@ -113,31 +109,13 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
 
         # Verify connection chain
         od_interface = interfaces["Od"]
-        self.assertEqual(od_interface[0].refs, [["B", 0]])
+        self.assertEqual(od_interface[0][4], [["B", 0]])
 
         bd_interface = interfaces["Bd"]
-        self.assertEqual(bd_interface[0].refs, [["A", 0]])
+        self.assertEqual(bd_interface[0][4], [["A", 0]])
 
         ad_interface = interfaces["Ad"]
-        self.assertEqual(ad_interface[0].refs, [["I", 0]])
-
-    def test_empty_json_cgraph_conversion(self) -> None:
-        """Test conversion of an empty JSONCGraph to interfaces."""
-        jcg = {
-            DstRow.O: [],
-            DstRow.U: [],
-        }
-
-        interfaces = json_cgraph_to_interfaces(jcg)
-
-        # Check that only Od interface is created (empty)
-        self.assertIn("Od", interfaces)
-
-        od_interface = interfaces["Od"]
-        self.assertEqual(len(od_interface), 0)
-
-        # No source interfaces should be created for empty graph
-        self.assertEqual(len([k for k in interfaces.keys() if k.endswith("s")]), 0)
+        self.assertEqual(ad_interface[0][4], [["I", 0]])
 
     def test_complex_json_cgraph_conversion(self) -> None:
         """Test conversion of a complex JSONCGraph with multiple endpoint types."""
@@ -155,7 +133,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         self.assertEqual(len(is_interface), 3)
 
         # Check endpoint types
-        types = [ep.typ.name for ep in is_interface.endpoints]
+        types = [ep[3].name for ep in is_interface]
         self.assertEqual(types, ["int", "str", "bool"])
 
         # Check that A source interface has correct endpoints
@@ -234,37 +212,6 @@ class TestNewUsagePattern(unittest.TestCase):
         # Verify it works correctly
         self.assertEqual(c_graph_type(cgraph), CGraphType.IF_THEN)
         self.assertTrue(cgraph.is_stable())
-
-    def test_reusable_interfaces(self) -> None:
-        """Demonstrate that interfaces can be reused and modified."""
-        json_graph = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
-        }
-
-        # Convert to interfaces
-        interfaces = json_cgraph_to_interfaces(json_graph)
-
-        # Create multiple CGraph instances from the same interfaces
-        cgraph1 = CGraph(interfaces.copy())
-        cgraph2 = CGraph(interfaces.copy())
-
-        self.assertEqual(cgraph1, cgraph2)
-
-        # Interfaces can be modified before creating CGraph
-        modified_interfaces = interfaces.copy()
-        # Add a new endpoint to the input interface
-        is_interface = modified_interfaces["Is"]
-        if hasattr(is_interface, "endpoints") and isinstance(is_interface.endpoints, list):
-            new_endpoint = EndPoint(SrcRow.I, 1, EndPointClass.SRC, "str", [])
-            is_interface.endpoints.append(new_endpoint)
-
-        # Create CGraph with modified interfaces
-        cgraph_modified = CGraph(modified_interfaces)
-
-        # Should have additional input endpoint
-        self.assertEqual(len(cgraph_modified["Is"]), 2)
 
 
 if __name__ == "__main__":

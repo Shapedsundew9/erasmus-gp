@@ -118,8 +118,8 @@ class GGCMixin(EGCMixin):
         if not isinstance(self, GCABC):
             raise ValueError("GGC must be a GCABC object.")
 
-        # Freeze the cgraph if it is not already frozen.
-        self["cgraph"].freeze()
+        # TODO: Freeze the cgraph if it is not already frozen.
+        # self["cgraph"].freeze()
 
         self["code_depth"] = int_store[gcabc["code_depth"]]
         self["generation"] = int_store[gcabc["generation"]]

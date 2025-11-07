@@ -13,8 +13,9 @@ from egpcommon.common import NULL_SHA256
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type, types_def_store
+from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
+from egppy.genetic_code.types_def import types_def_store
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern

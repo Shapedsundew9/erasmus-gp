@@ -1,6 +1,7 @@
 """Common Erasmus GP Types."""
 
 from enum import IntEnum, StrEnum
+from itertools import chain
 
 
 class SrcRow(StrEnum):
@@ -102,3 +103,10 @@ EPC_MAP: dict[str, EndPointClass] = {"s": EndPointClass.SRC, "d": EndPointClass.
 ALL_ROWS_STR: str = "".join(ROWS)
 ROW_CLS_INDEXED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
 ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED)
+_UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED)
+_UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple("_" + row + EPClsPostfix.DST for row in DstRow)
+_UNDER_DST_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.DST for row in DstRow}
+_UNDER_SRC_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.SRC for row in SrcRow}
+_UNDER_KEY_DICT: dict[str | DstIfKey | SrcIfKey, str] = {
+    k: ("_" + k) for k in chain(DstIfKey, SrcIfKey)
+}

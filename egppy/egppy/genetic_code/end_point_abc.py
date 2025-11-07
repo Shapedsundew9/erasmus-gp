@@ -14,12 +14,14 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egpcommon.freezable_object import FreezableObject
 from egppy.genetic_code.c_graph_constants import EndPointClass, Row
 from egppy.genetic_code.types_def import TypesDef
 
+# Endpoint Member Types
+EndpointMemberType = tuple[Row, int, EndPointClass, TypesDef, list[list[str | int]]]
 
-class EndPointABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
+
+class EndPointABC(CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for EndPoint.
 
     This class defines the essential interface that all EndPoint
@@ -39,30 +41,8 @@ class EndPointABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
     row: Row
     idx: int
     cls: EndPointClass
-
-    # Abstract Properties
-    # Note: Properties in ABCs are defined as abstract methods.
-    # Concrete implementations should use @property decorators.
-
-    @property
-    @abstractmethod
-    def refs(self) -> list[list[str | int]] | tuple[tuple[str, int], ...]:
-        """Return the references of the endpoint.
-
-        Returns:
-            List or tuple of references, each containing [row, index] pairs.
-        """
-        raise NotImplementedError("EndPointABC.refs property must be overridden")
-
-    @property
-    @abstractmethod
-    def typ(self) -> TypesDef:
-        """Return the type of the endpoint.
-
-        Returns:
-            The TypesDef object representing this endpoint's type.
-        """
-        raise NotImplementedError("EndPointABC.typ property must be overridden")
+    typ: TypesDef
+    refs: list[list[str | int]]
 
     # Abstract Comparison Methods
 
@@ -207,21 +187,6 @@ class EndPointABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
             True if the endpoint has at least one reference, False otherwise.
         """
         raise NotImplementedError("EndPointABC.is_connected must be overridden")
-
-    # Abstract Copy Method
-
-    @abstractmethod
-    def copy(self, clean: bool = False) -> EndPointABC:
-        """Return a copy of the endpoint.
-
-        Args:
-            clean: If True, return a copy with no references.
-                   If False, return a copy with the same references.
-
-        Returns:
-            A new unfrozen EndPoint instance.
-        """
-        raise NotImplementedError("EndPointABC.copy must be overridden")
 
     # Abstract Data Export Methods
 

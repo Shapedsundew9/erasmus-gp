@@ -12,4 +12,7 @@ uuid_store = ObjectDeduplicator("UUID", 2**12, 0.649)
 properties_store = ObjectDeduplicator("Properties", 2**12)
 
 # 4096 integers
-int_store = IntDeduplicator("Integer")
+int_store = IntDeduplicator("Integer", 2**12)
+
+# 1024 strings
+string_store = ObjectDeduplicator("String", 2**10)

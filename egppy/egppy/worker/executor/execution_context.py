@@ -15,7 +15,7 @@ from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
-from egppy.genetic_code.interface import NULL_INTERFACE, Interface, unpack_src_ref
+from egppy.genetic_code.interface import Interface, unpack_src_ref
 from egppy.worker.executor.code_connection import (
     CodeConnection,
     CodeEndPoint,
@@ -167,7 +167,7 @@ class ExecutionContext:
                         assert node.gca is not NULL_GC, "Should never introspect a codon graph."
                         src.node = node.gca_node
                         src.terminal = node.gca_node.terminal
-                        iface: Interface = src.node.gc["cgraph"]["Od"]
+                        iface: Interface | None = src.node.gc["cgraph"]["Od"]
                     case SrcRow.B:
                         assert node.gcb is not NULL_GC, "GCB cannot be NULL"
                         src.node = node.gcb_node
@@ -181,6 +181,7 @@ class ExecutionContext:
                             # When moving into the parent the src context needs
                             # to change to that of src within the parent.
                             iface = parent.gc["cgraph"][node.iam + "d"]
+                            assert iface is not None, "Interface cannot be None."
                             src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                             if src.row == SrcRow.I:
                                 src.node = parent
@@ -202,13 +203,14 @@ class ExecutionContext:
                                 node = parent
                                 src.terminal = src.node.terminal
                         else:
-                            iface = NULL_INTERFACE
+                            iface = None
                             src.terminal = True
                     case _:
                         raise ValueError(f"Invalid source row: {src.row}")
                 # In all none terminal cases the new source row and index populated from the
                 # c_graph connection.
                 if not src.terminal:
+                    assert iface is not None, "Interface cannot be None."
                     src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                 elif src.node.is_meta and not self.wmc:
                     # Meta-codons are not being written so a bypass has to be engineered.

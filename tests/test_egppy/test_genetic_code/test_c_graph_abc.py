@@ -12,6 +12,8 @@ from abc import ABCMeta
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_constants import DstRow
+from egppy.genetic_code.interface import Interface
 
 
 class IncompleteImplementation(CGraphABC):
@@ -38,12 +40,9 @@ class TestCGraphABC(unittest.TestCase):
     def test_cgraph_implements_abc(self) -> None:
         """Test that CGraph properly implements the abstract base class."""
         # Create a simple empty graph with required interface
-        from egppy.genetic_code.c_graph_constants import DstRow
-        from egppy.genetic_code.interface import Interface
-
         graph = CGraph(
             {
-                "Od": Interface([], row=DstRow.O),  # Empty output interface
+                "Od": [],  # Empty output interface
             }
         )
         self.assertIsInstance(graph, CGraphABC)
@@ -60,17 +59,22 @@ class TestCGraphABC(unittest.TestCase):
             "__setitem__",
             "__delitem__",
             "is_stable",
+            "get",
             "graph_type",
             "to_json",
             "connect_all",
             "stabilize",
-            "copy",
             "__eq__",
             "__hash__",
             "__repr__",
+            "consistency",
+            "verify",
+            "keys",
+            "values",
+            "items",
         }
 
-        self.assertEqual(abstract_methods, expected_methods)
+        self.assertEqual(sorted(abstract_methods), sorted(expected_methods))
 
     def test_cgraph_inherits_from_abc(self) -> None:
         """Test that CGraph properly inherits from CGraphABC."""
@@ -82,12 +86,10 @@ class TestCGraphABC(unittest.TestCase):
 
     def test_concrete_implementation_methods_exist(self) -> None:
         """Test that CGraph implements all required abstract methods."""
-        from egppy.genetic_code.c_graph_constants import DstRow
-        from egppy.genetic_code.interface import Interface
 
         graph = CGraph(
             {
-                "Od": Interface([], row=DstRow.O),  # Empty output interface
+                "Od": [],  # Empty output interface
             }
         )
 
@@ -104,7 +106,6 @@ class TestCGraphABC(unittest.TestCase):
             "to_json",
             "connect_all",
             "stabilize",
-            "copy",
             "__eq__",
             "__hash__",
             "__repr__",
@@ -122,13 +123,10 @@ class TestCGraphABC(unittest.TestCase):
     def test_abc_method_signatures(self) -> None:
         """Test that the abstract methods have correct signatures."""
         # Create a minimal valid graph with required interfaces
-        from egppy.genetic_code.c_graph_constants import DstRow
-        from egppy.genetic_code.interface import Interface
-
         # Create a simple empty graph
         graph = CGraph(
             {
-                "Od": Interface([], row=DstRow.O),  # Empty output interface
+                "Od": [],  # Empty output interface
             }
         )
 
@@ -136,7 +134,6 @@ class TestCGraphABC(unittest.TestCase):
         self.assertIsInstance(graph.is_stable(), bool)
         self.assertIsInstance(graph.graph_type(), CGraphType)
         self.assertIsInstance(graph.to_json(), dict)
-        self.assertIsInstance(graph.copy(), CGraphABC)
         self.assertIsInstance(len(graph), int)
         self.assertIsInstance(repr(graph), str)
 

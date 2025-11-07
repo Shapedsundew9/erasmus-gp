@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_deduplicator import ObjectDeduplicator
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
-    ROW_SET,
     SINGLE_ONLY_ROWS,
     SOURCE_ROW_SET,
-    DstRow,
     EndPointClass,
     Row,
-    SrcRow,
 )
 from egppy.genetic_code.end_point_abc import EndPointABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
@@ -26,7 +24,7 @@ ref_store = ObjectDeduplicator("Endpoint reference store", 2**12)
 ref_tuple_store = ObjectDeduplicator("Endpoint reference tuple store", 2**12)
 
 
-class EndPoint(EndPointABC):
+class EndPoint(CommonObj, EndPointABC):
     """Endpoint class using builtin collections.
 
     This concrete implementation of EndPointABC uses builtin collections for
@@ -34,128 +32,66 @@ class EndPoint(EndPointABC):
     and immutable (frozen) states with object deduplication for memory efficiency.
     """
 
-    __slots__ = ("row", "idx", "cls", "_typ", "_refs", "_hash")
+    __slots__ = ("row", "idx", "cls", "typ", "refs")
 
-    def __init__(
-        self,
-        row: Row,
-        idx: int,
-        cls: EndPointClass,
-        typ: TypesDef | int | str,
-        refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...] | None = None,
-        frozen: bool = False,
-    ) -> None:
+    def __init__(self, *args) -> None:
         """Initialize the endpoint."""
-        super().__init__(False)
-        self.row = row
-        self.idx = idx
-        self.cls = cls
-        self.typ = typ
-        self.refs = refs if refs is not None else []
-
-        # Persistent hash will be defined when frozen. Dynamic until then.
-        self._hash: int = 0
-        if frozen:
-            self.freeze()
-
-    @property
-    def refs(self) -> list[list[str | int]] | tuple[tuple[str, int], ...]:
-        """Return the references of the endpoint."""
-        return self._refs
-
-    @refs.setter
-    def refs(self, refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...]) -> None:
-        """Validate and set the references. This will always return a list of lists."""
-        if self._frozen:
-            raise RuntimeError("Cannot set references on a frozen EndPoint")
-        assert isinstance(refs, (list, tuple)), f"Invalid references: {refs}"
-        self._refs = []
-        for ref in refs:
-            if isinstance(ref, str):
-                if _logger.isEnabledFor(level=DEBUG):
-                    if not len(ref) == 4:
-                        raise ValueError(f"Invalid reference string length: {len(ref)} != 4")
-                    if not ref[0] in ROW_SET:
-                        raise ValueError(f"Invalid reference row: {ref[0]}")
-                    if not 0 <= int(ref[1:]) < 256:
-                        raise ValueError(f"Invalid reference index: {ref[1:]}")
-                    if ref[0] in SINGLE_ONLY_ROWS and int(ref[1:]) != 0:
-                        raise ValueError(f"Row {ref[0]} can only have single connections.")
-                r: str = ref[0]
-                i = int(ref[1:])
-            elif isinstance(ref, (list, tuple)):
-                if _logger.isEnabledFor(level=DEBUG):
-                    if not len(ref) == 2:
-                        raise ValueError(f"Invalid reference sequence length: {len(ref)} != 2")
-                    if not ref[0] in ROW_SET:
-                        raise ValueError(f"Invalid reference row: {ref[0]}")
-                    if not (isinstance(ref[1], int) and 0 <= ref[1] < 256):
-                        raise ValueError(f"Invalid reference index: {ref[1]}")
-                    if ref[0] in SINGLE_ONLY_ROWS and ref[1] != 0:
-                        raise ValueError(f"Row {ref[0]} can only have single connections.")
-                assert isinstance(ref[0], str), f"Invalid reference row type: {type(ref[0])}"
-                assert isinstance(ref[1], int), f"Invalid reference index type: {type(ref[1])}"
-                r: str = ref[0]
-                i: int = ref[1]
+        super().__init__()
+        if len(args) == 1:
+            if isinstance(args[0], EndPointABC):
+                other: EndPointABC = args[0]
+                self.row = other.row
+                self.idx = other.idx
+                self.cls = other.cls
+                self.typ = other.typ
+                self.refs = [list(ref) for ref in other.refs]
+            elif isinstance(args[0], tuple) and len(args[0]) == 5:
+                self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
+                self.refs = [] if refs_arg is None else [list(ref) for ref in refs_arg]
             else:
-                raise TypeError(f"Invalid reference type: {type(ref)}")
-            self._refs.append([r, i])
-
-    @property
-    def typ(self) -> TypesDef:
-        """Return the type of the endpoint."""
-        return self._typ
-
-    @typ.setter
-    def typ(self, typ: TypesDef | int | str) -> None:
-        """Validate and set the type."""
-        if self._frozen:
-            raise RuntimeError("Cannot set type on a frozen EndPoint")
-        assert isinstance(typ, (TypesDef, int, str)), f"Invalid type: {typ}"
-        self._typ: TypesDef = types_def_store[typ] if isinstance(typ, (int, str)) else typ
+                raise TypeError("Invalid argument for EndPoint constructor")
+        elif len(args) == 4 or len(args) == 5:
+            self.row: Row = args[0]
+            self.idx: int = args[1]
+            self.cls: EndPointClass = args[2]
+            self.typ = args[3] if isinstance(args[3], TypesDef) else types_def_store[args[3]]
+            refs_arg = args[4] if len(args) == 5 and args[4] is not None else []
+            self.refs = [list(ref) for ref in refs_arg]
+        else:
+            raise TypeError("Invalid arguments for EndPoint constructor")
 
     def __eq__(self, value: object) -> bool:
         """Check equality of EndPoint instances."""
-        if not isinstance(value, EndPoint):
+        if not isinstance(value, EndPointABC):
             return False
-        return (
-            self.row == value.row
-            and self.idx == value.idx
-            and self.cls == value.cls
-            and self.typ == value.typ
-            and self.refs == value.refs
-        )
+        return hash(self) == hash(value)
 
     def __ge__(self, other: object) -> bool:
         """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
-        if not isinstance(other, EndPoint):
+        if not isinstance(other, EndPointABC):
             return NotImplemented
         return self.idx >= other.idx
 
     def __gt__(self, other: object) -> bool:
         """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
-        if not isinstance(other, EndPoint):
+        if not isinstance(other, EndPointABC):
             return NotImplemented
         return self.idx > other.idx
 
     def __hash__(self) -> int:
         """Return the hash of the endpoint."""
-        if self.is_frozen():
-            # Hash is defined in self.freeze() to ensure immutability
-            return self._hash
-        # Else it is dynamically defined.
         tuple_refs = tuple(tuple(ref) for ref in self.refs)
         return hash((self.row, self.idx, self.cls, self.typ, tuple_refs))
 
     def __le__(self, other: object) -> bool:
         """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
-        if not isinstance(other, EndPoint):
+        if not isinstance(other, EndPointABC):
             return NotImplemented
         return self.idx <= other.idx
 
     def __lt__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting. Endpoints are compared on thier idx"""
-        if not isinstance(other, EndPoint):
+        """Compare EndPoint instances for sorting. Endpoints are compared on their idx."""
+        if not isinstance(other, EndPointABC):
             return NotImplemented
         return self.idx < other.idx
 
@@ -172,86 +108,10 @@ class EndPoint(EndPointABC):
 
     def connect(self, other: EndPointABC) -> None:
         """Connect this endpoint to another endpoint."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self._frozen:
-                raise RuntimeError("Cannot modify a frozen EndPoint")
-            if not isinstance(other, EndPoint):
-                raise TypeError(f"Expected EndPoint, got {type(other)}")
-            if other.is_frozen():
-                raise RuntimeError("Cannot connect to a frozen EndPoint")
-            if self.cls == EndPointClass.DST and len(self.refs) > 1:
-                raise ValueError("Destination endpoints can only have one reference.")
         if self.cls == EndPointClass.DST:
             self.refs = [[other.row, other.idx]]
         else:
-            assert isinstance(self.refs, list), "References must be a list for source endpoints."
             self.refs.append([other.row, other.idx])
-
-    def copy(self, clean: bool = False) -> EndPoint:
-        """Return a copy of the endpoint with no references."""
-        return EndPoint(
-            self.row,
-            self.idx,
-            self.cls,
-            self.typ,
-            refs=[] if clean else [list(ref) for ref in self.refs],
-        )
-
-    def freeze(self, store: bool = True) -> EndPoint:
-        """Freeze the endpoint, making it immutable."""
-        if not self.is_frozen():
-            # Need to make references immutable
-            object.__setattr__(
-                self, "_refs", ref_tuple_store[tuple(ref_store[tuple(ref)] for ref in self.refs)]
-            )
-            retval = super().freeze(store)
-            # Need to jump through hoops to set the persistent hash
-            object.__setattr__(
-                self, "_hash", hash((self.row, self.idx, self.cls, self.typ, self.refs))
-            )
-
-            # Some sanity checks
-            if _logger.isEnabledFor(level=VERIFY):
-                if not (
-                    (self.row in DESTINATION_ROW_SET and self.cls == EndPointClass.DST)
-                    or (self.row in SOURCE_ROW_SET and self.cls == EndPointClass.SRC)
-                ):
-                    raise ValueError("Endpoint row is not consistent with the endpoint class.")
-                if not (isinstance(self.idx, int) and 0 <= self.idx < 256):
-                    raise ValueError("Endpoint index must be an integer between 0 and 255.")
-                if not isinstance(self.typ, TypesDef):
-                    raise TypeError("Endpoint type must be a TypesDef instance.")
-                if not (
-                    (len(self.refs) == 1 and self.cls == EndPointClass.DST)
-                    or self.cls == EndPointClass.SRC
-                ):
-                    raise ValueError(
-                        "Endpoint must have exactly one reference if it is a destination."
-                    )
-                if not (
-                    (
-                        all(ref[0] in SOURCE_ROW_SET for ref in self.refs)
-                        and self.cls == EndPointClass.DST
-                    )
-                    or self.cls == EndPointClass.SRC
-                ):
-                    raise ValueError(
-                        "All destination endpoint references must be a valid source row."
-                    )
-                if not (
-                    (
-                        all(ref[0] in DESTINATION_ROW_SET for ref in self.refs)
-                        and self.cls == EndPointClass.SRC
-                    )
-                    or self.cls == EndPointClass.DST
-                ):
-                    raise ValueError(
-                        "All source endpoint references must be a valid destination row."
-                    )
-                if not all(0 <= ref[1] < 256 for ref in self.refs if isinstance(ref[1], int)):
-                    raise ValueError("All reference indices must be between 0 and 255.")
-            return retval
-        return self
 
     def is_connected(self) -> bool:
         """Check if the endpoint is connected."""
@@ -278,44 +138,43 @@ class EndPoint(EndPointABC):
 
     def verify(self) -> None:
         """Verify the integrity of the endpoint."""
-        if self.idx < 0 or self.idx > 255:
-            raise ValueError("Endpoint index must be between 0 and 255.")
-        if self.row in SINGLE_ONLY_ROWS and self.idx != 0:
-            raise ValueError(f"Row {self.row} can only have a single endpoint with index 0.")
-        if self.row not in DESTINATION_ROW_SET and self.cls == EndPointClass.DST:
-            raise ValueError("Destination endpoint row must be a destination row.")
-        if self.row not in SOURCE_ROW_SET and self.cls == EndPointClass.SRC:
-            raise ValueError("Source endpoint row must be a source row.")
-        if self.row in SINGLE_ONLY_ROWS and len(self.refs) > 1:
-            raise ValueError(f"Row {self.row} can only have a single reference.")
+        self.value_error(0 <= self.idx < 256, "Endpoint index must be between 0 and 255.")
+        self.value_error(
+            (self.row in DESTINATION_ROW_SET and self.cls == EndPointClass.DST)
+            or (self.cls == EndPointClass.SRC),
+            "Destination endpoint row must be a destination row.",
+        )
+        self.value_error(
+            (self.row in SOURCE_ROW_SET and self.cls == EndPointClass.SRC)
+            or (self.cls == EndPointClass.DST),
+            "Source endpoint row must be a source row.",
+        )
+        self.value_error(
+            (self.row in SINGLE_ONLY_ROWS and self.idx == 0) or (self.row not in SINGLE_ONLY_ROWS),
+            f"Row {self.row} can only have a single reference.",
+        )
+        self.value_error(
+            (self.cls == EndPointClass.DST and len(self.refs) <= 1)
+            or (self.cls == EndPointClass.SRC),
+            "Destination endpoints cannot have more than one reference.",
+        )
 
 
-# Re-use the EndPoint object deduplicator for both SrcEndPoint and DstEndPoint
-class SrcEndPoint(EndPoint, name="Endpoint"):
-    """Source EndPoint class."""
+class SrcEndPoint(EndPoint):
+    """Source Endpoint class."""
 
-    def __init__(
-        self,
-        row: SrcRow,
-        idx: int,
-        typ: TypesDef | int | str,
-        refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...] | None = None,
-        frozen: bool = False,
-    ) -> None:
+    def __init__(self, *args) -> None:
         """Initialize the source endpoint."""
-        super().__init__(row, idx, EndPointClass.SRC, typ, refs, frozen)
+        super().__init__(
+            args[0], args[1], EndPointClass.SRC, args[2], args[3] if len(args) == 4 else None
+        )
 
 
-class DstEndPoint(EndPoint, name="Endpoint"):
-    """Destination EndPoint class."""
+class DstEndPoint(EndPoint):
+    """Destination Endpoint class."""
 
-    def __init__(
-        self,
-        row: DstRow,
-        idx: int,
-        typ: TypesDef | int | str,
-        refs: list[str] | list[list[str | int]] | tuple[tuple[str, int], ...] | None = None,
-        frozen: bool = False,
-    ) -> None:
+    def __init__(self, *args) -> None:
         """Initialize the destination endpoint."""
-        super().__init__(row, idx, EndPointClass.DST, typ, refs, frozen)
+        super().__init__(
+            args[0], args[1], EndPointClass.DST, args[2], args[3] if len(args) == 4 else None
+        )

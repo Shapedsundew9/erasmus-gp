@@ -75,12 +75,19 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
     """
 
     __slots__ = ("_frozen", "__weakref__")
+    object_store: ObjectDeduplicator | None = None
 
     @classmethod
-    def __init_subclass__(cls, name: str | None = None, size: int = 2**12, **kwargs):
+    def __init_subclass__(cls, name: str | None = None, size: int = 0, **kwargs):
         """
         This hook is called when a class inherits from FreezableObject.
         'cls' is the new subclass being created.
+
+        Args:
+            name (str | None): Optional name for the ObjectDeduplicator store
+                               (else uses class name).
+            size (int): Optional size for the ObjectDeduplicator store. If 0, no store is created.
+            **kwargs: Additional keyword arguments passed to the superclass
         """
         # Call the parent's __init_subclass__ to be cooperative
         super().__init_subclass__(**kwargs)
@@ -95,7 +102,10 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # Create the ObjectDeduplicator instance, labeled with the new class's name
         # Attach the store as a CLASS ATTRIBUTE to the new subclass
         name = name if name is not None else cls.__name__
-        cls.object_store = ObjectDeduplicator(name=name, size=size)
+        if size > 0:
+            cls.object_store = ObjectDeduplicator(name=name, size=size)
+        else:
+            cls.object_store = None
 
     def __init__(self, frozen: bool = False) -> None:
         """
@@ -187,8 +197,8 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
                     all_slots.update(slots_attr)
 
         # Exclude internal slots of the FreezableObject base class itself.
-        all_slots.discard("_frozen")
-        all_slots.discard("__weakref__")
+        # Remove internal FreezableObject slots in one efficient operation
+        all_slots.difference_update(("_frozen", "__weakref__"))
         return all_slots
 
     @staticmethod
@@ -303,7 +313,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         retval = self._freeze(store)
         if _logger.isEnabledFor(DEBUG) and not was_already_frozen:
             retval.verify()  # Verify the object after freezing to ensure consistency.
-        return self.object_store[retval] if store else retval
+        return self.object_store[retval] if store and self.object_store is not None else retval
 
     def _freeze(
         self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None

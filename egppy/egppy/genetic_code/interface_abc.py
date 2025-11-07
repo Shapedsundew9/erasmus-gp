@@ -15,12 +15,11 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterator
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egpcommon.freezable_object import FreezableObject
 from egppy.genetic_code.c_graph_constants import EndPointClass
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.end_point_abc import EndPointABC
 
 
-class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
+class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Interface.
 
     This class defines the essential interface that all Interface
@@ -36,7 +35,7 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
     # Abstract Container Protocol Methods
 
     @abstractmethod
-    def __getitem__(self, idx: int) -> EndPoint:
+    def __getitem__(self, idx: int) -> EndPointABC:
         """Get an endpoint by index.
 
         Args:
@@ -51,7 +50,7 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.__getitem__ must be overridden")
 
     @abstractmethod
-    def __iter__(self) -> Iterator[EndPoint]:
+    def __iter__(self) -> Iterator[EndPointABC]:
         """Return an iterator over the endpoints.
 
         Returns:
@@ -69,7 +68,7 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.__len__ must be overridden")
 
     @abstractmethod
-    def __setitem__(self, idx: int, value: EndPoint) -> None:
+    def __setitem__(self, idx: int, value: EndPointABC) -> None:
         """Set an endpoint at a specific index.
 
         Args:
@@ -139,7 +138,7 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
     # Abstract Modification Methods
 
     @abstractmethod
-    def append(self, value: EndPoint) -> None:
+    def append(self, value: EndPointABC) -> None:
         """Append an endpoint to the interface.
 
         Args:
@@ -153,7 +152,7 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.append must be overridden")
 
     @abstractmethod
-    def extend(self, values: list[EndPoint] | tuple[EndPoint, ...]) -> None:
+    def extend(self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC) -> None:
         """Extend the interface with multiple endpoints.
 
         Args:
@@ -177,15 +176,6 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
             The EndPointClass (SRC or DST) of this interface.
         """
         raise NotImplementedError("InterfaceABC.cls must be overridden")
-
-    @abstractmethod
-    def copy(self) -> InterfaceABC:
-        """Return a modifiable shallow copy of the interface.
-
-        Returns:
-            A new unfrozen interface with the same endpoints.
-        """
-        raise NotImplementedError("InterfaceABC.copy must be overridden")
 
     # Abstract Data Export Methods
 
@@ -229,7 +219,7 @@ class InterfaceABC(FreezableObject, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.ordered_td_uids must be overridden")
 
     @abstractmethod
-    def unconnected_eps(self) -> list[EndPoint]:
+    def unconnected_eps(self) -> list[EndPointABC]:
         """Return a list of unconnected endpoints.
 
         Returns:

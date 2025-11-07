@@ -14,10 +14,12 @@ from egpcommon.deduplication import properties_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType, json_cgraph_to_interfaces
+from egppy.genetic_code.c_graph import CGraph, CGraphType
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import JSONCGraph
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
 from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
@@ -44,8 +46,8 @@ class EGCMixin(GCMixin):
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
         cgraph: CGraph | dict[str, Interface] | JSONCGraph = gcabc["cgraph"]
-        if isinstance(cgraph, CGraph):
-            self["cgraph"] = cgraph.copy()
+        if isinstance(cgraph, CGraphABC):
+            self["cgraph"] = cgraph
         else:
             # json_cgraph_to_interfaces may return a type not statically recognized
             # as valid input for CGraph,

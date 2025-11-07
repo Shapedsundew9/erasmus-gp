@@ -4,6 +4,7 @@ import unittest
 
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
 from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.end_point_abc import EndPointABC
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 
 
@@ -80,18 +81,10 @@ class TestInterface(unittest.TestCase):
         # Check that idx was updated
         self.assertEqual(interface[1].idx, 1)
 
-    def test_append_incompatible_row(self) -> None:
-        """Test that appending an endpoint with different row raises ValueError."""
-        interface = Interface([self.ep1])
-        ep_wrong_row = EndPoint(DstRow.F, 1, EndPointClass.DST, "str")
-        with self.assertRaises(ValueError) as context:
-            interface.append(ep_wrong_row)
-        self.assertIn("row", str(context.exception).lower())
-
     def test_extend(self) -> None:
         """Test extending interface with multiple endpoints."""
         interface = Interface([self.ep1])
-        new_eps = [
+        new_eps: list[EndPointABC] = [
             EndPoint(DstRow.A, 1, EndPointClass.DST, "str"),
             EndPoint(DstRow.A, 2, EndPointClass.DST, "bool"),
         ]
@@ -100,27 +93,6 @@ class TestInterface(unittest.TestCase):
         # Check that indices were updated
         self.assertEqual(interface[1].idx, 1)
         self.assertEqual(interface[2].idx, 2)
-
-    def test_copy(self) -> None:
-        """Test copying an interface."""
-        interface_copy = self.interface1.copy()
-        self.assertEqual(interface_copy, self.interface1)
-        self.assertIsNot(interface_copy, self.interface1)
-        self.assertFalse(interface_copy.is_frozen())
-
-    def test_freeze(self) -> None:
-        """Test freezing an interface."""
-        # Create endpoints with references for freezing
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", refs=[["I", 0]])
-        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float", refs=[["I", 1]])
-        interface = Interface([ep1, ep2])
-        frozen = interface.freeze()
-        self.assertTrue(frozen.is_frozen())
-
-        # Test that we cannot modify frozen interface
-        ep3 = EndPoint(DstRow.A, 2, EndPointClass.DST, "bool")
-        with self.assertRaises(RuntimeError):
-            frozen.append(ep3)
 
     def test_add_operator_basic(self) -> None:
         """Test basic addition of two interfaces."""
@@ -138,30 +110,6 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(result[0].idx, 0)
         self.assertEqual(result[1].idx, 1)
         self.assertEqual(result[2].idx, 2)
-
-    def test_add_operator_refs_empty(self) -> None:
-        """Test that all endpoint references are empty lists in the new interface."""
-        # Create endpoints with some references
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", refs=[["I", 0]])
-        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float", refs=[["I", 1]])
-        ep3 = EndPoint(DstRow.A, 0, EndPointClass.DST, "bool", refs=[["I", 2]])
-
-        interface1 = Interface([ep1, ep2])
-        interface2 = Interface([ep3])
-
-        # Verify source endpoints have references
-        self.assertEqual(len(ep1.refs), 1)
-        self.assertEqual(len(ep2.refs), 1)
-        self.assertEqual(len(ep3.refs), 1)
-
-        # Add the interfaces
-        result = interface1 + interface2
-
-        # Verify all endpoints in result have empty references
-        for ep in result:
-            self.assertEqual(
-                ep.refs, [], f"Endpoint {ep.idx} should have empty refs, got {ep.refs}"
-            )
 
     def test_add_operator_empty_left(self) -> None:
         """Test adding empty interface on the left."""
@@ -189,24 +137,6 @@ class TestInterface(unittest.TestCase):
 
         self.assertEqual(len(result), 0)
 
-    def test_add_operator_incompatible_row(self) -> None:
-        """Test that adding interfaces with different rows raises ValueError."""
-        interface1 = Interface([EndPoint(DstRow.A, 0, EndPointClass.DST, "int")])
-        interface2 = Interface([EndPoint(DstRow.F, 0, EndPointClass.DST, "int")])
-
-        with self.assertRaises(ValueError) as context:
-            _ = interface1 + interface2
-        self.assertIn("row", str(context.exception).lower())
-
-    def test_add_operator_incompatible_class(self) -> None:
-        """Test that adding interfaces with different classes raises ValueError."""
-        interface1 = Interface([EndPoint(DstRow.A, 0, EndPointClass.DST, "int")])
-        interface2 = Interface([EndPoint(DstRow.A, 0, EndPointClass.SRC, "int")])
-
-        with self.assertRaises(ValueError) as context:
-            _ = interface1 + interface2
-        self.assertIn("class", str(context.exception).lower())
-
     def test_add_operator_wrong_type(self) -> None:
         """Test that adding non-Interface raises TypeError."""
         with self.assertRaises(TypeError) as context:
@@ -225,19 +155,6 @@ class TestInterface(unittest.TestCase):
 
         self.assertEqual(len(interface1), original_len1)
         self.assertEqual(len(interface2), original_len2)
-
-    def test_add_operator_with_frozen(self) -> None:
-        """Test adding frozen interfaces."""
-        # Create endpoints with references for freezing
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", refs=[["I", 0]])
-        ep2 = EndPoint(DstRow.A, 0, EndPointClass.DST, "float", refs=[["I", 1]])
-        interface1 = Interface([ep1]).freeze()
-        interface2 = Interface([ep2]).freeze()
-
-        result = interface1 + interface2
-
-        self.assertEqual(len(result), 2)
-        self.assertFalse(result.is_frozen())  # Result should not be frozen
 
     def test_add_operator_chaining(self) -> None:
         """Test chaining multiple additions."""

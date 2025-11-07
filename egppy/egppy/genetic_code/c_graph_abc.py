@@ -16,13 +16,12 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Collection, Iterator
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import JSONCGraph
 from egppy.genetic_code.interface_abc import InterfaceABC
 
 
-class CGraphABC(FreezableObject, Collection, CommonObjABC, metaclass=ABCMeta):
+class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Connection Graphs.
 
     This class defines the essential interface that all Connection Graph
@@ -117,6 +116,46 @@ class CGraphABC(FreezableObject, Collection, CommonObjABC, metaclass=ABCMeta):
     # Abstract Graph State Methods
 
     @abstractmethod
+    def get(self, key: str, default: InterfaceABC | None = None) -> InterfaceABC | None:
+        """Get the interface with the given key, or return default if not found.
+
+        Args:
+            key: Interface identifier.
+            default: Value to return if key is not found.
+
+        Returns:
+            The Interface object for the given key, or default if not found.
+        """
+        raise NotImplementedError("CGraphABC.get must be overridden")
+
+    @abstractmethod
+    def keys(self) -> Iterator[str]:
+        """Return an iterator over the interface keys in the Connection Graph.
+
+        Returns:
+            Iterator over non-null interface keys.
+        """
+        raise NotImplementedError("CGraphABC.keys must be overridden")
+
+    @abstractmethod
+    def values(self) -> Iterator[InterfaceABC]:
+        """Return an iterator over the interfaces in the Connection Graph.
+
+        Returns:
+            Iterator over non-null interfaces.
+        """
+        raise NotImplementedError("CGraphABC.values must be overridden")
+
+    @abstractmethod
+    def items(self) -> Iterator[tuple[str, InterfaceABC]]:
+        """Return an iterator over the (key, interface) pairs in the Connection Graph.
+
+        Returns:
+            Iterator over (key, interface) pairs.
+        """
+        raise NotImplementedError("CGraphABC.items must be overridden")
+
+    @abstractmethod
     def is_stable(self) -> bool:
         """Return True if the Connection Graph is stable.
 
@@ -179,17 +218,6 @@ class CGraphABC(FreezableObject, Collection, CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("CGraphABC.stabilize must be overridden")
 
-    # Abstract Copy Method
-
-    @abstractmethod
-    def copy(self) -> CGraphABC:
-        """Return a modifiable shallow copy of the Connection Graph.
-
-        Returns:
-            A new unfrozen instance with the same interface configuration.
-        """
-        raise NotImplementedError("CGraphABC.copy must be overridden")
-
     # Abstract Equality and Hashing
 
     @abstractmethod
@@ -210,6 +238,7 @@ class CGraphABC(FreezableObject, Collection, CommonObjABC, metaclass=ABCMeta):
 
         For frozen graphs, should use a persistent hash.
         For unfrozen graphs, should calculate dynamically.
+        Both must be equal for the same graph state.
 
         Returns:
             Hash value for the graph.

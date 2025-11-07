@@ -45,7 +45,6 @@ class TestInterfaceABC(TestCase):
         self.assertTrue(hasattr(interface, "append"))
         self.assertTrue(hasattr(interface, "extend"))
         self.assertTrue(hasattr(interface, "cls"))
-        self.assertTrue(hasattr(interface, "copy"))
         self.assertTrue(hasattr(interface, "to_json"))
         self.assertTrue(hasattr(interface, "to_td_uids"))
         self.assertTrue(hasattr(interface, "types"))
@@ -86,10 +85,6 @@ class TestInterfaceABC(TestCase):
         result = interface + other
         self.assertIsInstance(result, InterfaceABC)
 
-        # Test copy returns InterfaceABC
-        copied = interface.copy()
-        self.assertIsInstance(copied, InterfaceABC)
-
     def test_abc_defines_required_methods(self) -> None:
         """Test that all required abstract methods are defined in the ABC."""
         abstract_methods = InterfaceABC.__abstractmethods__
@@ -108,12 +103,13 @@ class TestInterfaceABC(TestCase):
                 "append",
                 "extend",
                 "cls",
-                "copy",
                 "to_json",
                 "to_td_uids",
                 "types",
                 "ordered_td_uids",
                 "unconnected_eps",
+                "verify",
+                "consistency",
             }
         )
 

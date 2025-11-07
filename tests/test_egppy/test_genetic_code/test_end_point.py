@@ -22,14 +22,12 @@ class TestEndPoint(unittest.TestCase):
         self.assertEqual(self.ep_src.cls, EndPointClass.SRC)
         self.assertEqual(str(self.ep_src.typ), "int")
         self.assertEqual(self.ep_src.refs, [])
-        self.assertFalse(self.ep_src.is_frozen())
 
         self.assertEqual(self.ep_dst.row, DstRow.F)
         self.assertEqual(self.ep_dst.idx, 0)
         self.assertEqual(self.ep_dst.cls, EndPointClass.DST)
         self.assertEqual(str(self.ep_dst.typ), "float")
         self.assertEqual(self.ep_dst.refs, [])
-        self.assertFalse(self.ep_dst.is_frozen())
 
         with self.assertRaises(ValueError):
             EndPoint(DstRow.F, 1, EndPointClass.DST, "float").verify()
@@ -39,44 +37,6 @@ class TestEndPoint(unittest.TestCase):
             EndPoint(DstRow.A, -1, EndPointClass.SRC, "int").verify()
         with self.assertRaises(ValueError):
             EndPoint(SrcRow.L, 1, EndPointClass.SRC, "int").verify()
-
-    def test_refs_setter(self) -> None:
-        """Test the refs setter."""
-        # Test with list of lists
-        refs1 = [["A", 1]]
-        self.ep_src.refs = refs1
-        self.assertEqual(self.ep_src.refs, refs1)
-
-        # Test with list of tuples
-        refs2 = [("B", 2)]
-        self.ep_src.refs = refs2  # type: ignore
-        self.assertEqual(self.ep_src.refs, [["B", 2]])
-
-        # Test with list of strings
-        refs3 = ["A003"]
-        self.ep_src.refs = refs3
-        self.assertEqual(self.ep_src.refs, [["A", 3]])
-
-        # Test with mixed list
-        refs4 = [["I", 4], ("B", 5), "A006"]
-        self.ep_src.refs = refs4  # type: ignore
-        self.assertEqual(self.ep_src.refs, [["I", 4], ["B", 5], ["A", 6]])
-
-        # Test with invalid type
-        with self.assertRaises(TypeError):
-            self.ep_src.refs = [123]  # type: ignore
-        with self.assertRaises(ValueError):
-            self.ep_src.refs = ["F001"]
-
-    def test_typ_setter(self) -> None:
-        """Test the typ setter."""
-        self.ep_src.typ = "bool"
-        self.assertEqual(str(self.ep_src.typ), "bool")
-        new_typ = TypesDef("new_type", 99)
-        self.ep_src.typ = new_typ
-        self.assertEqual(self.ep_src.typ, new_typ)
-        with self.assertRaises(AssertionError):
-            self.ep_src.typ = 1.5  # type: ignore
 
     def test_equality(self) -> None:
         """Test equality and inequality of EndPoint instances."""
@@ -119,42 +79,12 @@ class TestEndPoint(unittest.TestCase):
         with self.assertRaises(ValueError):
             ep_f.verify()
 
-    def test_copy(self) -> None:
-        """Test copying an endpoint."""
-        self.ep_src.refs = [["A", 1]]
-        ep_copy = self.ep_src.copy()
-        self.assertEqual(self.ep_src, ep_copy)
-        self.assertIsNot(self.ep_src, ep_copy)
-        ep_copy.refs = [["B", 2]]
-        self.assertNotEqual(self.ep_src.refs, ep_copy.refs)
-
-        ep_clean_copy = self.ep_src.copy(clean=True)
-        self.assertEqual(ep_clean_copy.refs, [])
-
-    def test_freeze(self) -> None:
-        """Test freezing an endpoint."""
-        self.ep_src.refs = [["A", 1]]
-        self.ep_src.freeze()
-        self.assertTrue(self.ep_src.is_frozen())
-        with self.assertRaises(AttributeError):
-            self.ep_src.refs = [["B", 2]]
-        with self.assertRaises(AttributeError):
-            self.ep_src.typ = "float"
-        with self.assertRaises(RuntimeError):
-            self.ep_src.connect(self.ep_dst)
-
-        # Test freezing with invalid refs
-        with self.assertRaises(ValueError):
-            ep_invalid_ref = EndPoint(SrcRow.I, 0, EndPointClass.SRC, "int", [["Z", 0]])
-            ep_invalid_ref.freeze()
-
     def test_hash(self) -> None:
         """Test hashing of endpoints."""
         h1 = hash(self.ep_src)
         self.ep_src.refs = [["A", 1]]
         h2 = hash(self.ep_src)
         self.assertNotEqual(h1, h2)
-        self.ep_src.freeze()
         h3 = hash(self.ep_src)
         h4 = hash(self.ep_src)
         self.assertEqual(h3, h4)

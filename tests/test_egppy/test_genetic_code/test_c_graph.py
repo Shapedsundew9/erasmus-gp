@@ -8,11 +8,14 @@ While-Loop, Standard, and Primitive.
 import unittest
 
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph import (
+from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
     CGT_VALID_ROWS,
     CGT_VALID_SRC_ROWS,
-    CGraph,
     c_graph_type,
     json_cgraph_to_interfaces,
     valid_dst_rows,
@@ -20,9 +23,6 @@ from egppy.genetic_code.c_graph import (
     valid_rows,
     valid_src_rows,
 )
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import EndPoint
-from egppy.genetic_code.interface import Interface
 
 
 class TestValidSrcRows(unittest.TestCase):
@@ -404,7 +404,6 @@ class TestCGraph(unittest.TestCase):
         """Test CGraph initialization from JSON."""
         cgraph = CGraph(self.primitive_jcg)
         self.assertIsInstance(cgraph, CGraph)
-        self.assertFalse(cgraph.is_frozen())
 
     def test_cgraph_contains(self) -> None:
         """Test CGraph __contains__ method."""
@@ -443,15 +442,6 @@ class TestCGraph(unittest.TestCase):
 
         self.assertEqual(cgraph["Ad"], new_interface)
 
-    def test_cgraph_setitem_frozen_raises(self) -> None:
-        """Test that setting items on frozen CGraph raises RuntimeError."""
-        cgraph = CGraph(self.empty_jcg)
-        cgraph.freeze()
-
-        new_interface = Interface([EndPoint(DstRow.A, 0, EndPointClass.DST, "int")])
-        with self.assertRaises(RuntimeError):
-            cgraph["Ad"] = new_interface
-
     def test_cgraph_delitem(self) -> None:
         """Test CGraph __delitem__ method."""
         cgraph = CGraph(self.primitive_jcg)
@@ -459,14 +449,6 @@ class TestCGraph(unittest.TestCase):
         # Delete an interface
         del cgraph["Ad"]
         self.assertNotIn("Ad", cgraph)
-
-    def test_cgraph_delitem_frozen_raises(self) -> None:
-        """Test that deleting items from frozen CGraph raises RuntimeError."""
-        cgraph = CGraph(self.primitive_jcg)
-        cgraph.freeze()
-
-        with self.assertRaises(RuntimeError):
-            del cgraph["Ad"]
 
     def test_cgraph_iter(self) -> None:
         """Test CGraph __iter__ method."""
@@ -489,24 +471,6 @@ class TestCGraph(unittest.TestCase):
         self.assertNotEqual(cgraph1, cgraph3)
         self.assertNotEqual(cgraph1, "not a cgraph")
 
-    def test_cgraph_hash_unfrozen(self) -> None:
-        """Test CGraph hash for unfrozen graphs."""
-        cgraph = CGraph(self.primitive_jcg)
-
-        # Hash should work even when unfrozen
-        hash1 = hash(cgraph)
-        self.assertIsInstance(hash1, int)
-
-    def test_cgraph_hash_frozen(self) -> None:
-        """Test CGraph hash for frozen graphs."""
-        cgraph = CGraph(self.primitive_jcg)
-        cgraph.freeze()
-
-        # Hash should be consistent for frozen graphs
-        hash1 = hash(cgraph)
-        hash2 = hash(cgraph)
-        self.assertEqual(hash1, hash2)
-
     def test_cgraph_to_json(self) -> None:
         """Test CGraph to_json conversion."""
         cgraph = CGraph(self.primitive_jcg)
@@ -521,18 +485,6 @@ class TestCGraph(unittest.TestCase):
         cgraph = CGraph(self.primitive_jcg)
         # The primitive graph from JSON should be stable
         self.assertTrue(cgraph.is_stable())
-
-    def test_cgraph_copy(self) -> None:
-        """Test CGraph copy method."""
-        cgraph1 = CGraph(self.primitive_jcg)
-        cgraph2 = cgraph1.copy()
-
-        # Should be equal but not the same object
-        self.assertEqual(cgraph1, cgraph2)
-        self.assertIsNot(cgraph1, cgraph2)
-
-        # Copy should not be frozen
-        self.assertFalse(cgraph2.is_frozen())
 
     def test_cgraph_repr(self) -> None:
         """Test CGraph __repr__ method."""
