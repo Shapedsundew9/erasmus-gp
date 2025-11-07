@@ -43,8 +43,8 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
         - Source endpoints (SRC) may connect to 0, 1, or multiple destination endpoints
         - Destination endpoints (DST) may only connect to a single source endpoint
         - Endpoints can only connect to endpoints of the same type
-        - References must be bidirectional (maintained by connect() method)
         - DST endpoints reference SRC rows and vice versa
+        - NOTE: These rules are enforced at the Interface or CGraph level
 
     Validation:
         All concrete implementations must implement verify() and consistency() methods

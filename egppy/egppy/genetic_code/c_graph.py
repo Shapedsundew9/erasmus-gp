@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Iterator
 from itertools import chain
 from pprint import pformat
-from random import choice, shuffle
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import VERIFY, Logger, egp_logger
+from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import (
@@ -174,7 +174,7 @@ class CGraph(CommonObj, CGraphABC):
             jcg[DstRow.U] = row_u
         return jcg
 
-    def connect_all(self, if_locked: bool = True) -> None:
+    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """
         Connect all unconnected destination endpoints in the Connection Graph to randomly
         selected valid source endpoints.
@@ -187,6 +187,7 @@ class CGraph(CommonObj, CGraphABC):
             if_locked (bool): If True, prevents the creation of new input interface endpoints.
                 If False, allows extending the input interface ('I') with new endpoints when needed
                 and when 'I' is a valid source row for the destination. Defaults to True.
+            seed (int | None): Seed for the random number generator to ensure reproducibility.
 
         Returns:
             None: Modifies the graph in-place by establishing connections between endpoints.
@@ -212,7 +213,7 @@ class CGraph(CommonObj, CGraphABC):
         unconnected: list[EndPoint] = list(
             chain.from_iterable(iface.unconnected_eps() for iface in ifaces if iface is not None)
         )
-        shuffle(unconnected)
+        rng.shuffle(unconnected)  # type: ignore
 
         # Connect the unconnected endpoints in a random order
         # First find the set of valid source rows for this graph type.
@@ -237,7 +238,7 @@ class CGraph(CommonObj, CGraphABC):
                 vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ, []))
             if vsrcs:
                 # Randomly choose a valid source endpoint
-                sep: EndPoint = choice(vsrcs)
+                sep: EndPoint = egp_rng.choice(vsrcs)
                 # If it is a new input interface endpoint then add it to input interface
                 if not if_locked and sep.idx == len_is and sep.row == SrcRow.I:
                     i_iface.endpoints.append(sep)

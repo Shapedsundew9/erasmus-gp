@@ -153,6 +153,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Collection, Iterator
 
 from egpcommon.common_obj_abc import CommonObjABC
+from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import JSONCGraph
 from egppy.genetic_code.interface_abc import InterfaceABC
@@ -164,7 +165,6 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
     This class defines the essential interface that all Connection Graph
     implementations must provide. It inherits Collection for standard container
     operations, and CommonObjABC for validation methods.
-    and CommonObjABC for validation methods.
 
     Connection Graphs represent the internal connectivity structure of genetic
     code nodes, defining how inputs, outputs, and internal components are
@@ -332,7 +332,7 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
     # Abstract Connection Management Methods
 
     @abstractmethod
-    def connect_all(self, if_locked: bool = True) -> None:
+    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """Connect all unconnected destination endpoints to valid source endpoints.
 
         This method establishes connections between unconnected destination endpoints

@@ -23,8 +23,7 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Interface.
 
     This class defines the essential interface that all Interface
-    implementations must provide. It inherits from FreezableObject to support
-    immutability when frozen, and CommonObjABC for validation methods.
+    implementations must provide. It inherits CommonObjABC for validation methods.
 
     Interfaces define collections of endpoints that represent connections in
     genetic code, either as sources (inputs) or destinations (outputs).
@@ -74,12 +73,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         Args:
             idx: The index at which to set the endpoint.
             value: The endpoint to set.
-
-        Raises:
-            RuntimeError: If the interface is frozen.
-            TypeError: If value is not an EndPoint instance.
-            IndexError: If idx is out of range.
-            ValueError: If the endpoint's row or class doesn't match existing endpoints.
         """
         raise NotImplementedError("InterfaceABC.__setitem__ must be overridden")
 
@@ -128,10 +121,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
 
         Returns:
             A new interface containing endpoints from both interfaces.
-
-        Raises:
-            TypeError: If other is not an Interface instance.
-            ValueError: If the interfaces have incompatible row or class properties.
         """
         raise NotImplementedError("InterfaceABC.__add__ must be overridden")
 
@@ -143,11 +132,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
 
         Args:
             value: The endpoint to append.
-
-        Raises:
-            RuntimeError: If the interface is frozen.
-            TypeError: If value is not an EndPoint instance or endpoints is not a list.
-            ValueError: If the endpoint's row or class doesn't match existing endpoints.
         """
         raise NotImplementedError("InterfaceABC.append must be overridden")
 
@@ -157,12 +141,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
 
         Args:
             values: The endpoints to add.
-
-        Raises:
-            RuntimeError: If the interface is frozen.
-            TypeError: If values is not a list or tuple, if any value is not an EndPoint,
-                       or if endpoints is not a list.
-            ValueError: If any endpoint's row or class doesn't match existing endpoints.
         """
         raise NotImplementedError("InterfaceABC.extend must be overridden")
 

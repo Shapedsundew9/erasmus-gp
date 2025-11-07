@@ -38,7 +38,7 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 *   **Logging:** Use the custom logger from `egpcommon.egp_log` for any new log messages and lazy formatting in log calls.
 *   **Immutability:** The function `sha256_signature` in `egpcommon/egpcommon/common.py` is critical for data integrity and **must not be changed**. Its behavior is fundamental to the entire system.
 *   **Dependencies:** Add new dependencies to the appropriate `pyproject.toml` and `requirements.txt` file for the relevant package.
-*   **Documentation:** Use docstrings to document all modules, classes, and functions, including in test modules. Follow the existing style in the codebase.
+*   **Documentation:** Use Google style docstrings to document all modules, classes, and functions, including in test modules. Follow the existing style in the codebase.
 
 ## Testing
 

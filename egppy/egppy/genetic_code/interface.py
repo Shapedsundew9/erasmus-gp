@@ -119,6 +119,10 @@ class Interface(CommonObj, InterfaceABC):
                 self.endpoints.append(EndPoint(ep))
             elif isinstance(ep, (list, tuple)):
                 if len(ep) == 3:
+                    if row is None:
+                        raise ValueError(
+                            "Row parameter must be provided when endpoints are sequences"
+                        )
                     self.endpoints.append(
                         EndPoint(row, idx, EndPointClass.DST, ep[2], ((ep[0], ep[1]),))
                     )
@@ -226,15 +230,7 @@ class Interface(CommonObj, InterfaceABC):
         Args
         ----
         value: EndPointABC: The endpoint to append.
-
-        Raises
-        ------
-        RuntimeError: If the interface is frozen.
-        TypeError: If value is not an EndPoint instance or endpoints is not a list.
-        ValueError: If the endpoint's row or class doesn't match existing endpoints.
         """
-        if not isinstance(value, EndPointABC):
-            raise TypeError(f"Expected EndPoint, got {type(value)}")
         _value = EndPoint(value)  # Make a copy to ensure mutability & independence
         _value.idx = len(self.endpoints)  # Ensure the index is correct
         self.endpoints.append(_value)

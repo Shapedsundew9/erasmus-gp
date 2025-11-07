@@ -34,6 +34,7 @@ from __future__ import annotations
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
+from egppy.genetic_code.c_graph import DstRow, SrcRow
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -390,7 +391,18 @@ class EndPoint(CommonObj, EndPointABC):
             )
 
         # Verify reference structure and validity
+        ref_set = set()
         for ref_idx, ref in enumerate(self.refs):
+
+            # Check for duplicate references
+            ref_tuple = tuple(ref)
+            self.value_error(
+                ref_tuple not in ref_set,
+                f"Duplicate reference {ref} found at index {ref_idx} "
+                f"in endpoint {self.row}{self.cls.name[0]}{self.idx}",
+            )
+            ref_set.add(ref_tuple)
+
             # Check reference is a list
             self.type_error(
                 isinstance(ref, list),
@@ -415,12 +427,14 @@ class EndPoint(CommonObj, EndPointABC):
                 f"Reference row must be a string, got {type(ref_row).__name__} "
                 f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
             )
+
+            # Verify reference row is in valid ROW_SET
             self.value_error(
                 ref_row in ROW_SET,
                 f"Reference row must be a valid row. "
                 f"Got '{ref_row}' at index {ref_idx} in endpoint"
                 f"{self.row}{self.cls.name[0]}{self.idx}. "
-                f"Valid rows: {sorted(ROW_SET)}",
+                f"Valid rows: {ROW_SET}",
             )
 
             # Check reference index is valid
@@ -429,14 +443,13 @@ class EndPoint(CommonObj, EndPointABC):
                 f"Reference index must be an integer, got {type(ref_ep_idx).__name__} "
                 f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
             )
-            # Type narrowing: ref_ep_idx is now known to be int
-            if isinstance(ref_ep_idx, int):
-                self.value_error(
-                    0 <= ref_ep_idx < 256,
-                    f"Reference index must be between 0 and 255. "
-                    f"Got {ref_ep_idx} at index {ref_idx} in endpoint"
-                    f" {self.row}{self.cls.name[0]}{self.idx}",
-                )
+
+            # Verify reference index is within valid range (0-255)
+            assert isinstance(ref_ep_idx, int), "Reference index must be an integer"
+            self.value_error(
+                0 <= ref_ep_idx < 256,
+                f"Reference index must be between 0 and 255, got {ref_ep_idx}",
+            )
 
             # Verify row/class pairing: DST endpoints should reference SRC rows, and vice versa
             if self.cls == EndPointClass.DST:

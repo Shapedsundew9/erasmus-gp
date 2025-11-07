@@ -3,7 +3,7 @@
 See https://g.co/gemini/share/5737bff25344 for why numpy PCG64.
 """
 
-from numpy.random import Generator, PCG64
+from numpy.random import PCG64, Generator
 
 
 class EGPRndGen(Generator):
@@ -19,8 +19,8 @@ class EGPRndGen(Generator):
 
 
 # Reproducibility
-rng = EGPRndGen(seed=42)
-uniform = rng.uniform(0.0, 1.0, 100)
+egp_rng = EGPRndGen(seed=42)
+uniform = egp_rng.uniform(0.0, 1.0, 100)
 UNIFORM: tuple[float, ...] = (
     0.77395604855596333848666290577967,
     0.43887843975205231838998543025809,
