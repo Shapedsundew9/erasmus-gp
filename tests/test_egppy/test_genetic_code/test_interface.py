@@ -5,7 +5,15 @@ import unittest
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
 from egppy.genetic_code.end_point import EndPoint
 from egppy.genetic_code.end_point_abc import EndPointABC
-from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
+from egppy.genetic_code.interface import (
+    DstInterface,
+    Interface,
+    SrcInterface,
+    unpack_dst_ref,
+    unpack_ref,
+    unpack_src_ref,
+)
+from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 
 class TestInterface(unittest.TestCase):
@@ -173,6 +181,232 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(result[1].typ.uid, ep2.typ.uid)
         self.assertEqual(result[2].typ.uid, ep3.typ.uid)
 
+    def test_init_with_sequences_3tuple(self) -> None:
+        """Test initialization with sequences containing [ref_row, ref_idx, typ]."""
+        interface = Interface([["I", 0, "int"], ["I", 1, "float"]], row=DstRow.A)
+        self.assertEqual(len(interface), 2)
+        self.assertEqual(str(interface[0].typ), "int")
+        self.assertEqual(str(interface[1].typ), "float")
+
+    def test_init_with_sequences_no_row_error(self) -> None:
+        """Test that ValueError is raised when row is None with 3-tuple sequences."""
+        with self.assertRaises(ValueError) as context:
+            Interface([["I", 0, "int"]])
+        self.assertIn("Row parameter must be provided", str(context.exception))
+
+    def test_init_with_5tuple(self) -> None:
+        """Test initialization with EndPointMemberType (5-tuple)."""
+        interface = Interface([(DstRow.A, 0, EndPointClass.DST, "int", None)])
+        self.assertEqual(len(interface), 1)
+        self.assertEqual(str(interface[0].typ), "int")
+
+    def test_init_with_typesdef(self) -> None:
+        """Test initialization with TypesDef objects."""
+        int_type = types_def_store["int"]
+        float_type = types_def_store["float"]
+        interface = Interface([int_type, float_type], row=DstRow.A)
+        self.assertEqual(len(interface), 2)
+        self.assertEqual(interface[0].typ, int_type)
+        self.assertEqual(interface[1].typ, float_type)
+
+    def test_init_with_invalid_type(self) -> None:
+        """Test that ValueError is raised with invalid endpoint type."""
+        with self.assertRaises(ValueError) as context:
+            Interface([123.45])  # type: ignore
+        self.assertIn("Invalid endpoint type", str(context.exception))
+
+    def test_init_with_source_row(self) -> None:
+        """Test initialization with source row creates source endpoints."""
+        interface = Interface(["int", "float"], row=SrcRow.I)
+        self.assertEqual(len(interface), 2)
+        self.assertEqual(interface[0].cls, EndPointClass.SRC)
+        self.assertEqual(interface[1].cls, EndPointClass.SRC)
+
+    def test_hash(self) -> None:
+        """Test that hash is computed correctly."""
+        interface1 = Interface([self.ep1, self.ep2])
+        interface2 = Interface([self.ep1, self.ep2])
+        # Equal interfaces should have equal hashes
+        self.assertEqual(hash(interface1), hash(interface2))
+
+    def test_setitem(self) -> None:
+        """Test setting an endpoint at a specific index."""
+        interface = Interface([self.ep1, self.ep2])
+        new_ep = EndPoint(DstRow.A, 0, EndPointClass.DST, "str")
+        interface[0] = new_ep
+        self.assertEqual(interface[0].typ.uid, new_ep.typ.uid)
+        self.assertEqual(interface[0].idx, 0)  # Index should be updated
+
+    def test_setitem_wrong_type(self) -> None:
+        """Test that TypeError is raised when setting non-EndPoint."""
+        interface = Interface([self.ep1])
+        with self.assertRaises(TypeError) as context:
+            interface[0] = "not an endpoint"  # type: ignore
+        self.assertIn("Expected EndPointABC", str(context.exception))
+
+    def test_setitem_out_of_range(self) -> None:
+        """Test that IndexError is raised for out-of-range index."""
+        interface = Interface([self.ep1])
+        with self.assertRaises(IndexError) as context:
+            interface[5] = self.ep2
+        self.assertIn("out of range", str(context.exception))
+
+    def test_cls_empty_interface(self) -> None:
+        """Test that cls() returns DST for empty interface."""
+        interface = Interface([])
+        self.assertEqual(interface.cls(), EndPointClass.DST)
+
+    def test_cls_with_endpoints(self) -> None:
+        """Test that cls() returns the class of the first endpoint."""
+        interface = Interface([self.ep1, self.ep2])
+        self.assertEqual(interface.cls(), EndPointClass.DST)
+
+    def test_verify_empty_interface(self) -> None:
+        """Test that verify passes for empty interface."""
+        interface = Interface([])
+        interface.verify()  # Should not raise
+
+    def test_verify_different_rows(self) -> None:
+        """Test that verify fails when endpoints have different rows."""
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
+        ep2 = EndPoint(DstRow.B, 1, EndPointClass.DST, "float")
+        interface = Interface.__new__(Interface)
+        interface.endpoints = [ep1, ep2]
+        with self.assertRaises(ValueError) as context:
+            interface.verify()
+        self.assertIn("same row", str(context.exception))
+
+    def test_verify_different_classes(self) -> None:
+        """Test that verify fails when endpoints have different classes."""
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
+        ep2 = EndPoint(SrcRow.A, 1, EndPointClass.SRC, "float")
+        interface = Interface.__new__(Interface)
+        interface.endpoints = [ep1, ep2]
+        with self.assertRaises(ValueError) as context:
+            interface.verify()
+        self.assertIn("same class", str(context.exception))
+
+    def test_types(self) -> None:
+        """Test the types() method."""
+        interface = Interface(["int", "float", "int"], row=DstRow.A)
+        otu, indices = interface.types()
+        # Should have 2 unique types (int and float)
+        self.assertEqual(len(otu), 2)
+        # Indices should map to the ordered types
+        self.assertEqual(len(indices), 3)
+
+    def test_ordered_td_uids(self) -> None:
+        """Test the ordered_td_uids() method."""
+        interface = Interface(["int", "float", "bool"], row=DstRow.A)
+        uids = interface.ordered_td_uids()
+        # Should return sorted unique UIDs
+        self.assertEqual(len(uids), 3)
+        self.assertEqual(uids, sorted(uids))
+
+    def test_to_json(self) -> None:
+        """Test the to_json() method."""
+        interface = Interface([self.ep1, self.ep2])
+        json_data = interface.to_json()
+        self.assertIsInstance(json_data, list)
+        self.assertEqual(len(json_data), 2)
+
+    def test_to_json_c_graph(self) -> None:
+        """Test the to_json() method with json_c_graph=True."""
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", [["I", 0]])
+        interface = Interface([ep1])
+        json_data = interface.to_json(json_c_graph=True)
+        self.assertIsInstance(json_data, list)
+        self.assertEqual(len(json_data), 1)
+
+    def test_to_td_uids(self) -> None:
+        """Test the to_td_uids() method."""
+        interface = Interface(["int", "float"], row=DstRow.A)
+        uids = interface.to_td_uids()
+        self.assertIsInstance(uids, list)
+        self.assertEqual(len(uids), 2)
+
+    def test_unconnected_eps(self) -> None:
+        """Test the unconnected_eps() method."""
+        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")  # No refs
+        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float", [["I", 0]])  # Has ref
+        interface = Interface([ep1, ep2])
+        unconnected = interface.unconnected_eps()
+        self.assertEqual(len(unconnected), 1)
+        self.assertEqual(unconnected[0], ep1)
+
+    def test_verify_not_endpoint_instances(self) -> None:
+        """Test that verify fails when endpoints are not EndPoint instances."""
+        interface = Interface.__new__(Interface)
+        interface.endpoints = [self.ep1, "not an endpoint"]  # type: ignore
+        with self.assertRaises(ValueError) as context:
+            interface.verify()
+        self.assertIn("EndPoint instances", str(context.exception))
+
+    def test_consistency(self) -> None:
+        """Test the consistency() method."""
+        # Consistency is normally called by verify() when CONSISTENCY logging is enabled
+        # We can call it directly here
+        interface = Interface([self.ep1, self.ep2])
+        interface.consistency()  # Should not raise
+
+    def test_consistency_with_logging(self) -> None:
+        """Test the consistency() method with CONSISTENCY logging enabled."""
+        import logging
+
+        from egpcommon.egp_log import CONSISTENCY
+
+        # Get the logger
+        from egppy.genetic_code import interface as interface_module
+
+        logger = interface_module._logger
+
+        # Save original level
+        original_level = logger.level
+
+        try:
+            # Enable CONSISTENCY logging
+            logger.setLevel(CONSISTENCY)
+
+            # Create and verify interface - this should trigger consistency()
+            interface = Interface([self.ep1, self.ep2])
+            interface.verify()  # This will call consistency() internally
+
+        finally:
+            # Restore original level
+            logger.setLevel(original_level)
+
+
+class TestUnpackFunctions(unittest.TestCase):
+    """Unit tests for the unpack_ref, unpack_src_ref, and unpack_dst_ref functions."""
+
+    def test_unpack_ref_with_list(self) -> None:
+        """Test unpack_ref with a list."""
+        ref = ["A", 5]
+        row, idx = unpack_ref(ref)
+        self.assertEqual(row, "A")
+        self.assertEqual(idx, 5)
+
+    def test_unpack_ref_with_tuple(self) -> None:
+        """Test unpack_ref with a tuple."""
+        ref = ("I", 10)
+        row, idx = unpack_ref(ref)
+        self.assertEqual(row, "I")
+        self.assertEqual(idx, 10)
+
+    def test_unpack_src_ref(self) -> None:
+        """Test unpack_src_ref with source row."""
+        ref = ["I", 3]
+        row, idx = unpack_src_ref(ref)
+        self.assertEqual(row, SrcRow.I)
+        self.assertEqual(idx, 3)
+
+    def test_unpack_dst_ref(self) -> None:
+        """Test unpack_dst_ref with destination row."""
+        ref = ["O", 7]
+        row, idx = unpack_dst_ref(ref)
+        self.assertEqual(row, DstRow.O)
+        self.assertEqual(idx, 7)
+
 
 class TestSrcInterface(unittest.TestCase):
     """Unit tests for the SrcInterface class."""
@@ -186,6 +420,19 @@ class TestSrcInterface(unittest.TestCase):
         self.assertEqual(len(interface), 2)
         self.assertEqual(interface[0], ep1)
         self.assertEqual(interface[1], ep2)
+
+    def test_init_with_types(self) -> None:
+        """Test SrcInterface initialization with type strings."""
+        interface = SrcInterface(["int", "float"], row=SrcRow.I)
+        self.assertEqual(len(interface), 2)
+        self.assertEqual(str(interface[0].typ), "int")
+        self.assertEqual(str(interface[1].typ), "float")
+
+    def test_init_with_sequences(self) -> None:
+        """Test SrcInterface initialization with sequences."""
+        interface = SrcInterface([["A", 0, "int"]], row=SrcRow.I)
+        self.assertEqual(len(interface), 1)
+        self.assertEqual(str(interface[0].typ), "int")
 
     def test_add_src_interfaces(self) -> None:
         """Test adding two SrcInterface instances."""
@@ -214,6 +461,19 @@ class TestDstInterface(unittest.TestCase):
         self.assertEqual(len(interface), 2)
         self.assertEqual(interface[0], ep1)
         self.assertEqual(interface[1], ep2)
+
+    def test_init_with_types(self) -> None:
+        """Test DstInterface initialization with type strings."""
+        interface = DstInterface(["int", "float"], row=DstRow.A)
+        self.assertEqual(len(interface), 2)
+        self.assertEqual(str(interface[0].typ), "int")
+        self.assertEqual(str(interface[1].typ), "float")
+
+    def test_init_with_sequences(self) -> None:
+        """Test DstInterface initialization with sequences."""
+        interface = DstInterface([["I", 0, "int"]], row=DstRow.A)
+        self.assertEqual(len(interface), 1)
+        self.assertEqual(str(interface[0].typ), "int")
 
     def test_add_dst_interfaces(self) -> None:
         """Test adding two DstInterface instances."""

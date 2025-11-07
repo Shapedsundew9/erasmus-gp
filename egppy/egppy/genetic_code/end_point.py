@@ -34,7 +34,6 @@ from __future__ import annotations
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
-from egppy.genetic_code.c_graph import DstRow, SrcRow
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
