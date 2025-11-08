@@ -65,7 +65,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 2196e54c8ae04d7665389ec4514d9f3f0d047af01c9942bee13aa6fe2164f086\n'
+            '\t"""Signature: 6307d213918fae3227c64caf65c4ae812c625046e43c9a101ac199757aad9de5\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -87,7 +87,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 2196e54c8ae04d7665389ec4514d9f3f0d047af01c9942bee13aa6fe2164f086\n'
+            '\t"""Signature: 6307d213918fae3227c64caf65c4ae812c625046e43c9a101ac199757aad9de5\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"

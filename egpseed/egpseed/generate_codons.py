@@ -13,6 +13,7 @@ from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
+from egppy.genetic_code.json_cgraph import valid_jcg
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -22,7 +23,7 @@ _logger: Logger = egp_logger(name=__name__)
 OUTPUT_CODON_PATH = ("..", "..", "egppy", "egppy", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "cgraph": {"A": None, "O": None, "U": []},
+    "cgraph": {"A": None, "O": None},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
     "creator": SHAPEDSUNDEW9_UUID,
@@ -93,6 +94,7 @@ class MethodExpander:
         merge(json_dict["properties"], self.properties)
         json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
         json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
+        assert valid_jcg(json_dict["cgraph"]), "Invalid codon connection graph at construction."
         return json_dict
 
 
@@ -115,7 +117,7 @@ def generate_codons(write: bool = False) -> None:
         approach as the type cast codons can do runtime validation of the types thus proving
         the type is correct.
     4. Save the codons dictionary to a JSON file.
-    5. Create the end_point_types.json file.
+    5. Create the endpoint_types.json file.
     """
 
     # Load the raw codon data for each type. e.g.
@@ -138,6 +140,9 @@ def generate_codons(write: bool = False) -> None:
             # NOTE: verify() now raises exceptions on failure rather than returning False.
             new_codon.verify()
             codon = new_codon.to_json()
+            assert valid_jcg(
+                codon["cgraph"]  #  type: ignore
+            ), "Invalid codon connection graph after verification."
             signature = codon["signature"]
             assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"
             assert signature not in codons, f"Duplicate signature: {signature}"

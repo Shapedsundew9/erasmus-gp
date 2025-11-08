@@ -10,7 +10,7 @@ import unittest
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, FrozenEndPoint, FrozenInterface
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.types_def import types_def_store
@@ -398,16 +398,6 @@ class TestFrozenCGraph(unittest.TestCase):
     def test_consistency(self) -> None:
         """Test consistency method."""
         self.frozen_graph.consistency()
-
-    def test_freeze(self) -> None:
-        """Test freeze method."""
-        # Freezing a frozen graph returns self
-        result = self.frozen_graph.freeze(store=False)
-        self.assertIs(result, self.frozen_graph)
-
-    def test_is_frozen(self) -> None:
-        """Test is_frozen method."""
-        self.assertTrue(self.frozen_graph.is_frozen())
 
 
 class TestFrozenCGraphComplexCases(unittest.TestCase):

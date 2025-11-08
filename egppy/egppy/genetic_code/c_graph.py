@@ -17,16 +17,20 @@ from egppy.genetic_code.c_graph_constants import (
     _UNDER_ROW_CLS_INDEXED,
     _UNDER_ROW_DST_INDEXED,
     _UNDER_SRC_KEY_DICT,
-    ROW_CLS_INDEXED,
+    IMPLY_P_IFKEYS,
+    ROW_CLS_INDEXED_ORDERED,
     ROW_CLS_INDEXED_SET,
+    DstIfKey,
     DstRow,
     EndPointClass,
     JSONCGraph,
     Row,
+    SrcIfKey,
     SrcRow,
 )
-from egppy.genetic_code.end_point import EndPoint
-from egppy.genetic_code.end_point_abc import EndpointMemberType
+from egppy.genetic_code.endpoint import EndPoint
+from egppy.genetic_code.endpoint_abc import EndpointMemberType
+from egppy.genetic_code.frozen_interface import DESTINATION_ROW_SET, SOURCE_ROW_SET
 from egppy.genetic_code.interface import ROW_SET, Interface, InterfaceABC
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
@@ -48,7 +52,7 @@ class CGraph(CommonObj, CGraphABC):
 
     # Capture the slot names at class definition time. This ensures that
     # __slots__ and the __init__ loop use the exact same list.
-    __slots__ = _UNDER_ROW_CLS_INDEXED + ("_hash",)
+    __slots__ = _UNDER_ROW_CLS_INDEXED
 
     def __init__(self, graph: dict[str, list[EndpointMemberType]] | CGraphABC) -> None:
         """Initialize the Connection Graph.
@@ -64,30 +68,46 @@ class CGraph(CommonObj, CGraphABC):
         # with the two character interface name preceded by an underscore (e.g. _Is,
         # _Fd, _Ad, etc.). The python object None is used to indicate that an interface
         # does not exist in this graph.
-        for key in ROW_CLS_INDEXED:
-            iface_def = Interface(graph[key]) if key in graph else None
-            assert isinstance(
-                iface_def, (InterfaceABC, type(None))
-            ), f"Invalid interface definition for {key}: {iface_def}"
-            setattr(self, _UNDER_KEY_DICT[key], iface_def)
+        for key in ROW_CLS_INDEXED_ORDERED:
+            _key = _UNDER_KEY_DICT[key]
+            if key in graph:
+                iface_def = Interface(graph[key])
+                assert isinstance(
+                    iface_def, (InterfaceABC, type(None))
+                ), f"Invalid interface definition for {key}: {iface_def}"
+                setattr(self, _key, iface_def)
+            elif key in (SrcIfKey.IS, DstIfKey.OD):
+                # Is and Od must exist even if empty
+                setattr(self, _key, [])  # Empty interface
+            else:
+                setattr(self, _key, None)
 
-        # Persistent hash will be defined when frozen. Dynamic until then.
-        self._hash: int = 0
+        # Special cases for JSONCGraphs
+        # Ensure PD exists if LD, WD, or FD exist and OD is empty
+        need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
+        if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
+            setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
 
     def __contains__(self, key: object) -> bool:
         """Check if the interface exists in the Connection Graph.
 
         Args:
-            key (str): May be a row or a row with class postfix (e.g. 'Fd', 'Ad', etc.).
+            key: Interface identifier, may be a row or row with class postfix.
+
+        Returns:
+            True if the interface exists, False otherwise.
+
+        Raises:
+            KeyError: If the key is not a valid interface identifier.
         """
         assert isinstance(key, str), f"Key must be a string, got {type(key)}"
         if len(key) == 1:
             exists = False
             if key not in ROW_SET:
                 raise KeyError(f"Invalid Connection Graph key: {key}")
-            if key in DstRow:
+            if key in DESTINATION_ROW_SET:
                 exists = getattr(self, _UNDER_DST_KEY_DICT[key]) is not None
-            if key in SrcRow:
+            if key in SOURCE_ROW_SET:
                 exists = exists or getattr(self, _UNDER_SRC_KEY_DICT[key]) is not None
             return exists
         if key not in ROW_CLS_INDEXED_SET:
@@ -121,7 +141,7 @@ class CGraph(CommonObj, CGraphABC):
 
     def __getitem__(self, key: str) -> InterfaceABC:
         """Get the interface with the given key."""
-        if key not in ROW_CLS_INDEXED:
+        if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
         value = getattr(self, _UNDER_KEY_DICT[key])
         if value is None:
@@ -130,7 +150,11 @@ class CGraph(CommonObj, CGraphABC):
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the Interfaces of the Connection Graph."""
-        return (key for key in ROW_CLS_INDEXED if getattr(self, _UNDER_KEY_DICT[key]) is not None)
+        return (
+            key
+            for key in ROW_CLS_INDEXED_ORDERED
+            if getattr(self, _UNDER_KEY_DICT[key]) is not None
+        )
 
     def __len__(self) -> int:
         """Return the number of interfaces in the Connection Graph."""
@@ -142,7 +166,7 @@ class CGraph(CommonObj, CGraphABC):
 
     def __setitem__(self, key: str, value: InterfaceABC) -> None:
         """Set the interface with the given key."""
-        if key not in ROW_CLS_INDEXED:
+        if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
         if not isinstance(value, InterfaceABC):
             raise TypeError(f"Value must be an Interface, got {type(value)}")
@@ -158,19 +182,27 @@ class CGraph(CommonObj, CGraphABC):
         return c_graph_type(self)
 
     def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
-        """Convert the Connection Graph to a JSON-compatible dictionary."""
+        """Convert the Connection Graph to a JSON-compatible dictionary.
+
+        IMPORTANT: The JSON representation produced by this method is
+        guaranteed to be in a consistent format and order. This is crucial
+        for ensuring that hash values computed from the JSON representation
+        are stable and reproducible across different runs and environments.
+        The method systematically processes each interface in a predefined
+        order, and constructs the JSON dictionary in a consistent manner.
+        """
         jcg: JSONCGraph = {}
         row_u = []
-        for key in DstRow:
+        for key in DstRow:  # This order is important for consistent JSON output
             iface: Interface = getattr(self, _UNDER_DST_KEY_DICT[key])
-            if iface is not None:
+            if iface is not None and (len(iface) > 0 or not json_c_graph):
                 jcg[key] = iface.to_json(json_c_graph=json_c_graph)
-        for key in SrcRow:
+        for key in SrcRow:  # This order is important for consistent JSON output
             iface: Interface = getattr(self, _UNDER_SRC_KEY_DICT[key])
-            if iface is not None:
+            if iface is not None and len(iface) > 0:
                 unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
-                row_u.extend([ep.row, ep.idx, ep.typ.name] for ep in unconnected_srcs)
-        if row_u:
+                row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
+        if json_c_graph and row_u:
             jcg[DstRow.U] = row_u
         return jcg
 
@@ -273,7 +305,7 @@ class CGraph(CommonObj, CGraphABC):
         Returns:
             Iterator over (key, interface) pairs.
         """
-        for key in ROW_CLS_INDEXED:
+        for key in ROW_CLS_INDEXED_ORDERED:
             iface = getattr(self, _UNDER_KEY_DICT[key])
             if iface is not None:
                 yield key, iface
@@ -362,7 +394,7 @@ class CGraph(CommonObj, CGraphABC):
         CGraph is a mutable connection graph class that may be stable or unstable.
         Verification must pass for both stable and unstable graphs.
         """
-        for key in ROW_CLS_INDEXED:
+        for key in ROW_CLS_INDEXED_ORDERED:
             iface = getattr(self, _UNDER_KEY_DICT[key])
             if iface is not None:
                 # Extract the row from the key (first character)

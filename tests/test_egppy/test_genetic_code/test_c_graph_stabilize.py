@@ -14,8 +14,7 @@ from random import seed
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point_abc import EndpointMemberType
-from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.genetic_code.types_def import types_def_store
 

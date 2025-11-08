@@ -91,6 +91,8 @@ Common Rules
     - Any Is endpoint may be a source to any destination endpoint with the exception of Wd
     - Any source endpoint that is not connected to any other destination endpoint is connected
       to the Ud interface in a JSON Connection Graph representation.
+    - Ud only exists in JSON Connection Graph representations and only if there are
+      unconnected source endpoints
     - An interface still exists even if it has zero endpoints.
     - "x can only connect to y" does not restrict what can connect to y.
     - "y can connect to x" does not imply that x can connect to y.

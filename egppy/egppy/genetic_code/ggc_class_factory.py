@@ -17,6 +17,7 @@ from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES
 from egppy.genetic_code.egc_class_factory import EGCMixin
+from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE
 from egppy.genetic_code.import_def import ImportDef
 from egppy.storage.cache.cacheable_obj import CacheableDict
@@ -118,8 +119,8 @@ class GGCMixin(EGCMixin):
         if not isinstance(self, GCABC):
             raise ValueError("GGC must be a GCABC object.")
 
-        # TODO: Freeze the cgraph if it is not already frozen.
-        # self["cgraph"].freeze()
+        if not isinstance(self["cgraph"], FrozenCGraph):
+            self["cgraph"] = frozen_cgraph_store[FrozenCGraph(self["cgraph"])]
 
         self["code_depth"] = int_store[gcabc["code_depth"]]
         self["generation"] = int_store[gcabc["generation"]]
@@ -181,7 +182,7 @@ class GGCMixin(EGCMixin):
                 self["ancestorb"],
                 self["gca"],
                 self["gcb"],
-                self["cgraph"].to_json(),
+                self["cgraph"].to_json(True),
                 self["pgc"],
                 self["imports"],
                 self["inline"],

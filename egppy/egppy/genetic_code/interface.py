@@ -16,8 +16,8 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.genetic_code.end_point import EndPoint, TypesDef
-from egppy.genetic_code.end_point_abc import EndPointABC, EndpointMemberType
+from egppy.genetic_code.endpoint import EndPoint, TypesDef
+from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType
 from egppy.genetic_code.interface_abc import InterfaceABC
 
 # Standard EGP logging pattern

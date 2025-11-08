@@ -5,7 +5,10 @@ from itertools import chain
 
 
 class SrcRow(StrEnum):
-    """Source rows."""
+    """Source rows.
+    IMPORTANT: This order is mandated to preserve signature compatibility.
+    See CGraph.py CGraph.to_json() for more details.
+    """
 
     I = "I"
     L = "L"
@@ -14,13 +17,16 @@ class SrcRow(StrEnum):
 
 
 class DstRow(StrEnum):
-    """Destination rows."""
+    """Destination rows.
+    IMPORTANT: This order is mandated to preserve signature compatibility.
+    See CGraph.py CGraph.to_json() for more details.
+    """
 
-    A = "A"
-    B = "B"
     F = "F"
     L = "L"
     W = "W"
+    A = "A"
+    B = "B"
     O = "O"
     P = "P"
     U = "U"
@@ -34,7 +40,10 @@ class EPClsPostfix(StrEnum):
 
 
 class SrcIfKey(StrEnum):
-    """Source Interfaces."""
+    """Source Interfaces.
+    Whilst the order here is not critical, it is kept consistent with
+    the other enums for clarity.
+    """
 
     IS = SrcRow.I + EPClsPostfix.SRC
     LS = SrcRow.L + EPClsPostfix.SRC
@@ -43,13 +52,16 @@ class SrcIfKey(StrEnum):
 
 
 class DstIfKey(StrEnum):
-    """Destination Interfaces."""
+    """Destination Interfaces.
+    Whilst the order here is not critical, it is kept consistent with
+    the other enums for clarity.
+    """
 
-    AD = DstRow.A + EPClsPostfix.DST
-    BD = DstRow.B + EPClsPostfix.DST
     FD = DstRow.F + EPClsPostfix.DST
     LD = DstRow.L + EPClsPostfix.DST
     WD = DstRow.W + EPClsPostfix.DST
+    AD = DstRow.A + EPClsPostfix.DST
+    BD = DstRow.B + EPClsPostfix.DST
     OD = DstRow.O + EPClsPostfix.DST
     PD = DstRow.P + EPClsPostfix.DST
     UD = DstRow.U + EPClsPostfix.DST
@@ -94,6 +106,12 @@ DST_ONLY_ROWS: tuple[DstRow, ...] = tuple(
     sorted({DstRow.F, DstRow.O, DstRow.P, DstRow.W, DstRow.U})
 )
 SINGLE_ONLY_ROWS = {DstRow.F, DstRow.W, DstRow.L, SrcRow.L}
+SINGLE_CLS_INDEXED_SET: set[DstIfKey | SrcIfKey] = {
+    DstIfKey.FD,
+    DstIfKey.WD,
+    DstIfKey.LD,
+    SrcIfKey.LS,
+}
 SRC_ONLY_ROWS: tuple[SrcRow, ...] = tuple(sorted({SrcRow.I}))
 ROWS: tuple[Row, ...] = tuple(sorted({*SrcRow, *DstRow}))
 ROW_MAP: dict[str, SrcRow | DstRow] = {str(row): row for row in ROWS}
@@ -101,9 +119,11 @@ ROW_SET: set[Row] = set(ROWS)
 EPC_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
 EPC_MAP: dict[str, EndPointClass] = {"s": EndPointClass.SRC, "d": EndPointClass.DST}
 ALL_ROWS_STR: str = "".join(ROWS)
-ROW_CLS_INDEXED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
-ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED)
-_UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED)
+IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.W}
+IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.WD}
+ROW_CLS_INDEXED_ORDERED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
+ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED_ORDERED)
+_UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED_ORDERED)
 _UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple("_" + row + EPClsPostfix.DST for row in DstRow)
 _UNDER_DST_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.DST for row in DstRow}
 _UNDER_SRC_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.SRC for row in SrcRow}

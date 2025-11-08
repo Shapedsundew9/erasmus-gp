@@ -8,7 +8,6 @@ and c_graph_type.
 import unittest
 from unittest.mock import patch
 
-from egpcommon.egp_log import DEBUG
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
@@ -330,19 +329,6 @@ class TestValidJCG(unittest.TestCase):
         # The error is caught during endpoint type validation
         self.assertIn("Invalid endpoint type", str(context.exception))
 
-    def test_valid_jcg_missing_destination_row(self) -> None:
-        """Test that references to non-existent destination rows are caught."""
-        # Create graph where O references a non-existent row B
-        jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.O: [["B", 0, "int"]],  # References B which doesn't exist
-            DstRow.U: [],
-        }
-        with self.assertRaises(ValueError) as ctx:
-            valid_jcg(jcg)
-        # Validation catches invalid source row B for destination O
-        self.assertIn("Invalid source row", str(ctx.exception))
-
 
 class TestJsonCGraphToInterfaces(unittest.TestCase):
     """Test the json_cgraph_to_interfaces function."""
@@ -531,24 +517,6 @@ class TestCGraphType(unittest.TestCase):
         # Should work with CGraphABC instance
         self.assertEqual(c_graph_type(cgraph), CGraphType.PRIMITIVE)
 
-    def test_c_graph_type_debug_missing_o(self) -> None:
-        """Test c_graph_type raises ValueError when O is missing (DEBUG mode)."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.U: []}
-
-        with patch.object(_logger, "isEnabledFor", return_value=True):
-            with self.assertRaises(ValueError) as context:
-                c_graph_type(jcg)
-            self.assertIn("must have a row O", str(context.exception))
-
-    def test_c_graph_type_debug_missing_u(self) -> None:
-        """Test c_graph_type raises ValueError when U is missing (DEBUG mode)."""
-        jcg = {DstRow.O: []}
-
-        with patch.object(_logger, "isEnabledFor", return_value=True):
-            with self.assertRaises(ValueError) as context:
-                c_graph_type(jcg)
-            self.assertIn("must have a row U", str(context.exception))
-
     def test_c_graph_type_debug_conditional_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for conditional without A (DEBUG mode)."""
         jcg = {DstRow.F: [["I", 0, "bool"]], DstRow.O: [], DstRow.P: [], DstRow.U: []}
@@ -558,15 +526,6 @@ class TestCGraphType(unittest.TestCase):
                 c_graph_type(jcg)
             self.assertIn("conditional connection graphs must have a row A", str(context.exception))
 
-    def test_c_graph_type_debug_conditional_missing_p(self) -> None:
-        """Test c_graph_type raises ValueError for conditional without P (DEBUG mode)."""
-        jcg = {DstRow.F: [["I", 0, "bool"]], DstRow.A: [], DstRow.O: [], DstRow.U: []}
-
-        with patch.object(_logger, "isEnabledFor", return_value=True):
-            with self.assertRaises(ValueError) as context:
-                c_graph_type(jcg)
-            self.assertIn("conditional connection graphs must have a row P", str(context.exception))
-
     def test_c_graph_type_debug_loop_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for loop without A (DEBUG mode)."""
         jcg = {DstRow.L: [["I", 0, "list"]], DstRow.O: [], DstRow.P: [], DstRow.U: []}
@@ -575,15 +534,6 @@ class TestCGraphType(unittest.TestCase):
             with self.assertRaises(ValueError) as context:
                 c_graph_type(jcg)
             self.assertIn("loop connection graphs must have a row A", str(context.exception))
-
-    def test_c_graph_type_debug_loop_missing_p(self) -> None:
-        """Test c_graph_type raises ValueError for loop without P (DEBUG mode)."""
-        jcg = {DstRow.L: [["I", 0, "list"]], DstRow.A: [], DstRow.O: [], DstRow.U: []}
-
-        with patch.object(_logger, "isEnabledFor", return_value=True):
-            with self.assertRaises(ValueError) as context:
-                c_graph_type(jcg)
-            self.assertIn("loop connection graphs must have a row P", str(context.exception))
 
     def test_c_graph_type_debug_standard_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for standard without A (DEBUG mode)."""

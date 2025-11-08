@@ -10,6 +10,7 @@ from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
+from egppy.genetic_code.json_cgraph import valid_jcg
 from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
@@ -64,7 +65,6 @@ CODON_TWO_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
     "cgraph": {
         "A": [["I", 0, None], ["I", 1, None]],
         "O": [["A", 0, None], ["A", 1, None]],
-        "U": [],
     },
     "meta_data": {
         "function": {
@@ -143,9 +143,14 @@ def generate_meta_codons(write: bool = False) -> None:
                     base["description"] = base["description"].replace(s, r)
                     base["name"] = base["name"].replace(s, r)
 
+                assert valid_jcg(codon["cgraph"]), "Invalid codon connection graph at construction."
                 new_codon = GGCDict(codon)
                 new_codon.verify()
                 codon = new_codon.to_json()
+                assert valid_jcg(
+                    codon["cgraph"]
+                ), "Invalid codon connection graph after verification."
+
                 if codon["signature"] in meta_codons:
                     raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
                 meta_codons[codon["signature"]] = codon

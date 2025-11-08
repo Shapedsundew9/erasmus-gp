@@ -47,7 +47,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.egc_class_factory import EGCDict as EGCode
-from egppy.genetic_code.end_point import DstEndPoint, EndPoint, SrcEndPoint
+from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
 from egppy.genetic_code.ggc_class_factory import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 from egppy.genetic_code.types_def import TypesDef, types_def_store

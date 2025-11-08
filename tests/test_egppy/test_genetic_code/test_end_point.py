@@ -3,7 +3,7 @@
 import unittest
 
 from egppy.genetic_code.c_graph_constants import SINGLE_ONLY_ROWS, DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import DstEndPoint, EndPoint, SrcEndPoint
+from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 
@@ -347,7 +347,7 @@ class TestEndPointEdgeCases(unittest.TestCase):
 class TestEndPointSubclasses(unittest.TestCase):
     """Unit tests for the EndPoint, SourceEndPoint, and DestinationEndPoint classes."""
 
-    def test_source_end_point(self) -> None:
+    def test_source_endpoint(self) -> None:
         """Test that a SourceEndPoint is created correctly."""
         row = SrcRow.I
         idx = 0
@@ -361,7 +361,7 @@ class TestEndPointSubclasses(unittest.TestCase):
         self.assertEqual(str(ep.typ), "int")
         self.assertEqual(ep.refs, refs)
 
-    def test_destination_end_point(self) -> None:
+    def test_destination_endpoint(self) -> None:
         """Test that a DestinationEndPoint is created correctly."""
         row = DstRow.F
         idx = 0

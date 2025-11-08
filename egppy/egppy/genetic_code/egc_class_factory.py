@@ -14,11 +14,11 @@ from egpcommon.deduplication import properties_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType
+from egppy.genetic_code.c_graph import CGraphType
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import JSONCGraph
+from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
-from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -45,7 +45,7 @@ class EGCMixin(GCMixin):
 
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
-        cgraph: CGraph | dict[str, Interface] | JSONCGraph = gcabc["cgraph"]
+        cgraph: CGraphABC | JSONCGraph = gcabc["cgraph"]
         if isinstance(cgraph, CGraphABC):
             self["cgraph"] = cgraph
         else:
@@ -53,7 +53,7 @@ class EGCMixin(GCMixin):
             # as valid input for CGraph,
             # but runtime checks ensure correctness; type ignore is required
             # for pyright/mypy compatibility.
-            self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))  # type: ignore[call-arg]
+            self["cgraph"] = frozen_cgraph_store[FrozenCGraph(json_cgraph_to_interfaces(cgraph))]
 
         # GCA
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
@@ -128,7 +128,7 @@ class EGCMixin(GCMixin):
         if _logger.isEnabledFor(level=DEBUG):
             # Type and length validation for all members
             self.debug_type_error(
-                isinstance(self["cgraph"], CGraph), "cgraph must be a Connection Graph object"
+                isinstance(self["cgraph"], CGraphABC), "cgraph must be a Connection Graph object"
             )
             self.debug_type_error(isinstance(self["gca"], bytes), "gca must be a bytes object")
             self.debug_value_error(len(self["gca"]) == 32, "gca must be 32 bytes")

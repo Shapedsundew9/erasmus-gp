@@ -10,7 +10,7 @@ import unittest
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
@@ -303,12 +303,6 @@ class TestValidJCG(unittest.TestCase):
     def test_invalid_index_in_endpoint(self) -> None:
         """Test that invalid indices raise ValueError."""
         jcg = {DstRow.O: [["I", 256, "int"]], DstRow.U: []}  # Index out of range
-        with self.assertRaises(ValueError):
-            valid_jcg(jcg)
-
-    def test_missing_destination_row(self) -> None:
-        """Test that missing required destination rows raise ValueError."""
-        jcg = {DstRow.U: []}  # Missing DstRow.O
         with self.assertRaises(ValueError):
             valid_jcg(jcg)
 

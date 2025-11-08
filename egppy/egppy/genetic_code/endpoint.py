@@ -25,7 +25,7 @@ Connection Rules:
 
 See Also:
     - c_graph_abc.py: Abstract base class for connection graphs (module docstring)
-    - end_point_abc.py: Abstract base class definition
+    - endpoint_abc.py: Abstract base class definition
     - interface.py: Collection of endpoints (interfaces)
     - c_graph.py: Connection graph using interfaces
 """
@@ -42,7 +42,7 @@ from egppy.genetic_code.c_graph_constants import (
     EndPointClass,
     Row,
 )
-from egppy.genetic_code.end_point_abc import EndPointABC
+from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # Standard EGP logging pattern

@@ -173,6 +173,8 @@ def sha256_signature(
     hash_obj.update(gcb)
     hash_obj.update(pgc)
     hash_obj.update(creator)
+    # The graph must be in a consistent format & order.
+    # See CGraph.py CGraph.to_json() for details.
     hash_obj.update(pformat(graph, compact=True).encode())
     if inline:
         hash_obj.update(inline.encode())

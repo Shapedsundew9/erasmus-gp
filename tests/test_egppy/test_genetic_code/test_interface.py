@@ -3,8 +3,8 @@
 import unittest
 
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
-from egppy.genetic_code.end_point import EndPoint
-from egppy.genetic_code.end_point_abc import EndPointABC
+from egppy.genetic_code.endpoint import EndPoint
+from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.interface import (
     DstInterface,
     Interface,

@@ -16,7 +16,7 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.genetic_code.end_point_abc import EndpointMemberType
+from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
@@ -179,6 +179,19 @@ def valid_rows(graph_type: CGraphType) -> frozenset[Row]:
 def valid_jcg(jcg: JSONCGraph) -> bool:
     """Validate a JSON connection graph.
 
+    The JSON connection graph format is as follows:
+    {
+        "DstRow1": [ [src_row: str, src_idx: int, endpoint_type: str], ... ],
+        "DstRow2": [ [src_row: str, src_idx: int, endpoint_type: str], ... ],
+        ...
+    }
+    DstRowX is a string representing the destination row (e.g., "A", "O", etc.).
+    and must be in the order defined in DstRow enum.
+    DstRowX key:value pairs must only be present if at least one source endpoint
+    is defined.
+    The rules defining connection graphs are such that the existence of an interface
+    can be inferred. See c_graph_abc.py module docstring for more details.
+
     Args:
         jcg: The JSON connection graph to validate.
 
@@ -197,9 +210,7 @@ def valid_jcg(jcg: JSONCGraph) -> bool:
 
     # Check that connectivity is valid
     for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():
-        if dst not in jcg:
-            raise ValueError(f"Missing destination row in JSON connection graph: {dst}")
-        for src in jcg[dst]:
+        for src in jcg.get(dst, []):
             if not isinstance(src, list):
                 raise TypeError("Expected a list of defining an endpoint.")
             srow = src[CPI.ROW]
@@ -331,33 +342,41 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
 
 def c_graph_type(jcg: JSONCGraph | CGraphABC) -> CGraphType:
     """Identify the connection graph type from the JSON graph."""
+    # Find all the rows present in the connection graph
+    # For a JSONCGraph it is necessarily to introspect all the destination
+    # endpoints to find the source rows as well as ensure I and O are included.
+    if isinstance(jcg, dict):
+        jcg_set = set(jcg) | {src[0] for row in jcg.values() for src in row} | {"O", "I"}
+        if "F" in jcg_set or "L" in jcg_set or "W" in jcg_set:
+            # Ensure P exists if F, L, or W exist (it will not as it is always a duplicate of Od)
+            jcg_set.add("P")
+    else:
+        jcg_set = set(k[0] for k in jcg)
     if _logger.isEnabledFor(level=DEBUG):
-        if DstRow.O not in jcg:
+        if DstRow.O not in jcg_set:
             raise ValueError("All connection graphs must have a row O.")
-        if not (DstRow.U in jcg or isinstance(jcg, CGraphABC)):
-            raise ValueError("All JSON connection graphs must have a row U.")
-        if DstRow.F in jcg:
-            if DstRow.A not in jcg:
+        if DstRow.F in jcg_set:
+            if DstRow.A not in jcg_set:
                 raise ValueError("All conditional connection graphs must have a row A.")
-            if DstRow.P not in jcg:
+            if DstRow.P not in jcg_set:
                 raise ValueError("All conditional connection graphs must have a row P.")
-            return CGraphType.IF_THEN_ELSE if DstRow.B in jcg else CGraphType.IF_THEN
-        if DstRow.L in jcg:
-            if DstRow.A not in jcg:
+            return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
+        if DstRow.L in jcg_set:
+            if DstRow.A not in jcg_set:
                 raise ValueError("All loop connection graphs must have a row A.")
-            if DstRow.P not in jcg:
+            if DstRow.P not in jcg_set:
                 raise ValueError("All loop connection graphs must have a row P.")
-            return CGraphType.WHILE_LOOP if DstRow.W in jcg else CGraphType.FOR_LOOP
-        if DstRow.B in jcg:
-            if DstRow.A not in jcg:
+            return CGraphType.WHILE_LOOP if DstRow.W in jcg_set else CGraphType.FOR_LOOP
+        if DstRow.B in jcg_set:
+            if DstRow.A not in jcg_set:
                 raise ValueError("A standard graph must have a row A.")
             return CGraphType.STANDARD
 
     # Same as above but without the checks
-    if DstRow.F in jcg:
-        return CGraphType.IF_THEN_ELSE if DstRow.B in jcg else CGraphType.IF_THEN
-    if DstRow.L in jcg:
-        return CGraphType.WHILE_LOOP if DstRow.W in jcg else CGraphType.FOR_LOOP
-    if DstRow.B in jcg:
+    if DstRow.F in jcg_set:
+        return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
+    if DstRow.L in jcg_set:
+        return CGraphType.WHILE_LOOP if DstRow.W in jcg_set else CGraphType.FOR_LOOP
+    if DstRow.B in jcg_set:
         return CGraphType.STANDARD
-    return CGraphType.PRIMITIVE if DstRow.A in jcg else CGraphType.EMPTY
+    return CGraphType.PRIMITIVE if DstRow.A in jcg_set else CGraphType.EMPTY

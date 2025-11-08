@@ -10,7 +10,7 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.validator import Validator
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.interface import Interface, TypesDef
 
 # Standard EGP logging pattern

@@ -16,7 +16,7 @@ from collections.abc import Iterator
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egppy.genetic_code.c_graph_constants import EndPointClass
-from egppy.genetic_code.end_point_abc import EndPointABC
+from egppy.genetic_code.endpoint_abc import EndPointABC
 
 
 class InterfaceABC(CommonObjABC, metaclass=ABCMeta):

@@ -56,14 +56,14 @@ gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
 
 # Load the primitive codons from the gene pool
-RSHIFT_SIG = bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")
-XOR_SIG = bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")
-GETRANDBITS_SIG = bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
-LITERAL_1_SIG = bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
-SIXTYFOUR_SIG = bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
-CUSTOM_PGC_SIG = bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")
-INT_TO_SIG = bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
-TO_INT_SIG = bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
+RSHIFT_SIG = bytes.fromhex("f4a47d1d40c2479cf15d040a70edf3927d90af277af04c46311e86012a994c68")
+XOR_SIG = bytes.fromhex("10f8108648e91447a7ec04b67f62e4fe329d36c8fa308a0e2cdc69b663b0ec34")
+GETRANDBITS_SIG = bytes.fromhex("eb2e8bf870a0d3e730950ddb54c1bbeec072b9d0ec41b5f72a9cac84e3414cc1")
+LITERAL_1_SIG = bytes.fromhex("39cbffe8db0ff428190b4cc8cfeee571d1c14c353f2e20d2ee0a2c0b89c606c0")
+SIXTYFOUR_SIG = bytes.fromhex("64124d5af849427f7a49c7793894e5f1574b1c15ea90ce077aaa2585677b9b3b")
+CUSTOM_PGC_SIG = bytes.fromhex("6186520dca76488e1f47fbf2c51c332694c90f0dd536ad3d0705b3c182ff14d1")
+INT_TO_SIG = bytes.fromhex("9f17e6a7c4f036e91b2a21e7b59c64ef5b4c3d3ef1ac6644c52a665ca1c5d229")
+TO_INT_SIG = bytes.fromhex("2457458d24422deab080b2e20500ca6c46176ea1f13dd4dcf95839cf80b104b1")
 
 
 # Dictionary of primitive GCs
@@ -310,6 +310,23 @@ def create_primitive_gcs() -> None:
     primitive_gcs["rshift_xor"] = rshift_xor_gc
     primitive_gcs["one_to_two"] = one_to_two
     primitive_gcs["two_to_one"] = two_to_one
+
+    # Catch signature generation issues early
+    assert primitive_gcs["random_long"]["signature"] == bytes.fromhex(
+        "775d7e6b2244df42582f990d7d7c03e97fd00f9df6cd963f2ef5a7ff0979df25"
+    )
+    assert primitive_gcs["rshift_1"]["signature"] == bytes.fromhex(
+        "d0b552e8e47f18381d94991e1d976491c60636127e4beecdaa8985d181c866e2"
+    )
+    assert primitive_gcs["rshift_xor"]["signature"] == bytes.fromhex(
+        "d2171e9398917f235ddde4c3633ad93f6601b0cfc66dc41193fcf6de411a7a82"
+    )
+    assert primitive_gcs["one_to_two"]["signature"] == bytes.fromhex(
+        "6307d213918fae3227c64caf65c4ae812c625046e43c9a101ac199757aad9de5"
+    )
+    assert primitive_gcs["two_to_one"]["signature"] == bytes.fromhex(
+        "d2171e9398917f235ddde4c3633ad93f6601b0cfc66dc41193fcf6de411a7a82"
+    )
 
 
 def randomrange(a: int, num: int = 0) -> list[int]:
@@ -638,4 +655,9 @@ if __name__ == "__main__":
     with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)
 
+    # Deduplicator info
     print(f"GC markdown and JSON files created.\n\n{deduplicators_info()}")
+
+    # Generate assertions to verify primitive GC signatures
+    for name, signature in ((k, v["signature"]) for k, v in primitive_gcs.items()):
+        print(f"assert primitive_gcs['{name}']['signature'] == bytes.fromhex('{signature.hex()}')")
