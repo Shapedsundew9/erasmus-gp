@@ -8,11 +8,10 @@ by considered to be a dict[str, Any] object with the additional constraints of t
 
 from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
 
-from egpcommon.common import ANONYMOUS_CREATOR, EGP_EPOCH, NULL_STR, NULL_TUPLE, sha256_signature
+from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, SHAPEDSUNDEW9_UUID
 from egpcommon.common_obj import CommonObj
-from egpcommon.deduplication import int_store, uuid_store
+from egpcommon.deduplication import int_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES
@@ -135,10 +134,6 @@ class GGCMixin(EGCMixin):
             if isinstance(tmp, datetime)
             else datetime.fromisoformat(tmp)
         )
-        # TODO: creator can be a reference into an object set as there will be many duplicates
-        creator = gcabc.get("creator", ANONYMOUS_CREATOR)
-        creator = UUID(creator) if isinstance(creator, str) else creator
-        self["creator"] = uuid_store[creator]
         self["descendants"] = int_store[gcabc.get("descendants", 0)]
         self["imports"] = gcabc.get("imports", NULL_TUPLE)
         self["inline"] = gcabc.get("inline", NULL_STR)
@@ -176,20 +171,6 @@ class GGCMixin(EGCMixin):
             else datetime.fromisoformat(tmp)
         )
 
-        if self["signature"] is None or self["signature"] == NULL_SIGNATURE:
-            self["signature"] = sha256_signature(
-                self["ancestora"],
-                self["ancestorb"],
-                self["gca"],
-                self["gcb"],
-                self["cgraph"].to_json(True),
-                self["pgc"],
-                self["imports"],
-                self["inline"],
-                self["code"],
-                int(self["created"].timestamp()),
-                self["creator"].bytes,
-            )
         if _logger.isEnabledFor(DEBUG):
             self.verify()
 
@@ -384,5 +365,12 @@ NULL_GC: GCABC = GGCDict(
         "num_codes": 1,
         "num_codons": 1,
         "properties": BASIC_CODON_PROPERTIES,
+        "creator": SHAPEDSUNDEW9_UUID,
+        "created": EGP_EPOCH,
+        "ancestora": NULL_SIGNATURE,
+        "ancestorb": NULL_SIGNATURE,
+        "gca": NULL_SIGNATURE,
+        "gcb": NULL_SIGNATURE,
+        "pgc": NULL_SIGNATURE,
     }
 )

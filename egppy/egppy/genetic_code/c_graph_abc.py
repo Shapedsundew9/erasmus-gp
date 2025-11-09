@@ -153,6 +153,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from collections.abc import Collection, Iterator
+from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
@@ -320,7 +321,7 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
     # Abstract Serialization Methods
 
     @abstractmethod
-    def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
+    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
         """Convert the Connection Graph to a JSON-compatible dictionary.
 
         Args:

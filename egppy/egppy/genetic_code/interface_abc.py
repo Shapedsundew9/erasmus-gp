@@ -228,3 +228,23 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
             Self with row set.
         """
         raise NotImplementedError("InterfaceABC.set_row must be overridden")
+
+    @abstractmethod
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints.
+
+        Returns:
+            Self with all endpoint references cleared.
+        """
+        raise NotImplementedError("InterfaceABC.clr_refs must be overridden")
+
+    @abstractmethod
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all references in the interface endpoints by a specified amount.
+
+        Args:
+            shift: The amount to shift each reference.
+        Returns:
+            Self with all endpoint references shifted.
+        """
+        raise NotImplementedError("InterfaceABC.ref_shift must be overridden")

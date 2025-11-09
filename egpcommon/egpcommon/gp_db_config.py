@@ -25,6 +25,7 @@ EGC_KVT: dict[str, dict[str, Any]] = {
         "phy_type": "bytes",
         "psql_type": "PsqlBytea",
     },
+    "creator": {"db_type": "UUID", "nullable": False, "phy_type": "UUID", "psql_type": "PsqlUUID"},
     "gca": {
         "db_type": "BYTEA",
         "nullable": True,
@@ -96,7 +97,6 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     },
     "code": {},  # Not persisted in the database but needed for execution
     "code_depth": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
-    "creator": {"db_type": "UUID", "nullable": False, "phy_type": "UUID", "psql_type": "PsqlUUID"},
     "descendants": {
         "db_type": "BIGINT",
         "nullable": False,

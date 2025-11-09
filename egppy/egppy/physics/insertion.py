@@ -3,11 +3,14 @@
 Defines how a insert GC (iGC) is inserted into a target GC (tGC).
 """
 
+from egpcommon.egp_rnd_gen import EGPRndGen
 from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.physics.runtime_context import RuntimeContext
 
 
@@ -30,19 +33,19 @@ def insert_gc_case_0(
     -------
     GCABC -- the resultant stacked GC
     """
-    igc_cgraph = igc["c_graph"]
-    igc_is = igc_cgraph["Is"]
-    igc_od = igc_cgraph["Od"]
-    tgc_cgraph = tgc["c_graph"]
-    tgc_is = tgc_cgraph["Is"]
-    tgc_od = tgc_cgraph["Od"]
+    igc_cgraph: CGraphABC = igc["c_graph"]
+    igc_is: InterfaceABC = igc_cgraph["Is"]
+    igc_od: InterfaceABC = igc_cgraph["Od"]
+    tgc_cgraph: CGraphABC = tgc["c_graph"]
+    tgc_is: InterfaceABC = tgc_cgraph["Is"]
+    tgc_od: InterfaceABC = tgc_cgraph["Od"]
     graph = {
-        "Is": Interface(igc_is),
-        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EndPointClass.DST),
-        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EndPointClass.SRC),
-        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EndPointClass.DST),
-        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EndPointClass.SRC),
-        "Od": Interface(tgc_od),
+        "Is": Interface(igc_is).clr_refs(),
+        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EndPointClass.DST).clr_refs(),
+        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EndPointClass.SRC).clr_refs(),
+        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EndPointClass.DST).clr_refs(),
+        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EndPointClass.SRC).clr_refs(),
+        "Od": Interface(tgc_od).clr_refs(),
     }
     rgc = EGCDict(
         {
@@ -55,7 +58,7 @@ def insert_gc_case_0(
         }
     )
     assert isinstance(rgc["c_graph"], CGraph), "Resultant GC c_graph is not a CGraph"
-    rgc["c_graph"].stablize(rtctxt.gpi, if_locked)
+    rgc["c_graph"].stablize(rtctxt.gpi, if_locked, EGPRndGen(rgc["created"]))
     return rgc
 
 
@@ -63,7 +66,7 @@ def insert_gc_case_1(
     rtctxt: RuntimeContext, tgc: GCABC, igc: GCABC, if_locked: bool = True
 ) -> GCABC:
     """Insert case 1: inverse stack."""
-    return insert_gc_case_0(rtctxt, igc, tgc, if_locked)  # pylint: disable=W1114
+    return insert_gc_case_0(rtctxt, igc, tgc, if_locked)  # pylint: disable=arguments-out-of-order
 
 
 # Insertion case aliases
@@ -81,7 +84,6 @@ def sca(rtctxt: RuntimeContext, tgc: GCABC, igc: GCABC) -> GCABC:
     Note that SCA is *always* unlocked, i.e., the resultant GC's interface can be
     modified.
     """
-    # TODO: How does PGC percolate up?
     return stack(rtctxt, tgc, igc, False)
 
 
@@ -89,13 +91,21 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     """Creates a harmony GC by placing gca and gcb in a GC but with inputs and outputs
     directly passed through (no connection between gca and gcb).
     """
+    gca_cgraph: CGraphABC = gca["c_graph"]
+    gca_is: InterfaceABC = gca_cgraph["Is"]
+    gca_od: InterfaceABC = gca_cgraph["Od"]
+    gcb_cgraph: CGraphABC = gcb["c_graph"]
+    gcb_is: InterfaceABC = gcb_cgraph["Is"]
+    gcb_od: InterfaceABC = gcb_cgraph["Od"]
+    gca_is_len = len(gca_is)
+    gca_od_len = len(gca_od)
     graph = {
-        "Is": gca["Is"] + gcb["Is"],
-        "Ad": gca["Is"].copy(),
-        "As": gca["Od"].copy(),
-        "Bd": gcb["Is"].copy(),
-        "Bs": gcb["Od"].copy(),
-        "Od": gca["Od"] + gcb["Od"],
+        "Is": gca_is + gcb_is.ref_shift(gca_is_len),
+        "Ad": gca_is.set_row(DstRow.A).set_cls(EndPointClass.DST),
+        "As": gca_od.set_row(SrcRow.A).set_cls(EndPointClass.SRC),
+        "Bd": gcb_is.set_row(DstRow.B).set_cls(EndPointClass.DST).ref_shift(gca_is_len),
+        "Bs": gcb_od.set_row(SrcRow.B).set_cls(EndPointClass.SRC).ref_shift(gca_od_len),
+        "Od": gca_od + gcb_od.ref_shift(gca_od_len),
     }
 
     rgc = EGCDict(

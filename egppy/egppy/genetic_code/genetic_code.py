@@ -13,7 +13,8 @@ from egpcommon.common import NULL_SHA256
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type
+from egppy.genetic_code.c_graph import CGraphType, c_graph_type
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
 from egppy.genetic_code.types_def import types_def_store
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
@@ -363,7 +364,7 @@ class GCMixin(CommonObj):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
                 retval[key] = value["signature"].hex() if value is not NULL_SIGNATURE else None
-            elif isinstance(value, CGraph):
+            elif isinstance(value, CGraphABC):
                 # Need to set json_c_graph to True so that the endpoints are correctly serialized
                 retval[key] = value.to_json(json_c_graph=True)
             elif getattr(self[key], "to_json", None) is not None:

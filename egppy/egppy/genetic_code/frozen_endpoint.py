@@ -314,3 +314,17 @@ class FrozenEndPoint(EndPointABC):
                     raise ValueError(
                         f"Destination endpoint can only reference source rows, got {ref[0]}"
                     )
+
+    def clr_refs(self) -> EndPointABC:
+        """Clear all references in the endpoint."""
+        raise RuntimeError("Cannot modify a frozen EndPoint")
+
+    def ref_shift(self, shift: int) -> EndPointABC:
+        """Shift all references in the endpoint by a given amount.
+
+        Args:
+            shift (int): The amount to shift each reference index.
+        Raises:
+            RuntimeError: Always raises since frozen endpoints are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen EndPoint")

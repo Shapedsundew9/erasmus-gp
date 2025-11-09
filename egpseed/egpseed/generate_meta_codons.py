@@ -1,16 +1,19 @@
 """Generate codons."""
 
 from copy import deepcopy
+from datetime import datetime
 from os.path import dirname, join
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID
+from egpcommon.common import EGP_EPOCH, NULL_STR, SHAPEDSUNDEW9_UUID, sha256_signature
 from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egpcommon.security import dump_signed_json
+from egpcommon.security import dump_signed_json, load_signed_json_list
 from egpcommon.spinner import Spinner
+from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
-from egppy.genetic_code.json_cgraph import valid_jcg
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces, valid_jcg
 from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
@@ -25,6 +28,9 @@ CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
+    "ancestora": NULL_SIGNATURE,
+    "ancestorb": NULL_SIGNATURE,
+    "pgc": NULL_SIGNATURE,
     "creator": SHAPEDSUNDEW9_UUID,
     "created": EGP_EPOCH.isoformat(),
     "generation": 1,
@@ -144,6 +150,22 @@ def generate_meta_codons(write: bool = False) -> None:
                     base["name"] = base["name"].replace(s, r)
 
                 assert valid_jcg(codon["cgraph"]), "Invalid codon connection graph at construction."
+                codon["signature"] = sha256_signature(
+                    codon["ancestora"],
+                    codon["ancestorb"],
+                    codon["gca"],
+                    codon["gcb"],
+                    CGraph(json_cgraph_to_interfaces(codon["cgraph"])).to_json(
+                        True
+                    ),  # type: ignore
+                    codon["pgc"],
+                    tuple(ImportDef(**md) for md in base["imports"]),
+                    base["inline"],
+                    NULL_STR,
+                    int(datetime.fromisoformat(codon["created"]).timestamp()),
+                    codon["creator"].bytes,
+                )
+
                 new_codon = GGCDict(codon)
                 new_codon.verify()
                 codon = new_codon.to_json()
@@ -155,12 +177,25 @@ def generate_meta_codons(write: bool = False) -> None:
                     raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
                 meta_codons[codon["signature"]] = codon
 
+    # If we are debugging verify the signatures are correct
+    if _logger.isEnabledFor(DEBUG) and not write:
+        codon_dict = {c["signature"]: c for c in load_signed_json_list(OUTPUT_CODON_PATH)}
+        for sig, codon in meta_codons.items():
+            assert sig in codon_dict, f"Codon signature {sig} not found in existing codons."
+            del codon["updated"]  # Ignore updated timestamp for comparison
+            del codon_dict[sig]["updated"]
+            assert (
+                codon == codon_dict[sig]
+            ), f"Codon signature {sig} does not match existing codon definition."
+
     # Write the meta codons to the output file (optional)
-    spinner.stop()
     if write:
         dump_signed_json(list(meta_codons.values()), OUTPUT_CODON_PATH)
 
     _logger.log(DEBUG, "Meta codons generated successfully.")
+
+    # Stop the spinner
+    spinner.stop()
 
 
 if __name__ == "__main__":

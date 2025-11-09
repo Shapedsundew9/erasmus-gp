@@ -77,6 +77,8 @@ PROPERTIES_CONFIG = {
             "Given the same inputs the genetic code will _always_ return the same result."
         ),
     },
+    # TODO: Why do we care about 'abstract'? Currently not used (as expensive to compute).
+    # May be just a codon property?
     "abstract": {
         "type": "bool",
         "start": 10,
@@ -91,9 +93,13 @@ PROPERTIES_CONFIG = {
         "default": False,
         "description": (
             "The genetic code has side effects in the execution "
-            "context that are not related to the return value."
+            "context that are not related to the return value e.g. modifying global state "
+            "like a random sequence generator or storing to memory etc."
         ),
     },
+    # TODO: Is this needed? Tells use we can deterministically create the GC again but that should
+    # be the case for all GC's if we have a standard way of determining the seed unique the the
+    # creation instance (e.g. parent PGC id + time etc).
     "static_creation": {
         "type": "bool",
         "start": 12,

@@ -502,6 +502,26 @@ class EndPoint(CommonObj, EndPointABC):
         # Call parent consistency()
         super().consistency()
 
+    def clr_refs(self) -> EndPointABC:
+        """Clear all references in the endpoint.
+        Returns:
+            EndPointABC: Self with all references cleared.
+        """
+        self.refs.clear()
+        return self
+
+    def ref_shift(self, shift: int) -> EndPointABC:
+        """Shift all references in the endpoint by a specified amount.
+        Args:
+            shift: The amount to shift each reference.
+        Returns:
+            EndPointABC: Self with all references shifted.
+        """
+        for ref in self.refs:
+            assert isinstance(ref[1], int), "Reference index must be an integer"
+            ref[1] += shift
+        return self
+
 
 class SrcEndPoint(EndPoint):
     """Source Endpoint convenience class.

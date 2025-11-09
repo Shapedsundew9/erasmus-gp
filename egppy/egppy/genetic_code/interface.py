@@ -153,6 +153,9 @@ class Interface(CommonObj, InterfaceABC):
     def __add__(self, other: InterfaceABC) -> InterfaceABC:
         """Concatenate two interfaces to create a new interface.
 
+        Add correctly updates the indices of the endpoints in the new interface.
+        However, it does not change the row or class of the endpoints.
+
         Args
         ----
         other: Interface: The interface to concatenate with this interface.
@@ -160,11 +163,6 @@ class Interface(CommonObj, InterfaceABC):
         Returns
         -------
         Interface: A new interface containing endpoints from both interfaces.
-
-        Raises
-        ------
-        TypeError: If other is not an Interface instance.
-        ValueError: If the interfaces have incompatible row or class properties.
         """
         if not isinstance(other, InterfaceABC):
             raise TypeError(f"Can only add InterfaceABC to InterfaceABC, got {type(other)}")
@@ -225,6 +223,9 @@ class Interface(CommonObj, InterfaceABC):
     def append(self, value: EndPointABC) -> None:
         """Append an endpoint to the interface.
 
+        Append correctly sets the index of the appended endpoint.
+        However, it does not change the row or class of the endpoint.
+
         Args
         ----
         value: EndPointABC: The endpoint to append.
@@ -239,6 +240,9 @@ class Interface(CommonObj, InterfaceABC):
 
     def extend(self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC) -> None:
         """Extend the interface with multiple endpoints.
+
+        Extend correctly sets the indices of the appended endpoints.
+        However, it does not change the row or class of the endpoint.
 
         Args
         ----
@@ -343,6 +347,26 @@ class Interface(CommonObj, InterfaceABC):
         """
         for ep in self.endpoints:
             ep.row = row
+        return self
+
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints.
+        Returns:
+            Interface: Self with all endpoint references cleared."""
+        for ep in self.endpoints:
+            ep.clr_refs()
+        return self
+
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all references in the interface endpoints by a specified amount.
+
+        Args:
+            shift: The amount to shift each reference index by.
+        Returns:
+            Interface: Self with all endpoint references shifted.
+        """
+        for ep in self.endpoints:
+            ep.ref_shift(shift)
         return self
 
 

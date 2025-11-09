@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from itertools import chain
 from pprint import pformat
+from typing import Any
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import VERIFY, Logger, egp_logger
@@ -70,6 +71,9 @@ class CGraph(CommonObj, CGraphABC):
         # with the two character interface name preceded by an underscore (e.g. _Is,
         # _Fd, _Ad, etc.). The python object None is used to indicate that an interface
         # does not exist in this graph.
+        assert (
+            any(key in graph for key in ROW_CLS_INDEXED_SET) and graph
+        ), "Input graph not empty but contains no valid interface keys."
         for key in ROW_CLS_INDEXED_ORDERED:
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
@@ -183,7 +187,7 @@ class CGraph(CommonObj, CGraphABC):
         """Identify and return the type of this connection graph."""
         return c_graph_type(self)
 
-    def to_json(self, json_c_graph: bool = False) -> dict | JSONCGraph:
+    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
         """Convert the Connection Graph to a JSON-compatible dictionary.
 
         IMPORTANT: The JSON representation produced by this method is
@@ -193,19 +197,19 @@ class CGraph(CommonObj, CGraphABC):
         The method systematically processes each interface in a predefined
         order, and constructs the JSON dictionary in a consistent manner.
         """
-        jcg: JSONCGraph = {}
+        jcg: dict = {}
         row_u = []
         for key in DstRow:  # This order is important for consistent JSON output
             iface: Interface = getattr(self, _UNDER_DST_KEY_DICT[key])
             if iface is not None and (len(iface) > 0 or not json_c_graph):
-                jcg[key] = iface.to_json(json_c_graph=json_c_graph)
+                jcg[str(key) if json_c_graph else key] = iface.to_json(json_c_graph=json_c_graph)
         for key in SrcRow:  # This order is important for consistent JSON output
             iface: Interface = getattr(self, _UNDER_SRC_KEY_DICT[key])
             if iface is not None and len(iface) > 0:
                 unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
                 row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
         if json_c_graph and row_u:
-            jcg[DstRow.U] = row_u
+            jcg["U"] = row_u
         return jcg
 
     def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
@@ -312,7 +316,7 @@ class CGraph(CommonObj, CGraphABC):
             if iface is not None:
                 yield key, iface
 
-    def stabilize(self, if_locked: bool = True) -> None:
+    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """Stablization involves making all the mandatory connections and
         connecting all the remaining unconnected destination endpoints.
         Destinations are connected to sources in a random order.
@@ -323,7 +327,7 @@ class CGraph(CommonObj, CGraphABC):
         After stabilization, check is_stable() to determine if all destinations
         were successfully connected.
         """
-        self.connect_all(if_locked)
+        self.connect_all(if_locked, rng)
         if _logger.isEnabledFor(level=VERIFY):
             self.verify()
 

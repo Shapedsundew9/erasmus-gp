@@ -8,9 +8,11 @@ genetic code object avoiding all the derived data.
 
 from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID
 
+from egpcommon.common import ANONYMOUS_CREATOR, NULL_STR, NULL_TUPLE, sha256_signature
 from egpcommon.common_obj import CommonObj
-from egpcommon.deduplication import properties_store, signature_store
+from egpcommon.deduplication import properties_store, signature_store, uuid_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import GCType, PropertiesBD
@@ -98,9 +100,29 @@ class EGCMixin(GCMixin):
             prps if isinstance(prps, int) else PropertiesBD(prps, False).to_int()
         ]
 
+        # Creator
+        creator = gcabc.get("creator", ANONYMOUS_CREATOR)
+        creator = UUID(creator) if isinstance(creator, str) else creator
+        self["creator"] = uuid_store[creator]
+
         # Signature
         tmp: str | bytes = gcabc.get("signature", NULL_SIGNATURE)
-        self["signature"] = signature_store[bytes.fromhex(tmp) if isinstance(tmp, str) else tmp]
+        if tmp == NULL_SIGNATURE:
+            self["signature"] = sha256_signature(
+                self["ancestora"],
+                self["ancestorb"],
+                self["gca"],
+                self["gcb"],
+                self["cgraph"].to_json(True),
+                self["pgc"],
+                NULL_TUPLE,
+                NULL_STR,
+                NULL_STR,
+                int(self["created"].timestamp()),
+                self["creator"].bytes,
+            )
+        else:
+            self["signature"] = signature_store[bytes.fromhex(tmp) if isinstance(tmp, str) else tmp]
 
     def verify(self) -> None:
         """Verify the genetic code object.

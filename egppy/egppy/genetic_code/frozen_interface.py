@@ -373,3 +373,17 @@ class FrozenInterface(InterfaceABC):
                             f"Destination endpoint {idx} can only reference"
                             f" source rows, got {ref[0]}"
                         )
+
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints."""
+        raise RuntimeError("Cannot modify a frozen Interface")
+
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all reference indices in the interface endpoints.
+
+        Args:
+            shift: The integer amount to shift all reference indices by.
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")

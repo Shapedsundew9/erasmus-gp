@@ -73,7 +73,7 @@
         "description": "GCABC creator Python field extraction",
         "inline": "{i0}['creator']",
         "inputs": [
-            "GGCode"
+            "EGCode"
         ],
         "outputs": [
             "UUID"

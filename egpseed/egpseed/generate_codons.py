@@ -1,19 +1,29 @@
 """Generate codons."""
 
 from copy import deepcopy
+from datetime import datetime
 from glob import glob
 from json import load
 from os.path import basename, dirname, join, splitext
 from re import sub
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID, ensure_sorted_json_keys, merge
-from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.common import (
+    EGP_EPOCH,
+    NULL_STR,
+    SHAPEDSUNDEW9_UUID,
+    ensure_sorted_json_keys,
+    merge,
+    sha256_signature,
+)
+from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egpcommon.security import dump_signed_json
+from egpcommon.security import dump_signed_json, load_signed_json_list
 from egpcommon.spinner import Spinner
+from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
-from egppy.genetic_code.json_cgraph import valid_jcg
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces, valid_jcg
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -26,6 +36,9 @@ CODON_TEMPLATE: dict[str, Any] = {
     "cgraph": {"A": None, "O": None},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
+    "ancestora": NULL_SIGNATURE,
+    "ancestorb": NULL_SIGNATURE,
+    "pgc": NULL_SIGNATURE,
     "creator": SHAPEDSUNDEW9_UUID,
     "created": EGP_EPOCH.isoformat(),
     "generation": 1,
@@ -112,6 +125,19 @@ class MethodExpander:
         json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
         json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
         assert valid_jcg(json_dict["cgraph"]), "Invalid codon connection graph at construction."
+        json_dict["signature"] = sha256_signature(
+            json_dict["ancestora"],
+            json_dict["ancestorb"],
+            json_dict["gca"],
+            json_dict["gcb"],
+            CGraph(json_cgraph_to_interfaces(json_dict["cgraph"])).to_json(True),  # type: ignore
+            json_dict["pgc"],
+            tuple(ImportDef(**md) for md in self.imports),
+            self.inline,
+            NULL_STR,
+            int(datetime.fromisoformat(json_dict["created"]).timestamp()),
+            json_dict["creator"].bytes,
+        )
         return json_dict
 
 
@@ -164,7 +190,20 @@ def generate_codons(write: bool = False) -> None:
             assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"
             assert signature not in codons, f"Duplicate signature: {signature}"
             codons[signature] = codon
-    spinner.stop()
+
+    # If we are debugging verify the signatures are correct
+    if _logger.isEnabledFor(DEBUG) and not write:
+        codon_dict = {
+            c["signature"]: c
+            for c in load_signed_json_list(join(dirname(__file__), *OUTPUT_CODON_PATH))
+        }
+        for sig, codon in codons.items():
+            assert sig in codon_dict, f"Codon signature {sig} not found in existing codons."
+            del codon["updated"]  # Ignore updated timestamp for comparison
+            del codon_dict[sig]["updated"]
+            assert (
+                codon == codon_dict[sig]
+            ), f"Codon signature {sig} does not match existing codon definition."
 
     # If we are writing the codons to a file then we need to ensure that the signatures are unique
     if write:
@@ -172,6 +211,9 @@ def generate_codons(write: bool = False) -> None:
             list(codons.values()),
             join(dirname(__file__), *OUTPUT_CODON_PATH),
         )
+
+    # Stop the spinner
+    spinner.stop()
 
 
 if __name__ == "__main__":

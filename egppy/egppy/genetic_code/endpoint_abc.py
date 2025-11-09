@@ -244,7 +244,8 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
                                  Only valid for destination endpoints. Defaults to False.
 
         Returns:
-            dict | list: JSON-compatible dictionary (standard format) or list (connection graph format).
+            dict | list: JSON-compatible dictionary (standard format) or list
+                         (connection graph format).
 
         Raises:
             ValueError: If json_c_graph is True for a source endpoint.
@@ -306,3 +307,21 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             TypeError: If attribute types are incorrect.
         """
         raise NotImplementedError("EndPointABC.verify must be overridden")
+
+    @abstractmethod
+    def clr_refs(self) -> EndPointABC:
+        """Clear all references in the endpoint.
+        Returns:
+            Self with all references cleared.
+        """
+        raise NotImplementedError("EndPointABC.clr_refs must be overridden")
+
+    @abstractmethod
+    def ref_shift(self, shift: int) -> EndPointABC:
+        """Shift all references in the endpoint by a given amount.
+        Args:
+            shift: The amount to shift each reference index by.
+        Returns:
+            Self with all references shifted.
+        """
+        raise NotImplementedError("EndPointABC.ref_shift must be overridden")

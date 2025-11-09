@@ -56,14 +56,14 @@ gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
 
 # Load the primitive codons from the gene pool
-RSHIFT_SIG = bytes.fromhex("f4a47d1d40c2479cf15d040a70edf3927d90af277af04c46311e86012a994c68")
-XOR_SIG = bytes.fromhex("10f8108648e91447a7ec04b67f62e4fe329d36c8fa308a0e2cdc69b663b0ec34")
-GETRANDBITS_SIG = bytes.fromhex("eb2e8bf870a0d3e730950ddb54c1bbeec072b9d0ec41b5f72a9cac84e3414cc1")
-LITERAL_1_SIG = bytes.fromhex("39cbffe8db0ff428190b4cc8cfeee571d1c14c353f2e20d2ee0a2c0b89c606c0")
-SIXTYFOUR_SIG = bytes.fromhex("64124d5af849427f7a49c7793894e5f1574b1c15ea90ce077aaa2585677b9b3b")
-CUSTOM_PGC_SIG = bytes.fromhex("b7037236edce4ce6e80c9bfd8b4fa6d0827dbd1c6422980362ed4da95bebad1f")
-INT_TO_SIG = bytes.fromhex("9f17e6a7c4f036e91b2a21e7b59c64ef5b4c3d3ef1ac6644c52a665ca1c5d229")
-TO_INT_SIG = bytes.fromhex("2457458d24422deab080b2e20500ca6c46176ea1f13dd4dcf95839cf80b104b1")
+RSHIFT_SIG = bytes.fromhex("23cd3c246c9dd41f32e98968737267752b75fe1f5120f1b6ae8f073dfb595738")
+XOR_SIG = bytes.fromhex("b300b0033c1d130bc8cc3025c06329b0168fece01ea00edd76ca5b9ccb09a429")
+GETRANDBITS_SIG = bytes.fromhex("2785ebc9664606f26d1a714129ad2c2154d41366a3a691f8fdbb20c1aba78532")
+LITERAL_1_SIG = bytes.fromhex("515d23bea7b96470e28d35f3389a809006144db8f1e09e23db0d726c821b3e87")
+SIXTYFOUR_SIG = bytes.fromhex("bd58240d011e9f9c156ee2a1492c51d9b1db30e9439030aa4a3a8c68f47ed3d6")
+CUSTOM_PGC_SIG = bytes.fromhex("538d6583812fa73d264f1cb7d7618a7407721d7dbcd7c4333a99169eca001fa8")
+INT_TO_SIG = bytes.fromhex("cc574421e52f29f4d991d0fc4355e2eab0a3052608c651e83a94a5058d92eb2a")
+TO_INT_SIG = bytes.fromhex("4380565bba8aa1312ce62ec72bcf61353a5ee173e3c57a638d7546133e39c93f")
 
 
 # Dictionary of primitive GCs
@@ -313,19 +313,19 @@ def create_primitive_gcs() -> None:
 
     # Catch signature generation issues early
     assert primitive_gcs["random_long"]["signature"] == bytes.fromhex(
-        "f988b7bb57de85b661dfc224f135f4fda6d59b1f39cae48ce44475fc68f1f2ff"
+        "24d185d9dafabdb920311ec68de3833bd4a3b0d282b972786800022b048a0905"
     )
     assert primitive_gcs["rshift_1"]["signature"] == bytes.fromhex(
-        "f99048b58d1b5ab0c1154b6ecd17d8de47b754c966ee26f489ed848f792395c8"
+        "27c0d11482d8b6909a88cb27262c5c2bc4ee92f9279d1160bf56bc80ed11c48b"
     )
     assert primitive_gcs["rshift_xor"]["signature"] == bytes.fromhex(
-        "29ab86ccf38420ba25897a5084fa220ecfbfb9ac45b027ea04213e02e6c06d74"
+        "851f31a61994c086c6d2fe84c243d3d8373f4a62f98f1f344c23493060e0c2a0"
     )
     assert primitive_gcs["one_to_two"]["signature"] == bytes.fromhex(
-        "ea3fa6f751b5254e2c79515aeae70275181ebbf4a0fb3d4c37db87a5c4bc6a60"
+        "9cdb994a05ee0630d4d79747c9b62ac4ba22545e3085aa3645aed30d13615057"
     )
     assert primitive_gcs["two_to_one"]["signature"] == bytes.fromhex(
-        "29ab86ccf38420ba25897a5084fa220ecfbfb9ac45b027ea04213e02e6c06d74"
+        "851f31a61994c086c6d2fe84c243d3d8373f4a62f98f1f344c23493060e0c2a0"
     )
 
 

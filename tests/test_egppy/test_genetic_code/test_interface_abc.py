@@ -112,6 +112,8 @@ class TestInterfaceABC(TestCase):
                 "consistency",
                 "set_row",
                 "set_cls",
+                "clr_refs",
+                "ref_shift",
             }
         )
 

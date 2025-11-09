@@ -101,6 +101,9 @@ class FrozenCGraph(CGraph, CommonObj):
         #   tuple[TypesDef, ...]
         # References are stored as
         #   tuple[tuple[tuple[Row, idx], ...], ...]
+        assert (
+            any(key in graph for key in ROW_CLS_INDEXED_ORDERED) and graph
+        ), "Input graph not empty but contains no valid interface keys."
         for key in ROW_CLS_INDEXED_ORDERED:
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
@@ -197,7 +200,7 @@ class FrozenCGraph(CGraph, CommonObj):
         """
         raise RuntimeError("Cannot modify a frozen Connection Graph")
 
-    def stabilize(self, if_locked: bool = True) -> None:
+    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """Stabilize the graph by connecting all unconnected destinations.
 
         Args:
