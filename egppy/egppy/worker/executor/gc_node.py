@@ -223,6 +223,7 @@ class GCNode(Iterable, Hashable):
         "gc",
         "is_codon",
         "is_meta",
+        "is_pgc",
         "unknown",
         "exists",
         "function_info",
@@ -259,7 +260,7 @@ class GCNode(Iterable, Hashable):
         # Defaults. These may be changed depending on the GC structure and what
         # is found in the cache.
         self.is_codon: bool = gc.is_codon()  # Is this node for a codon?
-        self.is_meta: bool = False  # Is this node for a meta-codon?
+        self.is_meta: bool = gc.is_meta()  # Is this node for a meta-codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
         self.exists: bool = finfo is not NULL_FUNCTION_MAP
         self.function_info: FunctionInfo = finfo
@@ -269,6 +270,7 @@ class GCNode(Iterable, Hashable):
         self.gcb: GCABC | bytes = gc["gcb"]
         self.terminal: bool = False  # A terminal node is where a connection ends
         self.f_connection: bool = gc.is_conditional()
+        self.is_pgc: bool = gc.is_pgc()
         # If this node is a null GC node then it is a leaf node and we self
         # reference with GCA & GCB to terminate the recursion.
         # NOTE: Not entirely comfortable with this & its potential consequences.
@@ -301,7 +303,6 @@ class GCNode(Iterable, Hashable):
             self.parent = parent
 
         if self.is_codon:
-            self.is_meta = gc.is_meta()  # Set is_meta if the GC is a meta-codon
             assert (
                 self.gca is NULL_GC or self.gca is NULL_SIGNATURE
             ), "GCA must be NULL_GC for a codon"
@@ -410,8 +411,11 @@ class GCNode(Iterable, Hashable):
             input_types = ", ".join(str(iface[i].typ) for i in range(inum))
             iparams += f": tuple[{input_types}]"
 
+        # The RuntimeContext object is only required for PGCs
+        rtctxt = "rtctxt: RuntimeContext, " if self.is_pgc else ""
+
         # Start building the function definition
-        base_def = f"def {self.function_info.name()}({iparams if inum else ''})"
+        base_def = f"def {self.function_info.name()}({rtctxt}{iparams if inum else ''})"
 
         if hints:
             # Add type hints for output parameters

@@ -82,7 +82,7 @@ class FrozenCGraph(CGraph, CommonObj):
     __slots__ = ("_hash",)
 
     def __init__(  # pylint: disable=super-init-not-called
-        self, graph: dict[str, list[EndpointMemberType]] | CGraphABC
+        self, graph: dict[str, list[EndpointMemberType]] | dict[str, InterfaceABC] | CGraphABC
     ) -> None:
         """Initialize the Frozen Connection Graph.
 
@@ -104,17 +104,19 @@ class FrozenCGraph(CGraph, CommonObj):
         for key in ROW_CLS_INDEXED_ORDERED:
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
-                if isinstance(graph, CGraphABC):
-                    type_tuple = tuple(ep.typ for ep in graph[key])
+                iface = graph[key]
+                if isinstance(iface, InterfaceABC):
+                    type_tuple = tuple(ep.typ for ep in iface)
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep.refs)]
-                        for ep in graph[key]
+                        for ep in iface
                     )
                 else:
-                    type_tuple = tuple(type_tuple_store[ep[3]] for ep in graph[key])
+                    assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
+                    type_tuple = tuple(type_tuple_store[ep[3]] for ep in iface)
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
-                        for ep in graph[key]
+                        for ep in iface
                     )
                 epcls = EndPointClass.SRC if key[1] == "s" else EndPointClass.DST
                 row = DstRow(key[0]) if epcls == EndPointClass.DST else SrcRow(key[0])

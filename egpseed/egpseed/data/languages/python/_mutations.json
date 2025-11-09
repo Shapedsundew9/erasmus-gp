@@ -4,10 +4,21 @@
     "description": "Manually created GC. This is a placeholder no-op representing a custom mutation function.",
     "num_inputs": 0,
     "num_outputs": 0,
-    "inline": "()",
+    "inline": "custom_pgc({pgc})",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "custom_pgc"
+      }
+    ],
     "properties": {
       "side_effects": true,
-      "static_creation": true
+      "static_creation": true,
+      "is_pgc": true
     }
   },
   "harmony": {
@@ -20,7 +31,7 @@
     "outputs": [
       "EGCode"
     ],
-    "inline": "harmony(GPI, {i0}, {i1})",
+    "inline": "harmony({pgc}{i0}, {i1})",
     "imports": [
       {
         "aip": [
@@ -33,7 +44,8 @@
     ],
     "properties": {
       "side_effects": false,
-      "static_creation": false
+      "static_creation": false,
+      "is_pgc": true
     }
   },
   "sca": {
@@ -46,7 +58,7 @@
     "outputs": [
       "EGCode"
     ],
-    "inline": "sca(GPI, {i0}, {i1})",
+    "inline": "sca({pgc}{i0}, {i1})",
     "imports": [
       {
         "aip": [
@@ -59,7 +71,8 @@
     ],
     "properties": {
       "side_effects": false,
-      "static_creation": false
+      "static_creation": false,
+      "is_pgc": true
     }
   }
 }

@@ -16,6 +16,7 @@ from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.interface import Interface, unpack_src_ref
+from egppy.physics.pgc_api import RuntimeContext
 from egppy.worker.executor.code_connection import (
     CodeConnection,
     CodeEndPoint,
@@ -382,7 +383,15 @@ class ExecutionContext:
         assert isinstance(signature, bytes), f"Invalid signature type: {type(signature)}"
         assert signature in self.function_map, f"Signature not found: {signature.hex()}"
         lns: dict[str, Any] = {"i": args}
-        execution_str = f"result = {self.function_map[signature].name()}(i)"
+        finfo = self.function_map[signature]
+
+        # NB: RuntimeContext is not used if the GC is not a PGC
+        rtctxt = ""
+        if finfo.gc.is_pgc():
+            lns["rtctxt"] = RuntimeContext(self.gpi, finfo.gc)
+            rtctxt = "rtctxt, "
+
+        execution_str = f"result = {finfo.name()}({rtctxt}i)"
         exec(execution_str, self.namespace, lns)  # pylint: disable=exec-used
         return lns["result"]
 
@@ -424,6 +433,8 @@ class ExecutionContext:
                     self.define(str(impt))
                     self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
+            if node.is_pgc:
+                ivns_map["pgc"] = "rtctxt, "
             return assignment + ngc["inline"].format_map(ivns_map)
         return assignment + node.function_info.call_str(ivns)
 

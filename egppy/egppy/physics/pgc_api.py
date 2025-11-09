@@ -85,6 +85,7 @@ from egppy.physics.psql_types import (
     PsqlUUID,
     PsqlVarChar,
 )
+from egppy.physics.runtime_context import RuntimeContext
 
 # Public Physical Types and Aliases
 Pair = tuple
@@ -94,3 +95,21 @@ Quintuplet = tuple
 Sextuplet = tuple
 Septuplet = tuple
 Bytes = bytes | bytearray
+
+
+# The custom PGC function placeholder
+def custom_pgc(_: RuntimeContext) -> None:
+    """Custom PGC mutation function placeholder.
+
+    This function is a no-op placeholder representing a custom mutation
+    function implemented outside of the standard EGP system. It allows
+    generated genetic code to include calls to custom mutation functions
+    without knowing their implementation details.
+
+    Args:
+        _: The runtime context for the genetic code execution.
+
+    Returns:
+        None
+    """
+    pass

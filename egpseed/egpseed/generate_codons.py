@@ -84,6 +84,23 @@ class MethodExpander:
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
 
+        # PGC's have some specific requirements
+
+        # 1. They must all import the RuntimeContext class
+        is_pgc = self.properties.get("is_pgc", False)
+        if is_pgc and not any(i["name"] == "RuntimeContext" for i in self.imports):
+            self.imports.append(
+                {
+                    "aip": ["egppy", "physics", "runtime_context"],
+                    "name": "RuntimeContext",
+                }
+            )
+
+        # 2. They must use the "{pgc}" inline parameter to indicate where the PGC
+        #    specific parameters go.
+        if is_pgc:
+            assert "{pgc}" in self.inline, "PGC codons must use the '{pgc}' inline parameter."
+
     def to_json(self) -> dict[str, Any]:
         """Convert to json."""
         json_dict = deepcopy(CODON_TEMPLATE)

@@ -110,6 +110,8 @@ class TestInterfaceABC(TestCase):
                 "unconnected_eps",
                 "verify",
                 "consistency",
+                "set_row",
+                "set_cls",
             }
         )
 

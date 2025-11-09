@@ -210,6 +210,28 @@ class FrozenInterface(InterfaceABC):
         """
         raise RuntimeError("Cannot modify a frozen Interface")
 
+    def set_cls(self, ep_cls) -> InterfaceABC:
+        """Set the class of all endpoints in the interface.
+
+        Args:
+            ep_cls: The EndPointClass to set (SRC or DST).
+
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")
+
+    def set_row(self, row) -> InterfaceABC:
+        """Set the row of all endpoints in the interface.
+
+        Args:
+            row: The Row to set.
+
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")
+
     def cls(self) -> EndPointClass:
         """Return the class of the interface.
 

@@ -54,7 +54,9 @@ class CGraph(CommonObj, CGraphABC):
     # __slots__ and the __init__ loop use the exact same list.
     __slots__ = _UNDER_ROW_CLS_INDEXED
 
-    def __init__(self, graph: dict[str, list[EndpointMemberType]] | CGraphABC) -> None:
+    def __init__(
+        self, graph: dict[str, list[EndpointMemberType]] | dict[str, InterfaceABC] | CGraphABC
+    ) -> None:
         """Initialize the Connection Graph.
 
         A full copy of all data is made from the provided graph to ensure independence.
@@ -71,11 +73,11 @@ class CGraph(CommonObj, CGraphABC):
         for key in ROW_CLS_INDEXED_ORDERED:
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
-                iface_def = Interface(graph[key])
+                iface = Interface(graph[key])
                 assert isinstance(
-                    iface_def, (InterfaceABC, type(None))
-                ), f"Invalid interface definition for {key}: {iface_def}"
-                setattr(self, _key, iface_def)
+                    iface, (InterfaceABC, type(None))
+                ), f"Invalid interface definition for {key}: {iface}"
+                setattr(self, _key, iface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):
                 # Is and Od must exist even if empty
                 setattr(self, _key, [])  # Empty interface

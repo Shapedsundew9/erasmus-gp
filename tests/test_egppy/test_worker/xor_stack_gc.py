@@ -61,7 +61,7 @@ XOR_SIG = bytes.fromhex("10f8108648e91447a7ec04b67f62e4fe329d36c8fa308a0e2cdc69b
 GETRANDBITS_SIG = bytes.fromhex("eb2e8bf870a0d3e730950ddb54c1bbeec072b9d0ec41b5f72a9cac84e3414cc1")
 LITERAL_1_SIG = bytes.fromhex("39cbffe8db0ff428190b4cc8cfeee571d1c14c353f2e20d2ee0a2c0b89c606c0")
 SIXTYFOUR_SIG = bytes.fromhex("64124d5af849427f7a49c7793894e5f1574b1c15ea90ce077aaa2585677b9b3b")
-CUSTOM_PGC_SIG = bytes.fromhex("6186520dca76488e1f47fbf2c51c332694c90f0dd536ad3d0705b3c182ff14d1")
+CUSTOM_PGC_SIG = bytes.fromhex("b7037236edce4ce6e80c9bfd8b4fa6d0827dbd1c6422980362ed4da95bebad1f")
 INT_TO_SIG = bytes.fromhex("9f17e6a7c4f036e91b2a21e7b59c64ef5b4c3d3ef1ac6644c52a665ca1c5d229")
 TO_INT_SIG = bytes.fromhex("2457458d24422deab080b2e20500ca6c46176ea1f13dd4dcf95839cf80b104b1")
 
@@ -313,19 +313,19 @@ def create_primitive_gcs() -> None:
 
     # Catch signature generation issues early
     assert primitive_gcs["random_long"]["signature"] == bytes.fromhex(
-        "775d7e6b2244df42582f990d7d7c03e97fd00f9df6cd963f2ef5a7ff0979df25"
+        "f988b7bb57de85b661dfc224f135f4fda6d59b1f39cae48ce44475fc68f1f2ff"
     )
     assert primitive_gcs["rshift_1"]["signature"] == bytes.fromhex(
-        "d0b552e8e47f18381d94991e1d976491c60636127e4beecdaa8985d181c866e2"
+        "f99048b58d1b5ab0c1154b6ecd17d8de47b754c966ee26f489ed848f792395c8"
     )
     assert primitive_gcs["rshift_xor"]["signature"] == bytes.fromhex(
-        "d2171e9398917f235ddde4c3633ad93f6601b0cfc66dc41193fcf6de411a7a82"
+        "29ab86ccf38420ba25897a5084fa220ecfbfb9ac45b027ea04213e02e6c06d74"
     )
     assert primitive_gcs["one_to_two"]["signature"] == bytes.fromhex(
-        "6307d213918fae3227c64caf65c4ae812c625046e43c9a101ac199757aad9de5"
+        "ea3fa6f751b5254e2c79515aeae70275181ebbf4a0fb3d4c37db87a5c4bc6a60"
     )
     assert primitive_gcs["two_to_one"]["signature"] == bytes.fromhex(
-        "d2171e9398917f235ddde4c3633ad93f6601b0cfc66dc41193fcf6de411a7a82"
+        "29ab86ccf38420ba25897a5084fa220ecfbfb9ac45b027ea04213e02e6c06d74"
     )
 
 
@@ -659,5 +659,5 @@ if __name__ == "__main__":
     print(f"GC markdown and JSON files created.\n\n{deduplicators_info()}")
 
     # Generate assertions to verify primitive GC signatures
-    for name, signature in ((k, v["signature"]) for k, v in primitive_gcs.items()):
-        print(f"assert primitive_gcs['{name}']['signature'] == bytes.fromhex('{signature.hex()}')")
+    for name, sig in ((k, v["signature"]) for k, v in primitive_gcs.items()):
+        print(f"assert primitive_gcs['{name}']['signature'] == bytes.fromhex('{sig.hex()}')")

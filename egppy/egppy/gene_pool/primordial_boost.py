@@ -16,13 +16,13 @@ gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
 
 # Load the primitive codons from the gene pool
-PSQL_PRP_MASK = bytes.fromhex("6ded397736576935846261a9562367785a04dbb32e417f11812518947e5cffff")
-PSQL_PRP_COLUMN = bytes.fromhex("964a4445b474efd99d6bcc1925b0ed352e4918858bbee85e62c64ba8720150fc")
-PSQL_BITWISE_AND = bytes.fromhex("b52115998c3673240f15016b29f67d88c32665d388665ebf50c6e1262faf5af5")
-PSQL_ORDERBY_RND = bytes.fromhex("737815bade001855279f18c3c90f549e60e871d3ff7954d7dde5ff39f9d86ece")
-PSQL_WHERE = bytes.fromhex("0c179e741362dfd6802acbb0fbb880817c31ff12f45e725e918b4771682bb5b1")
-GPI_SELECT_GC = bytes.fromhex("4c63c6a4a2c26b619aeca765af5b5d84732f246b0ce4033670862d41e60aa6b5")
-SCA_GC = bytes.fromhex("19198c52bdd2f36db844a280c16d98fc31d73da92bf707f1321d2b25b808f5ff")
+PSQL_CDN_PRP_MSK = bytes.fromhex("723e9410d6590f0bb9b6bd51c4b2ef736ab0b7b2446def66744bd81f2845a98c")
+PSQL_PRP_COLUMN = bytes.fromhex("0dad8776464ee2ea0441b9d3667db67b2d95223fa00b5db5a56008b4b92f3908")
+PSQL_BITWISE_AND = bytes.fromhex("180b0075106e8118573c29de562a591d57ecda181ba75d445cef4b565e24694d")
+PSQL_ORDERBY_RND = bytes.fromhex("0fa706b27f32c5faae00804337143eefe927f36efa24dd8d06e8499fcdedf5b4")
+PSQL_WHERE = bytes.fromhex("c6da210e9930a4937b45b91e51a538e12976d0f0b08433638b2fcf1cbf560a7d")
+GPI_SELECT_GC = bytes.fromhex("42d07451920d2bfcf3432909fe4460bcb4afb5a80771712a8a315b70a4c331c7")
+SCA_GC = bytes.fromhex("dc734de92d199546c00249473954a81a3c0cc89fe85cc229d78e75f03f12a94d")
 
 
 # Dictionary of primitive GCs
@@ -30,12 +30,26 @@ SCA_GC = bytes.fromhex("19198c52bdd2f36db844a280c16d98fc31d73da92bf707f1321d2b25
 primitive_gcs: dict[str, GCABC] = {}
 
 
-def create_primitive_gcs():
+def cdn_prp_filter() -> GCABC:
+    """Create the PSQL codon property filter genetic code.
 
-    primitive_gcs["PSQL_PRP_MASK"] = gpi[PSQL_PRP_MASK]
+    "properties" & MASK
+
+    Returns:
+        GCABC: The codon property filter genetic code.
+    """
+    return GGCDict()
+
+
+def create_primitive_gcs():
+    """Create the primitive genetic codes and store them in the primitive_gcs dict."""
+
+    primitive_gcs["PSQL_CDN_PRP_MSK"] = gpi[PSQL_CDN_PRP_MSK]
     primitive_gcs["PSQL_PRP_COLUMN"] = gpi[PSQL_PRP_COLUMN]
     primitive_gcs["PSQL_BITWISE_AND"] = gpi[PSQL_BITWISE_AND]
     primitive_gcs["PSQL_ORDERBY_RND"] = gpi[PSQL_ORDERBY_RND]
     primitive_gcs["PSQL_WHERE"] = gpi[PSQL_WHERE]
     primitive_gcs["GPI_SELECT_GC"] = gpi[GPI_SELECT_GC]
     primitive_gcs["SCA_GC"] = gpi[SCA_GC]
+
+    primitive_gcs["cdn_prp_filter"] = cdn_prp_filter()

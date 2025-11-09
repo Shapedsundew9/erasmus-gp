@@ -15,7 +15,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterator
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egppy.genetic_code.c_graph_constants import EndPointClass
+from egppy.genetic_code.c_graph_constants import EndPointClass, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC
 
 
@@ -204,3 +204,27 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
             List of EndPoint objects that have no connections.
         """
         raise NotImplementedError("InterfaceABC.unconnected_eps must be overridden")
+
+    @abstractmethod
+    def set_cls(self, ep_cls: EndPointClass) -> InterfaceABC:
+        """Set the class of all endpoints in the interface.
+
+        Args:
+            ep_cls: The EndPointClass to set (SRC or DST).
+
+        Returns:
+            Self with row class set.
+        """
+        raise NotImplementedError("InterfaceABC.set_cls must be overridden")
+
+    @abstractmethod
+    def set_row(self, row: Row) -> InterfaceABC:
+        """Set the row of all endpoints in the interface.
+
+        Args:
+            row: The Row to set (e.g., IS, OD).
+
+        Returns:
+            Self with row set.
+        """
+        raise NotImplementedError("InterfaceABC.set_row must be overridden")

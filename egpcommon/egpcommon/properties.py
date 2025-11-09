@@ -90,7 +90,8 @@ PROPERTIES_CONFIG = {
         "width": 1,
         "default": False,
         "description": (
-            "The genetic code has side effects that are not related to the return value."
+            "The genetic code has side effects in the execution "
+            "context that are not related to the return value."
         ),
     },
     "static_creation": {
@@ -102,10 +103,18 @@ PROPERTIES_CONFIG = {
             "The genetic code was created by a deterministic PGC i.e. had no random element."
         ),
     },
+    "is_pgc": {
+        "type": "bool",
+        "start": 13,
+        "width": 1,
+        "default": False,
+        "description": "The genetic code is a physical genetic code "
+        "(PGC) i.e. it creates a new GC.",
+    },
     "reserved2": {
         "type": "uint",
-        "start": 13,
-        "width": 3,
+        "start": 14,
+        "width": 2,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},

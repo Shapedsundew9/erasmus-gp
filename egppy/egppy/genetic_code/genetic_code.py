@@ -175,6 +175,11 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_codon must be overridden")
 
     @abstractmethod
+    def is_pgc(self) -> bool:
+        """Return True if the genetic code is a physical genetic code (PGC)."""
+        raise NotImplementedError("GCABC.is_pgc must be overridden")
+
+    @abstractmethod
     def is_conditional(self) -> bool:
         """Return True if the GCABC is conditional."""
         raise NotImplementedError("GCABC.is_conditional must be overridden")
@@ -231,6 +236,12 @@ class GCMixin(CommonObj):
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         cgt: CGraphType = c_graph_type(self["cgraph"])
         return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
+
+    def is_pgc(self) -> bool:
+        """Return True if the genetic code is a physical genetic code (PGC)."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        is_pgc = PropertiesBD.fast_fetch("is_pgc", self["properties"])
+        return is_pgc
 
     def is_meta(self) -> bool:
         """Return True if the genetic code is a meta-codon."""

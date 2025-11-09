@@ -110,9 +110,7 @@ class Interface(CommonObj, InterfaceABC):
         self.endpoints: list[EndPoint] = []
 
         # Validate row if endpoints are provided as sequences
-        row_cls = (
-            EndPointClass.DST if row is None or row in DESTINATION_ROW_SET else EndPointClass.SRC
-        )
+        row_cls = EndPointClass.DST if row is None or isinstance(row, DstRow) else EndPointClass.SRC
         for idx, ep in enumerate(endpoints):
             if isinstance(ep, EndPointABC):
                 # Have to make a copy to ensure mutability & independence
@@ -325,6 +323,27 @@ class Interface(CommonObj, InterfaceABC):
     def unconnected_eps(self) -> list[EndPointABC]:
         """Return a list of unconnected endpoints."""
         return [ep for ep in self.endpoints if not ep.is_connected()]
+
+    def set_cls(self, ep_cls) -> InterfaceABC:
+        """Set the class of all endpoints in the interface."""
+        for ep in self.endpoints:
+            ep.cls = ep_cls
+        return self
+
+    def set_row(self, row: Row) -> InterfaceABC:
+        """Set the row of all endpoints in the interface.
+
+        Args
+        ----
+        row: Row: The row to set for all endpoints.
+
+        Returns
+        -------
+        Interface: Self with row set.
+        """
+        for ep in self.endpoints:
+            ep.row = row
+        return self
 
 
 # Re-use the Interface object deduplicator for both SrcInterface and DstInterface
