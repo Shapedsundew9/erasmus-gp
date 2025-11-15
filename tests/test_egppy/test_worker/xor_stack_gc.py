@@ -23,6 +23,7 @@ from tempfile import NamedTemporaryFile
 from time import time
 from typing import Any
 
+from egpcommon.codon_dev_load import find_codon_signature
 from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.object_deduplicator import deduplicators_info
@@ -56,14 +57,20 @@ gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
 
 # Load the primitive codons from the gene pool
-RSHIFT_SIG = bytes.fromhex("23cd3c246c9dd41f32e98968737267752b75fe1f5120f1b6ae8f073dfb595738")
-XOR_SIG = bytes.fromhex("b300b0033c1d130bc8cc3025c06329b0168fece01ea00edd76ca5b9ccb09a429")
-GETRANDBITS_SIG = bytes.fromhex("2785ebc9664606f26d1a714129ad2c2154d41366a3a691f8fdbb20c1aba78532")
-LITERAL_1_SIG = bytes.fromhex("515d23bea7b96470e28d35f3389a809006144db8f1e09e23db0d726c821b3e87")
-SIXTYFOUR_SIG = bytes.fromhex("bd58240d011e9f9c156ee2a1492c51d9b1db30e9439030aa4a3a8c68f47ed3d6")
-CUSTOM_PGC_SIG = bytes.fromhex("538d6583812fa73d264f1cb7d7618a7407721d7dbcd7c4333a99169eca001fa8")
-INT_TO_SIG = bytes.fromhex("cc574421e52f29f4d991d0fc4355e2eab0a3052608c651e83a94a5058d92eb2a")
-TO_INT_SIG = bytes.fromhex("4380565bba8aa1312ce62ec72bcf61353a5ee173e3c57a638d7546133e39c93f")
+# Dictionary mapping signature names to their values
+CODON_SIGS: dict[str, bytes] = {}
+
+# Define all codon signatures
+_codon_specs = {
+    "RSHIFT_SIG": (["Integral"], ["EGPNumber"], ">>"),
+    "XOR_SIG": (["Integral"], ["EGPNumber"], "^"),
+    "GETRANDBITS_SIG": (["int"], ["int"], "getrandbits"),
+    "LITERAL_1_SIG": ([], ["int"], "1"),
+    "SIXTYFOUR_SIG": ([], ["int"], "64"),
+    "CUSTOM_PGC_SIG": ([], [], "custom"),
+    "INT_TO_SIG": (["int"], ["Integral"], "raise_if_not_instance_of(int, Integral)"),
+    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(EGPNumber, int)"),
+}
 
 
 # Dictionary of primitive GCs
@@ -121,7 +128,7 @@ def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                 "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -157,7 +164,7 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                 ],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -171,8 +178,8 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
     meta codons.
     """
 
-    int_to: dict[str, GGCDict] = {"Integral": gpi[INT_TO_SIG]}
-    to_int: dict[str, GGCDict] = {"EGPNumber": gpi[TO_INT_SIG]}
+    int_to: dict[str, GGCDict] = {"Integral": gpi[CODON_SIGS["INT_TO_SIG"]]}
+    to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
 
     # Find all the endpoint in the input interface that are not 'int'
     while iepl := [iep for iep in gc["cgraph"]["Is"] if iep.typ != INT_TD]:
@@ -215,25 +222,31 @@ def create_primitive_gcs() -> None:
     if primitive_gcs:
         return  # Already created
 
+    # Load and validate all codon signatures
+    for cname, (input_types, output_types, codon_name) in _codon_specs.items():
+        csig = find_codon_signature(input_types, output_types, codon_name)
+        assert csig is not None, f"{cname} codon signature not found"
+        CODON_SIGS[cname] = csig
+
     # Right shift and xor need interfaces casting
-    rshift_gc = cast_interfaces_to_int(gpi[RSHIFT_SIG])
-    xor_gc = cast_interfaces_to_int(gpi[XOR_SIG])
+    rshift_gc = cast_interfaces_to_int(gpi[CODON_SIGS["RSHIFT_SIG"]])
+    xor_gc = cast_interfaces_to_int(gpi[CODON_SIGS["XOR_SIG"]])
 
     # random_long_gc signature:
     random_long_gc = inherit_members(
         {
-            "ancestora": gpi[SIXTYFOUR_SIG],
-            "ancestorb": gpi[GETRANDBITS_SIG],
+            "ancestora": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
+            "ancestorb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
             "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": gpi[SIXTYFOUR_SIG],
-            "gcb": gpi[GETRANDBITS_SIG],
+            "gca": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
+            "gcb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
             "cgraph": {
                 "A": [],
                 "B": [["A", 0, INT_T]],
                 "O": [["B", 0, INT_T]],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -242,11 +255,13 @@ def create_primitive_gcs() -> None:
     # rshift_1_gc signature:
     rshift_1_gc = inherit_members(
         {
-            "ancestora": gpi[LITERAL_1_SIG],
+            "ancestora": gpi[CODON_SIGS["LITERAL_1_SIG"]],
             "ancestorb": rshift_gc,
             "created": "2025-03-29 22:05:08.489847+00:00",
             "code_depth": 2,
-            "gca": gpi[LITERAL_1_SIG]["signature"],  # Makes the structure of this GC unknown
+            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]][
+                "signature"
+            ],  # Makes the structure of this GC unknown
             "gcb": rshift_gc,
             "generation": 2,
             "cgraph": {
@@ -257,7 +272,7 @@ def create_primitive_gcs() -> None:
             },
             "num_codes": 3,
             "num_codons": 2,
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -277,7 +292,7 @@ def create_primitive_gcs() -> None:
                 "O": [["B", 0, INT_T]],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -297,7 +312,7 @@ def create_primitive_gcs() -> None:
                 "O": [["B", 0, INT_T], ["A", 0, INT_T]],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -364,7 +379,7 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
@@ -397,7 +412,7 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
@@ -448,7 +463,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "O": [["B", i, INT_T] for i in randomrange(len(gc2["outputs"]))],
                 "U": [],
             },
-            "pgc": gpi[CUSTOM_PGC_SIG],
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gc1["num_codons"] + gc2["num_codons"],
