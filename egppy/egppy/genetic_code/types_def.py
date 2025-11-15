@@ -396,26 +396,29 @@ class TypesDefStore:
     _db_store: Final[Table] | None = None
     _db_sources: Final[Table] | None = None
 
-    def __init__(self) -> None:
-        """Initialize the TypesDefStore."""
-        if TypesDefStore._db_store is None:
-            TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
-            DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
-            if DB_STORE_TABLE_CONFIG.delete_table:
-                TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
-                for name in DB_STORE_TABLE_CONFIG.data_files:
-                    filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
-                    if not verify_signed_file(filename):
-                        raise InvalidSignatureError(
-                            f"Signature verification failed for file: {filename}"
-                        )
-                    sig_data = load_signature_data(filename + ".sig")
-                    sig_data["source_path"] = filename
-                    TypesDefStore._db_sources.insert((sig_data,))
+    def _initialize_db_store(self) -> None:
+        """Initialize the database store if it has not been initialized yet.
+        This is done lazily to avoid import overheads when not used.
+        """
+        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
+        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
+        if DB_STORE_TABLE_CONFIG.delete_table:
             TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+            for name in DB_STORE_TABLE_CONFIG.data_files:
+                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
+                if not verify_signed_file(filename):
+                    raise InvalidSignatureError(
+                        f"Signature verification failed for file: {filename}"
+                    )
+                sig_data = load_signature_data(filename + ".sig")
+                sig_data["source_path"] = filename
+                TypesDefStore._db_sources.insert((sig_data,))
+        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
     def __contains__(self, key: int | str) -> bool:
         """Check if the key is in the store."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         try:
             self[key]  # This will populate the cache if the key exists.
         except KeyError:
@@ -425,6 +428,8 @@ class TypesDefStore:
     @lru_cache(maxsize=1024)
     def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         if isinstance(key, int):
             td = TypesDefStore._db_store.get(key, {})
@@ -468,6 +473,8 @@ class TypesDefStore:
         """Return the type definition and all ancestors by name or UID.
         The ancestors are the parents, grandparents etc. in depth order (type "key" first).
         """
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         if not isinstance(key, (int, str)):
             raise TypeError(f"Invalid key type: {type(key)}")
         stack: set[TypesDef] = {self[key]}
@@ -484,6 +491,8 @@ class TypesDefStore:
         """Return the type definition and all descendants by name or UID.
         The descendants are the children, grandchildren etc. in depth order (type "key" first).
         """
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         stack: set[TypesDef] = {self[key]}
         descendants: set[TypesDef] = set()
         while stack:
@@ -495,6 +504,8 @@ class TypesDefStore:
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         tds = TypesDefStore._db_store.select(
             "WHERE name LIKE {id}", literals={"id": f"{base_key}%"}
@@ -514,6 +525,8 @@ class TypesDefStore:
 
     def next_xuid(self, tt: int = 0) -> int:
         """Get the next X unique ID for a type."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         max_uid = tuple(TypesDefStore._db_store.select(_MAX_UID_SQL, literals={"tt": tt}))
         assert max_uid, "No UIDs available for this Template Type."
@@ -523,6 +536,8 @@ class TypesDefStore:
 
     def values(self) -> Iterator[TypesDef]:
         """Iterate through all the types in the store."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         for td in TypesDefStore._db_store.select():
             yield TypesDef(**td)
