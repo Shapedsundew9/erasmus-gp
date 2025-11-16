@@ -392,18 +392,21 @@ class ExecutionContext:
     def execute(self, signature: bytes, args: tuple[Any, ...]) -> Any:
         """Execute the function in the execution context."""
         assert isinstance(signature, bytes), f"Invalid signature type: {type(signature)}"
-        assert signature in self.function_map, f"Signature not found: {signature.hex()}"
-        lns: dict[str, Any] = {"i": args}
+
+        # Ensure the function is defined & get its info
+        if signature not in self.function_map:
+            self.write_executable(signature)
         finfo = self.function_map[signature]
 
         # NB: RuntimeContext is not used if the GC is not a PGC
         rtctxt = ""
+        lns: dict[str, Any] = {"i": args}
         if finfo.gc.is_pgc():
             # TODO: Need to pass in creator info here
             lns["rtctxt"] = RuntimeContext(self.gpi, finfo.gc)
             rtctxt = "rtctxt, "
 
-        execution_str = f"result = {finfo.name()}({rtctxt}i)"
+        execution_str = f"result = {finfo.name()}({rtctxt}{'i' if args else ''})"
         exec(execution_str, self.namespace, lns)  # pylint: disable=exec-used
         return lns["result"]
 

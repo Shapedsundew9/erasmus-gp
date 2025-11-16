@@ -303,14 +303,14 @@ class Interface(CommonObj, InterfaceABC):
         # Call parent consistency()
         super().consistency()
 
-    def types(self) -> tuple[list[int], bytes]:
+    def types_and_indices(self) -> tuple[list[int], bytes]:
         """Return a tuple of the ordered type UIDs and the indices into to it."""
-        otu: list[int] = self.ordered_td_uids()
+        otu: list[int] = self.sorted_unique_td_uids()
         lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(otu)}
         indices = bytes(lookup_indices[ep.typ.uid] for ep in self.endpoints)
         return otu, indices
 
-    def ordered_td_uids(self) -> list[int]:
+    def sorted_unique_td_uids(self) -> list[int]:
         """Return the ordered type definition UIDs."""
         return sorted(set(ep.typ.uid for ep in self.endpoints))
 
@@ -323,6 +323,10 @@ class Interface(CommonObj, InterfaceABC):
     def to_td_uids(self) -> list[int]:
         """Convert the interface to a list of TypesDef UIDs (ints)."""
         return [ep.typ.uid for ep in self.endpoints]
+
+    def to_td(self) -> tuple[TypesDef, ...]:
+        """Convert the interface to a tuple of TypesDef objects."""
+        return tuple(ep.typ for ep in self.endpoints)
 
     def unconnected_eps(self) -> list[EndPointABC]:
         """Return a list of unconnected endpoints."""

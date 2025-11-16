@@ -36,7 +36,7 @@ def exact_input_types_selector(gp: GenePoolInterface, _: int, ept_types: Interfa
         A GC with the exact input types.
     """
     # Select a GC with the exact input types
-    its, inpts = ept_types.types()
+    its, inpts = ept_types.types_and_indices()
     gc = gp.select(
         "{input_types} = {its} AND {inputs} = {inpts}", literals={"its": its, "inpts": inpts}
     )

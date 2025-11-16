@@ -7,7 +7,7 @@ from egppy.gene_pool.gene_pool_interface import GenePoolInterface, GGCDict
 from egppy.genetic_code.genetic_code import GCABC
 
 
-def merge_properties_in_standard(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
+def merge_properties_base(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
     """Merge GCA and GCB properties when the resultant GC has a standard graph type."""
 
     merged_properties = PropertiesBD()
@@ -41,13 +41,8 @@ def merge_properties(gca: GCABC, gcb: GCABC) -> BitDictABC:
     prop_a = _prop_a if isinstance(_prop_a, BitDictABC) else PropertiesBD(_prop_a)
     prop_b = _prop_b if isinstance(_prop_b, BitDictABC) else PropertiesBD(_prop_b)
 
-    cgt_a = gca["c_graph"]["graph_type"]
-    cgt_b = gcb["c_graph"]["graph_type"]
-    if cgt_a == CGraphType.STANDARD and cgt_b == CGraphType.STANDARD:
-        return merge_properties_in_standard(prop_a, prop_b)
-    raise NotImplementedError(
-        f"Property merging not implemented for graph types {cgt_a} and {cgt_b}"
-    )
+    # TODO: Implement GC type specific merging logic
+    return merge_properties_base(prop_a, prop_b)
 
 
 def pgc_epilogue(func):
@@ -61,8 +56,9 @@ def pgc_epilogue(func):
     def wrapper(*args, **kwargs) -> GCABC:
         egc: GCABC = func(*args, **kwargs)
 
-        gca: GCABC = egc["gca"]
-        gcb: GCABC = egc["gcb"]
+        gpi: GenePoolInterface = args[0].gpi if args else kwargs["rtctxt"].gpi
+        gca: GCABC = gpi[egc["gca"]]
+        gcb: GCABC = gpi[egc["gcb"]]
 
         # Populate inherited members
         egc["num_codons"] = gca["num_codons"] + gcb["num_codons"]
@@ -71,12 +67,11 @@ def pgc_epilogue(func):
         egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
 
         # Unstable GC's are returned as-is
-        if not egc["c_graph"].is_stable():
+        if not egc["cgraph"].is_stable():
             return egc
 
         # Stable GC's are converted to GGCodes and added to the Gene Pool
         ggc: GCABC = GGCDict(egc)
-        gpi: GenePoolInterface = kwargs["rtctxt"].gpi
         gpi[ggc["signature"]] = ggc
         return ggc
 

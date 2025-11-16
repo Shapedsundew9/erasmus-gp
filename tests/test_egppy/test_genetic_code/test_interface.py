@@ -289,7 +289,7 @@ class TestInterface(unittest.TestCase):
     def test_types(self) -> None:
         """Test the types() method."""
         interface = Interface(["int", "float", "int"], row=DstRow.A)
-        otu, indices = interface.types()
+        otu, indices = interface.types_and_indices()
         # Should have 2 unique types (int and float)
         self.assertEqual(len(otu), 2)
         # Indices should map to the ordered types
@@ -298,7 +298,7 @@ class TestInterface(unittest.TestCase):
     def test_ordered_td_uids(self) -> None:
         """Test the ordered_td_uids() method."""
         interface = Interface(["int", "float", "bool"], row=DstRow.A)
-        uids = interface.ordered_td_uids()
+        uids = interface.sorted_unique_td_uids()
         # Should return sorted unique UIDs
         self.assertEqual(len(uids), 3)
         self.assertEqual(uids, sorted(uids))

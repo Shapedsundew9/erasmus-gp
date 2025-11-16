@@ -34,7 +34,8 @@ PSQL_IGRL_TO_64 = (
 )
 GPI_SELECT_GC = (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "select")
 SCA_GC = (["GGCode"], ["EGCode"], "sca")
-PERFECT_STACK = (["GGCode"], ["EGCode"], "perfect_stack")
+PERFECT_STACK_GC = (["GGCode"], ["EGCode"], "perfect_stack")
+HARMONY_GC = (["GGCode"], ["GGCode"], "harmony")
 
 
 # Dictionary of primitive GCs
@@ -62,7 +63,7 @@ def create_primitive_gcs():
     primitive_gcs["PSQL_IGRL_TO_64"] = gpi[find_codon_signature(*PSQL_IGRL_TO_64)]
     primitive_gcs["GPI_SELECT_GC"] = gpi[find_codon_signature(*GPI_SELECT_GC)]
     primitive_gcs["SCA_GC"] = gpi[find_codon_signature(*SCA_GC)]
-    primitive_gcs["PERFECT_STACK"] = gpi[find_codon_signature(*PERFECT_STACK)]
+    primitive_gcs["PERFECT_STACK"] = gpi[find_codon_signature(*PERFECT_STACK_GC)]
 
     # Create an execution context to do the work.
     ec = ExecutionContext(gpi, wmc=True)
@@ -71,8 +72,6 @@ def create_primitive_gcs():
         primitive_gcs["PERFECT_STACK"]["signature"],
         (primitive_gcs["PSQL_2x64_TO_IGRL"], primitive_gcs["PSQL_BITWISE_AND"]),
     )
-    write_context_to_file(ec)
-    print(f"BigInt AND GC signature: {big_int_and_gc[1].hex()}")
 
 
 if __name__ == "__main__":

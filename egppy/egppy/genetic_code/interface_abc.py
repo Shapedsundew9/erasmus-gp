@@ -17,6 +17,7 @@ from collections.abc import Iterator
 from egpcommon.common_obj_abc import CommonObjABC
 from egppy.genetic_code.c_graph_constants import EndPointClass, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC
+from egppy.genetic_code.types_def import TypesDef
 
 
 class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
@@ -174,22 +175,31 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         """Convert the interface to a list of TypesDef UIDs (ints).
 
         Returns:
-            List of TypesDef UIDs for each endpoint.
+            Sequence (tuple or list) of TypesDef UIDs for each endpoint.
         """
         raise NotImplementedError("InterfaceABC.to_td_uids must be overridden")
 
     @abstractmethod
-    def types(self) -> tuple[list[int], bytes]:
-        """Return a tuple of the ordered type UIDs and the indices into it.
+    def to_td(self) -> tuple[TypesDef, ...]:
+        """Convert the interface to a tuple of TypesDef objects.
 
         Returns:
-            Tuple of (ordered_type_uids, byte_indices).
+            Tuple of TypesDef objects for each endpoint.
+        """
+        raise NotImplementedError("InterfaceABC.to_td must be overridden")
+
+    @abstractmethod
+    def types_and_indices(self) -> tuple[list[int], bytes]:
+        """Return a tuple of the sorted unique type UIDs and the indices into it.
+
+        Returns:
+            Tuple of (sorted_unique_type_uids, byte_indices).
         """
         raise NotImplementedError("InterfaceABC.types must be overridden")
 
     @abstractmethod
-    def ordered_td_uids(self) -> list[int]:
-        """Return the ordered type definition UIDs.
+    def sorted_unique_td_uids(self) -> list[int]:
+        """Return the sorted unique type definition UIDs.
 
         Returns:
             Sorted list of unique TypesDef UIDs.

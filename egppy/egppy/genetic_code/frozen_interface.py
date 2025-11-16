@@ -259,7 +259,15 @@ class FrozenInterface(InterfaceABC):
         """
         return [typ.uid for typ in self.type_tuple]
 
-    def types(self) -> tuple[list[int], bytes]:
+    def to_td(self) -> tuple[TypesDef, ...]:
+        """Convert the interface to a tuple of TypesDef objects.
+
+        Returns:
+            Tuple of TypesDef objects for each endpoint.
+        """
+        return self.type_tuple
+
+    def types_and_indices(self) -> tuple[list[int], bytes]:
         """Return a tuple of the ordered type UIDs and the indices into it.
 
         Returns:
@@ -276,7 +284,7 @@ class FrozenInterface(InterfaceABC):
 
         return unique_types, indices
 
-    def ordered_td_uids(self) -> list[int]:
+    def sorted_unique_td_uids(self) -> list[int]:
         """Return the ordered type definition UIDs.
 
         Returns:
@@ -399,3 +407,20 @@ class FrozenInterface(InterfaceABC):
             RuntimeError: Always raises since frozen interfaces are immutable.
         """
         raise RuntimeError("Cannot modify a frozen Interface")
+
+    def ept_type_match(self, other: InterfaceABC) -> bool:
+        """Check if the endpoint types match another interface.
+
+        The type, order and number of endpoints must be identical for match to be true.
+
+        Args:
+            other: The other interface to compare with.
+        Returns:
+            True if endpoint types match, False otherwise.
+        """
+        if len(self) != len(other):
+            return False
+        for ep_self, ep_other in zip(self.type_tuple, other):
+            if ep_self != ep_other.typ:
+                return False
+        return True

@@ -97,7 +97,11 @@ class EGCMixin(GCMixin):
         # Properties
         prps: int | dict[str, Any] = gcabc.get("properties", 0)
         self["properties"] = properties_store[
-            prps if isinstance(prps, int) else PropertiesBD(prps, False).to_int()
+            (
+                prps
+                if isinstance(prps, int)
+                else PropertiesBD(prps, False).to_int() if isinstance(prps, dict) else prps.to_int()
+            )
         ]
 
         # Creator

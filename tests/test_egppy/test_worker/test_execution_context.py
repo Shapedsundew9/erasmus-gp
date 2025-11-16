@@ -11,6 +11,7 @@ from egppy.worker.executor.execution_context import ExecutionContext, FunctionIn
 from egppy.worker.executor.gc_node import GCNode
 
 from .xor_stack_gc import (
+    CODON_SIGS,
     create_gc_matrix,
     create_primitive_gcs,
     expand_gc_matrix,
@@ -55,6 +56,15 @@ class TestExecutor(unittest.TestCase):
         )
         self.ec1.namespace["f_7fffffff"] = f_7fffffff
         self.ec2.namespace["f_7fffffff"] = f_7fffffff
+
+    def test_write_single_codon_ec1(self) -> None:
+        """Test writing a single codon to the execution context."""
+        node = self.ec1.write_executable(CODON_SIGS["SIXTYFOUR_SIG"])
+        self.assertIsInstance(node, GCNode)
+
+    def test_run_single_codon_ec1(self) -> None:
+        """Test writing a single codon to the execution context."""
+        self.assertEqual(self.ec1.execute(CODON_SIGS["SIXTYFOUR_SIG"], tuple()), 64)
 
     def test_write_function_ec1_basic(self) -> None:
         """Test the write_function function."""

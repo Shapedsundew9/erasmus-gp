@@ -141,7 +141,7 @@ class GGCMixin(EGCMixin):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]
-        self["input_types"], self["inputs"] = self["cgraph"]["Is"].types()
+        self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
         self["lost_descendants"] = int_store[gcabc.get("lost_descendants", 0)]
 
         # TODO: Need to resolve the meta_data references. Too deep.
@@ -160,7 +160,7 @@ class GGCMixin(EGCMixin):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
-        self["output_types"], self["outputs"] = self["cgraph"]["Od"].types()
+        self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
 
         self["reference_count"] = int_store[gcabc.get("reference_count", 0)]
         tmp = gcabc.get("updated", datetime.now(UTC))

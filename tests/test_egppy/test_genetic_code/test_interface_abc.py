@@ -47,8 +47,9 @@ class TestInterfaceABC(TestCase):
         self.assertTrue(hasattr(interface, "cls"))
         self.assertTrue(hasattr(interface, "to_json"))
         self.assertTrue(hasattr(interface, "to_td_uids"))
-        self.assertTrue(hasattr(interface, "types"))
-        self.assertTrue(hasattr(interface, "ordered_td_uids"))
+        self.assertTrue(hasattr(interface, "to_td"))
+        self.assertTrue(hasattr(interface, "types_and_indices"))
+        self.assertTrue(hasattr(interface, "sorted_unique_td_uids"))
         self.assertTrue(hasattr(interface, "unconnected_eps"))
 
     def test_interface_abc_type_checking(self) -> None:
@@ -105,8 +106,9 @@ class TestInterfaceABC(TestCase):
                 "cls",
                 "to_json",
                 "to_td_uids",
-                "types",
-                "ordered_td_uids",
+                "to_td",
+                "types_and_indices",
+                "sorted_unique_td_uids",
                 "unconnected_eps",
                 "verify",
                 "consistency",
