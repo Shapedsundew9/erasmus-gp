@@ -1,6 +1,6 @@
 {
     "select": {
-        "inline": "GPI.select_gc(str({i0}), str({i1}))",
+        "inline": "GPI.select_gc(str({i0}), str({i1}), {i0}.literals())",
         "description": "Run the PSQL query and return a single GGC.",
         "inputs": [
             "PsqlFragmentWhere",

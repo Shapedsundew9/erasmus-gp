@@ -328,3 +328,14 @@ class FrozenEndPoint(EndPointABC):
             RuntimeError: Always raises since frozen endpoints are immutable.
         """
         raise RuntimeError("Cannot modify a frozen EndPoint")
+
+    def set_ref(self, row, idx):
+        """Set a single reference for the endpoint.
+
+        Args:
+            row (Row): The row of the reference to set.
+            idx (int): The index of the reference to set.
+        Raises:
+            RuntimeError: Always raises since frozen endpoints are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen EndPoint")

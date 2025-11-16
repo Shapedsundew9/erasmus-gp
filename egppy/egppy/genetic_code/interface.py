@@ -349,6 +349,22 @@ class Interface(CommonObj, InterfaceABC):
             ep.row = row
         return self
 
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set all references in the interface endpoints.
+
+        Args
+        ----
+        row: Row: The row to set for all references.
+        start_ref: int: The starting reference index.
+
+        Returns
+        -------
+        Interface: Self with all endpoint references set.
+        """
+        for idx, ep in enumerate(self.endpoints):
+            ep.set_ref(row, start_ref + idx)
+        return self
+
     def clr_refs(self) -> InterfaceABC:
         """Clear all references in the interface endpoints.
         Returns:

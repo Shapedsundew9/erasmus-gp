@@ -2,6 +2,8 @@
 a PostgreSQL database as a physical genetic code storage. This is the
 role of the selectors."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from datetime import date, datetime, time
 from itertools import count
@@ -36,14 +38,20 @@ class PsqlType(ABC):
     """Abstract base class for PSQL type representations."""
 
     # Using __slots__ for potentially many instances created during GP
-    __slots__ = ("value", "is_literal", "is_column", "uid")
+    __slots__ = ("value", "is_literal", "is_column", "uid", "param_a", "param_b")
 
     # Class variable holding the standard PSQL type name
     sql_type_name: str = "PsqlType"  # Override in subclasses
     counter: count = count(0)  # For unique IDs if needed
 
     def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
+        self,
+        value: Any,
+        is_literal: bool = False,
+        is_column: bool = False,
+        uid: int = -1,
+        param_a: PsqlType | None = None,
+        param_b: PsqlType | None = None,
     ):
         """Initialize the PsqlType with a value.
 
@@ -55,8 +63,9 @@ class PsqlType(ABC):
             is_literal: If True, 'value' is treated as a literal value
             is_column:  If True, 'value' is treated as a column name
             uid:        Unique ID for the literal, assigned automatically if -1 and is_literal
-                        is True (the default). Typically hard codong the UID is only used for
+                        is True (the default). Typically hard coding the UID is only used for
                         testing
+            emap:       Mapping for expression variables. Required if value is an expression.
 
         """
         if not is_literal and not isinstance(value, str):
@@ -66,10 +75,19 @@ class PsqlType(ABC):
             )
         if is_literal and is_column:
             raise PsqlTypeError("PsqlType cannot be both literal and column.")
+        if not (is_literal or is_column) and param_a is None:
+            raise PsqlTypeError(
+                "PsqlType expression value requires an expression mapping "
+                "(emap) to resolve variables."
+            )
         self.value = self._validate(value) if is_literal else value
         self.is_literal: bool = is_literal
         self.is_column: bool = is_column
         self.uid: int = next(self.counter) if is_literal and uid == -1 else uid
+
+        # For expressions, param_a and param_b hold sub-expressions or literals
+        self.param_a: PsqlType | None = param_a
+        self.param_b: PsqlType | None = param_b
 
     def __eq__(self, other):
         """Compare two PsqlType objects for equality.
@@ -509,13 +527,6 @@ class PsqlArray(PsqlType, ABC):
     sql_type_name = "ARRAY"  # Needs element type
     element_type: type[PsqlType]  # Defined in subclasses
 
-    @abstractmethod
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
-
     def _validate(self, value):
         """Validate the Python value for a PSQL ARRAY.
 
@@ -559,24 +570,12 @@ class PsqlBoolArray(PsqlArray):
     element_type = PsqlBool
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlBoolArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
-
 
 class PsqlIntArray(PsqlArray):
     """Integer array type (32 bits)"""
 
     element_type = PsqlInt
     sql_type_name = element_type.sql_type_name + "[]"
-
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlIntArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlSmallIntArray(PsqlArray):
@@ -585,24 +584,12 @@ class PsqlSmallIntArray(PsqlArray):
     element_type = PsqlSmallInt
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlSmallIntArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
-
 
 class PsqlBigIntArray(PsqlArray):
     """Big integer array type (64 bits)"""
 
     element_type = PsqlBigInt
     sql_type_name = element_type.sql_type_name + "[]"
-
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlBigIntArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 class PsqlRealArray(PsqlArray):
@@ -611,24 +598,12 @@ class PsqlRealArray(PsqlArray):
     element_type = PsqlReal
     sql_type_name = element_type.sql_type_name + "[]"
 
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlRealArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
-
 
 class PsqlDoublePrecisionArray(PsqlArray):
     """Double precision floating point array type (64 bits)"""
 
     element_type = PsqlDoublePrecision
     sql_type_name = element_type.sql_type_name + "[]"
-
-    def __init__(
-        self, value: Any, is_literal: bool = False, is_column: bool = False, uid: int = -1
-    ):
-        """Initialize the PsqlDoublePrecisionArray object."""
-        super().__init__(value, is_literal=is_literal, is_column=is_column, uid=uid)
 
 
 # --- Python Type to PSQL Type Mapping (Helper) ---
@@ -700,6 +675,29 @@ class PsqlFragmentWhere(PsqlFragment):
     def __str__(self):
         """Render the WHERE clause as a string."""
         return f"WHERE {self.condition}"
+
+    def literals(self) -> dict[str, Any]:
+        """Get the literals used in the WHERE condition.
+
+        Returns:
+            A dictionary mapping literal UIDs to their values.
+        """
+        literals_dict: dict[str, Any] = {}
+        param_stack: list[PsqlType] = []
+        if self.condition.param_a is not None:
+            param_stack.append(self.condition.param_a)
+        if self.condition.param_b is not None:
+            param_stack.append(self.condition.param_b)
+        while param_stack:
+            param = param_stack.pop()
+            if param.is_literal:
+                literals_dict[str(param)] = param.value
+            else:
+                if param.param_a is not None:
+                    param_stack.append(param.param_a)
+                if param.param_b is not None:
+                    param_stack.append(param.param_b)
+        return literals_dict
 
 
 class PsqlFragmentOrderBy(PsqlFragment):

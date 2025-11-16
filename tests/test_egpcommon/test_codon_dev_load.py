@@ -46,14 +46,13 @@ class TestCodonDevLoad(unittest.TestCase):
         self.assertEqual(len(signature), 32)  # SHA256 is 32 bytes
 
     def test_find_codon_signature_not_found(self) -> None:
-        """Test that None is returned when a codon is not found."""
-        signature = find_codon_signature(
-            input_types=["NonExistentType"],
-            output_types=["NonExistentType"],
-            name="NonExistentCodon",
-        )
-
-        self.assertIsNone(signature)
+        """Test that AssertionError is raised when a codon is not found."""
+        with self.assertRaises(AssertionError):
+            find_codon_signature(
+                input_types=["NonExistentType"],
+                output_types=["NonExistentType"],
+                name="NonExistentCodon",
+            )
 
     def test_find_codon_signature_empty_inputs(self) -> None:
         """Test finding a codon with no inputs (e.g., a constant or column)."""
@@ -155,25 +154,22 @@ class TestCodonDevLoad(unittest.TestCase):
     def test_case_sensitive_name_matching(self) -> None:
         """Test that codon name matching is case-sensitive."""
         # Find with correct case
-        signature1 = find_codon_signature(
+        _ = find_codon_signature(
             input_types=["PsqlBool"],
             output_types=["PsqlBool"],
             name="AND",
         )
 
         # Try with incorrect case
-        signature2 = find_codon_signature(
-            input_types=["PsqlBool"],
-            output_types=["PsqlBool"],
-            name="and",
-        )
+        with self.assertRaises(AssertionError):
+            find_codon_signature(
+                input_types=["PsqlBool"],
+                output_types=["PsqlBool"],
+                name="and",
+            )
 
-        # Correct case should succeed
-        self.assertIsNotNone(signature1)
         # Incorrect case should fail (unless there's actually a lowercase 'and' codon)
         # Note: This assertion depends on the actual codon data
-        if signature2 is None:
-            self.assertNotEqual(signature1, signature2)
 
     def test_order_of_types_matters(self) -> None:
         """Test that the order of input/output types matters for matching."""

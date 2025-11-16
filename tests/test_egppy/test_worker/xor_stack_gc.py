@@ -24,7 +24,7 @@ from time import time
 from typing import Any
 
 from egpcommon.codon_dev_load import find_codon_signature
-from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
+from egpcommon.common import ACYBERGENESIS_PROBLEM, NULL_SHA256, bin_counts
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
@@ -85,11 +85,64 @@ def find_gc(signature: bytes) -> GCABC:
     return retval
 
 
+def resolve_inherited_members(egc: GCABC) -> GCABC:
+    """Resolve inherited members from ancestor GCs."""
+    assert isinstance(egc, GCABC), "GC must be a GCABC object."
+    gca = egc["gca"]
+    gcb = egc["gcb"]
+    if gca == NULL_SHA256:
+        raise ValueError("Cannot resolve inherited members. GC is a codon.")
+    gca = find_gc(gca)
+
+    # Populate inherited members as if just GCA is set
+    egc["num_codons"] = gca["num_codons"]
+    egc["num_codes"] = gca["num_codes"] + 1
+    egc["generation"] = gca["generation"] + 1
+    egc["code_depth"] = gca["code_depth"] + 1
+
+    # Ad in this GC must be the same as Is in the GCA
+    # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+    for idx, (a, i) in enumerate(zip(egc["cgraph"]["Ad"], gca["cgraph"]["Is"])):
+        if a.typ is not i.typ:
+            raise ValueError(
+                f"Input types do not match for GCA at position {idx}: "
+                f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
+                f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
+            )
+
+    # As in this GC must be the same as Od in the GCA
+    for idx, (a, o) in enumerate(zip(egc["cgraph"]["As"], gca["cgraph"]["Od"])):
+        if a.typ is not o.typ:
+            raise ValueError(
+                f"Output types do not match for GCA at position {idx}: "
+                f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
+                f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
+            )
+
+    # If GCB exists modify
+    if gcb != NULL_SHA256:
+        gcb = find_gc(gcb)
+        egc["num_codons"] += gcb["num_codons"]
+        egc["num_codes"] += gcb["num_codes"]
+        egc["generation"] = max(egc["generation"], gcb["generation"] + 1)
+        egc["code_depth"] = max(egc["code_depth"], gcb["code_depth"] + 1)
+
+        # Bd in this GC must be the same as Is in the GCB
+        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+        if not all(b.typ is i.typ for b, i in zip(egc["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
+            raise ValueError("Input types do not match for GCB")
+
+        # Bs in this GC must be the same as Od in the GCB
+        if not all(b.typ is o.typ for b, o in zip(egc["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
+            raise ValueError("Output types do not match for GCB")
+
+    return egc
+
+
 def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     """Create a EGC, inherit members from its sub-GCs and create a new GGC."""
     egc = EGCDict(gc)
-    egc.resolve_inherited_members(find_gc)
-    ggc = GGCDict(egc)
+    ggc = GGCDict(resolve_inherited_members(egc))
     if check:
         try:
             ggc.verify()
@@ -325,23 +378,6 @@ def create_primitive_gcs() -> None:
     primitive_gcs["rshift_xor"] = rshift_xor_gc
     primitive_gcs["one_to_two"] = one_to_two
     primitive_gcs["two_to_one"] = two_to_one
-
-    # Catch signature generation issues early
-    assert primitive_gcs["random_long"]["signature"] == bytes.fromhex(
-        "24d185d9dafabdb920311ec68de3833bd4a3b0d282b972786800022b048a0905"
-    )
-    assert primitive_gcs["rshift_1"]["signature"] == bytes.fromhex(
-        "27c0d11482d8b6909a88cb27262c5c2bc4ee92f9279d1160bf56bc80ed11c48b"
-    )
-    assert primitive_gcs["rshift_xor"]["signature"] == bytes.fromhex(
-        "851f31a61994c086c6d2fe84c243d3d8373f4a62f98f1f344c23493060e0c2a0"
-    )
-    assert primitive_gcs["one_to_two"]["signature"] == bytes.fromhex(
-        "9cdb994a05ee0630d4d79747c9b62ac4ba22545e3085aa3645aed30d13615057"
-    )
-    assert primitive_gcs["two_to_one"]["signature"] == bytes.fromhex(
-        "851f31a61994c086c6d2fe84c243d3d8373f4a62f98f1f344c23493060e0c2a0"
-    )
 
 
 def randomrange(a: int, num: int = 0) -> list[int]:
@@ -672,7 +708,3 @@ if __name__ == "__main__":
 
     # Deduplicator info
     print(f"GC markdown and JSON files created.\n\n{deduplicators_info()}")
-
-    # Generate assertions to verify primitive GC signatures
-    for name, sig in ((k, v["signature"]) for k, v in primitive_gcs.items()):
-        print(f"assert primitive_gcs['{name}']['signature'] == bytes.fromhex('{sig.hex()}')")

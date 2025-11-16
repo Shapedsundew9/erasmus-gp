@@ -35,14 +35,12 @@ class GenePoolInterface(GPIABC):
     and provides methods to pull and push Genetic Codes to and from it.
     """
 
-    def __init__(self, config: DBManagerConfig | None = None, cache_size: int = 2**16) -> None:
+    def __init__(self, config: DBManagerConfig, cache_size: int = 2**16) -> None:
         """Initialize the Gene Pool Interface.
 
         The database manager is only configured once. All subsequent initializations
         will use the already configured instances.
         """
-        if config is None:
-            raise ValueError("A DBManagerConfig must be provided for the first initialization.")
         self._dbm = DBManager(config)
         if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
@@ -141,7 +139,7 @@ class GenePoolInterface(GPIABC):
         )
         return tuple(row_iter)
 
-    def select_gc(self, where: str, order_by: str) -> GCABC:
+    def select_gc(self, where: str, order_by: str, literals: dict[str, Any] | None = None) -> GCABC:
         """Select a single Genetic Code based on PSQL fragments.
 
         Args:
@@ -152,7 +150,7 @@ class GenePoolInterface(GPIABC):
             The selected Genetic Code.
         """
         row_iter = self._dbm.managed_gc_table.select(
-            f" WHERE {where} {order_by} LIMIT 1", literals=None, columns="*", container="dict"
+            f" WHERE {where} {order_by} LIMIT 1", literals=literals, columns="*", container="dict"
         )
         for ggc in row_iter:
             return GGCDict(ggc)

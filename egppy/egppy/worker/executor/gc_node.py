@@ -304,11 +304,16 @@ class GCNode(Iterable, Hashable):
 
         if self.is_codon:
             assert (
-                self.gca is NULL_GC or self.gca is NULL_SIGNATURE
+                self.gca is NULL_GC or self.gca == NULL_SIGNATURE
             ), "GCA must be NULL_GC for a codon"
             assert (
-                self.gcb is NULL_GC or self.gcb is NULL_SIGNATURE
+                self.gcb is NULL_GC or self.gcb == NULL_SIGNATURE
             ), "GCB must be NULL_GC for a codon"
+
+            # Make sure we are not holding bytes for GCA or GCB
+            self.gca = NULL_GC
+            self.gcb = NULL_GC
+
             self.assess = False  # No need to assess a codon. We know what it is.
             self.terminal = True  # A codon is a terminal node
             # A codon is a single line of code (unless we are supressing meta-codons

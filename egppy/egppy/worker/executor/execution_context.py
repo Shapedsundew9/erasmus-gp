@@ -146,9 +146,6 @@ class ExecutionContext:
         # Debugging
         # _logger.debug("Creating code graph for: %s", node)
 
-        # If the GC is a codon then there are no connections to make
-        if node.gca is NULL_GC and node.gcb is NULL_GC:
-            return node
         connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
@@ -388,6 +385,7 @@ class ExecutionContext:
         # NB: RuntimeContext is not used if the GC is not a PGC
         rtctxt = ""
         if finfo.gc.is_pgc():
+            # TODO: Need to pass in creator info here
             lns["rtctxt"] = RuntimeContext(self.gpi, finfo.gc)
             rtctxt = "rtctxt, "
 

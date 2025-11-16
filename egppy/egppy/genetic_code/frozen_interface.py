@@ -387,3 +387,15 @@ class FrozenInterface(InterfaceABC):
             RuntimeError: Always raises since frozen interfaces are immutable.
         """
         raise RuntimeError("Cannot modify a frozen Interface")
+
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set references for all endpoints in the interface.
+
+        Args:
+            row: The Row to set (e.g., IS, OD).
+            start_ref: The starting reference number.
+
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")

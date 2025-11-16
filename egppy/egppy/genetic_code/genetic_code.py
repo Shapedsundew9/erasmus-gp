@@ -6,7 +6,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from datetime import datetime
 from itertools import count
-from typing import Any, Callable, Iterator
+from typing import Any, Iterator
 from uuid import UUID
 
 from egpcommon.common import NULL_SHA256
@@ -275,57 +275,6 @@ class GCMixin(CommonObj):
                     chart_txt.append(mc_unknown_str(gcx, prefix, row))
                     chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
         return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
-
-    def resolve_inherited_members(self, find_gc: Callable[[bytes], GCABC]) -> None:
-        """Resolve inherited members from ancestor GCs."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        gca = self["gca"]
-        gcb = self["gcb"]
-        if gca is NULL_SIGNATURE:
-            raise ValueError("Cannot resolve inherited members. GC is a codon.")
-        gca = find_gc(gca)
-
-        # Populate inherited members as if just GCA is set
-        self["num_codons"] = gca["num_codons"]
-        self["num_codes"] = gca["num_codes"] + 1
-        self["generation"] = gca["generation"] + 1
-        self["code_depth"] = gca["code_depth"] + 1
-
-        # Ad in this GC must be the same as Is in the GCA
-        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-        for idx, (a, i) in enumerate(zip(self["cgraph"]["Ad"], gca["cgraph"]["Is"])):
-            if a.typ is not i.typ:
-                raise ValueError(
-                    f"Input types do not match for GCA at position {idx}: "
-                    f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
-                    f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
-                )
-
-        # As in this GC must be the same as Od in the GCA
-        for idx, (a, o) in enumerate(zip(self["cgraph"]["As"], gca["cgraph"]["Od"])):
-            if a.typ is not o.typ:
-                raise ValueError(
-                    f"Output types do not match for GCA at position {idx}: "
-                    f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
-                    f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
-                )
-
-        # If GCB exists modify
-        if gcb is not NULL_SIGNATURE:
-            gcb = find_gc(gcb)
-            self["num_codons"] += gcb["num_codons"]
-            self["num_codes"] += gcb["num_codes"]
-            self["generation"] = max(self["generation"], gcb["generation"] + 1)
-            self["code_depth"] = max(self["code_depth"], gcb["code_depth"] + 1)
-
-            # Bd in this GC must be the same as Is in the GCB
-            # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-            if not all(b.typ is i.typ for b, i in zip(self["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
-                raise ValueError("Input types do not match for GCB")
-
-            # Bs in this GC must be the same as Od in the GCB
-            if not all(b.typ is o.typ for b, o in zip(self["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
-                raise ValueError("Output types do not match for GCB")
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""

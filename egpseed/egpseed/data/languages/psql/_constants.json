@@ -1,6 +1,96 @@
 {
+    "0::BIGINT": {
+        "inline": "PsqlBigInt('0::BIGINT', is_literal=True)",
+        "description": "Big integer literal 0",
+        "num_inputs": 0,
+        "outputs": [
+            "PsqlBigInt"
+        ],
+        "properties": {
+            "constant": true,
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "0::INT": {
+        "inline": "PsqlInt('0::INT', is_literal=True)",
+        "description": "Int literal 0",
+        "num_inputs": 0,
+        "outputs": [
+            "PsqlInt"
+        ],
+        "properties": {
+            "constant": true,
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "0::SMALLINT": {
+        "inline": "PsqlSmallInt('0::SMALLINT', is_literal=True)",
+        "description": "Small integer literal 0",
+        "num_inputs": 0,
+        "outputs": [
+            "PsqlSmallInt"
+        ],
+        "properties": {
+            "constant": true,
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "1::BIGINT": {
+        "inline": "PsqlBigInt('1::BIGINT', is_literal=True)",
+        "description": "Big integer literal 1",
+        "num_inputs": 0,
+        "outputs": [
+            "PsqlBigInt"
+        ],
+        "properties": {
+            "constant": true,
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "1::INT": {
+        "inline": "PsqlInt('1::INT', is_literal=True)",
+        "description": "Int literal 1",
+        "num_inputs": 0,
+        "outputs": [
+            "PsqlInt"
+        ],
+        "properties": {
+            "constant": true,
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
+    "1::SMALLINT": {
+        "inline": "PsqlSmallInt('1::SMALLINT', is_literal=True)",
+        "description": "Small integer literal 1",
+        "num_inputs": 0,
+        "outputs": [
+            "PsqlSmallInt"
+        ],
+        "properties": {
+            "constant": true,
+            "gctsp": {
+                "python": false,
+                "psql": true
+            }
+        }
+    },
     "properties_codon_mask": {
-        "inline": "PsqlBigInt(CODON_META_MASK, is_literal=True)",
+        "inline": "PsqlBigInt(f'{CODON_META_MASK}::BIGINT', is_literal=True)",
         "description": "Properties mask to filter for codons",
         "num_inputs": 0,
         "outputs": [

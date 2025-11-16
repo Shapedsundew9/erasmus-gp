@@ -114,6 +114,7 @@ class TestInterfaceABC(TestCase):
                 "set_cls",
                 "clr_refs",
                 "ref_shift",
+                "set_refs",
             }
         )
 

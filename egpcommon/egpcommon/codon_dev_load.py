@@ -117,7 +117,7 @@ def find_codon_signature(
     output_types: Sequence[str],
     name: str,
     file_paths: Sequence[str] | None = None,
-) -> bytes | None:
+) -> bytes:
     """Find a codon signature matching the specified criteria.
 
     This function searches for a codon that matches the given input types, output types,
@@ -132,11 +132,12 @@ def find_codon_signature(
                    uses DEFAULT_CODON_PATHS.
 
     Returns:
-        The codon signature as bytes if found, None otherwise.
+        The codon signature as bytes.
 
     Raises:
         FileNotFoundError: If a specified file does not exist.
-        ValueError: If the JSON structure is invalid or required fields are missing.
+        ValueError: If the JSON structure is invalid or required fields are missing
+                    or the codon is not found.
 
     Example:
         >>> sig = find_codon_signature(["int", "int"], ["int"], "add")
@@ -160,7 +161,11 @@ def find_codon_signature(
         _logger.debug(
             "Codon not found: name=%s, inputs=%s, outputs=%s", name, input_types, output_types
         )
+        raise ValueError(
+            f"Codon not found: name={name}, inputs={input_types}, outputs={output_types}"
+        )
 
+    assert signature is not None  # For type checkers
     return signature
 
 

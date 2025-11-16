@@ -53,7 +53,15 @@ from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # PGC operations
-from egppy.physics.insertion import insert_gc_case_0, insert_gc_case_1, sca
+from egppy.physics.insertion import (
+    harmony,
+    insert_gc_case_0,
+    insert_gc_case_1,
+    inverse_stack,
+    perfect_stack,
+    sca,
+    stack,
+)
 
 # PSQL Types - Import all types used in types.json
 from egppy.physics.psql_types import (

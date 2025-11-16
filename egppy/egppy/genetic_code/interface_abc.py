@@ -230,6 +230,19 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.set_row must be overridden")
 
     @abstractmethod
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set references for all endpoints in the interface.
+
+        Args:
+            row: The Row to set (e.g., IS, OD).
+            start_ref: The starting reference number.
+
+        Returns:
+            Self with references set.
+        """
+        raise NotImplementedError("InterfaceABC.set_refs must be overridden")
+
+    @abstractmethod
     def clr_refs(self) -> InterfaceABC:
         """Clear all references in the interface endpoints.
 

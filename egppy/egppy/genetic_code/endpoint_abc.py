@@ -325,3 +325,14 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             Self with all references shifted.
         """
         raise NotImplementedError("EndPointABC.ref_shift must be overridden")
+
+    @abstractmethod
+    def set_ref(self, row: Row, idx: int) -> EndPointABC:
+        """Set the reference list of the endpoint to a single row and index.
+        Args:
+            row: The row to set the reference to.
+            idx: The index within the row to set the reference to.
+        Returns:
+            Self with the reference set.
+        """
+        raise NotImplementedError("EndPointABC.set_ref must be overridden")

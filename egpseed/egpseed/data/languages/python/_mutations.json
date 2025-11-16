@@ -25,11 +25,11 @@
     "name": "harmony",
     "description": "Harmony mutation.",
     "inputs": [
-      "EGCode",
-      "EGCode"
+      "GGCode",
+      "GGCode"
     ],
     "outputs": [
-      "EGCode"
+      "GGCode"
     ],
     "inline": "harmony({pgc}{i0}, {i1})",
     "imports": [
@@ -48,12 +48,39 @@
       "is_pgc": true
     }
   },
+  "perfect_stack": {
+    "name": "perfect_stack",
+    "description": "Perfect Stack mutation.",
+    "inputs": [
+      "GGCode",
+      "GGCode"
+    ],
+    "outputs": [
+      "EGCode"
+    ],
+    "inline": "perfect_stack({pgc}{i0}, {i1})",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "perfect_stack"
+      }
+    ],
+    "properties": {
+      "side_effects": false,
+      "static_creation": false,
+      "is_pgc": true
+    }
+  },
   "sca": {
     "name": "sca",
     "description": "Spontaneous Codon Aggregation mutation.",
     "inputs": [
-      "EGCode",
-      "EGCode"
+      "GGCode",
+      "GGCode"
     ],
     "outputs": [
       "EGCode"

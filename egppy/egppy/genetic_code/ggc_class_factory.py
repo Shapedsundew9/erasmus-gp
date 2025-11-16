@@ -49,7 +49,7 @@ class GGCMixin(EGCMixin):
         )
         if self["code_depth"] == 1:
             self.runtime_error(
-                self["gca"] is NULL_SIGNATURE,
+                self["gca"] == NULL_SIGNATURE,
                 "A code depth of 1 is a codon or empty GC and must have a NULL GCA.",
             )
 
@@ -65,7 +65,7 @@ class GGCMixin(EGCMixin):
 
         if self["generation"] == 1:
             self.runtime_error(
-                self["gca"] is NULL_SIGNATURE,
+                self["gca"] == NULL_SIGNATURE,
                 "A generation of 1 is a codon and can only have a NULL GCA.",
             )
 
