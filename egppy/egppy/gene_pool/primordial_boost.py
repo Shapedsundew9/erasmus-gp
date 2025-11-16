@@ -33,8 +33,8 @@ PSQL_IGRL_TO_64 = (
     "raise_if_not_instance_of(PsqlIntegral, PsqlBigInt)",
 )
 GPI_SELECT_GC = (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "select")
-SCA_GC = (["EGCode"], ["EGCode"], "sca")
-PERFECT_STACK = (["EGCode"], ["EGCode"], "perfect_stack")
+SCA_GC = (["GGCode"], ["EGCode"], "sca")
+PERFECT_STACK = (["GGCode"], ["EGCode"], "perfect_stack")
 
 
 # Dictionary of primitive GCs

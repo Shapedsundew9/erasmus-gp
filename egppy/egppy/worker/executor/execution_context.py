@@ -162,10 +162,16 @@ class ExecutionContext:
             if not src.terminal:
                 match src.row:
                     case SrcRow.A:
-                        assert node.gca is not NULL_GC, "Should never introspect a codon graph."
-                        src.node = node.gca_node
-                        src.terminal = node.gca_node.terminal
-                        iface: Interface | None = src.node.gc["cgraph"]["Od"]
+                        # Special case: If this node is a codon, row A just defines the interface
+                        # to the inline code, not a sub-GC. Treat it as terminal.
+                        if node.is_codon:
+                            src.terminal = True
+                            iface: Interface | None = None
+                        else:
+                            assert node.gca is not NULL_GC, "Should never introspect a codon graph."
+                            src.node = node.gca_node
+                            src.terminal = node.gca_node.terminal
+                            iface = src.node.gc["cgraph"]["Od"]
                     case SrcRow.B:
                         assert node.gcb is not NULL_GC, "GCB cannot be NULL"
                         src.node = node.gcb_node
@@ -231,7 +237,12 @@ class ExecutionContext:
                     # in the function nodes terminal_connections list.
                     terminal_connections.append(connection)
                     connection_stack.pop()
-                    if src.node not in visited_nodes:
+                    # Special case: If the source node is a codon AND it's the root, we don't
+                    # need to traverse further. For non-root codons, we still need to create
+                    # connections to their inputs from the parent.
+                    if src.node not in visited_nodes and not (
+                        src.node.is_codon and src.node is root
+                    ):
                         visited_nodes.add(src.node)
                         connection_stack.extend(code_connection_from_iface(node, src.node.iam))
             else:
@@ -275,8 +286,11 @@ class ExecutionContext:
 
         # Write a line for each terminal node that has lines to write in the graph
         # Meta codons have 0 lines when self.wmc (write meta-codons) is false
+        # Special case: If the root is a codon, it needs to be written as it IS the function body
         for node in (
-            tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn.num_lines and tn is not root
+            tn
+            for tn in GCNodeCodeIterable(root)
+            if tn.terminal and tn.num_lines and (tn is not root or root.is_codon)
         ):
             code.append(self.inline_cstr(root=root, node=node))
 
@@ -413,8 +427,13 @@ class ExecutionContext:
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
         ivns: list[str] = [NULL_STR] * len(ngc["inputs"])
-        for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
-            ivns[idx] = ivn
+        # Special case: If this node is a codon and it's the root, inputs come directly
+        # from the function parameter 'i', not from connections
+        if node.is_codon and node is root:
+            ivns = [i_cstr(i) for i in range(len(ngc["inputs"]))]
+        else:
+            for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
+                ivns[idx] = ivn
 
         # Is this node a codon?
         assignment = ", ".join(ovns) + " = "
