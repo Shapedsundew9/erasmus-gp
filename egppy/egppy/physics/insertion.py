@@ -3,22 +3,22 @@
 Defines how a insert GC (iGC) is inserted into a target GC (tGC).
 """
 
+from datetime import UTC, datetime
+
 from egpcommon.egp_rnd_gen import EGPRndGen
+from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
 from egppy.genetic_code.egc_class_factory import EGCDict
-from egppy.genetic_code.ggc_class_factory import GCABC
+from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.interface_abc import InterfaceABC
-from egppy.physics.helpers import merge_properties, pgc_epilogue
+from egppy.physics.helpers import merge_properties
 from egppy.physics.runtime_context import RuntimeContext
 
 
-@pgc_epilogue
-def insert_gc_case_0(
-    rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC, if_locked: bool = True
-) -> GCABC:
+def insert_gc_case_0(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     """Insert case 0: stack.
 
     IGC is stacked on top of TGC and stabilized.
@@ -61,16 +61,12 @@ def insert_gc_case_0(
             "cgraph": CGraph(graph),
         }
     )
-    assert isinstance(rgc["cgraph"], CGraph), "Resultant GC c_graph is not a CGraph"
-    rgc["cgraph"].stablize(rtctxt.gpi, if_locked, EGPRndGen(rgc["created"]))
     return rgc
 
 
-def insert_gc_case_1(
-    rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC, if_locked: bool = True
-) -> GCABC:
+def insert_gc_case_1(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     """Insert case 1: inverse stack."""
-    return insert_gc_case_0(rtctxt, tgc, igc, if_locked)  # pylint: disable=arguments-out-of-order
+    return insert_gc_case_0(rtctxt, tgc, igc)  # pylint: disable=arguments-out-of-order
 
 
 # Insertion case aliases
@@ -88,10 +84,9 @@ def sca(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     Note that SCA is *always* unlocked, i.e., the resultant GC's interface can be
     modified.
     """
-    return stack(rtctxt, igc, tgc, False)
+    return stack(rtctxt, igc, tgc)
 
 
-@pgc_epilogue
 def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     """Creates a perfect stack of iGC on top of tGC.
 
@@ -150,7 +145,6 @@ def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     return rgc
 
 
-@pgc_epilogue
 def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     """Creates a harmony GC by placing gca and gcb in a GC but with inputs and outputs
     directly passed through (no connection between gca and gcb).
@@ -185,3 +179,33 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
         }
     )
     return rgc
+
+
+def stabilize_gc(
+    rtctxt: RuntimeContext, egc: GCABC, sse: bool = False, if_locked: bool = True
+) -> GCABC:
+    """Stabilize an EGCode to a GGCode raising an SSE as necessary."""
+
+    egc["created"] = datetime.now(UTC)
+    assert isinstance(egc["cgraph"], CGraph), "Resultant GC c_graph is not a CGraph"
+    stable = egc["cgraph"].stablize(rtctxt.gpi, if_locked, EGPRndGen(egc["created"]))
+
+    if not stable and sse:
+        raise NotImplementedError("Stabilization failed and SSE requested")
+    if not stable:
+        raise RuntimeError("Stabilization failed")
+
+    gpi: GenePoolInterface = rtctxt.gpi
+    gca: GCABC = gpi[egc["gca"]]
+    gcb: GCABC = gpi[egc["gcb"]]
+
+    # Populate inherited members
+    egc["num_codons"] = gca["num_codons"] + gcb["num_codons"]
+    egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
+    egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
+    egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
+
+    # Stable GC's are converted to GGCodes and added to the Gene Pool
+    ggc: GCABC = GGCDict(egc)
+    gpi[ggc["signature"]] = ggc
+    return ggc

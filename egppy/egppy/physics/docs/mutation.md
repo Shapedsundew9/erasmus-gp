@@ -6,6 +6,8 @@ Mutations evolve in the same way any problem solution evolves in Erasmus GP. The
 
 Functional mutations are intended (though may not) modify the behaviour of the targeted GC.
 
+Mutations GCs may take either EGCodes or GGCodes as inputs and return EGCodes Which may or may not be stable. There are a few mutations that take GGCodes and guarantee a stable GGCode returned if they succeed. For example, the `harmony` & `perfect_stack` mutations. EGCodes may then be further mutated or can be converted to a GGCode through a stabilization mutation, of which there are two varieties, the `connect_all` version, in which all destination endpoints are randomly connected and if possible a (stable) GGCode is created, otherwise an exception is raised and the mutation fails, or a `stabilize` mutation that allows a steady state exception to try and repair unconnected destination endpoints within the EGCode connection graph. This mutation is much more likely to succeed, but may also still fail.  
+
 ## Optimization Mutation Primitives
 
 Optimization mutations are intended to reduce the code size of a targeted GC or increase its runtime performance. Optimisation mutation GC's are neatly evolable in that the "optimization problem" can be stated generically: For all the use cases of this GC replace it with a better performing one.

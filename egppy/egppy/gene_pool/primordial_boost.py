@@ -11,7 +11,6 @@ from egpcommon.codon_dev_load import find_codon_signature
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
-from egppy.worker.executor.context_writer import write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext
 
 # Constants
@@ -36,6 +35,7 @@ GPI_SELECT_GC = (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "sele
 SCA_GC = (["GGCode"], ["EGCode"], "sca")
 PERFECT_STACK_GC = (["GGCode"], ["EGCode"], "perfect_stack")
 HARMONY_GC = (["GGCode"], ["GGCode"], "harmony")
+CONNECT_ALL_GC = (["EGCode"], ["GGCode"], "connect_all")
 
 
 # Dictionary of primitive GCs
@@ -64,10 +64,18 @@ def create_primitive_gcs():
     primitive_gcs["GPI_SELECT_GC"] = gpi[find_codon_signature(*GPI_SELECT_GC)]
     primitive_gcs["SCA_GC"] = gpi[find_codon_signature(*SCA_GC)]
     primitive_gcs["PERFECT_STACK"] = gpi[find_codon_signature(*PERFECT_STACK_GC)]
+    primitive_gcs["HARMONY_GC"] = gpi[find_codon_signature(*HARMONY_GC)]
+    primitive_gcs["CONNECT_ALL"] = gpi[find_codon_signature(*CONNECT_ALL_GC)]
 
     # Create an execution context to do the work.
     ec = ExecutionContext(gpi, wmc=True)
-    ec.write_executable(primitive_gcs["PERFECT_STACK"])
+
+    # Stack codons to create a selector GC
+    #   1. Convert the Integral input interface of the bitwise & codon to BigInt
+    #   2. Make a harmony from the codon property mask and the properties column codon
+    #   3. Stack #2 on #1 to make a filter condition for the WHERE clause
+    #   4.
+
     big_int_and_gc = ec.execute(
         primitive_gcs["PERFECT_STACK"]["signature"],
         (primitive_gcs["PSQL_2x64_TO_IGRL"], primitive_gcs["PSQL_BITWISE_AND"]),

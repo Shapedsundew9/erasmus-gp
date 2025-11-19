@@ -43,36 +43,3 @@ def merge_properties(gca: GCABC, gcb: GCABC) -> BitDictABC:
 
     # TODO: Implement GC type specific merging logic
     return merge_properties_base(prop_a, prop_b)
-
-
-def pgc_epilogue(func):
-    """Decorator for PGC functions to finalize the resultant GC.
-
-    This decorator wraps PGC functions to convert the resultant EGCode GC into a GGCode GC,
-    store it in the Gene Pool Interface, and return the GGCode GC.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs) -> GCABC:
-        egc: GCABC = func(*args, **kwargs)
-
-        gpi: GenePoolInterface = args[0].gpi if args else kwargs["rtctxt"].gpi
-        gca: GCABC = gpi[egc["gca"]]
-        gcb: GCABC = gpi[egc["gcb"]]
-
-        # Populate inherited members
-        egc["num_codons"] = gca["num_codons"] + gcb["num_codons"]
-        egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
-        egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
-        egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
-
-        # Unstable GC's are returned as-is
-        if not egc["cgraph"].is_stable():
-            return egc
-
-        # Stable GC's are converted to GGCodes and added to the Gene Pool
-        ggc: GCABC = GGCDict(egc)
-        gpi[ggc["signature"]] = ggc
-        return ggc
-
-    return wrapper
