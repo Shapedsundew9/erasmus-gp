@@ -29,7 +29,7 @@ def insert_gc_case_0(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     igc -- the insert GC
     tgc -- the target GC
     gp -- the gene pool
-    if_locked -- whether the interface of the resultant GC is defined (i.e cannot be changed)
+
 
     Returns
     -------

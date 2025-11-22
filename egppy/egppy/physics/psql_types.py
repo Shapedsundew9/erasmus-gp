@@ -78,8 +78,9 @@ class PsqlType(ABC):
             raise PsqlTypeError("PsqlType cannot be both literal and column.")
         if not (is_literal or is_column) and param_a is None:
             raise PsqlTypeError(
-                "PsqlType expression value requires an expression mapping "
-                "with at least one parameter to resolve variables."
+                "PsqlType expression value requires at least one sub-expression or literal "
+                "(param_a) for expression construction. "
+                "param_a should be a PsqlType instance, e.g., param_a=PsqlType('column_name', is_column=True)."
             )
         self.value = self._validate(value) if is_literal else value
         self.is_literal: bool = is_literal

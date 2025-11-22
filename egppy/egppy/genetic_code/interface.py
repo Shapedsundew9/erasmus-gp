@@ -196,8 +196,10 @@ class Interface(CommonObj, InterfaceABC):
 
         # If we get here, we have an unsupported type
         raise TypeError(
-            f"Unsupported endpoints type: {type(endpoints)} "
-            f" with first element type {type(endpoints[0])}"
+            f"Unsupported endpoints type: {type(endpoints)} with first element type {type(endpoints[0])}. "
+            "Supported types are: InterfaceABC, sequence of EndPointABC, sequence of 3-element tuples (e.g. ['row', idx, type]), "
+            "sequence of types (e.g. [TypesDef, ...]), or sequence of 5-element tuples (e.g. [row, idx, cls, type, refs]). "
+            "Example of valid input: [('dst', 0, EPCls.DST, TypesDef, [[...]]), ...]"
         )
 
     def __eq__(self, value: object) -> bool:
@@ -265,7 +267,7 @@ class Interface(CommonObj, InterfaceABC):
         Raises
         ------
         RuntimeError: If the interface is frozen.
-        TypeError: If value is not an EndPoint instance.
+        TypeError: If value is not an EndPointABC instance.
         IndexError: If idx is out of range.
         ValueError: If the endpoint's row or class doesn't match existing endpoints.
         """
