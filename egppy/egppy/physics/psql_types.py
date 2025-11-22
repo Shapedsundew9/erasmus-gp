@@ -65,7 +65,8 @@ class PsqlType(ABC):
             uid:        Unique ID for the literal, assigned automatically if -1 and is_literal
                         is True (the default). Typically hard coding the UID is only used for
                         testing
-            emap:       Mapping for expression variables. Required if value is an expression.
+            param_a:    For expressions, the first sub-expression or literal (PsqlType or None).
+            param_b:    For expressions, the second sub-expression or literal (PsqlType or None).
 
         """
         if not is_literal and not isinstance(value, str):
@@ -78,7 +79,7 @@ class PsqlType(ABC):
         if not (is_literal or is_column) and param_a is None:
             raise PsqlTypeError(
                 "PsqlType expression value requires an expression mapping "
-                "(emap) to resolve variables."
+                "with at least one parameter to resolve variables."
             )
         self.value = self._validate(value) if is_literal else value
         self.is_literal: bool = is_literal
