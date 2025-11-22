@@ -413,7 +413,8 @@ def generate_types_def(write: bool = False) -> None:
             base_class = name[start + 2 : end]
 
         # Add the sub-types to the type definition.
-        # NOTE: Using f-string here is a stylistic choice for consistency, not a performance optimization.
+        # NOTE: Using f-string here is a stylistic choice for consistency,
+        # not a performance optimization.
         template = f"-{base_class}0" if flag else base_class
         for st in pairs:
             # Replace the template with the sub-type (pair) name and
@@ -657,7 +658,8 @@ def generate_types_def(write: bool = False) -> None:
             )
 
     # Pass 13: Write the new type definition dictionary to a JSON file (optional).
-    if write:
+    # Only write if the data has actually changed to avoid unnecessary signature updates.
+    if write and new_tdd != existing_types_def:
         dump_signed_json(new_tdd, TYPES_DEF_FILE)
 
 
