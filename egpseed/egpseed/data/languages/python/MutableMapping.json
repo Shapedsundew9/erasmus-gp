@@ -1,92 +1,92 @@
 {
-    "clear": {
-        "inline": "{i0}.clear()",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]"
-        ],
-        "description": "clear",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "delitem": {
-        "inline": "del {i0}[{i1}]",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]",
-            "-Hashable0"
-        ],
-        "description": "delitem",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "pop": {
-        "inline": "{i0}.pop({i1})",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]",
-            "-Hashable0"
-        ],
-        "description": "pop",
-        "outputs": [
-            "-Any0"
-        ],
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "popitem": {
-        "inline": "{i0}.popitem()",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]"
-        ],
-        "description": "popitem",
-        "outputs": [
-            "Pair[-Hashable0, -Any0]"
-        ],
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "setdefault": {
-        "inline": "{i0}.setdefault({i1}, {i2})",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]",
-            "-Hashable0",
-            "-Any0"
-        ],
-        "description": "setdefault",
-        "outputs": [
-            "-Any0"
-        ],
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "setitem": {
-        "inline": "{i0}[{i1}] = {i2}",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]",
-            "-Hashable0",
-            "-Any0"
-        ],
-        "description": "setitem",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "update": {
-        "inline": "{i0}.update({i1})",
-        "inputs": [
-            "-MutableMapping0[-Hashable0, -Any0]",
-            "-Mapping0[-Hashable0, -Any0]"
-        ],
-        "description": "update",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
+  "clear": {
+    "description": "clear",
+    "inline": "{i0}.clear()",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]"
+    ],
+    "num_outputs": 0,
+    "properties": {
+      "side_effects": true
     }
+  },
+  "delitem": {
+    "description": "delitem",
+    "inline": "del {i0}[{i1}]",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]",
+      "-Hashable0"
+    ],
+    "num_outputs": 0,
+    "properties": {
+      "side_effects": true
+    }
+  },
+  "pop": {
+    "description": "pop",
+    "inline": "{i0}.pop({i1})",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]",
+      "-Hashable0"
+    ],
+    "outputs": [
+      "-Any0"
+    ],
+    "properties": {
+      "side_effects": true
+    }
+  },
+  "popitem": {
+    "description": "popitem",
+    "inline": "{i0}.popitem()",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]"
+    ],
+    "outputs": [
+      "Pair[-Hashable0, -Any0]"
+    ],
+    "properties": {
+      "side_effects": true
+    }
+  },
+  "setdefault": {
+    "description": "setdefault",
+    "inline": "{i0}.setdefault({i1}, {i2})",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]",
+      "-Hashable0",
+      "-Any0"
+    ],
+    "outputs": [
+      "-Any0"
+    ],
+    "properties": {
+      "side_effects": true
+    }
+  },
+  "setitem": {
+    "description": "setitem",
+    "inline": "{i0}[{i1}] = {i2}",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]",
+      "-Hashable0",
+      "-Any0"
+    ],
+    "num_outputs": 0,
+    "properties": {
+      "side_effects": true
+    }
+  },
+  "update": {
+    "description": "update",
+    "inline": "{i0}.update({i1})",
+    "inputs": [
+      "-MutableMapping0[-Hashable0, -Any0]",
+      "-Mapping0[-Hashable0, -Any0]"
+    ],
+    "num_outputs": 0,
+    "properties": {
+      "side_effects": true
+    }
+  }
 }

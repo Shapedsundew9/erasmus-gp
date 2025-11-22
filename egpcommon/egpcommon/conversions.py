@@ -17,6 +17,7 @@ from numpy import frombuffer, ndarray, uint8
 from numpy.typing import NDArray
 
 from egpcommon.common import NULL_SHA256
+from egpcommon.deduplication import signature_store
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.properties import PropertiesBD
 
@@ -78,6 +79,7 @@ def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
     """Convert a memory view to a signature bytes object.
 
     None is converted to NULL_SHA256.
+    Signatures are de-duplicated.
 
     Args
     ----
@@ -87,7 +89,7 @@ def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
     -------
     (bytes or NoneType)
     """
-    return NULL_SHA256 if obj is None else bytes(obj)
+    return NULL_SHA256 if obj is None else signature_store[bytes(obj)]
 
 
 def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
@@ -201,11 +203,11 @@ def null_sha256_to_none(obj: bytes | None) -> bytes | None:
     return None if obj is NULL_SHA256 or obj == NULL_SHA256 else obj
 
 
-def encode_properties(properties: dict) -> int:
+def encode_properties(properties: dict | int) -> int:
     """Encode properties."""
-    return PropertiesBD(properties).to_int()
+    return PropertiesBD(properties).to_int() if isinstance(properties, dict) else properties
 
 
-def decode_properties(properties: int) -> dict:
+def decode_properties(properties: dict | int) -> dict:
     """Decode properties."""
-    return PropertiesBD(properties).to_json()
+    return PropertiesBD(properties).to_json() if isinstance(properties, int) else properties

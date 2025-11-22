@@ -13,10 +13,19 @@ from typing import Any, Literal, Self
 from uuid import UUID
 
 from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.parallel_exceptions import create_parallel_exceptions
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
+
+# Create the Debug exception hierarchy
+# A debug exception hierarchy is needed to differenciate from when there is an error
+# in the EGP application versus an error in the generated code that calls the PGC API.
+# A complete set of parallel standard exceptions is created for this purpose. e.g.
+# debug_exceptions.DebugValueError, debug_exceptions.DebugTypeError,
+# debug_exceptions.DebugRuntimeError etc.
+debug_exceptions = create_parallel_exceptions(prefix="Debug", verbose=False)
 
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)
@@ -164,6 +173,8 @@ def sha256_signature(
     hash_obj.update(gcb)
     hash_obj.update(pgc)
     hash_obj.update(creator)
+    # The graph must be in a consistent format & order.
+    # See CGraph.py CGraph.to_json() for details.
     hash_obj.update(pformat(graph, compact=True).encode())
     if inline:
         hash_obj.update(inline.encode())
@@ -305,12 +316,22 @@ def ensure_sorted_json_keys(file_path: Path | str) -> None:
     sorted_keys = sorted(keys)
 
     # If keys are not in sorted order, rewrite the file
-    if keys != sorted_keys:
-        _logger.info("Rewriting %s with sorted keys", path)
-        sorted_data = {key: data[key] for key in sorted_keys}
+    need_sort = keys != sorted_keys
+    if not need_sort:
+        _logger.debug("Top level keys in %s are already sorted", path)
+        for value in data.values():
+            if isinstance(value, dict):
+                sub_keys = list(value.keys())
+                sub_sorted_keys = sorted(sub_keys)
+                if sub_keys != sub_sorted_keys:
+                    need_sort = True
+                    _logger.debug("Found unsorted sub-dictionary in %s", path)
+                    break
 
+    if need_sort:
+        _logger.info("Rewriting %s with sorted keys", path)
         with path.open("w", encoding="utf-8") as file:
-            dump(sorted_data, file, indent=2, ensure_ascii=False)
+            dump(data, file, indent=2, ensure_ascii=False, sort_keys=True)
             file.write("\n")  # Add trailing newline
 
         _logger.info("Successfully sorted keys in %s", path)

@@ -1,7 +1,8 @@
 """The Gene Pool Interface."""
 
+from collections.abc import Iterable
 from os.path import dirname, join
-from typing import Any
+from typing import Any, Literal
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
@@ -9,8 +10,8 @@ from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_class_factory import GGCDict
-from egppy.genetic_code.interface import Interface
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.db_table_store import DBTableStore
@@ -34,14 +35,12 @@ class GenePoolInterface(GPIABC):
     and provides methods to pull and push Genetic Codes to and from it.
     """
 
-    def __init__(self, config: DBManagerConfig | None = None, cache_size: int = 2**16) -> None:
+    def __init__(self, config: DBManagerConfig, cache_size: int = 2**16) -> None:
         """Initialize the Gene Pool Interface.
 
         The database manager is only configured once. All subsequent initializations
         will use the already configured instances.
         """
-        if config is None:
-            raise ValueError("A DBManagerConfig must be provided for the first initialization.")
         self._dbm = DBManager(config)
         if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
@@ -122,7 +121,8 @@ class GenePoolInterface(GPIABC):
         order_sql: str = "RANDOM()",
         limit: int = 1,
         literals: dict[str, Any] | None = None,
-    ) -> tuple[bytes, ...]:
+        columns: Iterable[str] | Literal["*"] = "*",
+    ) -> tuple[dict[str, Any], ...]:
         """Select Genetic Codes based on a SQL query.
 
         The format of the arguments is for the underlying egpdb.Table.select()
@@ -135,14 +135,26 @@ class GenePoolInterface(GPIABC):
         """
         query_str = f" WHERE {filter_sql} ORDER BY {order_sql} LIMIT {max(1, min(limit, 16))}"
         row_iter = self._dbm.managed_gc_table.select(
-            query_str, literals, columns=["signature"], container="tuple"
+            query_str, literals, columns=columns, container="dict"
         )
-        return tuple(row[0] for row in row_iter)
+        return tuple(row_iter)
 
-    def select_interface(self, _: Interface) -> bytes | None:
-        """Select a Genetic Code with the exact input types."""
-        # Place holder for the actual implementation
-        return None
+    def select_gc(self, where: str, order_by: str, literals: dict[str, Any] | None = None) -> GCABC:
+        """Select a single Genetic Code based on PSQL fragments.
+
+        Args:
+            where: The PSQL WHERE fragment (stringized)
+            order_by: The PSQL ORDER BY fragment (stringized)
+
+        Returns:
+            The selected Genetic Code.
+        """
+        row_iter = self._dbm.managed_gc_table.select(
+            f" WHERE {where} {order_by} LIMIT 1", literals=literals, columns="*", container="dict"
+        )
+        for ggc in row_iter:
+            return GGCDict(ggc)
+        raise KeyError("No Genetic Code found matching the query.")
 
     def verify(self) -> None:
         """Verify the Gene Pool."""

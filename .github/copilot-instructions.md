@@ -24,8 +24,11 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 
 ## Design Patterns
 
-*   **Custom Classes**: All custom classes inherit from `egpcommon.common_obj.CommonObj`, which provides validation methods and defines a validation pattern to be used consistently across the codebase.
+*   **Common Classes**: All common classes inherit from `egpcommon.common_obj.CommonObj`, which provides validation methods that shall be used to raise exceptions in verify() and consistency(). It also defines a validation pattern in the doc strings to be used consistently across the codebase. All members in a derived common_obj class shall be slotted.
 *   **Validator Pattern:** The `egpcommon.validator` module implements a Validator class that encapsulates validation logic for various data types and formats.
+*   **Defensive Programming:** Functions and methods must validate their inputs and raise appropriate standard exceptions as early as possible to prevent propagation of invalid data and reduce additional wasted time & resources when used by runtime evolved code through the `egppy.physics.pgc_api` defined API. Runtime type validation shall use assert statements when not enclosed in a `_logger.isEnabledFor(level=DEBUG)` block.
+*   **Debug Pattern:** When `_logger.isEnabledFor(level=DEBUG)` is true aggressive verification of the internal data structures, types and object self consistency shall be performed to catch EGP application errors (raising `egpcommon.common.debug_exceptions`).
+*   **Immutable object de-duplication:** Standard python immutable objects (e.g., tuples, frozensets) and freeable objects, once frozen, shall use `egpcommon.object_deduplicator` ObjectDeduplicator to ensure de-duplication and memory efficiency.
 
 ## Coding
 
@@ -35,7 +38,7 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 *   **Logging:** Use the custom logger from `egpcommon.egp_log` for any new log messages and lazy formatting in log calls.
 *   **Immutability:** The function `sha256_signature` in `egpcommon/egpcommon/common.py` is critical for data integrity and **must not be changed**. Its behavior is fundamental to the entire system.
 *   **Dependencies:** Add new dependencies to the appropriate `pyproject.toml` and `requirements.txt` file for the relevant package.
-*   **Documentation:** Use docstrings to document all modules, classes, and functions, including in test modules. Follow the existing style in the codebase.
+*   **Documentation:** Use Google style docstrings to document all modules, classes, and functions, including in test modules. Follow the existing style in the codebase.
 
 ## Testing
 

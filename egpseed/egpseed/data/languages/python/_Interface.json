@@ -1,7 +1,7 @@
 {
   "getdstept": {
-    "inline": "{i0}[{i1}]",
     "description": "Return an element from a destination interface.",
+    "inline": "{i0}[{i1}]",
     "inputs": [
       "DstInterface",
       "int"
@@ -11,8 +11,8 @@
     ]
   },
   "getsrcept": {
-    "inline": "{i0}[{i1}]",
     "description": "Return an element from a source interface.",
+    "inline": "{i0}[{i1}]",
     "inputs": [
       "SrcInterface",
       "int"
@@ -22,8 +22,8 @@
     ]
   },
   "length": {
-    "inline": "len({i0})",
     "description": "Return the length of an interface.",
+    "inline": "len({i0})",
     "inputs": [
       "Interface"
     ],

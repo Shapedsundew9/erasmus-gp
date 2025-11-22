@@ -1,101 +1,101 @@
 {
-    "&": {
-        "inline": "{i0} & {i1}",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "description": "intersection",
-        "outputs": [
-            "-Set0[-Hashable0]"
-        ]
-    },
-    "-": {
-        "inline": "{i0} - {i1}",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "description": "difference",
-        "outputs": [
-            "-Set0[-Hashable0]"
-        ]
-    },
-    "<": {
-        "inline": "{i0} < {i1}",
-        "description": "less than",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "outputs": [
-            "bool"
-        ]
-    },
-    "<=": {
-        "inline": "{i0} <= {i1}",
-        "description": "less than or equal to",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "outputs": [
-            "bool"
-        ]
-    },
-    ">": {
-        "inline": "{i0} > {i1}",
-        "description": "greater than",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "outputs": [
-            "bool"
-        ]
-    },
-    ">=": {
-        "inline": "{i0} >= {i1}",
-        "description": "greater than or equal to",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "outputs": [
-            "bool"
-        ]
-    },
-    "^": {
-        "inline": "{i0} ^ {i1}",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "description": "symmetric difference",
-        "outputs": [
-            "-Set0[-Hashable0]"
-        ]
-    },
-    "isdisjoint": {
-        "inline": "{i0}.isdisjoint({i1})",
-        "description": "isdisjoint",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "outputs": [
-            "bool"
-        ]
-    },
-    "|": {
-        "inline": "{i0} | {i1}",
-        "inputs": [
-            "-Set0[-Hashable0]",
-            "-Set1[-Hashable0]"
-        ],
-        "description": "union operator",
-        "outputs": [
-            "-Set0[-Hashable0]"
-        ]
-    }
+  "&": {
+    "description": "intersection",
+    "inline": "{i0} & {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "-Set0[-Hashable0]"
+    ]
+  },
+  "-": {
+    "description": "difference",
+    "inline": "{i0} - {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "-Set0[-Hashable0]"
+    ]
+  },
+  "<": {
+    "description": "less than",
+    "inline": "{i0} < {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "<=": {
+    "description": "less than or equal to",
+    "inline": "{i0} <= {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  ">": {
+    "description": "greater than",
+    "inline": "{i0} > {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  ">=": {
+    "description": "greater than or equal to",
+    "inline": "{i0} >= {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "^": {
+    "description": "symmetric difference",
+    "inline": "{i0} ^ {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "-Set0[-Hashable0]"
+    ]
+  },
+  "isdisjoint": {
+    "description": "isdisjoint",
+    "inline": "{i0}.isdisjoint({i1})",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "|": {
+    "description": "union operator",
+    "inline": "{i0} | {i1}",
+    "inputs": [
+      "-Set0[-Hashable0]",
+      "-Set1[-Hashable0]"
+    ],
+    "outputs": [
+      "-Set0[-Hashable0]"
+    ]
+  }
 }

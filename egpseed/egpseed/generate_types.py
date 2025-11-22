@@ -285,7 +285,7 @@ def generate_types_def(write: bool = False) -> None:
                 sub_types.add(current)
 
         # Add the sub-types to the type definition.
-        template = "-" + base_class + "0" if flag else base_class
+        template = f"-{base_class}0" if flag else base_class
         for st in sub_types:
             # Replace the template with the sub-type name and
             # create a new concrete type definition.
@@ -413,7 +413,8 @@ def generate_types_def(write: bool = False) -> None:
             base_class = name[start + 2 : end]
 
         # Add the sub-types to the type definition.
-        template = "-" + base_class + "0" if flag else base_class
+        # NOTE: Using f-string here is a stylistic choice for consistency, not a performance optimization.
+        template = f"-{base_class}0" if flag else base_class
         for st in pairs:
             # Replace the template with the sub-type (pair) name and
             # create a new concrete type definition.
@@ -640,11 +641,13 @@ def generate_types_def(write: bool = False) -> None:
         ), f"Duplicate UID found: {definition['uid']} for {definition['name']}"
         uids.add(definition["uid"])
 
-        # All EGP types and methods must come from the physics module
+        # All EGP types and methods must come from the physics.pgc_api module
         # This maintains the abstraction from the structure of egp* modules
         for imp in definition.get("imports", []):
-            if imp["aip"] and imp["aip"][0] == "egppy":
+            if imp["aip"] and imp["aip"][0].startswith("egp"):
+                assert imp["aip"][0] == "egppy", f"Invalid EGP import: {imp['aip']}"
                 assert imp["aip"][1] == "physics", f"Invalid EGP physical import: {imp['aip']}"
+                assert imp["aip"][2] == "pgc_api", f"Invalid EGP physical import: {imp['aip']}"
 
         # Make sure previous definitions are not violated.
         if definition["name"] in existing_types_def:
@@ -667,4 +670,5 @@ if __name__ == "__main__":
         "--write", "-w", action="store_true", help="If set, write the types to a JSON file."
     )
     args = parser.parse_args()
+    print("Generating types...")
     generate_types_def(write=args.write)

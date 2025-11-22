@@ -2,21 +2,23 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterator
 from typing import Sequence
 
-from egpcommon.egp_log import DEBUG, VERIFY, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
     SOURCE_ROW_SET,
     DstRow,
-    EndPointClass,
+    EPCls,
     Row,
     SrcRow,
 )
-from egppy.genetic_code.end_point import EndPoint, TypesDef
+from egppy.genetic_code.endpoint import EndPoint, TypesDef
+from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType
+from egppy.genetic_code.interface_abc import InterfaceABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -74,15 +76,23 @@ def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]
     return DstRow(row), idx
 
 
-class Interface(FreezableObject):
+class Interface(CommonObj, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
     __slots__ = ("endpoints", "_hash")
 
     def __init__(
         self,
-        endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
+        endpoints: (
+            Sequence[EndPoint]
+            | Sequence[EndpointMemberType]
+            | Sequence[list | tuple]
+            | Sequence[str | int | TypesDef]
+            | InterfaceABC
+        ),
         row: Row | None = None,
+        rrow: Row | None = None,
+        rsidx: int = 0,
     ) -> None:
         """Initialize the Interface class.
 
@@ -94,67 +104,149 @@ class Interface(FreezableObject):
             be != None. If a sequence of (mixed) strings, integers or TypesDef is provided,
             they will be treated as EGP types, in order, as destinations on the row specified unless
             the row can only be a source.
-        row: Row | None: The destination row associated with the interface. Ignored if endpoints are
-            provided as EndPoint objects.
-        frozen: bool: If True, the object will be frozen after initialization.
-            This allows the interface to be immutable after creation.
+            Any objects will be deep-copied to ensure mutability & independence.
+        row: Row | None: The row associated with the interface. Required if endpoints are not
+            EndPoints. If None, the row will be inferred from the first endpoint.
+        rrow: Row | None: The row to use for references. When endpoints are not EndPoints
+            None indicates no references i.e. an empty list. If provided, this will override
+            any ref row specified in the endpoint sequences.
+        rsidx: int: The starting index to use for references when rrow is provided.
         """
-        super().__init__(frozen=False)
-        self.endpoints: list[EndPoint] | tuple[EndPoint, ...] = []
-
-        # Validate row if endpoints are provided as sequences
-        row_cls = (
-            EndPointClass.DST if row is None or row in DESTINATION_ROW_SET else EndPointClass.SRC
-        )
-        for idx, ep in enumerate(endpoints):
-            if isinstance(ep, EndPoint):
-                if ep.idx != idx:
-                    raise ValueError(f"Endpoint index mismatch: {ep.idx} != {idx}")
-                self.endpoints.append(ep)
-            elif isinstance(ep, (list, tuple)):
-                if len(ep) != 3:
-                    raise ValueError(f"Invalid endpoint sequence length: {len(ep)} != 3")
-                if row is None or row not in DESTINATION_ROW_SET:
-                    raise ValueError(
-                        "A valid destination row must be specified (row in DESTINATION_ROW_SET)"
-                        " if using triplet format."
-                    )
-                self.endpoints.append(
-                    EndPoint(
-                        row=row, idx=idx, cls=EndPointClass.DST, typ=ep[2], refs=((ep[0], ep[1]),)
-                    )
-                )
-            elif isinstance(ep, (str, int, TypesDef)):
-                if row is None:
-                    raise ValueError("Row must be specified if using EGP types.")
-                self.endpoints.append(EndPoint(row=row, idx=idx, cls=row_cls, typ=ep))
-            else:
-                raise ValueError(
-                    f"Invalid endpoint type: {type(ep)} was expecting EndPoint or Sequence"
-                )
-
-        # Persistent hash will be defined when frozen. Dynamic until then.
+        super().__init__()
+        self.endpoints: list[EndPoint] = []
         self._hash: int = 0
 
+        # Assert valid row if provided
+        assert isinstance(row, (DstRow, SrcRow, type(None))), "Row must be DstRow, SrcRow or None"
+
+        # Nothing to do if there are no endpoints
+        if len(endpoints) == 0:
+            return
+
+        # Handle case where endpoints is an InterfaceABC or contains EndPointABC instances
+        if isinstance(endpoints, InterfaceABC) or isinstance(endpoints[0], EndPointABC):
+            ep0 = endpoints[0]
+            assert isinstance(ep0, EndPointABC), "All endpoints must be EndPointABC instances"
+            _row = row if row is not None else ep0.row
+            assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
+            _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC
+            self.endpoints = [
+                EndPoint(
+                    _row,
+                    idx,
+                    _cls,
+                    ep.typ,  # type: ignore
+                    ep.refs if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # Handle case where endpoints are JSONCGraph-style sequences
+        if isinstance(endpoints[0], (list, tuple)) and len(endpoints[0]) == 3:
+            if row is None:
+                raise ValueError("Row parameter must be provided when endpoints are sequences")
+            if isinstance(row, SrcRow):
+                raise ValueError("Row parameter cannot be a source row for JSON endpoint sequences")
+            self.endpoints = [
+                EndPoint(
+                    row,
+                    idx,
+                    EPCls.DST,
+                    ep[2],  # type: ignore
+                    [ep[0:2]] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # Handle the type sequence case
+        if isinstance(endpoints[0], (str, int, TypesDef)):
+            if row is None:
+                raise ValueError("Row parameter must be provided when endpoints are types")
+            row_cls = EPCls.DST if isinstance(row, DstRow) else EPCls.SRC
+            self.endpoints = [
+                EndPoint(
+                    row,
+                    idx,
+                    row_cls,
+                    ep,  # type: ignore
+                    [] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # Handle mixed endpoint member types
+        if isinstance(endpoints[0], tuple) and len(endpoints[0]) == 5:
+            _row = row if row is not None else endpoints[0][0]
+            assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
+            _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC
+            self.endpoints = [
+                EndPoint(
+                    _row,
+                    idx,
+                    _cls,
+                    ep[3],  # type: ignore
+                    ep[4] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # If we get here, we have an unsupported type
+        raise TypeError(
+            f"Unsupported endpoints type: {type(endpoints)} "
+            f" with first element type {type(endpoints[0])}"
+        )
+
     def __eq__(self, value: object) -> bool:
-        """Check equality of Interface instances."""
-        if not isinstance(value, Interface):
+        """Check equality of Interface instances.
+        This implements deep equality checking between two Interface instances
+        which can be quite expensive for large interfaces.
+        """
+        if not isinstance(value, InterfaceABC):
             return False
-        return self.endpoints == value.endpoints
+        if len(self) != len(value):
+            return False
+        return all(a == b for a, b in zip(self, value))
 
     def __hash__(self) -> int:
         """Return the hash of the interface."""
-        if self.is_frozen():
-            # Use the persistent hash if the interface is frozen. Hash is defined in self.freeze()
-            return self._hash
-        # If not frozen, calculate the hash dynamically
-        return hash(tuple(self.endpoints))
+        return hash(tuple(hash(ep) for ep in self.endpoints))
 
-    def __getitem__(self, idx: int) -> EndPoint:
+    def __add__(self, other: InterfaceABC) -> InterfaceABC:
+        """Concatenate two interfaces to create a new interface.
+
+        Add correctly updates the indices of the endpoints in the new interface.
+        However, it does not change the row or class of the endpoints.
+
+        Args
+        ----
+        other: Interface: The interface to concatenate with this interface.
+
+        Returns
+        -------
+        Interface: A new interface containing endpoints from both interfaces.
+        """
+        if not isinstance(other, InterfaceABC):
+            raise TypeError(f"Can only add InterfaceABC to InterfaceABC, got {type(other)}")
+
+        # Handle empty interfaces
+        if len(self.endpoints) == 0:
+            return Interface(other)
+        if len(other) == 0:
+            return Interface(self)
+
+        # Create new interface with copied endpoints from both
+        # Create copies of endpoints with updated indices (with clean references)
+        return Interface(self).extend(other)
+
+    def __getitem__(self, idx: int) -> EndPointABC:
         """Get an endpoint by index."""
         return self.endpoints[idx]
 
-    def __iter__(self) -> Iterable[EndPoint]:
+    def __iter__(self) -> Iterator[EndPointABC]:
         """Return an iterator over the endpoints."""
         return iter(self.endpoints)
 
@@ -162,102 +254,129 @@ class Interface(FreezableObject):
         """Return the number of endpoints in the interface."""
         return len(self.endpoints)
 
-    def __setitem__(self, idx: int, value: EndPoint) -> None:
-        """Set an endpoint at a specific index."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self.is_frozen():
-                raise RuntimeError("Cannot modify a frozen Interface")
-            if not isinstance(value, EndPoint):
-                raise TypeError(f"Expected EndPoint, got {type(value)}")
-            if idx < 0 or idx >= len(self.endpoints):
-                raise IndexError("Index out of range")
-            if len(self.endpoints) > 0:
-                if value.row != self.endpoints[0].row:
-                    raise ValueError("All endpoints must have the same row.")
-                if value.cls != self.endpoints[0].cls:
-                    raise ValueError("All endpoints must have the same class.")
-        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
-        value.idx = idx  # Ensure the index is correct
-        self.endpoints[idx] = value
+    def __setitem__(self, idx: int, value: EndPointABC) -> None:
+        """Set an endpoint at a specific index.
+
+        Args
+        ----
+        idx: int: The index at which to set the endpoint.
+        value: EndPoint: The endpoint to set.
+
+        Raises
+        ------
+        RuntimeError: If the interface is frozen.
+        TypeError: If value is not an EndPoint instance.
+        IndexError: If idx is out of range.
+        ValueError: If the endpoint's row or class doesn't match existing endpoints.
+        """
+        if not isinstance(value, EndPointABC):
+            raise TypeError(f"Expected EndPointABC, got {type(value)}")
+        if idx < 0 or idx >= len(self.endpoints):
+            raise IndexError(
+                f"Index {idx} out of range for interface with {len(self.endpoints)} endpoints"
+            )
+        _value = EndPoint(value)  # Make a copy to ensure mutability & independence
+        _value.idx = idx  # Ensure the index is correct
+        self.endpoints[idx] = _value
 
     def __str__(self) -> str:
         """Return the string representation of the interface."""
         return f"Interface({', '.join(str(ep.typ) for ep in self.endpoints)})"
 
-    def append(self, value: EndPoint) -> None:
-        """Append an endpoint to the interface."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self.is_frozen():
-                raise RuntimeError("Cannot modify a frozen Interface")
-            if not isinstance(value, EndPoint):
-                raise TypeError(f"Expected EndPoint, got {type(value)}")
-            if len(self.endpoints) > 0:
-                if value.row != self.endpoints[0].row:
-                    raise ValueError("All endpoints must have the same row.")
-                if value.cls != self.endpoints[0].cls:
-                    raise ValueError("All endpoints must have the same class.")
-        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
-        value.idx = len(self.endpoints)  # Ensure the index is correct
-        self.endpoints.append(value)
+    def append(self, value: EndPointABC) -> None:
+        """Append an endpoint to the interface.
 
-    def cls(self) -> EndPointClass:
+        Append correctly sets the index of the appended endpoint.
+        However, it does not change the row or class of the endpoint.
+
+        Args
+        ----
+        value: EndPointABC: The endpoint to append.
+        """
+        _value = EndPoint(value)  # Make a copy to ensure mutability & independence
+        _value.idx = len(self.endpoints)  # Ensure the index is correct
+        self.endpoints.append(_value)
+
+    def cls(self) -> EPCls:
         """Return the class of the interface. Defaults to destination if no endpoints."""
-        return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
+        return self.endpoints[0].cls if self.endpoints else EPCls.DST
 
-    def copy(self) -> Interface:
-        """Return a modifiable shallow copy of the interface."""
-        return Interface(self.endpoints)
+    def extend(
+        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
+    ) -> InterfaceABC:
+        """Extend the interface with multiple endpoints.
 
-    def extend(self, values: list[EndPoint] | tuple[EndPoint, ...]) -> None:
-        """Append an endpoint to the interface."""
-        if _logger.isEnabledFor(level=DEBUG):
-            if self.is_frozen():
-                raise RuntimeError("Cannot modify a frozen Interface")
-            if not isinstance(values, (list, tuple)):
-                raise TypeError(f"Expected list or tuple, got {type(values)}")
-            for value in values:
-                if not isinstance(value, EndPoint):
-                    raise TypeError(f"Expected EndPoint, got {type(value)}")
-            if len(self.endpoints) > 0:
-                for value in values:
-                    if value.row != self.endpoints[0].row:
-                        raise ValueError("All endpoints must have the same row.")
-                    if value.cls != self.endpoints[0].cls:
-                        raise ValueError("All endpoints must have the same class.")
-        assert isinstance(self.endpoints, list), "Endpoints must be a list to allow item assignment"
+        Extend correctly sets the indices of the appended endpoints.
+        However, it does not change the row, class or refs of the endpoint.
+
+        Args
+        ----
+        values: list[EndPoint] | tuple[EndPoint, ...]: The endpoints to add.
+        """
         for idx, value in enumerate(values, start=len(self.endpoints)):
-            value.idx = idx  # Ensure the index is correct
-        self.endpoints.extend(values)
-
-    def freeze(self, store: bool = True) -> Interface:
-        """Freeze the interface, making it immutable."""
-        if not self._frozen:
-            self.endpoints = tuple(ep.freeze() for ep in self.endpoints)
-            retval = super().freeze(store)
-            # Need to jump through hoops to set the persistent hash
-            object.__setattr__(self, "_hash", hash(self.endpoints))
-
-            # Some sanity checks
-            if _logger.isEnabledFor(level=VERIFY):
-                if not len(self.endpoints) > 0:
-                    raise ValueError("Interface must have at least one endpoint.")
-                if not all(isinstance(ep, EndPoint) for ep in self.endpoints):
-                    raise ValueError("All endpoints must be EndPoint instances.")
-                if not all(ep.row == self.endpoints[0].row for ep in self.endpoints):
-                    raise ValueError("All endpoints must have the same row.")
-                if not all(ep.cls == self.endpoints[0].cls for ep in self.endpoints):
-                    raise ValueError("All endpoints must have the same class.")
-            return retval
+            _value = EndPoint(value)  # Make a copy to ensure mutability & independence
+            _value.idx = idx  # Ensure the index is correct
+            self.endpoints.append(_value)
         return self
 
-    def types(self) -> tuple[list[int], bytes]:
+    def verify(self) -> None:
+        """Verify the Interface object.
+
+        Validates that the interface has valid structure and all endpoints are consistent.
+        Empty interfaces (like NULL_INTERFACE) are allowed as sentinel values.
+
+        Raises
+        ------
+        ValueError: If the interface is invalid.
+        """
+        # Allow empty interfaces (e.g., NULL_INTERFACE) as sentinel values
+        if len(self.endpoints) == 0:
+            super().verify()
+            return
+
+        # Check all endpoints are EndPoint instances
+        if not all(isinstance(ep, EndPoint) for ep in self.endpoints):
+            raise ValueError("All endpoints must be EndPoint instances.")
+
+        # Check all endpoints have the same row
+        first_row = self.endpoints[0].row
+        if not all(ep.row == first_row for ep in self.endpoints):
+            raise ValueError(f"All endpoints must have the same row. Expected {first_row}.")
+
+        # Check all endpoints have the same class
+        first_cls = self.endpoints[0].cls
+        if not all(ep.cls == first_cls for ep in self.endpoints):
+            raise ValueError(f"All endpoints must have the same class. Expected {first_cls}.")
+
+        # Verify each endpoint
+        for ep in self.endpoints:
+            ep.verify()
+
+        # Call parent verify() which will trigger consistency() if CONSISTENCY logging is enabled
+        super().verify()
+
+    def consistency(self) -> None:
+        """Check the consistency of the Interface.
+
+        Performs semantic validation that may be expensive. This method is called
+        by verify() when CONSISTENCY logging is enabled.
+        """
+        _logger.log(
+            level=CONSISTENCY,
+            msg=f"Consistency check for Interface with {len(self.endpoints)} endpoints",
+        )
+
+        # Call parent consistency()
+        super().consistency()
+
+    def types_and_indices(self) -> tuple[list[int], bytes]:
         """Return a tuple of the ordered type UIDs and the indices into to it."""
-        otu: list[int] = self.ordered_td_uids()
+        otu: list[int] = self.sorted_unique_td_uids()
         lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(otu)}
         indices = bytes(lookup_indices[ep.typ.uid] for ep in self.endpoints)
         return otu, indices
 
-    def ordered_td_uids(self) -> list[int]:
+    def sorted_unique_td_uids(self) -> list[int]:
         """Return the ordered type definition UIDs."""
         return sorted(set(ep.typ.uid for ep in self.endpoints))
 
@@ -271,10 +390,106 @@ class Interface(FreezableObject):
         """Convert the interface to a list of TypesDef UIDs (ints)."""
         return [ep.typ.uid for ep in self.endpoints]
 
-    def unconnected_eps(self) -> list[EndPoint]:
+    def to_td(self) -> tuple[TypesDef, ...]:
+        """Convert the interface to a tuple of TypesDef objects."""
+        return tuple(ep.typ for ep in self.endpoints)
+
+    def unconnected_eps(self) -> list[EndPointABC]:
         """Return a list of unconnected endpoints."""
         return [ep for ep in self.endpoints if not ep.is_connected()]
 
+    def set_cls(self, ep_cls) -> InterfaceABC:
+        """Set the class of all endpoints in the interface."""
+        for ep in self.endpoints:
+            ep.cls = ep_cls
+        return self
 
-# The NULL Interface, used as a placeholder.
-NULL_INTERFACE: Interface = Interface(endpoints=[]).freeze()
+    def set_row(self, row: Row) -> InterfaceABC:
+        """Set the row of all endpoints in the interface.
+
+        Args
+        ----
+        row: Row: The row to set for all endpoints.
+
+        Returns
+        -------
+        Interface: Self with row set.
+        """
+        for ep in self.endpoints:
+            ep.row = row
+        return self
+
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set (replace) all references in the interface endpoints.
+
+        Args
+        ----
+        row: Row: The row to set for all references.
+        start_ref: int: The starting reference index.
+
+        Returns
+        -------
+        Interface: Self with all endpoint references set.
+        """
+        for idx, ep in enumerate(self.endpoints):
+            ep.set_ref(row, start_ref + idx)
+        return self
+
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints.
+        Returns:
+            Interface: Self with all endpoint references cleared."""
+        for ep in self.endpoints:
+            ep.clr_refs()
+        return self
+
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all references in the interface endpoints by a specified amount.
+
+        Args:
+            shift: The amount to shift each reference index by.
+        Returns:
+            Interface: Self with all endpoint references shifted.
+        """
+        for ep in self.endpoints:
+            ep.ref_shift(shift)
+        return self
+
+
+# Re-use the Interface object deduplicator for both SrcInterface and DstInterface
+class SrcInterface(Interface):
+    """Source Interface class."""
+
+    def __init__(
+        self,
+        endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
+        row: SrcRow | None = None,
+    ) -> None:
+        """Initialize the Source Interface class.
+
+        Args
+        ----
+        endpoints: Sequence[...]: A sequence of EndPoint objects or
+            sequences that define the interface. If a sequence of sequences is provided, each
+            inner sequence should contain [ref_row, ref_idx, typ].
+        """
+        super().__init__(endpoints=endpoints, row=row)
+
+
+class DstInterface(Interface):
+    """Destination Interface class."""
+
+    def __init__(
+        self,
+        endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
+        row: DstRow | None = None,
+    ) -> None:
+        """Initialize the Destination Interface class.
+
+        Args
+        ----
+        endpoints: Sequence[...]: A sequence of EndPoint objects or
+            sequences that define the interface. If a sequence of sequences is provided, each
+            inner sequence should contain [ref_row, ref_idx, typ].
+        """
+        super().__init__(endpoints=endpoints, row=row)

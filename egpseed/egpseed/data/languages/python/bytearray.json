@@ -1,50 +1,50 @@
 {
-    "bytearray1": {
-        "inline": "bytearray({i0})",
-        "inputs": [
-            "-bytes0"
-        ],
-        "description": "bytearray from bytes",
-        "outputs": [
-            "-bytearray0"
-        ]
-    },
-    "bytearray2": {
-        "inline": "bytearray({i0})",
-        "inputs": [
-            "-Iterable0[-EGPIntegral0]"
-        ],
-        "description": "bytearray from integers",
-        "outputs": [
-            "-bytearray0"
-        ]
-    },
-    "fromhex1": {
-        "inline": "bytearray.fromhex({i0})",
-        "inputs": [
-            "-str0"
-        ],
-        "description": "bytearray from hex string",
-        "outputs": [
-            "-bytearray0"
-        ]
-    },
-    "fromhex2": {
-        "inline": "bytearray.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
-        "inputs": [
-            "-str0"
-        ],
-        "description": "bytearray from hex bytes",
-        "outputs": [
-            "-bytearray0"
-        ]
-    },
-    "hex": {
-        "inline": "{i0}.hex()",
-        "description": "hex string",
-        "num_inputs": 1,
-        "outputs": [
-            "-str0"
-        ]
-    }
+  "bytearray1": {
+    "description": "bytearray from bytes",
+    "inline": "bytearray({i0})",
+    "inputs": [
+      "-bytes0"
+    ],
+    "outputs": [
+      "-bytearray0"
+    ]
+  },
+  "bytearray2": {
+    "description": "bytearray from integers",
+    "inline": "bytearray({i0})",
+    "inputs": [
+      "-Iterable0[-EGPIntegral0]"
+    ],
+    "outputs": [
+      "-bytearray0"
+    ]
+  },
+  "fromhex1": {
+    "description": "bytearray from hex string",
+    "inline": "bytearray.fromhex({i0})",
+    "inputs": [
+      "-str0"
+    ],
+    "outputs": [
+      "-bytearray0"
+    ]
+  },
+  "fromhex2": {
+    "description": "bytearray from hex bytes",
+    "inline": "bytearray.fromhex(''.join(c for c in {i0} if c in set('0123456789abcdefABCDEF')))",
+    "inputs": [
+      "-str0"
+    ],
+    "outputs": [
+      "-bytearray0"
+    ]
+  },
+  "hex": {
+    "description": "hex string",
+    "inline": "{i0}.hex()",
+    "num_inputs": 1,
+    "outputs": [
+      "-str0"
+    ]
+  }
 }

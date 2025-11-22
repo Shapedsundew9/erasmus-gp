@@ -1,22 +1,22 @@
 {
-    "denominator": {
-        "inline": "{i0}.denominator",
-        "description": "denominator",
-        "inputs": [
-            "-Rational0"
-        ],
-        "outputs": [
-            "int"
-        ]
-    },
-    "numerator": {
-        "inline": "{i0}.numerator",
-        "description": "numerator",
-        "inputs": [
-            "-Rational0"
-        ],
-        "outputs": [
-            "int"
-        ]
-    }
+  "denominator": {
+    "description": "denominator",
+    "inline": "{i0}.denominator",
+    "inputs": [
+      "-Rational0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "numerator": {
+    "description": "numerator",
+    "inline": "{i0}.numerator",
+    "inputs": [
+      "-Rational0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  }
 }

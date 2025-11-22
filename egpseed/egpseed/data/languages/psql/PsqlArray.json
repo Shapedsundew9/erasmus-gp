@@ -1,7 +1,17 @@
 {
   "&&": {
-    "inline": "psql_overlaps({i0}, {i1})",
     "description": "PSQL array overlaps {t0} and {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_overlaps"
+      }
+    ],
+    "inline": "psql_overlaps({i0}, {i1})",
     "inputs": [
       "PsqlArray",
       "PsqlArray"
@@ -11,14 +21,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "<@": {
-    "inline": "psql_is_contained_by({i0}, {i1})",
     "description": "PSQL array {t0} is contained by {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_is_contained_by"
+      }
+    ],
+    "inline": "psql_is_contained_by({i0}, {i1})",
     "inputs": [
       "PsqlArray",
       "PsqlArray"
@@ -28,14 +48,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "@>": {
-    "inline": "psql_contains({i0}, {i1})",
     "description": "PSQL array {t0} contains {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_contains"
+      }
+    ],
+    "inline": "psql_contains({i0}, {i1})",
     "inputs": [
       "PsqlArray",
       "PsqlArray"
@@ -45,14 +75,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "||": {
-    "inline": "psql_concat({i0}, {i1})",
     "description": "PSQL array concatenate {t0} and {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_concat"
+      }
+    ],
+    "inline": "psql_concat({i0}, {i1})",
     "inputs": [
       "PsqlArray",
       "PsqlArray"
@@ -62,8 +102,8 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   }

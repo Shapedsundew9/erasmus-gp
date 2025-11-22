@@ -10,7 +10,7 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.validator import Validator
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
-from egppy.genetic_code.end_point import EndPoint
+from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.interface import Interface, TypesDef
 
 # Standard EGP logging pattern
@@ -95,7 +95,7 @@ class SourceConfig(Validator, DictTypeAccessor, CommonObj):
     @source.setter
     def source(self, value: str) -> None:
         """The source of the genetic code."""
-        self.raise_ve(
+        self.value_error(
             self._is_one_of("source", value, INITIAL_POPULATION_SOURCES),
             f"source must be one of {INITIAL_POPULATION_SOURCES}, but is {value}",
         )
@@ -352,7 +352,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
     @uid.setter
     def uid(self, value: int) -> None:
         """The uid of the population."""
-        self.raise_ve(
+        self.value_error(
             self._in_range("uid", value, 1, 2**15 - 1),
             f"uid must be an integer between 1 and {2**15 - 1}, but is {value}",
         )
@@ -369,10 +369,10 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         if isinstance(value, str):
             value = bytes.fromhex(value)
         else:
-            self.raise_ve(
+            self.value_error(
                 self._is_bytes("problem", value), f"problem must be bytes, but is {type(value)}"
             )
-        self.raise_ve(
+        self.value_error(
             self._is_length("problem", value, 32, 32),
             f"problem must be exactly 32 bytes, but is {len(value)} bytes",
         )
@@ -389,7 +389,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         if isinstance(value, str):
             value = UUID(value)
         else:
-            self.raise_ve(
+            self.value_error(
                 self._is_uuid("worker_id", value), f"worker_id must be a UUID, but is {type(value)}"
             )
         self._worker_id = value
@@ -404,7 +404,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
     ) -> None:
         """The inputs."""
-        self.raise_ve(
+        self.value_error(
             self._is_sequence("inputs", value), f"inputs must be a sequence, but is {type(value)}"
         )
         self._inputs = Interface(value, SrcRow.I)
@@ -419,7 +419,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
     ) -> None:
         """The inputs."""
-        self.raise_ve(
+        self.value_error(
             self._is_sequence("inputs", value), f"outputs must be a sequence, but is {type(value)}"
         )
         self._outputs = Interface(value, DstRow.O)
@@ -432,10 +432,10 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
     @name.setter
     def name(self, value: str) -> None:
         """The name of the population."""
-        self.raise_ve(
+        self.value_error(
             self._is_string("name", value), f"name must be a string, but is {type(value)}"
         )
-        self.raise_ve(
+        self.value_error(
             self._is_length("name", value, 1, 255),
             f"name must be between 1 and 255 characters, but is {len(value)} characters",
         )
@@ -450,13 +450,14 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
     def description(self, value: str | None) -> None:
         """The description of the population."""
         if value is not None:
-            self.raise_ve(
+            self.value_error(
                 self._is_string("description", value),
                 f"description must be a string, but is {type(value)}",
             )
-            self.raise_ve(
+            self.value_error(
                 self._is_length("description", value, 1, 1024),
-                f"description must be between 1 and 1024 characters, but is {len(value)} characters",
+                "description must be between 1 and 1024 characters, "
+                f"but is {len(value)} characters",
             )
             self._description = value
         else:
@@ -471,11 +472,11 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
     def meta_data(self, value: str | None) -> None:
         """The meta data."""
         if value is not None:
-            self.raise_ve(
+            self.value_error(
                 self._is_string("meta_data", value),
                 f"meta_data must be a string, but is {type(value)}",
             )
-            self.raise_ve(
+            self.value_error(
                 self._is_length("meta_data", value, 1, 1024),
                 f"meta_data must be between 1 and 1024 characters, but is {len(value)} characters",
             )
@@ -494,7 +495,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         if isinstance(value, str):
             value = datetime.fromisoformat(value)
         else:
-            self.raise_ve(
+            self.value_error(
                 self._is_datetime("created", value),
                 f"created must be a datetime, but is {type(value)}",
             )
@@ -511,7 +512,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         if isinstance(value, str):
             value = datetime.fromisoformat(value)
         else:
-            self.raise_ve(
+            self.value_error(
                 self._is_datetime("updated", value),
                 f"updated must be a datetime, but is {type(value)}",
             )
@@ -525,7 +526,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
     @survivability_function.setter
     def survivability_function(self, value: SurvivabilityFunction) -> None:
         """The survivability function."""
-        self.raise_ve(
+        self.value_error(
             self._is_callable("survivability_function", value),
             f"survivability_function must be callable, but is {type(value)}",
         )
@@ -539,7 +540,7 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
     @fitness_function.setter
     def fitness_function(self, value: FitnessFunction) -> None:
         """The fitness function."""
-        self.raise_ve(
+        self.value_error(
             self._is_callable("fitness_function", value),
             f"fitness_function must be callable, but is {type(value)}",
         )
@@ -555,8 +556,8 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         """The best source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        self.raise_ve(isinstance(value, SourceConfig), "best_source must be a SourceConfig")
-        self.raise_ve(
+        self.value_error(isinstance(value, SourceConfig), "best_source must be a SourceConfig")
+        self.value_error(
             value.source == "BEST", f"best_source must be the BEST source but is {value.source}"
         )
         self._best_source = value
@@ -571,8 +572,8 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         """The diverse source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        self.raise_ve(isinstance(value, SourceConfig), "diverse_source must be a SourceConfig")
-        self.raise_ve(
+        self.value_error(isinstance(value, SourceConfig), "diverse_source must be a SourceConfig")
+        self.value_error(
             value.source == "DIVERSE",
             f"diverse_source must be the DIVERSE source but is {value.source}",
         )
@@ -588,8 +589,8 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         """The related source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        self.raise_ve(isinstance(value, SourceConfig), "related_source must be a SourceConfig")
-        self.raise_ve(
+        self.value_error(isinstance(value, SourceConfig), "related_source must be a SourceConfig")
+        self.value_error(
             value.source == "RELATED",
             f"related_source must be the RELATED source but is {value.source}",
         )
@@ -605,8 +606,8 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         """The unrelated source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        self.raise_ve(isinstance(value, SourceConfig), "unrelated_source must be a SourceConfig")
-        self.raise_ve(
+        self.value_error(isinstance(value, SourceConfig), "unrelated_source must be a SourceConfig")
+        self.value_error(
             value.source == "UNRELATED",
             f"unrelated_source must be the UNRELATED source but is {value.source}",
         )
@@ -622,8 +623,10 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         """The spontaneous source."""
         if isinstance(value, dict):
             value = SourceConfig(**value)
-        self.raise_ve(isinstance(value, SourceConfig), "spontaneous_source must be a SourceConfig")
-        self.raise_ve(
+        self.value_error(
+            isinstance(value, SourceConfig), "spontaneous_source must be a SourceConfig"
+        )
+        self.value_error(
             value.source == "SPONTANEOUS",
             f"spontaneous_source must be the SPONTANEOUS source but is {value.source}",
         )
@@ -681,7 +684,7 @@ class PopulationsConfig(Validator, DictTypeAccessor, CommonObj):
         if isinstance(value, str):
             value = UUID(value)
         else:
-            self.raise_ve(
+            self.value_error(
                 self._is_uuid("worker_id", value), f"worker_id must be a UUID, but is {type(value)}"
             )
         self._worker_id = value
@@ -694,7 +697,7 @@ class PopulationsConfig(Validator, DictTypeAccessor, CommonObj):
     @configs.setter
     def configs(self, value: list[PopulationConfig] | list[dict[str, Any]]) -> None:
         """The population configurations."""
-        self.raise_ve(isinstance(value, list), f"configs must be a list, but is {type(value)}")
+        self.value_error(isinstance(value, list), f"configs must be a list, but is {type(value)}")
         if len(value) > 0 and isinstance(value[0], dict):
             self._configs = [
                 PopulationConfig(
@@ -723,7 +726,7 @@ class PopulationsConfig(Validator, DictTypeAccessor, CommonObj):
         elif len(value) == 0:
             self._configs = []
         else:
-            self.raise_ve(False, "Invalid population config type.")
+            self.value_error(False, "Invalid population config type.")
 
     def to_json(self) -> dict[str, Any]:
         """Return the JSON representation of the configuration."""

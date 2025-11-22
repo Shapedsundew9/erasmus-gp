@@ -15,7 +15,8 @@ from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
-from egppy.genetic_code.interface import NULL_INTERFACE, Interface, unpack_src_ref
+from egppy.genetic_code.interface import Interface, unpack_src_ref
+from egppy.physics.pgc_api import RuntimeContext
 from egppy.worker.executor.code_connection import (
     CodeConnection,
     CodeEndPoint,
@@ -135,9 +136,9 @@ class ExecutionContext:
         2. Create code_connection objects for each output of the GC.
         3. Push them individually onto the work stack.
         4. Work through the stack until all connections are terminal.
-            a. If a source code end point is not terminal find what it is connected to
+            a. If a source code endpoint is not terminal find what it is connected to
             and push it onto the stack.
-            b. If a destination code end point is not terminal find what it is connected to
+            b. If a destination code endpoint is not terminal find what it is connected to
             and push it onto the stack.
         """
         node: GCNode = root  # This is the root of the graph for the GC function to be written
@@ -145,9 +146,6 @@ class ExecutionContext:
         # Debugging
         # _logger.debug("Creating code graph for: %s", node)
 
-        # If the GC is a codon then there are no connections to make
-        if node.gca is NULL_GC and node.gcb is NULL_GC:
-            return node
         connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
@@ -164,10 +162,16 @@ class ExecutionContext:
             if not src.terminal:
                 match src.row:
                     case SrcRow.A:
-                        assert node.gca is not NULL_GC, "Should never introspect a codon graph."
-                        src.node = node.gca_node
-                        src.terminal = node.gca_node.terminal
-                        iface: Interface = src.node.gc["cgraph"]["Od"]
+                        # Special case: If this node is a codon, row A just defines the interface
+                        # to the inline code, not a sub-GC. Treat it as terminal.
+                        if node.is_codon:
+                            src.terminal = True
+                            iface: Interface | None = None
+                        else:
+                            assert node.gca is not NULL_GC, "Should never introspect a codon graph."
+                            src.node = node.gca_node
+                            src.terminal = node.gca_node.terminal
+                            iface = src.node.gc["cgraph"]["Od"]
                     case SrcRow.B:
                         assert node.gcb is not NULL_GC, "GCB cannot be NULL"
                         src.node = node.gcb_node
@@ -181,6 +185,7 @@ class ExecutionContext:
                             # When moving into the parent the src context needs
                             # to change to that of src within the parent.
                             iface = parent.gc["cgraph"][node.iam + "d"]
+                            assert iface is not None, "Interface cannot be None."
                             src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                             if src.row == SrcRow.I:
                                 src.node = parent
@@ -202,13 +207,14 @@ class ExecutionContext:
                                 node = parent
                                 src.terminal = src.node.terminal
                         else:
-                            iface = NULL_INTERFACE
+                            iface = None
                             src.terminal = True
                     case _:
                         raise ValueError(f"Invalid source row: {src.row}")
                 # In all none terminal cases the new source row and index populated from the
                 # c_graph connection.
                 if not src.terminal:
+                    assert iface is not None, "Interface cannot be None."
                     src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
                 elif src.node.is_meta and not self.wmc:
                     # Meta-codons are not being written so a bypass has to be engineered.
@@ -231,7 +237,12 @@ class ExecutionContext:
                     # in the function nodes terminal_connections list.
                     terminal_connections.append(connection)
                     connection_stack.pop()
-                    if src.node not in visited_nodes:
+                    # Special case: If the source node is a codon AND it's the root, we don't
+                    # need to traverse further. For non-root codons, we still need to create
+                    # connections to their inputs from the parent.
+                    if src.node not in visited_nodes and not (
+                        src.node.is_codon and src.node is root
+                    ):
                         visited_nodes.add(src.node)
                         connection_stack.extend(code_connection_from_iface(node, src.node.iam))
             else:
@@ -275,13 +286,17 @@ class ExecutionContext:
 
         # Write a line for each terminal node that has lines to write in the graph
         # Meta codons have 0 lines when self.wmc (write meta-codons) is false
+        # Special case: If the root is a codon, it needs to be written as it IS the function body
         for node in (
-            tn for tn in GCNodeCodeIterable(root) if tn.terminal and tn.num_lines and tn is not root
+            tn
+            for tn in GCNodeCodeIterable(root)
+            if tn.terminal and tn.num_lines and (tn is not root or root.is_codon)
         ):
-            code.append(self.inline_cstr(root=root, node=node))
+            scmnt = f"  # Sig: ...{node.gc['signature'].hex()[-8:]}" if fwconfig.inline_sigs else ""
+            code.append(self.inline_cstr(root=root, node=node) + scmnt)
 
         # Add a return statement if the function has outputs
-        if root.gc["num_outputs"] > 0:
+        if len(root.gc["outputs"]) > 0:
             code.append(f"return {', '.join(ovns)}")
         return code
 
@@ -320,7 +335,7 @@ class ExecutionContext:
                 nwcg.append(node)
             else:
                 # Node that use the same function must reference the correct info
-                node.function_info = self.function_map[node.gc["signature"]]
+                node.finfo = self.function_map[node.gc["signature"]]
 
         if executable:
             for node in nwcg:
@@ -375,12 +390,31 @@ class ExecutionContext:
             dstr.append('"""')
         return dstr
 
-    def execute(self, signature: bytes, args: tuple[Any, ...]) -> Any:
+    def execute(self, gcsig: bytes | GCABC, args: tuple[Any, ...]) -> Any:
         """Execute the function in the execution context."""
+        signature = gcsig["signature"] if isinstance(gcsig, GCABC) else gcsig
         assert isinstance(signature, bytes), f"Invalid signature type: {type(signature)}"
-        assert signature in self.function_map, f"Signature not found: {signature.hex()}"
+
+        # Ensure the function is defined & get its info
+        if signature not in self.function_map:
+            self.write_executable(signature)
+        finfo = self.function_map[signature]
+        if finfo.executable is NULL_EXECUTABLE:
+            raise RuntimeError(
+                "Function was created with executable=False: "
+                "Re-create the execution context and re-write using "
+                "executable=True. You cannot patch the context."
+            )
+
+        # NB: RuntimeContext is not used if the GC is not a PGC
+        rtctxt = ""
         lns: dict[str, Any] = {"i": args}
-        execution_str = f"result = {self.function_map[signature].name()}(i)"
+        if finfo.gc.is_pgc():
+            # TODO: Need to pass in creator info here
+            lns["rtctxt"] = RuntimeContext(self.gpi, finfo.gc)
+            rtctxt = "rtctxt, "
+
+        execution_str = f"result = {finfo.name()}({rtctxt}{'i' if args else ''})"
         exec(execution_str, self.namespace, lns)  # pylint: disable=exec-used
         return lns["result"]
 
@@ -396,16 +430,21 @@ class ExecutionContext:
         # By default the ovns is underscore (unused) for all outputs. This is
         # then overridden by any connection that starts (is source endpoint) at this node.
         ngc = node.gc
-        ovns: list[str] = ["_"] * ngc["num_outputs"]
+        ovns: list[str] = ["_"] * len(ngc["outputs"])
         rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is node):
             ovns[idx] = ovn
 
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
-        ivns: list[str] = [NULL_STR] * ngc["num_inputs"]
-        for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
-            ivns[idx] = ivn
+        ivns: list[str] = [NULL_STR] * len(ngc["inputs"])
+        # Special case: If this node is a codon and it's the root, inputs come directly
+        # from the function parameter 'i', not from connections
+        if node.is_codon and node is root:
+            ivns = [i_cstr(i) for i in range(len(ngc["inputs"]))]
+        else:
+            for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
+                ivns[idx] = ivn
 
         # Is this node a codon?
         assignment = ", ".join(ovns) + " = "
@@ -422,19 +461,21 @@ class ExecutionContext:
                     self.define(str(impt))
                     self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
+            if node.is_pgc:
+                ivns_map["pgc"] = "rtctxt, "
             return assignment + ngc["inline"].format_map(ivns_map)
-        return assignment + node.function_info.call_str(ivns)
+        return assignment + node.finfo.call_str(ivns)
 
     def line_limit(self) -> int:
         """Return the maximum number of lines in a function."""
         return self._line_limit
 
     def name_connections(self, root: GCNode) -> list[str]:
-        """Name the source variable of the connection between two code end points."""
+        """Name the source variable of the connection between two code endpoints."""
 
         # Gather the output variable names to catch the case where an input is
         # directly connected to an output
-        _ovns: list[str] = ["" for _ in range(root.gc["num_outputs"])]
+        _ovns: list[str] = ["" for _ in range(len(root.gc["outputs"]))]
         root.terminal_connections.sort(key=connection_key)
         src_connection_map: dict[CodeEndPoint, CodeConnection] = {}
         for connection in root.terminal_connections:
@@ -448,7 +489,7 @@ class ExecutionContext:
                 src: CodeEndPoint = connection.src
                 idx: int = src.idx
 
-                # If the source end point already has a variable name assigned
+                # If the source endpoint already has a variable name assigned
                 # from another connection then this connection must use that name.
                 if src in src_connection_map:
                     connection.var_name = src_connection_map[src].var_name
@@ -487,7 +528,7 @@ class ExecutionContext:
         self.function_map[signature] = newf = FunctionInfo(
             NULL_EXECUTABLE, next(self._global_index), node.num_lines, node.gc
         )
-        node.function_info = newf
+        node.finfo = newf
         return newf
 
     def new_function(self, node: GCNode) -> FunctionInfo:
@@ -496,13 +537,13 @@ class ExecutionContext:
 
         # Debugging
         if _logger.isEnabledFor(DEBUG):
-            _logger.log(DEBUG, "Function:\n%s", node.function_info.name())
+            _logger.log(DEBUG, "Function:\n%s", node.finfo.name())
             _logger.log(DEBUG, "Code:\n%s", code)
 
         # Add to the execution context
         self.define(code)
-        node.function_info.executable = self.namespace[node.function_info.name()]
-        return node.function_info
+        node.finfo.executable = self.namespace[node.finfo.name()]
+        return node.finfo
 
     def node_graph(self, gc: GCABC) -> GCNode:
         """Build the bi-directional graph of GC's.
@@ -572,7 +613,7 @@ class ExecutionContext:
                         gc_node_graph_entry.assess = False
                         gc_node_graph_entry.exists = True
                         gc_node_graph_entry.terminal = True
-                        gc_node_graph_entry.function_info.line_count = 1
+                        gc_node_graph_entry.finfo.line_count = 1
                         gc_node_graph_entry.num_lines = 1
                 else:
                     node_stack.append(gc_node_graph_entry)

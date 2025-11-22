@@ -1,6 +1,7 @@
 """Generate codons."""
 
 from copy import deepcopy
+from datetime import datetime
 from glob import glob
 from json import load
 from os.path import basename, dirname, join, splitext
@@ -8,17 +9,21 @@ from re import sub
 from typing import Any
 
 from egpcommon.common import (
-    ACYBERGENESIS_PROBLEM,
     EGP_EPOCH,
+    NULL_STR,
     SHAPEDSUNDEW9_UUID,
     ensure_sorted_json_keys,
     merge,
+    sha256_signature,
 )
-from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egpcommon.security import dump_signed_json
+from egpcommon.security import dump_signed_json, load_signed_json_list
 from egpcommon.spinner import Spinner
+from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
+from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces, valid_jcg
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -28,15 +33,17 @@ _logger: Logger = egp_logger(name=__name__)
 OUTPUT_CODON_PATH = ("..", "..", "egppy", "egppy", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "cgraph": {"A": None, "O": None, "U": []},
+    "cgraph": {"A": None, "O": None},
     "gca": NULL_SIGNATURE,
     "gcb": NULL_SIGNATURE,
+    "ancestora": NULL_SIGNATURE,
+    "ancestorb": NULL_SIGNATURE,
+    "pgc": NULL_SIGNATURE,
     "creator": SHAPEDSUNDEW9_UUID,
     "created": EGP_EPOCH.isoformat(),
     "generation": 1,
     "num_codes": 1,
     "num_codons": 1,
-    "problem": ACYBERGENESIS_PROBLEM,
     "properties": {
         "gc_type": GCType.CODON,
         # NOTE: The graph type does not have to be primitive.
@@ -90,6 +97,23 @@ class MethodExpander:
         self.description = method.get("description", "N/A")
         self.properties = method.get("properties", {})
 
+        # PGC's have some specific requirements
+
+        # 1. They must all import the RuntimeContext class
+        is_pgc = self.properties.get("is_pgc", False)
+        if is_pgc and not any(i["name"] == "RuntimeContext" for i in self.imports):
+            self.imports.append(
+                {
+                    "aip": ["egppy", "physics", "runtime_context"],
+                    "name": "RuntimeContext",
+                }
+            )
+
+        # 2. They must use the "{pgc}" inline parameter to indicate where the PGC
+        #    specific parameters go.
+        if is_pgc:
+            assert "{pgc}" in self.inline, "PGC codons must use the '{pgc}' inline parameter."
+
     def to_json(self) -> dict[str, Any]:
         """Convert to json."""
         json_dict = deepcopy(CODON_TEMPLATE)
@@ -100,6 +124,20 @@ class MethodExpander:
         merge(json_dict["properties"], self.properties)
         json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
         json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
+        assert valid_jcg(json_dict["cgraph"]), "Invalid codon connection graph at construction."
+        json_dict["signature"] = sha256_signature(
+            json_dict["ancestora"],
+            json_dict["ancestorb"],
+            json_dict["gca"],
+            json_dict["gcb"],
+            CGraph(json_cgraph_to_interfaces(json_dict["cgraph"])).to_json(True),  # type: ignore
+            json_dict["pgc"],
+            tuple(ImportDef(**md) for md in self.imports),
+            self.inline,
+            NULL_STR,
+            int(datetime.fromisoformat(json_dict["created"]).timestamp()),
+            json_dict["creator"].bytes,
+        )
         return json_dict
 
 
@@ -122,7 +160,7 @@ def generate_codons(write: bool = False) -> None:
         approach as the type cast codons can do runtime validation of the types thus proving
         the type is correct.
     4. Save the codons dictionary to a JSON file.
-    5. Create the end_point_types.json file.
+    5. Create the endpoint_types.json file.
     """
 
     # Load the raw codon data for each type. e.g.
@@ -142,13 +180,30 @@ def generate_codons(write: bool = False) -> None:
             definition.setdefault("inputs", ipts)
             definition.setdefault("outputs", opts)
             new_codon = GGCDict(MethodExpander(name, definition).to_json())
+            # NOTE: verify() now raises exceptions on failure rather than returning False.
             new_codon.verify()
             codon = new_codon.to_json()
+            assert valid_jcg(
+                codon["cgraph"]  #  type: ignore
+            ), "Invalid codon connection graph after verification."
             signature = codon["signature"]
             assert isinstance(signature, str), f"Invalid signature type: {type(signature)}"
             assert signature not in codons, f"Duplicate signature: {signature}"
             codons[signature] = codon
-    spinner.stop()
+
+    # If we are debugging verify the signatures are correct
+    if _logger.isEnabledFor(DEBUG) and not write:
+        codon_dict = {
+            c["signature"]: c
+            for c in load_signed_json_list(join(dirname(__file__), *OUTPUT_CODON_PATH))
+        }
+        for sig, codon in codons.items():
+            assert sig in codon_dict, f"Codon signature {sig} not found in existing codons."
+            del codon["updated"]  # Ignore updated timestamp for comparison
+            del codon_dict[sig]["updated"]
+            assert (
+                codon == codon_dict[sig]
+            ), f"Codon signature {sig} does not match existing codon definition."
 
     # If we are writing the codons to a file then we need to ensure that the signatures are unique
     if write:
@@ -156,6 +211,9 @@ def generate_codons(write: bool = False) -> None:
             list(codons.values()),
             join(dirname(__file__), *OUTPUT_CODON_PATH),
         )
+
+    # Stop the spinner
+    spinner.stop()
 
 
 if __name__ == "__main__":

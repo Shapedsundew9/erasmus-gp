@@ -1,7 +1,17 @@
 {
   "%": {
-    "inline": "psql_modulo({i0}, {i1})",
     "description": "PSQL modulo {t0} by {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_modulo"
+      }
+    ],
+    "inline": "psql_modulo({i0}, {i1})",
     "inputs": [
       "PsqlNumeric",
       "PsqlNumeric"
@@ -11,14 +21,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "*": {
-    "inline": "psql_multiply({i0}, {i1})",
     "description": "PSQL multiply {t0} and {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_multiply"
+      }
+    ],
+    "inline": "psql_multiply({i0}, {i1})",
     "inputs": [
       "PsqlNumeric",
       "PsqlNumeric"
@@ -28,14 +48,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "+": {
-    "inline": "psql_add({i0}, {i1})",
     "description": "PSQL add {t0} and {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_add"
+      }
+    ],
+    "inline": "psql_add({i0}, {i1})",
     "inputs": [
       "PsqlNumeric",
       "PsqlNumeric"
@@ -45,14 +75,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "-": {
-    "inline": "psql_subtract({i0}, {i1})",
     "description": "PSQL subtract {t1} from {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_subtract"
+      }
+    ],
+    "inline": "psql_subtract({i0}, {i1})",
     "inputs": [
       "PsqlNumeric",
       "PsqlNumeric"
@@ -62,14 +102,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "/": {
-    "inline": "psql_divide({i0}, {i1})",
     "description": "PSQL divide  {t0} by {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_divide"
+      }
+    ],
+    "inline": "psql_divide({i0}, {i1})",
     "inputs": [
       "PsqlNumeric",
       "PsqlNumeric"
@@ -79,14 +129,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "@": {
-    "inline": "psql_abs({i0})",
     "description": "PSQL absolute {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_abs"
+      }
+    ],
+    "inline": "psql_abs({i0})",
     "inputs": [
       "PsqlNumeric"
     ],
@@ -95,14 +155,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "^": {
-    "inline": "psql_exp({i0}, {i1})",
     "description": "PSQL exponentiate {t0} by {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_exp"
+      }
+    ],
+    "inline": "psql_exp({i0}, {i1})",
     "inputs": [
       "PsqlNumeric",
       "PsqlNumeric"
@@ -112,14 +182,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "negate": {
-    "inline": "psql_negate({i0})",
     "description": "PSQL negate {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_negate"
+      }
+    ],
+    "inline": "psql_negate({i0})",
     "inputs": [
       "PsqlNumeric"
     ],
@@ -128,8 +208,8 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   }

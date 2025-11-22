@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from array import array
-from functools import lru_cache
 from json import dumps, loads
 from os.path import dirname, join
 from typing import Any, Final, Generator, Iterable, Iterator
@@ -13,7 +12,6 @@ from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
-from egpcommon.object_dict import ObjectDict
 from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
@@ -210,7 +208,7 @@ class TypesDef(FreezableObject, Validator):
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
-        self.raise_ve(
+        self.value_error(
             self._is_bool("abstract", abstract), f"abstract must be a bool, but is {type(abstract)}"
         )
         return abstract
@@ -232,7 +230,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(child, TypesDef):
                 child_list.append(child.uid)
             else:
-                self.raise_ve(False, "Invalid children definition.")
+                self.value_error(False, "Invalid children definition.")
         return array("i", child_list)
 
     def _default(self, default: str | None) -> str | None:
@@ -259,13 +257,9 @@ class TypesDef(FreezableObject, Validator):
                 # The import store will ensure that the same import is not duplicated.
                 import_list.append(ImportDef(**import_def).freeze())
             elif isinstance(import_def, ImportDef):
-                self.raise_ve(
-                    import_def in ImportDef.object_store,
-                    "ImportDef must be in the import store.",
-                )
                 import_list.append(import_def)
             else:
-                self.raise_ve(False, "Invalid imports definition.")
+                self.value_error(False, "Invalid imports definition.")
         return tuple(import_list)
 
     def _name(self, name: str) -> str:
@@ -291,7 +285,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(parent, TypesDef):
                 parent_list.append(parent.uid)
             else:
-                self.raise_ve(False, "Invalid parents definition.")
+                self.value_error(False, "Invalid parents definition.")
         return array("i", parent_list)
 
     def _uid(self, uid: int | dict[str, Any]) -> int:
@@ -305,7 +299,7 @@ class TypesDef(FreezableObject, Validator):
             # The BitDict will handle the validation.
             return TypesDefBD(uid).to_int()
         else:
-            self.raise_ve(False, "Invalid UID definition.")
+            self.value_error(False, "Invalid UID definition.")
 
     @property
     def abstract(self) -> bool:
@@ -381,7 +375,7 @@ class TypesDef(FreezableObject, Validator):
         return retval
 
 
-class TypesDefStore(ObjectDict):
+class TypesDefStore:
     """Types Definition Database.
 
     The TDDB is a double dictionary that maps type names to TypesDef objects
@@ -400,43 +394,52 @@ class TypesDefStore(ObjectDict):
 
     _db_store: Final[Table] | None = None
     _db_sources: Final[Table] | None = None
+    _cache: dict[int | str, TypesDef] = {}
+    _cache_order: list[int | str] = []
+    _cache_maxsize: int = 1024
+    _cache_hits: int = 0
+    _cache_misses: int = 0
 
-    def __init__(self) -> None:
-        """Initialize the TypesDefStore."""
-        super().__init__("TypesDefStore")
-        self._cache_hit: int = 0
-        self._cache_miss: int = 0
-        if TypesDefStore._db_store is None:
-            TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
-            DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
-            if DB_STORE_TABLE_CONFIG.delete_table:
-                TypesDefStore._db_sources.raw.delete_table()
-                for name in DB_STORE_TABLE_CONFIG.data_files:
-                    filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
-                    if not verify_signed_file(filename):
-                        raise InvalidSignatureError(
-                            f"Signature verification failed for file: {filename}"
-                        )
-                    sig_data = load_signature_data(filename + ".sig")
-                    sig_data["source_path"] = filename
-                    TypesDefStore._db_sources.insert((sig_data,))
+    def _initialize_db_store(self) -> None:
+        """Initialize the database store if it has not been initialized yet.
+        This is done lazily to avoid import overheads when not used.
+        """
+        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
+        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
+        if DB_STORE_TABLE_CONFIG.delete_table:
             TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+            for name in DB_STORE_TABLE_CONFIG.data_files:
+                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
+                if not verify_signed_file(filename):
+                    raise InvalidSignatureError(
+                        f"Signature verification failed for file: {filename}"
+                    )
+                sig_data = load_signature_data(filename + ".sig")
+                sig_data["source_path"] = filename
+                TypesDefStore._db_sources.insert((sig_data,))
+        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
-    def __contains__(self, key: Any) -> bool:
+    def __contains__(self, key: int | str) -> bool:
         """Check if the key is in the store."""
-        if not super().__contains__(key):
-            try:
-                self[key]  # This will populate the cache if the key exists.
-            except KeyError:
-                return False
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
+        try:
+            self[key]  # This will populate the cache if the key exists.
+        except KeyError:
+            return False
         return True
 
-    def __getitem__(self, key: Any) -> Any:
+    def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
-        if key in self._objects:
-            self._cache_hit += 1
-            return self._objects[key]
-        self._cache_miss += 1
+        # Check cache first
+        if key in TypesDefStore._cache:
+            TypesDefStore._cache_hits += 1
+            return TypesDefStore._cache[key]
+
+        TypesDefStore._cache_misses += 1
+
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         if isinstance(key, int):
             td = TypesDefStore._db_store.get(key, {})
@@ -453,21 +456,29 @@ class TypesDefStore(ObjectDict):
         # Create a frozen TypesDef object but do not put it in the object_store as
         # we will cache it here.
         ntd = TypesDef(**td).freeze(store=False)
-        self._objects[ntd.name] = ntd
-        self._objects[ntd.uid] = ntd
+
+        # Cache the result with LRU eviction
+        TypesDefStore._cache[key] = ntd
+        TypesDefStore._cache_order.append(key)
+
+        # LRU eviction if cache is full
+        if len(TypesDefStore._cache_order) > TypesDefStore._cache_maxsize:
+            evict_key = TypesDefStore._cache_order.pop(0)
+            del TypesDefStore._cache[evict_key]
+
         return ntd
 
     def _should_reload_table(self) -> bool:
         """Determine if the types_def table should be reloaded."""
         db_sources = TypesDefStore._db_sources
         assert db_sources is not None, "DB sources must be initialized."
-        folder = DB_SOURCES_TABLE_CONFIG.data_file_folder
+        folder = DB_STORE_TABLE_CONFIG.data_file_folder
         num_entries = len(db_sources)
-        num_files = len(DB_SOURCES_TABLE_CONFIG.data_files)
+        num_files = len(DB_STORE_TABLE_CONFIG.data_files)
         if EGP_PROFILE == EGP_DEV_PROFILE and num_entries >= num_files:
             sources: RowIter = db_sources.select()
             hashes: set[bytes] = {row["file_hash"] for row in sources}
-            for filename in DB_SOURCES_TABLE_CONFIG.data_files:
+            for filename in DB_STORE_TABLE_CONFIG.data_files:
                 data = load_signature_data(join(folder, filename + ".sig"))
                 file_hash = data["file_hash"]
                 if file_hash not in hashes:
@@ -477,11 +488,12 @@ class TypesDefStore(ObjectDict):
         TypesDefStore._db_sources = db_sources
         return num_entries < num_files
 
-    @lru_cache(maxsize=128)
     def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
         """Return the type definition and all ancestors by name or UID.
         The ancestors are the parents, grandparents etc. in depth order (type "key" first).
         """
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         if not isinstance(key, (int, str)):
             raise TypeError(f"Invalid key type: {type(key)}")
         stack: set[TypesDef] = {self[key]}
@@ -493,11 +505,12 @@ class TypesDefStore(ObjectDict):
                 stack.update(self[p] for p in parent.parents)
         return tuple(sorted(ancestors, key=lambda td: td.depth, reverse=True))
 
-    @lru_cache(maxsize=128)
     def descendants(self, key: str | int) -> tuple[TypesDef, ...]:
         """Return the type definition and all descendants by name or UID.
         The descendants are the children, grandchildren etc. in depth order (type "key" first).
         """
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         stack: set[TypesDef] = {self[key]}
         descendants: set[TypesDef] = set()
         while stack:
@@ -509,6 +522,8 @@ class TypesDefStore(ObjectDict):
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         tds = TypesDefStore._db_store.select(
             "WHERE name LIKE {id}", literals={"id": f"{base_key}%"}
@@ -517,16 +532,21 @@ class TypesDefStore(ObjectDict):
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""
+        total = TypesDefStore._cache_hits + TypesDefStore._cache_misses
+        hit_rate = TypesDefStore._cache_hits / total if total > 0 else 0.0
         info_str = (
-            f"TypesDefStore Cache hits: {self._cache_hit}\n"
-            f"TypesDefStore Cache misses: {self._cache_miss}\n"
-            f"{super().info()}"
+            f"TypesDefStore Cache hits: {TypesDefStore._cache_hits}\n"
+            f"TypesDefStore Cache misses: {TypesDefStore._cache_misses}\n"
+            f"TypesDefStore Cache hit rate: {hit_rate:.2%}\n"
+            f"TypesDefStore Cache size: {len(TypesDefStore._cache)}/{TypesDefStore._cache_maxsize}"
         )
         _logger.info(info_str)
         return info_str
 
     def next_xuid(self, tt: int = 0) -> int:
         """Get the next X unique ID for a type."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         max_uid = tuple(TypesDefStore._db_store.select(_MAX_UID_SQL, literals={"tt": tt}))
         assert max_uid, "No UIDs available for this Template Type."
@@ -536,6 +556,8 @@ class TypesDefStore(ObjectDict):
 
     def values(self) -> Iterator[TypesDef]:
         """Iterate through all the types in the store."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
         for td in TypesDefStore._db_store.select():
             yield TypesDef(**td)

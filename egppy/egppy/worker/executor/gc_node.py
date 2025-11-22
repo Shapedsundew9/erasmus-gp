@@ -35,8 +35,8 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
     """
     if color == "":
         color = MERMAID_BLUE
-        if gcnode.gc.is_codon():
-            if gcnode.gc.is_meta():
+        if gcnode.is_codon:
+            if gcnode.is_meta:
                 return mc_meta_node_str(gcnode, row)
             return mc_codon_node_str(gcnode, row)
     label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
@@ -71,12 +71,12 @@ def mc_code_node_str(gcnode: GCNode) -> str:
     """Return a Mermaid Chart string representation of the code (terminal GCNode)."""
     if gcnode.exists or gcnode.write:
         # Stub ivns for the call string to keep the length under control.
-        label = f"{gcnode.function_info.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        label = f"{gcnode.finfo.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_rectangle_str(gcnode.uid, label, MERMAID_GREEN)
     assert (
-        gcnode.gc.is_codon()
+        gcnode.is_codon
     ), "If the GC function does not exist and is not going to, it must be a codon."
-    if not gcnode.gc.is_meta():
+    if not gcnode.is_meta:
         label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
     label = f"is({gcnode.gc['cgraph']['Od'][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
@@ -223,9 +223,10 @@ class GCNode(Iterable, Hashable):
         "gc",
         "is_codon",
         "is_meta",
+        "is_pgc",
         "unknown",
         "exists",
-        "function_info",
+        "finfo",
         "write",
         "assess",
         "gca",
@@ -258,17 +259,18 @@ class GCNode(Iterable, Hashable):
 
         # Defaults. These may be changed depending on the GC structure and what
         # is found in the cache.
-        self.is_codon: bool = False  # Is this node for a codon?
-        self.is_meta: bool = False  # Is this node for a meta-codon?
+        self.is_codon: bool = gc.is_codon()  # Is this node for a codon?
+        self.is_meta: bool = gc.is_meta()  # Is this node for a meta-codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
         self.exists: bool = finfo is not NULL_FUNCTION_MAP
-        self.function_info: FunctionInfo = finfo
+        self.finfo: FunctionInfo = finfo
         self.write: bool = False  # True if the node is to be written as a function
         self.assess: bool = True  # True if the number of lines has not been determined
         self.gca: GCABC | bytes = gc["gca"]
         self.gcb: GCABC | bytes = gc["gcb"]
         self.terminal: bool = False  # A terminal node is where a connection ends
         self.f_connection: bool = gc.is_conditional()
+        self.is_pgc: bool = gc.is_pgc()
         # If this node is a null GC node then it is a leaf node and we self
         # reference with GCA & GCB to terminate the recursion.
         # NOTE: Not entirely comfortable with this & its potential consequences.
@@ -276,14 +278,14 @@ class GCNode(Iterable, Hashable):
         self.gcb_node: GCNode = NULL_GC_NODE if gc is not NULL_GC else self
         # Uniquely identify the node in the graph
         self.uid: str = f"uid{next(self._uid_counter):04x}"
-        # The code connection end points if this node is to be written
+        # The code connection endpoints if this node is to be written
         self.terminal_connections: list[CodeConnection] = []
         # Calculated number of lines in the *potential* function
-        self.num_lines: int = self.function_info.line_count
+        self.num_lines: int = self.finfo.line_count
         # Sanity check
         assert (
-            gc.is_codon() and not self.num_lines
-        ) or not gc.is_codon(), "At this point a codon must have 0 lines."
+            self.is_codon and not self.num_lines
+        ) or not self.is_codon, "At this point a codon must have 0 lines."
         # The local variable counter (used to make unique variable names)
         self.local_counter: count[int] = count()
 
@@ -300,15 +302,18 @@ class GCNode(Iterable, Hashable):
             assert parent.gcb is gc or parent.gca is gc, "GC is neither GCA or GCB"
             self.parent = parent
 
-        if gc.is_codon():
-            self.is_codon = True  # Set is_codon to True if gc indicates a codon
-            self.is_meta = gc.is_meta()  # Set is_meta if the GC is a meta-codon
+        if self.is_codon:
             assert (
-                self.gca is NULL_GC or self.gca is NULL_SIGNATURE
+                self.gca is NULL_GC or self.gca == NULL_SIGNATURE
             ), "GCA must be NULL_GC for a codon"
             assert (
-                self.gcb is NULL_GC or self.gcb is NULL_SIGNATURE
+                self.gcb is NULL_GC or self.gcb == NULL_SIGNATURE
             ), "GCB must be NULL_GC for a codon"
+
+            # Make sure we are not holding bytes for GCA or GCB
+            self.gca = NULL_GC
+            self.gcb = NULL_GC
+
             self.assess = False  # No need to assess a codon. We know what it is.
             self.terminal = True  # A codon is a terminal node
             # A codon is a single line of code (unless we are supressing meta-codons
@@ -370,13 +375,13 @@ class GCNode(Iterable, Hashable):
             return ""
         title_txt: list[str] = [
             "---",
-            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.function_info.call_str('')}\"",
+            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.finfo.call_str('')}\"",
             "---",
         ]
         chart_txt: list[str] = []
-        if self.gc["num_inputs"] > 0:
+        if len(self.gc["inputs"]) > 0:
             chart_txt.append(f'    {self.uid}I["inputs"]')
-        if self.gc["num_outputs"] > 0:
+        if len(self.gc["outputs"]) > 0:
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
@@ -403,7 +408,7 @@ class GCNode(Iterable, Hashable):
         """
         # Define the function input parameters
         iface: Interface = self.gc["cgraph"]["Is"]
-        inum: int = self.gc["num_inputs"]
+        inum: int = len(self.gc["inputs"])
         iparams = "i"
 
         if hints:
@@ -411,12 +416,15 @@ class GCNode(Iterable, Hashable):
             input_types = ", ".join(str(iface[i].typ) for i in range(inum))
             iparams += f": tuple[{input_types}]"
 
+        # The RuntimeContext object is only required for PGCs
+        rtctxt = "rtctxt: RuntimeContext, " if self.is_pgc else ""
+
         # Start building the function definition
-        base_def = f"def {self.function_info.name()}({iparams if inum else ''})"
+        base_def = f"def {self.finfo.name()}({rtctxt}{iparams if inum else ''})"
 
         if hints:
             # Add type hints for output parameters
-            onum = self.gc["num_outputs"]
+            onum = len(self.gc["outputs"])
             if onum > 1:
                 oface = self.gc["cgraph"]["Od"]
                 output_types = ", ".join(str(oface[i].typ) for i in range(onum))

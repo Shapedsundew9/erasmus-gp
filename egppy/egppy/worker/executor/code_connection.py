@@ -13,23 +13,23 @@ if TYPE_CHECKING:
 
 
 class CodeEndPoint(Hashable):
-    """An code end point in the GC node graph."""
+    """An code endpoint in the GC node graph."""
 
     __slots__ = ("node", "row", "idx", "terminal")
 
     def __init__(self, node: GCNode, row: Row, idx: int, terminal: bool = False) -> None:
-        """Create a code end point in the GC node graph.
+        """Create a code endpoint in the GC node graph.
 
         When a code endpoint is terminal it defines where local variable is defined or used
-        in the GC function executable implementation. If not terminal the code end point marks
+        in the GC function executable implementation. If not terminal the code endpoint marks
         the most recently defined end of a code connection that is still being 'theaded' through
         the GC node graph.
 
         Args:
             node (GCNode): The node in the GC node graph.
             row (Row): The row in the node.
-            idx (int): The index of the end point in the row.
-            terminal (bool, optional): True if the end point is terminal. Defaults to False.
+            idx (int): The index of the endpoint in the row.
+            terminal (bool, optional): True if the endpoint is terminal. Defaults to False.
         """
         self.node: GCNode = node
         self.row: Row = row
@@ -59,12 +59,12 @@ class CodeEndPoint(Hashable):
 
 
 class CodeConnection(Hashable):
-    """A connection between terminal end points in the GC node graph."""
+    """A connection between terminal endpoints in the GC node graph."""
 
     __slots__ = ("src", "dst", "var_name")
 
     def __init__(self, src: CodeEndPoint, dst: CodeEndPoint) -> None:
-        """Create a connection between code end points in the GC node graph."""
+        """Create a connection between code endpoints in the GC node graph."""
         self.src: CodeEndPoint = src
         self.dst: CodeEndPoint = dst
         self.var_name: str = NULL_STR

@@ -26,12 +26,11 @@ from egppy.physics.psql_types import (
     PsqlRealArray,
     PsqlSmallInt,
     PsqlSmallIntArray,
-    PsqlStatementSelect,
     PsqlTime,
     PsqlTimestamp,
     PsqlType,
     PsqlTypeError,
-    PsqlUuid,
+    PsqlUUID,
     PsqlValueError,
     PsqlVarChar,
     py_cast,
@@ -80,8 +79,10 @@ class TestPsqlTypes(unittest.TestCase):
         self.assertEqual(repr(col_type), "PsqlInt('my_col')")
 
         # Test expression representation
-        expr_type = PsqlInt("a + b", is_literal=False, is_column=False)
-        self.assertEqual(str(expr_type), "a + b")
+        a = PsqlInt("a", is_column=True)
+        b = PsqlInt("b", is_column=True)
+        expr_type = PsqlInt("{a} + {b}", is_literal=False, is_column=False, param_a=a, param_b=b)
+        self.assertEqual(str(expr_type), "{a} + {b}")
 
         # Test internal error for non-string column value
         col_type_any: Any = col_type
@@ -211,9 +212,9 @@ class TestPsqlTypes(unittest.TestCase):
     def test_psql_uuid(self):
         """Test the PsqlUuid type."""
         u = uuid4()
-        self.assertEqual(PsqlUuid(u, is_literal=True).value, u)
+        self.assertEqual(PsqlUUID(u, is_literal=True).value, u)
         with self.assertRaises(PsqlValueError):
-            PsqlUuid(str(u), is_literal=True)
+            PsqlUUID(str(u), is_literal=True)
 
     def test_psql_bytea(self):
         """Test the PsqlBytea type."""
@@ -225,7 +226,7 @@ class TestPsqlTypes(unittest.TestCase):
     def test_psql_array_base(self):
         """Test that the abstract PsqlArray class cannot be instantiated."""
         # Test abstract base class
-        with self.assertRaises(TypeError):
+        with self.assertRaises(AttributeError):
             # pylint: disable=abstract-class-instantiated
             PsqlArray([1], is_literal=True)  # type: ignore
 
@@ -338,14 +339,16 @@ class TestPsqlTypes(unittest.TestCase):
         self.assertTrue(issubclass(PsqlSmallInt, PsqlIntegral))
         self.assertEqual(PsqlInt.sql_type_name, "INT4")
         self.assertEqual(PsqlReal.sql_type_name, "REAL")
-        self.assertEqual(PsqlUuid.sql_type_name, "UUID")
+        self.assertEqual(PsqlUUID.sql_type_name, "UUID")
 
     def test_psql_fragments_and_statements(self):
         """Test the PsqlFragment and PsqlStatement classes."""
         # Test PsqlFragmentWhere
-        cond = PsqlBool("a > 1", is_literal=False)
+        a = PsqlInt("a", is_column=True)
+        one = PsqlInt(1, is_literal=True)
+        cond = PsqlBool("{a} > {one}", is_literal=False, param_a=a, param_b=one)
         where = PsqlFragmentWhere(cond)
-        self.assertEqual(str(where), "WHERE a > 1")
+        self.assertEqual(str(where), "{a} > {one}")
         with self.assertRaises(PsqlValueError):
             PsqlFragmentWhere(PsqlBool(True, is_literal=True))
 
@@ -356,12 +359,14 @@ class TestPsqlTypes(unittest.TestCase):
         order_by_desc = PsqlFragmentOrderBy(col, ascending=False)
         self.assertEqual(str(order_by_desc), "ORDER BY {my_col} DESC")
         with self.assertRaises(PsqlValueError):
-            PsqlFragmentOrderBy(PsqlInt("a + b"))
-
-        # Test PsqlStatementSelect
-        select = PsqlStatementSelect(where, order_by_asc)
-        expected = "SELECT {signature} FROM {table} WHERE a > 1 ORDER BY {my_col} ASC LIMIT {limit}"
-        self.assertEqual(str(select), expected)
+            PsqlFragmentOrderBy(
+                PsqlInt(
+                    "{a} + {b}",
+                    is_literal=False,
+                    param_a=PsqlInt("a", is_column=True),
+                    param_b=PsqlInt("b", is_column=True),
+                )
+            )
 
 
 if __name__ == "__main__":

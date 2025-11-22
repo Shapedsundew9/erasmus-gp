@@ -61,6 +61,10 @@ def create_parallel_exceptions(prefix="Mutation", module_name=None, verbose=Fals
     base_exc_name = f"{prefix}Exception"
 
     class ParallelBaseException(Exception):
+        """
+        Base class for dynamically generated parallel exceptions.
+        """
+
         # This "tag" is used to identify our custom hierarchies.
         _is_parallel_hierarchy = True
 
@@ -109,28 +113,3 @@ def create_parallel_exceptions(prefix="Mutation", module_name=None, verbose=Fals
         print(f"✅ Created module '{module_name}' in {duration:.4f} seconds.")
 
     return new_module
-
-
-# --- Example Usage ---
-if __name__ == "__main__":  # pragma: no cover
-    print("--- First call ---")
-    mutation_exceptions = create_parallel_exceptions(prefix="Mutation", verbose=True)
-
-    print("\n--- Second call ---")
-    validation_exceptions = create_parallel_exceptions(prefix="Validation", verbose=True)
-
-    print("\n--- Demonstration ---")
-    try:
-        int("foo")
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        mutation_exc_class = mutation_exceptions.get_parallel_equivalent(type(e))
-        if mutation_exc_class:
-            raise mutation_exc_class(
-                f"Mutation failed: {e}", original_exception=e, metadata={"generation": 42}
-            ) from e
-        else:
-            raise
-    except mutation_exceptions.MutationValueError as mve:
-        print("Caught a specific 'Mutation' context error:")
-        print(f"  - {mve}")
-        print(f"  - Metadata: {mve.metadata}")

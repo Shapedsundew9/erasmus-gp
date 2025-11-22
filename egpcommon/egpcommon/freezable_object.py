@@ -10,9 +10,9 @@ from copy import deepcopy
 from typing import Any, Self
 from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
-from egpcommon.common_obj import CommonObj
+from egpcommon.common_obj import DEBUG, CommonObj
 from egpcommon.egp_log import Logger, egp_logger
-from egpcommon.object_set import ObjectSet
+from egpcommon.object_deduplicator import ObjectDeduplicator
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -75,20 +75,37 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
     """
 
     __slots__ = ("_frozen", "__weakref__")
-    object_store: ObjectSet  # pylint: disable=declare-non-slot
+    object_store: ObjectDeduplicator | None = None
 
     @classmethod
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, name: str | None = None, size: int = 0, **kwargs):
         """
         This hook is called when a class inherits from FreezableObject.
         'cls' is the new subclass being created.
+
+        Args:
+            name (str | None): Optional name for the ObjectDeduplicator store
+                               (else uses class name).
+            size (int): Optional size for the ObjectDeduplicator store. If 0, no store is created.
+            **kwargs: Additional keyword arguments passed to the superclass
         """
         # Call the parent's __init_subclass__ to be cooperative
         super().__init_subclass__(**kwargs)
 
-        # Create the ObjectSet instance, labeled with the new class's name
+        # Ensure that subclasses define __slots__ to avoid __dict__
+        if not hasattr(cls, "__slots__"):
+            raise TypeError(
+                f"Subclass '{cls.__name__}' of FreezableObject "
+                "must define __slots__ to avoid __dict__."
+            )
+
+        # Create the ObjectDeduplicator instance, labeled with the new class's name
         # Attach the store as a CLASS ATTRIBUTE to the new subclass
-        cls.object_store = ObjectSet(name=cls.__name__)
+        name = name if name is not None else cls.__name__
+        if size > 0:
+            cls.object_store = ObjectDeduplicator(name=name, size=size)
+        else:
+            cls.object_store = None
 
     def __init__(self, frozen: bool = False) -> None:
         """
@@ -180,8 +197,8 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
                     all_slots.update(slots_attr)
 
         # Exclude internal slots of the FreezableObject base class itself.
-        all_slots.discard("_frozen")
-        all_slots.discard("__weakref__")
+        # Remove internal FreezableObject slots in one efficient operation
+        all_slots.difference_update(("_frozen", "__weakref__"))
         return all_slots
 
     @staticmethod
@@ -292,9 +309,11 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         Returns:
             Self: The frozen version of this object.
         """
+        was_already_frozen = self.is_frozen()
         retval = self._freeze(store)
-        retval.verify()  # Verify the object after freezing to ensure consistency.
-        return retval
+        if _logger.isEnabledFor(DEBUG) and not was_already_frozen:
+            retval.verify()  # Verify the object after freezing to ensure consistency.
+        return self.object_store[retval] if store and self.object_store is not None else retval
 
     def _freeze(
         self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
@@ -365,7 +384,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         # to signify it has been processed.
 
         # Return the object itself, or add it to the store if requested.
-        return self.object_store.add(self) if store else self
+        return self
 
     def is_frozen(self) -> bool:
         """Returns True if the object is marked as frozen, False otherwise."""

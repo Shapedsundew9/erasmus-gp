@@ -1,7 +1,17 @@
 {
   "cbrt": {
-    "inline": "psql_cbrt({i0})",
     "description": "PSQL cube root of {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_cbrt"
+      }
+    ],
+    "inline": "psql_cbrt({i0})",
     "inputs": [
       "PsqlDoublePrecision"
     ],
@@ -10,14 +20,24 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   },
   "sqrt": {
-    "inline": "psql_sqrt({i0})",
     "description": "PSQL square root of {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_sqrt"
+      }
+    ],
+    "inline": "psql_sqrt({i0})",
     "inputs": [
       "PsqlDoublePrecision"
     ],
@@ -26,8 +46,8 @@
     ],
     "properties": {
       "gctsp": {
-        "python": false,
-        "psql": true
+        "psql": true,
+        "python": false
       }
     }
   }

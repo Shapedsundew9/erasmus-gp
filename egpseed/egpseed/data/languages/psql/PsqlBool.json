@@ -1,52 +1,82 @@
 {
-    "AND": {
-        "inline": "psql_logical_and({i0}, {i1})",
-        "inputs": [
-            "PsqlBool",
-            "PsqlBool"
+  "AND": {
+    "description": "PSQL logical AND {t0} with {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
         ],
-        "outputs": [
-            "PsqlBool"
-        ],
-        "description": "PSQL logical AND {t0} with {t1}",
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
-    },
-    "NOT": {
-        "inline": "psql_logical_not({i1})",
-        "description": "PSQL logical NOT {t0}",
-        "inputs": [
-            "PsqlBool"
-        ],
-        "outputs": [
-            "PsqlBool"
-        ],
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
-    },
-    "OR": {
-        "inline": "psql_logical_or({i0}, {i1})",
-        "inputs": [
-            "PsqlBool",
-            "PsqlBool"
-        ],
-        "outputs": [
-            "PsqlBool"
-        ],
-        "description": "PSQL logical OR {t0} with {t1}",
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
+        "name": "psql_logical_and"
+      }
+    ],
+    "inline": "psql_logical_and({i0}, {i1})",
+    "inputs": [
+      "PsqlBool",
+      "PsqlBool"
+    ],
+    "outputs": [
+      "PsqlBool"
+    ],
+    "properties": {
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
     }
+  },
+  "NOT": {
+    "description": "PSQL logical NOT {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_logical_not"
+      }
+    ],
+    "inline": "psql_logical_not({i1})",
+    "inputs": [
+      "PsqlBool"
+    ],
+    "outputs": [
+      "PsqlBool"
+    ],
+    "properties": {
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "OR": {
+    "description": "PSQL logical OR {t0} with {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "psql_logical_or"
+      }
+    ],
+    "inline": "psql_logical_or({i0}, {i1})",
+    "inputs": [
+      "PsqlBool",
+      "PsqlBool"
+    ],
+    "outputs": [
+      "PsqlBool"
+    ],
+    "properties": {
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  }
 }

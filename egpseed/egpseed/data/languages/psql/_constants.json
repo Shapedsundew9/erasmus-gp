@@ -1,0 +1,117 @@
+{
+  "0::BIGINT": {
+    "description": "Big integer literal 0",
+    "inline": "PsqlBigInt(0, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlBigInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "0::INT": {
+    "description": "Int literal 0",
+    "inline": "PsqlInt(0, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "0::SMALLINT": {
+    "description": "Small integer literal 0",
+    "inline": "PsqlSmallInt(0, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlSmallInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "1::BIGINT": {
+    "description": "Big integer literal 1",
+    "inline": "PsqlBigInt(1, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlBigInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "1::INT": {
+    "description": "Int literal 1",
+    "inline": "PsqlInt(1, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "1::SMALLINT": {
+    "description": "Small integer literal 1",
+    "inline": "PsqlSmallInt(1, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlSmallInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  },
+  "properties_codon_mask": {
+    "description": "Properties mask to filter for codons",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CODON_META_MASK"
+      }
+    ],
+    "inline": "PsqlBigInt(CODON_META_MASK, is_literal=True)",
+    "num_inputs": 0,
+    "outputs": [
+      "PsqlBigInt"
+    ],
+    "properties": {
+      "constant": true,
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  }
+}

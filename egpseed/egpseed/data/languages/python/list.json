@@ -1,50 +1,50 @@
 {
-    "copy": {
-        "inputs": [
-            "-list0[-Any0]"
-        ],
-        "inline": "{i0}.copy()",
-        "outputs": [
-            "-list0[-Any0]"
-        ]
-    },
-    "list0": {
-        "inline": "list()",
-        "inputs": [
-            "-list0[-Any0]"
-        ],
-        "outputs": [
-            "-list0[-Any0]"
-        ]
-    },
-    "list1": {
-        "inline": "list({i0})",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "outputs": [
-            "-list0[-Any0]"
-        ]
-    },
-    "sort0": {
-        "inputs": [
-            "-list0[-Any0]"
-        ],
-        "inline": "{i0}.sort()",
-        "num_outputs": 0,
-        "properties": {
-            "side_effects": true
-        }
-    },
-    "sort1": {
-        "inputs": [
-            "-list0[-Any0]",
-            "bool"
-        ],
-        "inline": "{i0}.sort(reverse={i1})",
-        "properties": {
-            "side_effects": true
-        },
-        "num_outputs": 0
+  "copy": {
+    "inline": "{i0}.copy()",
+    "inputs": [
+      "-list0[-Any0]"
+    ],
+    "outputs": [
+      "-list0[-Any0]"
+    ]
+  },
+  "list0": {
+    "inline": "list()",
+    "inputs": [
+      "-list0[-Any0]"
+    ],
+    "outputs": [
+      "-list0[-Any0]"
+    ]
+  },
+  "list1": {
+    "inline": "list({i0})",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "-list0[-Any0]"
+    ]
+  },
+  "sort0": {
+    "inline": "{i0}.sort()",
+    "inputs": [
+      "-list0[-Any0]"
+    ],
+    "num_outputs": 0,
+    "properties": {
+      "side_effects": true
     }
+  },
+  "sort1": {
+    "inline": "{i0}.sort(reverse={i1})",
+    "inputs": [
+      "-list0[-Any0]",
+      "bool"
+    ],
+    "num_outputs": 0,
+    "properties": {
+      "side_effects": true
+    }
+  }
 }

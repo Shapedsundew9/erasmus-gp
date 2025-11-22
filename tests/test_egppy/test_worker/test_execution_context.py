@@ -11,12 +11,13 @@ from egppy.worker.executor.execution_context import ExecutionContext, FunctionIn
 from egppy.worker.executor.gc_node import GCNode
 
 from .xor_stack_gc import (
+    CODON_SIGS,
     create_gc_matrix,
+    create_primitive_gcs,
     expand_gc_matrix,
     f_7fffffff,
     gpi,
-    one_to_two,
-    rshift_1_gc,
+    primitive_gcs,
 )
 
 # Standard EGP logging pattern
@@ -39,6 +40,7 @@ class TestExecutor(unittest.TestCase):
         cls.gene_pool: list[GCABC] = [
             gc for ni in cls.gcm.values() for rs in ni.values() for gc in rs
         ]
+        create_primitive_gcs()
 
     def setUp(self) -> None:
         super().setUp()
@@ -46,25 +48,34 @@ class TestExecutor(unittest.TestCase):
         self.ec1 = ExecutionContext(self.gpi, 3)
         self.ec2 = ExecutionContext(self.gpi, 50, wmc=True)  # Write the meta-codons
         # Hack in pre-defined function
-        self.ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
-            f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+        self.ec1.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
+            f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]
         )
-        self.ec2.function_map[rshift_1_gc["signature"]] = FunctionInfo(
-            f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+        self.ec2.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
+            f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]
         )
         self.ec1.namespace["f_7fffffff"] = f_7fffffff
         self.ec2.namespace["f_7fffffff"] = f_7fffffff
 
+    def test_write_single_codon_ec1(self) -> None:
+        """Test writing a single codon to the execution context."""
+        node = self.ec1.write_executable(CODON_SIGS["SIXTYFOUR_SIG"])
+        self.assertIsInstance(node, GCNode)
+
+    def test_run_single_codon_ec1(self) -> None:
+        """Test writing a single codon to the execution context."""
+        self.assertEqual(self.ec1.execute(CODON_SIGS["SIXTYFOUR_SIG"], tuple()), 64)
+
     def test_write_function_ec1_basic(self) -> None:
         """Test the write_function function."""
-        node = self.ec1.write_executable(one_to_two)
+        node = self.ec1.write_executable(primitive_gcs["one_to_two"])
         self.assertIsInstance(node, GCNode)
         assert isinstance(node, GCNode), "node is not a GCNode"
         ftext = self.ec1.function_def(node, FWC4FILE)
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 2196e54c8ae04d7665389ec4514d9f3f0d047af01c9942bee13aa6fe2164f086\n'
+            '\t"""Signature: 9cdb994a05ee0630d4d79747c9b62ac4ba22545e3085aa3645aed30d13615057\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -79,14 +90,14 @@ class TestExecutor(unittest.TestCase):
 
     def test_write_function_ec2_basic(self) -> None:
         """Test the write_function function."""
-        node = self.ec2.write_executable(one_to_two)
+        node = self.ec2.write_executable(primitive_gcs["one_to_two"])
         self.assertIsInstance(node, GCNode)
         assert isinstance(node, GCNode), "node is not a GCNode"
         ftext = self.ec2.function_def(node, FWC4FILE)
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 2196e54c8ae04d7665389ec4514d9f3f0d047af01c9942bee13aa6fe2164f086\n'
+            '\t"""Signature: 9cdb994a05ee0630d4d79747c9b62ac4ba22545e3085aa3645aed30d13615057\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -105,14 +116,14 @@ class TestExecutor(unittest.TestCase):
 
     def test_execute_basic(self) -> None:
         """Test the execute function."""
-        self.ec1.write_executable(one_to_two)
+        self.ec1.write_executable(primitive_gcs["one_to_two"])
         write_context_to_file(self.ec1)
-        self.ec2.write_executable(one_to_two)
+        self.ec2.write_executable(primitive_gcs["one_to_two"])
         write_context_to_file(self.ec2)
         seed(0)
-        r1 = self.ec1.execute(one_to_two["signature"], (0x12345678,))
+        r1 = self.ec1.execute(primitive_gcs["one_to_two"]["signature"], (0x12345678,))
         seed(0)
-        r2 = self.ec2.execute(one_to_two["signature"], (0x12345678,))
+        r2 = self.ec2.execute(primitive_gcs["one_to_two"]["signature"], (0x12345678,))
         self.assertIsInstance(r1, tuple)
         self.assertIsInstance(r2, tuple)
         self.assertEqual(r1, r2)
@@ -156,7 +167,7 @@ class TestExecutor(unittest.TestCase):
                 # Execute the function
                 gc: GCABC = self.gene_pool[gci]
                 result = ec.execute(
-                    gc["signature"], tuple(getrandbits(64) for _ in range(gc["num_inputs"]))
+                    gc["signature"], tuple(getrandbits(64) for _ in range(len(gc["inputs"])))
                 )
                 baseline[num_lines].append(result)
                 if num_lines != NUM_LINES[0]:

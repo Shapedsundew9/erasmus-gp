@@ -77,6 +77,8 @@ PROPERTIES_CONFIG = {
             "Given the same inputs the genetic code will _always_ return the same result."
         ),
     },
+    # TODO: Why do we care about 'abstract'? Currently not used (as expensive to compute).
+    # May be just a codon property?
     "abstract": {
         "type": "bool",
         "start": 10,
@@ -90,9 +92,14 @@ PROPERTIES_CONFIG = {
         "width": 1,
         "default": False,
         "description": (
-            "The genetic code has side effects that are not " "related to the return value."
+            "The genetic code has side effects in the execution "
+            "context that are not related to the return value e.g. modifying global state "
+            "like a random sequence generator or storing to memory etc."
         ),
     },
+    # TODO: Is this needed? Tells use we can deterministically create the GC again but that should
+    # be the case for all GC's if we have a standard way of determining the seed unique the the
+    # creation instance (e.g. parent PGC id + time etc).
     "static_creation": {
         "type": "bool",
         "start": 12,
@@ -102,10 +109,18 @@ PROPERTIES_CONFIG = {
             "The genetic code was created by a deterministic PGC i.e. had no random element."
         ),
     },
+    "is_pgc": {
+        "type": "bool",
+        "start": 13,
+        "width": 1,
+        "default": False,
+        "description": "The genetic code is a physical genetic code "
+        "(PGC) i.e. it creates a new GC.",
+    },
     "reserved2": {
         "type": "uint",
-        "start": 13,
-        "width": 3,
+        "start": 14,
+        "width": 2,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
@@ -185,16 +200,34 @@ PROPERTIES_CONFIG = {
                 },
             },
             {
-                "type_cast": {
+                "type_upcast": {
                     "type": "bool",
                     "start": 0,
                     "width": 1,
+                    "default": False,
+                    "description": (
+                        "The meta codon is a type upcast e.g. Integral "
+                        "--> int which means it must be verified."
+                    ),
+                },
+                "type_downcast": {
+                    "type": "bool",
+                    "start": 1,
+                    "width": 1,
                     "default": True,
                     "description": (
-                        "The meta codon is a type cast which means it is guaranteed to "
-                        "just have one input and one output."
+                        "The meta codon is a type downcast e.g. "
+                        "int --> Integral which is always valid."
                     ),
-                }
+                },
+                "reserved8": {
+                    "type": "uint",
+                    "start": 2,
+                    "width": 6,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
             },
         ],
     },
@@ -247,7 +280,7 @@ PROPERTIES_CONFIG = {
 }
 
 
-PropertiesBD: type[BitDictABC] = bitdict_factory(
+PropertiesBD: type = bitdict_factory(
     PROPERTIES_CONFIG, "PropertiesBD", title="Genetic Code Properties"
 )
 PropertiesBD.__doc__ = "BitDict for Genetic Code properties."
@@ -285,3 +318,9 @@ BASIC_ORDINARY_PROPERTIES: int = PropertiesBD(
 
 if __name__ == "__main__":
     print("\n\n".join(generate_markdown_tables(PropertiesBD)))
+
+
+# TODO: This mask should be generated programmatically by BitDict
+# If the propoerty is a codon or meta codon then it does not matter what any
+# bit values are other that the LSb.
+CODON_META_MASK: int = 0x0000000000000001
