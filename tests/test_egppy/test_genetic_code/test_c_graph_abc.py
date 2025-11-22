@@ -12,8 +12,6 @@ from abc import ABCMeta
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
-from egppy.genetic_code.c_graph_constants import DstRow
-from egppy.genetic_code.interface import Interface
 
 
 class IncompleteImplementation(CGraphABC):

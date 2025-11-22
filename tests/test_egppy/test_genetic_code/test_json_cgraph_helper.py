@@ -9,7 +9,6 @@ import unittest
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
 from egppy.genetic_code.c_graph_constants import DstRow
-from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 
 

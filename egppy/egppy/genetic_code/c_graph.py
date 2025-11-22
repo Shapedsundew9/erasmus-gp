@@ -23,7 +23,7 @@ from egppy.genetic_code.c_graph_constants import (
     ROW_CLS_INDEXED_SET,
     DstIfKey,
     DstRow,
-    EndPointClass,
+    EPCls,
     JSONCGraph,
     Row,
     SrcIfKey,
@@ -300,7 +300,7 @@ class CGraph(CommonObj, CGraphABC):
                 # there are other valid source endpoints. This prevents the sub-GC interfaces from
                 # being completely dependent on each other if their types match. Sub-GC interfaces
                 # that are not connected to each other at all result in a GC called a _harmony_.
-                vsrcs.append(EndPoint(SrcRow.I, len_is, EndPointClass.SRC, dep.typ, []))
+                vsrcs.append(EndPoint(SrcRow.I, len_is, EPCls.SRC, dep.typ, []))
             if vsrcs:
                 # Randomly choose a valid source endpoint
                 sep: EndPoint = egp_rng.choice(vsrcs)

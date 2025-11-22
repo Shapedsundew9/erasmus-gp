@@ -15,7 +15,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterator
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egppy.genetic_code.c_graph_constants import EndPointClass, Row
+from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.types_def import TypesDef
 
@@ -153,7 +153,7 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
     # Abstract Property Methods
 
     @abstractmethod
-    def cls(self) -> EndPointClass:
+    def cls(self) -> EPCls:
         """Return the class of the interface.
 
         Returns:
@@ -221,7 +221,7 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.unconnected_eps must be overridden")
 
     @abstractmethod
-    def set_cls(self, ep_cls: EndPointClass) -> InterfaceABC:
+    def set_cls(self, ep_cls: EPCls) -> InterfaceABC:
         """Set the class of all endpoints in the interface.
 
         Args:

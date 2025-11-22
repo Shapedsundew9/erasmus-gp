@@ -6,7 +6,7 @@ from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
     SOURCE_ROW_SET,
-    EndPointClass,
+    EPCls,
     Row,
 )
 from egppy.genetic_code.endpoint_abc import EndPointABC
@@ -34,7 +34,7 @@ class FrozenInterface(InterfaceABC):
     def __init__(
         self,
         row: Row,
-        epcls: EndPointClass,
+        epcls: EPCls,
         type_tuple: tuple[TypesDef, ...],
         refs_tuple: tuple[tuple[tuple[Row, int], ...], ...],
     ):
@@ -236,7 +236,7 @@ class FrozenInterface(InterfaceABC):
         """
         raise RuntimeError("Cannot modify a frozen Interface")
 
-    def cls(self) -> EndPointClass:
+    def cls(self) -> EPCls:
         """Return the class of the interface.
 
         Returns:
@@ -365,13 +365,13 @@ class FrozenInterface(InterfaceABC):
             refs = self.refs_tuple[idx]
 
             # Destination endpoints should have exactly 0 or 1 reference
-            if self.epcls == EndPointClass.DST and len(refs) > 1:
+            if self.epcls == EPCls.DST and len(refs) > 1:
                 raise ValueError(
                     f"Destination endpoint {idx} can only have 0 or 1 reference, has {len(refs)}"
                 )
 
             # Source endpoints reference destination rows, and vice versa
-            if self.epcls == EndPointClass.SRC:
+            if self.epcls == EPCls.SRC:
                 for ref in refs:
                     if ref[0] not in DESTINATION_ROW_SET:
                         raise ValueError(

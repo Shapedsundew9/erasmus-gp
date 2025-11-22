@@ -10,7 +10,7 @@ from egppy.genetic_code.c_graph_constants import (
     CPI,
     SOURCE_ROW_MAP,
     DstRow,
-    EndPointClass,
+    EPCls,
     EPClsPostfix,
     JSONCGraph,
     Row,
@@ -279,7 +279,7 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
         # Create destination interface
         dst_iface_key = dst_row + EPClsPostfix.DST
         dst_interface: list[EndpointMemberType] = [
-            (dst_row, i, EndPointClass.DST, types_def_store[v[2]], [[v[0], v[1]]])
+            (dst_row, i, EPCls.DST, types_def_store[v[2]], [[v[0], v[1]]])
             for i, v in enumerate(idef)
         ]
         interfaces[dst_iface_key] = dst_interface
@@ -312,7 +312,7 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
                     src_ep_dict[src_row][src_idx] = (
                         src_row,
                         src_idx,
-                        EndPointClass.SRC,
+                        EPCls.SRC,
                         ep[3],
                         [[dst_row, ep[1]]],
                     )

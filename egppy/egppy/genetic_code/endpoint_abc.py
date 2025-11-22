@@ -14,11 +14,11 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egppy.genetic_code.c_graph_constants import EndPointClass, Row
+from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.types_def import TypesDef
 
 # Endpoint Member Types
-EndpointMemberType = tuple[Row, int, EndPointClass, TypesDef, list[list[str | int]]]
+EndpointMemberType = tuple[Row, int, EPCls, TypesDef, list[list[str | int]]]
 
 
 class EndPointABC(CommonObjABC, metaclass=ABCMeta):
@@ -58,7 +58,7 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
 
     row: Row
     idx: int
-    cls: EndPointClass
+    cls: EPCls
     typ: TypesDef
     refs: list[list[str | int]]
 

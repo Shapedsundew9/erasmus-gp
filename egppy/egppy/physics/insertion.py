@@ -9,7 +9,7 @@ from egpcommon.egp_rnd_gen import EGPRndGen
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
 from egppy.genetic_code.interface import Interface
@@ -43,10 +43,10 @@ def insert_gc_case_0(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     tgc_od: InterfaceABC = tgc_cgraph["Od"]
     graph = {
         "Is": Interface(igc_is).clr_refs(),
-        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EndPointClass.DST).clr_refs(),
-        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EndPointClass.SRC).clr_refs(),
-        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EndPointClass.DST).clr_refs(),
-        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EndPointClass.SRC).clr_refs(),
+        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EPCls.DST).clr_refs(),
+        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EPCls.SRC).clr_refs(),
+        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EPCls.DST).clr_refs(),
+        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EPCls.SRC).clr_refs(),
         "Od": Interface(tgc_od).clr_refs(),
     }
     rgc = EGCDict(
@@ -114,10 +114,10 @@ def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
         raise ValueError("Insert GC output interface does not match target GC input interface")
     graph = {
         "Is": Interface(igc_is).clr_refs(),
-        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EndPointClass.DST).clr_refs(),
-        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EndPointClass.SRC).clr_refs(),
-        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EndPointClass.DST).clr_refs(),
-        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EndPointClass.SRC).clr_refs(),
+        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EPCls.DST).clr_refs(),
+        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EPCls.SRC).clr_refs(),
+        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EPCls.DST).clr_refs(),
+        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EPCls.SRC).clr_refs(),
         "Od": Interface(tgc_od).clr_refs(),
     }
 
@@ -162,12 +162,10 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     cgraph = CGraph(
         {
             "Is": gca_cgraph["Is"] + gcb_is.ref_shift(gca_is_len),
-            "Ad": gca_is.set_row(DstRow.A).set_cls(EndPointClass.DST),
-            "As": gca_od.set_row(SrcRow.A).set_cls(EndPointClass.SRC).set_refs(DstRow.O),
-            "Bd": gcb_is.set_row(DstRow.B).set_cls(EndPointClass.DST).ref_shift(gca_is_len),
-            "Bs": gcb_od.set_row(SrcRow.B)
-            .set_cls(EndPointClass.SRC)
-            .set_refs(DstRow.O, gca_od_len),
+            "Ad": gca_is.set_row(DstRow.A).set_cls(EPCls.DST),
+            "As": gca_od.set_row(SrcRow.A).set_cls(EPCls.SRC).set_refs(DstRow.O),
+            "Bd": gcb_is.set_row(DstRow.B).set_cls(EPCls.DST).ref_shift(gca_is_len),
+            "Bs": gcb_od.set_row(SrcRow.B).set_cls(EPCls.SRC).set_refs(DstRow.O, gca_od_len),
             "Od": gca_cgraph["Od"] + gcb_od2,
         }
     )

@@ -28,7 +28,7 @@ from egppy.genetic_code.c_graph_constants import (
     SINGLE_CLS_INDEXED_SET,
     DstIfKey,
     DstRow,
-    EndPointClass,
+    EPCls,
     EPClsPostfix,
     SrcIfKey,
     SrcRow,
@@ -121,8 +121,8 @@ class FrozenCGraph(CGraph, CommonObj):
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
                         for ep in iface
                     )
-                epcls = EndPointClass.SRC if key[1] == "s" else EndPointClass.DST
-                row = DstRow(key[0]) if epcls == EndPointClass.DST else SrcRow(key[0])
+                epcls = EPCls.SRC if key[1] == "s" else EPCls.DST
+                row = DstRow(key[0]) if epcls == EPCls.DST else SrcRow(key[0])
                 setattr(self, _key, FrozenInterface(row, epcls, type_tuple, con_tuple))
             elif key in (SrcIfKey.IS, DstIfKey.OD):
                 # Is and Od must exist even if empty

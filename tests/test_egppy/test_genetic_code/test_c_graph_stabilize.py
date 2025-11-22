@@ -13,7 +13,7 @@ from random import seed
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.genetic_code.types_def import types_def_store
@@ -61,15 +61,15 @@ class TestStabilizeLocked(unittest.TestCase):
         # Create a graph with unconnected destination endpoints
         # Start by building interfaces manually
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["str"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),  # Unconnected
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
@@ -108,17 +108,17 @@ class TestStabilizeLocked(unittest.TestCase):
         """Test that stabilize only connects endpoints of matching types."""
         # Create a graph with specific type requirements
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["bool"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["bool"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),  # Should connect to I0
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Should connect to I0
         ]
         o_eps: list[EndpointMemberType] = [
             (
                 DstRow.O,
                 0,
-                EndPointClass.DST,
+                EPCls.DST,
                 types_def_store["bool"],
                 [],
             ),  # Should connect to I1 or A0
@@ -154,17 +154,17 @@ class TestStabilizeLocked(unittest.TestCase):
         """Test stabilize with if_locked=True on a standard graph."""
         # Create a standard graph with some unconnected endpoints
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.B, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
@@ -202,20 +202,20 @@ class TestStabilizeLocked(unittest.TestCase):
         """Test stabilize with if_locked=True on an if-then graph."""
         # Create an if-then graph
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
         ]
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], []),  # Unconnected
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], []),  # Unconnected
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
@@ -256,20 +256,20 @@ class TestStabilizeLocked(unittest.TestCase):
         """Test stabilize with if_locked=True on a for-loop graph."""
         # Create a for-loop graph
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["list"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["list"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
         ]
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["list"], []),  # Unconnected
+            (DstRow.L, 0, EPCls.DST, types_def_store["list"], []),  # Unconnected
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
@@ -301,19 +301,19 @@ class TestStabilizeLocked(unittest.TestCase):
         # Create a while-loop graph with sufficient sources
         # Need to provide I sources and ensure A sources are available for W
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["int"], []),  # Will connect to I
+            (DstRow.L, 0, EPCls.DST, types_def_store["int"], []),  # Will connect to I
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),  # Will connect to I or L
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Will connect to I or L
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),  # Will connect to I or A
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Will connect to I or A
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], []),  # Will connect to I
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),  # Will connect to I
         ]
 
         # This test will fail with if_locked=True because there's no bool source for W
@@ -354,14 +354,14 @@ class TestStabilizeUnlocked(unittest.TestCase):
         """Test that stabilize with if_locked=False creates new input endpoints."""
         # Create a graph with no matching source for a destination
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),  # No str source exists
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # No str source exists
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -395,15 +395,15 @@ class TestStabilizeUnlocked(unittest.TestCase):
         """Test that stabilize prefers existing sources over creating new ones."""
         # Create a graph where existing sources can satisfy all destinations
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["str"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -432,15 +432,15 @@ class TestStabilizeUnlocked(unittest.TestCase):
         """Test stabilize creates multiple new input endpoints for different types."""
         # Create a graph missing multiple types
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["str"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["bool"], []),
-            (DstRow.A, 2, EndPointClass.DST, types_def_store["float"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["str"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["bool"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["float"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -474,13 +474,13 @@ class TestStabilizeUnlocked(unittest.TestCase):
         # Standard graph with minimal sources
         i_eps: list[EndpointMemberType] = []  # Start with no inputs
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["bool"], []),
         ]
 
         cgraph = CGraph(
@@ -511,19 +511,19 @@ class TestStabilizeUnlocked(unittest.TestCase):
         """Test stabilize unlocked on an if-then-else graph."""
         i_eps: list[EndpointMemberType] = []  # Start with no inputs
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.P, 0, EPCls.DST, types_def_store["str"], []),
         ]
 
         cgraph = CGraph(
@@ -557,16 +557,16 @@ class TestStabilizeUnlocked(unittest.TestCase):
         """Test stabilize unlocked on a for-loop graph."""
         i_eps: list[EndpointMemberType] = []
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["list"], []),
+            (DstRow.L, 0, EPCls.DST, types_def_store["list"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -598,28 +598,28 @@ class TestStabilizeUnlocked(unittest.TestCase):
         # As is NOT created by connecting Ad - it must exist independently.
         # Provide As source with the type needed for W.
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.L, 0, EPCls.DST, types_def_store["int"], []),
         ]
         # Ls is created when JSONCGraph is parsed, representing loop variable
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         # As represents outputs from GCA subgraph - must provide it for W to connect to
         as_eps: list[EndpointMemberType] = [
-            (SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.A, 1, EndPointClass.SRC, types_def_store["bool"], []),
+            (SrcRow.A, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.A, 1, EPCls.SRC, types_def_store["bool"], []),
         ]
         w_eps: list[EndpointMemberType] = [
-            (DstRow.W, 0, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.W, 0, EPCls.DST, types_def_store["bool"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -699,13 +699,13 @@ class TestStabilizeEdgeCases(unittest.TestCase):
     def test_stabilize_multiple_times(self) -> None:
         """Test that calling stabilize multiple times is safe."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -728,18 +728,18 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         """Test stabilize when multiple endpoints of the same type exist."""
         # Multiple source endpoints of the same type
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 2, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 2, EPCls.SRC, types_def_store["int"], []),
         ]
         # Multiple destination endpoints of the same type
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 2, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -766,16 +766,16 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         """Test that stabilize respects the connectivity rules of each graph type."""
         # Create a standard graph
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.B, 0, EPCls.DST, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -820,14 +820,14 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
         for _ in range(5):
             i_eps: list[EndpointMemberType] = [
-                (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-                (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
+                (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+                (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
             ]
             a_eps: list[EndpointMemberType] = [
-                (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+                (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
             ]
             o_eps: list[EndpointMemberType] = [
-                (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+                (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
             ]
 
             cgraph = CGraph(
@@ -853,13 +853,13 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
         """Test connect_all behavior when no valid sources exist (locked)."""
         # Create a destination with a type that has no matching source
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["str"], []),  # No str source
+            (DstRow.A, 0, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -880,13 +880,13 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
         """Test connect_all behavior when no valid sources exist (unlocked)."""
         # Create a destination with a type that has no matching source
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["str"], []),  # No str source
+            (DstRow.A, 0, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -912,15 +912,15 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
         """Test that connect_all doesn't modify existing connections."""
         # Create a graph with some pre-existing connections
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),  # Pre-connected
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["str"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),  # Pre-connected
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),  # Pre-connected
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),  # Unconnected
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),  # Pre-connected
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
@@ -959,16 +959,16 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         """Test stabilize on a graph with many endpoints (locked)."""
         # Create a large standard graph
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, i, EndPointClass.SRC, types_def_store["int"], []) for i in range(20)
+            (SrcRow.I, i, EPCls.SRC, types_def_store["int"], []) for i in range(20)
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, i, EndPointClass.DST, types_def_store["int"], []) for i in range(15)
+            (DstRow.A, i, EPCls.DST, types_def_store["int"], []) for i in range(15)
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, i, EndPointClass.DST, types_def_store["int"], []) for i in range(10)
+            (DstRow.B, i, EPCls.DST, types_def_store["int"], []) for i in range(10)
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, i, EndPointClass.DST, types_def_store["int"], []) for i in range(5)
+            (DstRow.O, i, EPCls.DST, types_def_store["int"], []) for i in range(5)
         ]
 
         cgraph = CGraph(
@@ -996,13 +996,13 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         """Test stabilize on a graph with many endpoints (unlocked)."""
         # Create a large graph with insufficient sources
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, i, EndPointClass.SRC, types_def_store["int"], []) for i in range(5)
+            (SrcRow.I, i, EPCls.SRC, types_def_store["int"], []) for i in range(5)
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, i, EndPointClass.DST, types_def_store["int"], []) for i in range(20)
+            (DstRow.A, i, EPCls.DST, types_def_store["int"], []) for i in range(20)
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, i, EndPointClass.DST, types_def_store["int"], []) for i in range(10)
+            (DstRow.O, i, EPCls.DST, types_def_store["int"], []) for i in range(10)
         ]
 
         cgraph = CGraph(
@@ -1030,19 +1030,19 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         """Test stabilize with multiple different types (locked)."""
         # Create sources and destinations of various types
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["str"], []),
-            (SrcRow.I, 2, EndPointClass.SRC, types_def_store["bool"], []),
-            (SrcRow.I, 3, EndPointClass.SRC, types_def_store["float"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
+            (SrcRow.I, 2, EPCls.SRC, types_def_store["bool"], []),
+            (SrcRow.I, 3, EPCls.SRC, types_def_store["float"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),
-            (DstRow.A, 2, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["bool"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["float"], []),
-            (DstRow.O, 1, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["float"], []),
+            (DstRow.O, 1, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -1074,26 +1074,26 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
     def test_stabilize_if_then_else_with_multiple_branches(self) -> None:
         """Test stabilize on if-then-else with multiple endpoints per branch."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 2, EndPointClass.SRC, types_def_store["int"], []),
-            (SrcRow.I, 3, EndPointClass.SRC, types_def_store["str"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 2, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 3, EPCls.SRC, types_def_store["str"], []),
         ]
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.P, 0, EPCls.DST, types_def_store["str"], []),
         ]
 
         cgraph = CGraph(
@@ -1119,15 +1119,15 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
     def test_stabilize_with_source_reuse(self) -> None:
         """Test that multiple destinations can connect to the same source."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),  # Only one int source
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),  # Only one int source
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 2, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -1181,14 +1181,14 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         """Test that stabilize with if_locked=True may fail with no matching sources."""
         # Create a graph where a destination has no matching source type
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),  # No str source
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -1217,22 +1217,22 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         """Test that while-loop stabilization fails without As source for W."""
         # W can only connect to As, so without As it can't be connected
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.L, 0, EPCls.DST, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         w_eps: list[EndpointMemberType] = [
-            (DstRow.W, 0, EndPointClass.DST, types_def_store["bool"], []),  # Needs As source
+            (DstRow.W, 0, EPCls.DST, types_def_store["bool"], []),  # Needs As source
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -1265,23 +1265,23 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
     def test_stabilize_locked_if_then_else_missing_b_sources_partial(self) -> None:
         """Test if-then-else with insufficient B sources remains partially unstable."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], []),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
         ]
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["str"], []),  # No str source
+            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["str"], []),  # No str source
+            (DstRow.P, 0, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
 
         cgraph = CGraph(
@@ -1315,10 +1315,10 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         """Test extreme case where no sources exist at all."""
         # Create a graph with only destination interfaces
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -1348,12 +1348,12 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         """Test that stabilize with if_locked=False always achieves stability."""
         # Even with no sources, unlocked should create new inputs
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),
-            (DstRow.A, 2, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["bool"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["float"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["float"], []),
         ]
 
         cgraph = CGraph(
@@ -1386,18 +1386,18 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
     def test_stabilize_locked_standard_graph_partial_types(self) -> None:
         """Test standard graph with only some types available."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
             # Missing str and bool types
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EndPointClass.DST, types_def_store["str"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
         ]
         b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EndPointClass.DST, types_def_store["bool"], []),
+            (DstRow.B, 0, EPCls.DST, types_def_store["bool"], []),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(

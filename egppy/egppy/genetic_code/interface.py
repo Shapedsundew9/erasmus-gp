@@ -12,7 +12,7 @@ from egppy.genetic_code.c_graph_constants import (
     ROW_SET,
     SOURCE_ROW_SET,
     DstRow,
-    EndPointClass,
+    EPCls,
     Row,
     SrcRow,
 )
@@ -110,7 +110,7 @@ class Interface(CommonObj, InterfaceABC):
         self.endpoints: list[EndPoint] = []
 
         # Validate row if endpoints are provided as sequences
-        row_cls = EndPointClass.DST if row is None or isinstance(row, DstRow) else EndPointClass.SRC
+        row_cls = EPCls.DST if row is None or isinstance(row, DstRow) else EPCls.SRC
         for idx, ep in enumerate(endpoints):
             if isinstance(ep, EndPointABC):
                 # Have to make a copy to ensure mutability & independence
@@ -121,9 +121,7 @@ class Interface(CommonObj, InterfaceABC):
                         raise ValueError(
                             "Row parameter must be provided when endpoints are sequences"
                         )
-                    self.endpoints.append(
-                        EndPoint(row, idx, EndPointClass.DST, ep[2], ((ep[0], ep[1]),))
-                    )
+                    self.endpoints.append(EndPoint(row, idx, EPCls.DST, ep[2], ((ep[0], ep[1]),)))
                 else:
                     # EndPointMemberType
                     self.endpoints.append(EndPoint(*ep))
@@ -232,9 +230,9 @@ class Interface(CommonObj, InterfaceABC):
         _value.idx = len(self.endpoints)  # Ensure the index is correct
         self.endpoints.append(_value)
 
-    def cls(self) -> EndPointClass:
+    def cls(self) -> EPCls:
         """Return the class of the interface. Defaults to destination if no endpoints."""
-        return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
+        return self.endpoints[0].cls if self.endpoints else EPCls.DST
 
     def extend(
         self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC

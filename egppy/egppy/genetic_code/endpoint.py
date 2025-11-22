@@ -39,7 +39,7 @@ from egppy.genetic_code.c_graph_constants import (
     ROW_SET,
     SINGLE_ONLY_ROWS,
     SOURCE_ROW_SET,
-    EndPointClass,
+    EPCls,
     Row,
 )
 from egppy.genetic_code.endpoint_abc import EndPointABC
@@ -119,7 +119,7 @@ class EndPoint(CommonObj, EndPointABC):
         elif len(args) == 4 or len(args) == 5:
             self.row: Row = args[0]
             self.idx: int = args[1]
-            self.cls: EndPointClass = args[2]
+            self.cls: EPCls = args[2]
             self.typ = args[3] if isinstance(args[3], TypesDef) else types_def_store[args[3]]
             refs_arg = args[4] if len(args) == 5 and args[4] is not None else []
             self.refs = [list(ref) for ref in refs_arg]
@@ -268,7 +268,7 @@ class EndPoint(CommonObj, EndPointABC):
             other (EndPointABC): The endpoint to connect to.
         """
         assert isinstance(other, EndPointABC), "Can only connect to another EndPoint instance"
-        if self.cls == EndPointClass.DST:
+        if self.cls == EPCls.DST:
             self.refs = [[other.row, other.idx]]
         else:
             self.refs.append([other.row, other.idx])
@@ -303,13 +303,13 @@ class EndPoint(CommonObj, EndPointABC):
         Raises:
             ValueError: If json_c_graph is True for a source endpoint.
         """
-        if json_c_graph and self.cls == EndPointClass.DST:
+        if json_c_graph and self.cls == EPCls.DST:
             if len(self.refs) == 0:
                 raise ValueError(
                     "Destination endpoint has no references for JSON Connection Graph format."
                 )
             return [self.refs[0][0], self.refs[0][1], str(self.typ)]
-        if json_c_graph and self.cls == EndPointClass.SRC:
+        if json_c_graph and self.cls == EPCls.SRC:
             raise ValueError(
                 "Source endpoints cannot be converted to JSON Connection Graph format."
             )
@@ -356,7 +356,7 @@ class EndPoint(CommonObj, EndPointABC):
         )
 
         # Verify row and class compatibility for destination endpoints
-        if self.cls == EndPointClass.DST:
+        if self.cls == EPCls.DST:
             self.value_error(
                 self.row in DESTINATION_ROW_SET,
                 f"Destination endpoint must use a destination row. "
@@ -365,7 +365,7 @@ class EndPoint(CommonObj, EndPointABC):
             )
 
         # Verify row and class compatibility for source endpoints
-        if self.cls == EndPointClass.SRC:
+        if self.cls == EPCls.SRC:
             self.value_error(
                 self.row in SOURCE_ROW_SET,
                 f"Source endpoint must use a source row. "
@@ -382,7 +382,7 @@ class EndPoint(CommonObj, EndPointABC):
             )
 
         # Verify destination endpoints have at most one reference
-        if self.cls == EndPointClass.DST:
+        if self.cls == EPCls.DST:
             self.value_error(
                 len(self.refs) <= 1,
                 f"Destination endpoint can have at most 1 reference. "
@@ -451,7 +451,7 @@ class EndPoint(CommonObj, EndPointABC):
             )
 
             # Verify row/class pairing: DST endpoints should reference SRC rows, and vice versa
-            if self.cls == EndPointClass.DST:
+            if self.cls == EPCls.DST:
                 self.value_error(
                     ref_row in SOURCE_ROW_SET,
                     f"Destination endpoint must reference a source row. "
@@ -538,7 +538,7 @@ class EndPoint(CommonObj, EndPointABC):
         Returns:
             EndPointABC: Self with the reference set.
         """
-        if self.cls == EndPointClass.SRC and append:
+        if self.cls == EPCls.SRC and append:
             self.refs.append([row, idx])
         else:
             self.refs = [[row, idx]]
@@ -569,9 +569,7 @@ class SrcEndPoint(EndPoint):
         Args:
             *args: (row, idx, typ) or (row, idx, typ, refs)
         """
-        super().__init__(
-            args[0], args[1], EndPointClass.SRC, args[2], args[3] if len(args) == 4 else None
-        )
+        super().__init__(args[0], args[1], EPCls.SRC, args[2], args[3] if len(args) == 4 else None)
 
 
 class DstEndPoint(EndPoint):
@@ -598,6 +596,4 @@ class DstEndPoint(EndPoint):
         Args:
             *args: (row, idx, typ) or (row, idx, typ, refs)
         """
-        super().__init__(
-            args[0], args[1], EndPointClass.DST, args[2], args[3] if len(args) == 4 else None
-        )
+        super().__init__(args[0], args[1], EPCls.DST, args[2], args[3] if len(args) == 4 else None)

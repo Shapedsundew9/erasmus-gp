@@ -67,7 +67,7 @@ class DstIfKey(StrEnum):
     UD = DstRow.U + EPClsPostfix.DST
 
 
-class EndPointClass(IntEnum):
+class EPCls(IntEnum):
     """End Point Class."""
 
     SRC = True
@@ -117,7 +117,7 @@ ROWS: tuple[Row, ...] = tuple(sorted({*SrcRow, *DstRow}))
 ROW_MAP: dict[str, SrcRow | DstRow] = {str(row): row for row in ROWS}
 ROW_SET: set[Row] = set(ROWS)
 EPC_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
-EPC_MAP: dict[str, EndPointClass] = {"s": EndPointClass.SRC, "d": EndPointClass.DST}
+EPC_MAP: dict[str, EPCls] = {"s": EPCls.SRC, "d": EPCls.DST}
 ALL_ROWS_STR: str = "".join(ROWS)
 IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.W}
 IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.WD}

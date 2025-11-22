@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from egpcommon.egp_log import VERIFY
 from egppy.genetic_code.c_graph import CGraph, _logger
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.interface import Interface
@@ -126,7 +126,7 @@ class TestCGraphSetItemErrors(unittest.TestCase):
 
     def test_setitem_invalid_key(self) -> None:
         """Test that __setitem__ raises KeyError for invalid keys."""
-        new_interface = Interface([EndPoint(DstRow.A, 0, EndPointClass.DST, "int")])
+        new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")])
 
         with self.assertRaises(KeyError) as context:
             self.cgraph["Xd"] = new_interface
@@ -206,17 +206,17 @@ class TestCGraphVerifyConnectivityErrors(unittest.TestCase):
         # Create a STANDARD graph where B tries to connect to an invalid destination
         # In STANDARD graphs, B can only connect to O, not to A or other rows
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         # Manually create a B source that connects to A (invalid for STANDARD)
         b_eps: list[EndpointMemberType] = [
-            (SrcRow.B, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.B, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
 
         cgraph = CGraph(
@@ -240,25 +240,25 @@ class TestCGraphVerifyConnectivityErrors(unittest.TestCase):
         """Test that verify catches invalid destination->source connections."""
         # Create an IF_THEN graph where A connects to B (invalid)
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], [["F", 0]]),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], [["A", 0], ["P", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [["F", 0]]),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [["A", 0], ["P", 0]]),
         ]
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], [["I", 0]]),
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], [["I", 0]]),
         ]
         # Manually add a B source (invalid for IF_THEN)
         b_eps: list[EndpointMemberType] = [
-            (SrcRow.B, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.B, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
             # A tries to connect to B (invalid in IF_THEN)
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["B", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["B", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
 
         cgraph = CGraph(
@@ -289,22 +289,22 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
     def test_verify_f_interface_multiple_endpoints(self) -> None:
         """Test that verify catches F interface with >1 endpoint."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], [["F", 0], ["F", 1]]),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], [["A", 0], ["P", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [["F", 0], ["F", 1]]),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [["A", 0], ["P", 0]]),
         ]
         # F with 2 endpoints (invalid!)
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], [["I", 0]]),
-            (DstRow.F, 1, EndPointClass.DST, types_def_store["bool"], [["I", 0]]),
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], [["I", 0]]),
+            (DstRow.F, 1, EPCls.DST, types_def_store["bool"], [["I", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
 
         cgraph = CGraph(
@@ -325,28 +325,28 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
     def test_verify_l_dest_interface_multiple_endpoints(self) -> None:
         """Test that verify catches Ld interface with >1 endpoint."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["list"], [["L", 0], ["L", 1]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["list"], [["L", 0], ["L", 1]]),
             (
                 SrcRow.I,
                 1,
-                EndPointClass.SRC,
+                EPCls.SRC,
                 types_def_store["int"],
                 [["A", 0], ["O", 0], ["P", 0]],
             ),
         ]
         # L with 2 endpoints (invalid!)
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["list"], [["I", 0]]),
-            (DstRow.L, 1, EndPointClass.DST, types_def_store["list"], [["I", 0]]),
+            (DstRow.L, 0, EPCls.DST, types_def_store["list"], [["I", 0]]),
+            (DstRow.L, 1, EPCls.DST, types_def_store["list"], [["I", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
 
         cgraph = CGraph(
@@ -370,30 +370,30 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
             (
                 SrcRow.I,
                 0,
-                EndPointClass.SRC,
+                EPCls.SRC,
                 types_def_store["int"],
                 [["L", 0], ["A", 0], ["O", 0], ["P", 0]],
             ),
         ]
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.L, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         as_eps: list[EndpointMemberType] = [
-            (SrcRow.A, 0, EndPointClass.SRC, types_def_store["bool"], [["W", 0], ["W", 1]]),
+            (SrcRow.A, 0, EPCls.SRC, types_def_store["bool"], [["W", 0], ["W", 1]]),
         ]
         # W with 2 endpoints (invalid!)
         w_eps: list[EndpointMemberType] = [
-            (DstRow.W, 0, EndPointClass.DST, types_def_store["bool"], [["A", 0]]),
-            (DstRow.W, 1, EndPointClass.DST, types_def_store["bool"], [["A", 0]]),
+            (DstRow.W, 0, EPCls.DST, types_def_store["bool"], [["A", 0]]),
+            (DstRow.W, 1, EPCls.DST, types_def_store["bool"], [["A", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
 
         cgraph = CGraph(
@@ -416,31 +416,31 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
     def test_verify_ls_interface_multiple_endpoints(self) -> None:
         """Test that verify catches Ls interface with >1 endpoint."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["list"], [["L", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["list"], [["L", 0]]),
             (
                 SrcRow.I,
                 1,
-                EndPointClass.SRC,
+                EPCls.SRC,
                 types_def_store["int"],
                 [["A", 0], ["O", 0], ["P", 0]],
             ),
         ]
         l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EndPointClass.DST, types_def_store["list"], [["I", 0]]),
+            (DstRow.L, 0, EPCls.DST, types_def_store["list"], [["I", 0]]),
         ]
         # Ls with 2 endpoints (invalid!)
         ls_eps: list[EndpointMemberType] = [
-            (SrcRow.L, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
-            (SrcRow.L, 1, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.L, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.L, 1, EPCls.SRC, types_def_store["int"], [["A", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["L", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["L", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
 
         cgraph = CGraph(
@@ -467,14 +467,14 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
         """Test that verify catches type mismatches between connected endpoints."""
         # Create a graph where destination references a non-existent source
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
             # A references source I0, but we'll manually change A's type to str
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["str"], [["I", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["str"], [["I", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
 
         cgraph = CGraph(
@@ -495,10 +495,10 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
         # Create a destination that references a source interface that doesn't exist
         a_eps: list[EndpointMemberType] = [
             # A references B0, but Bs doesn't exist - this violates graph type rules
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["B", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["B", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
 
         cgraph = CGraph(
@@ -518,14 +518,14 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
     def test_verify_reference_to_nonexistent_source_endpoint(self) -> None:
         """Test that verify catches references to non-existent source endpoints."""
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
             # A references I1, but Is only has endpoint 0
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
 
         cgraph = CGraph(
@@ -549,14 +549,14 @@ class TestCGraphVerifyAllDestinationsConnected(unittest.TestCase):
         # Create a graph with an unconnected destination
         # We'll create it and manually mark it as stable
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
             # O is unconnected!
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], []),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
@@ -606,13 +606,13 @@ class TestCGraphEdgeCases(unittest.TestCase):
         # Create two graphs with same number of interfaces but different keys
         # This is tricky because we need same length but different keys
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
 
         # Graph 1: Has Is, Ad, As, Od (4 interfaces)
@@ -620,7 +620,7 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 "Is": i_eps,
                 "Ad": a_eps,
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [["O", 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [["O", 0]])],
                 "Od": o_eps,
             }
         )
@@ -630,8 +630,8 @@ class TestCGraphEdgeCases(unittest.TestCase):
         cgraph2 = CGraph(
             {
                 "Is": i_eps,
-                "Bd": [(DstRow.B, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]])],
-                "Bs": [(SrcRow.B, 0, EndPointClass.SRC, types_def_store["int"], [["O", 0]])],
+                "Bd": [(DstRow.B, 0, EPCls.DST, types_def_store["int"], [["I", 0]])],
+                "Bs": [(SrcRow.B, 0, EPCls.SRC, types_def_store["int"], [["O", 0]])],
                 "Od": o_eps,
             }
         )
@@ -645,18 +645,18 @@ class TestCGraphEdgeCases(unittest.TestCase):
         """Test to_json creates U row for unconnected sources."""
         # Create a graph with an unconnected source endpoint
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [["A", 0]]),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["str"], []),  # Unconnected
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),  # Unconnected
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
         ]
         as_eps: list[EndpointMemberType] = [
-            (SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [["O", 0]]),
-            (SrcRow.A, 1, EndPointClass.SRC, types_def_store["bool"], []),  # Unconnected
+            (SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [["O", 0]]),
+            (SrcRow.A, 1, EPCls.SRC, types_def_store["bool"], []),  # Unconnected
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
 
         cgraph = CGraph(
@@ -679,22 +679,22 @@ class TestCGraphEdgeCases(unittest.TestCase):
         """Test that verify error for multiple endpoints uses correct format."""
         # Create an F interface with multiple endpoints (more than 1)
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], [["F", 0], ["F", 1]]),
-            (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], [["A", 0], ["P", 0]]),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [["F", 0], ["F", 1]]),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [["A", 0], ["P", 0]]),
         ]
         f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], [["I", 0]]),
-            (DstRow.F, 1, EndPointClass.DST, types_def_store["bool"], [["I", 0]]),
-            (DstRow.F, 2, EndPointClass.DST, types_def_store["bool"], [["I", 0]]),  # 3 total
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], [["I", 0]]),
+            (DstRow.F, 1, EPCls.DST, types_def_store["bool"], [["I", 0]]),
+            (DstRow.F, 2, EPCls.DST, types_def_store["bool"], [["I", 0]]),  # 3 total
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [["A", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
         p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [["I", 1]]),
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
 
         cgraph = CGraph(

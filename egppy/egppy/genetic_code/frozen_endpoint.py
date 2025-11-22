@@ -4,7 +4,7 @@ from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
     SOURCE_ROW_SET,
-    EndPointClass,
+    EPCls,
     Row,
 )
 from egppy.genetic_code.endpoint_abc import EndPointABC
@@ -33,7 +33,7 @@ class FrozenEndPoint(EndPointABC):
         self,
         row: Row,
         idx: int,
-        epcls: EndPointClass,
+        epcls: EPCls,
         typ: TypesDef,
         refs_tuple: tuple[tuple[Row, int], ...],
     ):
@@ -220,7 +220,7 @@ class FrozenEndPoint(EndPointABC):
         """
         if json_c_graph:
             # JSON Connection Graph format (destination endpoints only)
-            if self.epcls == EndPointClass.SRC:
+            if self.epcls == EPCls.SRC:
                 raise ValueError(
                     "JSON Connection Graph format is only valid for destination endpoints"
                 )
@@ -261,7 +261,7 @@ class FrozenEndPoint(EndPointABC):
             raise ValueError(f"Index must be between 0 and 255, got {self.idx}")
 
         # Validate class
-        if self.epcls not in (EndPointClass.SRC, EndPointClass.DST):
+        if self.epcls not in (EPCls.SRC, EPCls.DST):
             raise ValueError(f"Invalid endpoint class: {self.epcls}")
 
         # Validate type
@@ -296,13 +296,13 @@ class FrozenEndPoint(EndPointABC):
             - All references point to appropriate row types
         """
         # Destination endpoints should have exactly 0 or 1 reference
-        if self.epcls == EndPointClass.DST and len(self.refs_tuple) > 1:
+        if self.epcls == EPCls.DST and len(self.refs_tuple) > 1:
             raise ValueError(
                 f"Destination endpoint can only have 0 or 1 reference, has {len(self.refs_tuple)}"
             )
 
         # Source endpoints reference destination rows, and vice versa
-        if self.epcls == EndPointClass.SRC:
+        if self.epcls == EPCls.SRC:
             for ref in self.refs_tuple:
                 if ref[0] not in DESTINATION_ROW_SET:
                     raise ValueError(

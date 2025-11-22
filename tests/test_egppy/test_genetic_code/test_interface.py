@@ -2,7 +2,7 @@
 
 import unittest
 
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.interface import (
@@ -22,9 +22,9 @@ class TestInterface(unittest.TestCase):
     def setUp(self) -> None:
         """Set up for the tests."""
         # Create some test endpoints with proper indices
-        self.ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
-        self.ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float")
-        self.ep3 = EndPoint(DstRow.A, 0, EndPointClass.DST, "bool")  # Index 0 for standalone use
+        self.ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
+        self.ep2 = EndPoint(DstRow.A, 1, EPCls.DST, "float")
+        self.ep3 = EndPoint(DstRow.A, 0, EPCls.DST, "bool")  # Index 0 for standalone use
 
         # Create test interfaces
         self.interface1 = Interface([self.ep1, self.ep2])
@@ -82,7 +82,7 @@ class TestInterface(unittest.TestCase):
     def test_append(self) -> None:
         """Test appending endpoints to interface."""
         interface = Interface([self.ep1])
-        ep_new = EndPoint(DstRow.A, 1, EndPointClass.DST, "str")
+        ep_new = EndPoint(DstRow.A, 1, EPCls.DST, "str")
         interface.append(ep_new)
         self.assertEqual(len(interface), 2)
         self.assertEqual(interface[1].typ.uid, ep_new.typ.uid)
@@ -93,8 +93,8 @@ class TestInterface(unittest.TestCase):
         """Test extending interface with multiple endpoints."""
         interface = Interface([self.ep1])
         new_eps: list[EndPointABC] = [
-            EndPoint(DstRow.A, 1, EndPointClass.DST, "str"),
-            EndPoint(DstRow.A, 2, EndPointClass.DST, "bool"),
+            EndPoint(DstRow.A, 1, EPCls.DST, "str"),
+            EndPoint(DstRow.A, 2, EPCls.DST, "bool"),
         ]
         interface.extend(new_eps)
         self.assertEqual(len(interface), 3)
@@ -166,9 +166,9 @@ class TestInterface(unittest.TestCase):
 
     def test_add_operator_chaining(self) -> None:
         """Test chaining multiple additions."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
-        ep2 = EndPoint(DstRow.A, 0, EndPointClass.DST, "float")
-        ep3 = EndPoint(DstRow.A, 0, EndPointClass.DST, "bool")
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
+        ep2 = EndPoint(DstRow.A, 0, EPCls.DST, "float")
+        ep3 = EndPoint(DstRow.A, 0, EPCls.DST, "bool")
 
         interface1 = Interface([ep1])
         interface2 = Interface([ep2])
@@ -196,7 +196,7 @@ class TestInterface(unittest.TestCase):
 
     def test_init_with_5tuple(self) -> None:
         """Test initialization with EndPointMemberType (5-tuple)."""
-        interface = Interface([(DstRow.A, 0, EndPointClass.DST, "int", None)])
+        interface = Interface([(DstRow.A, 0, EPCls.DST, "int", None)])
         self.assertEqual(len(interface), 1)
         self.assertEqual(str(interface[0].typ), "int")
 
@@ -219,8 +219,8 @@ class TestInterface(unittest.TestCase):
         """Test initialization with source row creates source endpoints."""
         interface = Interface(["int", "float"], row=SrcRow.I)
         self.assertEqual(len(interface), 2)
-        self.assertEqual(interface[0].cls, EndPointClass.SRC)
-        self.assertEqual(interface[1].cls, EndPointClass.SRC)
+        self.assertEqual(interface[0].cls, EPCls.SRC)
+        self.assertEqual(interface[1].cls, EPCls.SRC)
 
     def test_hash(self) -> None:
         """Test that hash is computed correctly."""
@@ -232,7 +232,7 @@ class TestInterface(unittest.TestCase):
     def test_setitem(self) -> None:
         """Test setting an endpoint at a specific index."""
         interface = Interface([self.ep1, self.ep2])
-        new_ep = EndPoint(DstRow.A, 0, EndPointClass.DST, "str")
+        new_ep = EndPoint(DstRow.A, 0, EPCls.DST, "str")
         interface[0] = new_ep
         self.assertEqual(interface[0].typ.uid, new_ep.typ.uid)
         self.assertEqual(interface[0].idx, 0)  # Index should be updated
@@ -254,12 +254,12 @@ class TestInterface(unittest.TestCase):
     def test_cls_empty_interface(self) -> None:
         """Test that cls() returns DST for empty interface."""
         interface = Interface([])
-        self.assertEqual(interface.cls(), EndPointClass.DST)
+        self.assertEqual(interface.cls(), EPCls.DST)
 
     def test_cls_with_endpoints(self) -> None:
         """Test that cls() returns the class of the first endpoint."""
         interface = Interface([self.ep1, self.ep2])
-        self.assertEqual(interface.cls(), EndPointClass.DST)
+        self.assertEqual(interface.cls(), EPCls.DST)
 
     def test_verify_empty_interface(self) -> None:
         """Test that verify passes for empty interface."""
@@ -268,8 +268,8 @@ class TestInterface(unittest.TestCase):
 
     def test_verify_different_rows(self) -> None:
         """Test that verify fails when endpoints have different rows."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
-        ep2 = EndPoint(DstRow.B, 1, EndPointClass.DST, "float")
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
+        ep2 = EndPoint(DstRow.B, 1, EPCls.DST, "float")
         interface = Interface.__new__(Interface)
         interface.endpoints = [ep1, ep2]
         with self.assertRaises(ValueError) as context:
@@ -278,8 +278,8 @@ class TestInterface(unittest.TestCase):
 
     def test_verify_different_classes(self) -> None:
         """Test that verify fails when endpoints have different classes."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
-        ep2 = EndPoint(SrcRow.A, 1, EndPointClass.SRC, "float")
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
+        ep2 = EndPoint(SrcRow.A, 1, EPCls.SRC, "float")
         interface = Interface.__new__(Interface)
         interface.endpoints = [ep1, ep2]
         with self.assertRaises(ValueError) as context:
@@ -312,7 +312,7 @@ class TestInterface(unittest.TestCase):
 
     def test_to_json_c_graph(self) -> None:
         """Test the to_json() method with json_c_graph=True."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int", [["I", 0]])
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int", [["I", 0]])
         interface = Interface([ep1])
         json_data = interface.to_json(json_c_graph=True)
         self.assertIsInstance(json_data, list)
@@ -327,8 +327,8 @@ class TestInterface(unittest.TestCase):
 
     def test_unconnected_eps(self) -> None:
         """Test the unconnected_eps() method."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")  # No refs
-        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float", [["I", 0]])  # Has ref
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")  # No refs
+        ep2 = EndPoint(DstRow.A, 1, EPCls.DST, "float", [["I", 0]])  # Has ref
         interface = Interface([ep1, ep2])
         unconnected = interface.unconnected_eps()
         self.assertEqual(len(unconnected), 1)
@@ -413,8 +413,8 @@ class TestSrcInterface(unittest.TestCase):
 
     def test_init(self) -> None:
         """Test SrcInterface initialization."""
-        ep1 = EndPoint(SrcRow.I, 0, EndPointClass.SRC, "int")
-        ep2 = EndPoint(SrcRow.I, 1, EndPointClass.SRC, "float")
+        ep1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
+        ep2 = EndPoint(SrcRow.I, 1, EPCls.SRC, "float")
         interface = SrcInterface([ep1, ep2])
 
         self.assertEqual(len(interface), 2)
@@ -436,8 +436,8 @@ class TestSrcInterface(unittest.TestCase):
 
     def test_add_src_interfaces(self) -> None:
         """Test adding two SrcInterface instances."""
-        ep1 = EndPoint(SrcRow.I, 0, EndPointClass.SRC, "int")
-        ep2 = EndPoint(SrcRow.I, 0, EndPointClass.SRC, "float")
+        ep1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
+        ep2 = EndPoint(SrcRow.I, 0, EPCls.SRC, "float")
 
         interface1 = SrcInterface([ep1])
         interface2 = SrcInterface([ep2])
@@ -454,8 +454,8 @@ class TestDstInterface(unittest.TestCase):
 
     def test_init(self) -> None:
         """Test DstInterface initialization."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
-        ep2 = EndPoint(DstRow.A, 1, EndPointClass.DST, "float")
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
+        ep2 = EndPoint(DstRow.A, 1, EPCls.DST, "float")
         interface = DstInterface([ep1, ep2])
 
         self.assertEqual(len(interface), 2)
@@ -477,8 +477,8 @@ class TestDstInterface(unittest.TestCase):
 
     def test_add_dst_interfaces(self) -> None:
         """Test adding two DstInterface instances."""
-        ep1 = EndPoint(DstRow.A, 0, EndPointClass.DST, "int")
-        ep2 = EndPoint(DstRow.A, 0, EndPointClass.DST, "float")
+        ep1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
+        ep2 = EndPoint(DstRow.A, 0, EPCls.DST, "float")
 
         interface1 = DstInterface([ep1])
         interface2 = DstInterface([ep2])

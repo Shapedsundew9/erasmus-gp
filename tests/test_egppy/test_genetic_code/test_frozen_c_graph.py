@@ -9,7 +9,7 @@ import unittest
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, FrozenEndPoint, FrozenInterface
 from egppy.genetic_code.interface import Interface
@@ -22,28 +22,26 @@ class TestFrozenEndPoint(unittest.TestCase):
     def setUp(self) -> None:
         """Set up for the tests."""
         # Create mutable endpoints
-        self.ep_src = EndPoint(SrcRow.I, 0, EndPointClass.SRC, "int")
-        self.ep_dst = EndPoint(DstRow.A, 0, EndPointClass.DST, "float", [[SrcRow.I, 0]])
+        self.ep_src = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
+        self.ep_dst = EndPoint(DstRow.A, 0, EPCls.DST, "float", [[SrcRow.I, 0]])
 
         # Create frozen endpoints
-        self.frozen_ep_src = FrozenEndPoint(
-            SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], ()
-        )
+        self.frozen_ep_src = FrozenEndPoint(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], ())
         self.frozen_ep_dst = FrozenEndPoint(
-            DstRow.A, 0, EndPointClass.DST, types_def_store["float"], ((SrcRow.I, 0),)
+            DstRow.A, 0, EPCls.DST, types_def_store["float"], ((SrcRow.I, 0),)
         )
 
     def test_init(self) -> None:
         """Test FrozenEndPoint initialization."""
         self.assertEqual(self.frozen_ep_src.row, SrcRow.I)
         self.assertEqual(self.frozen_ep_src.idx, 0)
-        self.assertEqual(self.frozen_ep_src.cls, EndPointClass.SRC)
+        self.assertEqual(self.frozen_ep_src.cls, EPCls.SRC)
         self.assertEqual(self.frozen_ep_src.typ.name, "int")
         self.assertEqual(len(self.frozen_ep_src.refs_tuple), 0)
 
         self.assertEqual(self.frozen_ep_dst.row, DstRow.A)
         self.assertEqual(self.frozen_ep_dst.idx, 0)
-        self.assertEqual(self.frozen_ep_dst.cls, EndPointClass.DST)
+        self.assertEqual(self.frozen_ep_dst.cls, EPCls.DST)
         self.assertEqual(self.frozen_ep_dst.typ.name, "float")
         self.assertEqual(len(self.frozen_ep_dst.refs_tuple), 1)
 
@@ -62,20 +60,20 @@ class TestFrozenEndPoint(unittest.TestCase):
     def test_equality(self) -> None:
         """Test equality between frozen and mutable endpoints."""
         # Create identical mutable and frozen endpoints
-        mutable_ep = EndPoint(SrcRow.I, 0, EndPointClass.SRC, "int")
-        frozen_ep = FrozenEndPoint(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], ())
+        mutable_ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
+        frozen_ep = FrozenEndPoint(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], ())
 
         self.assertEqual(frozen_ep, mutable_ep)
         self.assertEqual(mutable_ep, frozen_ep)
 
         # Test inequality
-        different_ep = EndPoint(SrcRow.I, 1, EndPointClass.SRC, "int")
+        different_ep = EndPoint(SrcRow.I, 1, EPCls.SRC, "int")
         self.assertNotEqual(frozen_ep, different_ep)
 
     def test_comparison(self) -> None:
         """Test comparison operators."""
-        ep1 = FrozenEndPoint(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], ())
-        ep2 = FrozenEndPoint(SrcRow.A, 1, EndPointClass.SRC, types_def_store["int"], ())
+        ep1 = FrozenEndPoint(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], ())
+        ep2 = FrozenEndPoint(SrcRow.A, 1, EPCls.SRC, types_def_store["int"], ())
 
         self.assertLess(ep1, ep2)
         self.assertLessEqual(ep1, ep2)
@@ -84,8 +82,8 @@ class TestFrozenEndPoint(unittest.TestCase):
 
     def test_hash_consistency(self) -> None:
         """Test that frozen endpoints have consistent hashes."""
-        ep1 = FrozenEndPoint(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], ())
-        ep2 = FrozenEndPoint(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], ())
+        ep1 = FrozenEndPoint(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], ())
+        ep2 = FrozenEndPoint(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], ())
 
         # Hash should be pre-computed and consistent
         # pylint: disable=protected-access
@@ -122,7 +120,7 @@ class TestFrozenEndPoint(unittest.TestCase):
         self.frozen_ep_dst.verify()
 
         # Invalid endpoint should raise error
-        invalid_ep = FrozenEndPoint(SrcRow.I, 256, EndPointClass.SRC, types_def_store["int"], ())
+        invalid_ep = FrozenEndPoint(SrcRow.I, 256, EPCls.SRC, types_def_store["int"], ())
         with self.assertRaises(ValueError):
             invalid_ep.verify()
 
@@ -134,7 +132,7 @@ class TestFrozenEndPoint(unittest.TestCase):
 
         # Destination with multiple refs should fail
         invalid_ep = FrozenEndPoint(
-            DstRow.A, 0, EndPointClass.DST, types_def_store["float"], ((SrcRow.I, 0), (SrcRow.I, 1))
+            DstRow.A, 0, EPCls.DST, types_def_store["float"], ((SrcRow.I, 0), (SrcRow.I, 1))
         )
         with self.assertRaises(ValueError):
             invalid_ep.consistency()
@@ -148,15 +146,15 @@ class TestFrozenInterface(unittest.TestCase):
         # Create mutable interface
         self.mutable_iface = Interface(
             [
-                EndPoint(SrcRow.I, 0, EndPointClass.SRC, "int"),
-                EndPoint(SrcRow.I, 1, EndPointClass.SRC, "float"),
+                EndPoint(SrcRow.I, 0, EPCls.SRC, "int"),
+                EndPoint(SrcRow.I, 1, EPCls.SRC, "float"),
             ]
         )
 
         # Create frozen interface
         self.frozen_iface = FrozenInterface(
             SrcRow.I,
-            EndPointClass.SRC,
+            EPCls.SRC,
             (types_def_store["int"], types_def_store["float"]),
             ((), ()),
         )
@@ -164,7 +162,7 @@ class TestFrozenInterface(unittest.TestCase):
     def test_init(self) -> None:
         """Test FrozenInterface initialization."""
         self.assertEqual(self.frozen_iface.row, SrcRow.I)
-        self.assertEqual(self.frozen_iface.epcls, EndPointClass.SRC)
+        self.assertEqual(self.frozen_iface.epcls, EPCls.SRC)
         self.assertEqual(len(self.frozen_iface.type_tuple), 2)
         self.assertEqual(len(self.frozen_iface.refs_tuple), 2)
 
@@ -200,7 +198,7 @@ class TestFrozenInterface(unittest.TestCase):
         """Test that frozen interfaces have consistent hashes."""
         frozen2 = FrozenInterface(
             SrcRow.I,
-            EndPointClass.SRC,
+            EPCls.SRC,
             (types_def_store["int"], types_def_store["float"]),
             ((), ()),
         )
@@ -213,7 +211,7 @@ class TestFrozenInterface(unittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             self.frozen_iface.append(
-                FrozenEndPoint(SrcRow.I, 2, EndPointClass.SRC, types_def_store["bool"], ())
+                FrozenEndPoint(SrcRow.I, 2, EPCls.SRC, types_def_store["bool"], ())
             )
 
         with self.assertRaises(RuntimeError):
@@ -221,7 +219,7 @@ class TestFrozenInterface(unittest.TestCase):
 
     def test_add(self) -> None:
         """Test concatenating frozen interfaces."""
-        frozen2 = FrozenInterface(SrcRow.I, EndPointClass.SRC, (types_def_store["bool"],), ((),))
+        frozen2 = FrozenInterface(SrcRow.I, EPCls.SRC, (types_def_store["bool"],), ((),))
 
         result = self.frozen_iface + frozen2
         self.assertEqual(len(result), 3)
@@ -250,7 +248,7 @@ class TestFrozenInterface(unittest.TestCase):
         self.frozen_iface.verify()
 
         # Empty interface should verify
-        empty_iface = FrozenInterface(SrcRow.I, EndPointClass.SRC, (), ())
+        empty_iface = FrozenInterface(SrcRow.I, EPCls.SRC, (), ())
         empty_iface.verify()
 
     def test_consistency(self) -> None:
@@ -266,20 +264,20 @@ class TestFrozenCGraph(unittest.TestCase):
         # Create a simple mutable graph
         self.mutable_graph = CGraph(
             {
-                "Is": [(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
         # Create equivalent frozen graph - ensure bidirectional references
         self.frozen_graph = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
@@ -367,10 +365,10 @@ class TestFrozenCGraph(unittest.TestCase):
         # Create another identical graph
         frozen_graph2 = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
@@ -383,10 +381,10 @@ class TestFrozenCGraph(unittest.TestCase):
         # This is intentional for performance
         frozen_graph2 = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
         self.assertEqual(self.frozen_graph, frozen_graph2)
@@ -408,22 +406,22 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
         graph = FrozenCGraph(
             {
                 "Is": [
-                    (SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]]),
-                    (SrcRow.I, 1, EndPointClass.SRC, types_def_store["float"], [[DstRow.B, 0]]),
+                    (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]]),
+                    (SrcRow.I, 1, EPCls.SRC, types_def_store["float"], [[DstRow.B, 0]]),
                 ],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.B, 1]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.B, 1]])],
                 "Bd": [
-                    (DstRow.B, 0, EndPointClass.DST, types_def_store["float"], [[SrcRow.I, 1]]),
-                    (DstRow.B, 1, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]]),
+                    (DstRow.B, 0, EPCls.DST, types_def_store["float"], [[SrcRow.I, 1]]),
+                    (DstRow.B, 1, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]]),
                 ],
                 "Bs": [
-                    (SrcRow.B, 0, EndPointClass.SRC, types_def_store["float"], [[DstRow.O, 0]]),
-                    (SrcRow.B, 1, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 1]]),
+                    (SrcRow.B, 0, EPCls.SRC, types_def_store["float"], [[DstRow.O, 0]]),
+                    (SrcRow.B, 1, EPCls.SRC, types_def_store["int"], [[DstRow.O, 1]]),
                 ],
                 "Od": [
-                    (DstRow.O, 0, EndPointClass.DST, types_def_store["float"], [[SrcRow.B, 0]]),
-                    (DstRow.O, 1, EndPointClass.DST, types_def_store["int"], [[SrcRow.B, 1]]),
+                    (DstRow.O, 0, EPCls.DST, types_def_store["float"], [[SrcRow.B, 0]]),
+                    (DstRow.O, 1, EPCls.DST, types_def_store["int"], [[SrcRow.B, 1]]),
                 ],
             }
         )
@@ -437,14 +435,14 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
         graph = FrozenCGraph(
             {
                 "Is": [
-                    (SrcRow.I, 0, EndPointClass.SRC, types_def_store["bool"], [[DstRow.F, 0]]),
-                    (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]]),
+                    (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [[DstRow.F, 0]]),
+                    (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]]),
                 ],
-                "Fd": [(DstRow.F, 0, EndPointClass.DST, types_def_store["bool"], [[SrcRow.I, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 1]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
-                "Pd": [(DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 1]])],
+                "Fd": [(DstRow.F, 0, EPCls.DST, types_def_store["bool"], [[SrcRow.I, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Pd": [(DstRow.P, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
             }
         )
 
@@ -456,17 +454,15 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
         graph = FrozenCGraph(
             {
                 "Is": [
-                    (SrcRow.I, 0, EndPointClass.SRC, types_def_store["list[int]"], [[DstRow.L, 0]]),
-                    (SrcRow.I, 1, EndPointClass.SRC, types_def_store["int"], [[DstRow.P, 0]]),
+                    (SrcRow.I, 0, EPCls.SRC, types_def_store["list[int]"], [[DstRow.L, 0]]),
+                    (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [[DstRow.P, 0]]),
                 ],
-                "Ld": [
-                    (DstRow.L, 0, EndPointClass.DST, types_def_store["list[int]"], [[SrcRow.I, 0]])
-                ],
-                "Ls": [(SrcRow.L, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.L, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
-                "Pd": [(DstRow.P, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 1]])],
+                "Ld": [(DstRow.L, 0, EPCls.DST, types_def_store["list[int]"], [[SrcRow.I, 0]])],
+                "Ls": [(SrcRow.L, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.L, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Pd": [(DstRow.P, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
             }
         )
 
@@ -482,10 +478,10 @@ class TestJSONConversion(unittest.TestCase):
         # Create a mutable graph
         mutable = CGraph(
             {
-                "Is": [(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
@@ -495,10 +491,10 @@ class TestJSONConversion(unittest.TestCase):
         # Create frozen graph from same data
         frozen = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EndPointClass.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EndPointClass.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 

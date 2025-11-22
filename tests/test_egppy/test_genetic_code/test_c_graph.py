@@ -9,7 +9,7 @@ import unittest
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstRow, EndPointClass, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import (
@@ -431,7 +431,7 @@ class TestCGraph(unittest.TestCase):
         cgraph = CGraph(self.empty_jcg)
 
         # Create a new interface
-        new_interface = Interface([EndPoint(DstRow.A, 0, EndPointClass.DST, "int")])
+        new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")])
         cgraph["Ad"] = new_interface
 
         self.assertEqual(cgraph["Ad"], new_interface)
