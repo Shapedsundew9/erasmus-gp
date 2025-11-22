@@ -148,7 +148,8 @@ class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
             value = bytes.fromhex(value)
         self.value_error(
             self._is_hash8("ordered_interface_hash", value),
-            f"ordered_interface_hash must be an 8-byte hash, but is {len(value) if isinstance(value, bytes) else type(value)}",
+            "ordered_interface_hash must be an 8-byte hash, but is "
+            f"{len(value) if isinstance(value, bytes) else type(value)}",
         )
         self._ordered_interface_hash = value
 
@@ -164,7 +165,8 @@ class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
             value = bytes.fromhex(value)
         self.value_error(
             self._is_hash8("unordered_interface_hash", value),
-            f"unordered_interface_hash must be an 8-byte hash, but is {len(value) if isinstance(value, bytes) else type(value)}",
+            "unordered_interface_hash must be an 8-byte hash, but is "
+            f"{len(value) if isinstance(value, bytes) else type(value)}",
         )
         self._unordered_interface_hash = value
 

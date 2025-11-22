@@ -456,7 +456,8 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
             )
             self.value_error(
                 self._is_length("description", value, 1, 1024),
-                f"description must be between 1 and 1024 characters, but is {len(value)} characters",
+                "description must be between 1 and 1024 characters, "
+                f"but is {len(value)} characters",
             )
             self._description = value
         else:

@@ -189,6 +189,7 @@ class TestEndPoint(unittest.TestCase):
         """Test comparison operators with non-EndPoint objects."""
         ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
         # Comparison with non-EndPoint should return NotImplemented
+        # pylint: disable=unnecessary-dunder-call
         result = ep.__lt__("not an endpoint")
         self.assertEqual(result, NotImplemented)
         result = ep.__le__("not an endpoint")
