@@ -14,7 +14,6 @@ from tests.test_egppy.test_storage.test_cache.dirty_cache_test_base import (
 # Standard EGP logging pattern
 _logger: Logger = getLogger(name=__name__)
 _logger.addHandler(hdlr=NullHandler())
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 
 
 # Maximum number of items the cache can hold

@@ -10,30 +10,31 @@ from urllib.parse import urlparse, urlunparse
 from uuid import UUID
 
 from egpcommon.common import _RESERVED_FILE_NAMES, EGP_EPOCH
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import VERIFY, Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class Validator:
     """Validate data.
 
     The class provides a set of functions to validate data. Validation typically is done
-    by asserting that a value is of a certain type, within a certain range, or matches a
+    by checking that a value is of a certain type, within a certain range, or matches a
     certain pattern. The class provides a set of functions to validate these conditions.
 
-    All validation functions return a boolean value if the parameter _assert is False. If
-    _assert is True, the function will raise an AssertionError if the condition is not met.
+    All validation functions return a boolean value if the _logger.isEnabledFor(level=VERIFY)
+    is False or if the validation passes (in which case True is returned).
 
     The naming convention for the validation functions is _is_<condition> or _in_<set>. The
     functions all take the following parameters (though more are not prohibited):
     - attr: The name of the attribute being validated.
     - value: The value of the attribute being validated.
-    - _assert: If True, the function will raise an AssertionError if the conditions are not met.
+
+    If a check fails a log message will be produced at level VERIFY and include the attribute
+    name, the expected condition and the actual value. This log message shall be wrapped in an
+    if _logger.isEnabledFor(level=VERIFY) check to avoid the overhead of string formatting
+    when the log level is higher than VERIFY and permit dynamic evaluation of log levels.
 
     Validator is usually inherited with DictTypeAccessor to provide a simple get/set dictionary
     like access to an object's members with validation.
@@ -71,267 +72,296 @@ class Validator:
     )
     _url_regex: Pattern = regex_compile(_url_regex_str, IGNORECASE)
 
-    def _in_range(
-        self, attr: str, value: int | float, minm: float, maxm: float, _assert: bool = True
-    ) -> bool:
+    def _in_range(self, attr: str, value: int | float, minm: float, maxm: float) -> bool:
         """Check if the value is in a range."""
         result = value >= minm and value <= maxm
-        if _assert:
-            assert result, f"{attr} must be between {minm} and {maxm} but is {value}"
+        if not result:
+            _logger.log(VERIFY, "%s must be between %s and %s but is %s", attr, minm, maxm, value)
         return result
 
-    def _is_accessible(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_accessible(self, attr: str, value: Any) -> bool:
         """Check if the value is a path to a file that can be read."""
-        result = self._is_path(attr, value, _assert)
-        value = normpath(value)
-        if not result:
+        if not self._is_path(attr, value):
             return False
+        value = normpath(value)
         try:
             with open(value, "r", encoding="utf-8"):
                 pass
         except FileNotFoundError:
-            if _assert:
-                assert (
-                    False
-                ), f"{attr} must be a path to a file that can be read: {value} does not exist."
+            if _logger.isEnabledFor(VERIFY):
+                _logger.log(
+                    VERIFY,
+                    "%s must be a path to a file that can be read: %s does not exist.",
+                    attr,
+                    value,
+                )
             return False
         except PermissionError:
-            if _assert:
-                assert (
-                    False
-                ), f"{attr} must be a path to a file that can be read: {value} is not accessible."
+            if _logger.isEnabledFor(VERIFY):
+                _logger.log(
+                    VERIFY,
+                    "%s must be a path to a file that can be read: %s is not accessible.",
+                    attr,
+                    value,
+                )
             return False
         return True
 
-    def _is_bool(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_bool(self, attr: str, value: Any) -> bool:
         """Check if the value is a bool."""
         result = isinstance(value, bool)
-        if _assert:
-            assert result, f"{attr} must be a bool but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a bool but is %s", attr, type(value))
         return result
 
-    def _is_bytes(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_bytes(self, attr: str, value: Any) -> bool:
         """Check if the value is bytes."""
         result = isinstance(value, bytes)
-        if _assert:
-            assert result, f"{attr} must be bytes but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be bytes but is %s", attr, type(value))
         return result
 
-    def _is_callable(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_callable(self, attr: str, value: Any) -> bool:
         """Check if the value is callable."""
         result = callable(value)
-        if _assert:
-            assert result, f"{attr} must be callable but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be callable but is %s", attr, type(value))
         return result
 
-    def _is_datetime(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_datetime(self, attr: str, value: Any) -> bool:
         """Check if the value is a datetime."""
         result = isinstance(value, datetime)
-        if _assert:
-            assert result, f"{attr} must be a datetime but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a datetime but is %s", attr, type(value))
         return result
 
-    def _is_dict(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_dict(self, attr: str, value: Any) -> bool:
         """Check if the value is a dict."""
         result = isinstance(value, dict)
-        if _assert:
-            assert result, f"{attr} must be a dict but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a dict but is %s", attr, type(value))
         return result
 
-    def _is_filename(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_filename(self, attr: str, value: str) -> bool:
         """Validate a filename without any preceding path."""
-        result = self._is_string(attr, value, _assert)
-        result = result and self._is_length(attr, value, 1, 256, _assert)
-        result = result and not self._is_regex(attr, value, self._illegal_filename_regex, False)
-        if _assert:
-            assert result, (
-                f"{attr} must be a valid filename without a "
-                f"preceding path: {value} is not valid."
-            )
-        result = result and not value.upper() in _RESERVED_FILE_NAMES
-        name, ext = splitext(value)
-        result = result or ((name.upper() in _RESERVED_FILE_NAMES) and len(ext) > 0)
-        if _assert:
-            assert result, (
-                f"{attr} not include a reserved name"
-                f" ({_RESERVED_FILE_NAMES}): {value} is not valid."
-            )
-        return result
+        if not self._is_string(attr, value):
+            return False
+        if not self._is_length(attr, value, 1, 256):
+            return False
+        if self._is_regex(attr, value, self._illegal_filename_regex):
+            if _logger.isEnabledFor(VERIFY):
+                _logger.log(
+                    VERIFY,
+                    "%s must be a valid filename without a preceding path: %s is not valid.",
+                    attr,
+                    value,
+                )
+            return False
+        if value.upper() in _RESERVED_FILE_NAMES:
+            name, ext = splitext(value)
+            if not ((name.upper() in _RESERVED_FILE_NAMES) and len(ext) > 0):
+                if _logger.isEnabledFor(VERIFY):
+                    _logger.log(
+                        VERIFY,
+                        "%s not include a reserved name (%s): %s is not valid.",
+                        attr,
+                        _RESERVED_FILE_NAMES,
+                        value,
+                    )
+                return False
+        return True
 
-    def _is_float(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_float(self, attr: str, value: Any) -> bool:
         """Check if the value is a float."""
         result = isinstance(value, float)
-        if _assert:
-            assert result, f"{attr} must be a float but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a float but is %s", attr, type(value))
         return result
 
     def _is_hash8(self, attr: str, value: Any, _assert: bool = True) -> bool:
         """Check if the value is a hash8."""
-        result = self._is_bytes(attr, value, False) and len(value) == 8
-        if _assert:
-            assert result, f"{attr} must be a hash8 but is {value}"
+        result = self._is_bytes(attr, value) and len(value) == 8
+        if not result:
+            _logger.log(VERIFY, "%s must be a hash8 but is %s", attr, value)
         return result
 
-    def _is_historical_datetime(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_historical_datetime(self, attr: str, value: Any) -> bool:
         """Check if the value is a historical datetime."""
-        result = self._is_datetime(attr, value, _assert)
-        result = result or (value >= EGP_EPOCH and value <= datetime.now(UTC))
-        if _assert:
-            assert result, f"{attr} must be a post-EGP epoch historical datetime but is {value}"
+        if not self._is_datetime(attr, value):
+            return False
+        result = EGP_EPOCH <= value <= datetime.now(UTC)
+        if not result:
+            _logger.log(
+                VERIFY, "%s must be a post-EGP epoch historical datetime but is %s", attr, value
+            )
         return result
 
-    def _is_hostname(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_hostname(self, attr: str, value: str) -> bool:
         """Validate a hostname."""
         if len(value) > 255:
-            assert not _assert, f"{attr} must be a valid hostname: {value} is >255 chars."
+            if _logger.isEnabledFor(VERIFY):
+                _logger.log(VERIFY, "%s must be a valid hostname: %s is >255 chars.", attr, value)
             return False
         if len(value) > 1 and value[-1] == ".":
             value = value[:-1]  # Strip exactly one dot from the right, if present
         result = all(self._hostname_regex.match(x) for x in value.split("."))
-        if _assert:
-            assert result, f"{attr} must be a valid hostname: {value} is not valid."
+        if not result:
+            _logger.log(VERIFY, "%s must be a valid hostname: %s is not valid.", attr, value)
         return result
 
-    def _is_instance(
-        self, attr: str, value: Any, cls: type | tuple[type, ...], _assert: bool = True
-    ) -> bool:
+    def _is_instance(self, attr: str, value: Any, cls: type | tuple[type, ...]) -> bool:
         """Check if the value is an instance of a class."""
         result = isinstance(value, cls)
-        if _assert:
-            assert result, f"{attr} must be an instance of {cls} but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be an instance of %s but is %s", attr, cls, type(value))
         return result
 
-    def _is_int(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_int(self, attr: str, value: Any) -> bool:
         """Check if the value is an int."""
         result = isinstance(value, int)
-        if _assert:
-            assert result, f"{attr} must be an int but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be an int but is %s", attr, type(value))
         return result
 
-    def _is_ip(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_ip(self, attr: str, value: str) -> bool:
         """Validate an IP address (both IPv4 and IPv6)."""
         try:
             ip_address(value)
+            return True
         except ValueError:
-            assert not _assert, f"{attr} must be a valid IP address: {value} is not valid."
-            return False
-        return True
+            if _logger.isEnabledFor(VERIFY):
+                _logger.log(VERIFY, "%s must be a valid IP address: %s is not valid.", attr, value)
+        return False
 
-    def _is_ip_or_hostname(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_ip_or_hostname(self, attr: str, value: str) -> bool:
         """Validate an IP address or hostname."""
-        result = self._is_ip(attr, value, False) or self._is_hostname(attr, value, False)
-        if _assert:
-            assert result, f"{attr} must be a valid IP address or hostname: {value} is not valid."
+        result = self._is_ip(attr, value) or self._is_hostname(attr, value)
+        if not result:
+            _logger.log(
+                VERIFY,
+                "%s must be a valid IP address or hostname: %s is not valid.",
+                attr,
+                value,
+            )
         return result
 
-    def _is_list(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_list(self, attr: str, value: Any) -> bool:
         """Check if the value is a list."""
         result = isinstance(value, list)
-        if _assert:
-            assert result, f"{attr} must be a list but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a list but is %s", attr, type(value))
         return result
 
-    def _is_not_none(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_not_none(self, attr: str, value: Any) -> bool:
         """Check if the value is not None."""
         result = value is not None
-        if _assert:
-            assert result, f"{attr} must not be None"
+        if not result:
+            _logger.log(VERIFY, "%s must not be None", attr)
         return result
 
-    def _is_one_of(
-        self, attr: str, value: Any, values: Iterable[Any], _assert: bool = True
-    ) -> bool:
+    def _is_one_of(self, attr: str, value: Any, values: Iterable[Any]) -> bool:
         """Check if the value is one of a set of values."""
         result = value in values
-        if _assert:
-            assert result, f"{attr} must be one of {values} but is {value}"
+        if not result:
+            _logger.log(VERIFY, "%s must be one of %s but is %s", attr, values, value)
         return result
 
-    def _is_password(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_password(self, attr: str, value: str) -> bool:
         """Validate a password."""
-        result = self._is_string(attr, value, _assert)
-        result = result and self._is_regex(attr, value, self._password_regex, _assert)
-        return result
+        if not self._is_string(attr, value):
+            return False
+        return self._is_regex(attr, value, self._password_regex)
 
-    def _is_path(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_path(self, attr: str, value: str) -> bool:
         """Validate a path."""
-        result = self._is_string(attr, value, _assert)
-        return result
+        return self._is_string(attr, value)
 
-    def _is_printable_string(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_printable_string(self, attr: str, value: str) -> bool:
         """Validate a printable string."""
-        result = self._is_string(attr, value, _assert)
+        if not self._is_string(attr, value):
+            return False
         result = value.isprintable()
+        if not result:
+            _logger.log(VERIFY, "%s must be a printable string but is not.", attr)
         return result
 
-    def _is_sequence(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_sequence(self, attr: str, value: Any) -> bool:
         """Check if the value is a sequence."""
         result = isinstance(value, Sequence)
-        if _assert:
-            assert result, f"{attr} must be a sequence but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a sequence but is %s", attr, type(value))
         return result
 
-    def _is_sha256(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_sha256(self, attr: str, value: Any) -> bool:
         """Check if the value is a SHA256 hash."""
-        result = self._is_bytes(attr, value, False) and len(value) == 32
-        if _assert:
-            assert result, f"{attr} must be a SHA256 hash but is {value}"
+        result = self._is_bytes(attr, value) and len(value) == 32
+        if not result:
+            _logger.log(VERIFY, "%s must be a SHA256 hash but is %s", attr, value)
         return result
 
-    def _is_simple_string(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_simple_string(self, attr: str, value: str) -> bool:
         """Validate a simple string."""
-        result = self._is_string(attr, value, False)
-        result = result and self._is_regex(attr, value, self._simple_string_regex, _assert)
-        return result
+        if not self._is_string(attr, value):
+            return False
+        return self._is_regex(attr, value, self._simple_string_regex)
 
-    def _is_string(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_string(self, attr: str, value: Any) -> bool:
         """Check if the value is a string."""
         result = isinstance(value, str)
-        if _assert:
-            assert result, f"{attr} must be a string but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a string but is %s", attr, type(value))
         return result
 
-    def _is_tuple(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_tuple(self, attr: str, value: Any) -> bool:
         """Check if the value is a tuple."""
         result = isinstance(value, tuple)
-        if _assert:
-            assert result, f"{attr} must be a tuple but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a tuple but is %s", attr, type(value))
         return result
 
-    def _is_url(self, attr: str, value: str, _assert: bool = True) -> bool:
+    def _is_url(self, attr: str, value: str) -> bool:
         """Validate a URL."""
-        result = self._is_string(attr, value, False)
-        result = result and self._is_regex(attr, value, self._url_regex, _assert)
+        if not self._is_string(attr, value):
+            return False
+        if not self._is_regex(attr, value, self._url_regex):
+            return False
         presult = urlparse(value)
         # Ensure the scheme is HTTPS and the network location is present
         if presult.scheme != "https" or not presult.netloc:
-            if _assert:
-                assert False, f"{attr} must be a valid URL: {value} is not valid."
+            _logger.log(VERIFY, "%s must be a valid URL: %s is not valid.", attr, value)
             return False
 
         # Rebuild the URL to ensure it is properly formed
         reconstructed_url = urlunparse(presult)
-        if reconstructed_url != value and _assert:
-            assert False, f"{attr} must be a valid URL: {value} is not valid."
-        return result
+        if reconstructed_url != value:
+            _logger.log(VERIFY, "%s must be a valid URL: %s is not valid.", attr, value)
+            return False
+        return True
 
-    def _is_uuid(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_uuid(self, attr: str, value: Any) -> bool:
         """Check if the value is a UUID."""
         result = isinstance(value, UUID)
-        if _assert:
-            assert result, f"{attr} must be a UUID but is {type(value)}"
+        if not result:
+            _logger.log(VERIFY, "%s must be a UUID but is %s", attr, type(value))
         return result
 
-    def _is_length(self, attr: str, value: Any, minm: int, maxm: int, _assert: bool = True) -> bool:
+    def _is_length(self, attr: str, value: Any, minm: int, maxm: int) -> bool:
         """Check the length of the value."""
         result = len(value) >= minm and len(value) <= maxm
-        if _assert:
-            assert result, f"{attr} must be between {minm} and {maxm} in length but is {len(value)}"
+        if not result:
+            _logger.log(
+                VERIFY,
+                "%s must be between %s and %s in length but is %s",
+                attr,
+                minm,
+                maxm,
+                len(value),
+            )
         return result
 
-    def _is_regex(self, attr: str, value: str, pattern: Pattern, _assert: bool = True) -> bool:
+    def _is_regex(self, attr: str, value: str, pattern: Pattern) -> bool:
         """Check the value against a regex."""
         result = pattern.fullmatch(value)
-        if _assert:
-            assert result, f"{attr} must match the pattern {pattern} but does not"
+        if not result:
+            _logger.log(VERIFY, "%s must match the pattern %s but does not", attr, pattern)
         return bool(result)

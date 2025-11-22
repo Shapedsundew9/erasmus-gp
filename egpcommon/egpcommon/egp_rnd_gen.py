@@ -3,24 +3,35 @@
 See https://g.co/gemini/share/5737bff25344 for why numpy PCG64.
 """
 
-from numpy.random import Generator, PCG64
+from datetime import datetime, timedelta
+
+from numpy import datetime64
+from numpy.random import PCG64, Generator
 
 
 class EGPRndGen(Generator):
     """EGPRndGen is a subclass of numpy's Generator class.
 
     It uses the PCG64 algorithm for generating random numbers.
+
+    **IMPORTANT**: For reproducibility this class must always
+    convert a datetime seed to an integer seed using
+    `int(datetime64(seed).astype("int64"))`.
     """
 
-    def __init__(self, seed: int = 0) -> None:
+    def __init__(self, seed: int | datetime = 0) -> None:
         """Initialize the EGPRndGen with a seed."""
+        if isinstance(seed, datetime):
+            if seed.utcoffset() != timedelta(0):
+                raise ValueError(f"Expected UTC datetime, but got: {seed.tzinfo}")
+            seed = int(datetime64(seed.replace(tzinfo=None)).astype("int64"))
         super().__init__(PCG64(seed))
         self.seed = seed
 
 
 # Reproducibility
-rng = EGPRndGen(seed=42)
-uniform = rng.uniform(0.0, 1.0, 100)
+egp_rng = EGPRndGen(seed=42)
+uniform = egp_rng.uniform(0.0, 1.0, 100)
 UNIFORM: tuple[float, ...] = (
     0.77395604855596333848666290577967,
     0.43887843975205231838998543025809,

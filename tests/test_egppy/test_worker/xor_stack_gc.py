@@ -23,8 +23,10 @@ from tempfile import NamedTemporaryFile
 from time import time
 from typing import Any
 
-from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger, enable_debug_logging
+from egpcommon.codon_dev_load import find_codon_signature
+from egpcommon.common import ACYBERGENESIS_PROBLEM, NULL_SHA256, bin_counts
+from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.egc_class_factory import EGCDict
@@ -36,9 +38,6 @@ from egppy.worker.executor.execution_context import ExecutionContext, FunctionIn
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 enable_debug_logging()
 
 
@@ -56,34 +55,27 @@ INT_TD = types_def_store[INT_T]
 CONSISTENCY_SAMPLE = 1.0
 gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
-# Right shift codon
-_rshift_gc = gpi[bytes.fromhex("6871b4bdbc8bc0f780c0eb46b32b5630fc4cb2914bdf12b4135dc34b1f8a6b4a")]
-# Literal 1 codon
-literal_1_gc = gpi[
-    bytes.fromhex("367e9669bfa5d17809d6f3ed901004079c0e434e7abc5b8b8df279ed034bd095")
-]
-# This is the Integral type XOR but it does not matter for this
-_xor_gc = gpi[bytes.fromhex("21431e935f22f554a8e89e8e1f4a374c3508654a528861e35a55b6ecbfeb4b23")]
-getrandbits_gc = gpi[
-    bytes.fromhex("e46ef7c595381d8a6f912b843fcbb6fed3b84511a3af8ea81f2c6017b2e1499d")
-]
-sixtyfour_gc = gpi[
-    bytes.fromhex("b98a9d692076ea2c7378953eb14d54c8633b8f2aaf605a27ce4131018a17eace")
-]
-custom_pgc = gpi[bytes.fromhex("8db461de1a736722306f26989fbdb313e0c528a92573f80be3b1e533dd91e430")]
 
+# Load the primitive codons from the gene pool
+# Dictionary mapping signature names to their values
+CODON_SIGS: dict[str, bytes] = {}
 
-int_to: dict[str, GGCDict] = {
-    "Integral": gpi[
-        bytes.fromhex("ab139e65cc5a3ef23c2f322c09978c6c5c22e998accc670d992d25f324259718")
-    ]
+# Define all codon signatures
+_codon_specs = {
+    "RSHIFT_SIG": (["Integral"], ["EGPNumber"], ">>"),
+    "XOR_SIG": (["Integral"], ["EGPNumber"], "^"),
+    "GETRANDBITS_SIG": (["int"], ["int"], "getrandbits"),
+    "LITERAL_1_SIG": ([], ["int"], "1"),
+    "SIXTYFOUR_SIG": ([], ["int"], "64"),
+    "CUSTOM_PGC_SIG": ([], [], "custom"),
+    "INT_TO_SIG": (["int"], ["Integral"], "raise_if_not_instance_of(int, Integral)"),
+    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(EGPNumber, int)"),
 }
 
-to_int: dict[str, GGCDict] = {
-    "EGPNumber": gpi[
-        bytes.fromhex("7953d3c9b9da69f9375705b14f8b59c2f8d3b4aa91c1ce5034a9b0f5c23711ff")
-    ]
-}
+
+# Dictionary of primitive GCs
+# This is empty on initialization and populated on first use
+primitive_gcs: dict[str, GCABC] = {}
 
 
 def find_gc(signature: bytes) -> GCABC:
@@ -93,13 +85,69 @@ def find_gc(signature: bytes) -> GCABC:
     return retval
 
 
+def resolve_inherited_members(egc: GCABC) -> GCABC:
+    """Resolve inherited members from ancestor GCs."""
+    assert isinstance(egc, GCABC), "GC must be a GCABC object."
+    gca = egc["gca"]
+    gcb = egc["gcb"]
+    if gca == NULL_SHA256:
+        raise ValueError("Cannot resolve inherited members. GC is a codon.")
+    gca = find_gc(gca)
+
+    # Populate inherited members as if just GCA is set
+    egc["num_codons"] = gca["num_codons"]
+    egc["num_codes"] = gca["num_codes"] + 1
+    egc["generation"] = gca["generation"] + 1
+    egc["code_depth"] = gca["code_depth"] + 1
+
+    # Ad in this GC must be the same as Is in the GCA
+    # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+    for idx, (a, i) in enumerate(zip(egc["cgraph"]["Ad"], gca["cgraph"]["Is"])):
+        if a.typ is not i.typ:
+            raise ValueError(
+                f"Input types do not match for GCA at position {idx}: "
+                f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
+                f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
+            )
+
+    # As in this GC must be the same as Od in the GCA
+    for idx, (a, o) in enumerate(zip(egc["cgraph"]["As"], gca["cgraph"]["Od"])):
+        if a.typ is not o.typ:
+            raise ValueError(
+                f"Output types do not match for GCA at position {idx}: "
+                f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
+                f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
+            )
+
+    # If GCB exists modify
+    if gcb != NULL_SHA256:
+        gcb = find_gc(gcb)
+        egc["num_codons"] += gcb["num_codons"]
+        egc["num_codes"] += gcb["num_codes"]
+        egc["generation"] = max(egc["generation"], gcb["generation"] + 1)
+        egc["code_depth"] = max(egc["code_depth"], gcb["code_depth"] + 1)
+
+        # Bd in this GC must be the same as Is in the GCB
+        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+        if not all(b.typ is i.typ for b, i in zip(egc["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
+            raise ValueError("Input types do not match for GCB")
+
+        # Bs in this GC must be the same as Od in the GCB
+        if not all(b.typ is o.typ for b, o in zip(egc["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
+            raise ValueError("Output types do not match for GCB")
+
+    return egc
+
+
 def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
     """Create a EGC, inherit members from its sub-GCs and create a new GGC."""
     egc = EGCDict(gc)
-    egc.resolve_inherited_members(find_gc)
-    ggc = GGCDict(egc)
-    if check and (not ggc.verify() or not ggc.consistency()):
-        raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.")
+    ggc = GGCDict(resolve_inherited_members(egc))
+    if check:
+        try:
+            ggc.verify()
+        except (ValueError, RuntimeError) as e:
+            raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.") from e
     gpi[ggc["signature"]] = ggc
     return ggc
 
@@ -133,7 +181,7 @@ def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                 "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -169,7 +217,7 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                 ],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
         }
@@ -182,6 +230,10 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
     Since EGP requires typing to be explicit each interface needs to be 'cast' to 'int' using
     meta codons.
     """
+
+    int_to: dict[str, GGCDict] = {"Integral": gpi[CODON_SIGS["INT_TO_SIG"]]}
+    to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
+
     # Find all the endpoint in the input interface that are not 'int'
     while iepl := [iep for iep in gc["cgraph"]["Is"] if iep.typ != INT_TD]:
         # We will only process the first endpoint in the iepl list
@@ -208,32 +260,6 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
     return gc
 
 
-# Right shift and xor need interfaces casting
-rshift_gc = cast_interfaces_to_int(_rshift_gc)
-xor_gc = cast_interfaces_to_int(_xor_gc)
-
-
-# random_long_gc signature:
-random_long_gc = inherit_members(
-    {
-        "ancestora": sixtyfour_gc,
-        "ancestorb": getrandbits_gc,
-        "created": "2025-03-29 22:05:08.489847+00:00",
-        "gca": sixtyfour_gc,
-        "gcb": getrandbits_gc,
-        "cgraph": {
-            "A": [],
-            "B": [["A", 0, INT_T]],
-            "O": [["B", 0, INT_T]],
-            "U": [],
-        },
-        "pgc": custom_pgc,
-        "problem": ACYBERGENESIS_PROBLEM,
-        "properties": BASIC_ORDINARY_PROPERTIES,
-    }
-)
-
-
 # Shift right by one GC function. Note that this function needs to
 # be defined with the format and naming convention of the GC function
 # i.e. inputs are encapsulated in a tuple (even if there is only one)
@@ -244,72 +270,114 @@ def f_7fffffff(i: tuple[int]) -> int:
     return i[0] >> 1
 
 
-# rshift_1_gc signature:
-rshift_1_gc = inherit_members(
-    {
-        "ancestora": literal_1_gc,
-        "ancestorb": rshift_gc,
-        "created": "2025-03-29 22:05:08.489847+00:00",
-        "code_depth": 2,
-        "gca": literal_1_gc["signature"],  # Makes the structure of this GC unknown
-        "gcb": rshift_gc,
-        "generation": 2,
-        "cgraph": {
-            "A": [],
-            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-            "O": [["B", 0, INT_T]],
-            "U": [],
-        },
-        "num_codes": 3,
-        "num_codons": 2,
-        "pgc": custom_pgc,
-        "problem": ACYBERGENESIS_PROBLEM,
-        "properties": BASIC_ORDINARY_PROPERTIES,
-    }
-)
+def create_primitive_gcs() -> None:
+    """Create the primitive GC's used in the tests."""
+    if primitive_gcs:
+        return  # Already created
 
+    # Load and validate all codon signatures
+    for cname, (input_types, output_types, codon_name) in _codon_specs.items():
+        csig = find_codon_signature(input_types, output_types, codon_name)
+        assert csig is not None, f"{cname} codon signature not found"
+        CODON_SIGS[cname] = csig
 
-# rshift_xor_gc signature:
-rshift_xor_gc = inherit_members(
-    {
-        "ancestora": rshift_1_gc,
-        "ancestorb": xor_gc,
-        "created": "2025-03-29 22:05:08.489847+00:00",
-        "gca": rshift_1_gc,
-        "gcb": xor_gc,
-        "cgraph": {
-            "A": [["I", 1, INT_T]],
-            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-            "O": [["B", 0, INT_T]],
-            "U": [],
-        },
-        "pgc": custom_pgc,
-        "problem": ACYBERGENESIS_PROBLEM,
-        "properties": BASIC_ORDINARY_PROPERTIES,
-    }
-)
+    # Right shift and xor need interfaces casting
+    rshift_gc = cast_interfaces_to_int(gpi[CODON_SIGS["RSHIFT_SIG"]])
+    xor_gc = cast_interfaces_to_int(gpi[CODON_SIGS["XOR_SIG"]])
 
+    # random_long_gc signature:
+    random_long_gc = inherit_members(
+        {
+            "ancestora": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
+            "ancestorb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
+            "gcb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
+            "cgraph": {
+                "A": [],
+                "B": [["A", 0, INT_T]],
+                "O": [["B", 0, INT_T]],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
 
-# one_to_two signature:
-one_to_two = inherit_members(
-    {
-        "ancestora": random_long_gc,
-        "ancestorb": rshift_xor_gc,
-        "created": "2025-03-29 22:05:08.489847+00:00",
-        "gca": random_long_gc,
-        "gcb": rshift_xor_gc,
-        "cgraph": {
-            "A": [],
-            "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-            "O": [["B", 0, INT_T], ["A", 0, INT_T]],
-            "U": [],
-        },
-        "pgc": custom_pgc,
-        "problem": ACYBERGENESIS_PROBLEM,
-        "properties": BASIC_ORDINARY_PROPERTIES,
-    }
-)
-two_to_one = rshift_xor_gc
+    # rshift_1_gc signature:
+    rshift_1_gc = inherit_members(
+        {
+            "ancestora": gpi[CODON_SIGS["LITERAL_1_SIG"]],
+            "ancestorb": rshift_gc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "code_depth": 2,
+            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]][
+                "signature"
+            ],  # Makes the structure of this GC unknown
+            "gcb": rshift_gc,
+            "generation": 2,
+            "cgraph": {
+                "A": [],
+                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+                "O": [["B", 0, INT_T]],
+                "U": [],
+            },
+            "num_codes": 3,
+            "num_codons": 2,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+    # rshift_xor_gc signature:
+    rshift_xor_gc = inherit_members(
+        {
+            "ancestora": rshift_1_gc,
+            "ancestorb": xor_gc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": rshift_1_gc,
+            "gcb": xor_gc,
+            "cgraph": {
+                "A": [["I", 1, INT_T]],
+                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+                "O": [["B", 0, INT_T]],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+    # one_to_two signature:
+    one_to_two = inherit_members(
+        {
+            "ancestora": random_long_gc,
+            "ancestorb": rshift_xor_gc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": random_long_gc,
+            "gcb": rshift_xor_gc,
+            "cgraph": {
+                "A": [],
+                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+                "O": [["B", 0, INT_T], ["A", 0, INT_T]],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+    two_to_one = rshift_xor_gc
+
+    # Populate the primitive GC dictionary
+    primitive_gcs["random_long"] = random_long_gc
+    primitive_gcs["rshift_1"] = rshift_1_gc
+    primitive_gcs["rshift_xor"] = rshift_xor_gc
+    primitive_gcs["one_to_two"] = one_to_two
+    primitive_gcs["two_to_one"] = two_to_one
 
 
 def randomrange(a: int, num: int = 0) -> list[int]:
@@ -341,13 +409,13 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
-                "B": [["I", i, INT_T] for i in randomrange(gca["num_inputs"], gcb["num_inputs"])],
-                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
-                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
+                "B": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]), len(gcb["inputs"]))],
+                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
+                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
@@ -372,13 +440,15 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
-                "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
-                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
-                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
+                "B": [
+                    ["I", i + len(gca["inputs"]), INT_T] for i in randomrange(len(gcb["inputs"]))
+                ],
+                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
+                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gca["num_codons"] + gcb["num_codons"],
@@ -398,10 +468,10 @@ def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
     # gc1 outputs.
     Connections on each interface are randomly assigned.
     """
-    assert (
-        gc1["num_outputs"] + gc2["num_outputs"] == narrow_gc["num_inputs"]
+    assert len(gc1["outputs"]) + len(gc2["outputs"]) == len(
+        narrow_gc["inputs"]
     ), "gc1 + gc2 outputs != narrow_gc # inputs."
-    assert gc1["num_outputs"] == narrow_gc["num_outputs"], "gc1 outputs != narrow_gc outputs."
+    assert len(gc1["outputs"]) == len(narrow_gc["outputs"]), "gc1 outputs != narrow_gc outputs."
     gca: GCABC = append_gcs(gc1, gc2)
     gcb: GCABC = narrow_gc
     return stack_gcs(gca, gcb)
@@ -416,7 +486,7 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     It is assumed that GCA has the same number of outputs as GCB has inputs.
     GCA's outputs are randomly connected to GCB's inputs.
     """
-    assert gc1["num_outputs"] == gc2["num_inputs"], "gc1 # outputs != gc2 # inputs"
+    assert len(gc1["outputs"]) == len(gc2["inputs"]), "gc1 # outputs != gc2 # inputs"
     return inherit_members(
         {
             "ancestora": gc1,
@@ -424,12 +494,12 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gc1,
             "gcb": gc2,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(gc1["num_inputs"])],
-                "B": [["A", i, INT_T] for i in randomrange(gc2["num_inputs"])],
-                "O": [["B", i, INT_T] for i in randomrange(gc2["num_outputs"])],
+                "A": [["I", i, INT_T] for i in randomrange(len(gc1["inputs"]))],
+                "B": [["A", i, INT_T] for i in randomrange(len(gc2["inputs"]))],
+                "O": [["B", i, INT_T] for i in randomrange(len(gc2["outputs"]))],
                 "U": [],
             },
-            "pgc": custom_pgc,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
             "num_codons": gc1["num_codons"] + gc2["num_codons"],
@@ -454,10 +524,14 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
     matrix[#inputs][#outputs] = {GC1, GC2, ...}
     """
     assert max_epc >= 2, "max_epc < 2"
+    create_primitive_gcs()
     max_epc = max_epc + 1
     _gcm: dict[int, dict[int, list[GCABC]]] = {
-        1: {1: [stack_gcs(one_to_two, two_to_one)], 2: [one_to_two]},
-        2: {1: [two_to_one]},
+        1: {
+            1: [stack_gcs(primitive_gcs["one_to_two"], primitive_gcs["two_to_one"])],
+            2: [primitive_gcs["one_to_two"]],
+        },
+        2: {1: [primitive_gcs["two_to_one"]]},
     }
 
     # Create GC's with 1 input
@@ -484,11 +558,11 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
             # allowed outputs so that there is the possibility of finding an output
             # solution that meets the constraint.
             gca = choice([gc for no in _gcm[num_a] for gc in _gcm[num_a][no] if no < num_outputs])
-            gcb = choice(tuple(_gcm[num_b][num_outputs - gca["num_outputs"]]))
+            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["outputs"])]))
             ngc = append_gcs(gca, gcb)
             target_set.append(ngc)
-            assert ngc["num_inputs"] == num_inputs, f"ngx # inputs != {num_inputs}"
-            assert ngc["num_outputs"] == num_outputs, f"ngx # outputs != {num_outputs}"
+            assert len(ngc["inputs"]) == num_inputs, f"ngx # inputs != {num_inputs}"
+            assert len(ngc["outputs"]) == num_outputs, f"ngx # outputs != {num_outputs}"
     return _gcm
 
 
@@ -549,11 +623,11 @@ if __name__ == "__main__":
     ec1 = ExecutionContext(gpi, 3)
     ec2 = ExecutionContext(gpi, 50, wmc=True)  # Write the meta codons
     # Hack in pre-defined function
-    ec1.function_map[rshift_1_gc["signature"]] = FunctionInfo(
-        f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+    ec1.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
+        f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]
     )
-    ec2.function_map[rshift_1_gc["signature"]] = FunctionInfo(
-        f_7fffffff, 0x7FFFFFFF, 2, rshift_1_gc
+    ec2.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
+        f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]
     )
 
     # Create a markdown formatted file with mermaid diagrams of the GC's in the gene pool
@@ -603,13 +677,13 @@ if __name__ == "__main__":
             f.write(f"### GC Code Connection Graphs with Line Limit = {ec1.line_limit()}\n")
             ntw: list[GCNode] = ec1.create_code_graphs(ng)
             for node in ntw:
-                if node.function_info.global_index not in global_idx_set1:
+                if node.finfo.global_index not in global_idx_set1:
                     f.write("\n```mermaid\n")
                     f.write(node.code_mermaid_chart())
                     f.write("\n```\n")
-                    global_idx_set1.add(node.function_info.global_index)
+                    global_idx_set1.add(node.finfo.global_index)
                 else:
-                    f.write(f"Duplicate global index: {node.function_info.global_index}\n")
+                    f.write(f"Duplicate global index: {node.finfo.global_index}\n")
             f.write(f"\n### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
             f.write("```mermaid\n")
             ng = ec2.node_graph(gpgc)
@@ -619,15 +693,18 @@ if __name__ == "__main__":
             f.write(f"### GC Code Connection Graphs with Line Limit = {ec2.line_limit()}\n")
             ntw: list[GCNode] = ec2.create_code_graphs(ng)
             for node in ntw:
-                if node.function_info.global_index not in global_idx_set2:
+                if node.finfo.global_index not in global_idx_set2:
                     f.write("\n```mermaid\n")
                     f.write(node.code_mermaid_chart())
                     f.write("\n```\n")
-                    global_idx_set2.add(node.function_info.global_index)
+                    global_idx_set2.add(node.finfo.global_index)
                 else:
-                    f.write(f"Duplicate global index: {node.function_info.global_index}\n")
+                    f.write(f"Duplicate global index: {node.finfo.global_index}\n")
             f.write("\n")
 
     # Dump as JSON so we can take a deeper look at the GC's
     with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         dump([gc.to_json() for gc in gene_pool], f, sort_keys=True, indent=4)
+
+    # Deduplicator info
+    print(f"GC markdown and JSON files created.\n\n{deduplicators_info()}")

@@ -1,14 +1,13 @@
 """Row iterators."""
 
 from collections import namedtuple
-from logging import DEBUG, Logger, NullHandler, getLogger
+from logging import Logger, NullHandler, getLogger
 from typing import Any, Callable, Iterable, Literal, Self
 
 from psycopg2.extensions import cursor
 
 _logger: Logger = getLogger(__name__)
 _logger.addHandler(NullHandler())
-_LOG_DEBUG: bool = _logger.isEnabledFor(DEBUG)
 
 
 class BaseIter:

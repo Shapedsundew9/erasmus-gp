@@ -1,11 +1,10 @@
 """Application layer wrapper for raw_table."""
 
-from copy import deepcopy
 from json import load
 from os.path import join
 from typing import Any, Callable, Iterable, Literal
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.text_token import TextToken
 from egpdb.configuration import TableConfig
 from egpdb.raw_table import RawTable
@@ -13,9 +12,6 @@ from egpdb.row_iterators import DictIter, GenIter, NamedTupleIter, RowIter, Tupl
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class Table:

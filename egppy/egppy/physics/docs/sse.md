@@ -11,7 +11,7 @@ Steady state exceptions are analogous to the spontaneous creation of a vacuum in
 The only steady state exception is a destination endpoint in a GC connection graph that is not connected. This is a function that is missing a parameter - which in python is a runtime error. Following the vacuum/free radical analogy the exception must be resolved by connection to a viable source in 'close proximity'. Viable source endpoints have the same type as the destination endpoint and are either sourced:
 
 - **Internally**: An endpoint in the top level GC or any sub-GC that can be connected to the destination without breaking any graph connection rules. Routing connections through output and input interfaces is permitted.
-- **Externally**: A source end point of an Insertion GC, iGC, from the Gene Pool. The suitability of an iGC is a function of how close a match its interface provides to the requirements of the SSE, its proximity in scope and its abundance in that scope.
+- **Externally**: A source endpoint of an Insertion GC, iGC, from the Gene Pool. The suitability of an iGC is a function of how close a match its interface provides to the requirements of the SSE, its proximity in scope and its abundance in that scope.
 
 ### Choosing an Endpoint Source
 

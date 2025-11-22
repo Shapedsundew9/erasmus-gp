@@ -1,26 +1,26 @@
 {
-    "range1": {
-        "inline": "range({i0}, {i1}, {i2})",
-        "inputs": [
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "range(start, stop, step)"
-    },
-    "range2": {
-        "inline": "range({i0}, {i1})",
-        "inputs": [
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "range(start, stop)"
-    },
-    "range3": {
-        "inline": "range({i0})",
-        "inputs": [
-            "-EGPIntegral0"
-        ],
-        "description": "range(stop)"
-    }
+  "range1": {
+    "description": "range(start, stop, step)",
+    "inline": "range({i0}, {i1}, {i2})",
+    "inputs": [
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ]
+  },
+  "range2": {
+    "description": "range(start, stop)",
+    "inline": "range({i0}, {i1})",
+    "inputs": [
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ]
+  },
+  "range3": {
+    "description": "range(stop)",
+    "inline": "range({i0})",
+    "inputs": [
+      "-EGPIntegral0"
+    ]
+  }
 }

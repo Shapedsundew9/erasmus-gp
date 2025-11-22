@@ -10,6 +10,7 @@ services:
       - postgres
     secrets:
       - db_password
+      - private_key
 
   postgres:
     image: postgres:latest
@@ -22,7 +23,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     networks:
       - default
     healthcheck:
@@ -46,6 +47,7 @@ services:
       - default
     secrets:
       - db_password
+      - private_key
 
 volumes:
   postgres_data:
@@ -53,3 +55,5 @@ volumes:
 secrets:
   db_password:
     file: ${HOME}/.egppy/db_password
+  private_key:
+    file: ${HOME}/.egppy/private_key.pem

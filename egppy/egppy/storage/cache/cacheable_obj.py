@@ -6,15 +6,12 @@ from typing import Any, Iterable, Iterator
 
 from egpcommon.common import NULL_TUPLE
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 from egppy.storage.cache.cacheable_obj_mixin import CacheableObjMixin
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 class CacheableDict(MutableMapping, CacheableObjMixin, CommonObj, CacheableObjABC):
@@ -92,11 +89,11 @@ class CacheableDict(MutableMapping, CacheableObjMixin, CommonObj, CacheableObjAB
         """Return a JSON serializable dictionary."""
         return deepcopy(x=self.data)
 
-    def verify(self) -> bool:
+    def verify(self) -> None:
         """Verify the cacheable object."""
         non_str_keys = tuple(x for x in self if not isinstance(x, str))
         assert not non_str_keys, f"Keys must be strings: Non-string keys {non_str_keys}."
-        return super().verify()
+        super().verify()
 
 
 class CacheableList(MutableSequence, CacheableObjMixin, CommonObj, CacheableObjABC):

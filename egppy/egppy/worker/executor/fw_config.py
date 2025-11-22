@@ -15,6 +15,8 @@ class FWConfig:
     debug: bool = False
     # Enable deep debug (very heavy)
     deep_debug: bool = False
+    # Inline signature comments for each line (least significant 32 bits of the signature)
+    inline_sigs: bool = False
     # Enable lean mode to remove all comments, docstrings and pretty spacing.
     # This saves memory in the execution_context.
     lean: bool = True

@@ -1,2202 +1,1464 @@
 {
-    "AncestorASig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "AncestorASig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "AncestorSig"
-        ]
-    },
-    "AncestorBSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "AncestorBSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "AncestorSig"
-        ]
-    },
-    "AncestorSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "AncestorSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "GCSig"
-        ]
-    },
-    "Any": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "typing"
-                ],
-                "name": "Any"
-            }
-        ]
-    },
-    "bool": {
-        "default": "True",
-        "parents": [
-            "int"
-        ]
-    },
-    "bytearray": {
-        "default": "bytearray('btwo')",
-        "parents": [
-            "MutableSequence[int]",
-            "Bytes"
-        ]
-    },
-    "bytes": {
-        "default": "bytes('btwo')",
-        "parents": [
-            "Sequence[int]",
-            "Hashable",
-            "Bytes"
-        ]
-    },
-    "Bytes": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Bytes"
-            }
-        ]
-    },
-    "Callable[list[type], Any]": {
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Callable"
-            }
-        ],
-        "parents": [
-            "object"
-        ],
-        "tt": 2
-    },
-    "CGraph": {
-        "default": "CGraph()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "CGraph"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "CodeDepth": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "CodeDepth"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "Collection[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Collection"
-            }
-        ],
-        "parents": [
-            "Sized",
-            "Iterable[-Any0]",
-            "Container[-Any0]"
-        ],
-        "tt": 1
-    },
-    "complex": {
-        "default": "complex(2.0,-2.0)",
-        "parents": [
-            "Complex"
-        ]
-    },
-    "Complex": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Complex"
-            }
-        ],
-        "parents": [
-            "Number",
-            "EGPComplex"
-        ]
-    },
-    "Container[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Container"
-            }
-        ],
-        "parents": [
-            "object"
-        ],
-        "tt": 1
-    },
-    "Created": {
-        "default": "Created.now()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Created"
-            }
-        ],
-        "parents": [
-            "datetime"
-        ]
-    },
-    "Creator": {
-        "default": "Created.now()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Creator"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "date": {
-        "default": "date.today()",
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "date"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "datetime": {
-        "default": "datetime.now()",
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "datetime"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "Descendants": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Descendants"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "dict[-Hashable0, -Any0]": {
-        "default": "{}",
-        "parents": [
-            "MutableMapping[-Hashable0, -Any0]"
-        ],
-        "tt": 2
-    },
-    "ECount": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ECount"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "ECountCL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ECountCL"
-            }
-        ],
-        "parents": [
-            "ECount"
-        ]
-    },
-    "ECountHL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ECountHL"
-            }
-        ],
-        "parents": [
-            "ECount"
-        ]
-    },
-    "EGPComplex": {
-        "abstract": true
-    },
-    "EGPIntegral": {
-        "abstract": true
-    },
-    "EGPInvalid": {
-        "abstract": true
-    },
-    "EGPNumber": {
-        "abstract": true
-    },
-    "EGPRational": {
-        "abstract": true
-    },
-    "EGPReal": {
-        "abstract": true
-    },
-    "ETotal": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ETotal"
-            }
-        ],
-        "parents": [
-            "float"
-        ]
-    },
-    "ETotalCL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ETotalCL"
-            }
-        ],
-        "parents": [
-            "ETotal"
-        ]
-    },
-    "ETotalHL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ETotalHL"
-            }
-        ],
-        "parents": [
-            "ETotal"
-        ]
-    },
-    "Evolvability": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Evolvability"
-            }
-        ],
-        "parents": [
-            "float"
-        ]
-    },
-    "EvolvabilityCL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "EvolvabilityCL"
-            }
-        ],
-        "parents": [
-            "Evolvability"
-        ]
-    },
-    "EvolvabilityHL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "EvolvabilityHL"
-            }
-        ],
-        "parents": [
-            "Evolvability"
-        ]
-    },
-    "FCount": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FCount"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "FCountCL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FCountCL"
-            }
-        ],
-        "parents": [
-            "FCount"
-        ]
-    },
-    "FCountHL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FCountHL"
-            }
-        ],
-        "parents": [
-            "FCount"
-        ]
-    },
-    "Fitness": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Fitness"
-            }
-        ],
-        "parents": [
-            "float"
-        ]
-    },
-    "FitnessCL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FitnessCL"
-            }
-        ],
-        "parents": [
-            "Fitness"
-        ]
-    },
-    "FitnessHL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FitnessHL"
-            }
-        ],
-        "parents": [
-            "Fitness"
-        ]
-    },
-    "float": {
-        "default": "(2.0)",
-        "parents": [
-            "Real"
-        ]
-    },
-    "frozenset[-Hashable0]": {
-        "default": "frozenset()",
-        "parents": [
-            "Set[-Hashable0]",
-            "Hashable"
-        ],
-        "tt": 1
-    },
-    "FTotal": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FTotal"
-            }
-        ],
-        "parents": [
-            "float"
-        ]
-    },
-    "FTotalCL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FTotalCL"
-            }
-        ],
-        "parents": [
-            "FTotal"
-        ]
-    },
-    "FTotalHL": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "FTotalHL"
-            }
-        ],
-        "parents": [
-            "FTotal"
-        ]
-    },
-    "GCABC": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "GCABC"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "GCABSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "GCABSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "GCSig"
-        ]
-    },
-    "GCASig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "GCASig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "GCABSig"
-        ]
-    },
-    "GCBSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "GCBSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "GCABSig"
-        ]
-    },
-    "GCSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "GCSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "Signature"
-        ]
-    },
-    "Generation": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Generation"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "Generator[-Any0, -Any1, -Any2]": {
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Generator"
-            }
-        ],
-        "parents": [
-            "object"
-        ],
-        "tt": 3
-    },
-    "Hashable": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Hashable"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "IIndices": {
-        "default": "b''",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "IIndices"
-            }
-        ],
-        "parents": [
-            "IOIndices"
-        ]
-    },
-    "int": {
-        "default": "(2)",
-        "parents": [
-            "Integral"
-        ]
-    },
-    "Integral": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "numbers"
-                ],
-                "name": "Integral"
-            }
-        ],
-        "parents": [
-            "Rational",
-            "EGPIntegral"
-        ]
-    },
-    "IOIndices": {
-        "default": "b''",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "IOIndices"
-            }
-        ],
-        "parents": [
-            "bytes"
-        ]
-    },
-    "IOTypes": {
-        "default": "types_def_store['object']",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "IOTypes"
-            },
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "types_def_store"
-            }
-        ],
-        "parents": [
-            "tuple[TypesDef, ...]"
-        ]
-    },
-    "ItemsView[-Hashable0, -Any0]": {
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "ItemsView"
-            }
-        ],
-        "parents": [
-            "MappingView",
-            "Set[Pair[-Hashable0, -Any0]]",
-            "Reversible[Pair[-Hashable0, -Any0]]"
-        ],
-        "tt": 2
-    },
-    "Iterable[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Iterable"
-            }
-        ],
-        "parents": [
-            "object"
-        ],
-        "tt": 1
-    },
-    "Iterator[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Iterator"
-            }
-        ],
-        "parents": [
-            "Iterable[-Any0]"
-        ],
-        "tt": 1
-    },
-    "ITypes": {
-        "default": "types_def_store['object']",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ITypes"
-            },
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "types_def_store"
-            }
-        ],
-        "parents": [
-            "IOTypes"
-        ]
-    },
-    "KeysView[-Hashable0]": {
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "KeysView"
-            }
-        ],
-        "parents": [
-            "MappingView",
-            "Set[-Hashable0]",
-            "Reversible[-Hashable0]"
-        ],
-        "tt": 1
-    },
-    "list[-Any0]": {
-        "default": "[]",
-        "parents": [
-            "MutableSequence[-Any0]"
-        ],
-        "tt": 1
-    },
-    "LostDescendants": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "LostDescendants"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "LostDescendantsCL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "LostDescendantsCL"
-            }
-        ],
-        "parents": [
-            "LostDescendants"
-        ]
-    },
-    "LostDescendantsHL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "LostDescendantsHL"
-            }
-        ],
-        "parents": [
-            "LostDescendants"
-        ]
-    },
-    "Mapping[-Hashable0, Any]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Mapping"
-            }
-        ],
-        "parents": [
-            "Collection[-Hashable0]"
-        ],
-        "tt": 2
-    },
-    "MappingView": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "MappingView"
-            }
-        ],
-        "parents": [
-            "Sized"
-        ]
-    },
-    "MutableMapping[-Hashable0, -Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "MutableMapping"
-            }
-        ],
-        "parents": [
-            "Mapping[-Hashable0, -Any0]"
-        ],
-        "tt": 2
-    },
-    "MutableSequence[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "MutableSequence"
-            }
-        ],
-        "parents": [
-            "Sequence[-Any0]"
-        ],
-        "tt": 1
-    },
-    "MutableSet[-Hashable0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "MutableSet"
-            }
-        ],
-        "parents": [
-            "Set[-Hashable0]"
-        ],
-        "tt": 1
-    },
-    "None": {
-        "default": "None",
-        "parents": [
-            "object"
-        ]
-    },
-    "Number": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "numbers"
-                ],
-                "name": "Number"
-            }
-        ],
-        "parents": [
-            "Hashable",
-            "EGPNumber"
-        ]
-    },
-    "NumCodes": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "NumCodes"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "NumCodons": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "NumCodons"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "NumInputs": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "NumInputs"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "NumOutputs": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "NumOutputs"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "object": {
-        "abstract": true,
-        "default": "object()"
-    },
-    "OIndices": {
-        "default": "b''",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "OIndices"
-            }
-        ],
-        "parents": [
-            "IOIndices"
-        ]
-    },
-    "OTypes": {
-        "default": "types_def_store['object']",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "OTypes"
-            },
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "types_def_store"
-            }
-        ],
-        "parents": [
-            "IOTypes"
-        ]
-    },
-    "Pair[-Any0, -Any1]": {
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Pair"
-            }
-        ],
-        "parents": [
-            "tuple"
-        ],
-        "tt": 2
-    },
-    "PGCSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "PGCSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "GCSig"
-        ]
-    },
-    "PopulationUID": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "PopulationUID"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "ProblemSetSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ProblemSetSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "Signature"
-        ]
-    },
-    "ProblemSig": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ProblemSig"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "Signature"
-        ]
-    },
-    "PropertiesBD": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "PropertiesBD"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "PropertiesInt": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "PropertiesInt"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "PsqlArray": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlArray"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlBigInt": {
-        "default": "PsqlBigInt(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBigInt"
-            }
-        ],
-        "parents": [
-            "PsqlIntegral"
-        ]
-    },
-    "PsqlBigIntArray": {
-        "default": "PsqlBigIntArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBigIntArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlBool": {
-        "default": "PsqlBool(False)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBool"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlBoolArray": {
-        "default": "PsqlBoolArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBoolArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlBytea": {
-        "default": "PsqlBytea(b'')",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlBytea"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlChar": {
-        "default": "PsqlChar('')",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlChar"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlDate": {
-        "default": "PsqlDate(date.today())",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlDate"
-            },
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "date"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlDoublePrecision": {
-        "default": "PsqlDoublePrecision(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlDoublePrecision"
-            }
-        ],
-        "parents": [
-            "PsqlNumeric"
-        ]
-    },
-    "PsqlDoublePrecisionArray": {
-        "default": "PsqlDoublePrecisionArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlDoublePrecisionArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlFragment": {
-        "default": "PsqlFragment()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlFragment"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "PsqlFragmentOrderBy": {
-        "default": "PsqlFragmentOrderBy()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlFragmentOrderBy"
-            }
-        ],
-        "parents": [
-            "PsqlFragment"
-        ]
-    },
-    "PsqlFragmentWhere": {
-        "default": "PsqlFragmentWhere()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlFragmentWhere"
-            }
-        ],
-        "parents": [
-            "PsqlFragment"
-        ]
-    },
-    "PsqlInt": {
-        "default": "PsqlInt(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlInt"
-            }
-        ],
-        "parents": [
-            "PsqlIntegral"
-        ]
-    },
-    "PsqlIntArray": {
-        "default": "PsqlIntArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlIntArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlIntegral": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlIntegral"
-            }
-        ],
-        "parents": [
-            "PsqlNumeric"
-        ]
-    },
-    "PsqlNumber": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlNumber"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlNumeric": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlNumeric"
-            }
-        ],
-        "parents": [
-            "PsqlNumber"
-        ]
-    },
-    "PsqlReal": {
-        "default": "PsqlReal(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlReal"
-            }
-        ],
-        "parents": [
-            "PsqlNumeric"
-        ]
-    },
-    "PsqlRealArray": {
-        "default": "PsqlRealArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlRealArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlSmallInt": {
-        "default": "PsqlSmallInt(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlSmallInt"
-            }
-        ],
-        "parents": [
-            "PsqlIntegral"
-        ]
-    },
-    "PsqlSmallIntArray": {
-        "default": "PsqlSmallIntArray([])",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlSmallIntArray"
-            }
-        ],
-        "parents": [
-            "PsqlArray"
-        ]
-    },
-    "PsqlStatement": {
-        "default": "PsqlStatement()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlStatement"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "PsqlStatementSelect": {
-        "default": "PsqlStatementSelect()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlStatementSelect"
-            }
-        ],
-        "parents": [
-            "PsqlStatement"
-        ]
-    },
-    "PsqlTime": {
-        "default": "PsqlTime(timedelta(days=0, seconds=0))",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlTime"
-            },
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "timedelta"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlTimestamp": {
-        "default": "PsqlTimestamp(datetime.now())",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlTimestamp"
-            },
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "datetime"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlType": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlType"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "PsqlUuid": {
-        "default": "PsqlUuid(NULL_UUID)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlUuid"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_UUID"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "PsqlVarChar": {
-        "default": "PsqlVarChar('')",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "psql_types"
-                ],
-                "name": "PsqlVarChar"
-            }
-        ],
-        "parents": [
-            "PsqlType"
-        ]
-    },
-    "Quadruplet[-Any0, -Any1, -Any2, -Any3]": {
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Quadruplet"
-            }
-        ],
-        "parents": [
-            "tuple"
-        ],
-        "tt": 4
-    },
-    "Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]": {
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Quintuplet"
-            }
-        ],
-        "parents": [
-            "tuple"
-        ],
-        "tt": 5
-    },
-    "range": {
-        "default": "range(2)",
-        "parents": [
-            "Sequence[int]",
-            "Hashable"
-        ]
-    },
-    "Rational": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "numbers"
-                ],
-                "name": "Rational"
-            }
-        ],
-        "parents": [
-            "Real",
-            "EGPRational"
-        ]
-    },
-    "Real": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "numbers"
-                ],
-                "name": "Real"
-            }
-        ],
-        "parents": [
-            "Complex",
-            "EGPReal"
-        ]
-    },
-    "ReferenceCount": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ReferenceCount"
-            }
-        ],
-        "parents": [
-            "int"
-        ]
-    },
-    "ReferenceCountCL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ReferenceCountCL"
-            }
-        ],
-        "parents": [
-            "ReferenceCount"
-        ]
-    },
-    "ReferenceCountHL": {
-        "default": "(0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "ReferenceCountHL"
-            }
-        ],
-        "parents": [
-            "ReferenceCount"
-        ]
-    },
-    "Reversible[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Reversible"
-            }
-        ],
-        "parents": [
-            "Iterable[-Any0]"
-        ],
-        "tt": 1
-    },
-    "Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]": {
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Septuplet"
-            }
-        ],
-        "parents": [
-            "tuple"
-        ],
-        "tt": 7
-    },
-    "Sequence[-Any0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Sequence"
-            }
-        ],
-        "parents": [
-            "Reversible[-Any0]",
-            "Collection[-Any0]"
-        ],
-        "tt": 1
-    },
-    "set[-Hashable0]": {
-        "default": "set()",
-        "parents": [
-            "MutableSet[-Hashable0]"
-        ],
-        "tt": 1
-    },
-    "Set[-Hashable0]": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Set"
-            }
-        ],
-        "parents": [
-            "Collection[-Hashable0]"
-        ],
-        "tt": 1
-    },
-    "Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]": {
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Sextuplet"
-            }
-        ],
-        "parents": [
-            "tuple"
-        ],
-        "tt": 6
-    },
-    "Signature": {
-        "default": "NULL_SHA256",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Signature"
-            },
-            {
-                "aip": [
-                    "egpcommon",
-                    "common"
-                ],
-                "name": "NULL_SHA256"
-            }
-        ],
-        "parents": [
-            "bytes"
-        ]
-    },
-    "Sized": {
-        "abstract": true,
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "Sized"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "str": {
-        "default": "two",
-        "parents": [
-            "Sequence[str]",
-            "Hashable"
-        ]
-    },
-    "Survivability": {
-        "default": "(0.0)",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Survivability"
-            }
-        ],
-        "parents": [
-            "float"
-        ]
-    },
-    "timedelta": {
-        "default": "timedelta(days=1)",
-        "imports": [
-            {
-                "aip": [
-                    "datetime"
-                ],
-                "name": "timedelta"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "Triplet[-Any0, -Any1, -Any2]": {
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "c_graph",
-                    "end_point",
-                    "egp_ept_types"
-                ],
-                "name": "Triplet"
-            }
-        ],
-        "parents": [
-            "tuple"
-        ],
-        "tt": 3
-    },
-    "tuple[-Any0, ...]": {
-        "default": "tuple()",
-        "parents": [
-            "Sequence[-Any0]",
-            "Hashable"
-        ],
-        "tt": 1
-    },
-    "type": {
-        "default": "type('two')",
-        "parents": [
-            "object"
-        ]
-    },
-    "TypesDef": {
-        "default": "types_def_store['object']",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "TypesDef"
-            },
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "types_def_store"
-            }
-        ],
-        "parents": [
-            "object"
-        ]
-    },
-    "Updated": {
-        "default": "Updated.now()",
-        "imports": [
-            {
-                "aip": [
-                    "egppy",
-                    "physics",
-                    "phy_types"
-                ],
-                "name": "Updated"
-            }
-        ],
-        "parents": [
-            "datetime"
-        ]
-    },
-    "ValuesView[-Any0]": {
-        "imports": [
-            {
-                "aip": [
-                    "collections",
-                    "abc"
-                ],
-                "name": "ValuesView"
-            }
-        ],
-        "parents": [
-            "MappingView",
-            "Collection[-Any0]",
-            "Reversible[-Any0]"
-        ],
-        "tt": 1
-    }
+  "Any": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "typing"
+        ],
+        "name": "Any"
+      }
+    ]
+  },
+  "Bytes": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Bytes"
+      }
+    ]
+  },
+  "CGraph": {
+    "default": "CGraph()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraph"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "CPI": {
+    "default": "CPI.IDX",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CPI"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "Callable[list[type], Any]": {
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Callable"
+      }
+    ],
+    "parents": [
+      "object"
+    ],
+    "tt": 2
+  },
+  "Collection[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      }
+    ],
+    "parents": [
+      "Sized",
+      "Iterable[-Any0]",
+      "Container[-Any0]"
+    ],
+    "tt": 1
+  },
+  "Complex": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "name": "Complex"
+      }
+    ],
+    "parents": [
+      "Number",
+      "EGPComplex"
+    ]
+  },
+  "Container[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      }
+    ],
+    "parents": [
+      "object"
+    ],
+    "tt": 1
+  },
+  "DstEndPoint": {
+    "default": "DstEndPoint()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "DstEndPoint"
+      }
+    ],
+    "parents": [
+      "EndPoint"
+    ]
+  },
+  "DstIfKey": {
+    "default": "DstIfKey.OD",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "DstIfKey"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "DstInterface": {
+    "default": "DstInterface()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "DstInterface"
+      }
+    ],
+    "parents": [
+      "Interface"
+    ]
+  },
+  "DstRow": {
+    "default": "DstRow.O",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "DstRow"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "EGCode": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "EGCode"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "EGPComplex": {
+    "abstract": true
+  },
+  "EGPIntegral": {
+    "abstract": true
+  },
+  "EGPInvalid": {
+    "abstract": true
+  },
+  "EGPNumber": {
+    "abstract": true
+  },
+  "EGPRational": {
+    "abstract": true
+  },
+  "EGPReal": {
+    "abstract": true
+  },
+  "EPClsPostfix": {
+    "default": "EPClsPostfix.SRC",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "EPClsPostfix"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "EndPoint": {
+    "default": "EndPoint()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "EndPoint"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "EndPointClass": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "EndPointClass"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "GGCode": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "GGCode"
+      }
+    ],
+    "parents": [
+      "EGCode"
+    ]
+  },
+  "Generator[-Any0, -Any1, -Any2]": {
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Generator"
+      }
+    ],
+    "parents": [
+      "object"
+    ],
+    "tt": 3
+  },
+  "Hashable": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Hashable"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "Integral": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "name": "Integral"
+      }
+    ],
+    "parents": [
+      "Rational",
+      "EGPIntegral"
+    ]
+  },
+  "Interface": {
+    "default": "Interface()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Interface"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "ItemsView[-Hashable0, -Any0]": {
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ItemsView"
+      }
+    ],
+    "parents": [
+      "MappingView",
+      "Set[Pair[-Hashable0, -Any0]]",
+      "Reversible[Pair[-Hashable0, -Any0]]"
+    ],
+    "tt": 2
+  },
+  "Iterable[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      }
+    ],
+    "parents": [
+      "object"
+    ],
+    "tt": 1
+  },
+  "Iterator[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      }
+    ],
+    "parents": [
+      "Iterable[-Any0]"
+    ],
+    "tt": 1
+  },
+  "KeysView[-Hashable0]": {
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "KeysView"
+      }
+    ],
+    "parents": [
+      "MappingView",
+      "Set[-Hashable0]",
+      "Reversible[-Hashable0]"
+    ],
+    "tt": 1
+  },
+  "MappingView": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MappingView"
+      }
+    ],
+    "parents": [
+      "Sized"
+    ]
+  },
+  "Mapping[-Hashable0, Any]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Mapping"
+      }
+    ],
+    "parents": [
+      "Collection[-Hashable0]"
+    ],
+    "tt": 2
+  },
+  "MutableMapping[-Hashable0, -Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableMapping"
+      }
+    ],
+    "parents": [
+      "Mapping[-Hashable0, -Any0]"
+    ],
+    "tt": 2
+  },
+  "MutableSequence[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      }
+    ],
+    "parents": [
+      "Sequence[-Any0]"
+    ],
+    "tt": 1
+  },
+  "MutableSet[-Hashable0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSet"
+      }
+    ],
+    "parents": [
+      "Set[-Hashable0]"
+    ],
+    "tt": 1
+  },
+  "None": {
+    "default": "None",
+    "parents": [
+      "object"
+    ]
+  },
+  "Number": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "name": "Number"
+      }
+    ],
+    "parents": [
+      "Hashable",
+      "EGPNumber"
+    ]
+  },
+  "Pair[-Any0, -Any1]": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Pair"
+      }
+    ],
+    "parents": [
+      "tuple"
+    ],
+    "tt": 2
+  },
+  "PropertiesBD": {
+    "default": "(0)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PropertiesBD"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "PsqlArray": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlArray"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlBigInt": {
+    "default": "PsqlBigInt(0)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlBigInt"
+      }
+    ],
+    "parents": [
+      "PsqlIntegral"
+    ]
+  },
+  "PsqlBigIntArray": {
+    "default": "PsqlBigIntArray([])",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlBigIntArray"
+      }
+    ],
+    "parents": [
+      "PsqlArray"
+    ]
+  },
+  "PsqlBool": {
+    "default": "PsqlBool(False)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlBool"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlBoolArray": {
+    "default": "PsqlBoolArray([])",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlBoolArray"
+      }
+    ],
+    "parents": [
+      "PsqlArray"
+    ]
+  },
+  "PsqlBytea": {
+    "default": "PsqlBytea(b'')",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlBytea"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlChar": {
+    "default": "PsqlChar('')",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlChar"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlDate": {
+    "default": "PsqlDate(date.today())",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlDate"
+      },
+      {
+        "aip": [
+          "datetime"
+        ],
+        "name": "date"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlDoublePrecision": {
+    "default": "PsqlDoublePrecision(0.0)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlDoublePrecision"
+      }
+    ],
+    "parents": [
+      "PsqlNumeric"
+    ]
+  },
+  "PsqlDoublePrecisionArray": {
+    "default": "PsqlDoublePrecisionArray([])",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlDoublePrecisionArray"
+      }
+    ],
+    "parents": [
+      "PsqlArray"
+    ]
+  },
+  "PsqlFragment": {
+    "default": "PsqlFragment()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlFragment"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "PsqlFragmentOrderBy": {
+    "default": "PsqlFragmentOrderBy()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlFragmentOrderBy"
+      }
+    ],
+    "parents": [
+      "PsqlFragment"
+    ]
+  },
+  "PsqlFragmentWhere": {
+    "default": "PsqlFragmentWhere()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlFragmentWhere"
+      }
+    ],
+    "parents": [
+      "PsqlFragment"
+    ]
+  },
+  "PsqlInt": {
+    "default": "PsqlInt(0)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlInt"
+      }
+    ],
+    "parents": [
+      "PsqlIntegral"
+    ]
+  },
+  "PsqlIntArray": {
+    "default": "PsqlIntArray([])",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlIntArray"
+      }
+    ],
+    "parents": [
+      "PsqlArray"
+    ]
+  },
+  "PsqlIntegral": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlIntegral"
+      }
+    ],
+    "parents": [
+      "PsqlNumeric"
+    ]
+  },
+  "PsqlNumber": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlNumber"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlNumeric": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlNumeric"
+      }
+    ],
+    "parents": [
+      "PsqlNumber"
+    ]
+  },
+  "PsqlReal": {
+    "default": "PsqlReal(0.0)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlReal"
+      }
+    ],
+    "parents": [
+      "PsqlNumeric"
+    ]
+  },
+  "PsqlRealArray": {
+    "default": "PsqlRealArray([])",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlRealArray"
+      }
+    ],
+    "parents": [
+      "PsqlArray"
+    ]
+  },
+  "PsqlSmallInt": {
+    "default": "PsqlSmallInt(0)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlSmallInt"
+      }
+    ],
+    "parents": [
+      "PsqlIntegral"
+    ]
+  },
+  "PsqlSmallIntArray": {
+    "default": "PsqlSmallIntArray([])",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlSmallIntArray"
+      }
+    ],
+    "parents": [
+      "PsqlArray"
+    ]
+  },
+  "PsqlStatement": {
+    "default": "PsqlStatement()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlStatement"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "PsqlStatementSelect": {
+    "default": "PsqlStatementSelect()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlStatementSelect"
+      }
+    ],
+    "parents": [
+      "PsqlStatement"
+    ]
+  },
+  "PsqlTime": {
+    "default": "PsqlTime(timedelta(days=0, seconds=0))",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlTime"
+      },
+      {
+        "aip": [
+          "datetime"
+        ],
+        "name": "timedelta"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlTimestamp": {
+    "default": "PsqlTimestamp(datetime.now())",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlTimestamp"
+      },
+      {
+        "aip": [
+          "datetime"
+        ],
+        "name": "datetime"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlType": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlType"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "PsqlUUID": {
+    "default": "PsqlUUID(NULL_UUID)",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlUUID"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "NULL_UUID"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "PsqlVarChar": {
+    "default": "PsqlVarChar('')",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlVarChar"
+      }
+    ],
+    "parents": [
+      "PsqlType"
+    ]
+  },
+  "Quadruplet[-Any0, -Any1, -Any2, -Any3]": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Quadruplet"
+      }
+    ],
+    "parents": [
+      "tuple"
+    ],
+    "tt": 4
+  },
+  "Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Quintuplet"
+      }
+    ],
+    "parents": [
+      "tuple"
+    ],
+    "tt": 5
+  },
+  "Rational": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "name": "Rational"
+      }
+    ],
+    "parents": [
+      "Real",
+      "EGPRational"
+    ]
+  },
+  "Real": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "name": "Real"
+      }
+    ],
+    "parents": [
+      "Complex",
+      "EGPReal"
+    ]
+  },
+  "Reversible[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      }
+    ],
+    "parents": [
+      "Iterable[-Any0]"
+    ],
+    "tt": 1
+  },
+  "Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Septuplet"
+      }
+    ],
+    "parents": [
+      "tuple"
+    ],
+    "tt": 7
+  },
+  "Sequence[-Any0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      }
+    ],
+    "parents": [
+      "Reversible[-Any0]",
+      "Collection[-Any0]"
+    ],
+    "tt": 1
+  },
+  "Set[-Hashable0]": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Set"
+      }
+    ],
+    "parents": [
+      "Collection[-Hashable0]"
+    ],
+    "tt": 1
+  },
+  "Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Sextuplet"
+      }
+    ],
+    "parents": [
+      "tuple"
+    ],
+    "tt": 6
+  },
+  "Sized": {
+    "abstract": true,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sized"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "SrcEndPoint": {
+    "default": "SrcEndPoint()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "SrcEndPoint"
+      }
+    ],
+    "parents": [
+      "EndPoint"
+    ]
+  },
+  "SrcIfKey": {
+    "default": "SrcIfKey.IS",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "SrcIfKey"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "SrcInterface": {
+    "default": "SrcInterface()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "SrcInterface"
+      }
+    ],
+    "parents": [
+      "Interface"
+    ]
+  },
+  "SrcRow": {
+    "default": "SrcRow.I",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "SrcRow"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "Triplet[-Any0, -Any1, -Any2]": {
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "Triplet"
+      }
+    ],
+    "parents": [
+      "tuple"
+    ],
+    "tt": 3
+  },
+  "TypesDef": {
+    "default": "types_def_store['object']",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "TypesDef"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "types_def_store"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "UUID": {
+    "imports": [
+      {
+        "aip": [
+          "uuid"
+        ],
+        "name": "UUID"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "ValuesView[-Any0]": {
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      }
+    ],
+    "parents": [
+      "MappingView",
+      "Collection[-Any0]",
+      "Reversible[-Any0]"
+    ],
+    "tt": 1
+  },
+  "bool": {
+    "default": "True",
+    "parents": [
+      "int"
+    ]
+  },
+  "bytearray": {
+    "default": "bytearray('btwo')",
+    "parents": [
+      "MutableSequence[int]",
+      "Bytes"
+    ]
+  },
+  "bytes": {
+    "default": "bytes('btwo')",
+    "parents": [
+      "Sequence[int]",
+      "Hashable",
+      "Bytes"
+    ]
+  },
+  "complex": {
+    "default": "complex(2.0,-2.0)",
+    "parents": [
+      "Complex"
+    ]
+  },
+  "date": {
+    "default": "date.today()",
+    "imports": [
+      {
+        "aip": [
+          "datetime"
+        ],
+        "name": "date"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "datetime": {
+    "default": "datetime.now()",
+    "imports": [
+      {
+        "aip": [
+          "datetime"
+        ],
+        "name": "datetime"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "dict[-Hashable0, -Any0]": {
+    "default": "{}",
+    "parents": [
+      "MutableMapping[-Hashable0, -Any0]"
+    ],
+    "tt": 2
+  },
+  "float": {
+    "default": "(2.0)",
+    "parents": [
+      "Real"
+    ]
+  },
+  "frozenset[-Hashable0]": {
+    "default": "frozenset()",
+    "parents": [
+      "Set[-Hashable0]",
+      "Hashable"
+    ],
+    "tt": 1
+  },
+  "int": {
+    "default": "(2)",
+    "parents": [
+      "Integral"
+    ]
+  },
+  "list[-Any0]": {
+    "default": "[]",
+    "parents": [
+      "MutableSequence[-Any0]"
+    ],
+    "tt": 1
+  },
+  "object": {
+    "abstract": true,
+    "default": "object()"
+  },
+  "range": {
+    "default": "range(2)",
+    "parents": [
+      "Sequence[int]",
+      "Hashable"
+    ]
+  },
+  "set[-Hashable0]": {
+    "default": "set()",
+    "parents": [
+      "MutableSet[-Hashable0]"
+    ],
+    "tt": 1
+  },
+  "str": {
+    "default": "two",
+    "parents": [
+      "Sequence[str]",
+      "Hashable"
+    ]
+  },
+  "timedelta": {
+    "default": "timedelta(days=1)",
+    "imports": [
+      {
+        "aip": [
+          "datetime"
+        ],
+        "name": "timedelta"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "tuple[-Any0, ...]": {
+    "default": "tuple()",
+    "parents": [
+      "Sequence[-Any0]",
+      "Hashable"
+    ],
+    "tt": 1
+  },
+  "type": {
+    "default": "type('two')",
+    "parents": [
+      "object"
+    ]
+  }
 }

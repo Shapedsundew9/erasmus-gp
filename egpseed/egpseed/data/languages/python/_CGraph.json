@@ -1,1 +1,24 @@
-{}
+{
+  "getDstIf": {
+    "description": "Return a destination interface.",
+    "inline": "{i0}[{i1}]",
+    "inputs": [
+      "CGraph",
+      "DstIfKey"
+    ],
+    "outputs": [
+      "DstInterface"
+    ]
+  },
+  "getSrcIf": {
+    "description": "Return a source interface.",
+    "inline": "{i0}[{i1}]",
+    "inputs": [
+      "CGraph",
+      "SrcIfKey"
+    ],
+    "outputs": [
+      "SrcInterface"
+    ]
+  }
+}

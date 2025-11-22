@@ -28,6 +28,15 @@ def raise_if_not_instance_of(obj: Any, t: type) -> Any:
     return obj
 
 
+def raise_if_not_both_instances_of(obj1: Any, obj2: Any, t: type) -> tuple[Any, Any]:
+    """Raise an error if either object is not an instance of the given type."""
+    if not isinstance(obj1, t):
+        raise MetaCodonTypeError(f"Expected {t}, got {type(obj1)} instead.")
+    if not isinstance(obj2, t):
+        raise MetaCodonTypeError(f"Expected {t}, got {type(obj2)} instead.")
+    return obj1, obj2
+
+
 if __name__ == "__main__":  # pragma: no cover
     # Example usage of the meta codon exceptions
     try:

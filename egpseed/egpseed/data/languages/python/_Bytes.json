@@ -1,1004 +1,1004 @@
 {
-    "capitalize": {
-        "inline": "{i0}.capitalize()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "capitalize",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "center1": {
-        "inline": "{i0}.center({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "center with space",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "center2": {
-        "inline": "{i0}.center({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "center with fill byte",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "count1": {
-        "inline": "{i0}.count({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "count",
-        "outputs": [
-            "int"
-        ]
-    },
-    "count2": {
-        "inline": "{i0}.count({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "count from",
-        "outputs": [
-            "int"
-        ]
-    },
-    "count3": {
-        "inline": "{i0}.count({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "count from to",
-        "outputs": [
-            "int"
-        ]
-    },
-    "count4": {
-        "inline": "{i0}.count({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "count",
-        "outputs": [
-            "int"
-        ]
-    },
-    "count5": {
-        "inline": "{i0}.count({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "count from",
-        "outputs": [
-            "int"
-        ]
-    },
-    "count6": {
-        "inline": "{i0}.count({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "count from to",
-        "outputs": [
-            "int"
-        ]
-    },
-    "decode1": {
-        "inline": "{i0}.decode({i1})",
-        "inputs": [
-            "-Bytes0",
-            "str"
-        ],
-        "description": "decode",
-        "outputs": [
-            "str"
-        ]
-    },
-    "endswith1": {
-        "inline": "{i0}.endswith({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "ends with",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "endswith2": {
-        "inline": "{i0}.endswith({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "ends with after",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "endswith3": {
-        "inline": "{i0}.endswith({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "ends with between",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "endswith4": {
-        "inline": "{i0}.endswith({i1})",
-        "inputs": [
-            "-Bytes0",
-            "tuple[-Bytes1, ...]"
-        ],
-        "description": "ends with one of",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "endswith5": {
-        "inline": "{i0}.endswith({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "tuple[-Bytes1, ...]",
-            "-EGPIntegral0"
-        ],
-        "description": "ends with one of after",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "endswith6": {
-        "inline": "{i0}.endswith({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "tuple[-Bytes1, ...]",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "ends with one of between",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "expandtabs1": {
-        "inline": "{i0}.expandtabs()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "expand tabs",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "expandtabs2": {
-        "inline": "{i0}.expandtabs({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "expand tabs",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "find1": {
-        "inline": "{i0}.find({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "find",
-        "outputs": [
-            "int"
-        ]
-    },
-    "find2": {
-        "inline": "{i0}.find({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "find after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "find3": {
-        "inline": "{i0}.find({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "find between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "find4": {
-        "inline": "{i0}.find({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "find one of",
-        "outputs": [
-            "int"
-        ]
-    },
-    "find5": {
-        "inline": "{i0}.find({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "find one of after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "find6": {
-        "inline": "{i0}.find({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "find one of between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "index1": {
-        "inline": "{i0}.index({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "index",
-        "outputs": [
-            "int"
-        ]
-    },
-    "index2": {
-        "inline": "{i0}.index({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "index after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "index3": {
-        "inline": "{i0}.index({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "index between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "index4": {
-        "inline": "{i0}.index({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "index one of",
-        "outputs": [
-            "int"
-        ]
-    },
-    "index5": {
-        "inline": "{i0}.index({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "index one of after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "index6": {
-        "inline": "{i0}.index({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "index one of between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "isalnum": {
-        "inline": "{i0}.isalnum()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is alphanumeric",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isalpha": {
-        "inline": "{i0}.isalpha()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is alphabetic",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isascii": {
-        "inline": "{i0}.isascii()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is ascii",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isdigit": {
-        "inline": "{i0}.isdigit()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is digit",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "islower": {
-        "inline": "{i0}.islower()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is lower",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isspace": {
-        "inline": "{i0}.isspace()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is space",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "istitle": {
-        "inline": "{i0}.istitle()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is title",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isupper": {
-        "inline": "{i0}.isupper()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "is upper",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "join": {
-        "inline": "{i0}.join({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Iterable0[-Bytes0]"
-        ],
-        "description": "join",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "ljust1": {
-        "inline": "{i0}.ljust({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "left justify with space",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "ljust2": {
-        "inline": "{i0}.ljust({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "left justify with fill byte",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "lower": {
-        "inline": "{i0}.lower()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "lower",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "lstrip1": {
-        "inline": "{i0}.lstrip()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "left strip",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "lstrip2": {
-        "inline": "{i0}.lstrip({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "left strip",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "partition": {
-        "inline": "{i0}.partition({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "partition",
-        "outputs": [
-            "Triplet[-Bytes0, -Bytes0, -Bytes0]"
-        ]
-    },
-    "removeprefix": {
-        "inline": "{i0}.removeprefix({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "remove prefix",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "removesuffix": {
-        "inline": "{i0}.removesuffix({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "remove suffix",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "replace1": {
-        "inline": "{i0}.replace({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-Bytes2"
-        ],
-        "description": "replace",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "replace2": {
-        "inline": "{i0}.replace({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-Bytes2",
-            "-EGPIntegral0"
-        ],
-        "description": "replace",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "rfind1": {
-        "inline": "{i0}.rfind({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "rfind",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rfind2": {
-        "inline": "{i0}.rfind({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "rfind after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rfind3": {
-        "inline": "{i0}.rfind({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "rfind between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rfind4": {
-        "inline": "{i0}.rfind({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "rfind one of",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rfind5": {
-        "inline": "{i0}.rfind({i1}, {i2})",
-        "inputs": [
-            "-Bytes1",
-            "-EGPIntegral1",
-            "-EGPIntegral1"
-        ],
-        "description": "rfind one of after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rfind6": {
-        "inline": "{i0}.rfind({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "rfind one of between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rindex1": {
-        "inline": "{i0}.rindex({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "rindex",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rindex2": {
-        "inline": "{i0}.rindex({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "rindex after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rindex3": {
-        "inline": "{i0}.rindex({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "rindex between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rindex4": {
-        "inline": "{i0}.rindex({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "rindex one of",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rindex5": {
-        "inline": "{i0}.rindex({i1}, {i2})",
-        "inputs": [
-            "-Bytes1",
-            "-EGPIntegral1",
-            "-EGPIntegral1"
-        ],
-        "description": "rindex one of after",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rindex6": {
-        "inline": "{i0}.rindex({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1",
-            "-EGPIntegral2"
-        ],
-        "description": "rindex one of between",
-        "outputs": [
-            "int"
-        ]
-    },
-    "rjust1": {
-        "inline": "{i0}.rjust({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "right justify with space",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "rjust2": {
-        "inline": "{i0}.rjust({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "right justify with fill byte",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "rpartition": {
-        "inline": "{i0}.rpartition({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "rpartition",
-        "outputs": [
-            "Triplet[-Bytes0, -Bytes0, -Bytes0]"
-        ]
-    },
-    "rsplit1": {
-        "inline": "{i0}.rsplit()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "right split",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "rsplit2": {
-        "inline": "{i0}.rsplit({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "right split",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "rsplit3": {
-        "inline": "{i0}.rsplit({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "right split",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "rstrip1": {
-        "inline": "{i0}.rstrip()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "right strip",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "rstrip2": {
-        "inline": "{i0}.rstrip({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "right strip",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "split1": {
-        "inline": "{i0}.split()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "split",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "split2": {
-        "inline": "{i0}.split({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "split",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "split3": {
-        "inline": "{i0}.split({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "split",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "splitlines1": {
-        "inline": "{i0}.splitlines()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "split lines",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "splitlines2": {
-        "inline": "{i0}.splitlines({i1})",
-        "inputs": [
-            "-Bytes0",
-            "bool"
-        ],
-        "description": "split lines",
-        "outputs": [
-            "list[-Bytes0]"
-        ]
-    },
-    "startswith1": {
-        "inline": "{i0}.startswith({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "starts with",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "startswith2": {
-        "inline": "{i0}.startswith({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0"
-        ],
-        "description": "starts with after",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "startswith3": {
-        "inline": "{i0}.startswith({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "starts with between",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "startswith4": {
-        "inline": "{i0}.startswith({i1})",
-        "inputs": [
-            "-Bytes0",
-            "tuple[-Bytes1, ...]"
-        ],
-        "description": "starts with one of",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "startswith5": {
-        "inline": "{i0}.startswith({i1}, {i2})",
-        "inputs": [
-            "-Bytes0",
-            "tuple[-Bytes1, ...]",
-            "-EGPIntegral0"
-        ],
-        "description": "starts with one of after",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "startswith6": {
-        "inline": "{i0}.startswith({i1}, {i2}, {i3})",
-        "inputs": [
-            "-Bytes0",
-            "tuple[-Bytes1, ...]",
-            "-EGPIntegral0",
-            "-EGPIntegral1"
-        ],
-        "description": "starts with one of between",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "strip1": {
-        "inline": "{i0}.strip()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "strip",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "strip2": {
-        "inline": "{i0}.strip({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1"
-        ],
-        "description": "strip",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "swapcase": {
-        "inline": "{i0}.swapcase()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "swap case",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "title": {
-        "inline": "{i0}.title()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "title",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "translate1": {
-        "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-Bytes2"
-        ],
-        "description": "translate",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "translate2": {
-        "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
-        "inputs": [
-            "-Bytes0",
-            "-Bytes1",
-            "-Bytes2",
-            "-Bytes3"
-        ],
-        "description": "translate",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "upper": {
-        "inline": "{i0}.upper()",
-        "inputs": [
-            "-Bytes0"
-        ],
-        "description": "upper",
-        "outputs": [
-            "-Bytes0"
-        ]
-    },
-    "zfill": {
-        "inline": "{i0}.zfill({i1})",
-        "inputs": [
-            "-Bytes0",
-            "-EGPIntegral0"
-        ],
-        "description": "zfill",
-        "outputs": [
-            "-Bytes0"
-        ]
-    }
+  "capitalize": {
+    "description": "capitalize",
+    "inline": "{i0}.capitalize()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "center1": {
+    "description": "center with space",
+    "inline": "{i0}.center({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "center2": {
+    "description": "center with fill byte",
+    "inline": "{i0}.center({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "count1": {
+    "description": "count",
+    "inline": "{i0}.count({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "count2": {
+    "description": "count from",
+    "inline": "{i0}.count({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "count3": {
+    "description": "count from to",
+    "inline": "{i0}.count({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "count4": {
+    "description": "count",
+    "inline": "{i0}.count({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "count5": {
+    "description": "count from",
+    "inline": "{i0}.count({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "count6": {
+    "description": "count from to",
+    "inline": "{i0}.count({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "decode1": {
+    "description": "decode",
+    "inline": "{i0}.decode({i1})",
+    "inputs": [
+      "-Bytes0",
+      "str"
+    ],
+    "outputs": [
+      "str"
+    ]
+  },
+  "endswith1": {
+    "description": "ends with",
+    "inline": "{i0}.endswith({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "endswith2": {
+    "description": "ends with after",
+    "inline": "{i0}.endswith({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "endswith3": {
+    "description": "ends with between",
+    "inline": "{i0}.endswith({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "endswith4": {
+    "description": "ends with one of",
+    "inline": "{i0}.endswith({i1})",
+    "inputs": [
+      "-Bytes0",
+      "tuple[-Bytes1, ...]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "endswith5": {
+    "description": "ends with one of after",
+    "inline": "{i0}.endswith({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "tuple[-Bytes1, ...]",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "endswith6": {
+    "description": "ends with one of between",
+    "inline": "{i0}.endswith({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "tuple[-Bytes1, ...]",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "expandtabs1": {
+    "description": "expand tabs",
+    "inline": "{i0}.expandtabs()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "expandtabs2": {
+    "description": "expand tabs",
+    "inline": "{i0}.expandtabs({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "find1": {
+    "description": "find",
+    "inline": "{i0}.find({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "find2": {
+    "description": "find after",
+    "inline": "{i0}.find({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "find3": {
+    "description": "find between",
+    "inline": "{i0}.find({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "find4": {
+    "description": "find one of",
+    "inline": "{i0}.find({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "find5": {
+    "description": "find one of after",
+    "inline": "{i0}.find({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "find6": {
+    "description": "find one of between",
+    "inline": "{i0}.find({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "index1": {
+    "description": "index",
+    "inline": "{i0}.index({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "index2": {
+    "description": "index after",
+    "inline": "{i0}.index({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "index3": {
+    "description": "index between",
+    "inline": "{i0}.index({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "index4": {
+    "description": "index one of",
+    "inline": "{i0}.index({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "index5": {
+    "description": "index one of after",
+    "inline": "{i0}.index({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "index6": {
+    "description": "index one of between",
+    "inline": "{i0}.index({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "isalnum": {
+    "description": "is alphanumeric",
+    "inline": "{i0}.isalnum()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isalpha": {
+    "description": "is alphabetic",
+    "inline": "{i0}.isalpha()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isascii": {
+    "description": "is ascii",
+    "inline": "{i0}.isascii()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isdigit": {
+    "description": "is digit",
+    "inline": "{i0}.isdigit()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "islower": {
+    "description": "is lower",
+    "inline": "{i0}.islower()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isspace": {
+    "description": "is space",
+    "inline": "{i0}.isspace()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "istitle": {
+    "description": "is title",
+    "inline": "{i0}.istitle()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isupper": {
+    "description": "is upper",
+    "inline": "{i0}.isupper()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "join": {
+    "description": "join",
+    "inline": "{i0}.join({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Iterable0[-Bytes0]"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "ljust1": {
+    "description": "left justify with space",
+    "inline": "{i0}.ljust({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "ljust2": {
+    "description": "left justify with fill byte",
+    "inline": "{i0}.ljust({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "lower": {
+    "description": "lower",
+    "inline": "{i0}.lower()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "lstrip1": {
+    "description": "left strip",
+    "inline": "{i0}.lstrip()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "lstrip2": {
+    "description": "left strip",
+    "inline": "{i0}.lstrip({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "partition": {
+    "description": "partition",
+    "inline": "{i0}.partition({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "Triplet[-Bytes0, -Bytes0, -Bytes0]"
+    ]
+  },
+  "removeprefix": {
+    "description": "remove prefix",
+    "inline": "{i0}.removeprefix({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "removesuffix": {
+    "description": "remove suffix",
+    "inline": "{i0}.removesuffix({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "replace1": {
+    "description": "replace",
+    "inline": "{i0}.replace({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-Bytes2"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "replace2": {
+    "description": "replace",
+    "inline": "{i0}.replace({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-Bytes2",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "rfind1": {
+    "description": "rfind",
+    "inline": "{i0}.rfind({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rfind2": {
+    "description": "rfind after",
+    "inline": "{i0}.rfind({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rfind3": {
+    "description": "rfind between",
+    "inline": "{i0}.rfind({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rfind4": {
+    "description": "rfind one of",
+    "inline": "{i0}.rfind({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rfind5": {
+    "description": "rfind one of after",
+    "inline": "{i0}.rfind({i1}, {i2})",
+    "inputs": [
+      "-Bytes1",
+      "-EGPIntegral1",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rfind6": {
+    "description": "rfind one of between",
+    "inline": "{i0}.rfind({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rindex1": {
+    "description": "rindex",
+    "inline": "{i0}.rindex({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rindex2": {
+    "description": "rindex after",
+    "inline": "{i0}.rindex({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rindex3": {
+    "description": "rindex between",
+    "inline": "{i0}.rindex({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rindex4": {
+    "description": "rindex one of",
+    "inline": "{i0}.rindex({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rindex5": {
+    "description": "rindex one of after",
+    "inline": "{i0}.rindex({i1}, {i2})",
+    "inputs": [
+      "-Bytes1",
+      "-EGPIntegral1",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rindex6": {
+    "description": "rindex one of between",
+    "inline": "{i0}.rindex({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1",
+      "-EGPIntegral2"
+    ],
+    "outputs": [
+      "int"
+    ]
+  },
+  "rjust1": {
+    "description": "right justify with space",
+    "inline": "{i0}.rjust({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "rjust2": {
+    "description": "right justify with fill byte",
+    "inline": "{i0}.rjust({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "rpartition": {
+    "description": "rpartition",
+    "inline": "{i0}.rpartition({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "Triplet[-Bytes0, -Bytes0, -Bytes0]"
+    ]
+  },
+  "rsplit1": {
+    "description": "right split",
+    "inline": "{i0}.rsplit()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "rsplit2": {
+    "description": "right split",
+    "inline": "{i0}.rsplit({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "rsplit3": {
+    "description": "right split",
+    "inline": "{i0}.rsplit({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "rstrip1": {
+    "description": "right strip",
+    "inline": "{i0}.rstrip()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "rstrip2": {
+    "description": "right strip",
+    "inline": "{i0}.rstrip({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "split1": {
+    "description": "split",
+    "inline": "{i0}.split()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "split2": {
+    "description": "split",
+    "inline": "{i0}.split({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "split3": {
+    "description": "split",
+    "inline": "{i0}.split({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "splitlines1": {
+    "description": "split lines",
+    "inline": "{i0}.splitlines()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "splitlines2": {
+    "description": "split lines",
+    "inline": "{i0}.splitlines({i1})",
+    "inputs": [
+      "-Bytes0",
+      "bool"
+    ],
+    "outputs": [
+      "list[-Bytes0]"
+    ]
+  },
+  "startswith1": {
+    "description": "starts with",
+    "inline": "{i0}.startswith({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "startswith2": {
+    "description": "starts with after",
+    "inline": "{i0}.startswith({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "startswith3": {
+    "description": "starts with between",
+    "inline": "{i0}.startswith({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "startswith4": {
+    "description": "starts with one of",
+    "inline": "{i0}.startswith({i1})",
+    "inputs": [
+      "-Bytes0",
+      "tuple[-Bytes1, ...]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "startswith5": {
+    "description": "starts with one of after",
+    "inline": "{i0}.startswith({i1}, {i2})",
+    "inputs": [
+      "-Bytes0",
+      "tuple[-Bytes1, ...]",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "startswith6": {
+    "description": "starts with one of between",
+    "inline": "{i0}.startswith({i1}, {i2}, {i3})",
+    "inputs": [
+      "-Bytes0",
+      "tuple[-Bytes1, ...]",
+      "-EGPIntegral0",
+      "-EGPIntegral1"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "strip1": {
+    "description": "strip",
+    "inline": "{i0}.strip()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "strip2": {
+    "description": "strip",
+    "inline": "{i0}.strip({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "swapcase": {
+    "description": "swap case",
+    "inline": "{i0}.swapcase()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "title": {
+    "description": "title",
+    "inline": "{i0}.title()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "translate1": {
+    "description": "translate",
+    "inline": "{i0}.translate({i1}.maketrans({i1},{i2}))",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-Bytes2"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "translate2": {
+    "description": "translate",
+    "inline": "{i0}.translate({i1}.maketrans({i1}, {i2}), {i3})",
+    "inputs": [
+      "-Bytes0",
+      "-Bytes1",
+      "-Bytes2",
+      "-Bytes3"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "upper": {
+    "description": "upper",
+    "inline": "{i0}.upper()",
+    "inputs": [
+      "-Bytes0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  },
+  "zfill": {
+    "description": "zfill",
+    "inline": "{i0}.zfill({i1})",
+    "inputs": [
+      "-Bytes0",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-Bytes0"
+    ]
+  }
 }

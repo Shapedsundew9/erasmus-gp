@@ -1,114 +1,114 @@
 {
-    "!=": {
-        "inline": "{i0} != {i1}",
-        "description": "not equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "==": {
-        "inline": "{i0} == {i1}",
-        "description": "equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "and1": {
-        "inline": "{i0} and {i1}",
-        "description": "logical AND",
-        "inputs": [
-            "-object0",
-            "-object0"
-        ]
-    },
-    "and2": {
-        "inline": "bool({i0} and {i1})",
-        "description": "logical AND",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "ascii": {
-        "inline": "ascii({i0})",
-        "description": "ASCII representation",
-        "num_inputs": 1,
-        "outputs": [
-            "str"
-        ]
-    },
-    "callable": {
-        "inline": "callable({i0})",
-        "description": "callable",
-        "num_inputs": 1,
-        "outputs": [
-            "bool"
-        ]
-    },
-    "is": {
-        "inline": "{i0} is {i1}",
-        "description": "is",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "is not": {
-        "inline": "{i0} is not {i1}",
-        "description": "is not",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isinstance1": {
-        "inline": "isinstance({i0}, {i1})",
-        "inputs": [
-            "Any",
-            "type"
-        ],
-        "description": "is instance",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "isinstance2": {
-        "inline": "isinstance({i0}, {i1})",
-        "inputs": [
-            "Any",
-            "tuple[type, ...]"
-        ],
-        "description": "is instance",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "not": {
-        "inline": "not {i0}",
-        "description": "logical NOT",
-        "num_inputs": 1,
-        "outputs": [
-            "bool"
-        ]
-    },
-    "or1": {
-        "inline": "{i0} or {i1}",
-        "description": "logical OR",
-        "inputs": [
-            "-object0",
-            "-object0"
-        ]
-    },
-    "or2": {
-        "inline": "bool({i0} or {i1})",
-        "description": "logical OR",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "repr": {
-        "inline": "repr({i0})",
-        "description": "string representation",
-        "num_inputs": 1,
-        "outputs": [
-            "str"
-        ]
-    }
+  "!=": {
+    "description": "not equal to",
+    "inline": "{i0} != {i1}",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "==": {
+    "description": "equal to",
+    "inline": "{i0} == {i1}",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "and1": {
+    "description": "logical AND",
+    "inline": "{i0} and {i1}",
+    "inputs": [
+      "-object0",
+      "-object0"
+    ]
+  },
+  "and2": {
+    "description": "logical AND",
+    "inline": "bool({i0} and {i1})",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "ascii": {
+    "description": "ASCII representation",
+    "inline": "ascii({i0})",
+    "num_inputs": 1,
+    "outputs": [
+      "str"
+    ]
+  },
+  "callable": {
+    "description": "callable",
+    "inline": "callable({i0})",
+    "num_inputs": 1,
+    "outputs": [
+      "bool"
+    ]
+  },
+  "is": {
+    "description": "is",
+    "inline": "{i0} is {i1}",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "is not": {
+    "description": "is not",
+    "inline": "{i0} is not {i1}",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isinstance1": {
+    "description": "is instance",
+    "inline": "isinstance({i0}, {i1})",
+    "inputs": [
+      "Any",
+      "type"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "isinstance2": {
+    "description": "is instance",
+    "inline": "isinstance({i0}, {i1})",
+    "inputs": [
+      "Any",
+      "tuple[type, ...]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "not": {
+    "description": "logical NOT",
+    "inline": "not {i0}",
+    "num_inputs": 1,
+    "outputs": [
+      "bool"
+    ]
+  },
+  "or1": {
+    "description": "logical OR",
+    "inline": "{i0} or {i1}",
+    "inputs": [
+      "-object0",
+      "-object0"
+    ]
+  },
+  "or2": {
+    "description": "logical OR",
+    "inline": "bool({i0} or {i1})",
+    "outputs": [
+      "bool"
+    ]
+  },
+  "repr": {
+    "description": "string representation",
+    "inline": "repr({i0})",
+    "num_inputs": 1,
+    "outputs": [
+      "str"
+    ]
+  }
 }

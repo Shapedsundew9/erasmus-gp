@@ -62,7 +62,10 @@
 					"test_*.py"
 				],
 				"python.testing.pytestEnabled": false,
-				"python.testing.unittestEnabled": true
+				"python.testing.unittestEnabled": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll.sortJSON": "explicit"
+				}
 			}
 		}
 	},
@@ -70,7 +73,11 @@
 		// Environment variables to set in the container.
 		"EGP_PROFILE": "DEV"
 	},
-	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	// 1. Ensure Node.js is available (Copilot CLI requires it)
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {}
+	},
+	"postCreateCommand": "npm install -g @github/copilot && bash .devcontainer/post-create.sh",
 	"forwardPorts": [
 		8080,
 		5432
@@ -79,5 +86,9 @@
 		"app",
 		"postgres",
 		"pgadmin"
+	],
+	// Mount the config directory to a volume so you don't have to login on every rebuild.
+	"mounts": [
+		"source=copilot-config,target=/home/vscode/.config/github-copilot,type=volume"
 	]
 }

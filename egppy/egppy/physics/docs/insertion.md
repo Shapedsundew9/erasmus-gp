@@ -40,11 +40,11 @@ In any insertion event TGC and IGC are not modified RGC and any FGC are new GC's
 
 ### xGC[yc] Interface Definition
 
-The xGC[yc] interface is critical to stabilization of of Connection Graphs. Consider an unstable graph where there is an unconnected GCA destination end point because row I does not have a matching type. To fix this situation a GC must be inserted above row A that has the missing source end point type (Case 4 defined below). To give the maximum likihood of stability and the minimum distruption for the resultant RGC and FGC the following needs to happen:
+The xGC[yc] interface is critical to stabilization of of Connection Graphs. Consider an unstable graph where there is an unconnected GCA destination endpoint because row I does not have a matching type. To fix this situation a GC must be inserted above row A that has the missing source endpoint type (Case 4 defined below). To give the maximum likihood of stability and the minimum distruption for the resultant RGC and FGC the following needs to happen:
 
 - The low index FGC outputs (row O) must be the same as TGC[GCA]
 - The the connections in TGC to GCA destinations must persist to GCA in FGC
-- Any TGC[I] end points that match IGC destination must be passed in to FGC
+- Any TGC[I] endpoints that match IGC destination must be passed in to FGC
 
 In this way existing connections from the original TGC are guaranteed and IGC has the maximum opportunity to resolve the original instability without creating a new instability (with somewhat careful selection of IGC the risks collapse a great deal if not entirely).
 

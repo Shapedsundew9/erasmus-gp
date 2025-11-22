@@ -1,12 +1,12 @@
 {
-    "reversed": {
-        "inline": "reversed({i0})",
-        "inputs": [
-            "-Reversible0[-Any0]"
-        ],
-        "description": "reversed",
-        "outputs": [
-            "-Iterable0[-Any0]"
-        ]
-    }
+  "reversed": {
+    "description": "reversed",
+    "inline": "reversed({i0})",
+    "inputs": [
+      "-Reversible0[-Any0]"
+    ],
+    "outputs": [
+      "-Iterable0[-Any0]"
+    ]
+  }
 }

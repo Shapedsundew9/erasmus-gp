@@ -1,108 +1,108 @@
 {
-    "today": {
-        "inline": "date.today()",
-        "description": "Current date",
-        "outputs": [
-            "date"
-        ]
-    },
-    "lt": {
-        "inline": "{i0} < {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Less than",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "le": {
-        "inline": "{i0} <= {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Less than or equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "gt": {
-        "inline": "{i0} > {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Greater than",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "ge": {
-        "inline": "{i0} >= {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Greater than or equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "eq": {
-        "inline": "{i0} == {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "ne": {
-        "inline": "{i0} != {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Not equal to",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "sub_date": {
-        "inline": "{i0} - {i1}",
-        "inputs": [
-            "date",
-            "date"
-        ],
-        "description": "Subtract two dates",
-        "outputs": [
-            "timedelta"
-        ]
-    },
-    "add_timedelta": {
-        "inline": "{i0} + {i1}",
-        "inputs": [
-            "date",
-            "timedelta"
-        ],
-        "description": "Add a timedelta to a date",
-        "outputs": [
-            "date"
-        ]
-    },
-    "sub_timedelta": {
-        "inline": "{i0} - {i1}",
-        "inputs": [
-            "date",
-            "timedelta"
-        ],
-        "description": "Subtract a timedelta from a date",
-        "outputs": [
-            "date"
-        ]
-    }
+  "add_timedelta": {
+    "description": "Add a timedelta to a date",
+    "inline": "{i0} + {i1}",
+    "inputs": [
+      "date",
+      "timedelta"
+    ],
+    "outputs": [
+      "date"
+    ]
+  },
+  "eq": {
+    "description": "Equal to",
+    "inline": "{i0} == {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "ge": {
+    "description": "Greater than or equal to",
+    "inline": "{i0} >= {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "gt": {
+    "description": "Greater than",
+    "inline": "{i0} > {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "le": {
+    "description": "Less than or equal to",
+    "inline": "{i0} <= {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "lt": {
+    "description": "Less than",
+    "inline": "{i0} < {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "ne": {
+    "description": "Not equal to",
+    "inline": "{i0} != {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "sub_date": {
+    "description": "Subtract two dates",
+    "inline": "{i0} - {i1}",
+    "inputs": [
+      "date",
+      "date"
+    ],
+    "outputs": [
+      "timedelta"
+    ]
+  },
+  "sub_timedelta": {
+    "description": "Subtract a timedelta from a date",
+    "inline": "{i0} - {i1}",
+    "inputs": [
+      "date",
+      "timedelta"
+    ],
+    "outputs": [
+      "date"
+    ]
+  },
+  "today": {
+    "description": "Current date",
+    "inline": "date.today()",
+    "outputs": [
+      "date"
+    ]
+  }
 }

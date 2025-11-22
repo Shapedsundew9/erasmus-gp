@@ -1,12 +1,13 @@
 {
-    "select": {
-        "inline": "GPI.select({i0})",
-        "description": "Run the PSQL query and return a single GGC.",
-        "inputs": [
-            "PsqlBool"
-        ],
-        "outputs": [
-            "GCABC"
-        ]
-    }
+  "select": {
+    "description": "Run the PSQL query and return a single GGC.",
+    "inline": "GPI.select_gc(str({i0}), str({i1}), {i0}.literals())",
+    "inputs": [
+      "PsqlFragmentWhere",
+      "PsqlFragmentOrderBy"
+    ],
+    "outputs": [
+      "GGCode"
+    ]
+  }
 }

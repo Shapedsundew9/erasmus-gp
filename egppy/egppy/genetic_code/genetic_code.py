@@ -6,21 +6,21 @@ from abc import abstractmethod
 from copy import deepcopy
 from datetime import datetime
 from itertools import count
-from typing import Any, Callable, Iterator
+from typing import Any, Iterator
 from uuid import UUID
 
 from egpcommon.common import NULL_SHA256
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type, types_def_store
+from egppy.genetic_code.c_graph import CGraphType, c_graph_type
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import Row, SrcRow
+from egppy.genetic_code.types_def import types_def_store
 from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
 
 # GC signature None type management
@@ -176,6 +176,11 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_codon must be overridden")
 
     @abstractmethod
+    def is_pgc(self) -> bool:
+        """Return True if the genetic code is a physical genetic code (PGC)."""
+        raise NotImplementedError("GCABC.is_pgc must be overridden")
+
+    @abstractmethod
     def is_conditional(self) -> bool:
         """Return True if the GCABC is conditional."""
         raise NotImplementedError("GCABC.is_conditional must be overridden")
@@ -201,7 +206,7 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.set_members must be overridden")
 
 
-class GCMixin:
+class GCMixin(CommonObj):
     """Genetic Code Mixin Class."""
 
     def __eq__(self, other: object) -> bool:
@@ -221,7 +226,6 @@ class GCMixin:
         """Return True if the genetic code is a codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         codon = PropertiesBD.fast_fetch("gc_type", self["properties"])
-        assert PropertiesBD(self["properties"])["gc_type"] in GCType, "gc_type must be a GCType."
         retval = codon == GCType.CODON or codon == GCType.META
         assert (
             retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
@@ -234,11 +238,16 @@ class GCMixin:
         cgt: CGraphType = c_graph_type(self["cgraph"])
         return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
 
+    def is_pgc(self) -> bool:
+        """Return True if the genetic code is a physical genetic code (PGC)."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        is_pgc = PropertiesBD.fast_fetch("is_pgc", self["properties"])
+        return is_pgc
+
     def is_meta(self) -> bool:
         """Return True if the genetic code is a meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         meta = PropertiesBD.fast_fetch("gc_type", self["properties"])
-        assert PropertiesBD(self["properties"])["gc_type"] in GCType, "gc_type must be a GCType."
         assert (
             meta == GCType.META and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or meta != GCType.META, "If gc_type is a meta-codon then cgraph must be primitive."
@@ -266,57 +275,6 @@ class GCMixin:
                     chart_txt.append(mc_unknown_str(gcx, prefix, row))
                     chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
         return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
-
-    def resolve_inherited_members(self, find_gc: Callable[[bytes], GCABC]) -> None:
-        """Resolve inherited members from ancestor GCs."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        gca = self["gca"]
-        gcb = self["gcb"]
-        if gca is NULL_SIGNATURE:
-            raise ValueError("Cannot resolve inherited members. GC is a codon.")
-        gca = find_gc(gca)
-
-        # Populate inherited members as if just GCA is set
-        self["num_codons"] = gca["num_codons"]
-        self["num_codes"] = gca["num_codes"] + 1
-        self["generation"] = gca["generation"] + 1
-        self["code_depth"] = gca["code_depth"] + 1
-
-        # Ad in this GC must be the same as Is in the GCA
-        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-        for idx, (a, i) in enumerate(zip(self["cgraph"]["Ad"], gca["cgraph"]["Is"])):
-            if a.typ is not i.typ:
-                raise ValueError(
-                    f"Input types do not match for GCA at position {idx}: "
-                    f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
-                    f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
-                )
-
-        # As in this GC must be the same as Od in the GCA
-        for idx, (a, o) in enumerate(zip(self["cgraph"]["As"], gca["cgraph"]["Od"])):
-            if a.typ is not o.typ:
-                raise ValueError(
-                    f"Output types do not match for GCA at position {idx}: "
-                    f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
-                    f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
-                )
-
-        # If GCB exists modify
-        if gcb is not NULL_SIGNATURE:
-            gcb = find_gc(gcb)
-            self["num_codons"] += gcb["num_codons"]
-            self["num_codes"] += gcb["num_codes"]
-            self["generation"] = max(self["generation"], gcb["generation"] + 1)
-            self["code_depth"] = max(self["code_depth"], gcb["code_depth"] + 1)
-
-            # Bd in this GC must be the same as Is in the GCB
-            # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-            if not all(b.typ is i.typ for b, i in zip(self["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
-                raise ValueError("Input types do not match for GCB")
-
-            # Bs in this GC must be the same as Od in the GCB
-            if not all(b.typ is o.typ for b, o in zip(self["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
-                raise ValueError("Output types do not match for GCB")
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
@@ -355,8 +313,8 @@ class GCMixin:
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
                 retval[key] = value["signature"].hex() if value is not NULL_SIGNATURE else None
-            elif isinstance(value, CGraph):
-                # Need to set json_c_graph to True so that the end points are correctly serialized
+            elif isinstance(value, CGraphABC):
+                # Need to set json_c_graph to True so that the endpoints are correctly serialized
                 retval[key] = value.to_json(json_c_graph=True)
             elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()
@@ -368,7 +326,7 @@ class GCMixin:
                 retval[key] = str(value)
             else:
                 retval[key] = value
-                if _LOG_DEBUG:
+                if _logger.isEnabledFor(DEBUG):
                     assert isinstance(
                         value, (int, str, float, list, dict, tuple)
                     ), f"Invalid type: {type(value)}"

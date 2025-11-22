@@ -104,7 +104,7 @@ class TestSourceConfig(TestCase):
 
     def test_invalid_source(self):
         """Test the initialization with an invalid source."""
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             SourceConfig(source="INVALID")
 
     def test_to_json(self):

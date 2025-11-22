@@ -1,22 +1,22 @@
 {
-    "complex0": {
-        "inline": "complex()",
-        "description": "complex",
-        "num_inputs": 0
-    },
-    "complex1": {
-        "inline": "complex({i0})",
-        "inputs": [
-            "-EGPNumber0"
-        ],
-        "description": "complex"
-    },
-    "complex2": {
-        "inline": "complex({i0}, {i1})",
-        "inputs": [
-            "-EGPNumber0",
-            "-EGPNumber1"
-        ],
-        "description": "complex"
-    }
+  "complex0": {
+    "description": "complex",
+    "inline": "complex()",
+    "num_inputs": 0
+  },
+  "complex1": {
+    "description": "complex",
+    "inline": "complex({i0})",
+    "inputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "complex2": {
+    "description": "complex",
+    "inline": "complex({i0}, {i1})",
+    "inputs": [
+      "-EGPNumber0",
+      "-EGPNumber1"
+    ]
+  }
 }

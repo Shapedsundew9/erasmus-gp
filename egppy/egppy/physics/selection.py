@@ -4,9 +4,21 @@ Defines how GC's are selected based on certain criteria.
 The selectors defined here are selector codons (primitives).
 """
 
-from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
+from egpcommon.properties import CODON_META_MASK
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
+from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
 from egppy.genetic_code.interface import Interface
+
+# Constants
+_CODON_SELECTOR_LITERALS = {"mask": CODON_META_MASK}
+
+
+def random_codon_selector(gp: GenePoolInterface) -> GCABC:
+    """Select a codon GC randomly from the gene pool."""
+    gc = gp.select("NOT ({properties} & {mask})", literals=_CODON_SELECTOR_LITERALS)
+    if not gc:
+        raise ValueError("No codons found. Has the gene pool been initialized?")
+    return GGCDict(gc[0])
 
 
 def exact_input_types_selector(gp: GenePoolInterface, _: int, ept_types: Interface) -> GCABC:
@@ -24,7 +36,10 @@ def exact_input_types_selector(gp: GenePoolInterface, _: int, ept_types: Interfa
         A GC with the exact input types.
     """
     # Select a GC with the exact input types
-    gc = gp.select_gc(ept_types)
-    if gc is None:
+    its, inpts = ept_types.types_and_indices()
+    gc = gp.select(
+        "{input_types} = {its} AND {inputs} = {inpts}", literals={"its": its, "inpts": inpts}
+    )
+    if not gc:
         raise ValueError("No GC found with the exact input types.")
-    return GGCDict()
+    return GGCDict(gc[0])

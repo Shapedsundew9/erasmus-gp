@@ -17,6 +17,7 @@ over time and the global index counter will reflect that.
 """
 
 from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
 from shutil import which
 from subprocess import CompletedProcess, run
@@ -44,8 +45,19 @@ HEADER: str = """
 FWC4FILE: FWConfig = FWConfig(hints=True, lean=False)
 
 
+# Output file types
+class OutputFileType(StrEnum):
+    """Output file types."""
+
+    PYTHON = "python"
+    MARKDOWN = "markdown"
+
+
 def write_context_to_file(
-    ec: ExecutionContext, filepath: str = "", fwconfig: FWConfig = FWC4FILE
+    ec: ExecutionContext,
+    filepath: str = "",
+    fwconfig: FWConfig = FWC4FILE,
+    oft: OutputFileType = OutputFileType.PYTHON,
 ) -> None:
     """Write the execution context to a file.
     The file is nicely formatted and contains everything needed to execute GC
@@ -56,11 +68,72 @@ def write_context_to_file(
         ec: ExecutionContext: The execution context to write.
         filepath: str: The file to write to. If empty, a temporary file is created.
         fwconfig: FWConfig: The function writing configuration to use.
+        oft: OutputFileType: The output file type.
     """
-    format_file_with_black(_context_writer(ec, filepath, fwconfig))
+    if oft == OutputFileType.PYTHON:
+        format_file_with_black(_py_context_writer(ec, filepath, fwconfig))
+    elif oft == OutputFileType.MARKDOWN:
+        _md_context_writer(ec, filepath, fwconfig)
+    else:
+        raise ValueError(f"Unsupported output file type: {oft}")
 
 
-def _context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> str:
+def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> str:
+    """Write the execution context as a markdown file."""
+    _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
+    with open(_filepath, mode="w", encoding="utf-8") as f:
+        # File name
+        filename = f.name
+
+        # First write out the module header
+        if not fwconfig.lean:
+            f.write(f"# EGP Execution Context generated on {datetime.now().isoformat()}\n\n")
+            f.write("```text")
+            f.write(HEADER)
+            f.write("```\n\n")
+            f.write("## Imports\n\n")
+            f.write("```python\n")
+        # Now the imports
+        f.write(isort_imports("\n".join(str(impt) for impt in ec.imports)))
+        f.write("\n```\n\n")
+
+        # Finally the function definitions
+        f.write("## Functions\n\n")
+        nec = ExecutionContext(ec.gpi, ec.line_limit())
+        for func in ec.function_map.values():
+            for node in nec.create_graphs(func.gc, False)[1]:
+                # TODO: License information
+                # TODO: Author information
+                # Write the function definition
+                f.write(f"### Function: {bytes.hex(node.gc['signature'])}\n\n")
+                f.write("#### Python Code\n\n")
+                f.write("```python\n")
+                f.write(nec.function_def(node, fwconfig).replace("\t", "    "))
+                f.write("\n```\n\n")
+                f.write("#### Logical Structure\n\n")
+                f.write("```mermaid\n")
+                f.write(func.gc.logical_mermaid_chart())
+                f.write("\n```\n\n")
+                f.write("#### Node Graph Structure\n\n")
+                f.write("```mermaid\n")
+                f.write(node.mermaid_chart())
+                f.write("\n```\n\n")
+                f.write("#### Code Graph Structure\n\n")
+                f.write("```mermaid\n")
+                f.write(node.code_mermaid_chart())
+                f.write("\n```\n\n")
+
+        # TODO: Add a signature of authenticity
+        f.write("## Signature of authenticity:\n\n[Your Signature Here]\n")
+
+        # TODO: Units tests
+        #     1. Markdown lint passing
+        #     2. Check for license information
+        #     3. Check for author information
+    return filename
+
+
+def _py_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> str:
     """Write the execution context using a specified writer."""
 
     _filepath = filepath if filepath else NamedTemporaryFile(suffix=".py", delete=False).name
@@ -91,6 +164,11 @@ def _context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConf
 
         # TODO: Add a signature of authenticity
         f.write("# Signature of authenticity: [Your Signature Here]\n")
+
+        # TODO: Units tests
+        #     1. Black formatting passing
+        #     2. Check for license information
+        #     3. Check for author information
     return filename
 
 

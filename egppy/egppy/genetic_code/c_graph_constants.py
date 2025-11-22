@@ -1,10 +1,14 @@
 """Common Erasmus GP Types."""
 
 from enum import IntEnum, StrEnum
+from itertools import chain
 
 
 class SrcRow(StrEnum):
-    """Source rows."""
+    """Source rows.
+    IMPORTANT: This order is mandated to preserve signature compatibility.
+    See CGraph.py CGraph.to_json() for more details.
+    """
 
     I = "I"
     L = "L"
@@ -13,13 +17,16 @@ class SrcRow(StrEnum):
 
 
 class DstRow(StrEnum):
-    """Destination rows."""
+    """Destination rows.
+    IMPORTANT: This order is mandated to preserve signature compatibility.
+    See CGraph.py CGraph.to_json() for more details.
+    """
 
-    A = "A"
-    B = "B"
     F = "F"
     L = "L"
     W = "W"
+    A = "A"
+    B = "B"
     O = "O"
     P = "P"
     U = "U"
@@ -32,7 +39,35 @@ class EPClsPostfix(StrEnum):
     DST = "d"
 
 
-class EndPointClass(IntEnum):
+class SrcIfKey(StrEnum):
+    """Source Interfaces.
+    Whilst the order here is not critical, it is kept consistent with
+    the other enums for clarity.
+    """
+
+    IS = SrcRow.I + EPClsPostfix.SRC
+    LS = SrcRow.L + EPClsPostfix.SRC
+    AS = SrcRow.A + EPClsPostfix.SRC
+    BS = SrcRow.B + EPClsPostfix.SRC
+
+
+class DstIfKey(StrEnum):
+    """Destination Interfaces.
+    Whilst the order here is not critical, it is kept consistent with
+    the other enums for clarity.
+    """
+
+    FD = DstRow.F + EPClsPostfix.DST
+    LD = DstRow.L + EPClsPostfix.DST
+    WD = DstRow.W + EPClsPostfix.DST
+    AD = DstRow.A + EPClsPostfix.DST
+    BD = DstRow.B + EPClsPostfix.DST
+    OD = DstRow.O + EPClsPostfix.DST
+    PD = DstRow.P + EPClsPostfix.DST
+    UD = DstRow.U + EPClsPostfix.DST
+
+
+class EPCls(IntEnum):
     """End Point Class."""
 
     SRC = True
@@ -62,24 +97,36 @@ EMPTY_JSON_CGRAPH: JSONCGraph = {DstRow.O: [], DstRow.U: []}
 
 
 # Constants
-DESTINATION_ROWS: tuple[DstRow, ...] = tuple(sorted(DstRow))
-DESTINATION_ROW_MAP: dict[str, DstRow] = {str(row): row for row in DESTINATION_ROWS}
+DESTINATION_ROW_MAP: dict[str, DstRow] = {str(row): row for row in DstRow}
 DESTINATION_ROW_SET: set[DstRow] = set(DstRow)
 DESTINATION_ROW_SET_AND_U: set[str] = DESTINATION_ROW_SET | {"U"}
-SOURCE_ROWS: tuple[SrcRow, ...] = tuple(sorted(SrcRow))
-SOURCE_ROW_MAP: dict[str, SrcRow] = {str(row): row for row in SOURCE_ROWS}
+SOURCE_ROW_MAP: dict[str, SrcRow] = {str(row): row for row in SrcRow}
 SOURCE_ROW_SET: set[SrcRow] = set(SrcRow)
 DST_ONLY_ROWS: tuple[DstRow, ...] = tuple(
     sorted({DstRow.F, DstRow.O, DstRow.P, DstRow.W, DstRow.U})
 )
+SINGLE_ONLY_ROWS = {DstRow.F, DstRow.W, DstRow.L, SrcRow.L}
+SINGLE_CLS_INDEXED_SET: set[DstIfKey | SrcIfKey] = {
+    DstIfKey.FD,
+    DstIfKey.WD,
+    DstIfKey.LD,
+    SrcIfKey.LS,
+}
 SRC_ONLY_ROWS: tuple[SrcRow, ...] = tuple(sorted({SrcRow.I}))
-ROWS: tuple[Row, ...] = tuple(sorted({*SOURCE_ROWS, *DESTINATION_ROWS}))
+ROWS: tuple[Row, ...] = tuple(sorted({*SrcRow, *DstRow}))
 ROW_MAP: dict[str, SrcRow | DstRow] = {str(row): row for row in ROWS}
 ROW_SET: set[Row] = set(ROWS)
 EPC_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
-EPC_MAP: dict[str, EndPointClass] = {"s": EndPointClass.SRC, "d": EndPointClass.DST}
+EPC_MAP: dict[str, EPCls] = {"s": EPCls.SRC, "d": EPCls.DST}
 ALL_ROWS_STR: str = "".join(ROWS)
-ROW_CLS_INDEXED: tuple[str, ...] = tuple(f"{row}{EPClsPostfix.SRC}" for row in SOURCE_ROWS) + tuple(
-    f"{row}{EPClsPostfix.DST}" for row in DESTINATION_ROWS
-)
-ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED)
+IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.W}
+IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.WD}
+ROW_CLS_INDEXED_ORDERED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
+ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED_ORDERED)
+_UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED_ORDERED)
+_UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple("_" + row + EPClsPostfix.DST for row in DstRow)
+_UNDER_DST_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.DST for row in DstRow}
+_UNDER_SRC_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.SRC for row in SrcRow}
+_UNDER_KEY_DICT: dict[str | DstIfKey | SrcIfKey, str] = {
+    k: ("_" + k) for k in chain(DstIfKey, SrcIfKey)
+}

@@ -156,6 +156,85 @@ class TestParallelExceptions(unittest.TestCase):
             self.assertIn("Created module", output)
             self.assertIn("seconds", output)
 
+    def test_exception_conversion_and_catching(self):
+        """
+        Tests the full workflow of catching a standard exception,
+        converting it to a parallel exception, and catching the parallel exception.
+        This test ensures the example usage pattern works correctly.
+        """
+        mod = create_parallel_exceptions(prefix="Mutation")
+
+        # Track that the exception was caught
+        caught = False
+        metadata_value = None
+
+        try:
+            try:
+                # Raise a standard Python exception
+                int("foo")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                # Convert to parallel exception
+                mutation_exc_class = mod.get_parallel_equivalent(type(e))
+                if mutation_exc_class:
+                    raise mutation_exc_class(
+                        f"Mutation failed: {e}",
+                        original_exception=e,
+                        metadata={"generation": 42},
+                    ) from e
+                else:
+                    raise
+        except mod.MutationValueError as mve:
+            # This except clause should catch the parallel exception
+            caught = True
+            metadata_value = mve.metadata.get("generation")
+            self.assertIsInstance(mve, mod.MutationValueError)
+            self.assertIsInstance(mve, mod.MutationException)
+            self.assertIsNotNone(mve.original_exception)
+            self.assertIsInstance(mve.original_exception, ValueError)
+
+        # Ensure the exception was actually caught
+        self.assertTrue(caught, "The parallel exception should have been caught")
+        self.assertEqual(metadata_value, 42, "Metadata should be preserved")
+
+    def test_exception_not_caught_by_wrong_hierarchy(self):
+        """
+        Tests that a parallel exception from one hierarchy is not caught
+        by an except clause for a different hierarchy.
+        """
+        mutation_mod = create_parallel_exceptions(prefix="Mutation")
+        validation_mod = create_parallel_exceptions(prefix="Validation")
+
+        with self.assertRaises(mutation_mod.MutationValueError):
+            try:
+                try:
+                    raise ValueError("test")
+                except ValueError as e:
+                    mutation_exc = mutation_mod.get_parallel_equivalent(ValueError)
+                    raise mutation_exc("Mutation error", original_exception=e) from e
+            except validation_mod.ValidationValueError:
+                # This should NOT catch the MutationValueError
+                self.fail("ValidationValueError should not catch MutationValueError")
+
+    def test_base_exception_catches_all_parallel_exceptions(self):
+        """
+        Tests that the base parallel exception class catches all exceptions
+        in its hierarchy.
+        """
+        mod = create_parallel_exceptions(prefix="Mutation")
+
+        caught = False
+        try:
+            try:
+                raise KeyError("test")
+            except KeyError as e:
+                mutation_exc = mod.get_parallel_equivalent(KeyError)
+                raise mutation_exc("Mutation error", original_exception=e) from e
+        except mod.MutationException:
+            # The base class should catch all parallel exceptions
+            caught = True
+
+        self.assertTrue(caught, "Base parallel exception should catch all parallel exceptions")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,26 +4,33 @@ from collections.abc import Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
 from hashlib import sha256
-from json import dumps
+from json import dump, dumps, load
 from os import environ
+from pathlib import Path
 from pprint import pformat
 from random import randint
 from typing import Any, Literal, Self
 from uuid import UUID
 
-from egpcommon.egp_log import CONSISTENCY, DEBUG, VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.parallel_exceptions import create_parallel_exceptions
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-_LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
-_LOG_VERIFY: bool = _logger.isEnabledFor(level=VERIFY)
-_LOG_CONSISTENCY: bool = _logger.isEnabledFor(level=CONSISTENCY)
 
+
+# Create the Debug exception hierarchy
+# A debug exception hierarchy is needed to differenciate from when there is an error
+# in the EGP application versus an error in the generated code that calls the PGC API.
+# A complete set of parallel standard exceptions is created for this purpose. e.g.
+# debug_exceptions.DebugValueError, debug_exceptions.DebugTypeError,
+# debug_exceptions.DebugRuntimeError etc.
+debug_exceptions = create_parallel_exceptions(prefix="Debug", verbose=False)
 
 # When  it all began...
 EGP_EPOCH = datetime(year=2019, month=12, day=25, hour=16, minute=26, second=0, tzinfo=UTC)
 ANONYMOUS_CREATOR = UUID("1f8f45ca-0ce8-11f0-a067-73ab69491a6f")
-
+SHAPEDSUNDEW9_UUID = UUID("22c23596-df90-4b87-88a4-9409a0ea764f")
 
 # The beginning
 # Acybergenesis: https://g.co/gemini/share/101495090943
@@ -166,6 +173,8 @@ def sha256_signature(
     hash_obj.update(gcb)
     hash_obj.update(pgc)
     hash_obj.update(creator)
+    # The graph must be in a consistent format & order.
+    # See CGraph.py CGraph.to_json() for details.
     hash_obj.update(pformat(graph, compact=True).encode())
     if inline:
         hash_obj.update(inline.encode())
@@ -267,3 +276,64 @@ def random_int_tuple_generator(n: int, x: int) -> tuple[int, ...]:
 
     # random.randint(a, b) includes both endpoints a and b.
     return tuple(randint(0, x - 1) for _ in range(n))
+
+
+def ensure_sorted_json_keys(file_path: Path | str) -> None:
+    """Load a JSON file, validate it, and ensure keys are sorted.
+
+    This function loads a JSON file, checks that it's a dictionary with string keys,
+    verifies if the keys are in sorted order, and rewrites the file with sorted keys
+    if necessary.
+
+    Args
+    ----
+    file_path: Path to the JSON file to check and potentially sort.
+
+    Raises
+    ------
+    FileNotFoundError: If the file does not exist.
+    ValueError: If the JSON content is not a dictionary or if any key is not a string.
+    json.JSONDecodeError: If the file does not contain valid JSON.
+    """
+    # Convert to Path object if string
+    path = Path(file_path) if isinstance(file_path, str) else file_path
+
+    # Load the JSON file
+    with path.open("r", encoding="utf-8") as file:
+        data = load(file)
+
+    # Validate that it's a dictionary
+    if not isinstance(data, dict):
+        raise ValueError(f"JSON file {path} must contain a dictionary at the root level")
+
+    # Validate that all keys are strings
+    for key in data.keys():
+        if not isinstance(key, str):
+            raise ValueError(f"All keys must be strings, found {type(key).__name__}: {key}")
+
+    # Check if keys are already sorted
+    keys = list(data.keys())
+    sorted_keys = sorted(keys)
+
+    # If keys are not in sorted order, rewrite the file
+    need_sort = keys != sorted_keys
+    if not need_sort:
+        _logger.debug("Top level keys in %s are already sorted", path)
+        for value in data.values():
+            if isinstance(value, dict):
+                sub_keys = list(value.keys())
+                sub_sorted_keys = sorted(sub_keys)
+                if sub_keys != sub_sorted_keys:
+                    need_sort = True
+                    _logger.debug("Found unsorted sub-dictionary in %s", path)
+                    break
+
+    if need_sort:
+        _logger.info("Rewriting %s with sorted keys", path)
+        with path.open("w", encoding="utf-8") as file:
+            dump(data, file, indent=2, ensure_ascii=False, sort_keys=True)
+            file.write("\n")  # Add trailing newline
+
+        _logger.info("Successfully sorted keys in %s", path)
+    else:
+        _logger.debug("Keys in %s are already sorted", path)

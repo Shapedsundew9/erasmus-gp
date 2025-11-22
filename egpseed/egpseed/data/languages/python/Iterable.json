@@ -1,265 +1,265 @@
 {
-    "all": {
-        "inline": "all({i0})",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "description": "all true",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "any": {
-        "inline": "any({i0})",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "description": "any true",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "enumerate": {
-        "inline": "enumerate({i0})",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "description": "enumerate",
-        "outputs": [
-            "Iterator[Pair[int, -Any0]]"
-        ]
-    },
-    "iter": {
-        "inline": "iter({i0})",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "description": "create iterator",
-        "outputs": [
-            "Iterator[-Any0]"
-        ]
-    },
-    "max1": {
-        "inline": "max({i0})",
-        "inputs": [
-            "-Iterable0[-EGPNumber0]"
-        ],
-        "description": "maximum value",
-        "outputs": [
-            "-EGPNumber0"
-        ]
-    },
-    "max2": {
-        "inline": "max({i0}, default={i1})",
-        "inputs": [
-            "-Iterable0[-EGPNumber0]",
-            "-EGPNumber0"
-        ],
-        "description": "maximum value with default",
-        "outputs": [
-            "-EGPNumber0"
-        ]
-    },
-    "max3": {
-        "inline": "max({i0}, key=len)",
-        "inputs": [
-            "-Iterable0[-Sized0]"
-        ],
-        "description": "maximum length",
-        "outputs": [
-            "-Sized0"
-        ]
-    },
-    "max4": {
-        "inline": "max({i0}, default={i1}, key=len)",
-        "inputs": [
-            "-Iterable0[-Sized0]",
-            "-Sized0"
-        ],
-        "description": "maximum length with default",
-        "outputs": [
-            "-Sized0"
-        ]
-    },
-    "min1": {
-        "inline": "min({i0})",
-        "inputs": [
-            "-Iterable0[-EGPNumber0]"
-        ],
-        "description": "minimum value",
-        "outputs": [
-            "-EGPNumber0"
-        ]
-    },
-    "min2": {
-        "inline": "min({i0}, default={i1})",
-        "inputs": [
-            "-Iterable0[-EGPNumber0]",
-            "-EGPNumber0"
-        ],
-        "description": "minimum value with default",
-        "outputs": [
-            "-EGPNumber0"
-        ]
-    },
-    "min3": {
-        "inline": "min({i0}, key=len)",
-        "inputs": [
-            "-Iterable0[-Sized0]"
-        ],
-        "description": "minimum length",
-        "outputs": [
-            "-Sized0"
-        ]
-    },
-    "min4": {
-        "inline": "min({i0}, default={i1}, key=len)",
-        "inputs": [
-            "-Iterable0[-Sized0]",
-            "-Sized0"
-        ],
-        "description": "minimum value with default",
-        "outputs": [
-            "-Sized0"
-        ]
-    },
-    "sorted1": {
-        "inline": "sorted({i0})",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "description": "sorted",
-        "outputs": [
-            "list[-Any0]"
-        ]
-    },
-    "sorted2": {
-        "inline": "sorted({i0}, False)",
-        "inputs": [
-            "-Iterable0[-Any0]"
-        ],
-        "description": "sorted in reverse",
-        "outputs": [
-            "list[-Any0]"
-        ]
-    },
-    "sorted3": {
-        "inline": "sorted({i0}, {i1})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "bool"
-        ],
-        "description": "optional reversible sorted",
-        "outputs": [
-            "list[-Any0]"
-        ]
-    },
-    "sum1": {
-        "inline": "sum({i0})",
-        "inputs": [
-            "-Iterable0[-EGPNumber0]"
-        ],
-        "description": "sum",
-        "outputs": [
-            "-EGPNumber0"
-        ]
-    },
-    "sum2": {
-        "inline": "sum({i0}, {i1})",
-        "inputs": [
-            "-Iterable0[-EGPNumber0]",
-            "-EGPIntegral0"
-        ],
-        "description": "sum from",
-        "outputs": [
-            "-EGPNumber0"
-        ]
-    },
-    "zip1": {
-        "inline": "zip({i0}, {i1})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "-Iterable1[-Any1]"
-        ],
-        "description": "zip",
-        "expand": false,
-        "outputs": [
-            "Iterator[Pair[-Any0, -Any1]]"
-        ]
-    },
-    "zip2": {
-        "inline": "zip({i0}, {i1}, {i2})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "-Iterable1[-Any1]",
-            "-Iterable2[-Any2]"
-        ],
-        "description": "zip",
-        "expand": false,
-        "outputs": [
-            "Iterator[Triplet[-Any0, -Any1, -Any2]]"
-        ]
-    },
-    "zip3": {
-        "inline": "zip({i0}, {i1}, {i2}, {i3})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "-Iterable1[-Any1]",
-            "-Iterable2[-Any2]",
-            "-Iterable3[-Any3]"
-        ],
-        "description": "zip",
-        "expand": false,
-        "outputs": [
-            "Iterator[Quadruplet[-Any0, -Any1, -Any2, -Any3]]"
-        ]
-    },
-    "zip4": {
-        "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "-Iterable1[-Any1]",
-            "-Iterable2[-Any2]",
-            "-Iterable3[-Any3]",
-            "-Iterable4[-Any4]"
-        ],
-        "description": "zip",
-        "expand": false,
-        "outputs": [
-            "Iterator[Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]]"
-        ]
-    },
-    "zip5": {
-        "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "-Iterable1[-Any1]",
-            "-Iterable2[-Any2]",
-            "-Iterable3[-Any3]",
-            "-Iterable4[-Any4]",
-            "-Iterable5[-Any5]"
-        ],
-        "description": "zip",
-        "expand": false,
-        "outputs": [
-            "Iterator[Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]]"
-        ]
-    },
-    "zip6": {
-        "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5}, {i6})",
-        "inputs": [
-            "-Iterable0[-Any0]",
-            "-Iterable1[-Any1]",
-            "-Iterable2[-Any2]",
-            "-Iterable3[-Any3]",
-            "-Iterable4[-Any4]",
-            "-Iterable5[-Any5]",
-            "-Iterable6[-Any6]"
-        ],
-        "description": "zip",
-        "expand": false,
-        "outputs": [
-            "Iterator[Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]]"
-        ]
-    }
+  "all": {
+    "description": "all true",
+    "inline": "all({i0})",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "any": {
+    "description": "any true",
+    "inline": "any({i0})",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "enumerate": {
+    "description": "enumerate",
+    "inline": "enumerate({i0})",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "Iterator[Pair[int, -Any0]]"
+    ]
+  },
+  "iter": {
+    "description": "create iterator",
+    "inline": "iter({i0})",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "Iterator[-Any0]"
+    ]
+  },
+  "max1": {
+    "description": "maximum value",
+    "inline": "max({i0})",
+    "inputs": [
+      "-Iterable0[-EGPNumber0]"
+    ],
+    "outputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "max2": {
+    "description": "maximum value with default",
+    "inline": "max({i0}, default={i1})",
+    "inputs": [
+      "-Iterable0[-EGPNumber0]",
+      "-EGPNumber0"
+    ],
+    "outputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "max3": {
+    "description": "maximum length",
+    "inline": "max({i0}, key=len)",
+    "inputs": [
+      "-Iterable0[-Sized0]"
+    ],
+    "outputs": [
+      "-Sized0"
+    ]
+  },
+  "max4": {
+    "description": "maximum length with default",
+    "inline": "max({i0}, default={i1}, key=len)",
+    "inputs": [
+      "-Iterable0[-Sized0]",
+      "-Sized0"
+    ],
+    "outputs": [
+      "-Sized0"
+    ]
+  },
+  "min1": {
+    "description": "minimum value",
+    "inline": "min({i0})",
+    "inputs": [
+      "-Iterable0[-EGPNumber0]"
+    ],
+    "outputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "min2": {
+    "description": "minimum value with default",
+    "inline": "min({i0}, default={i1})",
+    "inputs": [
+      "-Iterable0[-EGPNumber0]",
+      "-EGPNumber0"
+    ],
+    "outputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "min3": {
+    "description": "minimum length",
+    "inline": "min({i0}, key=len)",
+    "inputs": [
+      "-Iterable0[-Sized0]"
+    ],
+    "outputs": [
+      "-Sized0"
+    ]
+  },
+  "min4": {
+    "description": "minimum value with default",
+    "inline": "min({i0}, default={i1}, key=len)",
+    "inputs": [
+      "-Iterable0[-Sized0]",
+      "-Sized0"
+    ],
+    "outputs": [
+      "-Sized0"
+    ]
+  },
+  "sorted1": {
+    "description": "sorted",
+    "inline": "sorted({i0})",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "list[-Any0]"
+    ]
+  },
+  "sorted2": {
+    "description": "sorted in reverse",
+    "inline": "sorted({i0}, False)",
+    "inputs": [
+      "-Iterable0[-Any0]"
+    ],
+    "outputs": [
+      "list[-Any0]"
+    ]
+  },
+  "sorted3": {
+    "description": "optional reversible sorted",
+    "inline": "sorted({i0}, {i1})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "bool"
+    ],
+    "outputs": [
+      "list[-Any0]"
+    ]
+  },
+  "sum1": {
+    "description": "sum",
+    "inline": "sum({i0})",
+    "inputs": [
+      "-Iterable0[-EGPNumber0]"
+    ],
+    "outputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "sum2": {
+    "description": "sum from",
+    "inline": "sum({i0}, {i1})",
+    "inputs": [
+      "-Iterable0[-EGPNumber0]",
+      "-EGPIntegral0"
+    ],
+    "outputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "zip1": {
+    "description": "zip",
+    "expand": false,
+    "inline": "zip({i0}, {i1})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "-Iterable1[-Any1]"
+    ],
+    "outputs": [
+      "Iterator[Pair[-Any0, -Any1]]"
+    ]
+  },
+  "zip2": {
+    "description": "zip",
+    "expand": false,
+    "inline": "zip({i0}, {i1}, {i2})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "-Iterable1[-Any1]",
+      "-Iterable2[-Any2]"
+    ],
+    "outputs": [
+      "Iterator[Triplet[-Any0, -Any1, -Any2]]"
+    ]
+  },
+  "zip3": {
+    "description": "zip",
+    "expand": false,
+    "inline": "zip({i0}, {i1}, {i2}, {i3})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "-Iterable1[-Any1]",
+      "-Iterable2[-Any2]",
+      "-Iterable3[-Any3]"
+    ],
+    "outputs": [
+      "Iterator[Quadruplet[-Any0, -Any1, -Any2, -Any3]]"
+    ]
+  },
+  "zip4": {
+    "description": "zip",
+    "expand": false,
+    "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "-Iterable1[-Any1]",
+      "-Iterable2[-Any2]",
+      "-Iterable3[-Any3]",
+      "-Iterable4[-Any4]"
+    ],
+    "outputs": [
+      "Iterator[Quintuplet[-Any0, -Any1, -Any2, -Any3, -Any4]]"
+    ]
+  },
+  "zip5": {
+    "description": "zip",
+    "expand": false,
+    "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "-Iterable1[-Any1]",
+      "-Iterable2[-Any2]",
+      "-Iterable3[-Any3]",
+      "-Iterable4[-Any4]",
+      "-Iterable5[-Any5]"
+    ],
+    "outputs": [
+      "Iterator[Sextuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5]]"
+    ]
+  },
+  "zip6": {
+    "description": "zip",
+    "expand": false,
+    "inline": "zip({i0}, {i1}, {i2}, {i3}, {i4}, {i5}, {i6})",
+    "inputs": [
+      "-Iterable0[-Any0]",
+      "-Iterable1[-Any1]",
+      "-Iterable2[-Any2]",
+      "-Iterable3[-Any3]",
+      "-Iterable4[-Any4]",
+      "-Iterable5[-Any5]",
+      "-Iterable6[-Any6]"
+    ],
+    "outputs": [
+      "Iterator[Septuplet[-Any0, -Any1, -Any2, -Any3, -Any4, -Any5, -Any6]]"
+    ]
+  }
 }
