@@ -1,9 +1,6 @@
 """Helper functions for physics of Genetic Codes."""
 
-from functools import wraps
-
 from egpcommon.properties import BitDictABC, CGraphType, GCType, PropertiesBD
-from egppy.gene_pool.gene_pool_interface import GenePoolInterface, GGCDict
 from egppy.genetic_code.genetic_code import GCABC
 
 
