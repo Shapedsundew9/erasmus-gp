@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from array import array
-from functools import lru_cache
 from json import dumps, loads
 from os.path import dirname, join
 from typing import Any, Final, Generator, Iterable, Iterator
@@ -395,6 +394,11 @@ class TypesDefStore:
 
     _db_store: Final[Table] | None = None
     _db_sources: Final[Table] | None = None
+    _cache: dict[int | str, TypesDef] = {}
+    _cache_order: list[int | str] = []
+    _cache_maxsize: int = 1024
+    _cache_hits: int = 0
+    _cache_misses: int = 0
 
     def _initialize_db_store(self) -> None:
         """Initialize the database store if it has not been initialized yet.
@@ -425,9 +429,15 @@ class TypesDefStore:
             return False
         return True
 
-    @lru_cache(maxsize=1024)
     def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
+        # Check cache first
+        if key in TypesDefStore._cache:
+            TypesDefStore._cache_hits += 1
+            return TypesDefStore._cache[key]
+
+        TypesDefStore._cache_misses += 1
+
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
@@ -446,6 +456,16 @@ class TypesDefStore:
         # Create a frozen TypesDef object but do not put it in the object_store as
         # we will cache it here.
         ntd = TypesDef(**td).freeze(store=False)
+
+        # Cache the result with LRU eviction
+        TypesDefStore._cache[key] = ntd
+        TypesDefStore._cache_order.append(key)
+
+        # LRU eviction if cache is full
+        if len(TypesDefStore._cache_order) > TypesDefStore._cache_maxsize:
+            evict_key = TypesDefStore._cache_order.pop(0)
+            del TypesDefStore._cache[evict_key]
+
         return ntd
 
     def _should_reload_table(self) -> bool:
@@ -468,7 +488,6 @@ class TypesDefStore:
         TypesDefStore._db_sources = db_sources
         return num_entries < num_files
 
-    @lru_cache(maxsize=128)
     def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
         """Return the type definition and all ancestors by name or UID.
         The ancestors are the parents, grandparents etc. in depth order (type "key" first).
@@ -486,7 +505,6 @@ class TypesDefStore:
                 stack.update(self[p] for p in parent.parents)
         return tuple(sorted(ancestors, key=lambda td: td.depth, reverse=True))
 
-    @lru_cache(maxsize=128)
     def descendants(self, key: str | int) -> tuple[TypesDef, ...]:
         """Return the type definition and all descendants by name or UID.
         The descendants are the children, grandchildren etc. in depth order (type "key" first).
@@ -514,11 +532,13 @@ class TypesDefStore:
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""
-        info = self.__getitem__.cache_info()  # pylint: disable=E1120
+        total = TypesDefStore._cache_hits + TypesDefStore._cache_misses
+        hit_rate = TypesDefStore._cache_hits / total if total > 0 else 0.0
         info_str = (
-            f"TypesDefStore Cache hits: {info.hits}\n"
-            f"TypesDefStore Cache misses: {info.misses}\n"
-            f"TypesDefStore Cache hit rate: {info.hits / (info.hits + info.misses):.2%}"
+            f"TypesDefStore Cache hits: {TypesDefStore._cache_hits}\n"
+            f"TypesDefStore Cache misses: {TypesDefStore._cache_misses}\n"
+            f"TypesDefStore Cache hit rate: {hit_rate:.2%}\n"
+            f"TypesDefStore Cache size: {len(TypesDefStore._cache)}/{TypesDefStore._cache_maxsize}"
         )
         _logger.info(info_str)
         return info_str
