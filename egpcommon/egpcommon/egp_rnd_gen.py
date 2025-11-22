@@ -3,7 +3,7 @@
 See https://g.co/gemini/share/5737bff25344 for why numpy PCG64.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from numpy import datetime64
 from numpy.random import PCG64, Generator
@@ -22,7 +22,9 @@ class EGPRndGen(Generator):
     def __init__(self, seed: int | datetime = 0) -> None:
         """Initialize the EGPRndGen with a seed."""
         if isinstance(seed, datetime):
-            seed = int(datetime64(seed).astype("int64"))
+            if seed.utcoffset() != timedelta(0):
+                raise ValueError(f"Expected UTC datetime, but got: {seed.tzinfo}")
+            seed = int(datetime64(seed.replace(tzinfo=None)).astype("int64"))
         super().__init__(PCG64(seed))
         self.seed = seed
 

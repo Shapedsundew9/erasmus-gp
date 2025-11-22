@@ -522,19 +522,26 @@ class EndPoint(CommonObj, EndPointABC):
             ref[1] += shift
         return self
 
-    def set_ref(self, row: Row, idx: int) -> EndPointABC:
-        """Set the reference for a destination endpoint.
+    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
+        """Set or append to the references for an endpoint.
 
-        This method sets the reference of a destination endpoint to the specified
-        row and index. It replaces any existing references.
+        This method always sets (replaces) the reference of a destination endpoint
+        to the specified row and index. For a source endpoint, it appends the new reference
+        to the existing list of references if append is True; otherwise, it replaces the
+        entire list with the new reference.
 
         Args:
             row (Row): The row of the endpoint to reference.
             idx (int): The index of the endpoint to reference.
+            append (bool): If True and the endpoint is a source, append the new reference;
+                           otherwise, replace the references. Defaults to False.
         Returns:
             EndPointABC: Self with the reference set.
         """
-        self.refs = [[row, idx]]
+        if self.cls == EndPointClass.SRC and append:
+            self.refs.append([row, idx])
+        else:
+            self.refs = [[row, idx]]
         return self
 
 

@@ -329,13 +329,20 @@ class FrozenEndPoint(EndPointABC):
         """
         raise RuntimeError("Cannot modify a frozen EndPoint")
 
-    def set_ref(self, row, idx):
-        """Set a single reference for the endpoint.
+    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
+        """Set or append to the references for an endpoint.
+
+        This method always sets (replaces) the reference of a destination endpoint
+        to the specified row and index. For a source endpoint, it appends the new reference
+        to the existing list of references if append is True; otherwise, it replaces the
+        entire list with the new reference.
 
         Args:
-            row (Row): The row of the reference to set.
-            idx (int): The index of the reference to set.
-        Raises:
-            RuntimeError: Always raises since frozen endpoints are immutable.
+            row (Row): The row of the endpoint to reference.
+            idx (int): The index of the endpoint to reference.
+            append (bool): If True and the endpoint is a source, append the new reference;
+                           otherwise, replace the references. Defaults to False.
+        Returns:
+            EndPointABC: Self with the reference set.
         """
         raise RuntimeError("Cannot modify a frozen EndPoint")

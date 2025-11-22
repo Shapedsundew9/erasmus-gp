@@ -199,11 +199,15 @@ class FrozenInterface(InterfaceABC):
         """
         raise RuntimeError("Cannot modify a frozen Interface")
 
-    def extend(self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC) -> None:
+    def extend(
+        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
+    ) -> InterfaceABC:
         """Extend the interface with multiple endpoints.
 
         Args:
             values: The endpoints to add.
+        Returns:
+            Self with endpoints extended.
 
         Raises:
             RuntimeError: Always raises since frozen interfaces are immutable.

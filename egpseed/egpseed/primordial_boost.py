@@ -7,6 +7,8 @@ selection and mutation operations. It is intended for use during the
 early stages of development to save waiting around for chance discoveries.
 """
 
+import select
+
 from egpcommon.codon_dev_load import find_codon_signature
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.ggc_class_factory import GCABC
@@ -34,7 +36,7 @@ PSQL_IGRL_TO_64 = (
 GPI_SELECT_GC = (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "select")
 SCA_GC = (["GGCode"], ["EGCode"], "sca")
 PERFECT_STACK_GC = (["GGCode"], ["EGCode"], "perfect_stack")
-HARMONY_GC = (["GGCode"], ["GGCode"], "harmony")
+HARMONY_GC = (["GGCode"], ["EGCode"], "harmony")
 CONNECT_ALL_GC = (["EGCode"], ["GGCode"], "connect_all")
 
 
@@ -76,9 +78,52 @@ def create_primitive_gcs():
     #   3. Stack #2 on #1 to make a filter condition for the WHERE clause
     #   4.
 
-    big_int_and_gc = ec.execute(
+    tmp1_egc = ec.execute(
         primitive_gcs["PERFECT_STACK"]["signature"],
         (primitive_gcs["PSQL_2x64_TO_IGRL"], primitive_gcs["PSQL_BITWISE_AND"]),
+    )
+    tmp1_ggc = ec.execute(
+        primitive_gcs["CONNECT_ALL"]["signature"],
+        (tmp1_egc,),
+    )
+    tmp2_egc = ec.execute(
+        primitive_gcs["HARMONY_GC"]["signature"],
+        (primitive_gcs["PSQL_CDN_PRP_MSK"], primitive_gcs["PSQL_PRP_COLUMN"]),
+    )
+    tmp2_ggc = ec.execute(
+        primitive_gcs["CONNECT_ALL"]["signature"],
+        (tmp2_egc,),
+    )
+    tmp3_egc = ec.execute(
+        primitive_gcs["PERFECT_STACK"]["signature"],
+        (tmp1_ggc, tmp2_ggc),
+    )
+    tmp3_ggc = ec.execute(
+        primitive_gcs["CONNECT_ALL"]["signature"],
+        (tmp3_egc,),
+    )
+    tmp4_egc = ec.execute(
+        primitive_gcs["PERFECT_STACK"]["signature"],
+        (tmp3_ggc, primitive_gcs["PSQL_WHERE"]),
+    )
+    tmp4_ggc = ec.execute(
+        primitive_gcs["CONNECT_ALL"]["signature"],
+        (tmp4_egc,),
+    )
+    tmp5_egc = ec.execute(
+        primitive_gcs["HARMONY_GC"]["signature"],
+        (tmp4_ggc, primitive_gcs["PSQL_ORDERBY_RND"]),
+    )
+    tmp5_ggc = ec.execute(
+        primitive_gcs["CONNECT_ALL"]["signature"],
+        (tmp5_egc,),
+    )
+    selector_egc = ec.execute(
+        primitive_gcs["PERFECT_STACK"]["signature"],
+        (tmp5_ggc, primitive_gcs["GPI_SELECT_GC"]),
+    )
+    primitive_gcs["SELECTOR_GC"] = ec.execute(
+        primitive_gcs["CONNECT_ALL"]["signature"], (selector_egc,)
     )
 
 

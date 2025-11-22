@@ -60,7 +60,7 @@ from egppy.physics.insertion import (
     inverse_stack,
     perfect_stack,
     sca,
-    stack,
+    stabilize_gc,
 )
 
 # PSQL Types - Import all types used in types.json

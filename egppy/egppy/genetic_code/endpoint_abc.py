@@ -327,12 +327,20 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("EndPointABC.ref_shift must be overridden")
 
     @abstractmethod
-    def set_ref(self, row: Row, idx: int) -> EndPointABC:
-        """Set the reference list of the endpoint to a single row and index.
+    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
+        """Set or append to the references for an endpoint.
+
+        This method always sets (replaces) the reference of a destination endpoint
+        to the specified row and index. For a source endpoint, it appends the new reference
+        to the existing list of references if append is True; otherwise, it replaces the
+        entire list with the new reference.
+
         Args:
-            row: The row to set the reference to.
-            idx: The index within the row to set the reference to.
+            row (Row): The row of the endpoint to reference.
+            idx (int): The index of the endpoint to reference.
+            append (bool): If True and the endpoint is a source, append the new reference;
+                           otherwise, replace the references. Defaults to False.
         Returns:
-            Self with the reference set.
+            EndPointABC: Self with the reference set.
         """
         raise NotImplementedError("EndPointABC.set_ref must be overridden")

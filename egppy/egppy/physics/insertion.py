@@ -150,21 +150,27 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     directly passed through (no connection between gca and gcb).
     """
     gca_cgraph: CGraphABC = gca["cgraph"]
-    gca_is: InterfaceABC = gca_cgraph["Is"]
-    gca_od: InterfaceABC = gca_cgraph["Od"]
+    gca_is: InterfaceABC = Interface(gca_cgraph["Is"])
+    gca_od: InterfaceABC = Interface(gca_cgraph["Od"])
     gcb_cgraph: CGraphABC = gcb["cgraph"]
-    gcb_is: InterfaceABC = gcb_cgraph["Is"]
-    gcb_od: InterfaceABC = gcb_cgraph["Od"]
+    gcb_is: InterfaceABC = Interface(gcb_cgraph["Is"])
+    gcb_od: InterfaceABC = Interface(gcb_cgraph["Od"])
+    gcb_od2: InterfaceABC = Interface(gcb_od).ref_shift(len(gca_od))
     gca_is_len = len(gca_is)
     gca_od_len = len(gca_od)
-    graph = {
-        "Is": gca_is + gcb_is.ref_shift(gca_is_len),
-        "Ad": gca_is.set_row(DstRow.A).set_cls(EndPointClass.DST),
-        "As": gca_od.set_row(SrcRow.A).set_cls(EndPointClass.SRC),
-        "Bd": gcb_is.set_row(DstRow.B).set_cls(EndPointClass.DST).ref_shift(gca_is_len),
-        "Bs": gcb_od.set_row(SrcRow.B).set_cls(EndPointClass.SRC).ref_shift(gca_od_len),
-        "Od": gca_od + gcb_od.ref_shift(gca_od_len),
-    }
+
+    cgraph = CGraph(
+        {
+            "Is": gca_cgraph["Is"] + gcb_is.ref_shift(gca_is_len),
+            "Ad": gca_is.set_row(DstRow.A).set_cls(EndPointClass.DST),
+            "As": gca_od.set_row(SrcRow.A).set_cls(EndPointClass.SRC).set_refs(DstRow.O),
+            "Bd": gcb_is.set_row(DstRow.B).set_cls(EndPointClass.DST).ref_shift(gca_is_len),
+            "Bs": gcb_od.set_row(SrcRow.B)
+            .set_cls(EndPointClass.SRC)
+            .set_refs(DstRow.O, gca_od_len),
+            "Od": gca_cgraph["Od"] + gcb_od2,
+        }
+    )
 
     rgc = EGCDict(
         {
@@ -175,7 +181,7 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
             "pgc": rtctxt.parent_pgc,
             "creator": rtctxt.creator,
             "properties": merge_properties(gca=gca, gcb=gcb),
-            "cgraph": graph,
+            "cgraph": cgraph,
         }
     )
     return rgc
@@ -188,8 +194,9 @@ def stabilize_gc(
 
     egc["created"] = datetime.now(UTC)
     assert isinstance(egc["cgraph"], CGraph), "Resultant GC c_graph is not a CGraph"
-    stable = egc["cgraph"].stablize(rtctxt.gpi, if_locked, EGPRndGen(egc["created"]))
+    egc["cgraph"].stabilize(if_locked, EGPRndGen(egc["created"]))
 
+    stable = egc["cgraph"].is_stable()
     if not stable and sse:
         raise NotImplementedError("Stabilization failed and SSE requested")
     if not stable:

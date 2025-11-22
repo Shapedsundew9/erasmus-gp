@@ -16,10 +16,9 @@ from egpcommon.deduplication import properties_store, signature_store, uuid_stor
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraphType
+from egppy.genetic_code.c_graph import CGraph, CGraphType
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import JSONCGraph
-from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.storage.cache.cacheable_obj import CacheableDict
@@ -55,7 +54,7 @@ class EGCMixin(GCMixin):
             # as valid input for CGraph,
             # but runtime checks ensure correctness; type ignore is required
             # for pyright/mypy compatibility.
-            self["cgraph"] = frozen_cgraph_store[FrozenCGraph(json_cgraph_to_interfaces(cgraph))]
+            self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))
 
         # GCA
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]

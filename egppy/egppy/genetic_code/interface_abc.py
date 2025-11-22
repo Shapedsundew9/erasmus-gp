@@ -137,11 +137,16 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.append must be overridden")
 
     @abstractmethod
-    def extend(self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC) -> None:
+    def extend(
+        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
+    ) -> InterfaceABC:
         """Extend the interface with multiple endpoints.
 
         Args:
             values: The endpoints to add.
+
+        Returns:
+            Self with endpoints extended.
         """
         raise NotImplementedError("InterfaceABC.extend must be overridden")
 

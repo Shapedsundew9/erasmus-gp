@@ -158,7 +158,7 @@ from typing import Any
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_constants import JSONCGraph
+from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
 from egppy.genetic_code.interface_abc import InterfaceABC
 
 
@@ -333,6 +333,33 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("CGraphABC.to_json must be overridden")
 
     # Abstract Connection Management Methods
+
+    @abstractmethod
+    def connect(
+        self,
+        src_row: SrcRow,
+        src_idx: int,
+        dst_row: DstRow,
+        dst_idx: int,
+    ) -> None:
+        """Connect a source endpoint to a destination endpoint.
+
+        Establishes a directed connection from the specified source endpoint
+        to the specified destination endpoint updating both endpoints accordingly.
+        NOTE: If there is an existing connection to the destination endpoint
+        it will be replaced.
+
+        Args:
+            src_row: Row identifier of the source interface.
+            src_idx: Index of the source endpoint within its interface.
+            dst_row: Row identifier of the destination interface.
+            dst_idx: Index of the destination endpoint within its interface.
+        Raises:
+            RuntimeError: If the graph is frozen.
+            KeyError: If the specified interfaces do not exist.
+            IndexError: If the specified endpoint indices are out of range.
+        """
+        raise NotImplementedError("CGraphABC.connect must be overridden")
 
     @abstractmethod
     def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:

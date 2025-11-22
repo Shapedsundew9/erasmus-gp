@@ -72,6 +72,7 @@ class TestCGraphABC(unittest.TestCase):
             "keys",
             "values",
             "items",
+            "connect",
         }
 
         self.assertEqual(sorted(abstract_methods), sorted(expected_methods))

@@ -30,7 +30,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint import EndPoint
-from egppy.genetic_code.endpoint_abc import EndpointMemberType
+from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType
 from egppy.genetic_code.frozen_interface import DESTINATION_ROW_SET, SOURCE_ROW_SET
 from egppy.genetic_code.interface import ROW_SET, Interface, InterfaceABC
 from egppy.genetic_code.json_cgraph import (
@@ -212,6 +212,33 @@ class CGraph(CommonObj, CGraphABC):
             jcg["U"] = row_u
         return jcg
 
+    def connect(self, src_row: SrcRow, src_idx: int, dst_row: DstRow, dst_idx: int) -> None:
+        """Connect a source endpoint to a destination endpoint.
+        Establishes a directed connection from the specified source endpoint
+        to the specified destination endpoint updating both endpoints accordingly.
+        NOTE: If there is an existing connection to the destination endpoint
+        it will be replaced.
+        Args:
+            src_row: Row identifier of the source interface.
+            src_idx: Index of the source endpoint within its interface.
+            dst_row: Row identifier of the destination interface.
+            dst_idx: Index of the destination endpoint within its interface.
+        Raises:
+            RuntimeError: If the graph is frozen.
+            KeyError: If the specified interfaces do not exist.
+            IndexError: If the specified endpoint indices are out of range.
+        """
+        dst_iface: Interface | None = getattr(self, _UNDER_DST_KEY_DICT[dst_row], None)
+        if dst_iface is None:
+            raise KeyError(f"Destination interface {dst_row}d does not exist in the graph.")
+        src_iface: Interface | None = getattr(self, _UNDER_SRC_KEY_DICT[src_row], None)
+        if src_iface is None:
+            raise KeyError(f"Source interface {src_row}s does not exist in the graph.")
+        dst_ep: EndPointABC = dst_iface[dst_idx]
+        src_ep: EndPointABC = src_iface[src_idx]
+        dst_ep.connect(src_ep)
+        src_ep.connect(dst_ep)
+
     def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """
         Connect all unconnected destination endpoints in the Connection Graph to randomly
@@ -364,6 +391,12 @@ class CGraph(CommonObj, CGraphABC):
                     isinstance(iface, Interface),
                     f"Interface {key} must be an Interface, got {type(iface)}",
                 )
+                if len(iface) > 0:
+                    self.value_error(
+                        iface[0].row == key[1],
+                        f"Interface {key} first endpoint row must match key row "
+                        f" {key[1]}, got {iface[0].row}",
+                    )
                 iface.verify()
 
         # Identify the graph type
@@ -457,7 +490,7 @@ class CGraph(CommonObj, CGraphABC):
                             ref_row_str in valid_dsts,
                             f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
                             f"but {ref_row_str} is not a valid destination for "
-                            f"{src_row} in {graph_type} graphs. "
+                            f"{src_row} in {graph_type.name} graphs. "
                             f"Valid destinations: {valid_dsts}",
                         )
 

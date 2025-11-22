@@ -77,7 +77,7 @@
       "GGCode"
     ],
     "outputs": [
-      "GGCode"
+      "EGCode"
     ],
     "inline": "harmony({pgc}{i0}, {i1})",
     "imports": [
@@ -103,7 +103,7 @@
       "GGCode"
     ],
     "outputs": [
-      "GGCode"
+      "EGCode"
     ],
     "inline": "perfect_stack({pgc}{i0}, {i1})",
     "imports": [

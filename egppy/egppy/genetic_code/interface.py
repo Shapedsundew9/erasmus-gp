@@ -175,9 +175,7 @@ class Interface(CommonObj, InterfaceABC):
 
         # Create new interface with copied endpoints from both
         # Create copies of endpoints with updated indices (with clean references)
-        new_iface = Interface(self)
-        new_iface.extend(other)
-        return new_iface
+        return Interface(self).extend(other)
 
     def __getitem__(self, idx: int) -> EndPointABC:
         """Get an endpoint by index."""
@@ -238,11 +236,13 @@ class Interface(CommonObj, InterfaceABC):
         """Return the class of the interface. Defaults to destination if no endpoints."""
         return self.endpoints[0].cls if self.endpoints else EndPointClass.DST
 
-    def extend(self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC) -> None:
+    def extend(
+        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
+    ) -> InterfaceABC:
         """Extend the interface with multiple endpoints.
 
         Extend correctly sets the indices of the appended endpoints.
-        However, it does not change the row or class of the endpoint.
+        However, it does not change the row, class or refs of the endpoint.
 
         Args
         ----
@@ -252,6 +252,7 @@ class Interface(CommonObj, InterfaceABC):
             _value = EndPoint(value)  # Make a copy to ensure mutability & independence
             _value.idx = idx  # Ensure the index is correct
             self.endpoints.append(_value)
+        return self
 
     def verify(self) -> None:
         """Verify the Interface object.
@@ -354,7 +355,7 @@ class Interface(CommonObj, InterfaceABC):
         return self
 
     def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
-        """Set all references in the interface endpoints.
+        """Set (replace) all references in the interface endpoints.
 
         Args
         ----
