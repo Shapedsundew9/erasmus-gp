@@ -1,89 +1,89 @@
 {
-    "&": {
-        "inline": "{i0} & {i1}",
-        "description": "bitwise AND",
-        "inputs": [
-            "-Integral0",
-            "-Integral1"
-        ],
-        "outputs": [
-            "EGPHighest"
-        ]
-    },
-    "<<": {
-        "inline": "{i0} << {i1}",
-        "description": "left shift",
-        "inputs": [
-            "-Integral0",
-            "-Integral1"
-        ],
-        "outputs": [
-            "EGPHighest"
-        ]
-    },
-    ">>": {
-        "inline": "{i0} >> {i1}",
-        "description": "right shift",
-        "inputs": [
-            "-Integral0",
-            "-Integral1"
-        ],
-        "outputs": [
-            "EGPHighest"
-        ]
-    },
-    "^": {
-        "inline": "{i0} ^ {i1}",
-        "description": "bitwise XOR",
-        "inputs": [
-            "-Integral0",
-            "-Integral1"
-        ],
-        "outputs": [
-            "EGPHighest"
-        ]
-    },
-    "chr": {
-        "inline": "chr({i0})",
-        "description": "character of the unicode",
-        "inputs": [
-            "-Integral0"
-        ],
-        "outputs": [
-            "str"
-        ]
-    },
-    "pow3": {
-        "inline": "pow({i0}, {i1}, {i2})",
-        "description": "raise to the power and modulo",
-        "inputs": [
-            "-Integral0",
-            "-Integral1",
-            "-Integral2"
-        ],
-        "outputs": [
-            "EGPHighest"
-        ]
-    },
-    "|": {
-        "inline": "{i0} | {i1}",
-        "description": "bitwise OR",
-        "inputs": [
-            "-Integral0",
-            "-Integral1"
-        ],
-        "outputs": [
-            "EGPHighest"
-        ]
-    },
-    "~": {
-        "inline": "~{i0}",
-        "description": "bitwise NOT",
-        "inputs": [
-            "-Integral0"
-        ],
-        "outputs": [
-            "-Integral0"
-        ]
-    }
+  "&": {
+    "description": "bitwise AND",
+    "inline": "{i0} & {i1}",
+    "inputs": [
+      "-Integral0",
+      "-Integral1"
+    ],
+    "outputs": [
+      "EGPHighest"
+    ]
+  },
+  "<<": {
+    "description": "left shift",
+    "inline": "{i0} << {i1}",
+    "inputs": [
+      "-Integral0",
+      "-Integral1"
+    ],
+    "outputs": [
+      "EGPHighest"
+    ]
+  },
+  ">>": {
+    "description": "right shift",
+    "inline": "{i0} >> {i1}",
+    "inputs": [
+      "-Integral0",
+      "-Integral1"
+    ],
+    "outputs": [
+      "EGPHighest"
+    ]
+  },
+  "^": {
+    "description": "bitwise XOR",
+    "inline": "{i0} ^ {i1}",
+    "inputs": [
+      "-Integral0",
+      "-Integral1"
+    ],
+    "outputs": [
+      "EGPHighest"
+    ]
+  },
+  "chr": {
+    "description": "character of the unicode",
+    "inline": "chr({i0})",
+    "inputs": [
+      "-Integral0"
+    ],
+    "outputs": [
+      "str"
+    ]
+  },
+  "pow3": {
+    "description": "raise to the power and modulo",
+    "inline": "pow({i0}, {i1}, {i2})",
+    "inputs": [
+      "-Integral0",
+      "-Integral1",
+      "-Integral2"
+    ],
+    "outputs": [
+      "EGPHighest"
+    ]
+  },
+  "|": {
+    "description": "bitwise OR",
+    "inline": "{i0} | {i1}",
+    "inputs": [
+      "-Integral0",
+      "-Integral1"
+    ],
+    "outputs": [
+      "EGPHighest"
+    ]
+  },
+  "~": {
+    "description": "bitwise NOT",
+    "inline": "~{i0}",
+    "inputs": [
+      "-Integral0"
+    ],
+    "outputs": [
+      "-Integral0"
+    ]
+  }
 }

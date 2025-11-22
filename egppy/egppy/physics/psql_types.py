@@ -673,8 +673,8 @@ class PsqlFragmentWhere(PsqlFragment):
         self.condition = condition
 
     def __str__(self):
-        """Render the WHERE clause as a string."""
-        return f"WHERE {self.condition}"
+        """Render the WHERE condition as a string."""
+        return f"{self.condition}"
 
     def literals(self) -> dict[str, Any]:
         """Get the literals used in the WHERE condition.
@@ -691,7 +691,7 @@ class PsqlFragmentWhere(PsqlFragment):
         while param_stack:
             param = param_stack.pop()
             if param.is_literal:
-                literals_dict[str(param)] = param.value
+                literals_dict[str(param)[1:-1]] = param.value
             else:
                 if param.param_a is not None:
                     param_stack.append(param.param_a)

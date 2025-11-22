@@ -1,13 +1,6 @@
 {
   "connect_all": {
     "description": "Connect all unconnected endpoints in EGC to make a stable GGC (no SSE raised).",
-    "inputs": [
-      "EGCode"
-    ],
-    "outputs": [
-      "GGCode"
-    ],
-    "inline": "stabilize_gc({pgc}{i0}, sse=False, if_locked=True)",
     "imports": [
       {
         "aip": [
@@ -18,21 +11,21 @@
         "name": "stabilize_gc"
       }
     ],
+    "inline": "stabilize_gc({pgc}{i0}, sse=False, if_locked=True)",
+    "inputs": [
+      "EGCode"
+    ],
+    "outputs": [
+      "GGCode"
+    ],
     "properties": {
+      "is_pgc": true,
       "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
+      "static_creation": false
     }
   },
   "connect_all_unlocked": {
     "description": "Connect all unconnected endpoints in EGC to make a stable GGC (no SSE raised) and allow the input interface to mutate.",
-    "inputs": [
-      "EGCode"
-    ],
-    "outputs": [
-      "GGCode"
-    ],
-    "inline": "stabilize_gc({pgc}{i0}, sse=False, if_locked=False)",
     "imports": [
       {
         "aip": [
@@ -43,17 +36,21 @@
         "name": "stabilize_gc"
       }
     ],
+    "inline": "stabilize_gc({pgc}{i0}, sse=False, if_locked=False)",
+    "inputs": [
+      "EGCode"
+    ],
+    "outputs": [
+      "GGCode"
+    ],
     "properties": {
+      "is_pgc": true,
       "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
+      "static_creation": false
     }
   },
   "custom": {
     "description": "Manually created GC. This is a placeholder no-op representing a custom mutation function.",
-    "num_inputs": 0,
-    "num_outputs": 0,
-    "inline": "custom_pgc({pgc})",
     "imports": [
       {
         "aip": [
@@ -64,22 +61,17 @@
         "name": "custom_pgc"
       }
     ],
+    "inline": "custom_pgc({pgc})",
+    "num_inputs": 0,
+    "num_outputs": 0,
     "properties": {
+      "is_pgc": true,
       "side_effects": true,
-      "static_creation": true,
-      "is_pgc": true
+      "static_creation": true
     }
   },
   "harmony": {
     "description": "Harmony mutation.",
-    "inputs": [
-      "GGCode",
-      "GGCode"
-    ],
-    "outputs": [
-      "EGCode"
-    ],
-    "inline": "harmony({pgc}{i0}, {i1})",
     "imports": [
       {
         "aip": [
@@ -90,14 +82,7 @@
         "name": "harmony"
       }
     ],
-    "properties": {
-      "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
-    }
-  },
-  "perfect_stack": {
-    "description": "Perfect Stack mutation.",
+    "inline": "harmony({pgc}{i0}, {i1})",
     "inputs": [
       "GGCode",
       "GGCode"
@@ -105,7 +90,14 @@
     "outputs": [
       "EGCode"
     ],
-    "inline": "perfect_stack({pgc}{i0}, {i1})",
+    "properties": {
+      "is_pgc": true,
+      "side_effects": false,
+      "static_creation": false
+    }
+  },
+  "perfect_stack": {
+    "description": "Perfect Stack mutation.",
     "imports": [
       {
         "aip": [
@@ -116,14 +108,7 @@
         "name": "perfect_stack"
       }
     ],
-    "properties": {
-      "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
-    }
-  },
-  "sca": {
-    "description": "Spontaneous Codon Aggregation mutation.",
+    "inline": "perfect_stack({pgc}{i0}, {i1})",
     "inputs": [
       "GGCode",
       "GGCode"
@@ -131,7 +116,14 @@
     "outputs": [
       "EGCode"
     ],
-    "inline": "sca({pgc}{i0}, {i1})",
+    "properties": {
+      "is_pgc": true,
+      "side_effects": false,
+      "static_creation": false
+    }
+  },
+  "sca": {
+    "description": "Spontaneous Codon Aggregation mutation.",
     "imports": [
       {
         "aip": [
@@ -142,21 +134,22 @@
         "name": "sca"
       }
     ],
+    "inline": "sca({pgc}{i0}, {i1})",
+    "inputs": [
+      "GGCode",
+      "GGCode"
+    ],
+    "outputs": [
+      "EGCode"
+    ],
     "properties": {
+      "is_pgc": true,
       "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
+      "static_creation": false
     }
   },
   "stabilize": {
     "description": "Stabilize an EGC to a GGC raising an SSE as necessary.",
-    "inputs": [
-      "EGCode"
-    ],
-    "outputs": [
-      "GGCode"
-    ],
-    "inline": "stabilize_gc({pgc}{i0}, sse=True, if_locked=True)",
     "imports": [
       {
         "aip": [
@@ -167,21 +160,21 @@
         "name": "stabilize_gc"
       }
     ],
+    "inline": "stabilize_gc({pgc}{i0}, sse=True, if_locked=True)",
+    "inputs": [
+      "EGCode"
+    ],
+    "outputs": [
+      "GGCode"
+    ],
     "properties": {
+      "is_pgc": true,
       "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
+      "static_creation": false
     }
   },
   "stabilize_unlocked": {
     "description": "Stabilize an EGC to a GGC raising an SSE as necessary.",
-    "inputs": [
-      "EGCode"
-    ],
-    "outputs": [
-      "GGCode"
-    ],
-    "inline": "stabilize_gc({pgc}{i0}, sse=True, if_locked=False)",
     "imports": [
       {
         "aip": [
@@ -192,10 +185,17 @@
         "name": "stabilize_gc"
       }
     ],
+    "inline": "stabilize_gc({pgc}{i0}, sse=True, if_locked=False)",
+    "inputs": [
+      "EGCode"
+    ],
+    "outputs": [
+      "GGCode"
+    ],
     "properties": {
+      "is_pgc": true,
       "side_effects": false,
-      "static_creation": false,
-      "is_pgc": true
+      "static_creation": false
     }
   }
 }

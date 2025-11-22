@@ -1,24 +1,24 @@
 {
-    "in": {
-        "inline": "{i1} in {i0}",
-        "inputs": [
-            "-Container0[-Any0]",
-            "-Any0"
-        ],
-        "description": "in",
-        "outputs": [
-            "bool"
-        ]
-    },
-    "not in": {
-        "inline": "{i1} not in {i0}",
-        "inputs": [
-            "-Container0[-Any0]",
-            "-Any0"
-        ],
-        "description": "not in",
-        "outputs": [
-            "bool"
-        ]
-    }
+  "in": {
+    "description": "in",
+    "inline": "{i1} in {i0}",
+    "inputs": [
+      "-Container0[-Any0]",
+      "-Any0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  },
+  "not in": {
+    "description": "not in",
+    "inline": "{i1} not in {i0}",
+    "inputs": [
+      "-Container0[-Any0]",
+      "-Any0"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  }
 }

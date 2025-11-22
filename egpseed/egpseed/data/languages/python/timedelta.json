@@ -1,183 +1,183 @@
 {
   "abs": {
+    "description": "Absolute value of a timedelta",
     "inline": "abs({i0})",
     "inputs": [
       "timedelta"
     ],
-    "description": "Absolute value of a timedelta",
     "outputs": [
       "timedelta"
     ]
   },
   "add": {
+    "description": "Add two timedeltas",
     "inline": "{i0} + {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Add two timedeltas",
     "outputs": [
       "timedelta"
     ]
   },
   "eq": {
+    "description": "Equal to",
     "inline": "{i0} == {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Equal to",
     "outputs": [
       "bool"
     ]
   },
   "ge": {
+    "description": "Greater than or equal to",
     "inline": "{i0} >= {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Greater than or equal to",
     "outputs": [
       "bool"
     ]
   },
   "gt": {
+    "description": "Greater than",
     "inline": "{i0} > {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Greater than",
     "outputs": [
       "bool"
     ]
   },
   "le": {
+    "description": "Less than or equal to",
     "inline": "{i0} <= {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Less than or equal to",
     "outputs": [
       "bool"
     ]
   },
   "lt": {
+    "description": "Less than",
     "inline": "{i0} < {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Less than",
     "outputs": [
       "bool"
     ]
   },
   "mul_float": {
+    "description": "Multiply a timedelta by a float",
     "inline": "{i0} * {i1}",
     "inputs": [
       "timedelta",
       "float"
     ],
-    "description": "Multiply a timedelta by a float",
     "outputs": [
       "timedelta"
     ]
   },
   "mul_int": {
+    "description": "Multiply a timedelta by an int",
     "inline": "{i0} * {i1}",
     "inputs": [
       "timedelta",
       "int"
     ],
-    "description": "Multiply a timedelta by an int",
     "outputs": [
       "timedelta"
     ]
   },
   "ne": {
+    "description": "Not equal to",
     "inline": "{i0} != {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Not equal to",
     "outputs": [
       "bool"
     ]
   },
   "neg": {
+    "description": "Negate a timedelta",
     "inline": "-{i0}",
     "inputs": [
       "timedelta"
     ],
-    "description": "Negate a timedelta",
     "outputs": [
       "timedelta"
     ]
   },
   "pos": {
+    "description": "Positive timedelta",
     "inline": "+{i0}",
     "inputs": [
       "timedelta"
     ],
-    "description": "Positive timedelta",
     "outputs": [
       "timedelta"
     ]
   },
   "sub": {
+    "description": "Subtract two timedeltas",
     "inline": "{i0} - {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Subtract two timedeltas",
     "outputs": [
       "timedelta"
     ]
   },
   "total_seconds": {
+    "description": "Total seconds in the duration",
     "inline": "{i0}.total_seconds()",
     "inputs": [
       "timedelta"
     ],
-    "description": "Total seconds in the duration",
     "outputs": [
       "float"
     ]
   },
   "truediv_float": {
+    "description": "Divide a timedelta by a float",
     "inline": "{i0} / {i1}",
     "inputs": [
       "timedelta",
       "float"
     ],
-    "description": "Divide a timedelta by a float",
     "outputs": [
       "timedelta"
     ]
   },
   "truediv_int": {
+    "description": "Divide a timedelta by an int",
     "inline": "{i0} / {i1}",
     "inputs": [
       "timedelta",
       "int"
     ],
-    "description": "Divide a timedelta by an int",
     "outputs": [
       "timedelta"
     ]
   },
   "truediv_timedelta": {
+    "description": "Divide two timedeltas",
     "inline": "{i0} / {i1}",
     "inputs": [
       "timedelta",
       "timedelta"
     ],
-    "description": "Divide two timedeltas",
     "outputs": [
       "float"
     ]

@@ -36,7 +36,7 @@ from numbers import Complex, Integral, Number, Rational, Real
 from uuid import UUID
 
 from egpcommon.common import NULL_UUID
-from egpcommon.properties import PropertiesBD
+from egpcommon.properties import CODON_META_MASK, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import (
     CPI,
@@ -61,6 +61,41 @@ from egppy.physics.insertion import (
     perfect_stack,
     sca,
     stabilize_gc,
+)
+
+# PSQL operations
+from egppy.physics.psql import (
+    psql_abs,
+    psql_add,
+    psql_bitwise_and,
+    psql_bitwise_not,
+    psql_bitwise_or,
+    psql_bitwise_xor,
+    psql_cbrt,
+    psql_concat,
+    psql_contains,
+    psql_divide,
+    psql_eq,
+    psql_exp,
+    psql_gt,
+    psql_gte,
+    psql_is_contained_by,
+    psql_logical_and,
+    psql_logical_not,
+    psql_logical_or,
+    psql_lshift,
+    psql_lt,
+    psql_lte,
+    psql_modulo,
+    psql_multiply,
+    psql_ne,
+    psql_negate,
+    psql_order_by,
+    psql_overlaps,
+    psql_parentheses,
+    psql_rshift,
+    psql_sqrt,
+    psql_subtract,
 )
 
 # PSQL Types - Import all types used in types.json

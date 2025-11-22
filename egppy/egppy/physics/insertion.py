@@ -95,8 +95,8 @@ def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     or randomization.
     Args:
         rtctxt: The runtime context.
-        tgc: The target genetic code.
         igc: The insert genetic code.
+        tgc: The target genetic code.
     Returns:
         The resultant stacked genetic code.
     """
@@ -111,35 +111,33 @@ def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     # NB: This is a less strict check than equality but much faster for frozen interfaces
     # Should a hash collision occur then whatever GC is produced is fine anyway.
     if igc_od.to_td() != tgc_is.to_td():
-        raise ValueError("Insert GC output interface does not match target GC input interface")
-    graph = {
-        "Is": Interface(igc_is).clr_refs(),
-        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EPCls.DST).clr_refs(),
-        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EPCls.SRC).clr_refs(),
-        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EPCls.DST).clr_refs(),
-        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EPCls.SRC).clr_refs(),
-        "Od": Interface(tgc_od).clr_refs(),
-    }
-
-    # Create the direct connections
-    graph["Is"].set_refs(DstRow.A)
-    graph["Ad"].set_refs(SrcRow.I)
-    graph["As"].set_refs(DstRow.B)
-    graph["Bd"].set_refs(SrcRow.A)
-    graph["Bs"].set_refs(DstRow.O)
-    graph["Od"].set_refs(SrcRow.B)
+        raise ValueError(
+            "Insert GC output interface does not match target GC input interface"
+            f" got output={[str(t) for t in igc_od.to_td()]} and "
+            f"input={[str(t) for t in tgc_is.to_td()]}"
+        )
+    cgraph = CGraph(
+        {
+            "Is": Interface(igc_is, SrcRow.I, DstRow.A),
+            "Ad": Interface(igc_is, DstRow.A, SrcRow.I),
+            "As": Interface(igc_od, SrcRow.A, DstRow.B),
+            "Bd": Interface(tgc_is, DstRow.B, SrcRow.A),
+            "Bs": Interface(tgc_od, SrcRow.B, DstRow.O),
+            "Od": Interface(tgc_od, DstRow.O, SrcRow.B),
+        }
+    )
 
     # Make the resultant GC
     rgc = EGCDict(
         {
-            "gca": tgc,
-            "gcb": igc,
-            "ancestora": tgc,
-            "ancestorb": igc,
+            "gca": igc,
+            "gcb": tgc,
+            "ancestora": igc,
+            "ancestorb": tgc,
             "pgc": rtctxt.parent_pgc,
             "creator": rtctxt.creator,
             "properties": merge_properties(gca=igc, gcb=tgc),
-            "cgraph": CGraph(graph),
+            "cgraph": cgraph,
         }
     )
     return rgc
@@ -150,23 +148,20 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     directly passed through (no connection between gca and gcb).
     """
     gca_cgraph: CGraphABC = gca["cgraph"]
-    gca_is: InterfaceABC = Interface(gca_cgraph["Is"])
-    gca_od: InterfaceABC = Interface(gca_cgraph["Od"])
     gcb_cgraph: CGraphABC = gcb["cgraph"]
-    gcb_is: InterfaceABC = Interface(gcb_cgraph["Is"])
-    gcb_od: InterfaceABC = Interface(gcb_cgraph["Od"])
-    gcb_od2: InterfaceABC = Interface(gcb_od)
-    gca_is_len = len(gca_is)
-    gca_od_len = len(gca_od)
+    gca_is_len = len(gca_cgraph["Is"])
+    gca_od_len = len(gca_cgraph["Od"])
 
     cgraph = CGraph(
         {
-            "Is": gca_cgraph["Is"] + gcb_is.set_refs(DstRow.B),
-            "Ad": Interface(gca_cgraph["Is"].to_td(), DstRow.A, EPCls.DST, SrcRow.I),
-            "As": gca_od.set_row(SrcRow.A).set_cls(EPCls.SRC).set_refs(DstRow.O),
-            "Bd": gcb_is.set_row(DstRow.B).set_cls(EPCls.DST).ref_shift(gca_is_len),
-            "Bs": gcb_od.set_row(SrcRow.B).set_cls(EPCls.SRC).set_refs(DstRow.O, gca_od_len),
-            "Od": gca_cgraph["Od"] + gcb_od2,
+            "Is": gca_cgraph["Is"] + Interface(gcb_cgraph["Is"], SrcRow.I, DstRow.B),
+            "Ad": Interface(gca_cgraph["Is"].to_td(), DstRow.A, SrcRow.I),
+            "As": Interface(gca_cgraph["Od"].to_td(), SrcRow.A, DstRow.O),
+            "Bd": Interface(gcb_cgraph["Is"].to_td(), DstRow.B, SrcRow.I, gca_is_len),
+            "Bs": Interface(gcb_cgraph["Od"].to_td(), SrcRow.B, DstRow.O, gca_od_len),
+            "Od": Interface(gca_cgraph["Od"].to_td(), DstRow.O, SrcRow.A).extend(
+                Interface(gcb_cgraph["Od"].to_td(), DstRow.O, SrcRow.B)
+            ),
         }
     )
 
@@ -212,5 +207,17 @@ def stabilize_gc(
 
     # Stable GC's are converted to GGCodes and added to the Gene Pool
     ggc: GCABC = GGCDict(egc)
+
+    # A bit of sanity checking
+    if not gca["cgraph"]["Is"].to_td() == ggc["cgraph"]["Ad"].to_td():
+        raise ValueError("GCA row Is does not match GGCode row Ad")
+    if not gca["cgraph"]["Od"].to_td() == ggc["cgraph"]["As"].to_td():
+        raise ValueError("GCA row Od does not match GGCode row As")
+    if not gcb["cgraph"]["Is"].to_td() == ggc["cgraph"]["Bd"].to_td():
+        raise ValueError("GCB row Is does not match GGCode row Bd")
+    if not gcb["cgraph"]["Od"].to_td() == ggc["cgraph"]["Bs"].to_td():
+        raise ValueError("GCB row Od does not match GGCode row Bs")
+
+    # Add to Gene Pool
     gpi[ggc["signature"]] = ggc
     return ggc

@@ -1,9 +1,9 @@
 {
-    "bool": {
-        "inline": "bool({i0})",
-        "inputs": [
-            "-Any0"
-        ],
-        "description": "boolean value"
-    }
+  "bool": {
+    "description": "boolean value",
+    "inline": "bool({i0})",
+    "inputs": [
+      "-Any0"
+    ]
+  }
 }

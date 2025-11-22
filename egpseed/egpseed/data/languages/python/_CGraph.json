@@ -1,7 +1,7 @@
 {
   "getDstIf": {
-    "inline": "{i0}[{i1}]",
     "description": "Return a destination interface.",
+    "inline": "{i0}[{i1}]",
     "inputs": [
       "CGraph",
       "DstIfKey"
@@ -11,8 +11,8 @@
     ]
   },
   "getSrcIf": {
-    "inline": "{i0}[{i1}]",
     "description": "Return a source interface.",
+    "inline": "{i0}[{i1}]",
     "inputs": [
       "CGraph",
       "SrcIfKey"

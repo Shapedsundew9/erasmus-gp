@@ -129,7 +129,7 @@ class Interface(CommonObj, InterfaceABC):
             assert isinstance(ep0, EndPointABC), "All endpoints must be EndPointABC instances"
             _row = row if row is not None else ep0.row
             assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
-            _cls = EPCls.DST if isinstance(_row, DstRow) or ep0.cls == EPCls.DST else EPCls.SRC
+            _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC
             self.endpoints = [
                 EndPoint(
                     _row,

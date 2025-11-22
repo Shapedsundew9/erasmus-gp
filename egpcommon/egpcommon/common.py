@@ -316,12 +316,22 @@ def ensure_sorted_json_keys(file_path: Path | str) -> None:
     sorted_keys = sorted(keys)
 
     # If keys are not in sorted order, rewrite the file
-    if keys != sorted_keys:
-        _logger.info("Rewriting %s with sorted keys", path)
-        sorted_data = {key: data[key] for key in sorted_keys}
+    need_sort = keys != sorted_keys
+    if not need_sort:
+        _logger.debug("Top level keys in %s are already sorted", path)
+        for value in data.values():
+            if isinstance(value, dict):
+                sub_keys = list(value.keys())
+                sub_sorted_keys = sorted(sub_keys)
+                if sub_keys != sub_sorted_keys:
+                    need_sort = True
+                    _logger.debug("Found unsorted sub-dictionary in %s", path)
+                    break
 
+    if need_sort:
+        _logger.info("Rewriting %s with sorted keys", path)
         with path.open("w", encoding="utf-8") as file:
-            dump(sorted_data, file, indent=2, ensure_ascii=False)
+            dump(data, file, indent=2, ensure_ascii=False, sort_keys=True)
             file.write("\n")  # Add trailing newline
 
         _logger.info("Successfully sorted keys in %s", path)

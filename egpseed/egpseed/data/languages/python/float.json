@@ -1,61 +1,61 @@
 {
-    "as_integer_ratio": {
-        "inline": "{i0}.as_integer_ratio()",
-        "inputs": [
-            "float"
-        ],
-        "description": "the lowest ratio of integers",
-        "outputs": [
-            "Pair[int, int]"
-        ]
-    },
-    "float0": {
-        "inline": "float()",
-        "description": "float",
-        "num_inputs": 0
-    },
-    "float1": {
-        "inline": "float({i0})",
-        "inputs": [
-            "-EGPNumber0"
-        ],
-        "description": "float"
-    },
-    "float2": {
-        "inline": "float({i0})",
-        "inputs": [
-            "str"
-        ],
-        "description": "float"
-    },
-    "from_hex": {
-        "inline": "float.from_hex({i0})",
-        "inputs": [
-            "str"
-        ],
-        "description": "convert hex string {t0} to a float",
-        "outputs": [
-            "float"
-        ]
-    },
-    "hex": {
-        "inline": "{i0}.hex()",
-        "inputs": [
-            "float"
-        ],
-        "description": "convert {t0} to a hex string",
-        "outputs": [
-            "str"
-        ]
-    },
-    "is_integer": {
-        "inline": "{i0}.is_integer()",
-        "inputs": [
-            "float"
-        ],
-        "description": "true if is exactly an integer",
-        "outputs": [
-            "bool"
-        ]
-    }
+  "as_integer_ratio": {
+    "description": "the lowest ratio of integers",
+    "inline": "{i0}.as_integer_ratio()",
+    "inputs": [
+      "float"
+    ],
+    "outputs": [
+      "Pair[int, int]"
+    ]
+  },
+  "float0": {
+    "description": "float",
+    "inline": "float()",
+    "num_inputs": 0
+  },
+  "float1": {
+    "description": "float",
+    "inline": "float({i0})",
+    "inputs": [
+      "-EGPNumber0"
+    ]
+  },
+  "float2": {
+    "description": "float",
+    "inline": "float({i0})",
+    "inputs": [
+      "str"
+    ]
+  },
+  "from_hex": {
+    "description": "convert hex string {t0} to a float",
+    "inline": "float.from_hex({i0})",
+    "inputs": [
+      "str"
+    ],
+    "outputs": [
+      "float"
+    ]
+  },
+  "hex": {
+    "description": "convert {t0} to a hex string",
+    "inline": "{i0}.hex()",
+    "inputs": [
+      "float"
+    ],
+    "outputs": [
+      "str"
+    ]
+  },
+  "is_integer": {
+    "description": "true if is exactly an integer",
+    "inline": "{i0}.is_integer()",
+    "inputs": [
+      "float"
+    ],
+    "outputs": [
+      "bool"
+    ]
+  }
 }

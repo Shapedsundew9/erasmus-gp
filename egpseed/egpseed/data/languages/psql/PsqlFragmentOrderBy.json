@@ -1,33 +1,53 @@
 {
-    "ORDER BY": {
-        "inline": "psql_order_by({i0}, {i1})",
-        "description": "PSQL ORDER BY clause with column {t0} and direction {t1}",
-        "inputs": [
-            "PsqlType",
-            "bool"
+  "ORDER BY": {
+    "description": "PSQL ORDER BY clause with column {t0} and direction {t1}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
         ],
-        "outputs": [
-            "PsqlFragmentOrderBy"
-        ],
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
-    },
-    "ORDER BY RANDOM": {
-        "inline": "PsqlFragmentOrderBy()",
-        "description": "PSQL ORDER BY RANDOM() clause",
-        "inputs": [],
-        "outputs": [
-            "PsqlFragmentOrderBy"
-        ],
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
+        "name": "PsqlFragmentOrderBy"
+      }
+    ],
+    "inline": "PsqlFragmentOrderBy({i0}, {i1})",
+    "inputs": [
+      "PsqlType",
+      "bool"
+    ],
+    "outputs": [
+      "PsqlFragmentOrderBy"
+    ],
+    "properties": {
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
     }
+  },
+  "ORDER BY RANDOM": {
+    "description": "PSQL ORDER BY RANDOM() clause",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlFragmentOrderBy"
+      }
+    ],
+    "inline": "PsqlFragmentOrderBy()",
+    "inputs": [],
+    "outputs": [
+      "PsqlFragmentOrderBy"
+    ],
+    "properties": {
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
+    }
+  }
 }

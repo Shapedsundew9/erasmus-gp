@@ -1,12 +1,12 @@
 {
-    "len": {
-        "inline": "len({i0})",
-        "description": "length of",
-        "inputs": [
-            "-Sized0"
-        ],
-        "outputs": [
-            "int"
-        ]
-    }
+  "len": {
+    "description": "length of",
+    "inline": "len({i0})",
+    "inputs": [
+      "-Sized0"
+    ],
+    "outputs": [
+      "int"
+    ]
+  }
 }

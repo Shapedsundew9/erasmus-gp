@@ -677,13 +677,13 @@ if __name__ == "__main__":
             f.write(f"### GC Code Connection Graphs with Line Limit = {ec1.line_limit()}\n")
             ntw: list[GCNode] = ec1.create_code_graphs(ng)
             for node in ntw:
-                if node.function_info.global_index not in global_idx_set1:
+                if node.finfo.global_index not in global_idx_set1:
                     f.write("\n```mermaid\n")
                     f.write(node.code_mermaid_chart())
                     f.write("\n```\n")
-                    global_idx_set1.add(node.function_info.global_index)
+                    global_idx_set1.add(node.finfo.global_index)
                 else:
-                    f.write(f"Duplicate global index: {node.function_info.global_index}\n")
+                    f.write(f"Duplicate global index: {node.finfo.global_index}\n")
             f.write(f"\n### GC Node Graph Structure with Line Limit = {ec2.line_limit()}\n\n")
             f.write("```mermaid\n")
             ng = ec2.node_graph(gpgc)
@@ -693,13 +693,13 @@ if __name__ == "__main__":
             f.write(f"### GC Code Connection Graphs with Line Limit = {ec2.line_limit()}\n")
             ntw: list[GCNode] = ec2.create_code_graphs(ng)
             for node in ntw:
-                if node.function_info.global_index not in global_idx_set2:
+                if node.finfo.global_index not in global_idx_set2:
                     f.write("\n```mermaid\n")
                     f.write(node.code_mermaid_chart())
                     f.write("\n```\n")
-                    global_idx_set2.add(node.function_info.global_index)
+                    global_idx_set2.add(node.finfo.global_index)
                 else:
-                    f.write(f"Duplicate global index: {node.function_info.global_index}\n")
+                    f.write(f"Duplicate global index: {node.finfo.global_index}\n")
             f.write("\n")
 
     # Dump as JSON so we can take a deeper look at the GC's

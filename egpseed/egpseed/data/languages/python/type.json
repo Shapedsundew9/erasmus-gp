@@ -1,9 +1,9 @@
 {
-    "type": {
-        "inline": "type({i0})",
-        "inputs": [
-            "-Any0"
-        ],
-        "description": "type"
-    }
+  "type": {
+    "description": "type",
+    "inline": "type({i0})",
+    "inputs": [
+      "-Any0"
+    ]
+  }
 }

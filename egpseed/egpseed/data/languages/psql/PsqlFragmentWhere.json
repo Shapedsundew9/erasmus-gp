@@ -1,18 +1,28 @@
 {
-    "WHERE": {
-        "inline": "psql_fragment_where({i0})",
-        "description": "PSQL WHERE clause with condition {t0}",
-        "inputs": [
-            "PsqlBool"
+  "WHERE": {
+    "description": "PSQL WHERE clause with condition {t0}",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
         ],
-        "outputs": [
-            "PsqlFragmentWhere"
-        ],
-        "properties": {
-            "gctsp": {
-                "python": false,
-                "psql": true
-            }
-        }
+        "name": "PsqlFragmentWhere"
+      }
+    ],
+    "inline": "PsqlFragmentWhere({i0})",
+    "inputs": [
+      "PsqlBool"
+    ],
+    "outputs": [
+      "PsqlFragmentWhere"
+    ],
+    "properties": {
+      "gctsp": {
+        "psql": true,
+        "python": false
+      }
     }
+  }
 }

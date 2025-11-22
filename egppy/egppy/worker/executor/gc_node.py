@@ -71,7 +71,7 @@ def mc_code_node_str(gcnode: GCNode) -> str:
     """Return a Mermaid Chart string representation of the code (terminal GCNode)."""
     if gcnode.exists or gcnode.write:
         # Stub ivns for the call string to keep the length under control.
-        label = f"{gcnode.function_info.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        label = f"{gcnode.finfo.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_rectangle_str(gcnode.uid, label, MERMAID_GREEN)
     assert (
         gcnode.is_codon
@@ -226,7 +226,7 @@ class GCNode(Iterable, Hashable):
         "is_pgc",
         "unknown",
         "exists",
-        "function_info",
+        "finfo",
         "write",
         "assess",
         "gca",
@@ -263,7 +263,7 @@ class GCNode(Iterable, Hashable):
         self.is_meta: bool = gc.is_meta()  # Is this node for a meta-codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
         self.exists: bool = finfo is not NULL_FUNCTION_MAP
-        self.function_info: FunctionInfo = finfo
+        self.finfo: FunctionInfo = finfo
         self.write: bool = False  # True if the node is to be written as a function
         self.assess: bool = True  # True if the number of lines has not been determined
         self.gca: GCABC | bytes = gc["gca"]
@@ -281,7 +281,7 @@ class GCNode(Iterable, Hashable):
         # The code connection endpoints if this node is to be written
         self.terminal_connections: list[CodeConnection] = []
         # Calculated number of lines in the *potential* function
-        self.num_lines: int = self.function_info.line_count
+        self.num_lines: int = self.finfo.line_count
         # Sanity check
         assert (
             self.is_codon and not self.num_lines
@@ -375,7 +375,7 @@ class GCNode(Iterable, Hashable):
             return ""
         title_txt: list[str] = [
             "---",
-            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.function_info.call_str('')}\"",
+            f"title: \"{self.gc['signature'].hex()[-8:]} = {self.finfo.call_str('')}\"",
             "---",
         ]
         chart_txt: list[str] = []
@@ -420,7 +420,7 @@ class GCNode(Iterable, Hashable):
         rtctxt = "rtctxt: RuntimeContext, " if self.is_pgc else ""
 
         # Start building the function definition
-        base_def = f"def {self.function_info.name()}({rtctxt}{iparams if inum else ''})"
+        base_def = f"def {self.finfo.name()}({rtctxt}{iparams if inum else ''})"
 
         if hints:
             # Add type hints for output parameters

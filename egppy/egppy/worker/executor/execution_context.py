@@ -292,7 +292,8 @@ class ExecutionContext:
             for tn in GCNodeCodeIterable(root)
             if tn.terminal and tn.num_lines and (tn is not root or root.is_codon)
         ):
-            code.append(self.inline_cstr(root=root, node=node))
+            scmnt = f"  # Sig: ...{node.gc['signature'].hex()[-8:]}" if fwconfig.inline_sigs else ""
+            code.append(self.inline_cstr(root=root, node=node) + scmnt)
 
         # Add a return statement if the function has outputs
         if len(root.gc["outputs"]) > 0:
@@ -334,7 +335,7 @@ class ExecutionContext:
                 nwcg.append(node)
             else:
                 # Node that use the same function must reference the correct info
-                node.function_info = self.function_map[node.gc["signature"]]
+                node.finfo = self.function_map[node.gc["signature"]]
 
         if executable:
             for node in nwcg:
@@ -389,14 +390,21 @@ class ExecutionContext:
             dstr.append('"""')
         return dstr
 
-    def execute(self, signature: bytes, args: tuple[Any, ...]) -> Any:
+    def execute(self, gcsig: bytes | GCABC, args: tuple[Any, ...]) -> Any:
         """Execute the function in the execution context."""
+        signature = gcsig["signature"] if isinstance(gcsig, GCABC) else gcsig
         assert isinstance(signature, bytes), f"Invalid signature type: {type(signature)}"
 
         # Ensure the function is defined & get its info
         if signature not in self.function_map:
             self.write_executable(signature)
         finfo = self.function_map[signature]
+        if finfo.executable is NULL_EXECUTABLE:
+            raise RuntimeError(
+                "Function was created with executable=False: "
+                "Re-create the execution context and re-write using "
+                "executable=True. You cannot patch the context."
+            )
 
         # NB: RuntimeContext is not used if the GC is not a PGC
         rtctxt = ""
@@ -456,7 +464,7 @@ class ExecutionContext:
             if node.is_pgc:
                 ivns_map["pgc"] = "rtctxt, "
             return assignment + ngc["inline"].format_map(ivns_map)
-        return assignment + node.function_info.call_str(ivns)
+        return assignment + node.finfo.call_str(ivns)
 
     def line_limit(self) -> int:
         """Return the maximum number of lines in a function."""
@@ -520,7 +528,7 @@ class ExecutionContext:
         self.function_map[signature] = newf = FunctionInfo(
             NULL_EXECUTABLE, next(self._global_index), node.num_lines, node.gc
         )
-        node.function_info = newf
+        node.finfo = newf
         return newf
 
     def new_function(self, node: GCNode) -> FunctionInfo:
@@ -529,13 +537,13 @@ class ExecutionContext:
 
         # Debugging
         if _logger.isEnabledFor(DEBUG):
-            _logger.log(DEBUG, "Function:\n%s", node.function_info.name())
+            _logger.log(DEBUG, "Function:\n%s", node.finfo.name())
             _logger.log(DEBUG, "Code:\n%s", code)
 
         # Add to the execution context
         self.define(code)
-        node.function_info.executable = self.namespace[node.function_info.name()]
-        return node.function_info
+        node.finfo.executable = self.namespace[node.finfo.name()]
+        return node.finfo
 
     def node_graph(self, gc: GCABC) -> GCNode:
         """Build the bi-directional graph of GC's.
@@ -605,7 +613,7 @@ class ExecutionContext:
                         gc_node_graph_entry.assess = False
                         gc_node_graph_entry.exists = True
                         gc_node_graph_entry.terminal = True
-                        gc_node_graph_entry.function_info.line_count = 1
+                        gc_node_graph_entry.finfo.line_count = 1
                         gc_node_graph_entry.num_lines = 1
                 else:
                     node_stack.append(gc_node_graph_entry)
