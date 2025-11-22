@@ -155,14 +155,14 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     gcb_cgraph: CGraphABC = gcb["cgraph"]
     gcb_is: InterfaceABC = Interface(gcb_cgraph["Is"])
     gcb_od: InterfaceABC = Interface(gcb_cgraph["Od"])
-    gcb_od2: InterfaceABC = Interface(gcb_od).ref_shift(len(gca_od))
+    gcb_od2: InterfaceABC = Interface(gcb_od)
     gca_is_len = len(gca_is)
     gca_od_len = len(gca_od)
 
     cgraph = CGraph(
         {
-            "Is": gca_cgraph["Is"] + gcb_is.ref_shift(gca_is_len),
-            "Ad": gca_is.set_row(DstRow.A).set_cls(EPCls.DST),
+            "Is": gca_cgraph["Is"] + gcb_is.set_refs(DstRow.B),
+            "Ad": Interface(gca_cgraph["Is"].to_td(), DstRow.A, EPCls.DST, SrcRow.I),
             "As": gca_od.set_row(SrcRow.A).set_cls(EPCls.SRC).set_refs(DstRow.O),
             "Bd": gcb_is.set_row(DstRow.B).set_cls(EPCls.DST).ref_shift(gca_is_len),
             "Bs": gcb_od.set_row(SrcRow.B).set_cls(EPCls.SRC).set_refs(DstRow.O, gca_od_len),

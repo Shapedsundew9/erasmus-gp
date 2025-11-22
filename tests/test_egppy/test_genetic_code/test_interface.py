@@ -211,9 +211,9 @@ class TestInterface(unittest.TestCase):
 
     def test_init_with_invalid_type(self) -> None:
         """Test that ValueError is raised with invalid endpoint type."""
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(TypeError) as context:
             Interface([123.45])  # type: ignore
-        self.assertIn("Invalid endpoint type", str(context.exception))
+        self.assertIn("Unsupported endpoints type", str(context.exception))
 
     def test_init_with_source_row(self) -> None:
         """Test initialization with source row creates source endpoints."""
@@ -427,12 +427,6 @@ class TestSrcInterface(unittest.TestCase):
         self.assertEqual(len(interface), 2)
         self.assertEqual(str(interface[0].typ), "int")
         self.assertEqual(str(interface[1].typ), "float")
-
-    def test_init_with_sequences(self) -> None:
-        """Test SrcInterface initialization with sequences."""
-        interface = SrcInterface([["A", 0, "int"]], row=SrcRow.I)
-        self.assertEqual(len(interface), 1)
-        self.assertEqual(str(interface[0].typ), "int")
 
     def test_add_src_interfaces(self) -> None:
         """Test adding two SrcInterface instances."""

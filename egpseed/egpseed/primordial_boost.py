@@ -7,8 +7,6 @@ selection and mutation operations. It is intended for use during the
 early stages of development to save waiting around for chance discoveries.
 """
 
-import select
-
 from egpcommon.codon_dev_load import find_codon_signature
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.ggc_class_factory import GCABC

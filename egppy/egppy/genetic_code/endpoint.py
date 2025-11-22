@@ -308,7 +308,7 @@ class EndPoint(CommonObj, EndPointABC):
                 raise ValueError(
                     "Destination endpoint has no references for JSON Connection Graph format."
                 )
-            return [self.refs[0][0], self.refs[0][1], str(self.typ)]
+            return [str(self.refs[0][0]), self.refs[0][1], str(self.typ)]
         if json_c_graph and self.cls == EPCls.SRC:
             raise ValueError(
                 "Source endpoints cannot be converted to JSON Connection Graph format."

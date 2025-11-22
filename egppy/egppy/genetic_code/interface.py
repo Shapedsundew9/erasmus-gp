@@ -91,6 +91,8 @@ class Interface(CommonObj, InterfaceABC):
             | InterfaceABC
         ),
         row: Row | None = None,
+        rrow: Row | None = None,
+        rsidx: int = 0,
     ) -> None:
         """Initialize the Interface class.
 
@@ -103,35 +105,100 @@ class Interface(CommonObj, InterfaceABC):
             they will be treated as EGP types, in order, as destinations on the row specified unless
             the row can only be a source.
             Any objects will be deep-copied to ensure mutability & independence.
-        row: Row | None: The destination row associated with the interface. Ignored if endpoints are
-            provided as EndPoint objects.
+        row: Row | None: The row associated with the interface. Required if endpoints are not
+            EndPoints. If None, the row will be inferred from the first endpoint.
+        rrow: Row | None: The row to use for references. When endpoints are not EndPoints
+            None indicates no references i.e. an empty list. If provided, this will override
+            any ref row specified in the endpoint sequences.
+        rsidx: int: The starting index to use for references when rrow is provided.
         """
         super().__init__()
         self.endpoints: list[EndPoint] = []
-
-        # Validate row if endpoints are provided as sequences
-        row_cls = EPCls.DST if row is None or isinstance(row, DstRow) else EPCls.SRC
-        for idx, ep in enumerate(endpoints):
-            if isinstance(ep, EndPointABC):
-                # Have to make a copy to ensure mutability & independence
-                self.endpoints.append(EndPoint(ep))
-            elif isinstance(ep, (list, tuple)):
-                if len(ep) == 3:
-                    if row is None:
-                        raise ValueError(
-                            "Row parameter must be provided when endpoints are sequences"
-                        )
-                    self.endpoints.append(EndPoint(row, idx, EPCls.DST, ep[2], ((ep[0], ep[1]),)))
-                else:
-                    # EndPointMemberType
-                    self.endpoints.append(EndPoint(*ep))
-            elif isinstance(ep, (str, int, TypesDef)):
-                self.endpoints.append(EndPoint(row, idx, row_cls, ep, None))
-            else:
-                raise ValueError(
-                    f"Invalid endpoint type: {type(ep)} was expecting EndPoint or Sequence"
-                )
         self._hash: int = 0
+
+        # Assert valid row if provided
+        assert isinstance(row, (DstRow, SrcRow, type(None))), "Row must be DstRow, SrcRow or None"
+
+        # Nothing to do if there are no endpoints
+        if len(endpoints) == 0:
+            return
+
+        # Handle case where endpoints is an InterfaceABC or contains EndPointABC instances
+        if isinstance(endpoints, InterfaceABC) or isinstance(endpoints[0], EndPointABC):
+            ep0 = endpoints[0]
+            assert isinstance(ep0, EndPointABC), "All endpoints must be EndPointABC instances"
+            _row = row if row is not None else ep0.row
+            assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
+            _cls = EPCls.DST if isinstance(_row, DstRow) or ep0.cls == EPCls.DST else EPCls.SRC
+            self.endpoints = [
+                EndPoint(
+                    _row,
+                    idx,
+                    _cls,
+                    ep.typ,  # type: ignore
+                    ep.refs if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # Handle case where endpoints are JSONCGraph-style sequences
+        if isinstance(endpoints[0], (list, tuple)) and len(endpoints[0]) == 3:
+            if row is None:
+                raise ValueError("Row parameter must be provided when endpoints are sequences")
+            if isinstance(row, SrcRow):
+                raise ValueError("Row parameter cannot be a source row for JSON endpoint sequences")
+            self.endpoints = [
+                EndPoint(
+                    row,
+                    idx,
+                    EPCls.DST,
+                    ep[2],  # type: ignore
+                    [ep[0:2]] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # Handle the type sequence case
+        if isinstance(endpoints[0], (str, int, TypesDef)):
+            if row is None:
+                raise ValueError("Row parameter must be provided when endpoints are types")
+            row_cls = EPCls.DST if isinstance(row, DstRow) else EPCls.SRC
+            self.endpoints = [
+                EndPoint(
+                    row,
+                    idx,
+                    row_cls,
+                    ep,  # type: ignore
+                    [] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # Handle mixed endpoint member types
+        if isinstance(endpoints[0], tuple) and len(endpoints[0]) == 5:
+            _row = row if row is not None else endpoints[0][0]
+            assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
+            _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC
+            self.endpoints = [
+                EndPoint(
+                    _row,
+                    idx,
+                    _cls,
+                    ep[3],  # type: ignore
+                    ep[4] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
+                )
+                for idx, ep in enumerate(endpoints)
+            ]
+            return
+
+        # If we get here, we have an unsupported type
+        raise TypeError(
+            f"Unsupported endpoints type: {type(endpoints)} "
+            f" with first element type {type(endpoints[0])}"
+        )
 
     def __eq__(self, value: object) -> bool:
         """Check equality of Interface instances.

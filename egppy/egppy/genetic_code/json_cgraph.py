@@ -279,7 +279,7 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
         # Create destination interface
         dst_iface_key = dst_row + EPClsPostfix.DST
         dst_interface: list[EndpointMemberType] = [
-            (dst_row, i, EPCls.DST, types_def_store[v[2]], [[v[0], v[1]]])
+            (DstRow(dst_row), i, EPCls.DST, types_def_store[v[2]], [[SrcRow(v[0]), v[1]]])
             for i, v in enumerate(idef)
         ]
         interfaces[dst_iface_key] = dst_interface
@@ -303,18 +303,18 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
                         )
                     refs = src_ep[4]
                     assert isinstance(refs, list), "Expected refs to be a list."
-                    refs.append([dst_row, ep[1]])
+                    refs.append([DstRow(dst_row), ep[1]])
                 else:
                     # Create new source endpoint
                     assert isinstance(
                         src_idx, int
                     ), f"Expected an integer index, got {type(src_idx)}"
                     src_ep_dict[src_row][src_idx] = (
-                        src_row,
+                        SrcRow(src_row),
                         src_idx,
                         EPCls.SRC,
                         ep[3],
-                        [[dst_row, ep[1]]],
+                        [[DstRow(dst_row), ep[1]]],
                     )
 
     # Create source interfaces from the collected source endpoints
