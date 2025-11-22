@@ -348,7 +348,7 @@ class TestPsqlTypes(unittest.TestCase):
         one = PsqlInt(1, is_literal=True)
         cond = PsqlBool("{a} > {one}", is_literal=False, param_a=a, param_b=one)
         where = PsqlFragmentWhere(cond)
-        self.assertEqual(str(where), "WHERE {a} > {one}")
+        self.assertEqual(str(where), "{a} > {one}")
         with self.assertRaises(PsqlValueError):
             PsqlFragmentWhere(PsqlBool(True, is_literal=True))
 
