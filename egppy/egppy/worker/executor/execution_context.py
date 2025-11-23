@@ -11,6 +11,7 @@ from typing import Any
 
 from egpcommon.common import NULL_STR
 from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
+from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
@@ -151,7 +152,13 @@ class ExecutionContext:
         # Debugging
         # _logger.debug("Creating code graph for: %s", node)
 
+        # Create initial connections for Row O (always present)
         connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)
+
+        # For conditional graphs, also create connections for Row P (alternate path)
+        if node.is_conditional:
+            connection_stack.extend(code_connection_from_iface(node, DstRow.P))
+
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
         # Make sure we are not processing the same interface more than once.
@@ -256,9 +263,12 @@ class ExecutionContext:
             # If this node is conditional a connection to row F must be made
             if node is not NULL_GC_NODE and node.f_connection:
                 node.f_connection = False
+                # Get the source reference from the first endpoint in Fd interface
+                f_ep = node.gc["cgraph"]["Fd"][0]
+                f_src_row, f_src_idx = unpack_src_ref(f_ep.refs[0])
                 connection_stack.append(
                     CodeConnection(
-                        CodeEndPoint(node, SrcRow.I, node.gc["cgraph"]["Fd"][0][1]),
+                        CodeEndPoint(node, f_src_row, f_src_idx),
                         CodeEndPoint(node, DstRow.F, 0, True),
                     )
                 )
@@ -289,6 +299,10 @@ class ExecutionContext:
             # TODO: Add condition to check if the GC is eligible for caching
             self.result_cache(root)
 
+        # Check if this is a conditional GC and route to specialized handler
+        if root.is_conditional:
+            return code + self._generate_conditional_function_code(root, fwconfig, ovns)
+
         # Write a line for each terminal node that has lines to write in the graph
         # Meta codons have 0 lines when self.wmc (write meta-codons) is false
         # Special case: If the root is a codon, it needs to be written as it IS the function body
@@ -310,6 +324,155 @@ class ExecutionContext:
         This optimisations identifies code paths that have identical expressions
         and replaces them with a single expression that is assigned to a variable.
         """
+
+    def _generate_conditional_function_code(
+        self, root: GCNode, fwconfig: FWConfig, ovns: list[str]
+    ) -> list[str]:
+        """Generate complete conditional function code for IF_THEN or IF_THEN_ELSE graphs.
+
+        This handles conditional graph types by:
+        1. Evaluating the condition (Row F)
+        2. Generating if/else branches with proper code placement
+        3. Assigning outputs appropriately
+
+        Args:
+            root: The conditional GC node (must be IF_THEN or IF_THEN_ELSE)
+            fwconfig: Function writing configuration
+            ovns: Output variable names
+
+        Returns:
+            List of code lines implementing the conditional structure
+        """
+        code: list[str] = []
+        rtc: list[CodeConnection] = root.terminal_connections
+
+        # Step 1: Find and handle condition variable (Row F)
+        condition_conn = next((c for c in rtc if c.dst.row == DstRow.F), None)
+        if condition_conn is None:
+            raise ValueError(
+                f"Conditional GC missing Row F connection: {root.gc['signature'].hex()}"
+            )
+
+        condition_var = condition_conn.var_name
+
+        # Step 2: Get Row O and Row P connections
+        # Row O connections define outputs when condition is TRUE
+        # Row P connections define outputs when condition is FALSE
+        o_connections = [c for c in rtc if c.dst.row == DstRow.O and c.dst.node is root]
+        p_connections = [c for c in rtc if c.dst.row == DstRow.P and c.dst.node is root]
+
+        # Step 3: Categorize all nodes into execution paths
+        # For conditional graphs, we need to determine which nodes belong to:
+        # - TRUE path (nodes that feed into Row O)
+        # - FALSE path (nodes that feed into Row P)
+        # - SHARED path (nodes used by both or for condition)
+
+        # Build dependency graph: which nodes feed into Row O and Row P
+        def get_dependent_nodes(connections: list[CodeConnection]) -> set[GCNode]:
+            """Get all nodes that are dependencies for the given connections."""
+            nodes = set()
+            work_list = [c.src.node for c in connections if c.src.node is not root]
+            visited = set()
+
+            while work_list:
+                node = work_list.pop()
+                if node in visited or node is root:
+                    continue
+                visited.add(node)
+                nodes.add(node)
+
+                # Add this node's dependencies
+                for conn in rtc:
+                    if conn.dst.node is node and conn.src.node is not root:
+                        work_list.append(conn.src.node)
+
+            return nodes
+
+        o_path_nodes = get_dependent_nodes(o_connections)
+        p_path_nodes = get_dependent_nodes(p_connections)
+
+        # Condition node dependencies should execute before the if
+        condition_deps = (
+            get_dependent_nodes([condition_conn]) if condition_conn.src.node is not root else set()
+        )
+
+        # Step 4: Generate code before the conditional
+        # This includes condition evaluation and any shared computations
+        for node in condition_deps:
+            if node.terminal and node.num_lines:
+                scmnt = (
+                    f"  # Sig: ...{node.gc['signature'].hex()[-8:]}" if fwconfig.inline_sigs else ""
+                )
+                code.append(self.inline_cstr(root=root, node=node) + scmnt)
+
+        # Step 5: Generate true path code (when condition is TRUE)
+        true_code: list[str] = []
+
+        # Only include nodes that are in O path but not in condition deps
+        true_only_nodes = o_path_nodes - condition_deps
+        for node in GCNodeCodeIterable(root):
+            if node in true_only_nodes and node.terminal and node.num_lines:
+                scmnt = (
+                    f"  # Sig: ...{node.gc['signature'].hex()[-8:]}" if fwconfig.inline_sigs else ""
+                )
+                true_code.append(self.inline_cstr(root=root, node=node) + scmnt)
+
+        # Assign outputs from Row O connections (skip self-assignments)
+        for conn in o_connections:
+            output_idx = conn.dst.idx
+            if ovns[output_idx] != conn.var_name:
+                true_code.append(f"{ovns[output_idx]} = {conn.var_name}")
+
+        # Step 6: Generate false path code (when condition is FALSE)
+        false_code: list[str] = []
+
+        if root.graph_type == CGraphType.IF_THEN_ELSE:
+            # IF_THEN_ELSE: Execute GCB
+            # Only include nodes that are in P path but not in condition deps
+            false_only_nodes = p_path_nodes - condition_deps
+            for node in GCNodeCodeIterable(root):
+                if node in false_only_nodes and node.terminal and node.num_lines:
+                    scmnt = (
+                        f"  # Sig: ...{node.gc['signature'].hex()[-8:]}"
+                        if fwconfig.inline_sigs
+                        else ""
+                    )
+                    false_code.append(self.inline_cstr(root=root, node=node) + scmnt)
+
+            # Assign outputs from Row P connections (skip self-assignments)
+            for conn in p_connections:
+                output_idx = conn.dst.idx
+                if ovns[output_idx] != conn.var_name:
+                    false_code.append(f"{ovns[output_idx]} = {conn.var_name}")
+        else:
+            # IF_THEN: Passthrough assignments from Row P (skip self-assignments)
+            for conn in p_connections:
+                output_idx = conn.dst.idx
+                if ovns[output_idx] != conn.var_name:
+                    false_code.append(f"{ovns[output_idx]} = {conn.var_name}")
+
+        # Step 7: Generate if/else structure with proper indentation
+        code.append(f"if {condition_var}:")
+        # Ensure we have at least one line in the if block
+        if true_code:
+            for line in true_code:
+                code.append(f"\t{line}")
+        else:
+            code.append("\tpass")
+
+        code.append("else:")
+        # Ensure we have at least one line in the else block
+        if false_code:
+            for line in false_code:
+                code.append(f"\t{line}")
+        else:
+            code.append("\tpass")
+
+        # Step 8: Return statement (outside the if/else)
+        if len(root.gc["outputs"]) > 0:
+            code.append(f"return {', '.join(ovns)}")
+
+        return code
 
     def constant_evaluation(self, root: GCNode) -> None:
         """Apply constant evaluation to the GC function.
@@ -585,7 +748,7 @@ class ExecutionContext:
             if node.is_codon or node.unknown:
                 continue
             child_nodes = ((DstRow.A, node.gca), (DstRow.B, node.gcb))
-            for row, xgc in (x for x in child_nodes):
+            for row, xgc in (x for x in child_nodes if x[1] is not NULL_GC):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
                 fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
                 gc_node_graph_entry: GCNode = GCNode(

@@ -118,7 +118,7 @@ def create_primitive_gcs():
     sggc = codons["SELECTOR_GC"] = ec.execute(codons["CONNECT_ALL"], (segc,))
     ec.write_executable(sggc)
     fwconfig = FWConfig(hints=True, lean=False, inline_sigs=True)
-    write_context_to_file(ec, "primitive_gcs.md", fwconfig=fwconfig, oft=OutputFileType.MARKDOWN)
+    write_context_to_file(ec, "temp.md", fwconfig=fwconfig, oft=OutputFileType.MARKDOWN)
     print(f"Primitive genetic codes created: {ec.execute(sggc, tuple())}")
 
 

@@ -6,6 +6,7 @@ from collections.abc import Hashable, Iterable, Iterator
 from itertools import count
 from typing import TYPE_CHECKING
 
+from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
 from egppy.genetic_code.genetic_code import (
@@ -21,6 +22,7 @@ from egppy.genetic_code.genetic_code import (
 )
 from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
 from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.json_cgraph import c_graph_type
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
 
 if TYPE_CHECKING:
@@ -139,6 +141,7 @@ class GCNodeIterator(Iterator):
         """Traverse the GCNode graph to the limit of the GCA nodes."""
         while node.gca_node is not NULL_GC_NODE:
             node = node.gca_node
+            assert node != node.gca_node, "GCNode graph contains a cycle."
             self.stack.append(node)
 
 
@@ -233,6 +236,9 @@ class GCNode(Iterable, Hashable):
         "gcb",
         "terminal",
         "f_connection",
+        "graph_type",
+        "is_conditional",
+        "condition_var_name",
         "gca_node",
         "gcb_node",
         "uid",
@@ -269,7 +275,14 @@ class GCNode(Iterable, Hashable):
         self.gca: GCABC | bytes = gc["gca"]
         self.gcb: GCABC | bytes = gc["gcb"]
         self.terminal: bool = False  # A terminal node is where a connection ends
-        self.f_connection: bool = gc.is_conditional()
+        # Cache the graph type to avoid repeated lookups
+        self.graph_type: CGraphType = (
+            c_graph_type(gc["cgraph"]) if gc is not NULL_GC else CGraphType.UNKNOWN
+        )
+        # Set conditional flags based on graph type
+        self.is_conditional: bool = self.graph_type in (CGraphType.IF_THEN, CGraphType.IF_THEN_ELSE)
+        self.f_connection: bool = self.is_conditional
+        self.condition_var_name: str | None = None
         self.is_pgc: bool = gc.is_pgc()
         # If this node is a null GC node then it is a leaf node and we self
         # reference with GCA & GCB to terminate the recursion.
@@ -329,7 +342,7 @@ class GCNode(Iterable, Hashable):
             if isinstance(self.gca, bytes):
                 self.gca = gpi[self.gca]
             if isinstance(self.gcb, bytes):
-                self.gcb = gpi[self.gcb]
+                self.gcb = NULL_GC if self.gcb == NULL_SIGNATURE else gpi[self.gcb]
 
         if self.exists and (isinstance(self.gca, bytes) or isinstance(self.gcb, bytes)):
             # This is a unknown executable (treated like a codon in many respects)

@@ -31,6 +31,8 @@ just have an output interface are constants, read from memory, storage or periph
 - **P** = Alternate output interface (destination) - used when condition is false or loop has zero iterations
 - **U** = Unconnected source endpoints (destination) - JSON format only
 
+Note that row _P_ only exists logically. It is the same interface as row O i.e. the functions return value (which is why it must have the same structure as row O), but the execution path to the physical return interface is different for row _O_ and row _P_ allowing conditional execution.
+
 | Type | I | F | L | W | A | B | O | P | U |
 |------|---|---|---|---|---|---|---|---|---|
 | If-Then | X | X | - | - | X | - | m | m | o |

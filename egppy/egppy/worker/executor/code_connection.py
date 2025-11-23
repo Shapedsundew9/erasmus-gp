@@ -105,8 +105,9 @@ def code_connection_from_iface(node: GCNode, row: Row) -> list[CodeConnection]:
             dst_node = node.gcb_node
             dst_row = SrcRow.I
         case _:
+            # For other destination rows (O, P, F, etc.), keep the same row
             dst_node = node
-            dst_row = DstRow.O
+            dst_row = row
     return [
         CodeConnection(
             CodeEndPoint(node, ep.refs[0][0], ep.refs[0][1]),

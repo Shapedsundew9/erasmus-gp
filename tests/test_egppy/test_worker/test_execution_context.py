@@ -1,22 +1,25 @@
 """Unit tests for the executor function."""
 
 import unittest
-from random import getrandbits, seed
+from random import choice, getrandbits, seed
 
-from egpcommon.common import random_int_tuple_generator
+from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
+from egppy.genetic_code.genetic_code import NULL_SIGNATURE
 from egppy.genetic_code.ggc_class_factory import GCABC
-from egppy.worker.executor.context_writer import FWC4FILE, write_context_to_file
+from egppy.worker.executor.context_writer import FWC4FILE, OutputFileType, write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo
 from egppy.worker.executor.gc_node import GCNode
 
 from .xor_stack_gc import (
     CODON_SIGS,
+    INT_T,
     create_gc_matrix,
-    create_primitive_gcs,
     expand_gc_matrix,
     f_7fffffff,
     gpi,
+    inherit_members,
     primitive_gcs,
 )
 
@@ -40,7 +43,6 @@ class TestExecutor(unittest.TestCase):
         cls.gene_pool: list[GCABC] = [
             gc for ni in cls.gcm.values() for rs in ni.values() for gc in rs
         ]
-        create_primitive_gcs()
 
     def setUp(self) -> None:
         super().setUp()
@@ -195,3 +197,64 @@ class TestExecutor(unittest.TestCase):
             gc = self.gene_pool[idx]
             self.ec2.write_executable(gc)
         write_context_to_file(self.ec2)
+
+    def test_if_then_execution(self) -> None:
+        """Test IF_THEN execution."""
+        # Create a simple IF_THEN GC
+
+        # Set the seed for reproducibility of random choices and then
+        # generate 3 random integers that will be used as inputs
+        seed(42)
+        a, b, c = tuple(getrandbits(64) for _ in range(3))
+
+        # Pick a GCA (path "if True") that takes 3 inputs and produces 3 outputs
+        # Execute GCA with inputs a, b, c to get outputs. This is our result
+        # to compare against when the condition is True.
+        gca = choice(self.gcm[3][3])
+        seed(43)
+        r_true_expected = self.ec2.execute(gca, (a, b, c))
+
+        # Now create an IF_THEN GC that uses GCA as the "then" branch. The "else"
+        # branch is NULL_SIGNATURE which has no function just connects inputs to
+        # outputs in pass_through_order.
+        pass_through_order = (1, 2, 0)
+        r_false_expected = tuple((a, b, c)[i] for i in pass_through_order)
+        ggc = inherit_members(
+            {
+                "ancestora": gca,
+                "ancestorb": NULL_SIGNATURE,
+                "gca": gca,
+                "gcb": NULL_SIGNATURE,
+                "cgraph": {
+                    "F": [["I", 3, "bool"]],  # Condition
+                    "A": [["I", i, INT_T] for i in range(len(gca["inputs"]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["outputs"]))],
+                    "P": [["I", i, INT_T] for i in pass_through_order],
+                },
+                "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+                "problem": ACYBERGENESIS_PROBLEM,
+                "properties": BASIC_ORDINARY_PROPERTIES,
+                "num_codons": gca["num_codons"],
+            },
+            True,
+        )
+        self.ec2.write_executable(ggc)
+        # write_context_to_file(self.ec2, "temp.md", oft=OutputFileType.MARKDOWN)
+
+        # Execute the IF_THEN GC with condition True. Need the same seed
+        # to ensure any random choices in GCA are the same.
+        seed(43)
+        r_true = self.ec2.execute(ggc, (a, b, c, True))
+        self.assertEqual(r_true, r_true_expected)
+        # Execute the IF_THEN GC with condition False
+        r_false = self.ec2.execute(ggc, (a, b, c, False))
+        self.assertEqual(r_false, r_false_expected)
+
+        # Do it again with ec1 (different line limit)
+        self.ec1.write_executable(ggc)
+        write_context_to_file(self.ec1, "temp.md", oft=OutputFileType.MARKDOWN)
+        seed(43)
+        r_true = self.ec1.execute(ggc, (a, b, c, True))
+        self.assertEqual(r_true, r_true_expected)
+        r_false = self.ec1.execute(ggc, (a, b, c, False))
+        self.assertEqual(r_false, r_false_expected)

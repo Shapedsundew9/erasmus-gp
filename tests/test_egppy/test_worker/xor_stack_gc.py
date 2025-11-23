@@ -31,7 +31,7 @@ from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_class_factory import NULL_GC, GGCDict
 from egppy.genetic_code.types_def import types_def_store
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
@@ -90,7 +90,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
     assert isinstance(egc, GCABC), "GC must be a GCABC object."
     gca = egc["gca"]
     gcb = egc["gcb"]
-    if gca == NULL_SHA256:
+    if gca == NULL_SHA256 or gca is NULL_GC:
         raise ValueError("Cannot resolve inherited members. GC is a codon.")
     gca = find_gc(gca)
 
@@ -120,7 +120,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
             )
 
     # If GCB exists modify
-    if gcb != NULL_SHA256:
+    if gcb != NULL_SHA256 and gcb is not NULL_GC:
         gcb = find_gc(gcb)
         egc["num_codons"] += gcb["num_codons"]
         egc["num_codes"] += gcb["num_codes"]
