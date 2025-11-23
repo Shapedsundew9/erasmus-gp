@@ -107,6 +107,11 @@ class ExecutionContext:
     )
 
     def __init__(self, gpi: GenePoolInterface, line_limit: int = 64, wmc: bool = False) -> None:
+        """Create a new execution context.
+        Args:
+            gpi (GenePoolInterface): The gene pool interface used to look up GC's.
+            line_limit (int): The maximum number of lines in a function.
+            wmc (bool): Write meta-codons when True."""
         # The globals passed to exec() when defining objects in the context
         # The GenePoolInterface instance is stored in the namespace as "GPI"
         # is explicitly used in the selector codons.
