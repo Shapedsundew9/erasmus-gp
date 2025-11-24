@@ -671,7 +671,9 @@ class ExecutionContext:
                     assert src.node is root, "Invalid connection source node."
                     assert connection.var_name == "", "Input variable name already assigned."
                     connection.var_name = i_cstr(idx)
-                elif dst.row == DstRow.O and connection.var_name is NULL_STR:
+                elif (
+                    dst.row == DstRow.O or dst.row == DstRow.P
+                ) and connection.var_name is NULL_STR:
                     assert dst.node is root, "Invalid connection destination node."
                     connection.var_name = o_cstr(dst.idx)
                 elif connection.var_name is NULL_STR:
@@ -682,7 +684,7 @@ class ExecutionContext:
                     raise ValueError("Invalid connection source row.")
 
             # Gather the outputs for this node (may not be named ox if connected to an input)
-            if dst.row == DstRow.O:
+            if dst.row == DstRow.O or dst.row == DstRow.P:
                 assert dst.node is root, "Invalid connection destination node."
                 _ovns[dst.idx] = connection.var_name
         return _ovns
