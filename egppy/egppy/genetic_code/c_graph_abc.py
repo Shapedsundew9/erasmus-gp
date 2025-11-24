@@ -66,9 +66,14 @@ connection graph. Unless otherwise stated, these rules apply to both stable and 
 Using the nomenclature:
     - Is: GC Node input source interface
     - Fd: GC Node conditional destination interface
-    - Ld: GC Node loop iterable destination interface (for both for and while loops)
-    - Ls: GC Node loop object source interface
-    - Wd: GC Node while loop object destination interface
+    - Ld: GC Node loop iterable destination interface (for loops only)
+    - Ls: GC Node loop object source interface (for loops only)
+    - Sd: GC Node loop state destination interface (loop state input, for both loop types)
+    - Ss: GC Node loop state source interface (loop state output, for both loop types)
+    - Td: GC Node loop next-state destination interface (for both loop types)
+    - Wd: GC Node while loop condition state destination interface (while loops only, boolean)
+    - Ws: GC Node while loop condition state source interface (while loops only, boolean)
+    - Xd: GC Node while loop next-condition destination interface (while loops only, boolean)
     - Ad: GCA input interface as a destination in the GC Node graph
     - As: GCA output interface as a source in the GC Node graph
     - Bd: GCB input interface as a destination in the GC Node graph
@@ -79,6 +84,12 @@ Using the nomenclature:
     - Ud: GC Node destination interface for otherwise unconnected source endpoints
       (JSON format only)
 
+Note: The connection from Td to Ss and from Xd to Ws on subsequent loop iterations is
+implicit in the loop semantics and is not represented in the connection graph. The graph
+only shows the explicit connections for initialization (Is → Sd/Wd) and updates (As → Td/Xd).
+Td and Xd are semantically identical to Ss and Ws respectively - they represent the same
+interface but serve as destination endpoints for the loop body outputs.
+
 Common Rules
     - Endpoints can only be connected to endpoints of the same or a compatible type.
     - Source endpoints may be connected to 0, 1 or multiple destination endpoints.
@@ -86,9 +97,11 @@ Common Rules
     - Destination endpoints may only be unconnected (have no connections) in unstable graphs.
     - Interfaces may have 0 to MAX_NUM_ENDPOINTS (inclusive) endpoints
     - MAX_NUM_ENDPOINTS == 255
-    - Fd, Ld, Wd and Ls, if they exist, must have exactly 1 endpoint in the interface when stable.
+    - Fd, Ld, Wd and Ls, Ws, if they exist, must have exactly 1 endpoint in the interface when stable.
     - Pd must have the same interface, i.e. endpoint number, order and types as Od.
-    - Any Is endpoint may be a source to any destination endpoint with the exception of Wd
+    - Td must have the same interface, i.e. endpoint number, order and types as Sd and Ss.
+    - Xd must have the same interface, i.e. endpoint number, order and types as Wd and Ws.
+    - Any Is endpoint may be a source to any destination endpoint with the exception of Ws
     - Any source endpoint that is not connected to any other destination endpoint is connected
       to the Ud interface in a JSON Connection Graph representation.
     - Ud only exists in JSON Connection Graph representations and only if there are
@@ -100,19 +113,21 @@ Common Rules
     - Is and Od must exist (and so Pd must exist in graph types that have Pd)
     - Either both of As and Ad exist or neither exist
     - Either both of Bs and Bd exist or neither exist
+    - If Sd exists, then Ss and Td must also exist
+    - If Wd exists, then Ws and Xd must also exist
     - Interfaces on the same row cannot connect to each other (e.g. Bs cannot connect to Bd)
     - References must be consistent, i.e. if a destination endpoint references a source endpoint,
       the source endpoint must also reference the destination endpoint. This is still just a
       single directed connection. (NB: This is to facilitate verification of integrity.)
 
 Additional to the Common Rules Conditional If-Then graphs have the following rules
-    - Must not have Ld, Wd, Bd, Bs or Ls interfaces
+    - Must not have Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, Bd, or Bs interfaces
     - Only Is can connect to Fd
     - As can only connect to Od or Ud
     - Only Is can connect to Pd
 
 Additional to the Common Rules Conditional If-Then-Else graphs have the following rules
-    - Must not have Ld, Wd or Ls interfaces
+    - Must not have Ld, Ls, Sd, Ss, Td, Wd, Ws, or Xd interfaces
     - Only Is can connect to Fd
     - As can only connect to Od or Ud
     - Bs can only connect to Pd or Ud
@@ -123,25 +138,34 @@ Additional to the Common Rules Empty graphs have the following rules
     - An empty graph has no connections (and is thus always unstable if Od has endpoints)
 
 Additional to the Common Rules For-Loop graphs have the following rules
-    - Must not have an Fd, Wd, Bs, or Bd interface
+    - Must not have an Fd, Wd, Ws, Xd, Bs, or Bd interface
     - Only Is can connect to Ld
+    - Only Is can connect to Sd
     - Ls can only connect to Ad
+    - Ss can only connect to Ad or Ud
+    - As can only connect to Td or Od
+    - Td can only connect to Od or Ud
     - Ld must be an iterable compatible endpoint type.
     - Ls must be the object type returned by iterating Ld.
-    - As can only connect to Od or Ud
+    - Is can connect to Od or Ud
     - Only Is can connect to Pd
 
 Additional to the Common Rules While-Loop graphs have the following rules
-    - Must not have an Fd, Bs or Bd interface
-    - Only Is can connect to Ld
-    - Ls can only connect to Ad
-    - Only As can connect to Wd
-    - Wd and Ls must be the same type as Ld
-    - Is and As can connect to Od or Ud
+    - Must not have an Fd, Ld, Ls, Bs, or Bd interface
+    - Only Is can connect to Wd
+    - Only Is can connect to Sd
+    - Ws can only connect to Ad or Ud
+    - Ss can only connect to Ad or Ud
+    - As can only connect to Xd, Td, or Od
+    - Xd can only connect to Od or Ud
+    - Td can only connect to Od or Ud
+    - Wd and Ws must be boolean type
+    - Xd must be boolean type
+    - Is can connect to Od or Ud
     - Only Is can connect to Pd
 
 Additional to the Common Rules Standard graphs have the following rules
-    - Must not have an Fd, Ld, Wd, Ls or Pd interface
+    - Must not have an Fd, Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, or Pd interface
     - Bs can only connect to Od or Ud
 
 Additional to the Common Rules Primitive connection graphs have the following rules

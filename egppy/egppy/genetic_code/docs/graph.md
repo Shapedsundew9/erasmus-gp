@@ -23,8 +23,11 @@ just have an output interface are constants, read from memory, storage or periph
 
 - **I** = Input interface (source)
 - **F** = Condition evaluation destination (for conditionals)
-- **L** = Loop iterable/condition destination (for loops) and loop object source
-- **W** = While loop condition destination
+- **L** = Loop iterable destination (for loops) and loop object source
+- **S** = Loop state destination (input) and source (output) - for both loop types
+- **T** = Loop next-state destination - for both loop types
+- **W** = While loop condition state destination (input) and source (output) - boolean only
+- **X** = While loop next-condition destination - boolean only
 - **A** = GCA input (destination) / GCA output (source)
 - **B** = GCB input (destination) / GCB output (source)
 - **O** = Output interface (destination)
@@ -33,35 +36,40 @@ just have an output interface are constants, read from memory, storage or periph
 
 Note that row _P_ only exists logically. It is the same interface as row O i.e. the functions return value (which is why it must have the same structure as row O), but the execution path to the physical return interface is different for row _O_ and row _P_ allowing conditional execution.
 
-| Type | I | F | L | W | A | B | O | P | U |
-|------|---|---|---|---|---|---|---|---|---|
-| If-Then | X | X | - | - | X | - | m | m | o |
-| If-Then-Else | X | X | - | - | X | X | m | m | o |
-| Empty | o | - | - | - | - | - | o | - | o |
-| For-Loop | X | - | X | - | X | - | m | m | o |
-| While-Loop | X | - | X | X | X | - | m | m | o |
-| Standard | o | - | - | - | X | X | o | - | o |
-| Primitive | o | - | - | - | X | - | o | - | - |
+Similarly, rows _T_ and _X_ are semantically identical to _S_ and _W_ respectively, but serve as destination endpoints for loop body outputs while _S_ and _W_ serve as source endpoints providing state to the loop body. The implicit feedback connection from _Td→Ss_ and _Xd→Ws_ between iterations is handled in code generation, not the connection graph.
+
+| Type | I | F | L | S | T | W | X | A | B | O | P | U |
+|------|---|---|---|---|---|---|---|---|---|---|---|---|
+| If-Then | X | X | - | - | - | - | - | X | - | M | M | m |
+| If-Then-Else | X | X | - | - | - | - | - | X | X | M | M | m |
+| Empty | o | - | - | - | - | - | - | - | - | o | - | m |
+| For-Loop | X | - | X | m | m | - | - | X | - | M | M | m |
+| While-Loop | X | - | - | m | m | X | X | X | - | M | M | m |
+| Standard | o | - | - | - | - | - | - | X | X | o | - | m |
+| Primitive | o | - | - | - | - | - | - | X | - | o | - | - |
 
 - **X** = Must be present i.e. have at least 1 endpoint for that row.
 - **-** = Must _not_ be present
 - **o** = Must have at least 1 endpoint in the set of rows.
-- **m** = May be present and must be the same on each row.
+- **M** = May be present and must be the same on each row.
 
 ## Connectivity Requirements
 
 Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-Loop, While-Loop, and Standard graphs have connections between row interfaces but not all combinations are permitted. In the matrix below the source of the connection is the column label and the destination of the connection is the row label.
 
-| Dst\Src | I | L | A | B |
-|---------|---|---|---|---|
-| F | IT,IE | - | - | - |
-| L | FL,WL | - | - | - |
-| W | - | - | WL | - |
-| A | IT,IE,FL,WL,S,P | FL,WL | - | - |
-| B | IE,S | - | S | - |
-| O | IT,IE,FL,WL,S,P | - | IT,IE,FL,WL,S,P | S |
-| P | IT,IE,FL,WL | - | - | IE |
-| U | All | All | All | All |
+| Dst\Src | I | L | S | W | A | B |
+|---------|---|---|---|---|---|---|
+| F | IT,IE | - | - | - | - | - |
+| L | FL | - | - | - | - | - |
+| S | FL,WL | - | - | - | - | - |
+| T | - | - | - | - | FL,WL | - |
+| W | WL | - | - | - | - | - |
+| X | - | - | - | - | WL | - |
+| A | IT,IE,FL,WL,S,P | FL | FL,WL | WL | - | - |
+| B | IE,S | - | - | - | S | - |
+| O | IT,IE,FL,WL,S,P | - | - | - | IT,IE,FL,WL,S,P | S |
+| P | IT,IE,FL,WL | - | - | - | - | IE |
+| U | All | All | All | All | All | All |
 
 **Legend:**
 
@@ -105,6 +113,23 @@ class O Ocd
 class P Pcd
 ```
 
+#### If-Then Execution Flow
+
+```python
+# Example: if x > 0: result = x * 2 else: result = 0
+
+# Execution:
+Is → Fd  # condition input (e.g., x > 0)
+Is → Ad  # inputs to GCA (e.g., x)
+Is → Pd  # pass-through for false path (e.g., 0)
+
+if Fd evaluates to True:
+    As → Od  # GCA output becomes final output (x * 2)
+else:
+    # P path is taken (return 0)
+    Pd → return
+```
+
 ### If-Then-Else Connectivity Graph
 
 ```mermaid
@@ -137,6 +162,23 @@ class O Ocd
 class P Pcd
 ```
 
+#### If-Then-Else Execution Flow
+
+```python
+# Example: if x > 0: result = x * 2 else: result = x * -1
+
+# Execution:
+Is → Fd  # condition input (e.g., x > 0)
+Is → Ad  # inputs to GCA (e.g., x)
+Is → Bd  # inputs to GCB (e.g., x)
+
+if Fd evaluates to True:
+    As → Od  # GCA output becomes final output (x * 2)
+else:
+    Bs → Pd  # GCB output becomes final output (x * -1)
+    # Note: Pd maps to the same physical return as Od
+```
+
 ### For-Loop Connectivity Graph
 
 ```mermaid
@@ -144,26 +186,71 @@ class P Pcd
 flowchart TB
     I["[I]nputs"]
     L["[L]oop iterable (dst) / object (src)"]
+    S["[S]tate (dst) / [S]tate (src)"]
+    T["[T] next-state (dst)"]
     A["GC[A] loop body"]
     O["[O]utputs"]
     P["Out[P]uts (zero iteration)"]
     I --> L
-    L --> A --> O
-    I --> A
+    I --> S
+    L --> A
+    S --> A
+    A --> T
+    A --> O
+    T --> O
+    T -.->|implicit feedback| S
     I --> O
     I --> P
     
 classDef Icd fill:#888888,stroke:#333,stroke-width:1px
 classDef Lcd fill:#228822,stroke:#333,stroke-width:1px
+classDef Scd fill:#882288,stroke:#333,stroke-width:1px
+classDef Tcd fill:#884488,stroke:#333,stroke-width:1px
 classDef Acd fill:#882222,stroke:#333,stroke-width:1px
 classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
 classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
 
 class I Icd
 class L Lcd
+class S Scd
+class T Tcd
 class A Acd
 class O Ocd
 class P Pcd
+```
+
+#### For-Loop Execution Flow
+
+```python
+# Example: for i in range(10): total = total + i
+# (with initial total = 0, outputting both intermediate and final results)
+
+# Iteration 1:
+Is → Ld          # iterable input (range(10))
+Is → Sd          # initial state (total = 0)
+Ld → Ls          # first element (i = 0)
+Ls → Ad          # loop variable to body
+Ss → Ad          # current state to body (total = 0)
+As → Td          # body outputs next state (total = 0)
+[Td → Ss]        # implicit feedback (handled in code gen)
+
+# Iteration 2:
+Ls → Ad          # next element (i = 1)
+Ss → Ad          # updated state from previous Td (total = 0)
+As → Td          # body outputs next state (total = 1)
+[Td → Ss]        # implicit feedback
+
+# ... iterations 3-10 ...
+
+# Final:
+As → Od          # direct output
+Td → Od          # final state output (total = 45)
+
+# Zero iterations (empty iterable):
+Is → Pd          # pass-through to output
+
+# Note: As→Od allows immediate output of iteration results,
+# while As→Td→[implicit]→Sd carries state across iterations.
 ```
 
 ### While-Loop Connectivity Graph
@@ -172,32 +259,93 @@ class P Pcd
 %% While-Loop GC
 flowchart TB
     I["[I]nputs"]
-    L["[L]oop object (dst/src)"]
-    W["[W]hile condition"]
+    W["[W]hile condition (dst) / condition (src)"]
+    X["[X] next-condition (dst)"]
+    S["[S]tate (dst) / [S]tate (src)"]
+    T["[T] next-state (dst)"]
     A["GC[A] loop body"]
     O["[O]utputs"]
     P["Out[P]uts (zero iteration)"]
-    I --> L
-    L --> A
-    I --> A
-    A --> W
+    I --> W
+    I --> S
+    W --> A
+    S --> A
+    A --> X
+    A --> T
     A --> O
+    X --> O
+    T --> O
+    X -.->|implicit feedback| W
+    T -.->|implicit feedback| S
     I --> O
     I --> P
     
 classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Lcd fill:#228822,stroke:#333,stroke-width:1px
 classDef Wcd fill:#888822,stroke:#333,stroke-width:1px
+classDef Xcd fill:#888844,stroke:#333,stroke-width:1px
+classDef Scd fill:#882288,stroke:#333,stroke-width:1px
+classDef Tcd fill:#884488,stroke:#333,stroke-width:1px
 classDef Acd fill:#882222,stroke:#333,stroke-width:1px
 classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
 classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
 
 class I Icd
-class L Lcd
 class W Wcd
+class X Xcd
+class S Scd
+class T Tcd
 class A Acd
 class O Ocd
 class P Pcd
+```
+
+#### While-Loop Execution Flow
+
+```python
+# Example: while count < 10: count = count + 1
+# (with initial count = 0, demonstrating both state and condition tracking)
+
+# Iteration 1:
+Is → Wd          # initial condition value (count = 0)
+Is → Sd          # initial state (if any additional state needed)
+Wd → Ws          # condition becomes source
+Ws → Ad          # condition to loop body (0 < 10 = True)
+Ss → Ad          # state to loop body (if exists)
+As → Xd          # body outputs next condition (count + 1 = 1)
+As → Td          # body outputs next state (if exists)
+[Xd → Ws]        # implicit feedback (handled in code gen)
+[Td → Ss]        # implicit feedback (handled in code gen)
+
+# Check condition:
+if Ws evaluates to False: exit loop
+
+# Iteration 2:
+Wd → Ws          # updated condition (count = 1)
+Ws → Ad          # condition to body (1 < 10 = True)
+Ss → Ad          # state to body
+As → Xd          # next condition (count = 2)
+As → Td          # next state
+[Xd → Ws]        # implicit feedback (handled in code gen)
+[Td → Ss]        # implicit feedback (handled in code gen)
+
+# ... iterations 3-10 ...
+
+# Final iteration (count = 9):
+Ws → Ad          # (9 < 10 = True)
+As → Xd          # next condition (10)
+[Xd → Ws]        # implicit feedback (handled in code gen)
+
+# Loop exit (count = 10):
+Ws evaluates to False (10 < 10 = False)
+# Loop terminates
+As → Od          # direct output
+
+# Zero iterations (initial condition false):
+Is → Pd          # pass-through to output
+
+# Note: As→Od enables outputting intermediate results,
+# As→Xd updates boolean condition, As→Td updates state.
+# All three paths can coexist for complex loop logic.
 ```
 
 ### Standard Connectivity Graph
@@ -225,6 +373,33 @@ class B Bcd
 class O Ocd
 ```
 
+#### Standard Execution Flow
+
+```python
+# Example: Simple computation with two sub-codons
+# GCA computes intermediate values, GCB combines them
+
+# Single execution:
+Is → Ad          # inputs to GCA
+Is → Bd          # inputs to GCB
+Is → Od          # inputs can pass through to output
+Ad → As          # GCA destination becomes source
+As → Bd          # GCA results feed into GCB
+As → Od          # GCA results can output directly
+Bd → Bs          # GCB destination becomes source
+Bs → Od          # GCB results to output
+
+# Concrete example:
+# GCA: compute x*2 and x*3
+# GCB: add the two results
+# Input: x=5
+
+Is → Ad          # x=5 to GCA
+As → Bd          # GCA results (10, 15) to GCB
+Bs → Od          # GCB result (25) to output
+# Output: 25
+```
+
 ### Primitive Connectivity Graph
 
 ```mermaid
@@ -245,6 +420,29 @@ class A Acd
 class O Ocd
 ```
 
+#### Primitive Execution Flow
+
+```python
+# Example: Single primitive operation (builtin function or operator)
+# GCA is a primitive codon (e.g., add, multiply, len, etc.)
+
+# Single execution:
+Is → Ad          # inputs to primitive operation
+Ad → As          # operation executes
+As → Od          # result to output
+
+# Concrete example:
+# Primitive operation: add(x, y)
+# Inputs: x=3, y=7
+
+Is → Ad          # (3, 7) to add operation
+As → Od          # result (10) to output
+# Output: 10
+
+# Note: Primitives are atomic operations with no sub-components
+# They represent the leaf nodes in the genetic code tree
+```
+
 ### Empty Connectivity Graph
 
 ```mermaid
@@ -258,6 +456,25 @@ classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
 
 class I Icd
 class O Ocd
+```
+
+#### Empty Execution Flow
+
+```python
+# Example: Interface placeholder with no implementation
+# Empty graphs define only input/output signatures
+
+# No execution (no connections exist):
+# Inputs are defined but never consumed
+# Outputs are defined but never produced
+
+# Use cases:
+# 1. Interface definitions for future implementation
+# 2. Type signatures without logic
+# 3. Placeholder codons during evolution
+
+# Note: Empty graphs cannot be executed
+# They serve as structural placeholders in the gene pool
 ```
 
 ## Types

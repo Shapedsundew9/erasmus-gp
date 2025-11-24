@@ -12,6 +12,8 @@ class SrcRow(StrEnum):
 
     I = "I"
     L = "L"
+    S = "S"
+    W = "W"
     A = "A"
     B = "B"
 
@@ -24,7 +26,10 @@ class DstRow(StrEnum):
 
     F = "F"
     L = "L"
+    S = "S"
+    T = "T"
     W = "W"
+    X = "X"
     A = "A"
     B = "B"
     O = "O"
@@ -47,6 +52,8 @@ class SrcIfKey(StrEnum):
 
     IS = SrcRow.I + EPClsPostfix.SRC
     LS = SrcRow.L + EPClsPostfix.SRC
+    SS = SrcRow.S + EPClsPostfix.SRC
+    WS = SrcRow.W + EPClsPostfix.SRC
     AS = SrcRow.A + EPClsPostfix.SRC
     BS = SrcRow.B + EPClsPostfix.SRC
 
@@ -59,7 +66,10 @@ class DstIfKey(StrEnum):
 
     FD = DstRow.F + EPClsPostfix.DST
     LD = DstRow.L + EPClsPostfix.DST
+    SD = DstRow.S + EPClsPostfix.DST
+    TD = DstRow.T + EPClsPostfix.DST
     WD = DstRow.W + EPClsPostfix.DST
+    XD = DstRow.X + EPClsPostfix.DST
     AD = DstRow.A + EPClsPostfix.DST
     BD = DstRow.B + EPClsPostfix.DST
     OD = DstRow.O + EPClsPostfix.DST
@@ -103,13 +113,13 @@ DESTINATION_ROW_SET_AND_U: set[str] = DESTINATION_ROW_SET | {"U"}
 SOURCE_ROW_MAP: dict[str, SrcRow] = {str(row): row for row in SrcRow}
 SOURCE_ROW_SET: set[SrcRow] = set(SrcRow)
 DST_ONLY_ROWS: tuple[DstRow, ...] = tuple(
-    sorted({DstRow.F, DstRow.O, DstRow.P, DstRow.W, DstRow.U})
+    sorted({DstRow.F, DstRow.T, DstRow.X, DstRow.O, DstRow.P, DstRow.U})
 )
 SINGLE_ONLY_ROWS = {DstRow.F, DstRow.W, DstRow.L, SrcRow.L}
 SINGLE_CLS_INDEXED_SET: set[DstIfKey | SrcIfKey] = {
     DstIfKey.FD,
-    DstIfKey.WD,
     DstIfKey.LD,
+    DstIfKey.WD,
     SrcIfKey.LS,
 }
 SRC_ONLY_ROWS: tuple[SrcRow, ...] = tuple(sorted({SrcRow.I}))
@@ -119,8 +129,8 @@ ROW_SET: set[Row] = set(ROWS)
 EPC_STR_TUPLE: tuple[EPClsPostfix, EPClsPostfix] = (EPClsPostfix.DST, EPClsPostfix.SRC)
 EPC_MAP: dict[str, EPCls] = {"s": EPCls.SRC, "d": EPCls.DST}
 ALL_ROWS_STR: str = "".join(ROWS)
-IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.W}
-IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.WD}
+IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.S, DstRow.W}
+IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.SD, DstIfKey.WD}
 ROW_CLS_INDEXED_ORDERED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
 ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED_ORDERED)
 _UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED_ORDERED)
