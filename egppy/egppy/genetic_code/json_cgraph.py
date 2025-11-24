@@ -62,16 +62,20 @@ def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
             }
         case CGraphType.FOR_LOOP:
             retval = {
-                DstRow.A: frozenset({SrcRow.I, SrcRow.L}),
+                DstRow.A: frozenset({SrcRow.I, SrcRow.L, SrcRow.S}),
                 DstRow.L: frozenset({SrcRow.I}),
+                DstRow.S: frozenset({SrcRow.I}),
+                DstRow.T: frozenset({SrcRow.A}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
                 DstRow.P: frozenset({SrcRow.I}),
             }
         case CGraphType.WHILE_LOOP:
             retval = {
-                DstRow.A: frozenset({SrcRow.I, SrcRow.L}),
-                DstRow.L: frozenset({SrcRow.I}),
-                DstRow.W: frozenset({SrcRow.A}),
+                DstRow.A: frozenset({SrcRow.I, SrcRow.S, SrcRow.W}),
+                DstRow.S: frozenset({SrcRow.I}),
+                DstRow.W: frozenset({SrcRow.I}),
+                DstRow.T: frozenset({SrcRow.A}),
+                DstRow.X: frozenset({SrcRow.A}),
                 DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
                 DstRow.P: frozenset({SrcRow.I}),
             }
@@ -126,15 +130,17 @@ def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
             }
         case CGraphType.FOR_LOOP:
             return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.O, DstRow.P}),
+                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.S, DstRow.O, DstRow.P}),
                 SrcRow.L: frozenset({DstRow.A}),
-                SrcRow.A: frozenset({DstRow.O}),
+                SrcRow.S: frozenset({DstRow.A}),
+                SrcRow.A: frozenset({DstRow.T, DstRow.O}),
             }
         case CGraphType.WHILE_LOOP:
             return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.O, DstRow.P}),
-                SrcRow.L: frozenset({DstRow.A}),
-                SrcRow.A: frozenset({DstRow.O, DstRow.W}),
+                SrcRow.I: frozenset({DstRow.A, DstRow.S, DstRow.W, DstRow.O, DstRow.P}),
+                SrcRow.S: frozenset({DstRow.A}),
+                SrcRow.W: frozenset({DstRow.A}),
+                SrcRow.A: frozenset({DstRow.T, DstRow.X, DstRow.O}),
             }
         case CGraphType.STANDARD:
             return {
@@ -335,7 +341,11 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
         interfaces["Bs"] = []
     if "Od" not in interfaces:
         interfaces["Od"] = []
-    if "Od" in interfaces and ("Fd" in interfaces or "Ld" in interfaces) and "Pd" not in interfaces:
+    if (
+        "Od" in interfaces
+        and any(k in interfaces for k in ("Fd", "Ld", "Sd", "Wd"))
+        and "Pd" not in interfaces
+    ):
         interfaces["Pd"] = []
     return interfaces
 
@@ -366,7 +376,13 @@ def c_graph_type(jcg: JSONCGraph | CGraphABC) -> CGraphType:
                 raise ValueError("All loop connection graphs must have a row A.")
             if DstRow.P not in jcg_set:
                 raise ValueError("All loop connection graphs must have a row P.")
-            return CGraphType.WHILE_LOOP if DstRow.W in jcg_set else CGraphType.FOR_LOOP
+            return CGraphType.FOR_LOOP
+        if DstRow.W in jcg_set:
+            if DstRow.A not in jcg_set:
+                raise ValueError("All loop connection graphs must have a row A.")
+            if DstRow.P not in jcg_set:
+                raise ValueError("All loop connection graphs must have a row P.")
+            return CGraphType.WHILE_LOOP
         if DstRow.B in jcg_set:
             if DstRow.A not in jcg_set:
                 raise ValueError("A standard graph must have a row A.")
@@ -376,7 +392,9 @@ def c_graph_type(jcg: JSONCGraph | CGraphABC) -> CGraphType:
     if DstRow.F in jcg_set:
         return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
     if DstRow.L in jcg_set:
-        return CGraphType.WHILE_LOOP if DstRow.W in jcg_set else CGraphType.FOR_LOOP
+        return CGraphType.FOR_LOOP
+    if DstRow.W in jcg_set:
+        return CGraphType.WHILE_LOOP
     if DstRow.B in jcg_set:
         return CGraphType.STANDARD
     return CGraphType.PRIMITIVE if DstRow.A in jcg_set else CGraphType.EMPTY

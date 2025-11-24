@@ -492,7 +492,7 @@ class TestEndPointVerify(unittest.TestCase):
     def test_verify_ref_row_must_be_valid(self) -> None:
         """Test verify() requires ref row to be a valid row."""
         ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [["X", 0]]  # Invalid row
+        ep.refs = [["Z", 0]]  # Invalid row
         with self.assertRaises(ValueError) as cm:
             ep.verify()
         self.assertIn("Reference row must be a valid row", str(cm.exception))

@@ -515,6 +515,14 @@ class CGraph(CommonObj, CGraphABC):
                 f"Interface Ls must have at most 1 endpoint, found {len(ls_iface)}",
             )
 
+        # W source interface must also have at most 1 endpoint
+        ws_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.W])
+        if ws_iface is not None:
+            self.value_error(
+                len(ws_iface) <= 1,
+                f"Interface Ws must have at most 1 endpoint, found {len(ws_iface)}",
+            )
+
     def _verify_type_consistency(self) -> None:
         """Verify that connected endpoints have matching types.
         CGraph is a mutable connection graph class that may be stable or unstable.

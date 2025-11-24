@@ -115,12 +115,13 @@ SOURCE_ROW_SET: set[SrcRow] = set(SrcRow)
 DST_ONLY_ROWS: tuple[DstRow, ...] = tuple(
     sorted({DstRow.F, DstRow.T, DstRow.X, DstRow.O, DstRow.P, DstRow.U})
 )
-SINGLE_ONLY_ROWS = {DstRow.F, DstRow.W, DstRow.L, SrcRow.L}
+SINGLE_ONLY_ROWS = {DstRow.F, DstRow.W, DstRow.L, SrcRow.L, SrcRow.W}
 SINGLE_CLS_INDEXED_SET: set[DstIfKey | SrcIfKey] = {
     DstIfKey.FD,
     DstIfKey.LD,
     DstIfKey.WD,
     SrcIfKey.LS,
+    SrcIfKey.WS,
 }
 SRC_ONLY_ROWS: tuple[SrcRow, ...] = tuple(sorted({SrcRow.I}))
 ROWS: tuple[Row, ...] = tuple(sorted({*SrcRow, *DstRow}))

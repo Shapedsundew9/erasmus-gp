@@ -64,14 +64,14 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
 
         self.assertIn(DstRow.L, result)
         self.assertEqual(result[DstRow.L], frozenset({SrcRow.I}))
-        self.assertEqual(result[DstRow.A], frozenset({SrcRow.I, SrcRow.L}))
+        self.assertEqual(result[DstRow.A], frozenset({SrcRow.I, SrcRow.L, SrcRow.S}))
 
     def test_valid_src_rows_while_loop(self) -> None:
         """Test valid_src_rows for WHILE_LOOP graph type."""
         result = valid_src_rows(CGraphType.WHILE_LOOP)
 
         self.assertIn(DstRow.W, result)
-        self.assertEqual(result[DstRow.W], frozenset({SrcRow.A}))
+        self.assertEqual(result[DstRow.W], frozenset({SrcRow.I}))
 
     def test_valid_src_rows_standard(self) -> None:
         """Test valid_src_rows for STANDARD graph type."""
@@ -160,7 +160,7 @@ class TestValidDstRowsComprehensive(unittest.TestCase):
         result = valid_dst_rows(CGraphType.WHILE_LOOP)
 
         self.assertIn(SrcRow.A, result)
-        self.assertEqual(result[SrcRow.A], frozenset({DstRow.O, DstRow.W}))
+        self.assertEqual(result[SrcRow.A], frozenset({DstRow.O, DstRow.T, DstRow.X}))
 
     def test_valid_dst_rows_standard(self) -> None:
         """Test valid_dst_rows for STANDARD graph type."""
@@ -489,9 +489,7 @@ class TestCGraphType(unittest.TestCase):
     def test_c_graph_type_while_loop(self) -> None:
         """Test identification of WHILE_LOOP graph type."""
         jcg = {
-            DstRow.L: [["I", 0, "int"]],
             DstRow.W: [["A", 0, "bool"]],
-            DstRow.A: [["L", 0, "int"]],
             DstRow.O: [["A", 1, "int"]],
             DstRow.P: [["I", 0, "int"]],
             DstRow.U: [],

@@ -78,12 +78,18 @@ class TestValidSrcRows(unittest.TestCase):
         # Check required rows exist
         self.assertIn(DstRow.A, result)
         self.assertIn(DstRow.L, result)
+        self.assertIn(DstRow.S, result)
+        self.assertIn(DstRow.T, result)
         self.assertIn(DstRow.O, result)
         self.assertIn(DstRow.P, result)
 
         # Check connectivity rules
         self.assertEqual(result[DstRow.L], frozenset({SrcRow.I}))  # Only I to L
-        self.assertEqual(result[DstRow.A], frozenset({SrcRow.I, SrcRow.L}))  # I and L to A
+        self.assertEqual(result[DstRow.S], frozenset({SrcRow.I}))  # Only I to S
+        self.assertEqual(result[DstRow.T], frozenset({SrcRow.A}))  # Only A to T
+        self.assertEqual(
+            result[DstRow.A], frozenset({SrcRow.I, SrcRow.L, SrcRow.S})
+        )  # I, L, S to A
         self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A}))  # I and A to O
         self.assertEqual(result[DstRow.P], frozenset({SrcRow.I}))  # Only I to P
 
@@ -93,15 +99,21 @@ class TestValidSrcRows(unittest.TestCase):
 
         # Check required rows exist
         self.assertIn(DstRow.A, result)
-        self.assertIn(DstRow.L, result)
+        self.assertIn(DstRow.S, result)
         self.assertIn(DstRow.W, result)
+        self.assertIn(DstRow.T, result)
+        self.assertIn(DstRow.X, result)
         self.assertIn(DstRow.O, result)
         self.assertIn(DstRow.P, result)
 
         # Check connectivity rules
-        self.assertEqual(result[DstRow.L], frozenset({SrcRow.I}))  # Only I to L
-        self.assertEqual(result[DstRow.A], frozenset({SrcRow.I, SrcRow.L}))  # I and L to A
-        self.assertEqual(result[DstRow.W], frozenset({SrcRow.A}))  # Only A to W
+        self.assertEqual(result[DstRow.S], frozenset({SrcRow.I}))  # Only I to S
+        self.assertEqual(result[DstRow.W], frozenset({SrcRow.I}))  # Only I to W
+        self.assertEqual(result[DstRow.T], frozenset({SrcRow.A}))  # Only A to T
+        self.assertEqual(result[DstRow.X], frozenset({SrcRow.A}))  # Only A to X
+        self.assertEqual(
+            result[DstRow.A], frozenset({SrcRow.I, SrcRow.S, SrcRow.W})
+        )  # I, S, W to A
         self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A}))  # I and A to O
         self.assertEqual(result[DstRow.P], frozenset({SrcRow.I}))  # Only I to P
 
@@ -206,23 +218,31 @@ class TestValidDstRows(unittest.TestCase):
 
         self.assertIn(SrcRow.I, result)
         self.assertIn(SrcRow.L, result)
+        self.assertIn(SrcRow.S, result)
         self.assertIn(SrcRow.A, result)
 
-        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.L, DstRow.O, DstRow.P}))
+        self.assertEqual(
+            result[SrcRow.I], frozenset({DstRow.A, DstRow.L, DstRow.S, DstRow.O, DstRow.P})
+        )
         self.assertEqual(result[SrcRow.L], frozenset({DstRow.A}))
-        self.assertEqual(result[SrcRow.A], frozenset({DstRow.O}))
+        self.assertEqual(result[SrcRow.S], frozenset({DstRow.A}))
+        self.assertEqual(result[SrcRow.A], frozenset({DstRow.T, DstRow.O}))
 
     def test_while_loop_valid_dst_rows(self) -> None:
         """Test valid destination rows for While-Loop graphs."""
         result = valid_dst_rows(CGraphType.WHILE_LOOP)
 
         self.assertIn(SrcRow.I, result)
-        self.assertIn(SrcRow.L, result)
+        self.assertIn(SrcRow.S, result)
+        self.assertIn(SrcRow.W, result)
         self.assertIn(SrcRow.A, result)
 
-        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.L, DstRow.O, DstRow.P}))
-        self.assertEqual(result[SrcRow.L], frozenset({DstRow.A}))
-        self.assertEqual(result[SrcRow.A], frozenset({DstRow.O, DstRow.W}))
+        self.assertEqual(
+            result[SrcRow.I], frozenset({DstRow.A, DstRow.S, DstRow.W, DstRow.O, DstRow.P})
+        )
+        self.assertEqual(result[SrcRow.S], frozenset({DstRow.A}))
+        self.assertEqual(result[SrcRow.W], frozenset({DstRow.A}))
+        self.assertEqual(result[SrcRow.A], frozenset({DstRow.T, DstRow.X, DstRow.O}))
 
     def test_standard_valid_dst_rows(self) -> None:
         """Test valid destination rows for Standard graphs."""
@@ -278,7 +298,7 @@ class TestValidJCG(unittest.TestCase):
 
     def test_invalid_key_in_jcg(self) -> None:
         """Test that invalid keys in JCG raise ValueError."""
-        jcg = {"X": [], DstRow.U: []}
+        jcg = {"INVALID_KEY": [], DstRow.U: []}
         with self.assertRaises(ValueError):
             valid_jcg(jcg)
 
@@ -347,9 +367,8 @@ class TestCGraphType(unittest.TestCase):
     def test_while_loop_identification(self) -> None:
         """Test identification of While-Loop graphs."""
         jcg = {
-            DstRow.L: [["I", 0, "int"]],
-            DstRow.W: [["A", 0, "bool"]],
-            DstRow.A: [["L", 0, "int"]],
+            DstRow.W: [["I", 0, "bool"]],
+            DstRow.A: [["W", 0, "bool"]],
             DstRow.O: [["A", 1, "int"]],
             DstRow.P: [["I", 0, "int"]],
             DstRow.U: [],
@@ -614,23 +633,22 @@ class TestCGraphGraphTypes(unittest.TestCase):
         """Test While-Loop graph follows its specific rules."""
         jcg = json_cgraph_to_interfaces(
             {
-                DstRow.L: [["I", 0, "int"]],
-                DstRow.W: [["A", 0, "bool"]],
-                DstRow.A: [["L", 0, "int"]],
+                DstRow.W: [["I", 0, "bool"]],
+                DstRow.A: [["W", 0, "bool"]],
                 DstRow.O: [["A", 1, "int"]],
-                DstRow.P: [["I", 0, "int"]],
+                DstRow.P: [["I", 1, "int"]],
                 DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
 
-        # Must not have F, B
+        # Must not have F, L, B
         self.assertNotIn("Fd", cgraph)
+        self.assertNotIn("Ld", cgraph)
         self.assertNotIn("Bd", cgraph)
         self.assertNotIn("Bs", cgraph)
 
-        # Must have L, W, A, O, P
-        self.assertIn("Ld", cgraph)
+        # Must have W, A, O, P
         self.assertIn("Wd", cgraph)
         self.assertIn("Ad", cgraph)
         self.assertIn("Od", cgraph)

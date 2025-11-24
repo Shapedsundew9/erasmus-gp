@@ -34,13 +34,13 @@ class TestCGraphContainsErrors(unittest.TestCase):
     def test_contains_invalid_single_char_key(self) -> None:
         """Test that __contains__ raises KeyError for invalid single-char keys."""
         with self.assertRaises(KeyError) as context:
-            _ = "X" in self.cgraph
+            _ = "Z" in self.cgraph
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
     def test_contains_invalid_two_char_key(self) -> None:
         """Test that __contains__ raises KeyError for invalid two-char keys."""
         with self.assertRaises(KeyError) as context:
-            _ = "Xd" in self.cgraph
+            _ = "Zd" in self.cgraph
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
     def test_contains_with_single_char_row_only_src(self) -> None:
@@ -76,7 +76,7 @@ class TestCGraphDelItemErrors(unittest.TestCase):
     def test_delitem_invalid_key(self) -> None:
         """Test that __delitem__ raises KeyError for invalid keys."""
         with self.assertRaises(KeyError) as context:
-            del self.cgraph["Xd"]
+            del self.cgraph["d"]
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
 
@@ -97,7 +97,7 @@ class TestCGraphGetItemErrors(unittest.TestCase):
     def test_getitem_invalid_key(self) -> None:
         """Test that __getitem__ raises KeyError for invalid keys."""
         with self.assertRaises(KeyError) as context:
-            _ = self.cgraph["Xd"]
+            _ = self.cgraph["Zd"]
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
     def test_getitem_unset_key(self) -> None:
@@ -129,7 +129,7 @@ class TestCGraphSetItemErrors(unittest.TestCase):
         new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")])
 
         with self.assertRaises(KeyError) as context:
-            self.cgraph["Xd"] = new_interface
+            self.cgraph["Zd"] = new_interface
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
     def test_setitem_invalid_value_type(self) -> None:
