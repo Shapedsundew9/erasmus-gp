@@ -159,6 +159,18 @@ class ExecutionContext:
         if node.is_conditional:
             connection_stack.extend(code_connection_from_iface(node, DstRow.P))
 
+        # For loop graphs, also create connections for L, S, W, T, X
+        if node.is_loop:
+            if node.graph_type == CGraphType.FOR_LOOP:
+                connection_stack.extend(code_connection_from_iface(node, DstRow.L))
+                connection_stack.extend(code_connection_from_iface(node, DstRow.S))
+                connection_stack.extend(code_connection_from_iface(node, DstRow.T))
+            elif node.graph_type == CGraphType.WHILE_LOOP:
+                connection_stack.extend(code_connection_from_iface(node, DstRow.W))
+                connection_stack.extend(code_connection_from_iface(node, DstRow.S))
+                connection_stack.extend(code_connection_from_iface(node, DstRow.T))
+                connection_stack.extend(code_connection_from_iface(node, DstRow.X))
+
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
         # Make sure we are not processing the same interface more than once.
@@ -189,7 +201,7 @@ class ExecutionContext:
                         src.node = node.gcb_node
                         src.terminal = node.gcb_node.terminal
                         iface = src.node.gc["cgraph"]["Od"]
-                    case SrcRow.I:
+                    case SrcRow.I | SrcRow.S | SrcRow.L | SrcRow.W:
                         parent: GCNode = node.parent
                         # Function is the root node. Going to its parent is moving
                         # out of the scope of this function.
@@ -199,7 +211,7 @@ class ExecutionContext:
                             iface = parent.gc["cgraph"][node.iam + "d"]
                             assert iface is not None, "Interface cannot be None."
                             src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
-                            if src.row == SrcRow.I:
+                            if src.row in (SrcRow.I, SrcRow.S, SrcRow.L, SrcRow.W):
                                 src.node = parent
                                 node = parent
                                 # If the source in the parent is row I & its parent is the root
@@ -302,6 +314,10 @@ class ExecutionContext:
         # Check if this is a conditional GC and route to specialized handler
         if root.is_conditional:
             return code + self._generate_conditional_function_code(root, fwconfig, ovns)
+
+        # Check if this is a loop GC and route to specialized handler
+        if root.is_loop:
+            return code + self._generate_loop_function_code(root, fwconfig, ovns)
 
         # Write a line for each terminal node that has lines to write in the graph
         # Meta codons have 0 lines when self.wmc (write meta-codons) is false
@@ -595,8 +611,7 @@ class ExecutionContext:
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
         """Return the code string for the GC inline code."""
-        # By default the ovns is underscore (unused) for all outputs. This is
-        # then overridden by any connection that starts (is source endpoint) at this node.
+        # By default the ovns is underscore (unused) for all outputs. This is then overridden by any connection that starts (is source endpoint) at this node.
         ngc = node.gc
         ovns: list[str] = ["_"] * len(ngc["outputs"])
         rtc: list[CodeConnection] = root.terminal_connections
@@ -677,7 +692,13 @@ class ExecutionContext:
                     assert dst.node is root, "Invalid connection destination node."
                     connection.var_name = o_cstr(dst.idx)
                 elif connection.var_name is NULL_STR:
-                    assert src.row == SrcRow.A or src.row == SrcRow.B, "Invalid source row."
+                    assert src.row in (
+                        SrcRow.A,
+                        SrcRow.B,
+                        SrcRow.S,
+                        SrcRow.L,
+                        SrcRow.W,
+                    ), "Invalid source row."
                     number = next(root.local_counter)
                     connection.var_name = t_cstr(number)
                 else:
@@ -833,3 +854,279 @@ class ExecutionContext:
         _gc: GCABC = gc if isinstance(gc, GCABC) else self.gpi[sig]
         root, _ = self.create_graphs(_gc, executable)
         return root
+
+    def _generate_loop_function_code(
+        self, root: GCNode, fwconfig: FWConfig, ovns: list[str]
+    ) -> list[str]:
+        """Generate complete loop function code for FOR_LOOP or WHILE_LOOP graphs.
+
+        This handles loop graph types by:
+        1. Initializing loop state and condition/iterable
+        2. Generating the loop structure (for/while)
+        3. Generating the loop body code
+        4. Handling implicit feedback (next state -> current state)
+        5. Assigning outputs appropriately
+
+        Args:
+            root: The loop GC node (must be FOR_LOOP or WHILE_LOOP)
+            fwconfig: Function writing configuration
+            ovns: Output variable names
+
+        Returns:
+            List of code lines implementing the loop structure
+        """
+        code: list[str] = []
+        rtc: list[CodeConnection] = root.terminal_connections
+
+        # Step 1: Identify key connections and variables
+        # Loop initialization connections (from outside to loop components)
+        l_conn = next((c for c in rtc if c.dst.row == DstRow.L), None)  # Iterable (For)
+        w_conn = next((c for c in rtc if c.dst.row == DstRow.W), None)  # Condition (While)
+        s_conn = next((c for c in rtc if c.dst.row == DstRow.S), None)  # Initial State
+
+        if root.graph_type == CGraphType.FOR_LOOP and l_conn is None:
+            raise ValueError(f"For-Loop GC missing Row L connection: {root.gc['signature'].hex()}")
+
+        if root.graph_type == CGraphType.WHILE_LOOP and w_conn is None:
+            raise ValueError(
+                f"While-Loop GC missing Row W connection: {root.gc['signature'].hex()}"
+            )
+
+        # Loop body update connections (from body to next iteration)
+        t_conn = next((c for c in rtc if c.dst.row == DstRow.T), None)  # Next State
+        x_conn = next((c for c in rtc if c.dst.row == DstRow.X), None)  # Next Condition (While)
+
+        # Output connections
+        o_connections = [c for c in rtc if c.dst.row == DstRow.O and c.dst.node is root]
+        p_connections = [c for c in rtc if c.dst.row == DstRow.P and c.dst.node is root]
+
+        # Step 2: Determine dependencies for initialization
+        # Nodes that must execute before the loop starts
+        init_conns = [c for c in [l_conn, w_conn, s_conn] if c is not None]
+
+        def get_dependent_nodes(connections: list[CodeConnection]) -> set[GCNode]:
+            """Get all nodes that are dependencies for the given connections."""
+            nodes = set()
+            work_list = [c.src.node for c in connections if c.src.node is not root]
+            visited = set()
+
+            while work_list:
+                node = work_list.pop()
+                if node in visited or node is root:
+                    continue
+                visited.add(node)
+                nodes.add(node)
+
+                # Add this node's dependencies
+                for conn in rtc:
+                    if conn.dst.node is node and conn.src.node is not root:
+                        work_list.append(conn.src.node)
+
+            return nodes
+
+        init_deps = get_dependent_nodes(init_conns)
+
+        # Determine loop variables (Ls, Ss, Ws)
+        ls_conns = [c for c in rtc if c.src.node is root and c.src.row == SrcRow.L]
+        ss_conns = [c for c in rtc if c.src.node is root and c.src.row == SrcRow.S]
+        ws_conns = [c for c in rtc if c.src.node is root and c.src.row == SrcRow.W]
+
+        ls_var = ls_conns[0].var_name if ls_conns else "unused_ls"
+        ss_var = ss_conns[0].var_name if ss_conns else "unused_ss"
+        ws_var = ws_conns[0].var_name if ws_conns else "unused_ws"
+
+        # Ensure loop variables are defined even if not used in body
+        if root.graph_type == CGraphType.FOR_LOOP and ls_var == "unused_ls":
+            ls_var = t_cstr(next(root.local_counter))
+
+        if root.graph_type == CGraphType.WHILE_LOOP and ws_var == "unused_ws":
+            ws_var = t_cstr(next(root.local_counter))
+
+        # Step 3: Generate initialization code
+        for node in GCNodeCodeIterable(root):
+            if node in init_deps and node.terminal and node.num_lines:
+                scmnt = (
+                    f"  # Sig: ...{node.gc['signature'].hex()[-8:]}" if fwconfig.inline_sigs else ""
+                )
+                code.append(self.inline_cstr(root=root, node=node) + scmnt)
+
+        # Step 4: Setup loop variables
+        # State variable setup
+        if s_conn and ss_var != "unused_ss":
+            code.append(f"{ss_var} = {s_conn.var_name}")
+
+        # Step 5: Generate Loop Structure
+        loop_body_code: list[str] = []
+
+        # Identify loop body nodes (everything not in init_deps)
+        # Note: Some nodes might be used in both, but if they are in init_deps they are already written.
+        # However, for a loop, the body is re-executed.
+        # The "body" is effectively GCA.
+
+        # We need to be careful here. The nodes in the body are those that depend on
+        # Ls (Loop source), Ss (State source), or Ws (Condition source).
+        # These are the inputs to the loop body.
+
+        # Let's find the nodes that are part of the loop body execution.
+        # These are nodes that are reachable from Ls, Ss, or Ws.
+        # But in our graph structure, we look at terminal connections.
+        # The terminal connections for the loop body are those feeding into T, X, and O.
+
+        body_conns = [c for c in [t_conn, x_conn] if c is not None] + o_connections
+        body_nodes = get_dependent_nodes(body_conns)
+
+        # Nodes that are strictly inside the loop (depend on loop inputs)
+        # vs nodes that are constant relative to the loop (calculated outside).
+        # For simplicity in this implementation, we'll put all body_nodes inside the loop
+        # unless they were already written in init_deps.
+        # Ideally, we should only put nodes that depend on loop variables inside.
+
+        # Generate body code
+        # We iterate through nodes in topological order (GCNodeCodeIterable does this?)
+        # We filter for nodes that are in `body_nodes` and not `init_deps` (unless re-eval needed?)
+        # Safe bet: write all body_nodes inside loop, except those strictly constant?
+        # For now, write all body_nodes inside.
+
+        loop_nodes = (
+            body_nodes  # - init_deps? If we exclude init_deps, we assume they are constant.
+        )
+
+        for node in GCNodeCodeIterable(root):
+            if node in loop_nodes and node.terminal and node.num_lines:
+                # Check if node was already written in init and is constant?
+                # For now, just write it.
+                scmnt = (
+                    f"  # Sig: ...{node.gc['signature'].hex()[-8:]}" if fwconfig.inline_sigs else ""
+                )
+                loop_body_code.append(self.inline_cstr(root=root, node=node) + scmnt)
+
+        # Handle Feedback / Next State
+        # Update state variable: ss_var = t_conn.var_name
+        if t_conn and ss_var != "unused_ss":
+            loop_body_code.append(f"{ss_var} = {t_conn.var_name}")
+
+        # Handle While Condition Update
+        if root.graph_type == CGraphType.WHILE_LOOP:
+            if x_conn and ws_var != "unused_ws":
+                loop_body_code.append(f"{ws_var} = {x_conn.var_name}")
+
+        # Handle Outputs (Row O)
+        # Outputs in loops are often accumulations or last values.
+        # If O connects from A (body), it outputs every iteration?
+        # No, the function returns once.
+        # If the graph implies returning a list of results, that's different.
+        # Standard Python loop semantics: variables defined in loop leak out.
+        # So if O connects from A, it gets the *last* value computed.
+        # We don't need explicit assignment inside the loop for O,
+        # unless O is a list we are appending to?
+        # The EGP graph semantics for loops usually imply:
+        # - O gets the value from the last iteration.
+        # - Or O gets the state T?
+        # The connections define it. If As -> Od, then Od gets As from last iteration.
+
+        # Construct the loop statement
+        if root.graph_type == CGraphType.FOR_LOOP:
+            assert l_conn is not None
+            # for ls_var in l_conn.var_name:
+            code.append(f"for {ls_var} in {l_conn.var_name}:")
+        else:  # WHILE_LOOP
+            assert w_conn is not None
+            # while ws_var:
+            # But ws_var needs to be initialized.
+            # It is initialized by w_conn (Is -> Wd).
+            # But w_conn.var_name is the *input* to Wd.
+            # ws_var is the *output* from Ws.
+            # We need to initialize ws_var = w_conn.var_name
+            code.append(f"{ws_var} = {w_conn.var_name}")
+            code.append(f"while {ws_var}:")
+
+        # Debugging
+        # print(f"Loop Code:\n{'\n'.join(code)}")
+
+        # Add body
+        if loop_body_code:
+            for line in loop_body_code:
+                code.append(f"\t{line}")
+        else:
+            code.append("\tpass")
+
+        # Step 6: Handle Zero Iteration / False Path (Row P)
+        # If the loop didn't run (or condition initially false), we might need Row P values.
+        # But Python variables from loop might be undefined if loop didn't run.
+        # We need to handle this.
+        # Strategy: Initialize output variables with Row P values *before* the loop?
+        # Or check after loop?
+
+        # If we init with P values:
+        # o_var = p_val
+        # loop...
+        #   o_var = body_val
+        # return o_var
+
+        # This works if P and O target the same outputs.
+        # Let's check P connections.
+        for p_conn in p_connections:
+            # p_conn.dst is Row P.
+            # We need to find the corresponding Row O output index.
+            # P and O are "alternate" interfaces for the same physical outputs.
+            # So Pd[i] corresponds to Od[i].
+            out_idx = p_conn.dst.idx
+            # Find the variable name for this output
+            out_var = ovns[out_idx]
+
+            # Initialize it before loop
+            # Only if it's not already assigned (e.g. if P connects from I, it's just a var name)
+            if out_var != p_conn.var_name:
+                # Insert before loop
+                # We need to insert this *after* init code but *before* loop start
+                code.insert(
+                    len(code) - (len(loop_body_code) + 1 if loop_body_code else 2),
+                    f"{out_var} = {p_conn.var_name}",
+                )
+            else:
+                # If they are the same name, it's already "assigned"
+                pass
+
+        # Step 7: Final Assignments for Row O
+        # If O connects from A (body), the variable `out_var` should have been updated in loop.
+        # If we initialized it with P, and loop ran, it got overwritten.
+        # If loop didn't run, it keeps P value.
+        # This seems correct.
+
+        # However, we need to ensure the loop body actually updates `out_var`.
+        # In `loop_body_code`, we generated assignments to `ovns`?
+        # No, `inline_cstr` generates assignments to `t_xxx` or `o_xxx`.
+        # `name_connections` assigns `o_xxx` to connections targeting O.
+        # So if As -> Od, the connection var_name is `o_xxx`.
+        # The inline code for A will write to `o_xxx`.
+        # So yes, the loop body updates the output variables directly.
+
+        # One catch: `name_connections` might assign `o_xxx` to the connection As->Od.
+        # But if As also goes to Td (As->Td), does it get a different name?
+        # `name_connections` handles this:
+        # "If the source endpoint already has a variable name assigned... use that name."
+        # So As->Od runs first, As gets `o_xxx`. Then As->Td uses `o_xxx`.
+        # So `ss_var = t_conn.var_name` becomes `ss_var = o_xxx`. Correct.
+
+        # What if As -> Td is processed first? (key 2)
+        # It gets `t_xxx`.
+        # Then As -> Od uses `t_xxx`.
+        # Then we need `o_xxx = t_xxx` at the end?
+        # `name_connections` logic:
+        # if dst.row == DstRow.O ... connection.var_name = o_cstr(dst.idx)
+        # This logic is inside the loop over connections.
+        # It seems it tries to force `o_cstr` if targeting O.
+        # But if it already has a name?
+        # "If the source endpoint already has a variable name assigned... continue"
+        # So As->Td runs first, As gets `t_xxx`. As->Od sees `t_xxx` and uses it.
+        # Then `_ovns[dst.idx] = connection.var_name` sets the output name to `t_xxx`.
+        # This means the return statement will be `return t_xxx`.
+        # This is valid! We don't strictly need `o0` variable name, just *a* variable.
+
+        # So, the logic holds.
+
+        # Step 8: Return statement (outside the loop)
+        if len(root.gc["outputs"]) > 0:
+            code.append(f"return {', '.join(ovns)}")
+
+        return code

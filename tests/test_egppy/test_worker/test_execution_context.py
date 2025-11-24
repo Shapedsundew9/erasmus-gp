@@ -5,7 +5,7 @@ from random import choice, getrandbits, randint, seed
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
-from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
+from egpcommon.properties import BASIC_ORDINARY_PROPERTIES, CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.genetic_code import NULL_SIGNATURE
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.context_writer import (
@@ -234,7 +234,7 @@ class TestExecutor(unittest.TestCase):
             True,
         )
         self.ec2.write_executable(ggc)
-        write_function_to_file(self.ec2, ggc, "temp.md", oft=OutputFileType.MARKDOWN)
+        # write_function_to_file(self.ec2, ggc, "temp.md", oft=OutputFileType.MARKDOWN)
 
     def test_if_then_execution(self) -> None:
         """Test IF_THEN execution."""
@@ -336,7 +336,7 @@ class TestExecutor(unittest.TestCase):
             True,
         )
         self.ec2.write_executable(ggc)
-        write_function_to_file(self.ec2, ggc, "temp.md", oft=OutputFileType.MARKDOWN)
+        # write_function_to_file(self.ec2, ggc, "temp.md", oft=OutputFileType.MARKDOWN)
 
     def test_if_then_else_execution(self) -> None:
         """Test IF_THEN_ELSE execution."""
@@ -409,3 +409,126 @@ class TestExecutor(unittest.TestCase):
         seed(44)
         r_false = self.ec1.execute(ggc, (a, b, c, False))
         self.assertEqual(r_false, r_false_expected)
+
+    def test_for_loop_simple(self) -> None:
+        """Test FOR_LOOP generation and execution."""
+        # Create a simple FOR_LOOP GC
+        # Iterate over a tuple of integers and accumulate them using rshift_xor.
+        # L: Tuple of ints (Iterable)
+        # S: Initial state (int)
+        # A: Body (takes state and item, returns new state)
+        # T: Next state (from A)
+        # O: Final state (from A)
+
+        # rshift_xor takes 2 inputs.
+        # We need to map L item and S state to rshift_xor inputs.
+        # rshift_xor inputs: 0->GCB(xor) input 0, 1->GCA(rshift_1) input 0.
+        # Let's say S -> Input 0, L item -> Input 1.
+
+        body_gc = primitive_gcs["rshift_xor"]
+
+        # Properties for FOR_LOOP
+        props = PropertiesBD(
+            {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.FOR_LOOP}
+        ).to_int()
+
+        ggc = inherit_members(
+            {
+                "ancestora": body_gc,
+                "ancestorb": NULL_SIGNATURE,
+                "gca": body_gc,
+                "gcb": NULL_SIGNATURE,
+                "cgraph": {
+                    "L": [["I", 0, "tuple"]],  # Iterable input
+                    "S": [["I", 1, INT_T]],  # Initial State
+                    "A": [["S", 0, INT_T], ["L", 0, INT_T]],  # Body inputs: State, Item
+                    "T": [["A", 0, INT_T]],  # Next State
+                    "O": [["A", 0, INT_T]],  # Output
+                },
+                "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+                "problem": ACYBERGENESIS_PROBLEM,
+                "properties": props,
+                "num_codons": body_gc["num_codons"],
+            },
+            True,
+        )
+        self.ec2.write_executable(ggc)
+        # write_function_to_file(self.ec2, ggc, "temp.md", oft=OutputFileType.MARKDOWN)
+
+        # Execute
+        # Inputs: (Iterable, Initial State)
+        iterable = (1, 2, 3)
+        initial_state = 0
+        # Expected result:
+        # Iter 1: state=0, item=1 -> rshift_xor(0, 1) = 0 ^ (1 >> 1) = 0 ^ 0 = 0
+        # Iter 2: state=0, item=2 -> rshift_xor(0, 2) = 0 ^ (2 >> 1) = 0 ^ 1 = 1
+        # Iter 3: state=1, item=3 -> rshift_xor(1, 3) = 1 ^ (3 >> 1) = 1 ^ 1 = 0
+
+        s = initial_state
+        for i in iterable:
+            # rshift_xor(s, i) = s ^ (i >> 1)
+            s = s ^ (i >> 1)
+        expected = s
+
+        result = self.ec2.execute(ggc, (iterable, initial_state))
+        self.assertEqual(result, expected)
+
+    def test_while_loop_simple(self) -> None:
+        """Test WHILE_LOOP generation and execution."""
+        # Create a simple WHILE_LOOP GC
+        # W: Initial Condition (bool)
+        # S: Initial State (int)
+        # A: Body (takes State, returns Next State, Next Condition)
+        # X: Next Condition
+        # T: Next State
+        # O: Output (State)
+
+        # Use rshift_1 as body.
+        # rshift_1 takes 1 input, returns 1 output (input >> 1).
+        # We map T -> A0, X -> A0.
+        # Loop terminates when s >> 1 is 0.
+
+        body_gc = primitive_gcs["rshift_1"]
+
+        # Properties for WHILE_LOOP
+        props = PropertiesBD(
+            {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.WHILE_LOOP}
+        ).to_int()
+
+        ggc = inherit_members(
+            {
+                "ancestora": body_gc,
+                "ancestorb": NULL_SIGNATURE,
+                "gca": body_gc,
+                "gcb": NULL_SIGNATURE,
+                "cgraph": {
+                    "W": [["I", 0, "bool"]],  # Initial Condition
+                    "S": [["I", 1, INT_T]],  # Initial State
+                    "A": [["S", 0, INT_T]],  # Body inputs: State
+                    "T": [["A", 0, INT_T]],  # Next State
+                    "X": [["A", 0, INT_T]],  # Next Condition (Same as state)
+                    "O": [["A", 0, INT_T]],  # Output
+                },
+                "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+                "problem": ACYBERGENESIS_PROBLEM,
+                "properties": props,
+                "num_codons": body_gc["num_codons"],
+            },
+            True,
+        )
+        self.ec2.write_executable(ggc)
+        write_function_to_file(self.ec2, ggc, "temp.md", oft=OutputFileType.MARKDOWN)
+
+        initial_state = 16
+        initial_cond = True
+
+        # Expected:
+        # 16 -> 8 (True)
+        # 8 -> 4 (True)
+        # 4 -> 2 (True)
+        # 2 -> 1 (True)
+        # 1 -> 0 (False) -> Loop terminates.
+        # Output should be 0.
+
+        result = self.ec2.execute(ggc, (initial_cond, initial_state))
+        self.assertEqual(result, 0)

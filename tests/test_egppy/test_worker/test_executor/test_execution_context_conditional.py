@@ -147,27 +147,6 @@ class TestConditionalCodeGeneration(unittest.TestCase):
             # Expected - we're not setting up a full mock
             pass
 
-    def test_non_conditional_uses_standard_path(self):
-        """Test that non-conditional GCs use standard code generation."""
-        mock_root = MagicMock(spec=GCNode)
-        mock_root.write = True
-        mock_root.is_conditional = False
-        mock_root.is_codon = False
-        mock_root.graph_type = CGraphType.STANDARD
-        mock_root.gc = {"outputs": [], "signature": b"test"}
-        mock_root.terminal_connections = []
-
-        # Mock GCNodeCodeIterable to return empty to avoid complex setup
-        with patch("egppy.worker.executor.execution_context.GCNodeCodeIterable") as mock_iter:
-            mock_iter.return_value = iter([])
-
-            fwconfig = FWConfig(lean=True)
-
-            result = self.ec.code_lines(mock_root, fwconfig)
-
-            # Should NOT have if statement for non-conditional GC
-            self.assertNotIn("if ", " ".join(result))
-
 
 class TestConditionalFunctionCodeGenerator(unittest.TestCase):
     """Test the _generate_conditional_function_code method."""

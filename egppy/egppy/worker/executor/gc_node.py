@@ -238,6 +238,7 @@ class GCNode(Iterable, Hashable):
         "f_connection",
         "graph_type",
         "is_conditional",
+        "is_loop",
         "condition_var_name",
         "gca_node",
         "gcb_node",
@@ -281,6 +282,7 @@ class GCNode(Iterable, Hashable):
         )
         # Set conditional flags based on graph type
         self.is_conditional: bool = self.graph_type in (CGraphType.IF_THEN, CGraphType.IF_THEN_ELSE)
+        self.is_loop: bool = self.graph_type in (CGraphType.FOR_LOOP, CGraphType.WHILE_LOOP)
         self.f_connection: bool = self.is_conditional
         self.condition_var_name: str | None = None
         self.is_pgc: bool = gc.is_pgc()
