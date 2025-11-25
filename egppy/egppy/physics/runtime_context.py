@@ -5,6 +5,7 @@ from uuid import UUID
 from egpcommon.common import ANONYMOUS_CREATOR
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_class_factory import NULL_GC
 
 
 class RuntimeContext:
@@ -14,7 +15,7 @@ class RuntimeContext:
     """
 
     def __init__(
-        self, gpi: GenePoolInterface, parent_pgc: GCABC, creator: UUID = ANONYMOUS_CREATOR
+        self, gpi: GenePoolInterface, parent_pgc: GCABC = NULL_GC, creator: UUID = ANONYMOUS_CREATOR
     ) -> None:
         """Initialize the runtime context.
 

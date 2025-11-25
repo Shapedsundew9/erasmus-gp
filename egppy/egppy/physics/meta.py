@@ -102,17 +102,21 @@ def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC)
     """
     # The implementation tries to find existing meta genetic codes that perform the required casts.
     # If none exist, a new one is created.
-    meta_cast_gc = rtctxt.gpi.select_meta(ifa.to_td(), ifb.to_td())
-    if meta_cast_gc is not NULL_GC:
-        return meta_cast_gc
+    pts = [pt for pt in zip(ifa.to_td(), ifb.to_td()) if pt[0] != pt[1]]
+    if not pts:
+        raise MetaCodonValueError("No type casts required as interfaces are identical.")
+    mgc = rtctxt.gpi.select_meta(pts)
+    if mgc is not NULL_GC:
+        return mgc
 
     # No existing meta cast found - create a new one
     return GGCDict(
         deepcopy(META_CODON_TEMPLATE)
         | {
+            # Passing in as a JSONCGraph which will get converted to a CGraph in EGCMixin
             "cgraph": {
-                "A": [["I", ep.idx, ep.typ] for ep in ifa],
-                "O": [["A", ep.idx, ep.typ] for ep in ifb],
+                "A": [["I", i, pt[0].name] for i, pt in enumerate(pts)],
+                "O": [["A", i, pt[1].name] for i, pt in enumerate(pts)],
             },
         }
     )

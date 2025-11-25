@@ -158,15 +158,14 @@ class GenePoolInterface(GPIABC):
             return GGCDict(ggc)
         raise KeyError("No Genetic Code found matching the query.")
 
-    def select_meta(self, ipts: Sequence[TypesDef], opts: Sequence[TypesDef]) -> GCABC:
+    def select_meta(self, pts: Sequence[tuple[TypesDef, TypesDef]]) -> GCABC:
         """Select a meta Genetic Code that has the exact matching input and output types.
         Note that the order does not matter but the inputs and outputs must be aligned.
 
         Example
         -------
-        Suppose we have the following input and output types:
-            ipts: [int, int, object]
-            opts: [Integral, Integral, str]
+        Suppose we have the following input-output type pairs:
+            pts: [(int, Integral), (int, Integral), (object, str)]
         Then the selected meta Genetic Code can be any order of the input and output pairs:
             (int -> Integral), (int -> Integral), (object -> str)
 
@@ -177,19 +176,18 @@ class GenePoolInterface(GPIABC):
             The selected meta Genetic Code or NULL_GC if none is found.
         """
         # Sanity on parameters
-        assert len(ipts) == len(opts), "Input and output types length mismatch."
-        assert all(i != o for i, o in zip(ipts, opts)), "Input and output types must differ."
+        assert all(i != o for i, o in pts), "Input and output types must differ."
 
         # Input types and indices
         # Note that meta genetic codes input interfaces are always sorted in type order
         # to make them easier to find.
-        itypes = sorted(set(t.uid for t in ipts))
+        itypes = sorted(set(t[0].uid for t in pts))
         lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(itypes)}
-        isort = sorted(zip(ipts, opts), key=lambda pair: pair[0].uid)
+        isort = sorted(pts, key=lambda pair: pair[0].uid)
         iindices = bytes(lookup_indices[t[0].uid] for t in isort)
 
         # Output types and indices
-        otypes = sorted(set(t.uid for t in opts))
+        otypes = sorted(set(t[1].uid for t in pts))
         lookup_indices = {uid: idx for idx, uid in enumerate(otypes)}
         oindices = bytes(lookup_indices[t[1].uid] for t in isort)
 
