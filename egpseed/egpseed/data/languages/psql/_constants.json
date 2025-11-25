@@ -98,10 +98,10 @@
           "physics",
           "pgc_api"
         ],
-        "name": "CODON_META_MASK"
+        "name": "CODON_MASK"
       }
     ],
-    "inline": "PsqlBigInt(CODON_META_MASK, is_literal=True)",
+    "inline": "PsqlBigInt(CODON_MASK, is_literal=True)",
     "num_inputs": 0,
     "outputs": [
       "PsqlBigInt"

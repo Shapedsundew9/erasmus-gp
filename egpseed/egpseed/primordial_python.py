@@ -12,6 +12,8 @@ define the behaviour that the genetic codes must implement, so it is
 important that these functions are correct & thus well tested.
 """
 
+from typing import Any
+
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
@@ -23,9 +25,9 @@ from egppy.physics.helpers import merge_properties
 from egppy.physics.runtime_context import RuntimeContext
 
 
-def stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
-    """Stack two GC's such that IGC is stacked on top of TGC and the
-    interface between them stablised by random connections.
+def _stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict[str, Any]:
+    """Stack two GC's such that IGC is stacked on top of TGC and leave
+    mthe interface between them unconnected.
 
     Args
     ----
@@ -35,7 +37,7 @@ def stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
 
     Returns
     -------
-    GCABC -- the resultant stacked GC
+    dict[str, Any] -- the resultant stacked proto-GC
     """
     igc_cgraph: CGraphABC = igc["cgraph"]
     igc_is: InterfaceABC = igc_cgraph["Is"]
@@ -53,19 +55,34 @@ def stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
             "Od": Interface(tgc_od, DstRow.O, SrcRow.B),
         }
     )
-    rgc = EGCDict(
-        {
-            "gca": igc,
-            "gcb": tgc,
-            "ancestora": igc,
-            "ancestorb": tgc,
-            "pgc": rtctxt.parent_pgc,
-            "creator": rtctxt.creator,
-            "properties": merge_properties(gca=igc, gcb=tgc),
-            "cgraph": cgraph,
-        }
-    )
+    rgc = {
+        "gca": igc,
+        "gcb": tgc,
+        "ancestora": igc,
+        "ancestorb": tgc,
+        "pgc": rtctxt.parent_pgc,
+        "creator": rtctxt.creator,
+        "properties": merge_properties(gca=igc, gcb=tgc),
+        "cgraph": cgraph,
+    }
     return rgc
+
+
+def stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
+    """Stack two GC's such that IGC is stacked on top of TGC and the
+    interface between them stablised by random connections.
+
+    Args
+    ----
+    rtctxt -- the runtime context
+    igc -- the insert GC (top of the stack and provides the new GC input interface)
+    tgc -- the target GC (bottom of the stack and provides the new GC output interface)
+
+    Returns
+    -------
+    GCABC -- the resultant stacked GC
+    """
+    return EGCDict(_stack(rtctxt, igc, tgc))
 
 
 def sca(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
@@ -97,12 +114,12 @@ def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     Returns:
         The resultant stacked genetic code.
     """
-    rgc = stack(rtctxt, igc, tgc)
-    adi: Interface = rgc["cgraph"]["Ad"]
-    bsi: Interface = rgc["cgraph"]["Bs"]
-    adi.set_refs(DstRow.B)
-    bsi.set_refs(SrcRow.A)
-    return rgc
+    rgc_dict = _stack(rtctxt, igc, tgc)
+    asi: Interface = rgc_dict["cgraph"]["As"]
+    bdi: Interface = rgc_dict["cgraph"]["Bd"]
+    asi.set_refs(DstRow.B)
+    bdi.set_refs(SrcRow.A)
+    return EGCDict(rgc_dict)
 
 
 def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:

@@ -229,6 +229,36 @@ PROPERTIES_CONFIG = {
                     "valid": {"value": {0}},
                 },
             },
+            {
+                "type_upcast": {
+                    "type": "bool",
+                    "start": 0,
+                    "width": 1,
+                    "default": False,
+                    "description": (
+                        "The meta codon is a type upcast e.g. Integral "
+                        "--> int which means it must be verified."
+                    ),
+                },
+                "type_downcast": {
+                    "type": "bool",
+                    "start": 1,
+                    "width": 1,
+                    "default": True,
+                    "description": (
+                        "The meta codon is a type downcast e.g. "
+                        "int --> Integral which is always valid."
+                    ),
+                },
+                "reserved8": {
+                    "type": "uint",
+                    "start": 2,
+                    "width": 6,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
+            },
         ],
     },
     "consider_cache": {

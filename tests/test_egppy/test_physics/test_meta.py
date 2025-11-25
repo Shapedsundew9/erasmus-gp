@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import MagicMock
 
+from egpcommon.codon_dev_load import find_codon_signature
 from egpcommon.properties import GCType, PropertiesBD
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
@@ -77,22 +77,14 @@ class TestMetaCodons(unittest.TestCase):
 
     def test_meta_type_cast_existing_gc(self):
         """Test meta type cast when an existing GC is found."""
-        # Mock RuntimeContext and GenePoolInterface
-        mock_gpi = MagicMock(spec=GenePoolInterface)
-        mock_rtctxt = MagicMock(spec=RuntimeContext)
-        mock_rtctxt.gpi = mock_gpi
-
-        # Create a dummy existing GC
-        existing_gc = MagicMock(spec=GCABC)
-        mock_gpi.select_meta.return_value = existing_gc
-
-        ifa = Interface(["int"], SrcRow.I)
-        ifb = Interface(["float"], DstRow.O)
-
-        gc = meta_type_cast(mock_rtctxt, ifa, ifb)
-
-        # Verify that select_meta was called
-        mock_gpi.select_meta.assert_called_once()
-
-        # Verify that the returned GC is the existing one
-        self.assertIs(gc, existing_gc)
+        sig = find_codon_signature(
+            ["PsqlBigInt"],
+            ["PsqlIntegral"],
+            "raise_if_not_instance_of(ix, tx)",
+        )
+        existing_gc = self.gpi[sig]
+        rtctxt = RuntimeContext(self.gpi)
+        ifa = Interface(["PsqlBigInt"] * 2, SrcRow.I)
+        ifb = Interface(["PsqlIntegral"] * 2, DstRow.O)
+        gc = meta_type_cast(rtctxt, ifa, ifb)
+        self.assertEqual(gc, existing_gc)

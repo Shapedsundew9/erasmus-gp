@@ -23,12 +23,15 @@ for chance discoveries.
 """
 
 from egpcommon.codon_dev_load import find_codon_signature
+from egpcommon.common import SHAPEDSUNDEW9_UUID
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
+from egppy.physics.runtime_context import RuntimeContext
 from egppy.worker.executor.context_writer import OutputFileType, write_context_to_file
 from egppy.worker.executor.execution_context import ExecutionContext
 from egppy.worker.executor.fw_config import FWConfig
+from egpseed.primordial_python import harmony, perfect_stack
 
 # Primitive GC signature definitions
 # Maps GC names to their (input_types, output_types, name) signatures
@@ -43,20 +46,21 @@ _GC_SIGNATURES: dict[str, tuple] = {
     "PSQL_2x64_TO_IGRL": (
         ["PsqlBigInt"],
         ["PsqlIntegral"],
-        "raise_if_not_both_instances_of(PsqlBigInt, PsqlBigInt, PsqlIntegral)",
+        "raise_if_not_instance_of(ix, tx)",
     ),
     "PSQL_IGRL_TO_64": (
         ["PsqlIntegral"],
         ["PsqlBigInt"],
-        "raise_if_not_instance_of(PsqlIntegral, PsqlBigInt)",
+        "raise_if_not_instance_of(i0, t0)",
     ),
     "PSQL_2x64_TO_TYPE": (
         ["PsqlBigInt"],
         ["PsqlType"],
-        "raise_if_not_both_instances_of(PsqlBigInt, PsqlBigInt, PsqlType)",
+        "raise_if_not_instance_of(ix, tx)",
     ),
     "GPI_SELECT_GC": (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "select"),
     "CONNECT_ALL": (["EGCode"], ["GGCode"], "connect_all"),
+    "CUSTOM_PGC": ([], [], "custom"),
 }
 
 # Dictionary of codon GCs
@@ -76,7 +80,8 @@ def _harmony_connect(ec: ExecutionContext, gc1: GCABC, gc2: GCABC) -> GCABC:
     Returns:
         Connected genetic code result.
     """
-    egc = ec.execute(codons["HARMONY_GC"], (gc1, gc2))
+    rtctxt = RuntimeContext(ec.gpi, codons["CUSTOM_PGC"], SHAPEDSUNDEW9_UUID)
+    egc = harmony(rtctxt, gc1, gc2)
     return ec.execute(codons["CONNECT_ALL"], (egc,))
 
 
@@ -92,7 +97,8 @@ def _stack_connect(ec: ExecutionContext, gc1: GCABC, gc2: GCABC) -> GCABC:
     Returns:
         Connected genetic code result.
     """
-    egc = ec.execute(codons["PERFECT_STACK"], (gc1, gc2))
+    rtctxt = RuntimeContext(ec.gpi, codons["CUSTOM_PGC"], SHAPEDSUNDEW9_UUID)
+    egc = perfect_stack(rtctxt, gc1, gc2)
     return ec.execute(codons["CONNECT_ALL"], (egc,))
 
 
@@ -126,8 +132,7 @@ def create_primitive_gcs():
     tmp3d_ggc = _stack_connect(ec, tmp3b_ggc, tmp3c_ggc)
     tmp4_ggc = _stack_connect(ec, tmp3d_ggc, codons["PSQL_WHERE"])
     tmp5_ggc = _harmony_connect(ec, tmp4_ggc, codons["PSQL_ORDERBY_RND"])
-    segc = ec.execute(codons["PERFECT_STACK"], (tmp5_ggc, codons["GPI_SELECT_GC"]))
-    sggc = codons["SELECTOR_GC"] = ec.execute(codons["CONNECT_ALL"], (segc,))
+    sggc = _stack_connect(ec, tmp5_ggc, codons["GPI_SELECT_GC"])
     ec.write_executable(sggc)
     fwconfig = FWConfig(hints=True, lean=False, inline_sigs=True)
     write_context_to_file(ec, "temp.md", fwconfig=fwconfig, oft=OutputFileType.MARKDOWN)

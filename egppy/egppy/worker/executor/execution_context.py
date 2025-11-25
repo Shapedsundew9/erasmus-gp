@@ -648,9 +648,9 @@ class ExecutionContext:
             if node.is_meta:
                 # Meta codons require type information for their inline code
                 oface = node.gc["cgraph"]["Od"]
-                ivns_map["i"] = "i"
+                ivns_map["i"] = "(" + ", ".join(ivn for ivn in ivns) + ")"
                 ivns_map.update({f"t{i}": t.typ.name for i, t in enumerate(oface)})
-                ivns_map["t"] = str(tuple(t.typ.name for t in oface))
+                ivns_map["t"] = "(" + ", ".join(t.typ.name for t in oface) + ")"
             if node.is_pgc:
                 ivns_map["pgc"] = "rtctxt, "
             return assignment + ngc["inline"].format_map(ivns_map)
@@ -716,6 +716,11 @@ class ExecutionContext:
                 assert dst.node is root, "Invalid connection destination node."
                 _ovns[dst.idx] = connection.var_name
         return _ovns
+
+    def new_context(self) -> ExecutionContext:
+        """Create a new empty execution context with the same parameters as this one."""
+        new_ec = ExecutionContext(self.gpi, self._line_limit, self.wmc)
+        return new_ec
 
     def new_function_placeholder(self, node: GCNode) -> FunctionInfo:
         """Create a placeholder for a new function in the execution context.

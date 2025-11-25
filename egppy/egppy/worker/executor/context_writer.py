@@ -76,7 +76,7 @@ def write_function_to_file(
     if oft == OutputFileType.MARKDOWN:
         _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
         with open(_filepath, mode="w", encoding="utf-8") as f:
-            nec = ExecutionContext(ec.gpi, ec.line_limit())
+            nec = ec.new_context()
             sig = gcsig if isinstance(gcsig, bytes) else gcsig["signature"]
             func = ec.function_map[sig]
             node = nec.create_graphs(func.gc, False)[0]
@@ -133,7 +133,7 @@ def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
 
         # Finally the function definitions
         f.write("## Functions\n\n")
-        nec = ExecutionContext(ec.gpi, ec.line_limit())
+        nec = ec.new_context()
         for func in ec.function_map.values():
             for node in nec.create_graphs(func.gc, False)[1]:
                 # TODO: License information
@@ -186,7 +186,7 @@ def _py_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
         f.write("\n\n")
 
         # Finally the function definitions
-        nec = ExecutionContext(ec.gpi, ec.line_limit())
+        nec = ec.new_context()
         for func in ec.function_map.values():
             for node in nec.create_graphs(func.gc, False)[1]:
                 # Write the function definition
