@@ -611,7 +611,8 @@ class ExecutionContext:
 
     def inline_cstr(self, root: GCNode, node: GCNode) -> str:
         """Return the code string for the GC inline code."""
-        # By default the ovns is underscore (unused) for all outputs. This is then overridden by any connection that starts (is source endpoint) at this node.
+        # By default the ovns is underscore (unused) for all outputs. This is then
+        # overridden by any connection that starts (is source endpoint) at this node.
         ngc = node.gc
         ovns: list[str] = ["_"] * len(ngc["outputs"])
         rtc: list[CodeConnection] = root.terminal_connections
@@ -644,6 +645,12 @@ class ExecutionContext:
                     self.define(str(impt))
                     self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
+            if node.is_meta:
+                # Meta codons require type information for their inline code
+                oface = node.gc["cgraph"]["Od"]
+                ivns_map["i"] = "i"
+                ivns_map.update({f"t{i}": t.typ.name for i, t in enumerate(oface)})
+                ivns_map["t"] = str(tuple(t.typ.name for t in oface))
             if node.is_pgc:
                 ivns_map["pgc"] = "rtctxt, "
             return assignment + ngc["inline"].format_map(ivns_map)
@@ -959,7 +966,8 @@ class ExecutionContext:
         loop_body_code: list[str] = []
 
         # Identify loop body nodes (everything not in init_deps)
-        # Note: Some nodes might be used in both, but if they are in init_deps they are already written.
+        # Note: Some nodes might be used in both, but if they are
+        # in init_deps they are already written.
         # However, for a loop, the body is re-executed.
         # The "body" is effectively GCA.
 

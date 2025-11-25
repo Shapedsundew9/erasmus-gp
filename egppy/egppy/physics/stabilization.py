@@ -1,7 +1,5 @@
 """Stabilization routines for EGCode to GGCode conversion."""
 
-from datetime import UTC, datetime
-
 from egpcommon.egp_rnd_gen import EGPRndGen
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
@@ -14,7 +12,6 @@ def stabilize_gc(
 ) -> GCABC:
     """Stabilize an EGCode to a GGCode raising an SSE as necessary."""
 
-    egc["created"] = datetime.now(UTC)
     assert isinstance(egc["cgraph"], CGraph), "Resultant GC c_graph is not a CGraph"
     egc["cgraph"].stabilize(if_locked, EGPRndGen(egc["created"]))
 

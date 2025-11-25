@@ -6,13 +6,56 @@ to instrument for profiling or monitoring purposes, or to provide manipulation
 of EGP's type management system.
 """
 
+from copy import deepcopy
 from typing import Any
 
+from egpcommon.common import EGP_EPOCH, NULL_SHA256, SHAPEDSUNDEW9_UUID
 from egpcommon.parallel_exceptions import create_parallel_exceptions
+from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_class_factory import NULL_GC
+from egppy.genetic_code.ggc_class_factory import NULL_GC, GGCDict
 from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.physics.runtime_context import RuntimeContext
+
+META_CODON_TEMPLATE: dict[str, Any] = {
+    "code_depth": 1,
+    "gca": NULL_SHA256,
+    "gcb": NULL_SHA256,
+    "ancestora": NULL_SHA256,
+    "ancestorb": NULL_SHA256,
+    "pgc": NULL_SHA256,
+    "generation": 1,
+    "num_codes": 1,
+    "num_codons": 1,
+    "creator": SHAPEDSUNDEW9_UUID,
+    "created": EGP_EPOCH.isoformat(),
+    "properties": {
+        "gc_type": GCType.META,
+        "graph_type": CGraphType.PRIMITIVE,
+        "constant": False,
+        "deterministic": True,
+        "side_effects": False,
+        "static_creation": True,
+        "gctsp": {"type_upcast": False, "type_downcast": True},
+    },
+    "meta_data": {
+        "function": {
+            "python3": {
+                "0": {
+                    "inline": "tuple(raise_if_not_instance_of(ix, tx) for ix, tx in zip({i}, {t}))",
+                    "description": "Raise if ix is not an instance or child of tx.",
+                    "name": "raise_if_not_instance_of(ix, tx)",
+                    "imports": [
+                        {
+                            "aip": ["egppy", "physics", "meta"],
+                            "name": "raise_if_not_instance_of",
+                        }
+                    ],
+                }
+            }
+        }
+    },
+}
 
 # Create a module with parallel exceptions for meta codons
 MetaCodonExceptionModule = create_parallel_exceptions(
@@ -32,27 +75,44 @@ def raise_if_not_instance_of(obj: Any, t: type) -> Any:
     return obj
 
 
-def raise_if_not_both_instances_of(obj1: Any, obj2: Any, t: type) -> tuple[Any, Any]:
-    """Raise an error if either object is not an instance of the given type."""
-    if not isinstance(obj1, t):
-        raise MetaCodonTypeError(f"Expected {t}, got {type(obj1)} instead.")
-    if not isinstance(obj2, t):
-        raise MetaCodonTypeError(f"Expected {t}, got {type(obj2)} instead.")
-    return obj1, obj2
-
-
-if __name__ == "__main__":  # pragma: no cover
-    # Example usage of the meta codon exceptions
-    try:
-        raise_if_not_instance_of(42, str)
-    except MetaCodonTypeError as e:
-        print(f"Caught a meta codon type error: {e}")
-    else:
-        print("No error raised, object is of the correct type.")
-    finally:
-        print("Meta codon example execution completed.")
-
-
 def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC) -> GCABC:
-    """Find or create a meta genetic code that casts ifa types to exactly match ifb types."""
-    return NULL_GC
+    """Find or create a meta genetic code that casts ifa types to exactly match ifb types.
+
+    ifb must have the same length as ifa and each type in ifb must be a supertype or subtype
+    of the corresponding type in ifa.
+
+    Example
+    -------
+    Suppose we have two interfaces:
+        ifa: [int, float, object]
+        ifb: [Integral, float, str]
+    Then the resulting meta genetic code will be one that casts:
+        int -> Integral
+        object -> str   # This an upcast and may fail at runtime if the object is not a str.
+    as float is already the same type in both interfaces.
+
+    Args:
+        rtctxt: The runtime context.
+        ifa: The interface to cast from.
+        ifb: The interface to cast to.
+    Returns:
+        A meta genetic code that perform the appropriate casting for endpoints that need it.
+        Note that the order of casts is independent of the order in ifa and ifb.
+
+    """
+    # The implementation tries to find existing meta genetic codes that perform the required casts.
+    # If none exist, a new one is created.
+    meta_cast_gc = rtctxt.gpi.select_meta(ifa.to_td(), ifb.to_td())
+    if meta_cast_gc is not NULL_GC:
+        return meta_cast_gc
+
+    # No existing meta cast found - create a new one
+    return GGCDict(
+        deepcopy(META_CODON_TEMPLATE)
+        | {
+            "cgraph": {
+                "A": [["I", ep.idx, ep.typ] for ep in ifa],
+                "O": [["A", ep.idx, ep.typ] for ep in ifb],
+            },
+        }
+    )

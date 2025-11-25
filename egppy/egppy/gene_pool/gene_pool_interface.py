@@ -2,16 +2,18 @@
 
 from collections.abc import Iterable
 from os.path import dirname, join
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.properties import GC_TYPE_MASK, GCType
 from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_class_factory import NULL_GC, GGCDict
+from egppy.genetic_code.types_def import TypesDef
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.db_table_store import DBTableStore
@@ -155,6 +157,68 @@ class GenePoolInterface(GPIABC):
         for ggc in row_iter:
             return GGCDict(ggc)
         raise KeyError("No Genetic Code found matching the query.")
+
+    def select_meta(self, ipts: Sequence[TypesDef], opts: Sequence[TypesDef]) -> GCABC:
+        """Select a meta Genetic Code that has the exact matching input and output types.
+        Note that the order does not matter but the inputs and outputs must be aligned.
+
+        Example
+        -------
+        Suppose we have the following input and output types:
+            ipts: [int, int, object]
+            opts: [Integral, Integral, str]
+        Then the selected meta Genetic Code can be any order of the input and output pairs:
+            (int -> Integral), (int -> Integral), (object -> str)
+
+        Args:
+            ipts: The input types definitions.
+            opts: The output types definitions.
+        Returns:
+            The selected meta Genetic Code or NULL_GC if none is found.
+        """
+        # Sanity on parameters
+        assert len(ipts) == len(opts), "Input and output types length mismatch."
+        assert all(i != o for i, o in zip(ipts, opts)), "Input and output types must differ."
+
+        # Input types and indices
+        # Note that meta genetic codes input interfaces are always sorted in type order
+        # to make them easier to find.
+        itypes = sorted(set(t.uid for t in ipts))
+        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(itypes)}
+        isort = sorted(zip(ipts, opts), key=lambda pair: pair[0].uid)
+        iindices = bytes(lookup_indices[t[0].uid] for t in isort)
+
+        # Output types and indices
+        otypes = sorted(set(t.uid for t in opts))
+        lookup_indices = {uid: idx for idx, uid in enumerate(otypes)}
+        oindices = bytes(lookup_indices[t[1].uid] for t in isort)
+
+        query = (
+            " WHERE ({properties} & {mask} in ({meta}, {ordinary_meta}))"
+            " AND {input_types} = {itypes}"
+            " AND {inputs} = {iindices} AND {output_types} = {otypes}"
+            " AND {outputs} = {oindices}"
+        )
+        literals = {
+            "mask": GC_TYPE_MASK,
+            "meta": GCType.META,
+            "ordinary_meta": GCType.ORDINARY_META,
+            "itypes": itypes,
+            "iindices": iindices,
+            "otypes": otypes,
+            "oindices": oindices,
+        }
+        row_iter = self._dbm.managed_gc_table.select(
+            query,
+            literals=literals,
+            columns="*",
+            container="dict",
+        )
+
+        # Return the first matching genetic code or NULL_GC
+        for ggc in row_iter:
+            return GGCDict(ggc)
+        return NULL_GC
 
     def verify(self) -> None:
         """Verify the Gene Pool."""

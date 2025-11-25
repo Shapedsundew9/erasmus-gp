@@ -68,8 +68,8 @@ _codon_specs = {
     "LITERAL_1_SIG": ([], ["int"], "1"),
     "SIXTYFOUR_SIG": ([], ["int"], "64"),
     "CUSTOM_PGC_SIG": ([], [], "custom"),
-    "INT_TO_SIG": (["int"], ["Integral"], "raise_if_not_instance_of(int, Integral)"),
-    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(EGPNumber, int)"),
+    "INT_TO_SIG": (["int"], ["Integral"], "raise_if_not_instance_of(i0, t0)"),
+    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
 }
 
 

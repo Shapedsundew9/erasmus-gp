@@ -251,7 +251,7 @@ class GCMixin(CommonObj):
         assert (
             meta == GCType.META and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or meta != GCType.META, "If gc_type is a meta-codon then cgraph must be primitive."
-        return meta == GCType.META
+        return meta == GCType.META or meta == GCType.ORDINARY_META
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""

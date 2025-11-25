@@ -36,7 +36,7 @@ from numbers import Complex, Integral, Number, Rational, Real
 from uuid import UUID
 
 from egpcommon.common import NULL_UUID
-from egpcommon.properties import CODON_META_MASK, PropertiesBD
+from egpcommon.properties import CODON_MASK, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import (
     CPI,

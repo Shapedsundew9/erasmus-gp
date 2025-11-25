@@ -73,7 +73,7 @@ class TestCodonDevLoad(unittest.TestCase):
         signature = find_codon_signature(
             input_types=["PsqlNumeric"],
             output_types=["object"],
-            name="raise_if_not_instance_of(PsqlNumeric, object)",
+            name="raise_if_not_instance_of(i0, t0)",
         )
 
         # Should find the signature

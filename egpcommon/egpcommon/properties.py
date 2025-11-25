@@ -321,6 +321,7 @@ if __name__ == "__main__":
 
 
 # TODO: This mask should be generated programmatically by BitDict
-# If the propoerty is a codon or meta codon then it does not matter what any
+# If the propoerty is a codon then it does not matter what any
 # bit values are other that the LSb.
-CODON_META_MASK: int = 0x0000000000000001
+CODON_MASK: int = 0x0000000000000001
+GC_TYPE_MASK: int = 0x0000000000000007

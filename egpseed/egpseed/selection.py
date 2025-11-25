@@ -4,13 +4,13 @@ Defines how GC's are selected based on certain criteria.
 The selectors defined here are selector codons (primitives).
 """
 
-from egpcommon.properties import CODON_META_MASK
+from egpcommon.properties import CODON_MASK
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
 from egppy.genetic_code.interface import Interface
 
 # Constants
-_CODON_SELECTOR_LITERALS = {"mask": CODON_META_MASK}
+_CODON_SELECTOR_LITERALS = {"mask": CODON_MASK}
 
 
 def random_codon_selector(gp: GenePoolInterface) -> GCABC:

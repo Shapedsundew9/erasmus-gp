@@ -5,16 +5,16 @@ from datetime import datetime
 from os.path import dirname, join
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, NULL_STR, SHAPEDSUNDEW9_UUID, sha256_signature
+from egpcommon.common import NULL_STR, sha256_signature
 from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
-from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_list
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
+from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces, valid_jcg
 from egppy.genetic_code.types_def import types_def_store
+from egppy.physics.meta import META_CODON_TEMPLATE
 
 # Standard EGP logging pattern
 enable_debug_logging()
@@ -24,40 +24,16 @@ _logger: Logger = egp_logger(name=__name__)
 OUTPUT_CODON_PATH = join(
     dirname(__file__), "..", "..", "egppy", "egppy", "data", "meta_codons.json"
 )
-CODON_TEMPLATE: dict[str, Any] = {
-    "code_depth": 1,
-    "gca": NULL_SIGNATURE,
-    "gcb": NULL_SIGNATURE,
-    "ancestora": NULL_SIGNATURE,
-    "ancestorb": NULL_SIGNATURE,
-    "pgc": NULL_SIGNATURE,
-    "creator": SHAPEDSUNDEW9_UUID,
-    "created": EGP_EPOCH.isoformat(),
-    "generation": 1,
-    "num_codes": 1,
-    "num_codons": 1,
-    "properties": {
-        # The META type allows connections between different endpoint types.
-        "gc_type": GCType.META,
-        # NOTE: The graph type does not have to be primitive.
-        "graph_type": CGraphType.PRIMITIVE,
-        "constant": False,
-        "deterministic": True,
-        "side_effects": False,
-        "static_creation": True,
-        "gctsp": {"type_upcast": False, "type_downcast": True},
-    },
-}
 
-CODON_ONE_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
+CODON_ONE_PARAMETER: dict[str, Any] = META_CODON_TEMPLATE | {
     "cgraph": {"A": [["I", 0, None]], "O": [["A", 0, None]], "U": []},
     "meta_data": {
         "function": {
             "python3": {
                 "0": {
-                    "inline": "raise_if_not_instance_of({i0}, otype)",
-                    "description": "Raise if i0 (itype) is not an instance (or child) of otype.",
-                    "name": "raise_if_not_instance_of(itype, otype)",
+                    "inline": "raise_if_not_instance_of({i0}, {t0})",
+                    "description": "Raise if i0 is not an instance (or child) of t0.",
+                    "name": "raise_if_not_instance_of(i0, t0)",
                     "imports": [
                         {"aip": ["egppy", "physics", "meta"], "name": "raise_if_not_instance_of"}
                     ],
@@ -67,29 +43,11 @@ CODON_ONE_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
     },
 }
 
-CODON_TWO_PARAMETER: dict[str, Any] = CODON_TEMPLATE | {
+CODON_TWO_PARAMETER: dict[str, Any] = META_CODON_TEMPLATE | {
     "cgraph": {
         "A": [["I", 0, None], ["I", 1, None]],
         "O": [["A", 0, None], ["A", 1, None]],
-    },
-    "meta_data": {
-        "function": {
-            "python3": {
-                "0": {
-                    "inline": "raise_if_not_both_instances_of({i0}, {i1}, otype)",
-                    "description": "Raise if i0 or i1 (itype) is not an instance"
-                    " (or child) of otype.",
-                    "name": "raise_if_not_both_instances_of(itype, itype, otype)",
-                    "imports": [
-                        {
-                            "aip": ["egppy", "physics", "meta"],
-                            "name": "raise_if_not_both_instances_of",
-                        }
-                    ],
-                }
-            }
-        }
-    },
+    }
 }
 
 
@@ -142,13 +100,7 @@ def generate_meta_codons(write: bool = False) -> None:
                 for ept in codon["cgraph"]["O"]:
                     ept[2] = oupt.name
 
-                # Replace the placeholder type strings in the meta data
                 base = codon["meta_data"]["function"]["python3"]["0"]
-                for s, r in (("itype", inpt.name), ("otype", oupt.name)):
-                    base["inline"] = base["inline"].replace(s, r)
-                    base["description"] = base["description"].replace(s, r)
-                    base["name"] = base["name"].replace(s, r)
-
                 assert valid_jcg(codon["cgraph"]), "Invalid codon connection graph at construction."
                 codon["signature"] = sha256_signature(
                     codon["ancestora"],

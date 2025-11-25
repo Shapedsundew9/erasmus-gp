@@ -196,9 +196,12 @@ class Interface(CommonObj, InterfaceABC):
 
         # If we get here, we have an unsupported type
         raise TypeError(
-            f"Unsupported endpoints type: {type(endpoints)} with first element type {type(endpoints[0])}. "
-            "Supported types are: InterfaceABC, sequence of EndPointABC, sequence of 3-element tuples (e.g. ['row', idx, type]), "
-            "sequence of types (e.g. [TypesDef, ...]), or sequence of 5-element tuples (e.g. [row, idx, cls, type, refs]). "
+            f"Unsupported endpoints type: {type(endpoints)} with first"
+            f" element type {type(endpoints[0])}. "
+            "Supported types are: InterfaceABC, sequence of EndPointABC, "
+            "sequence of 3-element tuples (e.g. ['row', idx, type]), "
+            "sequence of types (e.g. [TypesDef, ...]), or sequence of 5-element"
+            " tuples (e.g. [row, idx, cls, type, refs]). "
             "Example of valid input: [('dst', 0, EPCls.DST, TypesDef, [[...]]), ...]"
         )
 

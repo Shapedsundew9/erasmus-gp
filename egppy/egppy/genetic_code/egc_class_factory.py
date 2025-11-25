@@ -328,20 +328,12 @@ class EGCMixin(GCMixin):
 
 
 class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore
-    """Dirty Dictionary Embryonic Genetic Code Class."""
+    """Embryonic Genetic Code Dictionary Class."""
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Constructor for DictEGC
-
-        gcabc -- the genetic code object or dictionary to set the attributes.
-
-        Valid keys for the genetic code object are:
-            graph:CGraphABC -- the genetic code graph object (optional)
-            gca:bytes|GCABC -- the genetic code A object (optional)
-            gcb:bytes|GCABC -- the genetic code B object (optional)
-            ancestora:bytes|GCABC -- the genetic code A ancestor object (optional)
-            ancestorb:bytes|GCABC -- the genetic code B ancestor object (optional)
-            pgc:bytes|GCABC -- the parent genetic code object (optional)
+        """Initialize the EGCDict.
+        Args:
+            gcabc: The genetic code object or dictionary to initialize from.
         """
         super().__init__()
         self.set_members(gcabc if gcabc is not None else {})
