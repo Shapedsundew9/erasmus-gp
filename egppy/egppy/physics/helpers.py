@@ -10,7 +10,20 @@ def merge_properties_base(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
     merged_properties = PropertiesBD()
 
     # GC Type: take the "higher" type
-    merged_properties["gc_type"] = GCType.ORDINARY
+    gcta = prop_a["gc_type"]
+    gctb = prop_b["gc_type"]
+    if (
+        gcta == GCType.META
+        or gcta == GCType.ORDINARY_META
+        and gctb == GCType.META
+        or gctb == GCType.ORDINARY_META
+    ):
+        merged_properties["gc_type"] = GCType.ORDINARY_META
+    else:
+        merged_properties["gc_type"] = GCType.ORDINARY
+
+    # FIXME: Graph Type: for now, always STANDARD
+    # but how do we pass in conditional or loop types?
     merged_properties["graph_type"] = CGraphType.STANDARD
 
     # Constant: only if both are constant

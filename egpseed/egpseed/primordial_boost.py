@@ -1,10 +1,25 @@
 """
 Primordial boost — initialize simple physical genetic codes.
 
-This module provides helper routines used to "kick start" evolution
-by constructing primitive genetic codes and applying basic
-selection and mutation operations. It is intended for use during the
-early stages of development to save waiting around for chance discoveries.
+This module provides helper routines to "bootstrap" evolution by constructing
+primitive genetic codes that mirror pre-defined Python implementations.
+
+There is a circular dependency problem when starting evolution in EGP. To construct
+genetic codes, you need mutations, which are themselves genetic codes. For
+example, a simple stacking mutation takes one codon and stacks it on another.
+This requires finding codons with compatible interfaces (a selector), performing
+the stacking operation (a mutation), and creating a wrapper genetic code. In nature,
+this evolutionary bootstrap took eons through random combinations of primitives.
+However, we don't have that luxury.
+
+Primordial boost leverages Python implementations of fundamental physcial genetic
+codes (mutations & selectors) like perfect_stack() and harmony(). These functions
+are then used as mutations to create EGP GC implementations of
+primitive functions including themselves (!), effectively "seeding" the
+evolutionary process.
+
+This module is intended for use during early development stages to avoid waiting
+for chance discoveries.
 """
 
 from egpcommon.codon_dev_load import find_codon_signature
@@ -41,9 +56,6 @@ _GC_SIGNATURES: dict[str, tuple] = {
         "raise_if_not_both_instances_of(PsqlBigInt, PsqlBigInt, PsqlType)",
     ),
     "GPI_SELECT_GC": (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "select"),
-    "SCA_GC": (["GGCode"], ["EGCode"], "sca"),
-    "PERFECT_STACK": (["GGCode"], ["EGCode"], "perfect_stack"),
-    "HARMONY_GC": (["GGCode"], ["EGCode"], "harmony"),
     "CONNECT_ALL": (["EGCode"], ["GGCode"], "connect_all"),
 }
 

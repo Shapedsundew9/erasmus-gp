@@ -52,17 +52,6 @@ from egppy.genetic_code.ggc_class_factory import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
-# PGC operations
-from egppy.physics.insertion import (
-    harmony,
-    insert_gc_case_0,
-    insert_gc_case_1,
-    inverse_stack,
-    perfect_stack,
-    sca,
-    stabilize_gc,
-)
-
 # PSQL operations
 from egppy.physics.psql import (
     psql_abs,
@@ -129,6 +118,9 @@ from egppy.physics.psql_types import (
     PsqlVarChar,
 )
 from egppy.physics.runtime_context import RuntimeContext
+
+# Stabilization
+from egppy.physics.stabilization import stabilize_gc
 
 # Public Physical Types and Aliases
 Pair = tuple

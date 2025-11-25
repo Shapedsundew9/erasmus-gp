@@ -9,6 +9,10 @@ of EGP's type management system.
 from typing import Any
 
 from egpcommon.parallel_exceptions import create_parallel_exceptions
+from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_class_factory import NULL_GC
+from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.physics.runtime_context import RuntimeContext
 
 # Create a module with parallel exceptions for meta codons
 MetaCodonExceptionModule = create_parallel_exceptions(
@@ -47,3 +51,8 @@ if __name__ == "__main__":  # pragma: no cover
         print("No error raised, object is of the correct type.")
     finally:
         print("Meta codon example execution completed.")
+
+
+def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC) -> GCABC:
+    """Find or create a meta genetic code that casts ifa types to exactly match ifb types."""
+    return NULL_GC

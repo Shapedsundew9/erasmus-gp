@@ -121,7 +121,7 @@ class MethodExpander:
         json_dict["meta_data"]["function"]["python3"]["0"]["description"] = self.description
         json_dict["meta_data"]["function"]["python3"]["0"]["name"] = self.name
         json_dict["meta_data"]["function"]["python3"]["0"]["imports"] = self.imports
-        merge(json_dict["properties"], self.properties)
+        merge(json_dict["properties"], self.properties, update=True)
         json_dict["cgraph"]["A"] = [["I", idx, typ] for idx, typ in enumerate(self.inputs)]
         json_dict["cgraph"]["O"] = [["A", idx, typ] for idx, typ in enumerate(self.outputs)]
         assert valid_jcg(json_dict["cgraph"]), "Invalid codon connection graph at construction."

@@ -12,7 +12,7 @@ class GCType(IntEnum):
     CODON = 0
     ORDINARY = 1
     META = 2
-    RESERVED_3 = 3
+    ORDINARY_META = 3
 
 
 class CGraphType(IntEnum):
@@ -40,14 +40,14 @@ PROPERTIES_CONFIG = {
     "gc_type": {
         "type": "uint",
         "start": 0,
-        "width": 2,
+        "width": 3,
+        "valid": {"range": [(4,)]},
         "default": 0,
-        "valid": {"range": [(3,)]},
         "description": ("GC type."),
     },
     "graph_type": {
         "type": "uint",
-        "start": 2,
+        "start": 3,
         "width": 4,
         "default": 0,
         "valid": {"range": [(7,)]},
@@ -55,8 +55,8 @@ PROPERTIES_CONFIG = {
     },
     "reserved1": {
         "type": "uint",
-        "start": 6,
-        "width": 2,
+        "start": 7,
+        "width": 1,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},

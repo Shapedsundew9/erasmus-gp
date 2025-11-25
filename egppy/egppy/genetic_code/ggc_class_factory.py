@@ -14,7 +14,7 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import int_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
-from egpcommon.properties import BASIC_CODON_PROPERTIES
+from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.egc_class_factory import EGCMixin
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE
@@ -30,79 +30,6 @@ class GGCMixin(EGCMixin):
     """General Genetic Code Mixin Class."""
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
-
-    def consistency(self) -> None:
-        """Check the genetic code object for consistency."""
-        assert isinstance(self, GCABC), "GGC must be a GCABC object."
-        assert isinstance(self, CommonObj), "GGC must be a CommonObj."
-        self.runtime_error(
-            self["_lost_descendants"] <= self["lost_descendants"],
-            "_lost_descendants must be less than or equal to lost_descendants.",
-        )
-        self.runtime_error(
-            self["_reference_count"] <= self["reference_count"],
-            "_reference_count must be less than or equal to reference_count.",
-        )
-
-        self.runtime_error(
-            self["code_depth"] >= 0, "code_depth must be greater than or equal to zero."
-        )
-        if self["code_depth"] == 1:
-            self.runtime_error(
-                self["gca"] == NULL_SIGNATURE,
-                "A code depth of 1 is a codon or empty GC and must have a NULL GCA.",
-            )
-
-        if self["code_depth"] > 1:
-            self.runtime_error(
-                self["gca"] is not NULL_SIGNATURE,
-                "A code depth greater than 1 must have a non-NULL GCA.",
-            )
-
-        self.runtime_error(
-            self["created"] <= self["updated"], "created time must be less than updated time."
-        )
-
-        if self["generation"] == 1:
-            self.runtime_error(
-                self["gca"] == NULL_SIGNATURE,
-                "A generation of 1 is a codon and can only have a NULL GCA.",
-            )
-
-        if len(self["inputs"]) == 0:
-            self.runtime_error(len(self["input_types"]) == 0, "No inputs must have no input types.")
-
-        self.runtime_error(
-            len(self["input_types"]) <= len(self["inputs"]),
-            "The number of input types must be less than or equal to the number of inputs.",
-        )
-        self.runtime_error(
-            self["lost_descendants"] <= self["reference_count"],
-            "lost_descendants must be less than or equal to reference_count.",
-        )
-        self.runtime_error(
-            self["num_codes"] >= self["code_depth"],
-            "num_codes must be greater than or equal to code_depth.",
-        )
-
-        if len(self["outputs"]) == 0:
-            self.runtime_error(
-                len(self["output_types"]) == 0, "No outputs must have no output types."
-            )
-
-        if len(self["output_types"]) > 0:
-            self.runtime_error(
-                len(self["output_types"]) <= len(self["outputs"]),
-                "The number of output types must be less than or equal to the number of outputs.",
-            )
-
-        self.runtime_error(
-            self["updated"] <= datetime.now(UTC),
-            "updated time must be less than or equal to the current time.",
-        )
-
-        # Call base class consistency at the end
-        super().consistency()
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the GGC.
@@ -297,12 +224,30 @@ class GGCMixin(EGCMixin):
 
         # The properties of the genetic code.
         self.value_error(isinstance(self["properties"], int), "properties must be an integer.")
+        properties = PropertiesBD(self["properties"])
+        self.value_error(properties.valid(), "properties must be valid.")
+        self.value_error(properties.verify(), "properties must verify.")
+
+        # Are the properties consistent with the genetic code?
+        graph_type = self["cgraph"].graph_type()
+        gc_type = properties["gc_type"]
         self.value_error(
-            self["properties"] >= -(2**63), "properties must be greater than or equal to -2**63."
+            properties["graph_type"] == graph_type,
+            "The cgraph and properties graph types must be consistent.",
         )
-        self.value_error(
-            self["properties"] <= 2**63 - 1, "properties must be less than or equal to 2**63-1."
-        )
+
+        # Is the GC type consistent with the graph type?
+        if gc_type == GCType.CODON:
+            self.value_error(
+                graph_type == CGraphType.PRIMITIVE,
+                "If the genetic code is a codon, the code_depth must be 1.",
+            )
+
+        if gc_type == GCType.META or gc_type == GCType.ORDINARY_META:
+            self.value_error(
+                graph_type == CGraphType.STANDARD or graph_type == CGraphType.PRIMITIVE,
+                "If the genetic code is meta, the graph must be STANDARD or PRIMITIVE.",
+            )
 
         # The reference count of the genetic code.
         self.value_error(
@@ -324,6 +269,71 @@ class GGCMixin(EGCMixin):
         )
         self.value_error(self["updated"].tzinfo == UTC, "Updated must be in the UTC time zone.")
 
+        self.runtime_error(
+            self["_lost_descendants"] <= self["lost_descendants"],
+            "_lost_descendants must be less than or equal to lost_descendants.",
+        )
+        self.runtime_error(
+            self["_reference_count"] <= self["reference_count"],
+            "_reference_count must be less than or equal to reference_count.",
+        )
+
+        self.runtime_error(
+            self["code_depth"] >= 0, "code_depth must be greater than or equal to zero."
+        )
+        if self["code_depth"] == 1:
+            self.runtime_error(
+                self["gca"] == NULL_SIGNATURE,
+                "A code depth of 1 is a codon or empty GC and must have a NULL GCA.",
+            )
+
+        if self["code_depth"] > 1:
+            self.runtime_error(
+                self["gca"] is not NULL_SIGNATURE,
+                "A code depth greater than 1 must have a non-NULL GCA.",
+            )
+
+        self.runtime_error(
+            self["created"] <= self["updated"], "created time must be less than updated time."
+        )
+
+        if self["generation"] == 1:
+            self.runtime_error(
+                self["gca"] == NULL_SIGNATURE,
+                "A generation of 1 is a codon and can only have a NULL GCA.",
+            )
+
+        if len(self["inputs"]) == 0:
+            self.runtime_error(len(self["input_types"]) == 0, "No inputs must have no input types.")
+
+        self.runtime_error(
+            len(self["input_types"]) <= len(self["inputs"]),
+            "The number of input types must be less than or equal to the number of inputs.",
+        )
+        self.runtime_error(
+            self["lost_descendants"] <= self["reference_count"],
+            "lost_descendants must be less than or equal to reference_count.",
+        )
+        self.runtime_error(
+            self["num_codes"] >= self["code_depth"],
+            "num_codes must be greater than or equal to code_depth.",
+        )
+
+        if len(self["outputs"]) == 0:
+            self.runtime_error(
+                len(self["output_types"]) == 0, "No outputs must have no output types."
+            )
+
+        if len(self["output_types"]) > 0:
+            self.runtime_error(
+                len(self["output_types"]) <= len(self["outputs"]),
+                "The number of output types must be less than or equal to the number of outputs.",
+            )
+
+        self.runtime_error(
+            self["updated"] <= datetime.now(UTC),
+            "updated time must be less than or equal to the current time.",
+        )
         # Call base class verify at the end
         super().verify()
 

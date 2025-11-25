@@ -201,7 +201,7 @@ class CGraph(CommonObj, CGraphABC):
         row_u = []
         for key in DstRow:  # This order is important for consistent JSON output
             iface: Interface = getattr(self, _UNDER_DST_KEY_DICT[key])
-            if iface is not None and (len(iface) > 0 or not json_c_graph):
+            if iface is not None:
                 jcg[str(key) if json_c_graph else key] = iface.to_json(json_c_graph=json_c_graph)
         for key in SrcRow:  # This order is important for consistent JSON output
             iface: Interface = getattr(self, _UNDER_SRC_KEY_DICT[key])

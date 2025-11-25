@@ -5,7 +5,7 @@ from random import choice, getrandbits, randint, seed
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
-from egpcommon.properties import BASIC_ORDINARY_PROPERTIES, CGraphType, GCType, PropertiesBD
+from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.genetic_code import NULL_SIGNATURE
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.context_writer import (
@@ -82,7 +82,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 9cdb994a05ee0630d4d79747c9b62ac4ba22545e3085aa3645aed30d13615057\n'
+            '\t"""Signature: 0e19aea4d454ada6cac6c5bfee41a26f06fbd6c80f3f2eeba1067936d68af4f2\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -104,7 +104,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 9cdb994a05ee0630d4d79747c9b62ac4ba22545e3085aa3645aed30d13615057\n'
+            '\t"""Signature: 0e19aea4d454ada6cac6c5bfee41a26f06fbd6c80f3f2eeba1067936d68af4f2\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -228,7 +228,7 @@ class TestExecutor(unittest.TestCase):
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
-                "properties": BASIC_ORDINARY_PROPERTIES,
+                "properties": {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.IF_THEN},
                 "num_codons": gca["num_codons"],
             },
             True,
@@ -271,7 +271,7 @@ class TestExecutor(unittest.TestCase):
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
-                "properties": BASIC_ORDINARY_PROPERTIES,
+                "properties": {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.IF_THEN},
                 "num_codons": gca["num_codons"],
             },
             True,
@@ -330,7 +330,7 @@ class TestExecutor(unittest.TestCase):
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
-                "properties": BASIC_ORDINARY_PROPERTIES,
+                "properties": {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.IF_THEN_ELSE},
                 "num_codons": gca["num_codons"] + gcb["num_codons"],
             },
             True,
@@ -380,7 +380,7 @@ class TestExecutor(unittest.TestCase):
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
-                "properties": BASIC_ORDINARY_PROPERTIES,
+                "properties": {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.IF_THEN_ELSE},
                 "num_codons": gca["num_codons"] + gcb["num_codons"],
             },
             True,
@@ -426,12 +426,6 @@ class TestExecutor(unittest.TestCase):
         # Let's say S -> Input 0, L item -> Input 1.
 
         body_gc = primitive_gcs["rshift_xor"]
-
-        # Properties for FOR_LOOP
-        props = PropertiesBD(
-            {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.FOR_LOOP}
-        ).to_int()
-
         ggc = inherit_members(
             {
                 "ancestora": body_gc,
@@ -447,7 +441,7 @@ class TestExecutor(unittest.TestCase):
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
-                "properties": props,
+                "properties": {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.FOR_LOOP},
                 "num_codons": body_gc["num_codons"],
             },
             True,
@@ -489,12 +483,6 @@ class TestExecutor(unittest.TestCase):
         # Loop terminates when s >> 1 is 0.
 
         body_gc = primitive_gcs["rshift_1"]
-
-        # Properties for WHILE_LOOP
-        props = PropertiesBD(
-            {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.WHILE_LOOP}
-        ).to_int()
-
         ggc = inherit_members(
             {
                 "ancestora": body_gc,
@@ -511,7 +499,7 @@ class TestExecutor(unittest.TestCase):
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
-                "properties": props,
+                "properties": {"gc_type": GCType.ORDINARY, "graph_type": CGraphType.WHILE_LOOP},
                 "num_codons": body_gc["num_codons"],
             },
             True,
