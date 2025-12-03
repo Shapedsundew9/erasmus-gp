@@ -76,15 +76,23 @@ class GenePoolInterface(GPIABC):
             # Make sure all data is written to the database
             self._ggc_cache.copyback()
 
+    def __contains__(self, signature: bytes) -> bool:
+        """Check if a Genetic Code exists in the local cache using its signature."""
+        return signature in self._ggc_cache
+
     def __getitem__(self, signature: bytes) -> GGCDict:
         """Get a Genetic Code by its signature."""
+        # TODO: Need to handle the case where the GC is not found in the GP.
+        # In that case we fall back to the microbiome GPL (which will fallback
+        # to the biome GPL etc.) and we could recieve a timeout or rate limit
+        # response.
         return self._ggc_cache[signature]
 
-    def __setitem__(self, signature: bytes, value: GGCDict) -> None:
-        """Set a Genetic Code by its signature.
-        NOTE: This will be an UPSERT operation in the database.
+    def __setitem__(self, signature: bytes, value: GCABC) -> None:
+        """Place a genetic code in the cache. NB: It is not persisted to the
+        database until the cache is flushed / purged.
         """
-        self._ggc_cache[signature] = value
+        self._ggc_cache[signature] = value if isinstance(value, GGCDict) else GGCDict(value)
 
     def _should_reload_sources(self) -> bool:
         """Determine if the Gene Pool sources should be reloaded.
@@ -141,7 +149,9 @@ class GenePoolInterface(GPIABC):
         )
         return tuple(row_iter)
 
-    def select_gc(self, where: str, order_by: str, literals: dict[str, Any] | None = None) -> GCABC:
+    def select_gc(
+        self, where: str, order_by: str, literals: dict[str, Any] | None = None
+    ) -> GGCDict:
         """Select a single Genetic Code based on PSQL fragments.
 
         Args:

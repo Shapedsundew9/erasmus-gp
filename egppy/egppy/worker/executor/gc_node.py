@@ -262,6 +262,8 @@ class GCNode(Iterable, Hashable):
         gpi: GenePoolInterface | None = None,
         wmc: bool = False,
     ) -> None:
+        # TODO: This keeps the GCABC hanging around. It should not. Should be pulled from
+        # the GPI everytime it is accessed to reduce memory usage.
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
 
         # Defaults. These may be changed depending on the GC structure and what

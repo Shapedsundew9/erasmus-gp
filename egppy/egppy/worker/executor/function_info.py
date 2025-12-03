@@ -22,6 +22,8 @@ class FunctionInfo:
     executable: Callable
     global_index: int
     line_count: int
+    # TODO: This keeps the GCABC hanging around. It should not. Should be pulled from
+    # the GPI everytime it is accessed to reduce memory usage.
     gc: GCABC
 
     def name(self) -> str:

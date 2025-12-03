@@ -38,6 +38,7 @@ from uuid import UUID
 from egpcommon.common import NULL_UUID
 from egpcommon.properties import CODON_MASK, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     DstIfKey,
@@ -48,8 +49,10 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.egc_class_factory import EGCDict as EGCode
 from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_class_factory import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
+from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # PSQL operations

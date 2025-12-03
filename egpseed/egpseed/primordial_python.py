@@ -14,18 +14,23 @@ important that these functions are correct & thus well tested.
 
 from typing import Any
 
-from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_abc import CGraphABC
-from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
-from egppy.genetic_code.egc_class_factory import EGCDict
-from egppy.genetic_code.ggc_class_factory import GCABC
-from egppy.genetic_code.interface import Interface
-from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.physics.helpers import merge_properties
+from egppy.physics.pgc_api import (
+    CODON_MASK,
+    GCABC,
+    CGraph,
+    CGraphABC,
+    DstRow,
+    EGCode,
+    GGCode,
+    Interface,
+    InterfaceABC,
+    SrcRow,
+)
 from egppy.physics.runtime_context import RuntimeContext
 
 
-def _stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict[str, Any]:
+def unstablized_stack_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict[str, Any]:
     """Stack two GC's such that IGC is stacked on top of TGC and leave
     mthe interface between them unconnected.
 
@@ -68,7 +73,7 @@ def _stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict[str, Any]:
     return rgc
 
 
-def stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
+def random_stabilized_stack_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     """Stack two GC's such that IGC is stacked on top of TGC and the
     interface between them stablised by random connections.
 
@@ -82,10 +87,10 @@ def stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     -------
     GCABC -- the resultant stacked GC
     """
-    return EGCDict(_stack(rtctxt, igc, tgc))
+    return EGCode(unstablized_stack_py(rtctxt, igc, tgc))
 
 
-def sca(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
+def sca_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     """Implements the Spontaneous Codon Aggregation (SCA) algorithm.
     SCA consists of the following steps:
     1. Find a codon - A.
@@ -93,10 +98,10 @@ def sca(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     3. Stack A on B.
     4. Connect all with the input interface unlocked.
     """
-    return stack(rtctxt, igc, tgc)
+    return random_stabilized_stack_py(rtctxt, igc, tgc)
 
 
-def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
+def perfect_stack_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     """Creates a perfect stack of iGC on top of tGC.
 
     A perfect stack is one where the interfaces of the iGC and tGC match perfectly
@@ -114,15 +119,15 @@ def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
     Returns:
         The resultant stacked genetic code.
     """
-    rgc_dict = _stack(rtctxt, igc, tgc)
+    rgc_dict = unstablized_stack_py(rtctxt, igc, tgc)
     asi: Interface = rgc_dict["cgraph"]["As"]
     bdi: Interface = rgc_dict["cgraph"]["Bd"]
     asi.set_refs(DstRow.B)
     bdi.set_refs(SrcRow.A)
-    return EGCDict(rgc_dict)
+    return EGCode(rgc_dict)
 
 
-def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
+def harmony_py(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     """Creates a harmony GC by placing gca and gcb in a GC but with inputs and outputs
     directly passed through (no connection between gca and gcb).
     """
@@ -144,7 +149,7 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
         }
     )
 
-    rgc = EGCDict(
+    rgc = EGCode(
         {
             "gca": gca,
             "gcb": gcb,
@@ -157,3 +162,21 @@ def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
         }
     )
     return rgc
+
+
+def random_codon_selector_py(rtctxt: RuntimeContext) -> GGCode:
+    """Select a random codon from the gene pool.
+
+    This function uses the runtime context to access the gene pool interface
+    and select a random codon genetic code.
+
+    Args:
+        rtctxt: The runtime context.
+    Returns:
+        A random codon genetic code.
+    """
+    return rtctxt.gpi.select_gc(
+        "{codon_mask} & {properties} = {zero}",
+        literals={"codon_mask": CODON_MASK, "zero": 0},
+        order_by="RANDOM()",
+    )

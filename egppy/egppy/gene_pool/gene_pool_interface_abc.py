@@ -26,6 +26,11 @@ class GPIABC(CommonObjABC):
         raise NotImplementedError("GPIABC.__init__ must be overridden")
 
     @abstractmethod
+    def __contains__(self, item: bytes) -> bool:
+        """Check if a Genetic Code exists in the local cache using its signature."""
+        raise NotImplementedError("GPIABC.__contains__ must be overridden")
+
+    @abstractmethod
     def __getitem__(self, item: bytes) -> GGCDict:
         """Get a Genetic Code by its signature."""
         raise NotImplementedError("GPIABC.__getitem__ must be overridden")
