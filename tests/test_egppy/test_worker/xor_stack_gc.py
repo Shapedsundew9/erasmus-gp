@@ -24,7 +24,7 @@ from time import time
 from typing import Any
 
 from egpcommon.codon_dev_load import find_codon_signature
-from egpcommon.common import ACYBERGENESIS_PROBLEM, NULL_SHA256, bin_counts
+from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
@@ -90,7 +90,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
     assert isinstance(egc, GCABC), "GC must be a GCABC object."
     gca = egc["gca"]
     gcb = egc["gcb"]
-    if gca == NULL_SHA256 or gca is NULL_GC:
+    if gca is None or gca is NULL_GC:
         raise ValueError("Cannot resolve inherited members. GC is a codon.")
     gca = find_gc(gca)
 
@@ -120,7 +120,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
             )
 
     # If GCB exists modify
-    if gcb != NULL_SHA256 and gcb is not NULL_GC:
+    if gcb is not None and gcb is not NULL_GC:
         gcb = find_gc(gcb)
         egc["num_codons"] += gcb["num_codons"]
         egc["num_codes"] += gcb["num_codes"]

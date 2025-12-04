@@ -133,12 +133,12 @@ def merge(  # pylint: disable=dangerous-default-value
 
 
 def sha256_signature(
-    ancestora: bytes,
-    ancestorb: bytes,
-    gca: bytes,
-    gcb: bytes,
+    ancestora: bytes | None,
+    ancestorb: bytes | None,
+    gca: bytes | None,
+    gcb: bytes | None,
     graph: dict[str, Any],
-    pgc: bytes,
+    pgc: bytes | None,
     imports: tuple,  # tuple[ImportDef, ...] but would be a circular reference
     inline: str,
     code: str,
@@ -167,11 +167,11 @@ def sha256_signature(
     THIS FUNCTION MUST NOT CHANGE!
     MAKE SURE THE UNIT TESTS PASS!
     """
-    hash_obj = sha256(ancestora)
-    hash_obj.update(ancestorb)
-    hash_obj.update(gca)
-    hash_obj.update(gcb)
-    hash_obj.update(pgc)
+    hash_obj = sha256(ancestora if ancestora is not None else NULL_SHA256)
+    hash_obj.update(ancestorb if ancestorb is not None else NULL_SHA256)
+    hash_obj.update(gca if gca is not None else NULL_SHA256)
+    hash_obj.update(gcb if gcb is not None else NULL_SHA256)
+    hash_obj.update(pgc if pgc is not None else NULL_SHA256)
     hash_obj.update(creator)
     # The graph must be in a consistent format & order.
     # See CGraph.py CGraph.to_json() for details.

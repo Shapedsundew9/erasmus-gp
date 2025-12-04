@@ -19,7 +19,7 @@ from egpcommon.properties import GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, CGraphType
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import JSONCGraph
-from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE, GCMixin
+from egppy.genetic_code.genetic_code import GCABC, GCMixin
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -57,40 +57,49 @@ class EGCMixin(GCMixin):
             self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))
 
         # GCA
-        # TODO: NULL_SIGNATURE / NULL_SHA256 needs to become None to reduce the storage and
-        # computation overhead. There is a lot of testing for NULL_SIGNATURE currently so
-        # this will be a future task. The DB schema already uses NULL for these fields.
-        tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
-        gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
-        self["gca"] = signature_store[bytes.fromhex(gca) if isinstance(gca, str) else gca]
+        # NULL signatures are now represented as None for storage and computation efficiency.
+        tgca: str | bytes | GCABC | None = gcabc.get("gca")
+        if tgca is None:
+            self["gca"] = None
+        else:
+            gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
+            self["gca"] = signature_store[bytes.fromhex(gca) if isinstance(gca, str) else gca]
 
         # GCB
-        tgcb: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gcb") is None else gcabc["gcb"]
-        gcb: str | bytes = tgcb["signature"] if isinstance(tgcb, GCABC) else tgcb
-        self["gcb"] = signature_store[bytes.fromhex(gcb) if isinstance(gcb, str) else gcb]
+        tgcb: str | bytes | GCABC | None = gcabc.get("gcb")
+        if tgcb is None:
+            self["gcb"] = None
+        else:
+            gcb: str | bytes = tgcb["signature"] if isinstance(tgcb, GCABC) else tgcb
+            self["gcb"] = signature_store[bytes.fromhex(gcb) if isinstance(gcb, str) else gcb]
 
         # Ancestor A
-        taa: str | bytes | GCABC = (
-            NULL_SIGNATURE if gcabc.get("ancestora") is None else gcabc["ancestora"]
-        )
-        ancestora: str | bytes = taa["signature"] if isinstance(taa, GCABC) else taa
-        self["ancestora"] = signature_store[
-            bytes.fromhex(ancestora) if isinstance(ancestora, str) else ancestora
-        ]
+        taa: str | bytes | GCABC | None = gcabc.get("ancestora")
+        if taa is None:
+            self["ancestora"] = None
+        else:
+            ancestora: str | bytes = taa["signature"] if isinstance(taa, GCABC) else taa
+            self["ancestora"] = signature_store[
+                bytes.fromhex(ancestora) if isinstance(ancestora, str) else ancestora
+            ]
 
         # Ancestor B
-        tab: str | bytes | GCABC = (
-            NULL_SIGNATURE if gcabc.get("ancestorb") is None else gcabc["ancestorb"]
-        )
-        ancestorb: str | bytes = tab["signature"] if isinstance(tab, GCABC) else tab
-        self["ancestorb"] = signature_store[
-            bytes.fromhex(ancestorb) if isinstance(ancestorb, str) else ancestorb
-        ]
+        tab: str | bytes | GCABC | None = gcabc.get("ancestorb")
+        if tab is None:
+            self["ancestorb"] = None
+        else:
+            ancestorb: str | bytes = tab["signature"] if isinstance(tab, GCABC) else tab
+            self["ancestorb"] = signature_store[
+                bytes.fromhex(ancestorb) if isinstance(ancestorb, str) else ancestorb
+            ]
 
         # Parent Genetic Code
-        tpgc: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("pgc") is None else gcabc["pgc"]
-        pgc: str | bytes = tpgc["signature"] if isinstance(tpgc, GCABC) else tpgc
-        self["pgc"] = signature_store[bytes.fromhex(pgc) if isinstance(pgc, str) else pgc]
+        tpgc: str | bytes | GCABC | None = gcabc.get("pgc")
+        if tpgc is None:
+            self["pgc"] = None
+        else:
+            pgc: str | bytes = tpgc["signature"] if isinstance(tpgc, GCABC) else tpgc
+            self["pgc"] = signature_store[bytes.fromhex(pgc) if isinstance(pgc, str) else pgc]
 
         # Created Timestamp
         tmp = gcabc.get("created", datetime.now(UTC))
@@ -112,8 +121,8 @@ class EGCMixin(GCMixin):
         self["creator"] = uuid_store[creator]
 
         # Signature
-        tmp: str | bytes = gcabc.get("signature", NULL_SIGNATURE)
-        if tmp == NULL_SIGNATURE:
+        tmp: str | bytes | None = gcabc.get("signature")
+        if tmp is None:
             self["signature"] = sha256_signature(
                 self["ancestora"],
                 self["ancestorb"],
@@ -158,20 +167,36 @@ class EGCMixin(GCMixin):
             self.debug_type_error(
                 isinstance(self["cgraph"], CGraphABC), "cgraph must be a Connection Graph object"
             )
-            self.debug_type_error(isinstance(self["gca"], bytes), "gca must be a bytes object")
-            self.debug_value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
-            self.debug_type_error(isinstance(self["gcb"], bytes), "gcb must be a bytes object")
-            self.debug_value_error(len(self["gcb"]) == 32, "gcb must be 32 bytes")
             self.debug_type_error(
-                isinstance(self["ancestora"], bytes), "ancestora must be a bytes object"
+                self["gca"] is None or isinstance(self["gca"], bytes),
+                "gca must be None or a bytes object",
             )
-            self.debug_value_error(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
+            if self["gca"] is not None:
+                self.debug_value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
             self.debug_type_error(
-                isinstance(self["ancestorb"], bytes), "ancestorb must be a bytes object"
+                self["gcb"] is None or isinstance(self["gcb"], bytes),
+                "gcb must be None or a bytes object",
             )
-            self.debug_value_error(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
-            self.debug_type_error(isinstance(self["pgc"], bytes), "pgc must be a bytes object")
-            self.debug_value_error(len(self["pgc"]) == 32, "pgc must be 32 bytes")
+            if self["gcb"] is not None:
+                self.debug_value_error(len(self["gcb"]) == 32, "gcb must be 32 bytes")
+            self.debug_type_error(
+                self["ancestora"] is None or isinstance(self["ancestora"], bytes),
+                "ancestora must be None or a bytes object",
+            )
+            if self["ancestora"] is not None:
+                self.debug_value_error(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
+            self.debug_type_error(
+                self["ancestorb"] is None or isinstance(self["ancestorb"], bytes),
+                "ancestorb must be None or a bytes object",
+            )
+            if self["ancestorb"] is not None:
+                self.debug_value_error(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
+            self.debug_type_error(
+                self["pgc"] is None or isinstance(self["pgc"], bytes),
+                "pgc must be None or a bytes object",
+            )
+            if self["pgc"] is not None:
+                self.debug_value_error(len(self["pgc"]) == 32, "pgc must be 32 bytes")
             self.debug_type_error(
                 isinstance(self["signature"], bytes), "signature must be a bytes object"
             )
@@ -234,61 +259,55 @@ class EGCMixin(GCMixin):
         # Validate gca against connection graph structure
         if has_row_a and graph_type != CGraphType.PRIMITIVE:
             self.value_error(
-                self["gca"] != NULL_SIGNATURE,
-                "Connection graph has Row A defined, but gca is NULL signature",
+                self["gca"] is not None,
+                "Connection graph has Row A defined, but gca is None",
             )
         else:
             self.value_error(
-                self["gca"] == NULL_SIGNATURE,
-                "Connection graph has no Row A defined, but gca is not NULL signature",
+                self["gca"] is None,
+                "Connection graph has no Row A defined, but gca is not None",
             )
 
         # Validate gcb against connection graph structure
         if has_row_b:
             self.value_error(
-                self["gcb"] != NULL_SIGNATURE,
-                "Connection graph has Row B defined, but gcb is NULL signature",
+                self["gcb"] is not None,
+                "Connection graph has Row B defined, but gcb is None",
             )
         else:
             self.value_error(
-                self["gcb"] == NULL_SIGNATURE,
-                "Connection graph has no Row B defined, but gcb is not NULL signature",
+                self["gcb"] is None,
+                "Connection graph has no Row B defined, but gcb is not None",
             )
 
         # PRIMITIVE graphs have no ancestors or pgc
         if graph_type == CGraphType.PRIMITIVE:
             self.value_error(
-                self["ancestora"] == NULL_SIGNATURE,
-                "PRIMITIVE connection graph requires ancestora to be NULL signature",
+                self["ancestora"] is None,
+                "PRIMITIVE connection graph requires ancestora to be None",
             )
             self.value_error(
-                self["ancestorb"] == NULL_SIGNATURE,
-                "PRIMITIVE connection graph requires ancestorb to be NULL signature",
+                self["ancestorb"] is None,
+                "PRIMITIVE connection graph requires ancestorb to be None",
             )
             self.value_error(
-                self["pgc"] == NULL_SIGNATURE,
-                "PRIMITIVE connection graph requires pgc to be NULL signature",
+                self["pgc"] is None,
+                "PRIMITIVE connection graph requires pgc to be None",
             )
 
         # CODON type validation (codons have no ancestors)
         if gc_type == GCType.CODON:
+            self.value_error(self["gca"] is None, "CODON gc_type requires gca to be None")
+            self.value_error(self["gcb"] is None, "CODON gc_type requires gcb to be None")
             self.value_error(
-                self["gca"] == NULL_SIGNATURE, "CODON gc_type requires gca to be NULL signature"
+                self["ancestora"] is None,
+                "CODON gc_type requires ancestora to be None",
             )
             self.value_error(
-                self["gcb"] == NULL_SIGNATURE, "CODON gc_type requires gcb to be NULL signature"
+                self["ancestorb"] is None,
+                "CODON gc_type requires ancestorb to be None",
             )
-            self.value_error(
-                self["ancestora"] == NULL_SIGNATURE,
-                "CODON gc_type requires ancestora to be NULL signature",
-            )
-            self.value_error(
-                self["ancestorb"] == NULL_SIGNATURE,
-                "CODON gc_type requires ancestorb to be NULL signature",
-            )
-            self.value_error(
-                self["pgc"] == NULL_SIGNATURE, "CODON gc_type requires pgc to be NULL signature"
-            )
+            self.value_error(self["pgc"] is None, "CODON gc_type requires pgc to be None")
 
         # META type validation (meta-codons have no ancestors)
         if gc_type == GCType.META:
@@ -296,23 +315,17 @@ class EGCMixin(GCMixin):
                 graph_type == CGraphType.PRIMITIVE,
                 "META gc_type requires PRIMITIVE connection graph",
             )
+            self.value_error(self["gca"] is None, "META codon requires gca to be None")
+            self.value_error(self["gcb"] is None, "META codon requires gcb to be None")
             self.value_error(
-                self["gca"] == NULL_SIGNATURE, "META codon requires gca to be NULL signature"
+                self["ancestora"] is None,
+                "META codon requires ancestora to be None",
             )
             self.value_error(
-                self["gcb"] == NULL_SIGNATURE, "META codon requires gcb to be NULL signature"
+                self["ancestorb"] is None,
+                "META codon requires ancestorb to be None",
             )
-            self.value_error(
-                self["ancestora"] == NULL_SIGNATURE,
-                "META codon requires ancestora to be NULL signature",
-            )
-            self.value_error(
-                self["ancestorb"] == NULL_SIGNATURE,
-                "META codon requires ancestorb to be NULL signature",
-            )
-            self.value_error(
-                self["pgc"] == NULL_SIGNATURE, "META codon requires pgc to be NULL signature"
-            )
+            self.value_error(self["pgc"] is None, "META codon requires pgc to be None")
             self.value_error(
                 not (properties["gctsp"]["type_upcast"] and properties["gctsp"]["type_downcast"]),
                 "META codon cannot be both type upcast and type downcast",
@@ -322,8 +335,8 @@ class EGCMixin(GCMixin):
         if gc_type == GCType.ORDINARY:
             # At least one of gca or gcb must be present for ordinary codes
             self.value_error(
-                self["gca"] != NULL_SIGNATURE or self["gcb"] != NULL_SIGNATURE,
-                "ORDINARY gc_type requires at least one of gca or gcb to be non-NULL",
+                self["gca"] is not None or self["gcb"] is not None,
+                "ORDINARY gc_type requires at least one of gca or gcb to be non-None",
             )
 
         # Extra coverage is asserted in DEBUG mode

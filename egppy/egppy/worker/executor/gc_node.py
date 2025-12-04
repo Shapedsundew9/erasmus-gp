@@ -20,7 +20,7 @@ from egppy.genetic_code.genetic_code import (
     mc_hexagon_str,
     mc_rectangle_str,
 )
-from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import c_graph_type
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
@@ -275,8 +275,8 @@ class GCNode(Iterable, Hashable):
         self.finfo: FunctionInfo = finfo
         self.write: bool = False  # True if the node is to be written as a function
         self.assess: bool = True  # True if the number of lines has not been determined
-        self.gca: GCABC | bytes = gc["gca"]
-        self.gcb: GCABC | bytes = gc["gcb"]
+        self.gca: GCABC | bytes = gc["gca"] if gc["gca"] is not None else NULL_GC
+        self.gcb: GCABC | bytes = gc["gcb"] if gc["gcb"] is not None else NULL_GC
         self.terminal: bool = False  # A terminal node is where a connection ends
         # Cache the graph type to avoid repeated lookups
         self.graph_type: CGraphType = (
@@ -321,11 +321,11 @@ class GCNode(Iterable, Hashable):
 
         if self.is_codon:
             assert (
-                self.gca is NULL_GC or self.gca == NULL_SIGNATURE
-            ), "GCA must be NULL_GC for a codon"
+                self.gca is NULL_GC or self.gca is None
+            ), "GCA must be NULL_GC or None for a codon"
             assert (
-                self.gcb is NULL_GC or self.gcb == NULL_SIGNATURE
-            ), "GCB must be NULL_GC for a codon"
+                self.gcb is NULL_GC or self.gcb is None
+            ), "GCB must be NULL_GC or None for a codon"
 
             # Make sure we are not holding bytes for GCA or GCB
             self.gca = NULL_GC
@@ -346,7 +346,7 @@ class GCNode(Iterable, Hashable):
             if isinstance(self.gca, bytes):
                 self.gca = gpi[self.gca]
             if isinstance(self.gcb, bytes):
-                self.gcb = NULL_GC if self.gcb == NULL_SIGNATURE else gpi[self.gcb]
+                self.gcb = NULL_GC if self.gcb is None else gpi[self.gcb]
 
         if self.exists and (isinstance(self.gca, bytes) or isinstance(self.gcb, bytes)):
             # This is a unknown executable (treated like a codon in many respects)

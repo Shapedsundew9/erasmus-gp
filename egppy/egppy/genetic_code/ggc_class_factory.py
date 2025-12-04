@@ -17,7 +17,7 @@ from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.egc_class_factory import EGCMixin
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
-from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.import_def import ImportDef
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
@@ -283,14 +283,14 @@ class GGCMixin(EGCMixin):
         )
         if self["code_depth"] == 1:
             self.runtime_error(
-                self["gca"] == NULL_SIGNATURE,
-                "A code depth of 1 is a codon or empty GC and must have a NULL GCA.",
+                self["gca"] is None,
+                "A code depth of 1 is a codon or empty GC and must have a None GCA.",
             )
 
         if self["code_depth"] > 1:
             self.runtime_error(
-                self["gca"] is not NULL_SIGNATURE,
-                "A code depth greater than 1 must have a non-NULL GCA.",
+                self["gca"] is not None,
+                "A code depth greater than 1 must have a non-None GCA.",
             )
 
         self.runtime_error(
@@ -299,8 +299,8 @@ class GGCMixin(EGCMixin):
 
         if self["generation"] == 1:
             self.runtime_error(
-                self["gca"] == NULL_SIGNATURE,
-                "A generation of 1 is a codon and can only have a NULL GCA.",
+                self["gca"] is None,
+                "A generation of 1 is a codon and can only have a None GCA.",
             )
 
         if len(self["inputs"]) == 0:
@@ -377,10 +377,10 @@ NULL_GC: GCABC = GGCDict(
         "properties": BASIC_CODON_PROPERTIES,
         "creator": SHAPEDSUNDEW9_UUID,
         "created": EGP_EPOCH,
-        "ancestora": NULL_SIGNATURE,
-        "ancestorb": NULL_SIGNATURE,
-        "gca": NULL_SIGNATURE,
-        "gcb": NULL_SIGNATURE,
-        "pgc": NULL_SIGNATURE,
+        "ancestora": None,
+        "ancestorb": None,
+        "gca": None,
+        "gcb": None,
+        "pgc": None,
     }
 )

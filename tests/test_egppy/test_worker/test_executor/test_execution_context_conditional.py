@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
-from egppy.genetic_code.genetic_code import NULL_SIGNATURE
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.execution_context import ExecutionContext
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP
@@ -32,8 +31,8 @@ class TestConditionalCodeGeneration(unittest.TestCase):
         mock_gc = MagicMock(spec=GCABC)
         mock_gc.__getitem__.side_effect = {
             "signature": b"test_signature",
-            "gca": NULL_SIGNATURE,  # NULL_SIGNATURE for codon
-            "gcb": NULL_SIGNATURE,  # NULL_SIGNATURE for codon
+            "gca": None,  # None for codon
+            "gcb": None,  # None for codon
             "cgraph": {
                 DstRow.F: [{"refs": [[SrcRow.I, 0]]}],
                 DstRow.A: [{"refs": [[SrcRow.I, 1]]}],
@@ -66,8 +65,8 @@ class TestConditionalCodeGeneration(unittest.TestCase):
         mock_gc = MagicMock(spec=GCABC)
         mock_gc.__getitem__.side_effect = {
             "signature": b"test_signature",
-            "gca": NULL_SIGNATURE,  # NULL_SIGNATURE for codon
-            "gcb": NULL_SIGNATURE,  # NULL_SIGNATURE for codon
+            "gca": None,  # None for codon
+            "gcb": None,  # None for codon
             "cgraph": {
                 DstRow.F: [{"refs": [[SrcRow.I, 0]]}],
                 DstRow.A: [{"refs": [[SrcRow.I, 1]]}],
@@ -99,8 +98,8 @@ class TestConditionalCodeGeneration(unittest.TestCase):
         mock_gc = MagicMock(spec=GCABC)
         mock_gc.__getitem__.side_effect = {
             "signature": b"test_signature",
-            "gca": NULL_SIGNATURE,  # NULL_SIGNATURE for codon
-            "gcb": NULL_SIGNATURE,  # NULL_SIGNATURE for codon
+            "gca": None,  # None for codon
+            "gcb": None,  # None for codon
             "cgraph": {
                 DstRow.A: [{"refs": [[SrcRow.I, 0]]}],
                 DstRow.O: [{"refs": [[SrcRow.A, 0]]}],

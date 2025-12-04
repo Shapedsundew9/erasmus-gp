@@ -21,7 +21,7 @@ from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_list
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.ggc_class_factory import NULL_SIGNATURE, GGCDict
+from egppy.genetic_code.ggc_class_factory import GGCDict
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces, valid_jcg
 
@@ -34,11 +34,11 @@ OUTPUT_CODON_PATH = ("..", "..", "egppy", "egppy", "data", "codons.json")
 CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
     "cgraph": {"A": None, "O": None},
-    "gca": NULL_SIGNATURE,
-    "gcb": NULL_SIGNATURE,
-    "ancestora": NULL_SIGNATURE,
-    "ancestorb": NULL_SIGNATURE,
-    "pgc": NULL_SIGNATURE,
+    "gca": None,
+    "gcb": None,
+    "ancestora": None,
+    "ancestorb": None,
+    "pgc": None,
     "creator": SHAPEDSUNDEW9_UUID,
     "created": EGP_EPOCH.isoformat(),
     "generation": 1,
