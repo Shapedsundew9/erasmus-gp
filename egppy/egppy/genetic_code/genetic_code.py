@@ -9,7 +9,6 @@ from itertools import count
 from typing import Any, Iterator
 from uuid import UUID
 
-from egpcommon.common import NULL_SHA256
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import GCType, PropertiesBD
@@ -21,6 +20,7 @@ from egppy.storage.cache.cacheable_obj_abc import CacheableObjABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
+
 
 
 # GC signature None type management
