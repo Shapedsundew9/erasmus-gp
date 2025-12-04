@@ -188,7 +188,6 @@ def _should_skip_directory(path: Path) -> bool:
         "venv",
         ".venv",
         "env",
-        ".env",
         "ENV",
         "env.bak",
         "venv.bak",
