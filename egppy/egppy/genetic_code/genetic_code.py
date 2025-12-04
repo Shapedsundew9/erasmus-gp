@@ -51,19 +51,25 @@ def mc_circle_str(name: str, label: str, color: str) -> str:
     return f'    {name}(("{label}")):::{color}'
 
 
+# Mermaid Chart creation helper function
+def mc_codon_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_GREEN) -> str:
+    """Return a Mermaid Chart string representation of the codon structure
+    GCABC in the logical structure."""
+    label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
+    return mc_circle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
+
+
 def mc_connect_str(namea: str, nameb: str, connection: str = "-->") -> str:
     """Return a Mermaid Chart string representation of the connection between two nodes."""
     return f"    {namea} {connection} {nameb}"
 
 
-def mc_hexagon_str(name: str, label: str, color: str) -> str:
-    """Return a Mermaid Chart string representation of a hexagon."""
-    return f'    {name}{{{{"{label}"}}}}:::{color}'
-
-
-def mc_rectangle_str(name: str, label: str, color: str) -> str:
-    """Return a Mermaid Chart string representation of a rectangle."""
-    return f'    {name}("{label}"):::{color}'
+# Mermaid Chart creation helper function
+def mc_connection_str(gca: GCABC | bytes, prefixa: str, gcb: GCABC | bytes, prefixb: str) -> str:
+    """Return a Mermaid Chart string representation of the connection between two nodes."""
+    _gca: str = gca["signature"].hex()[-8:] if isinstance(gca, GCABC) else gca.hex()[-8:]
+    _gcb: str = gcb["signature"].hex()[-8:] if isinstance(gcb, GCABC) else gcb.hex()[-8:]
+    return mc_connect_str(prefixa + _gca, prefixb + _gcb)
 
 
 # Mermaid Chart creation helper function
@@ -82,20 +88,9 @@ def mc_gc_str(gcabc: GCABC, prefix: str, row: Row, color: str = "") -> str:
     return mc_rectangle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
 
 
-# Mermaid Chart creation helper function
-def mc_unknown_str(gcabc: bytes, prefix: str, row: Row, color: str = MERMAID_RED) -> str:
-    """Return a Mermaid Chart string representation of the unknown structure
-    GCABC in the logical structure."""
-    label = f"{row}<br>{gcabc.hex()[-8:]}"
-    return mc_circle_str(prefix + gcabc.hex()[-8:], label, color)
-
-
-# Mermaid Chart creation helper function
-def mc_codon_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_GREEN) -> str:
-    """Return a Mermaid Chart string representation of the codon structure
-    GCABC in the logical structure."""
-    label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
-    return mc_circle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
+def mc_hexagon_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a hexagon."""
+    return f'    {name}{{{{"{label}"}}}}:::{color}'
 
 
 # Mermaid Chart creation helper function
@@ -106,12 +101,17 @@ def mc_meta_str(gcabc: GCABC, prefix: str, row: Row, color: str = MERMAID_GREEN)
     return mc_hexagon_str(prefix + gcabc["signature"].hex()[-8:], label, color)
 
 
+def mc_rectangle_str(name: str, label: str, color: str) -> str:
+    """Return a Mermaid Chart string representation of a rectangle."""
+    return f'    {name}("{label}"):::{color}'
+
+
 # Mermaid Chart creation helper function
-def mc_connection_str(gca: GCABC | bytes, prefixa: str, gcb: GCABC | bytes, prefixb: str) -> str:
-    """Return a Mermaid Chart string representation of the connection between two nodes."""
-    _gca: str = gca["signature"].hex()[-8:] if isinstance(gca, GCABC) else gca.hex()[-8:]
-    _gcb: str = gcb["signature"].hex()[-8:] if isinstance(gcb, GCABC) else gcb.hex()[-8:]
-    return mc_connect_str(prefixa + _gca, prefixb + _gcb)
+def mc_unknown_str(gcabc: bytes, prefix: str, row: Row, color: str = MERMAID_RED) -> str:
+    """Return a Mermaid Chart string representation of the unknown structure
+    GCABC in the logical structure."""
+    label = f"{row}<br>{gcabc.hex()[-8:]}"
+    return mc_circle_str(prefix + gcabc.hex()[-8:], label, color)
 
 
 # Mermaid Chart key to node shape and color mapping
@@ -176,11 +176,6 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_codon must be overridden")
 
     @abstractmethod
-    def is_pgc(self) -> bool:
-        """Return True if the genetic code is a physical genetic code (PGC)."""
-        raise NotImplementedError("GCABC.is_pgc must be overridden")
-
-    @abstractmethod
     def is_conditional(self) -> bool:
         """Return True if the GCABC is conditional."""
         raise NotImplementedError("GCABC.is_conditional must be overridden")
@@ -191,19 +186,24 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_meta must be overridden")
 
     @abstractmethod
+    def is_pgc(self) -> bool:
+        """Return True if the genetic code is a physical genetic code (PGC)."""
+        raise NotImplementedError("GCABC.is_pgc must be overridden")
+
+    @abstractmethod
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
         raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
 
     @abstractmethod
-    def setdefault(self, key: str, default: Any = None) -> Any:
-        """Set the value of a key if it does not exist and return the set value."""
-        raise NotImplementedError("GCABC.setdefault must be overridden")
-
-    @abstractmethod
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the data members of the GCABC."""
         raise NotImplementedError("GCABC.set_members must be overridden")
+
+    @abstractmethod
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        """Set the value of a key if it does not exist and return the set value."""
+        raise NotImplementedError("GCABC.setdefault must be overridden")
 
 
 class GCMixin(CommonObj):
@@ -241,12 +241,6 @@ class GCMixin(CommonObj):
         cgt: CGraphType = c_graph_type(self["cgraph"])
         return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
 
-    def is_pgc(self) -> bool:
-        """Return True if the genetic code is a physical genetic code (PGC)."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        is_pgc = PropertiesBD.fast_fetch("is_pgc", self["properties"])
-        return is_pgc
-
     def is_meta(self) -> bool:
         """Return True if the genetic code is a meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
@@ -258,6 +252,12 @@ class GCMixin(CommonObj):
             meta and self["ancestora"] is None and self["ancestorb"] is None
         ) or not meta, "Meta-codons must not have ancestors."
         return meta
+
+    def is_pgc(self) -> bool:
+        """Return True if the genetic code is a physical genetic code (PGC)."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        is_pgc = PropertiesBD.fast_fetch("is_pgc", self["properties"])
+        return is_pgc
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""

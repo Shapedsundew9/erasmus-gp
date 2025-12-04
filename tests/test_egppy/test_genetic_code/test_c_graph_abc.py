@@ -23,28 +23,6 @@ class IncompleteImplementation(CGraphABC):
 class TestCGraphABC(unittest.TestCase):
     """Test cases for the CGraphABC abstract base class."""
 
-    def test_cgraph_abc_is_abstract(self) -> None:
-        """Test that CGraphABC cannot be instantiated directly."""
-        with self.assertRaises(TypeError):
-            # pylint: disable=abstract-class-instantiated
-            CGraphABC({})  # type: ignore
-
-    def test_incomplete_implementation_raises_error(self) -> None:
-        """Test that incomplete implementations cannot be instantiated."""
-        with self.assertRaises(TypeError):
-            # pylint: disable=abstract-class-instantiated
-            IncompleteImplementation({})  # type: ignore
-
-    def test_cgraph_implements_abc(self) -> None:
-        """Test that CGraph properly implements the abstract base class."""
-        # Create a simple empty graph with required interface
-        graph = CGraph(
-            {
-                "Od": [],  # Empty output interface
-            }
-        )
-        self.assertIsInstance(graph, CGraphABC)
-
     def test_abc_defines_required_methods(self) -> None:
         """Test that all required abstract methods are defined in the ABC."""
         abstract_methods = CGraphABC.__abstractmethods__
@@ -75,13 +53,46 @@ class TestCGraphABC(unittest.TestCase):
 
         self.assertEqual(sorted(abstract_methods), sorted(expected_methods))
 
-    def test_cgraph_inherits_from_abc(self) -> None:
-        """Test that CGraph properly inherits from CGraphABC."""
-        self.assertTrue(issubclass(CGraph, CGraphABC))
-
     def test_abc_has_correct_metaclass(self) -> None:
         """Test that CGraphABC uses ABCMeta metaclass."""
         self.assertIsInstance(CGraphABC, ABCMeta)
+
+    def test_abc_method_signatures(self) -> None:
+        """Test that the abstract methods have correct signatures."""
+        # Create a minimal valid graph with required interfaces
+        # Create a simple empty graph
+        graph = CGraph(
+            {
+                "Od": [],  # Empty output interface
+            }
+        )
+
+        # Test method return types through actual calls
+        self.assertIsInstance(graph.is_stable(), bool)
+        self.assertIsInstance(graph.graph_type(), CGraphType)
+        self.assertIsInstance(graph.to_json(), dict)
+        self.assertIsInstance(len(graph), int)
+        self.assertIsInstance(repr(graph), str)
+
+    def test_cgraph_abc_is_abstract(self) -> None:
+        """Test that CGraphABC cannot be instantiated directly."""
+        with self.assertRaises(TypeError):
+            # pylint: disable=abstract-class-instantiated
+            CGraphABC({})  # type: ignore
+
+    def test_cgraph_implements_abc(self) -> None:
+        """Test that CGraph properly implements the abstract base class."""
+        # Create a simple empty graph with required interface
+        graph = CGraph(
+            {
+                "Od": [],  # Empty output interface
+            }
+        )
+        self.assertIsInstance(graph, CGraphABC)
+
+    def test_cgraph_inherits_from_abc(self) -> None:
+        """Test that CGraph properly inherits from CGraphABC."""
+        self.assertTrue(issubclass(CGraph, CGraphABC))
 
     def test_concrete_implementation_methods_exist(self) -> None:
         """Test that CGraph implements all required abstract methods."""
@@ -119,22 +130,11 @@ class TestCGraphABC(unittest.TestCase):
                 f"CGraph method {method_name} should be callable",
             )
 
-    def test_abc_method_signatures(self) -> None:
-        """Test that the abstract methods have correct signatures."""
-        # Create a minimal valid graph with required interfaces
-        # Create a simple empty graph
-        graph = CGraph(
-            {
-                "Od": [],  # Empty output interface
-            }
-        )
-
-        # Test method return types through actual calls
-        self.assertIsInstance(graph.is_stable(), bool)
-        self.assertIsInstance(graph.graph_type(), CGraphType)
-        self.assertIsInstance(graph.to_json(), dict)
-        self.assertIsInstance(len(graph), int)
-        self.assertIsInstance(repr(graph), str)
+    def test_incomplete_implementation_raises_error(self) -> None:
+        """Test that incomplete implementations cannot be instantiated."""
+        with self.assertRaises(TypeError):
+            # pylint: disable=abstract-class-instantiated
+            IncompleteImplementation({})  # type: ignore
 
 
 if __name__ == "__main__":

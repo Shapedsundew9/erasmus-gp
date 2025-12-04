@@ -252,6 +252,14 @@ class EndPoint(CommonObj, EndPointABC):
             f", typ={self.typ}, refs=[{self.refs}])"
         )
 
+    def clr_refs(self) -> EndPointABC:
+        """Clear all references in the endpoint.
+        Returns:
+            EndPointABC: Self with all references cleared.
+        """
+        self.refs.clear()
+        return self
+
     def connect(self, other: EndPointABC) -> None:
         """Connect this endpoint to another endpoint.
 
@@ -273,6 +281,37 @@ class EndPoint(CommonObj, EndPointABC):
         else:
             self.refs.append([other.row, other.idx])
 
+    def consistency(self) -> None:
+        """Check the consistency of the endpoint.
+
+        Performs semantic validation that may be expensive. This method is called
+        by verify() when CONSISTENCY logging is enabled.
+
+        Validates:
+        - Reference structure and format (debug assertions)
+        - All referenced endpoints would be valid (structural check only)
+
+        Note: Full bidirectional reference consistency checking requires access
+        to other endpoints and is performed at the Interface or CGraph level.
+        """
+        if _logger.isEnabledFor(level=CONSISTENCY):
+            _logger.log(
+                level=CONSISTENCY,
+                msg=f"Consistency check for EndPoint {self.row}{self.cls.name[0]}{self.idx}",
+            )
+
+            # Additional debug assertions for reference validation
+            for ref in self.refs:
+                assert isinstance(ref, list), f"Reference must be a list, got {type(ref)}"
+                assert len(ref) == 2, f"Reference must have 2 elements, got {len(ref)}"
+                assert isinstance(ref[0], str), f"Row must be a string, got {type(ref[0])}"
+                assert ref[0] in ROW_SET, f"Row must be in ROW_SET, got {ref[0]}"
+                assert isinstance(ref[1], int), f"Index must be an int, got {type(ref[1])}"
+                assert 0 <= ref[1] <= 255, f"Index must be 0-255, got {ref[1]}"
+
+        # Call parent consistency()
+        super().consistency()
+
     def is_connected(self) -> bool:
         """Check if the endpoint is connected.
 
@@ -280,6 +319,40 @@ class EndPoint(CommonObj, EndPointABC):
             bool: True if refs contains at least one reference, False otherwise.
         """
         return len(self.refs) > 0
+
+    def ref_shift(self, shift: int) -> EndPointABC:
+        """Shift all references in the endpoint by a specified amount.
+        Args:
+            shift: The amount to shift each reference.
+        Returns:
+            EndPointABC: Self with all references shifted.
+        """
+        for ref in self.refs:
+            assert isinstance(ref[1], int), "Reference index must be an integer"
+            ref[1] += shift
+        return self
+
+    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
+        """Set or append to the references for an endpoint.
+
+        This method always sets (replaces) the reference of a destination endpoint
+        to the specified row and index. For a source endpoint, it appends the new reference
+        to the existing list of references if append is True; otherwise, it replaces the
+        entire list with the new reference.
+
+        Args:
+            row (Row): The row of the endpoint to reference.
+            idx (int): The index of the endpoint to reference.
+            append (bool): If True and the endpoint is a source, append the new reference;
+                           otherwise, replace the references. Defaults to False.
+        Returns:
+            EndPointABC: Self with the reference set.
+        """
+        if self.cls == EPCls.SRC and append:
+            self.refs.append([row, idx])
+        else:
+            self.refs = [[row, idx]]
+        return self
 
     def to_json(self, json_c_graph: bool = False) -> dict | list:
         """Convert the endpoint to a JSON-compatible object.
@@ -470,79 +543,6 @@ class EndPoint(CommonObj, EndPointABC):
 
         # Call parent verify() which will trigger consistency() if CONSISTENCY logging is enabled
         super().verify()
-
-    def consistency(self) -> None:
-        """Check the consistency of the endpoint.
-
-        Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
-
-        Validates:
-        - Reference structure and format (debug assertions)
-        - All referenced endpoints would be valid (structural check only)
-
-        Note: Full bidirectional reference consistency checking requires access
-        to other endpoints and is performed at the Interface or CGraph level.
-        """
-        if _logger.isEnabledFor(level=CONSISTENCY):
-            _logger.log(
-                level=CONSISTENCY,
-                msg=f"Consistency check for EndPoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
-
-            # Additional debug assertions for reference validation
-            for ref in self.refs:
-                assert isinstance(ref, list), f"Reference must be a list, got {type(ref)}"
-                assert len(ref) == 2, f"Reference must have 2 elements, got {len(ref)}"
-                assert isinstance(ref[0], str), f"Row must be a string, got {type(ref[0])}"
-                assert ref[0] in ROW_SET, f"Row must be in ROW_SET, got {ref[0]}"
-                assert isinstance(ref[1], int), f"Index must be an int, got {type(ref[1])}"
-                assert 0 <= ref[1] <= 255, f"Index must be 0-255, got {ref[1]}"
-
-        # Call parent consistency()
-        super().consistency()
-
-    def clr_refs(self) -> EndPointABC:
-        """Clear all references in the endpoint.
-        Returns:
-            EndPointABC: Self with all references cleared.
-        """
-        self.refs.clear()
-        return self
-
-    def ref_shift(self, shift: int) -> EndPointABC:
-        """Shift all references in the endpoint by a specified amount.
-        Args:
-            shift: The amount to shift each reference.
-        Returns:
-            EndPointABC: Self with all references shifted.
-        """
-        for ref in self.refs:
-            assert isinstance(ref[1], int), "Reference index must be an integer"
-            ref[1] += shift
-        return self
-
-    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
-        """Set or append to the references for an endpoint.
-
-        This method always sets (replaces) the reference of a destination endpoint
-        to the specified row and index. For a source endpoint, it appends the new reference
-        to the existing list of references if append is True; otherwise, it replaces the
-        entire list with the new reference.
-
-        Args:
-            row (Row): The row of the endpoint to reference.
-            idx (int): The index of the endpoint to reference.
-            append (bool): If True and the endpoint is a source, append the new reference;
-                           otherwise, replace the references. Defaults to False.
-        Returns:
-            EndPointABC: Self with the reference set.
-        """
-        if self.cls == EPCls.SRC and append:
-            self.refs.append([row, idx])
-        else:
-            self.refs = [[row, idx]]
-        return self
 
 
 class SrcEndPoint(EndPoint):

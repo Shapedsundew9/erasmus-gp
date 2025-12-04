@@ -15,6 +15,89 @@ from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 class TestJsonCGraphToInterfaces(unittest.TestCase):
     """Test the json_cgraph_to_interfaces helper function."""
 
+    def test_complex_json_cgraph_conversion(self) -> None:
+        """Test conversion of a complex JSONCGraph with multiple endpoint types."""
+        jcg = {
+            DstRow.A: [["I", 0, "int"], ["I", 1, "str"], ["I", 2, "bool"]],
+            DstRow.B: [["A", 0, "int"], ["A", 2, "bool"]],
+            DstRow.O: [["B", 0, "int"], ["A", 1, "str"], ["B", 1, "bool"]],
+            DstRow.U: [],
+        }
+
+        interfaces = json_cgraph_to_interfaces(jcg)
+
+        # Check that source interface I has 3 endpoints
+        is_interface = interfaces["Is"]
+        self.assertEqual(len(is_interface), 3)
+
+        # Check endpoint types
+        types = [ep[3].name for ep in is_interface]
+        self.assertEqual(types, ["int", "str", "bool"])
+
+        # Check that A source interface has correct endpoints
+        as_interface = interfaces["As"]
+        self.assertEqual(len(as_interface), 3)
+
+        # Verify all connections are properly established
+        cgraph = CGraph(interfaces)
+        self.assertTrue(cgraph.is_stable())
+
+    def test_if_then_json_cgraph_conversion(self) -> None:
+        """Test conversion of an if-then JSONCGraph to interfaces."""
+        jcg = {
+            DstRow.F: [["I", 0, "bool"]],
+            DstRow.A: [["I", 1, "int"]],
+            DstRow.O: [["A", 0, "int"]],
+            DstRow.P: [["I", 1, "int"]],
+            DstRow.U: [],
+        }
+
+        interfaces = json_cgraph_to_interfaces(jcg)
+
+        # Verify we get all expected interfaces
+        self.assertIn("Fd", interfaces)
+        self.assertIn("Ad", interfaces)
+        self.assertIn("Od", interfaces)
+        self.assertIn("Pd", interfaces)
+        self.assertIn("Is", interfaces)
+        self.assertIn("As", interfaces)
+
+        # Check F interface
+        fd_interface = interfaces["Fd"]
+        self.assertEqual(len(fd_interface), 1)
+        self.assertEqual(fd_interface[0][3].name, "bool")
+        self.assertEqual(fd_interface[0][4], [["I", 0]])
+
+        # Check source interface has correct endpoints
+        is_interface = interfaces["Is"]
+        self.assertEqual(len(is_interface), 2)  # I0 and I1
+        self.assertEqual(is_interface[0][1], 0)
+        self.assertEqual(is_interface[0][3].name, "bool")
+        self.assertEqual(is_interface[1][1], 1)
+        self.assertEqual(is_interface[1][3].name, "int")
+
+    def test_invalid_json_cgraph_raises_error(self) -> None:
+        """Test that invalid JSONCGraph structures raise appropriate errors."""
+        # Invalid destination row
+        invalid_jcg = {
+            "Z": [["I", 0, "int"]],  # Z is not a valid destination row
+            DstRow.O: [],
+            DstRow.U: [],
+        }
+
+        with self.assertRaises(ValueError):
+            json_cgraph_to_interfaces(invalid_jcg)
+
+        # Invalid source row in reference
+        invalid_jcg2 = {
+            DstRow.A: [["X", 0, "int"]],  # X is not a valid source row
+            DstRow.O: [],
+            DstRow.U: [],
+        }
+
+        with self.assertRaises(ValueError):
+            json_cgraph_to_interfaces(invalid_jcg2)
+
     def test_primitive_json_cgraph_conversion(self) -> None:
         """Test conversion of a primitive JSONCGraph to interfaces."""
         jcg = {
@@ -53,40 +136,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         self.assertEqual(as_interface[0][3].name, "int")
         self.assertEqual(as_interface[0][4], [["O", 0]])
 
-    def test_if_then_json_cgraph_conversion(self) -> None:
-        """Test conversion of an if-then JSONCGraph to interfaces."""
-        jcg = {
-            DstRow.F: [["I", 0, "bool"]],
-            DstRow.A: [["I", 1, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
-        }
-
-        interfaces = json_cgraph_to_interfaces(jcg)
-
-        # Verify we get all expected interfaces
-        self.assertIn("Fd", interfaces)
-        self.assertIn("Ad", interfaces)
-        self.assertIn("Od", interfaces)
-        self.assertIn("Pd", interfaces)
-        self.assertIn("Is", interfaces)
-        self.assertIn("As", interfaces)
-
-        # Check F interface
-        fd_interface = interfaces["Fd"]
-        self.assertEqual(len(fd_interface), 1)
-        self.assertEqual(fd_interface[0][3].name, "bool")
-        self.assertEqual(fd_interface[0][4], [["I", 0]])
-
-        # Check source interface has correct endpoints
-        is_interface = interfaces["Is"]
-        self.assertEqual(len(is_interface), 2)  # I0 and I1
-        self.assertEqual(is_interface[0][1], 0)
-        self.assertEqual(is_interface[0][3].name, "bool")
-        self.assertEqual(is_interface[1][1], 1)
-        self.assertEqual(is_interface[1][3].name, "int")
-
     def test_standard_json_cgraph_conversion(self) -> None:
         """Test conversion of a standard JSONCGraph to interfaces."""
         jcg = {
@@ -115,55 +164,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
 
         ad_interface = interfaces["Ad"]
         self.assertEqual(ad_interface[0][4], [["I", 0]])
-
-    def test_complex_json_cgraph_conversion(self) -> None:
-        """Test conversion of a complex JSONCGraph with multiple endpoint types."""
-        jcg = {
-            DstRow.A: [["I", 0, "int"], ["I", 1, "str"], ["I", 2, "bool"]],
-            DstRow.B: [["A", 0, "int"], ["A", 2, "bool"]],
-            DstRow.O: [["B", 0, "int"], ["A", 1, "str"], ["B", 1, "bool"]],
-            DstRow.U: [],
-        }
-
-        interfaces = json_cgraph_to_interfaces(jcg)
-
-        # Check that source interface I has 3 endpoints
-        is_interface = interfaces["Is"]
-        self.assertEqual(len(is_interface), 3)
-
-        # Check endpoint types
-        types = [ep[3].name for ep in is_interface]
-        self.assertEqual(types, ["int", "str", "bool"])
-
-        # Check that A source interface has correct endpoints
-        as_interface = interfaces["As"]
-        self.assertEqual(len(as_interface), 3)
-
-        # Verify all connections are properly established
-        cgraph = CGraph(interfaces)
-        self.assertTrue(cgraph.is_stable())
-
-    def test_invalid_json_cgraph_raises_error(self) -> None:
-        """Test that invalid JSONCGraph structures raise appropriate errors."""
-        # Invalid destination row
-        invalid_jcg = {
-            "Z": [["I", 0, "int"]],  # Z is not a valid destination row
-            DstRow.O: [],
-            DstRow.U: [],
-        }
-
-        with self.assertRaises(ValueError):
-            json_cgraph_to_interfaces(invalid_jcg)
-
-        # Invalid source row in reference
-        invalid_jcg2 = {
-            DstRow.A: [["X", 0, "int"]],  # X is not a valid source row
-            DstRow.O: [],
-            DstRow.U: [],
-        }
-
-        with self.assertRaises(ValueError):
-            json_cgraph_to_interfaces(invalid_jcg2)
 
     def test_type_consistency_validation(self) -> None:
         """Test that type consistency is enforced across connections."""

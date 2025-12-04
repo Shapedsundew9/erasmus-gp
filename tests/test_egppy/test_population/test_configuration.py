@@ -64,25 +64,6 @@ class TestSourceConfig(TestCase):
         self.assertEqual(config.minimum_distance, 4)
         self.assertEqual(config.tolerence, 10)
 
-    def test_init_unrelated(self):
-        """Test the initialization of the UNRELATED source."""
-        config = SourceConfig(
-            source="UNRELATED",
-            scope=127,
-            limit=20,
-            underflow="NEXT",
-            minimum_problem_distance=5,
-            minimum_distance=4,
-            tolerence=10,
-        )
-        self.assertEqual(config.source, "UNRELATED")
-        self.assertEqual(config.scope, 127)
-        self.assertEqual(config.limit, 20)
-        self.assertEqual(config.underflow, "NEXT")
-        self.assertEqual(config.minimum_problem_distance, 5)
-        self.assertEqual(config.minimum_distance, 4)
-        self.assertEqual(config.tolerence, 10)
-
     def test_init_spontaneous(self):
         """Test the initialization of the SPONTANEOUS source."""
         config = SourceConfig(
@@ -101,6 +82,25 @@ class TestSourceConfig(TestCase):
         self.assertEqual(config.underflow, "NEXT")
         self.assertEqual(config.sse_limit, 100)
         self.assertEqual(config.tolerence, 100)
+
+    def test_init_unrelated(self):
+        """Test the initialization of the UNRELATED source."""
+        config = SourceConfig(
+            source="UNRELATED",
+            scope=127,
+            limit=20,
+            underflow="NEXT",
+            minimum_problem_distance=5,
+            minimum_distance=4,
+            tolerence=10,
+        )
+        self.assertEqual(config.source, "UNRELATED")
+        self.assertEqual(config.scope, 127)
+        self.assertEqual(config.limit, 20)
+        self.assertEqual(config.underflow, "NEXT")
+        self.assertEqual(config.minimum_problem_distance, 5)
+        self.assertEqual(config.minimum_distance, 4)
+        self.assertEqual(config.tolerence, 10)
 
     def test_invalid_source(self):
         """Test the initialization with an invalid source."""

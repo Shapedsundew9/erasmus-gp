@@ -36,12 +36,6 @@ class DirtyCacheTestBase(StoreTestBase):
         assert issubclass(cls.store_type, CacheABC)
         return cls.store_type
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        datafile: str = join(dirname(p=__file__), "..", "data", "ugc_test_data.json")
-        with open(file=datafile, mode="r", encoding="utf-8") as file:
-            cls.json_data: list[dict] = load(fp=file)
-
     def setUp(self) -> None:
         self.cache_type: type[CacheABC] = self.get_cache_cls()
         self.cache = self.cache_type(config=DirtyCacheTestBase.cache_config)
@@ -56,6 +50,12 @@ class DirtyCacheTestBase(StoreTestBase):
         self.cache.next_level.clear()
         self.cache1.next_level.clear()
         self.cache2.next_level.clear()
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        datafile: str = join(dirname(p=__file__), "..", "data", "ugc_test_data.json")
+        with open(file=datafile, mode="r", encoding="utf-8") as file:
+            cls.json_data: list[dict] = load(fp=file)
 
     def test_copyback(self) -> None:
         """Test the copyback method."""

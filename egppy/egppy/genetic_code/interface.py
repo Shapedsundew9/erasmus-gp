@@ -24,6 +24,22 @@ from egppy.genetic_code.interface_abc import InterfaceABC
 _logger: Logger = egp_logger(name=__name__)
 
 
+def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]:
+    """Unpack a destination reference into its components.
+
+    Args
+    ----
+    ref: A reference to unpack, either as a list or tuple.
+
+    Returns
+    -------
+    A tuple containing the destination row and index.
+    """
+    row, idx = unpack_ref(ref)
+    assert row in DESTINATION_ROW_SET, f"Row must be in DESTINATION_ROW_SET, got {row}"
+    return DstRow(row), idx
+
+
 def unpack_ref(ref: list[int | str] | tuple[str, int]) -> tuple[str, int]:
     """Unpack a reference into its components.
 
@@ -58,22 +74,6 @@ def unpack_src_ref(ref: list[int | str] | tuple[str, int]) -> tuple[SrcRow, int]
     row, idx = unpack_ref(ref)
     assert row in SOURCE_ROW_SET, f"Row must be in SOURCE_ROW_SET, got {row}"
     return SrcRow(row), idx
-
-
-def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]:
-    """Unpack a destination reference into its components.
-
-    Args
-    ----
-    ref: A reference to unpack, either as a list or tuple.
-
-    Returns
-    -------
-    A tuple containing the destination row and index.
-    """
-    row, idx = unpack_ref(ref)
-    assert row in DESTINATION_ROW_SET, f"Row must be in DESTINATION_ROW_SET, got {row}"
-    return DstRow(row), idx
 
 
 class Interface(CommonObj, InterfaceABC):
@@ -205,21 +205,6 @@ class Interface(CommonObj, InterfaceABC):
             "Example of valid input: [('dst', 0, EPCls.DST, TypesDef, [[...]]), ...]"
         )
 
-    def __eq__(self, value: object) -> bool:
-        """Check equality of Interface instances.
-        This implements deep equality checking between two Interface instances
-        which can be quite expensive for large interfaces.
-        """
-        if not isinstance(value, InterfaceABC):
-            return False
-        if len(self) != len(value):
-            return False
-        return all(a == b for a, b in zip(self, value))
-
-    def __hash__(self) -> int:
-        """Return the hash of the interface."""
-        return hash(tuple(hash(ep) for ep in self.endpoints))
-
     def __add__(self, other: InterfaceABC) -> InterfaceABC:
         """Concatenate two interfaces to create a new interface.
 
@@ -247,9 +232,24 @@ class Interface(CommonObj, InterfaceABC):
         # Create copies of endpoints with updated indices (with clean references)
         return Interface(self).extend(other)
 
+    def __eq__(self, value: object) -> bool:
+        """Check equality of Interface instances.
+        This implements deep equality checking between two Interface instances
+        which can be quite expensive for large interfaces.
+        """
+        if not isinstance(value, InterfaceABC):
+            return False
+        if len(self) != len(value):
+            return False
+        return all(a == b for a, b in zip(self, value))
+
     def __getitem__(self, idx: int) -> EndPointABC:
         """Get an endpoint by index."""
         return self.endpoints[idx]
+
+    def __hash__(self) -> int:
+        """Return the hash of the interface."""
+        return hash(tuple(hash(ep) for ep in self.endpoints))
 
     def __iter__(self) -> Iterator[EndPointABC]:
         """Return an iterator over the endpoints."""
@@ -302,9 +302,31 @@ class Interface(CommonObj, InterfaceABC):
         _value.idx = len(self.endpoints)  # Ensure the index is correct
         self.endpoints.append(_value)
 
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints.
+        Returns:
+            Interface: Self with all endpoint references cleared."""
+        for ep in self.endpoints:
+            ep.clr_refs()
+        return self
+
     def cls(self) -> EPCls:
         """Return the class of the interface. Defaults to destination if no endpoints."""
         return self.endpoints[0].cls if self.endpoints else EPCls.DST
+
+    def consistency(self) -> None:
+        """Check the consistency of the Interface.
+
+        Performs semantic validation that may be expensive. This method is called
+        by verify() when CONSISTENCY logging is enabled.
+        """
+        _logger.log(
+            level=CONSISTENCY,
+            msg=f"Consistency check for Interface with {len(self.endpoints)} endpoints",
+        )
+
+        # Call parent consistency()
+        super().consistency()
 
     def extend(
         self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
@@ -323,6 +345,84 @@ class Interface(CommonObj, InterfaceABC):
             _value.idx = idx  # Ensure the index is correct
             self.endpoints.append(_value)
         return self
+
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all references in the interface endpoints by a specified amount.
+
+        Args:
+            shift: The amount to shift each reference index by.
+        Returns:
+            Interface: Self with all endpoint references shifted.
+        """
+        for ep in self.endpoints:
+            ep.ref_shift(shift)
+        return self
+
+    def set_cls(self, ep_cls) -> InterfaceABC:
+        """Set the class of all endpoints in the interface."""
+        for ep in self.endpoints:
+            ep.cls = ep_cls
+        return self
+
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set (replace) all references in the interface endpoints.
+
+        Args
+        ----
+        row: Row: The row to set for all references.
+        start_ref: int: The starting reference index.
+
+        Returns
+        -------
+        Interface: Self with all endpoint references set.
+        """
+        for idx, ep in enumerate(self.endpoints):
+            ep.set_ref(row, start_ref + idx)
+        return self
+
+    def set_row(self, row: Row) -> InterfaceABC:
+        """Set the row of all endpoints in the interface.
+
+        Args
+        ----
+        row: Row: The row to set for all endpoints.
+
+        Returns
+        -------
+        Interface: Self with row set.
+        """
+        for ep in self.endpoints:
+            ep.row = row
+        return self
+
+    def sorted_unique_td_uids(self) -> list[int]:
+        """Return the ordered type definition UIDs."""
+        return sorted(set(ep.typ.uid for ep in self.endpoints))
+
+    def to_json(self, json_c_graph: bool = False) -> list:
+        """Convert the interface to a JSON-compatible object.
+        If `json_c_graph` is True, it returns a list suitable for JSON Connection Graph format.
+        """
+        return [ep.to_json(json_c_graph=json_c_graph) for ep in self.endpoints]
+
+    def to_td(self) -> tuple[TypesDef, ...]:
+        """Convert the interface to a tuple of TypesDef objects."""
+        return tuple(ep.typ for ep in self.endpoints)
+
+    def to_td_uids(self) -> list[int]:
+        """Convert the interface to a list of TypesDef UIDs (ints)."""
+        return [ep.typ.uid for ep in self.endpoints]
+
+    def types_and_indices(self) -> tuple[list[int], bytes]:
+        """Return a tuple of the ordered type UIDs and the indices into to it."""
+        otu: list[int] = self.sorted_unique_td_uids()
+        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(otu)}
+        indices = bytes(lookup_indices[ep.typ.uid] for ep in self.endpoints)
+        return otu, indices
+
+    def unconnected_eps(self) -> list[EndPointABC]:
+        """Return a list of unconnected endpoints."""
+        return [ep for ep in self.endpoints if not ep.is_connected()]
 
     def verify(self) -> None:
         """Verify the Interface object.
@@ -359,106 +459,6 @@ class Interface(CommonObj, InterfaceABC):
 
         # Call parent verify() which will trigger consistency() if CONSISTENCY logging is enabled
         super().verify()
-
-    def consistency(self) -> None:
-        """Check the consistency of the Interface.
-
-        Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
-        """
-        _logger.log(
-            level=CONSISTENCY,
-            msg=f"Consistency check for Interface with {len(self.endpoints)} endpoints",
-        )
-
-        # Call parent consistency()
-        super().consistency()
-
-    def types_and_indices(self) -> tuple[list[int], bytes]:
-        """Return a tuple of the ordered type UIDs and the indices into to it."""
-        otu: list[int] = self.sorted_unique_td_uids()
-        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(otu)}
-        indices = bytes(lookup_indices[ep.typ.uid] for ep in self.endpoints)
-        return otu, indices
-
-    def sorted_unique_td_uids(self) -> list[int]:
-        """Return the ordered type definition UIDs."""
-        return sorted(set(ep.typ.uid for ep in self.endpoints))
-
-    def to_json(self, json_c_graph: bool = False) -> list:
-        """Convert the interface to a JSON-compatible object.
-        If `json_c_graph` is True, it returns a list suitable for JSON Connection Graph format.
-        """
-        return [ep.to_json(json_c_graph=json_c_graph) for ep in self.endpoints]
-
-    def to_td_uids(self) -> list[int]:
-        """Convert the interface to a list of TypesDef UIDs (ints)."""
-        return [ep.typ.uid for ep in self.endpoints]
-
-    def to_td(self) -> tuple[TypesDef, ...]:
-        """Convert the interface to a tuple of TypesDef objects."""
-        return tuple(ep.typ for ep in self.endpoints)
-
-    def unconnected_eps(self) -> list[EndPointABC]:
-        """Return a list of unconnected endpoints."""
-        return [ep for ep in self.endpoints if not ep.is_connected()]
-
-    def set_cls(self, ep_cls) -> InterfaceABC:
-        """Set the class of all endpoints in the interface."""
-        for ep in self.endpoints:
-            ep.cls = ep_cls
-        return self
-
-    def set_row(self, row: Row) -> InterfaceABC:
-        """Set the row of all endpoints in the interface.
-
-        Args
-        ----
-        row: Row: The row to set for all endpoints.
-
-        Returns
-        -------
-        Interface: Self with row set.
-        """
-        for ep in self.endpoints:
-            ep.row = row
-        return self
-
-    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
-        """Set (replace) all references in the interface endpoints.
-
-        Args
-        ----
-        row: Row: The row to set for all references.
-        start_ref: int: The starting reference index.
-
-        Returns
-        -------
-        Interface: Self with all endpoint references set.
-        """
-        for idx, ep in enumerate(self.endpoints):
-            ep.set_ref(row, start_ref + idx)
-        return self
-
-    def clr_refs(self) -> InterfaceABC:
-        """Clear all references in the interface endpoints.
-        Returns:
-            Interface: Self with all endpoint references cleared."""
-        for ep in self.endpoints:
-            ep.clr_refs()
-        return self
-
-    def ref_shift(self, shift: int) -> InterfaceABC:
-        """Shift all references in the interface endpoints by a specified amount.
-
-        Args:
-            shift: The amount to shift each reference index by.
-        Returns:
-            Interface: Self with all endpoint references shifted.
-        """
-        for ep in self.endpoints:
-            ep.ref_shift(shift)
-        return self
 
 
 # Re-use the Interface object deduplicator for both SrcInterface and DstInterface

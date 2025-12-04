@@ -46,100 +46,6 @@ class FrozenInterface(InterfaceABC):
         # Pre-compute hash for frozen interface
         self._hash = hash((self.row, self.epcls, self.type_tuple, self.refs_tuple))
 
-    def __getitem__(self, idx: int) -> EndPointABC:
-        """Get an endpoint by index.
-
-        Args:
-            idx: The index of the endpoint to retrieve.
-
-        Returns:
-            FrozenEndPoint at the specified index.
-
-        Raises:
-            IndexError: If idx is out of range.
-        """
-        if idx < 0 or idx >= len(self.type_tuple):
-            raise IndexError(
-                f"Index {idx} out of range for interface with {len(self.type_tuple)} endpoints"
-            )
-        return FrozenEndPoint(
-            self.row,
-            idx,
-            self.epcls,
-            self.type_tuple[idx],
-            self.refs_tuple[idx],
-        )
-
-    def __iter__(self) -> Iterator[EndPointABC]:
-        """Return an iterator over the endpoints.
-
-        Returns:
-            Iterator over FrozenEndPoint objects in the interface.
-        """
-        for idx, typ in enumerate(self.type_tuple):
-            yield FrozenEndPoint(
-                self.row,
-                idx,
-                self.epcls,
-                typ,
-                self.refs_tuple[idx],
-            )
-
-    def __len__(self) -> int:
-        """Return the number of endpoints in the interface.
-
-        Returns:
-            Number of endpoints in this interface.
-        """
-        return len(self.type_tuple)
-
-    def __setitem__(self, idx: int, value: EndPointABC) -> None:
-        """Set an endpoint at a specific index.
-
-        Args:
-            idx: The index at which to set the endpoint.
-            value: The endpoint to set.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def __eq__(self, value: object) -> bool:
-        """Check equality of FrozenInterface instances.
-
-        Args:
-            value: Object to compare with.
-
-        Returns:
-            True if equal, False otherwise.
-        """
-        if not isinstance(value, InterfaceABC):
-            return False
-        # Fast path for FrozenInterface comparison
-        if isinstance(value, FrozenInterface):
-            return self._hash == value._hash
-        # Slow path for comparison with mutable interfaces
-        if len(self) != len(value):
-            return False
-        return all(a == b for a, b in zip(self, value))
-
-    def __hash__(self) -> int:
-        """Return the hash of the interface.
-
-        Returns:
-            Pre-computed hash value for the frozen interface.
-        """
-        return self._hash
-
-    def __str__(self) -> str:
-        """Return the string representation of the interface.
-
-        Returns:
-            String representation of the interface.
-        """
-        return f"FrozenInterface({', '.join(str(typ) for typ in self.type_tuple)})"
-
     def __add__(self, other: InterfaceABC) -> InterfaceABC:
         """Concatenate two interfaces to create a new interface.
 
@@ -188,6 +94,100 @@ class FrozenInterface(InterfaceABC):
 
         return FrozenInterface(self.row, self.epcls, new_type_tuple, new_refs_tuple)
 
+    def __eq__(self, value: object) -> bool:
+        """Check equality of FrozenInterface instances.
+
+        Args:
+            value: Object to compare with.
+
+        Returns:
+            True if equal, False otherwise.
+        """
+        if not isinstance(value, InterfaceABC):
+            return False
+        # Fast path for FrozenInterface comparison
+        if isinstance(value, FrozenInterface):
+            return self._hash == value._hash
+        # Slow path for comparison with mutable interfaces
+        if len(self) != len(value):
+            return False
+        return all(a == b for a, b in zip(self, value))
+
+    def __getitem__(self, idx: int) -> EndPointABC:
+        """Get an endpoint by index.
+
+        Args:
+            idx: The index of the endpoint to retrieve.
+
+        Returns:
+            FrozenEndPoint at the specified index.
+
+        Raises:
+            IndexError: If idx is out of range.
+        """
+        if idx < 0 or idx >= len(self.type_tuple):
+            raise IndexError(
+                f"Index {idx} out of range for interface with {len(self.type_tuple)} endpoints"
+            )
+        return FrozenEndPoint(
+            self.row,
+            idx,
+            self.epcls,
+            self.type_tuple[idx],
+            self.refs_tuple[idx],
+        )
+
+    def __hash__(self) -> int:
+        """Return the hash of the interface.
+
+        Returns:
+            Pre-computed hash value for the frozen interface.
+        """
+        return self._hash
+
+    def __iter__(self) -> Iterator[EndPointABC]:
+        """Return an iterator over the endpoints.
+
+        Returns:
+            Iterator over FrozenEndPoint objects in the interface.
+        """
+        for idx, typ in enumerate(self.type_tuple):
+            yield FrozenEndPoint(
+                self.row,
+                idx,
+                self.epcls,
+                typ,
+                self.refs_tuple[idx],
+            )
+
+    def __len__(self) -> int:
+        """Return the number of endpoints in the interface.
+
+        Returns:
+            Number of endpoints in this interface.
+        """
+        return len(self.type_tuple)
+
+    def __setitem__(self, idx: int, value: EndPointABC) -> None:
+        """Set an endpoint at a specific index.
+
+        Args:
+            idx: The index at which to set the endpoint.
+            value: The endpoint to set.
+
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")
+
+    def __str__(self) -> str:
+        """Return the string representation of the interface.
+
+        Returns:
+            String representation of the interface.
+        """
+        return f"FrozenInterface({', '.join(str(typ) for typ in self.type_tuple)})"
+
     def append(self, value: EndPointABC) -> None:
         """Append an endpoint to the interface.
 
@@ -198,6 +198,73 @@ class FrozenInterface(InterfaceABC):
             RuntimeError: Always raises since frozen interfaces are immutable.
         """
         raise RuntimeError("Cannot modify a frozen Interface")
+
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints."""
+        raise RuntimeError("Cannot modify a frozen Interface")
+
+    def cls(self) -> EPCls:
+        """Return the class of the interface.
+
+        Returns:
+            The EndPointClass (SRC or DST) of this interface.
+        """
+        return self.epcls
+
+    def consistency(self) -> None:
+        """Check the consistency of the FrozenInterface.
+
+        Performs semantic validation that may be expensive. This method is called
+        by verify() when CONSISTENCY logging is enabled.
+
+        Validates:
+            - All endpoints would pass their own consistency checks
+            - Destination endpoints have at most 1 reference
+            - Source endpoints reference destination rows
+            - Destination endpoints reference source rows
+        """
+        # Verify endpoint consistency
+        for idx in range(len(self.type_tuple)):
+            refs = self.refs_tuple[idx]
+
+            # Destination endpoints should have exactly 0 or 1 reference
+            if self.epcls == EPCls.DST and len(refs) > 1:
+                raise ValueError(
+                    f"Destination endpoint {idx} can only have 0 or 1 reference, has {len(refs)}"
+                )
+
+            # Source endpoints reference destination rows, and vice versa
+            if self.epcls == EPCls.SRC:
+                for ref in refs:
+                    if ref[0] not in DESTINATION_ROW_SET:
+                        raise ValueError(
+                            f"Source endpoint {idx} can only reference "
+                            f"destination rows, got {ref[0]}"
+                        )
+            else:  # DST
+                for ref in refs:
+                    if ref[0] not in SOURCE_ROW_SET:
+                        raise ValueError(
+                            f"Destination endpoint {idx} can only reference"
+                            f" source rows, got {ref[0]}"
+                        )
+
+    def ept_type_match(self, other: InterfaceABC) -> bool:
+        """Check if the endpoint types match another interface.
+
+        The type, order and number of endpoints must be identical for match to be true.
+
+        Args:
+            other: The other interface to compare with.
+        Returns:
+            True if endpoint types match, False otherwise.
+        """
+        if len(self) != len(other):
+            return False
+        for ep_self, ep_other in zip(self.type_tuple, other):
+            if ep_self != ep_other.typ:
+                return False
+        return True
 
     def extend(
         self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
@@ -214,11 +281,33 @@ class FrozenInterface(InterfaceABC):
         """
         raise RuntimeError("Cannot modify a frozen Interface")
 
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all reference indices in the interface endpoints.
+
+        Args:
+            shift: The integer amount to shift all reference indices by.
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")
+
     def set_cls(self, ep_cls) -> InterfaceABC:
         """Set the class of all endpoints in the interface.
 
         Args:
             ep_cls: The EndPointClass to set (SRC or DST).
+
+        Raises:
+            RuntimeError: Always raises since frozen interfaces are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen Interface")
+
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set references for all endpoints in the interface.
+
+        Args:
+            row: The Row to set (e.g., IS, OD).
+            start_ref: The starting reference number.
 
         Raises:
             RuntimeError: Always raises since frozen interfaces are immutable.
@@ -236,13 +325,13 @@ class FrozenInterface(InterfaceABC):
         """
         raise RuntimeError("Cannot modify a frozen Interface")
 
-    def cls(self) -> EPCls:
-        """Return the class of the interface.
+    def sorted_unique_td_uids(self) -> list[int]:
+        """Return the ordered type definition UIDs.
 
         Returns:
-            The EndPointClass (SRC or DST) of this interface.
+            Sorted list of unique TypesDef UIDs.
         """
-        return self.epcls
+        return sorted(set(typ.uid for typ in self.type_tuple))
 
     def to_json(self, json_c_graph: bool = False) -> list:
         """Convert the interface to a JSON-compatible object.
@@ -255,14 +344,6 @@ class FrozenInterface(InterfaceABC):
         """
         return [ep.to_json(json_c_graph) for ep in self]
 
-    def to_td_uids(self) -> list[int]:
-        """Convert the interface to a list of TypesDef UIDs (ints).
-
-        Returns:
-            List of TypesDef UIDs for each endpoint.
-        """
-        return [typ.uid for typ in self.type_tuple]
-
     def to_td(self) -> tuple[TypesDef, ...]:
         """Convert the interface to a tuple of TypesDef objects.
 
@@ -270,6 +351,14 @@ class FrozenInterface(InterfaceABC):
             Tuple of TypesDef objects for each endpoint.
         """
         return self.type_tuple
+
+    def to_td_uids(self) -> list[int]:
+        """Convert the interface to a list of TypesDef UIDs (ints).
+
+        Returns:
+            List of TypesDef UIDs for each endpoint.
+        """
+        return [typ.uid for typ in self.type_tuple]
 
     def types_and_indices(self) -> tuple[list[int], bytes]:
         """Return a tuple of the ordered type UIDs and the indices into it.
@@ -287,14 +376,6 @@ class FrozenInterface(InterfaceABC):
         indices = bytes(type_to_idx[typ.uid] for typ in self.type_tuple)
 
         return unique_types, indices
-
-    def sorted_unique_td_uids(self) -> list[int]:
-        """Return the ordered type definition UIDs.
-
-        Returns:
-            Sorted list of unique TypesDef UIDs.
-        """
-        return sorted(set(typ.uid for typ in self.type_tuple))
 
     def unconnected_eps(self) -> list[EndPointABC]:
         """Return a list of unconnected endpoints.
@@ -347,84 +428,3 @@ class FrozenInterface(InterfaceABC):
                     raise TypeError(f"Endpoint {i} ref {j} index must be int, got {type(ref[1])}")
                 if not 0 <= ref[1] <= 255:
                     raise ValueError(f"Endpoint {i} ref {j} index must be 0-255, got {ref[1]}")
-
-    def consistency(self) -> None:
-        """Check the consistency of the FrozenInterface.
-
-        Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
-
-        Validates:
-            - All endpoints would pass their own consistency checks
-            - Destination endpoints have at most 1 reference
-            - Source endpoints reference destination rows
-            - Destination endpoints reference source rows
-        """
-        # Verify endpoint consistency
-        for idx in range(len(self.type_tuple)):
-            refs = self.refs_tuple[idx]
-
-            # Destination endpoints should have exactly 0 or 1 reference
-            if self.epcls == EPCls.DST and len(refs) > 1:
-                raise ValueError(
-                    f"Destination endpoint {idx} can only have 0 or 1 reference, has {len(refs)}"
-                )
-
-            # Source endpoints reference destination rows, and vice versa
-            if self.epcls == EPCls.SRC:
-                for ref in refs:
-                    if ref[0] not in DESTINATION_ROW_SET:
-                        raise ValueError(
-                            f"Source endpoint {idx} can only reference "
-                            f"destination rows, got {ref[0]}"
-                        )
-            else:  # DST
-                for ref in refs:
-                    if ref[0] not in SOURCE_ROW_SET:
-                        raise ValueError(
-                            f"Destination endpoint {idx} can only reference"
-                            f" source rows, got {ref[0]}"
-                        )
-
-    def clr_refs(self) -> InterfaceABC:
-        """Clear all references in the interface endpoints."""
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def ref_shift(self, shift: int) -> InterfaceABC:
-        """Shift all reference indices in the interface endpoints.
-
-        Args:
-            shift: The integer amount to shift all reference indices by.
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
-        """Set references for all endpoints in the interface.
-
-        Args:
-            row: The Row to set (e.g., IS, OD).
-            start_ref: The starting reference number.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def ept_type_match(self, other: InterfaceABC) -> bool:
-        """Check if the endpoint types match another interface.
-
-        The type, order and number of endpoints must be identical for match to be true.
-
-        Args:
-            other: The other interface to compare with.
-        Returns:
-            True if endpoint types match, False otherwise.
-        """
-        if len(self) != len(other):
-            return False
-        for ep_self, ep_other in zip(self.type_tuple, other):
-            if ep_self != ep_other.typ:
-                return False
-        return True

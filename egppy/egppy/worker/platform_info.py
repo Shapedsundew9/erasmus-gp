@@ -71,6 +71,34 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         return hash_obj.digest()
 
     @property
+    def created(self) -> str:
+        """Get the created."""
+        return self._created
+
+    @created.setter
+    def created(self, value: datetime | str) -> None:
+        """The time the platform information was first created."""
+        if isinstance(value, datetime):
+            value = value.isoformat()
+        self._created = value
+
+    @property
+    def egp_ops(self) -> float:
+        """Get the EGPOps."""
+        return self._egp_ops
+
+    @egp_ops.setter
+    def egp_ops(self, value: float) -> None:
+        """An Erasmus GP specific performance metric directly proportional to the prcoessing
+        power of the system for typical Erasmus GP tasks in units of notional operations
+        per second. Bigger = faster.
+        """
+        self.value_error(
+            self._is_float("EGPOps", value), f"EGPOps must be a float, but is {type(value)}"
+        )
+        self._egp_ops = value
+
+    @property
     def machine(self) -> str:
         """Get the machine."""
         return self._machine
@@ -86,43 +114,6 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
             f"machine length must be between 0 and 128, but is {len(value)}",
         )
         self._machine = value
-
-    @property
-    def signature(self) -> bytes:
-        """Get the signature."""
-        return self._signature
-
-    @signature.setter
-    def signature(self, value: bytes | str) -> None:
-        """The SHA256 signature of the platform data."""
-        if isinstance(value, str):
-            value = bytes.fromhex(value)
-        self.value_error(
-            self._is_sha256("signature", value), "signature must be a valid SHA256 digest"
-        )
-        self.value_error(
-            self._generate_signature() == value, "Signature does not match the platform."
-        )
-        self._signature = value
-
-    @property
-    def processor(self) -> str:
-        """Get the processor."""
-        return self._processor
-
-    @processor.setter
-    def processor(self, value: str) -> None:
-        """The (real) processor name, e.g. 'amdk6'.
-        An empty string if the value cannot be determined.
-        """
-        self.value_error(
-            self._is_string("processor", value), f"processor must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("processor", value, 0, 128),
-            f"processor length must be between 0 and 128, but is {len(value)}",
-        )
-        self._processor = value
 
     @property
     def platform(self) -> str:
@@ -144,6 +135,25 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         self._platform = value
 
     @property
+    def processor(self) -> str:
+        """Get the processor."""
+        return self._processor
+
+    @processor.setter
+    def processor(self, value: str) -> None:
+        """The (real) processor name, e.g. 'amdk6'.
+        An empty string if the value cannot be determined.
+        """
+        self.value_error(
+            self._is_string("processor", value), f"processor must be a string, but is {type(value)}"
+        )
+        self.value_error(
+            self._is_length("processor", value, 0, 128),
+            f"processor length must be between 0 and 128, but is {len(value)}",
+        )
+        self._processor = value
+
+    @property
     def python_version(self) -> str:
         """Get the python version."""
         return self._python_version
@@ -160,25 +170,6 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
             f"python_version length must be between 0 and 64, but is {len(value)}",
         )
         self._python_version = value
-
-    @property
-    def system(self) -> str:
-        """Get the system."""
-        return self._system
-
-    @system.setter
-    def system(self, value: str) -> None:
-        """The system/OS name, such as 'Linux', 'Darwin', 'Java', 'Windows'.
-        An empty string if the value cannot be determined.
-        """
-        self.value_error(
-            self._is_string("system", value), f"system must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("system", value, 0, 64),
-            f"system length must be between 0 and 64, but is {len(value)}",
-        )
-        self._system = value
 
     @property
     def release(self) -> str:
@@ -200,29 +191,38 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         self._release = value
 
     @property
-    def egp_ops(self) -> float:
-        """Get the EGPOps."""
-        return self._egp_ops
+    def signature(self) -> bytes:
+        """Get the signature."""
+        return self._signature
 
-    @egp_ops.setter
-    def egp_ops(self, value: float) -> None:
-        """An Erasmus GP specific performance metric directly proportional to the prcoessing
-        power of the system for typical Erasmus GP tasks in units of notional operations
-        per second. Bigger = faster.
-        """
+    @signature.setter
+    def signature(self, value: bytes | str) -> None:
+        """The SHA256 signature of the platform data."""
+        if isinstance(value, str):
+            value = bytes.fromhex(value)
         self.value_error(
-            self._is_float("EGPOps", value), f"EGPOps must be a float, but is {type(value)}"
+            self._is_sha256("signature", value), "signature must be a valid SHA256 digest"
         )
-        self._egp_ops = value
+        self.value_error(
+            self._generate_signature() == value, "Signature does not match the platform."
+        )
+        self._signature = value
 
     @property
-    def created(self) -> str:
-        """Get the created."""
-        return self._created
+    def system(self) -> str:
+        """Get the system."""
+        return self._system
 
-    @created.setter
-    def created(self, value: datetime | str) -> None:
-        """The time the platform information was first created."""
-        if isinstance(value, datetime):
-            value = value.isoformat()
-        self._created = value
+    @system.setter
+    def system(self, value: str) -> None:
+        """The system/OS name, such as 'Linux', 'Darwin', 'Java', 'Windows'.
+        An empty string if the value cannot be determined.
+        """
+        self.value_error(
+            self._is_string("system", value), f"system must be a string, but is {type(value)}"
+        )
+        self.value_error(
+            self._is_length("system", value, 0, 64),
+            f"system length must be between 0 and 64, but is {len(value)}",
+        )
+        self._system = value

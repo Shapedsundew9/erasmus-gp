@@ -12,15 +12,22 @@ PSWD_FILE = join(dirname(__file__), "data", "db_password")
 class TestDatabaseConfig(TestCase):
     """Test the database configuration class."""
 
-    def test_init(self):
-        """Test the initialization of the class."""
+    def test_accessors(self):
+        """Test the accessors."""
         config = DatabaseConfig(password=PSWD_FILE)
-        self.assertEqual(config.dbname, "erasmus_db")
-        self.assertEqual(config.host, "localhost")
-        self.assertEqual(config.port, 5432)
-        self.assertEqual(config.maintenance_db, "postgres")
-        self.assertEqual(config.retries, 3)
-        self.assertEqual(config.user, "postgres")
+        config["dbname"] = "fred"
+        config["host"] = "127.0.0.1"
+        config["port"] = 5433
+        config["maintenance_db"] = "mdb"
+        config["retries"] = 8
+        config["user"] = "brian"
+        self.assertEqual(config["dbname"], "fred")
+        self.assertEqual(config["host"], "127.0.0.1")
+        self.assertEqual(config["port"], 5433)
+        self.assertEqual(config["password"], "abcdefghij")
+        self.assertEqual(config["maintenance_db"], "mdb")
+        self.assertEqual(config["retries"], 8)
+        self.assertEqual(config["user"], "brian")
 
     def test_dbname(self):
         """Test the dbname property."""
@@ -46,15 +53,87 @@ class TestDatabaseConfig(TestCase):
         with self.assertRaises(ValueError):
             config.host = "a" * 257
 
-    def test_port(self):
-        """Test the port property."""
+    def test_init(self):
+        """Test the initialization of the class."""
         config = DatabaseConfig(password=PSWD_FILE)
-        config.port = 5432
+        self.assertEqual(config.dbname, "erasmus_db")
+        self.assertEqual(config.host, "localhost")
         self.assertEqual(config.port, 5432)
+        self.assertEqual(config.maintenance_db, "postgres")
+        self.assertEqual(config.retries, 3)
+        self.assertEqual(config.user, "postgres")
+
+    def test_invalid_accessors(self):
+        """Test the accessors with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
         with self.assertRaises(ValueError):
-            config.port = "5432"  # type: ignore
+            config["dbname"] = 123  # type: ignore
         with self.assertRaises(ValueError):
-            config.port = 0
+            config["host"] = 123  # type: ignore
+        with self.assertRaises(ValueError):
+            config["port"] = "invalid_port"  # type: ignore
+        with self.assertRaises(ValueError):
+            config["maintenance_db"] = 123  # type: ignore
+        with self.assertRaises(ValueError):
+            config["retries"] = "invalid_retries"  # type: ignore
+        with self.assertRaises(ValueError):
+            config["user"] = 123  # type: ignore
+
+    def test_invalid_dbname(self):
+        """Test the dbname property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.dbname = "1invalid_dbname"
+        with self.assertRaises(ValueError):
+            config.dbname = "invalid_dbname_with_special_characters!@#"
+
+    def test_invalid_host(self):
+        """Test the host property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.host = "invalid_host_with_special_characters!@#"
+        with self.assertRaises(ValueError):
+            config.host = ""
+
+    def test_invalid_maintenance_db(self):
+        """Test the maintenance_db property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.maintenance_db = "1invalid_dbname"
+        with self.assertRaises(ValueError):
+            config.maintenance_db = "invalid_dbname_with_special_characters!@#"
+
+    def test_invalid_password(self):
+        """Test the password property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.password = 123  # type: ignore
+        with self.assertRaises(ValueError):
+            config.password = ""
+
+    def test_invalid_port(self):
+        """Test the port property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.port = -1
+        with self.assertRaises(ValueError):
+            config.port = 70000
+
+    def test_invalid_retries(self):
+        """Test the retries property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.retries = -1
+        with self.assertRaises(ValueError):
+            config.retries = 0
+
+    def test_invalid_user(self):
+        """Test the user property with invalid values."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.user = "1invalid_user"
+        with self.assertRaises(ValueError):
+            config.user = "invalid_user_with_special_characters!@#"
 
     def test_maintenance_db(self):
         """Test the maintenance_db property."""
@@ -68,6 +147,24 @@ class TestDatabaseConfig(TestCase):
         with self.assertRaises(ValueError):
             config.maintenance_db = "a" * 257
 
+    def test_password(self):
+        """Test the password property."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        with self.assertRaises(ValueError):
+            config.password = 123  # type: ignore
+        with self.assertRaises(ValueError):
+            config.password = ""
+
+    def test_port(self):
+        """Test the port property."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        config.port = 5432
+        self.assertEqual(config.port, 5432)
+        with self.assertRaises(ValueError):
+            config.port = "5432"  # type: ignore
+        with self.assertRaises(ValueError):
+            config.port = 0
+
     def test_retires(self):
         """Test the retires property."""
         config = DatabaseConfig(password=PSWD_FILE)
@@ -77,36 +174,6 @@ class TestDatabaseConfig(TestCase):
             config.retries = "3"  # type: ignore
         with self.assertRaises(ValueError):
             config.retries = 0
-
-    def test_user(self):
-        """Test the user property."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        # file deepcode ignore NoHardcodedCredentials/test: Unit test
-        config.user = "postgres"  #
-        self.assertEqual(config.user, "postgres")
-        with self.assertRaises(ValueError):
-            config.user = 1  # type: ignore
-        with self.assertRaises(ValueError):
-            config.user = "_postgres"
-        with self.assertRaises(ValueError):
-            config.user = "a" * 257
-
-    def test_accessors(self):
-        """Test the accessors."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        config["dbname"] = "fred"
-        config["host"] = "127.0.0.1"
-        config["port"] = 5433
-        config["maintenance_db"] = "mdb"
-        config["retries"] = 8
-        config["user"] = "brian"
-        self.assertEqual(config["dbname"], "fred")
-        self.assertEqual(config["host"], "127.0.0.1")
-        self.assertEqual(config["port"], 5433)
-        self.assertEqual(config["password"], "abcdefghij")
-        self.assertEqual(config["maintenance_db"], "mdb")
-        self.assertEqual(config["retries"], 8)
-        self.assertEqual(config["user"], "brian")
 
     def test_to_json(self):
         """Test the to_json method."""
@@ -129,89 +196,61 @@ class TestDatabaseConfig(TestCase):
         }
         self.assertEqual(config.to_json(), dict_config)
 
-    def test_invalid_password(self):
-        """Test the password property with invalid values."""
+    def test_user(self):
+        """Test the user property."""
         config = DatabaseConfig(password=PSWD_FILE)
+        # file deepcode ignore NoHardcodedCredentials/test: Unit test
+        config.user = "postgres"  #
+        self.assertEqual(config.user, "postgres")
         with self.assertRaises(ValueError):
-            config.password = 123  # type: ignore
+            config.user = 1  # type: ignore
         with self.assertRaises(ValueError):
-            config.password = ""
-
-    def test_invalid_dbname(self):
-        """Test the dbname property with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
+            config.user = "_postgres"
         with self.assertRaises(ValueError):
-            config.dbname = "1invalid_dbname"
-        with self.assertRaises(ValueError):
-            config.dbname = "invalid_dbname_with_special_characters!@#"
-
-    def test_invalid_host(self):
-        """Test the host property with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config.host = "invalid_host_with_special_characters!@#"
-        with self.assertRaises(ValueError):
-            config.host = ""
-
-    def test_invalid_port(self):
-        """Test the port property with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config.port = -1
-        with self.assertRaises(ValueError):
-            config.port = 70000
-
-    def test_invalid_maintenance_db(self):
-        """Test the maintenance_db property with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config.maintenance_db = "1invalid_dbname"
-        with self.assertRaises(ValueError):
-            config.maintenance_db = "invalid_dbname_with_special_characters!@#"
-
-    def test_invalid_retries(self):
-        """Test the retries property with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config.retries = -1
-        with self.assertRaises(ValueError):
-            config.retries = 0
-
-    def test_invalid_user(self):
-        """Test the user property with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config.user = "1invalid_user"
-        with self.assertRaises(ValueError):
-            config.user = "invalid_user_with_special_characters!@#"
-
-    def test_password(self):
-        """Test the password property."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config.password = 123  # type: ignore
-        with self.assertRaises(ValueError):
-            config.password = ""
-
-    def test_invalid_accessors(self):
-        """Test the accessors with invalid values."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        with self.assertRaises(ValueError):
-            config["dbname"] = 123  # type: ignore
-        with self.assertRaises(ValueError):
-            config["host"] = 123  # type: ignore
-        with self.assertRaises(ValueError):
-            config["port"] = "invalid_port"  # type: ignore
-        with self.assertRaises(ValueError):
-            config["maintenance_db"] = 123  # type: ignore
-        with self.assertRaises(ValueError):
-            config["retries"] = "invalid_retries"  # type: ignore
-        with self.assertRaises(ValueError):
-            config["user"] = 123  # type: ignore
+            config.user = "a" * 257
 
 
 class TestColumnSchema(TestCase):
     """Test the column schema class."""
+
+    def test_db_type(self):
+        """Test the db_type property."""
+        schema = ColumnSchema()
+        schema.db_type = "INTEGER"
+        self.assertEqual(schema.db_type, "INTEGER")
+        with self.assertRaises(ValueError):
+            schema.db_type = 123  # type: ignore
+
+    def test_default(self):
+        """Test the default property."""
+        schema = ColumnSchema()
+        schema.default = "default_value"
+        self.assertEqual(schema.default, "default_value")
+        with self.assertRaises(ValueError):
+            schema.default = 123  # type: ignore
+
+    def test_description(self):
+        """Test the description property."""
+        schema = ColumnSchema()
+        schema.description = "A column"
+        self.assertEqual(schema.description, "A column")
+        with self.assertRaises(ValueError):
+            schema.description = 123  # type: ignore
+
+    def test_index(self):
+        """Test the index property."""
+        schema = ColumnSchema()
+        schema.index = "btree"
+        self.assertEqual(schema.index, "btree")
+        with self.assertRaises(ValueError):
+            schema.index = 123  # type: ignore
+
+    def test_index_consistency(self):
+        """Test the consistency method for index."""
+        with self.assertRaises(ValueError):
+            ColumnSchema(primary_key=True, index="btree")
+        with self.assertRaises(ValueError):
+            ColumnSchema(unique=True, index="btree")
 
     def test_init(self):
         """Test the initialization of the class."""
@@ -232,38 +271,6 @@ class TestColumnSchema(TestCase):
         self.assertIsNone(schema.index)
         self.assertTrue(schema.unique)
 
-    def test_db_type(self):
-        """Test the db_type property."""
-        schema = ColumnSchema()
-        schema.db_type = "INTEGER"
-        self.assertEqual(schema.db_type, "INTEGER")
-        with self.assertRaises(ValueError):
-            schema.db_type = 123  # type: ignore
-
-    def test_volatile(self):
-        """Test the volatile property."""
-        schema = ColumnSchema()
-        schema.volatile = True
-        self.assertTrue(schema.volatile)
-        with self.assertRaises(ValueError):
-            schema.volatile = "True"  # type: ignore
-
-    def test_default(self):
-        """Test the default property."""
-        schema = ColumnSchema()
-        schema.default = "default_value"
-        self.assertEqual(schema.default, "default_value")
-        with self.assertRaises(ValueError):
-            schema.default = 123  # type: ignore
-
-    def test_description(self):
-        """Test the description property."""
-        schema = ColumnSchema()
-        schema.description = "A column"
-        self.assertEqual(schema.description, "A column")
-        with self.assertRaises(ValueError):
-            schema.description = 123  # type: ignore
-
     def test_nullable(self):
         """Test the nullable property."""
         schema = ColumnSchema()
@@ -280,21 +287,16 @@ class TestColumnSchema(TestCase):
         with self.assertRaises(ValueError):
             schema.primary_key = "True"  # type: ignore
 
-    def test_index(self):
-        """Test the index property."""
-        schema = ColumnSchema()
-        schema.index = "btree"
-        self.assertEqual(schema.index, "btree")
+    def test_primary_key_consistency(self):
+        """Test the consistency method for primary key."""
         with self.assertRaises(ValueError):
-            schema.index = 123  # type: ignore
-
-    def test_unique(self):
-        """Test the unique property."""
-        schema = ColumnSchema()
-        schema.unique = True
-        self.assertTrue(schema.unique)
-        with self.assertRaises(ValueError):
-            schema.unique = "True"  # type: ignore
+            ColumnSchema(primary_key=True, nullable=True)
+        # Unique will be forced to True
+        config = ColumnSchema(primary_key=True, unique=False)
+        with self.assertRaises(RuntimeError):
+            # However, this will raise an error
+            config.unique = False
+            config.verify()
 
     def test_to_json(self):
         """Test the to_json method."""
@@ -319,70 +321,41 @@ class TestColumnSchema(TestCase):
         }
         self.assertEqual(schema.to_json(), dict_schema)
 
-    def test_primary_key_consistency(self):
-        """Test the consistency method for primary key."""
+    def test_unique(self):
+        """Test the unique property."""
+        schema = ColumnSchema()
+        schema.unique = True
+        self.assertTrue(schema.unique)
         with self.assertRaises(ValueError):
-            ColumnSchema(primary_key=True, nullable=True)
-        # Unique will be forced to True
-        config = ColumnSchema(primary_key=True, unique=False)
-        with self.assertRaises(RuntimeError):
-            # However, this will raise an error
-            config.unique = False
-            config.verify()
+            schema.unique = "True"  # type: ignore
 
-    def test_index_consistency(self):
-        """Test the consistency method for index."""
+    def test_volatile(self):
+        """Test the volatile property."""
+        schema = ColumnSchema()
+        schema.volatile = True
+        self.assertTrue(schema.volatile)
         with self.assertRaises(ValueError):
-            ColumnSchema(primary_key=True, index="btree")
-        with self.assertRaises(ValueError):
-            ColumnSchema(unique=True, index="btree")
+            schema.volatile = "True"  # type: ignore
 
 
 class TestTableConfig(TestCase):
     """Test the table configuration class."""
 
-    def test_init(self):
-        """Test the initialization of the class."""
+    def test_create_db(self):
+        """Test the create_db property."""
         config = TableConfig()
-        self.assertIsInstance(config.database, DatabaseConfig)
-        self.assertEqual(config.table, "default_table")
-        self.assertEqual(config.schema, {})
-        self.assertEqual(config.ptr_map, {})
-        self.assertEqual(config.data_file_folder, ".")
-        self.assertEqual(config.data_files, [])
-        self.assertFalse(config.delete_db)
-        self.assertFalse(config.delete_table)
-        self.assertFalse(config.create_db)
-        self.assertFalse(config.create_table)
-        self.assertFalse(config.wait_for_db)
-        self.assertFalse(config.wait_for_table)
-        self.assertEqual(config.conversions, tuple())
-
-    def test_table(self):
-        """Test the table property."""
-        config = TableConfig()
-        config.table = "new_table"
-        self.assertEqual(config.table, "new_table")
+        config.create_db = True
+        self.assertTrue(config.create_db)
         with self.assertRaises(ValueError):
-            config.table = 123  # type: ignore
+            config.create_db = "invalid_create_db"  # type: ignore
 
-    def test_schema(self):
-        """Test the schema property."""
+    def test_create_table(self):
+        """Test the create_table property."""
         config = TableConfig()
-        schema = {"column1": ColumnSchema(db_type="INTEGER")}
-        config.schema = schema
-        self.assertEqual(config.schema["column1"].db_type, "INTEGER")
+        config.create_table = True
+        self.assertTrue(config.create_table)
         with self.assertRaises(ValueError):
-            config.schema = "invalid_schema"  # type: ignore
-
-    def test_ptr_map(self):
-        """Test the ptr_map property."""
-        config = TableConfig()
-        ptr_map = {"column1": "column2"}
-        config.ptr_map = ptr_map
-        self.assertEqual(config.ptr_map["column1"], "column2")
-        with self.assertRaises(ValueError):
-            config.ptr_map = "invalid_ptr_map"  # type: ignore
+            config.create_table = "invalid_create_table"  # type: ignore
 
     def test_data_file_folder(self):
         """Test the data_file_folder property."""
@@ -401,6 +374,16 @@ class TestTableConfig(TestCase):
         with self.assertRaises(ValueError):
             config.data_files = "invalid_data_files"  # type: ignore
 
+    def test_database_config_consistency(self):
+        """Test the consistency method of DatabaseConfig."""
+        config = DatabaseConfig(password=PSWD_FILE)
+        config.dbname = "valid_dbname"
+        config.host = "localhost"
+        config.port = 5432
+        config.maintenance_db = "valid_maintenance_db"
+        config.retries = 3
+        config.user = "valid_user"
+
     def test_delete_db(self):
         """Test the delete_db property."""
         config = TableConfig()
@@ -417,66 +400,48 @@ class TestTableConfig(TestCase):
         with self.assertRaises(ValueError):
             config.delete_table = "invalid_delete_table"  # type: ignore
 
-    def test_create_db(self):
-        """Test the create_db property."""
+    def test_init(self):
+        """Test the initialization of the class."""
         config = TableConfig()
-        config.create_db = True
-        self.assertTrue(config.create_db)
+        self.assertIsInstance(config.database, DatabaseConfig)
+        self.assertEqual(config.table, "default_table")
+        self.assertEqual(config.schema, {})
+        self.assertEqual(config.ptr_map, {})
+        self.assertEqual(config.data_file_folder, ".")
+        self.assertEqual(config.data_files, [])
+        self.assertFalse(config.delete_db)
+        self.assertFalse(config.delete_table)
+        self.assertFalse(config.create_db)
+        self.assertFalse(config.create_table)
+        self.assertFalse(config.wait_for_db)
+        self.assertFalse(config.wait_for_table)
+        self.assertEqual(config.conversions, tuple())
+
+    def test_ptr_map(self):
+        """Test the ptr_map property."""
+        config = TableConfig()
+        ptr_map = {"column1": "column2"}
+        config.ptr_map = ptr_map
+        self.assertEqual(config.ptr_map["column1"], "column2")
         with self.assertRaises(ValueError):
-            config.create_db = "invalid_create_db"  # type: ignore
+            config.ptr_map = "invalid_ptr_map"  # type: ignore
 
-    def test_create_table(self):
-        """Test the create_table property."""
+    def test_schema(self):
+        """Test the schema property."""
         config = TableConfig()
-        config.create_table = True
-        self.assertTrue(config.create_table)
+        schema = {"column1": ColumnSchema(db_type="INTEGER")}
+        config.schema = schema
+        self.assertEqual(config.schema["column1"].db_type, "INTEGER")
         with self.assertRaises(ValueError):
-            config.create_table = "invalid_create_table"  # type: ignore
+            config.schema = "invalid_schema"  # type: ignore
 
-    def test_wait_for_db(self):
-        """Test the wait_for_db property."""
+    def test_table(self):
+        """Test the table property."""
         config = TableConfig()
-        config.wait_for_db = True
-        self.assertTrue(config.wait_for_db)
+        config.table = "new_table"
+        self.assertEqual(config.table, "new_table")
         with self.assertRaises(ValueError):
-            config.wait_for_db = "invalid_wait_for_db"  # type: ignore
-
-    def test_wait_for_table(self):
-        """Test the wait_for_table property."""
-        config = TableConfig()
-        config.wait_for_table = True
-        self.assertTrue(config.wait_for_table)
-        with self.assertRaises(ValueError):
-            config.wait_for_table = "invalid_wait_for_table"  # type: ignore
-
-    def test_to_json(self):
-        """Test the to_json method."""
-        config = TableConfig()
-        json_config = config.to_json()
-        self.assertIsInstance(json_config, dict)
-        self.assertIn("database", json_config)
-        self.assertIn("table", json_config)
-        self.assertIn("schema", json_config)
-        self.assertIn("ptr_map", json_config)
-        self.assertIn("data_file_folder", json_config)
-        self.assertIn("data_files", json_config)
-        self.assertIn("delete_db", json_config)
-        self.assertIn("delete_table", json_config)
-        self.assertIn("create_db", json_config)
-        self.assertIn("create_table", json_config)
-        self.assertIn("wait_for_db", json_config)
-        self.assertIn("wait_for_table", json_config)
-        self.assertIn("conversions", json_config)
-
-    def test_database_config_consistency(self):
-        """Test the consistency method of DatabaseConfig."""
-        config = DatabaseConfig(password=PSWD_FILE)
-        config.dbname = "valid_dbname"
-        config.host = "localhost"
-        config.port = 5432
-        config.maintenance_db = "valid_maintenance_db"
-        config.retries = 3
-        config.user = "valid_user"
+            config.table = 123  # type: ignore
 
     def test_table_config_consistency(self):
         """Test the consistency method of TableConfig."""
@@ -496,21 +461,6 @@ class TestTableConfig(TestCase):
         )
         config.verify()  # Should not raise any exceptions
 
-    def test_table_config_consistency_invalid_ptr_map(self):
-        """Test the consistency method with invalid ptr_map."""
-        schema = {
-            "id": ColumnSchema(db_type="INTEGER", primary_key=True),
-            "name": ColumnSchema(db_type="VARCHAR", unique=True),
-        }
-        ptr_map = {"id": "non_existent_field"}
-        with self.assertRaises(ValueError):
-            TableConfig(
-                database=DatabaseConfig(password=PSWD_FILE),
-                table="valid_table",
-                schema=schema,
-                ptr_map=ptr_map,
-            )
-
     def test_table_config_consistency_circular_reference(self):
         """Test the consistency method with circular reference in ptr_map."""
         schema = {
@@ -524,37 +474,6 @@ class TestTableConfig(TestCase):
                 table="valid_table",
                 schema=schema,
                 ptr_map=ptr_map,
-            )
-
-    def test_table_config_consistency_delete_db_without_create_db(self):
-        """Test the consistency method with delete_db without create_db."""
-        with self.assertRaises(ValueError):
-            TableConfig(
-                database=DatabaseConfig(password=PSWD_FILE),
-                table="valid_table",
-                delete_db=True,
-                create_table=True,
-            )
-
-    def test_table_config_consistency_delete_db_with_wait_for_db(self):
-        """Test the consistency method with delete_db and wait_for_db."""
-        with self.assertRaises(ValueError):
-            TableConfig(
-                database=DatabaseConfig(password=PSWD_FILE),
-                table="valid_table",
-                delete_db=True,
-                create_db=True,
-                wait_for_db=True,
-                create_table=True,
-            )
-
-    def test_table_config_consistency_delete_table_without_create_table(self):
-        """Test the consistency method with delete_table without create_table."""
-        with self.assertRaises(ValueError):
-            TableConfig(
-                database=DatabaseConfig(password=PSWD_FILE),
-                table="valid_table",
-                delete_table=True,
             )
 
     def test_table_config_consistency_create_db_with_wait_for_db(self):
@@ -576,3 +495,84 @@ class TestTableConfig(TestCase):
                 create_table=True,
                 wait_for_table=True,
             )
+
+    def test_table_config_consistency_delete_db_with_wait_for_db(self):
+        """Test the consistency method with delete_db and wait_for_db."""
+        with self.assertRaises(ValueError):
+            TableConfig(
+                database=DatabaseConfig(password=PSWD_FILE),
+                table="valid_table",
+                delete_db=True,
+                create_db=True,
+                wait_for_db=True,
+                create_table=True,
+            )
+
+    def test_table_config_consistency_delete_db_without_create_db(self):
+        """Test the consistency method with delete_db without create_db."""
+        with self.assertRaises(ValueError):
+            TableConfig(
+                database=DatabaseConfig(password=PSWD_FILE),
+                table="valid_table",
+                delete_db=True,
+                create_table=True,
+            )
+
+    def test_table_config_consistency_delete_table_without_create_table(self):
+        """Test the consistency method with delete_table without create_table."""
+        with self.assertRaises(ValueError):
+            TableConfig(
+                database=DatabaseConfig(password=PSWD_FILE),
+                table="valid_table",
+                delete_table=True,
+            )
+
+    def test_table_config_consistency_invalid_ptr_map(self):
+        """Test the consistency method with invalid ptr_map."""
+        schema = {
+            "id": ColumnSchema(db_type="INTEGER", primary_key=True),
+            "name": ColumnSchema(db_type="VARCHAR", unique=True),
+        }
+        ptr_map = {"id": "non_existent_field"}
+        with self.assertRaises(ValueError):
+            TableConfig(
+                database=DatabaseConfig(password=PSWD_FILE),
+                table="valid_table",
+                schema=schema,
+                ptr_map=ptr_map,
+            )
+
+    def test_to_json(self):
+        """Test the to_json method."""
+        config = TableConfig()
+        json_config = config.to_json()
+        self.assertIsInstance(json_config, dict)
+        self.assertIn("database", json_config)
+        self.assertIn("table", json_config)
+        self.assertIn("schema", json_config)
+        self.assertIn("ptr_map", json_config)
+        self.assertIn("data_file_folder", json_config)
+        self.assertIn("data_files", json_config)
+        self.assertIn("delete_db", json_config)
+        self.assertIn("delete_table", json_config)
+        self.assertIn("create_db", json_config)
+        self.assertIn("create_table", json_config)
+        self.assertIn("wait_for_db", json_config)
+        self.assertIn("wait_for_table", json_config)
+        self.assertIn("conversions", json_config)
+
+    def test_wait_for_db(self):
+        """Test the wait_for_db property."""
+        config = TableConfig()
+        config.wait_for_db = True
+        self.assertTrue(config.wait_for_db)
+        with self.assertRaises(ValueError):
+            config.wait_for_db = "invalid_wait_for_db"  # type: ignore
+
+    def test_wait_for_table(self):
+        """Test the wait_for_table property."""
+        config = TableConfig()
+        config.wait_for_table = True
+        self.assertTrue(config.wait_for_table)
+        with self.assertRaises(ValueError):
+            config.wait_for_table = "invalid_wait_for_table"  # type: ignore

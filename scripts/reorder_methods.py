@@ -168,6 +168,66 @@ class MethodExtractor(NodeVisitor):
         self._visit_function(node)
 
 
+def _group_functions(
+    functions: list[FunctionInfo], source_lines: list[str]
+) -> list[list[FunctionInfo]]:
+    """Group functions that are adjacent (separated only by whitespace/comments).
+
+    Args:
+        functions: List of functions to group.
+        source_lines: Source code lines.
+
+    Returns:
+        List of function groups.
+    """
+    if not functions:
+        return []
+
+    # Ensure functions are sorted by position
+    sorted_funcs = sorted(functions, key=lambda f: f.start_line)
+    groups: list[list[FunctionInfo]] = []
+    current_group: list[FunctionInfo] = [sorted_funcs[0]]
+
+    for i in range(1, len(sorted_funcs)):
+        prev_func = sorted_funcs[i - 1]
+        curr_func = sorted_funcs[i]
+
+        # Check gap between previous function end and current function start
+        # prev_func.end_line is 1-based inclusive, so it's the index of the next line
+        # curr_func.start_line is 1-based inclusive
+        gap_start = prev_func.end_line
+        gap_end = curr_func.start_line - 1
+
+        if _is_code_gap(source_lines, gap_start, gap_end):
+            # Gap contains code, start new group
+            groups.append(current_group)
+            current_group = [curr_func]
+        else:
+            # Gap is clean, add to current group
+            current_group.append(curr_func)
+
+    groups.append(current_group)
+    return groups
+
+
+def _is_code_gap(lines: list[str], start_idx: int, end_idx: int) -> bool:
+    """Check if the gap between functions contains code.
+
+    Args:
+        lines: List of source lines.
+        start_idx: Start index (0-based, inclusive).
+        end_idx: End index (0-based, exclusive).
+
+    Returns:
+        True if the gap contains code (non-whitespace, non-comment), False otherwise.
+    """
+    for i in range(start_idx, end_idx):
+        line = lines[i].strip()
+        if line and not line.startswith("#"):
+            return True
+    return False
+
+
 def _should_skip_directory(path: Path) -> bool:
     """Check if a directory should be skipped during file search.
 
@@ -355,48 +415,64 @@ def reorder_file(  # pylint: disable=too-many-locals,too-many-branches,too-many-
 
         # Check module functions
         if extractor.module_functions:
-            current_func_order = [f.name for f in extractor.module_functions]
-            sorted_funcs = sorted(extractor.module_functions, key=lambda f: f.name)
-            sorted_func_order = [f.name for f in sorted_funcs]
+            # Group functions by adjacency
+            func_groups = _group_functions(extractor.module_functions, original_lines)
 
-            if current_func_order != sorted_func_order:
-                if verbose:
-                    print(f"  Module functions: {current_func_order} -> {sorted_func_order}")
+            for group in func_groups:
+                if len(group) < 2:
+                    continue
 
-                # Create replacements using slots strategy
-                slots = sorted(extractor.module_functions, key=lambda f: f.start_line)
-                for slot, new_func in zip(slots, sorted_funcs):
-                    replacements.append(
-                        {
-                            "start_line": slot.start_line,
-                            "end_line": slot.end_line,
-                            "lines": new_func.lines,
-                        }
-                    )
+                current_func_order = [f.name for f in group]
+                sorted_funcs = sorted(group, key=lambda f: f.name)
+                sorted_func_order = [f.name for f in sorted_funcs]
+
+                if current_func_order != sorted_func_order:
+                    if verbose:
+                        print(
+                            f"  Module functions group: {current_func_order} -> {sorted_func_order}"
+                        )
+
+                    # Create replacements using slots strategy
+                    slots = sorted(group, key=lambda f: f.start_line)
+                    for slot, new_func in zip(slots, sorted_funcs):
+                        replacements.append(
+                            {
+                                "start_line": slot.start_line,
+                                "end_line": slot.end_line,
+                                "lines": new_func.lines,
+                            }
+                        )
 
         # Check classes
         for class_name, class_info in extractor.classes.items():
             if not class_info["methods"]:
                 continue
 
-            current_order = [m.name for m in class_info["methods"]]
-            sorted_methods = sorted(class_info["methods"], key=lambda m: m.sort_key)
-            sorted_order = [m.name for m in sorted_methods]
+            # Group methods by adjacency
+            method_groups = _group_functions(class_info["methods"], original_lines)
 
-            if current_order != sorted_order:
-                if verbose:
-                    print(f"  Class {class_name}: {current_order} -> {sorted_order}")
+            for group in method_groups:
+                if len(group) < 2:
+                    continue
 
-                # Create replacements using slots strategy
-                slots = sorted(class_info["methods"], key=lambda m: m.start_line)
-                for slot, new_method in zip(slots, sorted_methods):
-                    replacements.append(
-                        {
-                            "start_line": slot.start_line,
-                            "end_line": slot.end_line,
-                            "lines": new_method.lines,
-                        }
-                    )
+                current_order = [m.name for m in group]
+                sorted_methods = sorted(group, key=lambda m: m.sort_key)
+                sorted_order = [m.name for m in sorted_methods]
+
+                if current_order != sorted_order:
+                    if verbose:
+                        print(f"  Class {class_name} group: {current_order} -> {sorted_order}")
+
+                    # Create replacements using slots strategy
+                    slots = sorted(group, key=lambda m: m.start_line)
+                    for slot, new_method in zip(slots, sorted_methods):
+                        replacements.append(
+                            {
+                                "start_line": slot.start_line,
+                                "end_line": slot.end_line,
+                                "lines": new_method.lines,
+                            }
+                        )
 
         if not replacements:
             if verbose:

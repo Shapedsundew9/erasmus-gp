@@ -56,128 +56,38 @@ class TestStabilizeLocked(unittest.TestCase):
         self.assertEqual(len(ad_interface), 1)
         self.assertEqual(ad_interface[0].refs, [["I", 0]])
 
-    def test_stabilize_locked_with_unconnected_destinations(self) -> None:
-        """Test stabilize with if_locked=True with unconnected destinations."""
-        # Create a graph with unconnected destination endpoints
-        # Start by building interfaces manually
+    def test_stabilize_locked_for_loop_graph(self) -> None:
+        """Test stabilize with if_locked=True on a for-loop graph."""
+        # Create a for-loop graph
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
-            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Should not be stable initially
-        self.assertFalse(cgraph.is_stable())
-
-        # Stabilize with locked interface
-        cgraph.stabilize(if_locked=True)
-
-        # Should now be stable
-        self.assertTrue(cgraph.is_stable())
-
-        # Verify all destinations are connected
-        ad_interface = cgraph["Ad"]
-        for ep in ad_interface:
-            self.assertTrue(ep.is_connected())
-            self.assertEqual(len(ep.refs), 1)
-
-        od_interface = cgraph["Od"]
-        for ep in od_interface:
-            self.assertTrue(ep.is_connected())
-            self.assertEqual(len(ep.refs), 1)
-
-        # Verify no new input endpoints were created
-        is_interface = cgraph["Is"]
-        self.assertEqual(len(is_interface), 2)
-
-    def test_stabilize_locked_type_matching(self) -> None:
-        """Test that stabilize only connects endpoints of matching types."""
-        # Create a graph with specific type requirements
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EPCls.SRC, types_def_store["bool"], []),
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Should connect to I0
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (
-                DstRow.O,
-                0,
-                EPCls.DST,
-                types_def_store["bool"],
-                [],
-            ),  # Should connect to I1 or A0
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Stabilize
-        cgraph.stabilize(if_locked=True)
-
-        # Verify types match
-        ad_interface = cgraph["Ad"]
-        a_ep = ad_interface[0]
-        self.assertEqual(a_ep.typ, types_def_store["int"])
-        # The reference should be to I0 (the only int source)
-        ref_row, _ = a_ep.refs[0]
-        self.assertEqual(ref_row, "I")
-
-        od_interface = cgraph["Od"]
-        o_ep = od_interface[0]
-        self.assertEqual(o_ep.typ, types_def_store["bool"])
-        # The reference should be to I1 (the bool source)
-        ref_row, _ = o_ep.refs[0]
-        self.assertEqual(ref_row, "I")
-
-    def test_stabilize_locked_standard_graph(self) -> None:
-        """Test stabilize with if_locked=True on a standard graph."""
-        # Create a standard graph with some unconnected endpoints
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["list"], []),
             (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
         ]
+        l_eps: list[EndpointMemberType] = [
+            (DstRow.L, 0, EPCls.DST, types_def_store["list"], []),  # Unconnected
+        ]
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
-        b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
-        ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+        ]
+        p_eps: list[EndpointMemberType] = [
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
             {
                 "Is": i_eps,
+                "Ld": l_eps,
                 "Ad": a_eps,
-                "Bd": b_eps,
                 "Od": o_eps,
+                "Pd": p_eps,
             }
         )
 
-        # Verify it's a standard graph
-        self.assertEqual(c_graph_type(cgraph), CGraphType.STANDARD)
+        # Verify it's a for-loop graph
+        self.assertEqual(c_graph_type(cgraph), CGraphType.FOR_LOOP)
 
         # Stabilize
         cgraph.stabilize(if_locked=True)
@@ -185,18 +95,10 @@ class TestStabilizeLocked(unittest.TestCase):
         # Should be stable
         self.assertTrue(cgraph.is_stable())
 
-        # Verify connections respect standard graph rules
-        ad_interface = cgraph["Ad"]
-        a_ref_row = ad_interface[0].refs[0][0]
-        self.assertEqual(a_ref_row, "I")  # A can only connect to I
-
-        bd_interface = cgraph["Bd"]
-        b_ref_row = bd_interface[0].refs[0][0]
-        self.assertIn(b_ref_row, ["I", "A"])  # B can connect to I or A
-
-        od_interface = cgraph["Od"]
-        o_ref_row = od_interface[0].refs[0][0]
-        self.assertIn(o_ref_row, ["I", "A", "B"])  # O can connect to I, A, or B
+        # Verify L only connects to I
+        ld_interface = cgraph["Ld"]
+        l_ref_row = ld_interface[0].refs[0][0]
+        self.assertEqual(l_ref_row, "I")
 
     def test_stabilize_locked_if_then_graph(self) -> None:
         """Test stabilize with if_locked=True on an if-then graph."""
@@ -252,38 +154,34 @@ class TestStabilizeLocked(unittest.TestCase):
         p_ref_row = pd_interface[0].refs[0][0]
         self.assertEqual(p_ref_row, "I")
 
-    def test_stabilize_locked_for_loop_graph(self) -> None:
-        """Test stabilize with if_locked=True on a for-loop graph."""
-        # Create a for-loop graph
+    def test_stabilize_locked_standard_graph(self) -> None:
+        """Test stabilize with if_locked=True on a standard graph."""
+        # Create a standard graph with some unconnected endpoints
         i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["list"], []),
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
             (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
-        ]
-        l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EPCls.DST, types_def_store["list"], []),  # Unconnected
         ]
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
+        b_eps: list[EndpointMemberType] = [
+            (DstRow.B, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+        ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
-        ]
-        p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
 
         cgraph = CGraph(
             {
                 "Is": i_eps,
-                "Ld": l_eps,
                 "Ad": a_eps,
+                "Bd": b_eps,
                 "Od": o_eps,
-                "Pd": p_eps,
             }
         )
 
-        # Verify it's a for-loop graph
-        self.assertEqual(c_graph_type(cgraph), CGraphType.FOR_LOOP)
+        # Verify it's a standard graph
+        self.assertEqual(c_graph_type(cgraph), CGraphType.STANDARD)
 
         # Stabilize
         cgraph.stabilize(if_locked=True)
@@ -291,10 +189,64 @@ class TestStabilizeLocked(unittest.TestCase):
         # Should be stable
         self.assertTrue(cgraph.is_stable())
 
-        # Verify L only connects to I
-        ld_interface = cgraph["Ld"]
-        l_ref_row = ld_interface[0].refs[0][0]
-        self.assertEqual(l_ref_row, "I")
+        # Verify connections respect standard graph rules
+        ad_interface = cgraph["Ad"]
+        a_ref_row = ad_interface[0].refs[0][0]
+        self.assertEqual(a_ref_row, "I")  # A can only connect to I
+
+        bd_interface = cgraph["Bd"]
+        b_ref_row = bd_interface[0].refs[0][0]
+        self.assertIn(b_ref_row, ["I", "A"])  # B can connect to I or A
+
+        od_interface = cgraph["Od"]
+        o_ref_row = od_interface[0].refs[0][0]
+        self.assertIn(o_ref_row, ["I", "A", "B"])  # O can connect to I, A, or B
+
+    def test_stabilize_locked_type_matching(self) -> None:
+        """Test that stabilize only connects endpoints of matching types."""
+        # Create a graph with specific type requirements
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["bool"], []),
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Should connect to I0
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (
+                DstRow.O,
+                0,
+                EPCls.DST,
+                types_def_store["bool"],
+                [],
+            ),  # Should connect to I1 or A0
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Stabilize
+        cgraph.stabilize(if_locked=True)
+
+        # Verify types match
+        ad_interface = cgraph["Ad"]
+        a_ep = ad_interface[0]
+        self.assertEqual(a_ep.typ, types_def_store["int"])
+        # The reference should be to I0 (the only int source)
+        ref_row, _ = a_ep.refs[0]
+        self.assertEqual(ref_row, "I")
+
+        od_interface = cgraph["Od"]
+        o_ep = od_interface[0]
+        self.assertEqual(o_ep.typ, types_def_store["bool"])
+        # The reference should be to I1 (the bool source)
+        ref_row, _ = o_ep.refs[0]
+        self.assertEqual(ref_row, "I")
 
     def test_stabilize_locked_while_loop_graph(self) -> None:
         """Test stabilize with if_locked=True on a while-loop graph."""
@@ -336,6 +288,54 @@ class TestStabilizeLocked(unittest.TestCase):
 
         # Should be stable
         self.assertTrue(cgraph.is_stable())
+
+    def test_stabilize_locked_with_unconnected_destinations(self) -> None:
+        """Test stabilize with if_locked=True with unconnected destinations."""
+        # Create a graph with unconnected destination endpoints
+        # Start by building interfaces manually
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Should not be stable initially
+        self.assertFalse(cgraph.is_stable())
+
+        # Stabilize with locked interface
+        cgraph.stabilize(if_locked=True)
+
+        # Should now be stable
+        self.assertTrue(cgraph.is_stable())
+
+        # Verify all destinations are connected
+        ad_interface = cgraph["Ad"]
+        for ep in ad_interface:
+            self.assertTrue(ep.is_connected())
+            self.assertEqual(len(ep.refs), 1)
+
+        od_interface = cgraph["Od"]
+        for ep in od_interface:
+            self.assertTrue(ep.is_connected())
+            self.assertEqual(len(ep.refs), 1)
+
+        # Verify no new input endpoints were created
+        is_interface = cgraph["Is"]
+        self.assertEqual(len(is_interface), 2)
 
 
 class TestStabilizeUnlocked(unittest.TestCase):
@@ -390,31 +390,34 @@ class TestStabilizeUnlocked(unittest.TestCase):
         type_names = {ep.typ.name for ep in is_interface}
         self.assertIn(types_def_store["str"].name, type_names)
 
-    def test_stabilize_unlocked_prefers_existing_sources(self) -> None:
-        """Test that stabilize prefers existing sources over creating new ones."""
-        # Create a graph where existing sources can satisfy all destinations
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
+    def test_stabilize_unlocked_for_loop_graph(self) -> None:
+        """Test stabilize unlocked on a for-loop graph."""
+        i_eps: list[EndpointMemberType] = []
+        l_eps: list[EndpointMemberType] = [
+            (DstRow.L, 0, EPCls.DST, types_def_store["list"], []),
         ]
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
         ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+        p_eps: list[EndpointMemberType] = [
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
             {
                 "Is": i_eps,
+                "Ld": l_eps,
                 "Ad": a_eps,
                 "Od": o_eps,
+                "Pd": p_eps,
             }
         )
 
-        # Initial input interface has 2 endpoints
-        initial_len = len(cgraph["Is"])
+        # Should be a for-loop graph
+        self.assertEqual(c_graph_type(cgraph), CGraphType.FOR_LOOP)
 
         # Stabilize
         cgraph.stabilize(if_locked=False)
@@ -422,89 +425,9 @@ class TestStabilizeUnlocked(unittest.TestCase):
         # Should be stable
         self.assertTrue(cgraph.is_stable())
 
-        # Input interface should not have grown since existing sources suffice
-        # (Note: it may grow if random selection creates new ones, but typically won't)
-        # We just verify it's stable and doesn't fail
-        self.assertGreaterEqual(len(cgraph["Is"]), initial_len)
-
-    def test_stabilize_unlocked_multiple_missing_types(self) -> None:
-        """Test stabilize creates multiple new input endpoints for different types."""
-        # Create a graph missing multiple types
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["str"], []),
-            (DstRow.A, 1, EPCls.DST, types_def_store["bool"], []),
-            (DstRow.A, 2, EPCls.DST, types_def_store["float"], []),
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Initial input interface has 1 endpoint
-        self.assertEqual(len(cgraph["Is"]), 1)
-
-        # Stabilize
-        cgraph.stabilize(if_locked=False)
-
-        # Should be stable
-        self.assertTrue(cgraph.is_stable())
-
-        # All A destinations should be connected
-        ad_interface = cgraph["Ad"]
-        for ep in ad_interface:
-            self.assertTrue(ep.is_connected())
-
-        # Input interface should have grown to accommodate missing types
-        # (at least 1, potentially up to 4)
-        self.assertGreaterEqual(len(cgraph["Is"]), 1)
-
-    def test_stabilize_unlocked_standard_graph(self) -> None:
-        """Test stabilize unlocked on a standard graph with missing types."""
-        # Standard graph with minimal sources
-        i_eps: list[EndpointMemberType] = []  # Start with no inputs
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-        b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["bool"], []),
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Should be a standard graph
-        self.assertEqual(c_graph_type(cgraph), CGraphType.STANDARD)
-
-        # Stabilize - should create necessary inputs
-        cgraph.stabilize(if_locked=False)
-
-        # Should be stable
-        self.assertTrue(cgraph.is_stable())
-
-        # All destinations should be connected
-        for row in ["Ad", "Bd", "Od"]:
-            iface = cgraph[row]
-            for ep in iface:
-                self.assertTrue(ep.is_connected())
+        # L should connect to I
+        ld_interface = cgraph["Ld"]
+        self.assertEqual(ld_interface[0].refs[0][0], "I")
 
     def test_stabilize_unlocked_if_then_else_graph(self) -> None:
         """Test stabilize unlocked on an if-then-else graph."""
@@ -552,34 +475,31 @@ class TestStabilizeUnlocked(unittest.TestCase):
                 self.assertTrue(ep.is_connected())
                 self.assertEqual(ep.refs[0][0], "I")
 
-    def test_stabilize_unlocked_for_loop_graph(self) -> None:
-        """Test stabilize unlocked on a for-loop graph."""
-        i_eps: list[EndpointMemberType] = []
-        l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EPCls.DST, types_def_store["list"], []),
+    def test_stabilize_unlocked_multiple_missing_types(self) -> None:
+        """Test stabilize creates multiple new input endpoints for different types."""
+        # Create a graph missing multiple types
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 0, EPCls.DST, types_def_store["str"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["bool"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["float"], []),
         ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-        p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
         ]
 
         cgraph = CGraph(
             {
                 "Is": i_eps,
-                "Ld": l_eps,
                 "Ad": a_eps,
                 "Od": o_eps,
-                "Pd": p_eps,
             }
         )
 
-        # Should be a for-loop graph
-        self.assertEqual(c_graph_type(cgraph), CGraphType.FOR_LOOP)
+        # Initial input interface has 1 endpoint
+        self.assertEqual(len(cgraph["Is"]), 1)
 
         # Stabilize
         cgraph.stabilize(if_locked=False)
@@ -587,9 +507,89 @@ class TestStabilizeUnlocked(unittest.TestCase):
         # Should be stable
         self.assertTrue(cgraph.is_stable())
 
-        # L should connect to I
-        ld_interface = cgraph["Ld"]
-        self.assertEqual(ld_interface[0].refs[0][0], "I")
+        # All A destinations should be connected
+        ad_interface = cgraph["Ad"]
+        for ep in ad_interface:
+            self.assertTrue(ep.is_connected())
+
+        # Input interface should have grown to accommodate missing types
+        # (at least 1, potentially up to 4)
+        self.assertGreaterEqual(len(cgraph["Is"]), 1)
+
+    def test_stabilize_unlocked_prefers_existing_sources(self) -> None:
+        """Test that stabilize prefers existing sources over creating new ones."""
+        # Create a graph where existing sources can satisfy all destinations
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Initial input interface has 2 endpoints
+        initial_len = len(cgraph["Is"])
+
+        # Stabilize
+        cgraph.stabilize(if_locked=False)
+
+        # Should be stable
+        self.assertTrue(cgraph.is_stable())
+
+        # Input interface should not have grown since existing sources suffice
+        # (Note: it may grow if random selection creates new ones, but typically won't)
+        # We just verify it's stable and doesn't fail
+        self.assertGreaterEqual(len(cgraph["Is"]), initial_len)
+
+    def test_stabilize_unlocked_standard_graph(self) -> None:
+        """Test stabilize unlocked on a standard graph with missing types."""
+        # Standard graph with minimal sources
+        i_eps: list[EndpointMemberType] = []  # Start with no inputs
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+        b_eps: list[EndpointMemberType] = [
+            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["bool"], []),
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Bd": b_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Should be a standard graph
+        self.assertEqual(c_graph_type(cgraph), CGraphType.STANDARD)
+
+        # Stabilize - should create necessary inputs
+        cgraph.stabilize(if_locked=False)
+
+        # Should be stable
+        self.assertTrue(cgraph.is_stable())
+
+        # All destinations should be connected
+        for row in ["Ad", "Bd", "Od"]:
+            iface = cgraph[row]
+            for ep in iface:
+                self.assertTrue(ep.is_connected())
 
     def test_stabilize_unlocked_while_loop_graph(self) -> None:
         """Test stabilize unlocked on a while-loop graph."""
@@ -718,44 +718,6 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         cgraph.stabilize(if_locked=True)
         self.assertTrue(cgraph.is_stable())
 
-    def test_stabilize_with_multiple_endpoints_same_type(self) -> None:
-        """Test stabilize when multiple endpoints of the same type exist."""
-        # Multiple source endpoints of the same type
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 2, EPCls.SRC, types_def_store["int"], []),
-        ]
-        # Multiple destination endpoints of the same type
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
-            (DstRow.A, 2, EPCls.DST, types_def_store["int"], []),
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Stabilize
-        cgraph.stabilize(if_locked=True)
-
-        # Should be stable
-        self.assertTrue(cgraph.is_stable())
-
-        # All A endpoints should be connected to some I endpoint
-        ad_interface = cgraph["Ad"]
-        for ep in ad_interface:
-            self.assertTrue(ep.is_connected())
-            self.assertEqual(ep.refs[0][0], "I")
-
     def test_stabilize_respects_graph_type_constraints(self) -> None:
         """Test that stabilize respects the connectivity rules of each graph type."""
         # Create a standard graph
@@ -795,6 +757,44 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         # Verify the graph after stabilization
         cgraph.verify()
 
+    def test_stabilize_with_multiple_endpoints_same_type(self) -> None:
+        """Test stabilize when multiple endpoints of the same type exist."""
+        # Multiple source endpoints of the same type
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 2, EPCls.SRC, types_def_store["int"], []),
+        ]
+        # Multiple destination endpoints of the same type
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 2, EPCls.DST, types_def_store["int"], []),
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Stabilize
+        cgraph.stabilize(if_locked=True)
+
+        # Should be stable
+        self.assertTrue(cgraph.is_stable())
+
+        # All A endpoints should be connected to some I endpoint
+        ad_interface = cgraph["Ad"]
+        for ep in ad_interface:
+            self.assertTrue(ep.is_connected())
+            self.assertEqual(ep.refs[0][0], "I")
+
 
 class TestStabilizeWithConnectAll(unittest.TestCase):
     """Test the internal connect_all method called by stabilize.
@@ -805,6 +805,45 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         seed(42)
+
+    def test_connect_all_preserves_existing_connections(self) -> None:
+        """Test that connect_all doesn't modify existing connections."""
+        # Create a graph with some pre-existing connections
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),  # Pre-connected
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),  # Pre-connected
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Verify pre-existing connection
+        ad_interface = cgraph["Ad"]
+        original_ref = ad_interface[0].refs[0]
+
+        # Connect all
+        cgraph.connect_all(if_locked=True)
+
+        # Verify the pre-existing connection wasn't modified
+        ad_interface = cgraph["Ad"]
+        self.assertEqual(ad_interface[0].refs[0], original_ref)
+
+        # Verify unconnected endpoints were connected
+        self.assertTrue(ad_interface[1].is_connected())
+        od_interface = cgraph["Od"]
+        self.assertTrue(od_interface[0].is_connected())
 
     def test_connect_all_randomization(self) -> None:
         """Test that connect_all uses randomization for connections."""
@@ -902,45 +941,6 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
         is_interface = cgraph["Is"]
         self.assertGreaterEqual(len(is_interface), 2)
 
-    def test_connect_all_preserves_existing_connections(self) -> None:
-        """Test that connect_all doesn't modify existing connections."""
-        # Create a graph with some pre-existing connections
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 0]]),  # Pre-connected
-            (SrcRow.I, 1, EPCls.SRC, types_def_store["str"], []),
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),  # Pre-connected
-            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Verify pre-existing connection
-        ad_interface = cgraph["Ad"]
-        original_ref = ad_interface[0].refs[0]
-
-        # Connect all
-        cgraph.connect_all(if_locked=True)
-
-        # Verify the pre-existing connection wasn't modified
-        ad_interface = cgraph["Ad"]
-        self.assertEqual(ad_interface[0].refs[0], original_ref)
-
-        # Verify unconnected endpoints were connected
-        self.assertTrue(ad_interface[1].is_connected())
-        od_interface = cgraph["Od"]
-        self.assertTrue(od_interface[0].is_connected())
-
 
 class TestStabilizeComplexScenarios(unittest.TestCase):
     """Test complex scenarios involving multiple graph types and edge cases."""
@@ -948,6 +948,51 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         seed(42)
+
+    def test_stabilize_if_then_else_with_multiple_branches(self) -> None:
+        """Test stabilize on if-then-else with multiple endpoints per branch."""
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], []),
+            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 2, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.I, 3, EPCls.SRC, types_def_store["str"], []),
+        ]
+        f_eps: list[EndpointMemberType] = [
+            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], []),
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
+        ]
+        b_eps: list[EndpointMemberType] = [
+            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+        p_eps: list[EndpointMemberType] = [
+            (DstRow.P, 0, EPCls.DST, types_def_store["str"], []),
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Fd": f_eps,
+                "Ad": a_eps,
+                "Bd": b_eps,
+                "Od": o_eps,
+                "Pd": p_eps,
+            }
+        )
+
+        # Verify it's an if-then-else graph
+        self.assertEqual(c_graph_type(cgraph), CGraphType.IF_THEN_ELSE)
+
+        # Stabilize
+        cgraph.stabilize(if_locked=True)
+
+        # Should be stable
+        self.assertTrue(cgraph.is_stable())
 
     def test_stabilize_large_graph_locked(self) -> None:
         """Test stabilize on a graph with many endpoints (locked)."""
@@ -1065,51 +1110,6 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
                 # Types should match
                 self.assertEqual(ep.typ, src_ep.typ)
 
-    def test_stabilize_if_then_else_with_multiple_branches(self) -> None:
-        """Test stabilize on if-then-else with multiple endpoints per branch."""
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], []),
-            (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 2, EPCls.SRC, types_def_store["int"], []),
-            (SrcRow.I, 3, EPCls.SRC, types_def_store["str"], []),
-        ]
-        f_eps: list[EndpointMemberType] = [
-            (DstRow.F, 0, EPCls.DST, types_def_store["bool"], []),
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
-        ]
-        b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-        p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EPCls.DST, types_def_store["str"], []),
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
-            }
-        )
-
-        # Verify it's an if-then-else graph
-        self.assertEqual(c_graph_type(cgraph), CGraphType.IF_THEN_ELSE)
-
-        # Stabilize
-        cgraph.stabilize(if_locked=True)
-
-        # Should be stable
-        self.assertTrue(cgraph.is_stable())
-
     def test_stabilize_with_source_reuse(self) -> None:
         """Test that multiple destinations can connect to the same source."""
         i_eps: list[EndpointMemberType] = [
@@ -1171,15 +1171,11 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         """Set up test fixtures."""
         seed(42)
 
-    def test_stabilize_locked_insufficient_sources_fails(self) -> None:
-        """Test that stabilize with if_locked=True may fail with no matching sources."""
-        # Create a graph where a destination has no matching source type
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-        ]
+    def test_stabilize_locked_all_destinations_no_sources(self) -> None:
+        """Test extreme case where no sources exist at all."""
+        # Create a graph with only destination interfaces
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
@@ -1187,70 +1183,26 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
+                "Is": [],  # Empty input interface
                 "Ad": a_eps,
                 "Od": o_eps,
             }
         )
 
-        # Should not be stable initially
+        # Should not be stable
         self.assertFalse(cgraph.is_stable())
 
         # Stabilize with locked interface
         cgraph.stabilize(if_locked=True)
 
-        # Should still not be stable - A1 couldn't be connected
+        # Should still not be stable - nothing could connect
         self.assertFalse(cgraph.is_stable())
 
-        # Verify A0 got connected but A1 didn't
+        # Verify nothing is connected
         ad_interface = cgraph["Ad"]
-        self.assertTrue(ad_interface[0].is_connected())
-        self.assertFalse(ad_interface[1].is_connected())
-
-    def test_stabilize_locked_while_loop_no_a_source_fails(self) -> None:
-        """Test that while-loop stabilization fails without As source for W."""
-        # W can only connect to As, so without As it can't be connected
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-        w_eps: list[EndpointMemberType] = [
-            (DstRow.W, 0, EPCls.DST, types_def_store["bool"], []),  # Needs As source
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-        p_eps: list[EndpointMemberType] = [
-            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Wd": w_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
-            }
-        )
-
-        # Should be a while-loop graph
-        self.assertEqual(c_graph_type(cgraph), CGraphType.WHILE_LOOP)
-
-        # Should not be stable initially
-        self.assertFalse(cgraph.is_stable())
-
-        # Stabilize with locked interface
-        cgraph.stabilize(if_locked=True)
-
-        # Should still not be stable - W couldn't connect
-        self.assertFalse(cgraph.is_stable())
-
-        # Verify W is not connected
-        wd_interface = cgraph["Wd"]
-        self.assertFalse(wd_interface[0].is_connected())
+        od_interface = cgraph["Od"]
+        self.assertFalse(ad_interface[0].is_connected())
+        self.assertFalse(od_interface[0].is_connected())
 
     def test_stabilize_locked_if_then_else_missing_b_sources_partial(self) -> None:
         """Test if-then-else with insufficient B sources remains partially unstable."""
@@ -1301,11 +1253,15 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertFalse(cgraph["Bd"][0].is_connected())
         self.assertFalse(cgraph["Pd"][0].is_connected())
 
-    def test_stabilize_locked_all_destinations_no_sources(self) -> None:
-        """Test extreme case where no sources exist at all."""
-        # Create a graph with only destination interfaces
+    def test_stabilize_locked_insufficient_sources_fails(self) -> None:
+        """Test that stabilize with if_locked=True may fail with no matching sources."""
+        # Create a graph where a destination has no matching source type
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+        ]
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # No str source
         ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
@@ -1313,26 +1269,108 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": [],  # Empty input interface
+                "Is": i_eps,
                 "Ad": a_eps,
                 "Od": o_eps,
             }
         )
 
-        # Should not be stable
+        # Should not be stable initially
         self.assertFalse(cgraph.is_stable())
 
         # Stabilize with locked interface
         cgraph.stabilize(if_locked=True)
 
-        # Should still not be stable - nothing could connect
+        # Should still not be stable - A1 couldn't be connected
         self.assertFalse(cgraph.is_stable())
 
-        # Verify nothing is connected
+        # Verify A0 got connected but A1 didn't
         ad_interface = cgraph["Ad"]
-        od_interface = cgraph["Od"]
-        self.assertFalse(ad_interface[0].is_connected())
-        self.assertFalse(od_interface[0].is_connected())
+        self.assertTrue(ad_interface[0].is_connected())
+        self.assertFalse(ad_interface[1].is_connected())
+
+    def test_stabilize_locked_standard_graph_partial_types(self) -> None:
+        """Test standard graph with only some types available."""
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+            # Missing str and bool types
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
+        ]
+        b_eps: list[EndpointMemberType] = [
+            (DstRow.B, 0, EPCls.DST, types_def_store["bool"], []),
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Bd": b_eps,
+                "Od": o_eps,
+            }
+        )
+
+        # Stabilize
+        cgraph.stabilize(if_locked=True)
+
+        # Should not be stable
+        self.assertFalse(cgraph.is_stable())
+
+        # A0 and O0 should be connected (both int), A1 and B0 should not
+        self.assertTrue(cgraph["Ad"][0].is_connected())
+        self.assertFalse(cgraph["Ad"][1].is_connected())
+        self.assertFalse(cgraph["Bd"][0].is_connected())
+        self.assertTrue(cgraph["Od"][0].is_connected())
+
+    def test_stabilize_locked_while_loop_no_a_source_fails(self) -> None:
+        """Test that while-loop stabilization fails without As source for W."""
+        # W can only connect to As, so without As it can't be connected
+        i_eps: list[EndpointMemberType] = [
+            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
+        ]
+        a_eps: list[EndpointMemberType] = [
+            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+        w_eps: list[EndpointMemberType] = [
+            (DstRow.W, 0, EPCls.DST, types_def_store["bool"], []),  # Needs As source
+        ]
+        o_eps: list[EndpointMemberType] = [
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+        p_eps: list[EndpointMemberType] = [
+            (DstRow.P, 0, EPCls.DST, types_def_store["int"], []),
+        ]
+
+        cgraph = CGraph(
+            {
+                "Is": i_eps,
+                "Ad": a_eps,
+                "Wd": w_eps,
+                "Od": o_eps,
+                "Pd": p_eps,
+            }
+        )
+
+        # Should be a while-loop graph
+        self.assertEqual(c_graph_type(cgraph), CGraphType.WHILE_LOOP)
+
+        # Should not be stable initially
+        self.assertFalse(cgraph.is_stable())
+
+        # Stabilize with locked interface
+        cgraph.stabilize(if_locked=True)
+
+        # Should still not be stable - W couldn't connect
+        self.assertFalse(cgraph.is_stable())
+
+        # Verify W is not connected
+        wd_interface = cgraph["Wd"]
+        self.assertFalse(wd_interface[0].is_connected())
 
     def test_stabilize_unlocked_always_succeeds(self) -> None:
         """Test that stabilize with if_locked=False always achieves stability."""
@@ -1372,44 +1410,6 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         # Verify new input endpoints were created
         is_interface = cgraph["Is"]
         self.assertGreater(len(is_interface), 0)
-
-    def test_stabilize_locked_standard_graph_partial_types(self) -> None:
-        """Test standard graph with only some types available."""
-        i_eps: list[EndpointMemberType] = [
-            (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-            # Missing str and bool types
-        ]
-        a_eps: list[EndpointMemberType] = [
-            (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
-            (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
-        ]
-        b_eps: list[EndpointMemberType] = [
-            (DstRow.B, 0, EPCls.DST, types_def_store["bool"], []),
-        ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
-
-        cgraph = CGraph(
-            {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
-            }
-        )
-
-        # Stabilize
-        cgraph.stabilize(if_locked=True)
-
-        # Should not be stable
-        self.assertFalse(cgraph.is_stable())
-
-        # A0 and O0 should be connected (both int), A1 and B0 should not
-        self.assertTrue(cgraph["Ad"][0].is_connected())
-        self.assertFalse(cgraph["Ad"][1].is_connected())
-        self.assertFalse(cgraph["Bd"][0].is_connected())
-        self.assertTrue(cgraph["Od"][0].is_connected())
 
 
 if __name__ == "__main__":

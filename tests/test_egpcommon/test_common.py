@@ -19,32 +19,6 @@ from egpcommon.common import (
 class TestCommon(TestCase):
     """Test cases for the common module."""
 
-    def test_sha256_signature(self) -> None:
-        """Test the sha256_signature function."""
-        ancestora: bytes = b"ancestora"
-        ancestorb: bytes = b"ancestorb"
-        pgc: bytes = b"pgc"
-        gca: bytes = b"gca"
-        gcb: bytes = b"gcb"
-        graph: dict[str, Any] = {"a": 1, "b": 2}
-        imports: tuple = ()
-        inline: str = "def f(x): return x+1"
-        code: str = ""
-        created: int = 0
-        creator: bytes = uuid4().bytes
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, imports, inline, code, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
-        # Test with None meta_data
-        signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, imports, "", code, created, creator
-        )
-        self.assertEqual(len(signature), 32)
-        self.assertNotEqual(signature, NULL_SHA256)
-
     def test_bin_counts(self) -> None:
         """Test the bin_counts function."""
         # Test with empty data
@@ -151,6 +125,32 @@ class TestCommon(TestCase):
         with self.assertRaises(ValueError):
             random_int_tuple_generator(-5, -10)
 
+    def test_sha256_signature(self) -> None:
+        """Test the sha256_signature function."""
+        ancestora: bytes = b"ancestora"
+        ancestorb: bytes = b"ancestorb"
+        pgc: bytes = b"pgc"
+        gca: bytes = b"gca"
+        gcb: bytes = b"gcb"
+        graph: dict[str, Any] = {"a": 1, "b": 2}
+        imports: tuple = ()
+        inline: str = "def f(x): return x+1"
+        code: str = ""
+        created: int = 0
+        creator: bytes = uuid4().bytes
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, imports, inline, code, created, creator
+        )
+        self.assertEqual(len(signature), 32)
+        self.assertNotEqual(signature, NULL_SHA256)
+
+        # Test with None meta_data
+        signature: bytes = sha256_signature(
+            ancestora, ancestorb, gca, gcb, graph, pgc, imports, "", code, created, creator
+        )
+        self.assertEqual(len(signature), 32)
+        self.assertNotEqual(signature, NULL_SHA256)
+
 
 class TestEnsureSortedJsonKeys(TestCase):
     """Test cases for the ensure_sorted_json_keys function."""
@@ -174,67 +174,6 @@ class TestEnsureSortedJsonKeys(TestCase):
 
             self.assertEqual(result, data)
             self.assertEqual(list(result.keys()), ["a", "b", "c"])
-
-    def test_unsorted_keys_get_sorted(self) -> None:
-        """Test with a JSON file that has unsorted keys."""
-        with TemporaryDirectory() as temp_dir:
-            test_file = Path(temp_dir) / "test.json"
-            data = {"z": 1, "a": 2, "m": 3}
-
-            # Write unsorted data
-            with test_file.open("w", encoding="utf-8") as file:
-                dump(data, file, indent=2)
-
-            # Run the function
-            ensure_sorted_json_keys(test_file)
-
-            # Verify the file was rewritten with sorted keys
-            with test_file.open("r", encoding="utf-8") as file:
-                result = load(file)
-
-            self.assertEqual(result, data)  # Same values
-            self.assertEqual(list(result.keys()), ["a", "m", "z"])  # But sorted keys
-
-    def test_string_path(self) -> None:
-        """Test that the function accepts a string path."""
-        with TemporaryDirectory() as temp_dir:
-            test_file = Path(temp_dir) / "test.json"
-            data = {"b": 1, "a": 2}
-
-            # Write unsorted data
-            with test_file.open("w", encoding="utf-8") as file:
-                dump(data, file, indent=2)
-
-            # Run the function with string path
-            ensure_sorted_json_keys(str(test_file))
-
-            # Verify the file was rewritten with sorted keys
-            with test_file.open("r", encoding="utf-8") as file:
-                result = load(file)
-
-            self.assertEqual(list(result.keys()), ["a", "b"])
-
-    def test_nested_dict_values(self) -> None:
-        """Test with nested dictionaries as values (they should not be sorted)."""
-        with TemporaryDirectory() as temp_dir:
-            test_file = Path(temp_dir) / "test.json"
-            data = {"z": {"nested_z": 1, "nested_a": 2}, "a": {"inner_b": 3, "inner_a": 4}}
-
-            # Write unsorted data
-            with test_file.open("w", encoding="utf-8") as file:
-                dump(data, file, indent=2)
-
-            # Run the function
-            ensure_sorted_json_keys(test_file)
-
-            # Verify only top-level keys are sorted
-            with test_file.open("r", encoding="utf-8") as file:
-                result = load(file)
-
-            self.assertEqual(list(result.keys()), ["a", "z"])
-            # Nested dictionaries should retain their original order
-            self.assertEqual(result["z"], {"nested_z": 1, "nested_a": 2})
-            self.assertEqual(result["a"], {"inner_b": 3, "inner_a": 4})
 
     def test_complex_values(self) -> None:
         """Test with various JSON value types."""
@@ -274,20 +213,65 @@ class TestEnsureSortedJsonKeys(TestCase):
             self.assertEqual(list(result.keys()), expected_order)
             self.assertEqual(result, data)
 
-    def test_not_a_dictionary_raises_error(self) -> None:
-        """Test that a JSON file containing a list raises ValueError."""
+    def test_empty_dict(self) -> None:
+        """Test with an empty dictionary."""
         with TemporaryDirectory() as temp_dir:
             test_file = Path(temp_dir) / "test.json"
+            data: dict[str, Any] = {}
 
-            # Write a list instead of a dictionary
+            # Write empty dict
             with test_file.open("w", encoding="utf-8") as file:
-                dump([1, 2, 3], file)
+                dump(data, file, indent=2)
 
-            # Verify ValueError is raised
-            with self.assertRaises(ValueError) as context:
-                ensure_sorted_json_keys(test_file)
+            # Run the function
+            ensure_sorted_json_keys(test_file)
 
-            self.assertIn("must contain a dictionary", str(context.exception))
+            # Verify the file is still an empty dict
+            with test_file.open("r", encoding="utf-8") as file:
+                result = load(file)
+
+            self.assertEqual(result, {})
+
+    def test_file_not_found_raises_error(self) -> None:
+        """Test that a non-existent file raises FileNotFoundError."""
+        with self.assertRaises(FileNotFoundError):
+            ensure_sorted_json_keys("/nonexistent/path/to/file.json")
+
+    def test_invalid_json_raises_error(self) -> None:
+        """Test that invalid JSON content raises JSONDecodeError."""
+        with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as temp_file:
+            temp_file.write("{ invalid json content }")
+            temp_file_path = temp_file.name
+
+        try:
+            from json import JSONDecodeError
+
+            with self.assertRaises(JSONDecodeError):
+                ensure_sorted_json_keys(temp_file_path)
+        finally:
+            Path(temp_file_path).unlink()
+
+    def test_nested_dict_values(self) -> None:
+        """Test with nested dictionaries as values (they should not be sorted)."""
+        with TemporaryDirectory() as temp_dir:
+            test_file = Path(temp_dir) / "test.json"
+            data = {"z": {"nested_z": 1, "nested_a": 2}, "a": {"inner_b": 3, "inner_a": 4}}
+
+            # Write unsorted data
+            with test_file.open("w", encoding="utf-8") as file:
+                dump(data, file, indent=2)
+
+            # Run the function
+            ensure_sorted_json_keys(test_file)
+
+            # Verify only top-level keys are sorted
+            with test_file.open("r", encoding="utf-8") as file:
+                result = load(file)
+
+            self.assertEqual(list(result.keys()), ["a", "z"])
+            # Nested dictionaries should retain their original order
+            self.assertEqual(result["z"], {"nested_z": 1, "nested_a": 2})
+            self.assertEqual(result["a"], {"inner_b": 3, "inner_a": 4})
 
     def test_non_string_key_raises_error(self) -> None:
         """Test that non-string keys raise ValueError."""
@@ -311,43 +295,20 @@ class TestEnsureSortedJsonKeys(TestCase):
 
             self.assertEqual(list(result.keys()), ["another_key", "valid_key"])
 
-    def test_file_not_found_raises_error(self) -> None:
-        """Test that a non-existent file raises FileNotFoundError."""
-        with self.assertRaises(FileNotFoundError):
-            ensure_sorted_json_keys("/nonexistent/path/to/file.json")
-
-    def test_invalid_json_raises_error(self) -> None:
-        """Test that invalid JSON content raises JSONDecodeError."""
-        with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as temp_file:
-            temp_file.write("{ invalid json content }")
-            temp_file_path = temp_file.name
-
-        try:
-            from json import JSONDecodeError
-
-            with self.assertRaises(JSONDecodeError):
-                ensure_sorted_json_keys(temp_file_path)
-        finally:
-            Path(temp_file_path).unlink()
-
-    def test_empty_dict(self) -> None:
-        """Test with an empty dictionary."""
+    def test_not_a_dictionary_raises_error(self) -> None:
+        """Test that a JSON file containing a list raises ValueError."""
         with TemporaryDirectory() as temp_dir:
             test_file = Path(temp_dir) / "test.json"
-            data: dict[str, Any] = {}
 
-            # Write empty dict
+            # Write a list instead of a dictionary
             with test_file.open("w", encoding="utf-8") as file:
-                dump(data, file, indent=2)
+                dump([1, 2, 3], file)
 
-            # Run the function
-            ensure_sorted_json_keys(test_file)
+            # Verify ValueError is raised
+            with self.assertRaises(ValueError) as context:
+                ensure_sorted_json_keys(test_file)
 
-            # Verify the file is still an empty dict
-            with test_file.open("r", encoding="utf-8") as file:
-                result = load(file)
-
-            self.assertEqual(result, {})
+            self.assertIn("must contain a dictionary", str(context.exception))
 
     def test_single_key(self) -> None:
         """Test with a dictionary containing a single key."""
@@ -367,3 +328,42 @@ class TestEnsureSortedJsonKeys(TestCase):
                 result = load(file)
 
             self.assertEqual(result, data)
+
+    def test_string_path(self) -> None:
+        """Test that the function accepts a string path."""
+        with TemporaryDirectory() as temp_dir:
+            test_file = Path(temp_dir) / "test.json"
+            data = {"b": 1, "a": 2}
+
+            # Write unsorted data
+            with test_file.open("w", encoding="utf-8") as file:
+                dump(data, file, indent=2)
+
+            # Run the function with string path
+            ensure_sorted_json_keys(str(test_file))
+
+            # Verify the file was rewritten with sorted keys
+            with test_file.open("r", encoding="utf-8") as file:
+                result = load(file)
+
+            self.assertEqual(list(result.keys()), ["a", "b"])
+
+    def test_unsorted_keys_get_sorted(self) -> None:
+        """Test with a JSON file that has unsorted keys."""
+        with TemporaryDirectory() as temp_dir:
+            test_file = Path(temp_dir) / "test.json"
+            data = {"z": 1, "a": 2, "m": 3}
+
+            # Write unsorted data
+            with test_file.open("w", encoding="utf-8") as file:
+                dump(data, file, indent=2)
+
+            # Run the function
+            ensure_sorted_json_keys(test_file)
+
+            # Verify the file was rewritten with sorted keys
+            with test_file.open("r", encoding="utf-8") as file:
+                result = load(file)
+
+            self.assertEqual(result, data)  # Same values
+            self.assertEqual(list(result.keys()), ["a", "m", "z"])  # But sorted keys

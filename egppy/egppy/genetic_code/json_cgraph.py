@@ -26,6 +26,144 @@ from egppy.genetic_code.types_def import types_def_store
 _logger: Logger = egp_logger(name=__name__)
 
 
+def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
+    """Return a dictionary of valid destination rows for the given graph type."""
+    match graph_type:
+        case CGraphType.IF_THEN:
+            return {
+                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.O, DstRow.P}),
+                SrcRow.A: frozenset({DstRow.O}),
+            }
+        case CGraphType.IF_THEN_ELSE:
+            return {
+                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.B, DstRow.P, DstRow.O}),
+                SrcRow.A: frozenset({DstRow.O}),
+                SrcRow.B: frozenset({DstRow.P}),
+            }
+        case CGraphType.EMPTY:
+            return {
+                SrcRow.I: NULL_FROZENSET,
+            }
+        case CGraphType.FOR_LOOP:
+            return {
+                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.S, DstRow.O, DstRow.P}),
+                SrcRow.L: frozenset({DstRow.A}),
+                SrcRow.S: frozenset({DstRow.A}),
+                SrcRow.A: frozenset({DstRow.T, DstRow.O}),
+            }
+        case CGraphType.WHILE_LOOP:
+            return {
+                SrcRow.I: frozenset({DstRow.A, DstRow.S, DstRow.W, DstRow.O, DstRow.P}),
+                SrcRow.S: frozenset({DstRow.A}),
+                SrcRow.W: frozenset({DstRow.A}),
+                SrcRow.A: frozenset({DstRow.T, DstRow.X, DstRow.O}),
+            }
+        case CGraphType.STANDARD:
+            return {
+                SrcRow.I: frozenset({DstRow.A, DstRow.B, DstRow.O}),
+                SrcRow.A: frozenset({DstRow.B, DstRow.O}),
+                SrcRow.B: frozenset({DstRow.O}),
+            }
+        case CGraphType.PRIMITIVE:
+            return {
+                SrcRow.I: frozenset({DstRow.A, DstRow.O}),
+                SrcRow.A: frozenset({DstRow.O}),
+            }
+        case CGraphType.UNKNOWN:  # The superset case
+            return {
+                SrcRow.I: frozenset(
+                    {DstRow.A, DstRow.B, DstRow.F, DstRow.L, DstRow.O, DstRow.P, DstRow.W, DstRow.U}
+                ),
+                # FIXME: Can L ever not be connected?
+                SrcRow.L: frozenset({DstRow.A, DstRow.U}),
+                SrcRow.A: frozenset({DstRow.B, DstRow.O, DstRow.W, DstRow.U}),
+                SrcRow.B: frozenset({DstRow.O, DstRow.P, DstRow.U}),
+            }
+        case _:
+            # There are no valid rows for this graph type (likely RESERVED)
+            return {}
+
+
+def valid_jcg(jcg: JSONCGraph) -> bool:
+    """Validate a JSON connection graph.
+
+    The JSON connection graph format is as follows:
+    {
+        "DstRow1": [ [src_row: str, src_idx: int, endpoint_type: str], ... ],
+        "DstRow2": [ [src_row: str, src_idx: int, endpoint_type: str], ... ],
+        ...
+    }
+    DstRowX is a string representing the destination row (e.g., "A", "O", etc.).
+    and must be in the order defined in DstRow enum.
+    DstRowX key:value pairs must only be present if at least one source endpoint
+    is defined.
+    The rules defining connection graphs are such that the existence of an interface
+    can be inferred. See c_graph_abc.py module docstring for more details.
+
+    Args:
+        jcg: The JSON connection graph to validate.
+
+    Returns:
+        True if the JSON connection graph is valid, False otherwise.
+    """
+    # Check that all keys are valid
+    for key in jcg.keys():
+        if key not in DstRow:
+            raise ValueError(f"Invalid key in JSON connection graph: {key}")
+
+    # Check that all values are valid
+    for key, epts in jcg.items():
+        if not isinstance(epts, list):
+            raise TypeError(f"Invalid value in JSON connection graph: {epts}")
+
+    # Check that connectivity is valid
+    for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():
+        for src in jcg.get(dst, []):
+            if not isinstance(src, list):
+                raise TypeError("Expected a list of defining an endpoint.")
+            srow = src[CPI.ROW]
+            if not isinstance(srow, str):
+                raise TypeError("Expected a destination row")
+            row: SrcRow | None = SOURCE_ROW_MAP.get(srow)
+            idx = src[CPI.IDX]
+            ept = src[CPI.TYP]
+            if row is None:
+                raise ValueError("Expected a valid source row")
+            if not isinstance(idx, int):
+                raise TypeError("Expected an integer index")
+            if not isinstance(ept, str):
+                raise TypeError("Expected a list of endpoint int types")
+
+            if row not in vsr:
+                raise ValueError(
+                    f"Invalid source row in JSON connection graph: {row} for destination {dst}"
+                )
+            if not 0 <= idx < 256:
+                raise ValueError(
+                    f"Index out of range for JSON connection graph: {idx} for destination {dst}"
+                )
+            if not ept in types_def_store:
+                raise ValueError(
+                    f"Invalid endpoint type in JSON connection graph: {ept} for destination {dst}"
+                )
+
+    return True
+
+
+def valid_rows(graph_type: CGraphType) -> frozenset[Row]:
+    """Return a dictionary of valid rows for the given graph type.
+
+    Args:
+        graph_type: The type of graph to validate.
+
+    Returns:
+        A dictionary of valid rows for the given graph type.
+    """
+    return frozenset(valid_dst_rows(graph_type).keys()) | frozenset(
+        valid_src_rows(graph_type).keys()
+    )
+
+
 # NOTE: There are a lot of duplicate frozensets in this module. They have not been reduced to
 # constants because they are used in different contexts and it is not clear that they
 # can be safely reused as they are in different contexts (and future changes may then
@@ -110,148 +248,60 @@ def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
     return retval
 
 
-def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
-    """Return a dictionary of valid destination rows for the given graph type."""
-    match graph_type:
-        case CGraphType.IF_THEN:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.O, DstRow.P}),
-                SrcRow.A: frozenset({DstRow.O}),
-            }
-        case CGraphType.IF_THEN_ELSE:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.B, DstRow.P, DstRow.O}),
-                SrcRow.A: frozenset({DstRow.O}),
-                SrcRow.B: frozenset({DstRow.P}),
-            }
-        case CGraphType.EMPTY:
-            return {
-                SrcRow.I: NULL_FROZENSET,
-            }
-        case CGraphType.FOR_LOOP:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.S, DstRow.O, DstRow.P}),
-                SrcRow.L: frozenset({DstRow.A}),
-                SrcRow.S: frozenset({DstRow.A}),
-                SrcRow.A: frozenset({DstRow.T, DstRow.O}),
-            }
-        case CGraphType.WHILE_LOOP:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.S, DstRow.W, DstRow.O, DstRow.P}),
-                SrcRow.S: frozenset({DstRow.A}),
-                SrcRow.W: frozenset({DstRow.A}),
-                SrcRow.A: frozenset({DstRow.T, DstRow.X, DstRow.O}),
-            }
-        case CGraphType.STANDARD:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.B, DstRow.O}),
-                SrcRow.A: frozenset({DstRow.B, DstRow.O}),
-                SrcRow.B: frozenset({DstRow.O}),
-            }
-        case CGraphType.PRIMITIVE:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.O}),
-                SrcRow.A: frozenset({DstRow.O}),
-            }
-        case CGraphType.UNKNOWN:  # The superset case
-            return {
-                SrcRow.I: frozenset(
-                    {DstRow.A, DstRow.B, DstRow.F, DstRow.L, DstRow.O, DstRow.P, DstRow.W, DstRow.U}
-                ),
-                # FIXME: Can L ever not be connected?
-                SrcRow.L: frozenset({DstRow.A, DstRow.U}),
-                SrcRow.A: frozenset({DstRow.B, DstRow.O, DstRow.W, DstRow.U}),
-                SrcRow.B: frozenset({DstRow.O, DstRow.P, DstRow.U}),
-            }
-        case _:
-            # There are no valid rows for this graph type (likely RESERVED)
-            return {}
-
-
-def valid_rows(graph_type: CGraphType) -> frozenset[Row]:
-    """Return a dictionary of valid rows for the given graph type.
-
-    Args:
-        graph_type: The type of graph to validate.
-
-    Returns:
-        A dictionary of valid rows for the given graph type.
-    """
-    return frozenset(valid_dst_rows(graph_type).keys()) | frozenset(
-        valid_src_rows(graph_type).keys()
-    )
-
-
-def valid_jcg(jcg: JSONCGraph) -> bool:
-    """Validate a JSON connection graph.
-
-    The JSON connection graph format is as follows:
-    {
-        "DstRow1": [ [src_row: str, src_idx: int, endpoint_type: str], ... ],
-        "DstRow2": [ [src_row: str, src_idx: int, endpoint_type: str], ... ],
-        ...
-    }
-    DstRowX is a string representing the destination row (e.g., "A", "O", etc.).
-    and must be in the order defined in DstRow enum.
-    DstRowX key:value pairs must only be present if at least one source endpoint
-    is defined.
-    The rules defining connection graphs are such that the existence of an interface
-    can be inferred. See c_graph_abc.py module docstring for more details.
-
-    Args:
-        jcg: The JSON connection graph to validate.
-
-    Returns:
-        True if the JSON connection graph is valid, False otherwise.
-    """
-    # Check that all keys are valid
-    for key in jcg.keys():
-        if key not in DstRow:
-            raise ValueError(f"Invalid key in JSON connection graph: {key}")
-
-    # Check that all values are valid
-    for key, epts in jcg.items():
-        if not isinstance(epts, list):
-            raise TypeError(f"Invalid value in JSON connection graph: {epts}")
-
-    # Check that connectivity is valid
-    for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():
-        for src in jcg.get(dst, []):
-            if not isinstance(src, list):
-                raise TypeError("Expected a list of defining an endpoint.")
-            srow = src[CPI.ROW]
-            if not isinstance(srow, str):
-                raise TypeError("Expected a destination row")
-            row: SrcRow | None = SOURCE_ROW_MAP.get(srow)
-            idx = src[CPI.IDX]
-            ept = src[CPI.TYP]
-            if row is None:
-                raise ValueError("Expected a valid source row")
-            if not isinstance(idx, int):
-                raise TypeError("Expected an integer index")
-            if not isinstance(ept, str):
-                raise TypeError("Expected a list of endpoint int types")
-
-            if row not in vsr:
-                raise ValueError(
-                    f"Invalid source row in JSON connection graph: {row} for destination {dst}"
-                )
-            if not 0 <= idx < 256:
-                raise ValueError(
-                    f"Index out of range for JSON connection graph: {idx} for destination {dst}"
-                )
-            if not ept in types_def_store:
-                raise ValueError(
-                    f"Invalid endpoint type in JSON connection graph: {ept} for destination {dst}"
-                )
-
-    return True
-
-
 # Constants
 CGT_VALID_SRC_ROWS = {cgt: valid_src_rows(cgt) for cgt in CGraphType}
 CGT_VALID_DST_ROWS = {cgt: valid_dst_rows(cgt) for cgt in CGraphType}
 CGT_VALID_ROWS = {cgt: valid_rows(cgt) for cgt in CGraphType}
+
+
+def c_graph_type(jcg: JSONCGraph | CGraphABC) -> CGraphType:
+    """Identify the connection graph type from the JSON graph."""
+    # Find all the rows present in the connection graph
+    # For a JSONCGraph it is necessarily to introspect all the destination
+    # endpoints to find the source rows as well as ensure I and O are included.
+    if isinstance(jcg, dict):
+        jcg_set = set(jcg) | {src[0] for row in jcg.values() for src in row} | {"O", "I"}
+        if "F" in jcg_set or "L" in jcg_set or "W" in jcg_set:
+            # Ensure P exists if F, L, or W exist (it will not as it is always a duplicate of Od)
+            jcg_set.add("P")
+    else:
+        jcg_set = set(k[0] for k in jcg)
+    if _logger.isEnabledFor(level=DEBUG):
+        if DstRow.O not in jcg_set:
+            raise ValueError("All connection graphs must have a row O.")
+        if DstRow.F in jcg_set:
+            if DstRow.A not in jcg_set:
+                raise ValueError("All conditional connection graphs must have a row A.")
+            if DstRow.P not in jcg_set:
+                raise ValueError("All conditional connection graphs must have a row P.")
+            return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
+        if DstRow.L in jcg_set:
+            if DstRow.A not in jcg_set:
+                raise ValueError("All loop connection graphs must have a row A.")
+            if DstRow.P not in jcg_set:
+                raise ValueError("All loop connection graphs must have a row P.")
+            return CGraphType.FOR_LOOP
+        if DstRow.W in jcg_set:
+            if DstRow.A not in jcg_set:
+                raise ValueError("All loop connection graphs must have a row A.")
+            if DstRow.P not in jcg_set:
+                raise ValueError("All loop connection graphs must have a row P.")
+            return CGraphType.WHILE_LOOP
+        if DstRow.B in jcg_set:
+            if DstRow.A not in jcg_set:
+                raise ValueError("A standard graph must have a row A.")
+            return CGraphType.STANDARD
+
+    # Same as above but without the checks
+    if DstRow.F in jcg_set:
+        return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
+    if DstRow.L in jcg_set:
+        return CGraphType.FOR_LOOP
+    if DstRow.W in jcg_set:
+        return CGraphType.WHILE_LOOP
+    if DstRow.B in jcg_set:
+        return CGraphType.STANDARD
+    return CGraphType.PRIMITIVE if DstRow.A in jcg_set else CGraphType.EMPTY
 
 
 def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberType]]:
@@ -348,53 +398,3 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
     ):
         interfaces["Pd"] = []
     return interfaces
-
-
-def c_graph_type(jcg: JSONCGraph | CGraphABC) -> CGraphType:
-    """Identify the connection graph type from the JSON graph."""
-    # Find all the rows present in the connection graph
-    # For a JSONCGraph it is necessarily to introspect all the destination
-    # endpoints to find the source rows as well as ensure I and O are included.
-    if isinstance(jcg, dict):
-        jcg_set = set(jcg) | {src[0] for row in jcg.values() for src in row} | {"O", "I"}
-        if "F" in jcg_set or "L" in jcg_set or "W" in jcg_set:
-            # Ensure P exists if F, L, or W exist (it will not as it is always a duplicate of Od)
-            jcg_set.add("P")
-    else:
-        jcg_set = set(k[0] for k in jcg)
-    if _logger.isEnabledFor(level=DEBUG):
-        if DstRow.O not in jcg_set:
-            raise ValueError("All connection graphs must have a row O.")
-        if DstRow.F in jcg_set:
-            if DstRow.A not in jcg_set:
-                raise ValueError("All conditional connection graphs must have a row A.")
-            if DstRow.P not in jcg_set:
-                raise ValueError("All conditional connection graphs must have a row P.")
-            return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
-        if DstRow.L in jcg_set:
-            if DstRow.A not in jcg_set:
-                raise ValueError("All loop connection graphs must have a row A.")
-            if DstRow.P not in jcg_set:
-                raise ValueError("All loop connection graphs must have a row P.")
-            return CGraphType.FOR_LOOP
-        if DstRow.W in jcg_set:
-            if DstRow.A not in jcg_set:
-                raise ValueError("All loop connection graphs must have a row A.")
-            if DstRow.P not in jcg_set:
-                raise ValueError("All loop connection graphs must have a row P.")
-            return CGraphType.WHILE_LOOP
-        if DstRow.B in jcg_set:
-            if DstRow.A not in jcg_set:
-                raise ValueError("A standard graph must have a row A.")
-            return CGraphType.STANDARD
-
-    # Same as above but without the checks
-    if DstRow.F in jcg_set:
-        return CGraphType.IF_THEN_ELSE if DstRow.B in jcg_set else CGraphType.IF_THEN
-    if DstRow.L in jcg_set:
-        return CGraphType.FOR_LOOP
-    if DstRow.W in jcg_set:
-        return CGraphType.WHILE_LOOP
-    if DstRow.B in jcg_set:
-        return CGraphType.STANDARD
-    return CGraphType.PRIMITIVE if DstRow.A in jcg_set else CGraphType.EMPTY

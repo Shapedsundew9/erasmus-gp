@@ -27,14 +27,6 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
         super().__init__(config=config)
         self.data: dict[Hashable, CacheableObjABC] = {}
 
-    def __iter__(self) -> Iterator:
-        """Return an iterator over the cache."""
-        return iter(self.data)
-
-    def __len__(self) -> int:
-        """Return the number of items in the cache."""
-        return len(self.data)
-
     def __contains__(self, key: Hashable) -> bool:
         """Check if the cache contains a key."""
         return key in self.data
@@ -57,6 +49,14 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
         item: CacheableObjABC = self.data[key]
         item.touch()
         return item
+
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the cache."""
+        return iter(self.data)
+
+    def __len__(self) -> int:
+        """Return the number of items in the cache."""
+        return len(self.data)
 
     def __setitem__(self, key: Any, value: CacheableObjABC) -> None:
         """Set an item in the cache. If the cache is full make space first."""

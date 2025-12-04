@@ -80,28 +80,7 @@ class FrozenEndPoint(EndPointABC):
             )
         )
 
-    def __ne__(self, value: object) -> bool:
-        """Check inequality of FrozenEndPoint instances.
-
-        Args:
-            value (object): Object to compare with.
-
-        Returns:
-            bool: True if endpoints are not equal, False otherwise.
-        """
-        return not self.__eq__(value)
-
-    def __hash__(self) -> int:
-        """Return the hash of the endpoint.
-
-        Returns pre-computed hash for O(1) performance.
-
-        Returns:
-            int: Hash value computed from all endpoint attributes.
-        """
-        return self._hash
-
-    def __lt__(self, other: object) -> bool:
+    def __ge__(self, other: object) -> bool:
         """Compare FrozenEndPoint instances for sorting.
 
         Endpoints are compared based on their idx attribute for ordering within a row.
@@ -110,28 +89,12 @@ class FrozenEndPoint(EndPointABC):
             other (object): Object to compare with.
 
         Returns:
-            bool: True if self.idx < other.idx, False otherwise.
+            bool: True if self.idx >= other.idx, False otherwise.
             NotImplemented: If other is not an EndPointABC instance.
         """
         if not isinstance(other, EndPointABC):
             return NotImplemented
-        return self.idx < other.idx
-
-    def __le__(self, other: object) -> bool:
-        """Compare FrozenEndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute for ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx <= other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
-        """
-        if not isinstance(other, EndPointABC):
-            return NotImplemented
-        return self.idx <= other.idx
+        return self.idx >= other.idx
 
     def __gt__(self, other: object) -> bool:
         """Compare FrozenEndPoint instances for sorting.
@@ -149,7 +112,17 @@ class FrozenEndPoint(EndPointABC):
             return NotImplemented
         return self.idx > other.idx
 
-    def __ge__(self, other: object) -> bool:
+    def __hash__(self) -> int:
+        """Return the hash of the endpoint.
+
+        Returns pre-computed hash for O(1) performance.
+
+        Returns:
+            int: Hash value computed from all endpoint attributes.
+        """
+        return self._hash
+
+    def __le__(self, other: object) -> bool:
         """Compare FrozenEndPoint instances for sorting.
 
         Endpoints are compared based on their idx attribute for ordering within a row.
@@ -158,12 +131,39 @@ class FrozenEndPoint(EndPointABC):
             other (object): Object to compare with.
 
         Returns:
-            bool: True if self.idx >= other.idx, False otherwise.
+            bool: True if self.idx <= other.idx, False otherwise.
             NotImplemented: If other is not an EndPointABC instance.
         """
         if not isinstance(other, EndPointABC):
             return NotImplemented
-        return self.idx >= other.idx
+        return self.idx <= other.idx
+
+    def __lt__(self, other: object) -> bool:
+        """Compare FrozenEndPoint instances for sorting.
+
+        Endpoints are compared based on their idx attribute for ordering within a row.
+
+        Args:
+            other (object): Object to compare with.
+
+        Returns:
+            bool: True if self.idx < other.idx, False otherwise.
+            NotImplemented: If other is not an EndPointABC instance.
+        """
+        if not isinstance(other, EndPointABC):
+            return NotImplemented
+        return self.idx < other.idx
+
+    def __ne__(self, value: object) -> bool:
+        """Check inequality of FrozenEndPoint instances.
+
+        Args:
+            value (object): Object to compare with.
+
+        Returns:
+            bool: True if endpoints are not equal, False otherwise.
+        """
+        return not self.__eq__(value)
 
     def __str__(self) -> str:
         """Return the string representation of the endpoint.
@@ -179,6 +179,10 @@ class FrozenEndPoint(EndPointABC):
             f", typ={self.typ}, refs={list(self.refs_tuple)})"
         )
 
+    def clr_refs(self) -> EndPointABC:
+        """Clear all references in the endpoint."""
+        raise RuntimeError("Cannot modify a frozen EndPoint")
+
     def connect(self, other: EndPointABC) -> None:
         """Connect this endpoint to another endpoint.
 
@@ -190,6 +194,37 @@ class FrozenEndPoint(EndPointABC):
         """
         raise RuntimeError("Cannot modify a frozen EndPoint")
 
+    def consistency(self) -> None:
+        """Check the consistency of the FrozenEndPoint.
+
+        Performs semantic validation that may be expensive. This method is called
+        by verify() when CONSISTENCY logging is enabled.
+
+        Validates:
+            - Reference structure matches endpoint class rules
+            - Source endpoints can have multiple refs, destinations only one
+            - All references point to appropriate row types
+        """
+        # Destination endpoints should have exactly 0 or 1 reference
+        if self.epcls == EPCls.DST and len(self.refs_tuple) > 1:
+            raise ValueError(
+                f"Destination endpoint can only have 0 or 1 reference, has {len(self.refs_tuple)}"
+            )
+
+        # Source endpoints reference destination rows, and vice versa
+        if self.epcls == EPCls.SRC:
+            for ref in self.refs_tuple:
+                if ref[0] not in DESTINATION_ROW_SET:
+                    raise ValueError(
+                        f"Source endpoint can only reference destination rows, got {ref[0]}"
+                    )
+        else:  # DST
+            for ref in self.refs_tuple:
+                if ref[0] not in SOURCE_ROW_SET:
+                    raise ValueError(
+                        f"Destination endpoint can only reference source rows, got {ref[0]}"
+                    )
+
     def is_connected(self) -> bool:
         """Check if the endpoint is connected.
 
@@ -199,6 +234,34 @@ class FrozenEndPoint(EndPointABC):
             bool: True if the endpoint has at least one reference, False otherwise.
         """
         return len(self.refs_tuple) > 0
+
+    def ref_shift(self, shift: int) -> EndPointABC:
+        """Shift all references in the endpoint by a given amount.
+
+        Args:
+            shift (int): The amount to shift each reference index.
+        Raises:
+            RuntimeError: Always raises since frozen endpoints are immutable.
+        """
+        raise RuntimeError("Cannot modify a frozen EndPoint")
+
+    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
+        """Set or append to the references for an endpoint.
+
+        This method always sets (replaces) the reference of a destination endpoint
+        to the specified row and index. For a source endpoint, it appends the new reference
+        to the existing list of references if append is True; otherwise, it replaces the
+        entire list with the new reference.
+
+        Args:
+            row (Row): The row of the endpoint to reference.
+            idx (int): The index of the endpoint to reference.
+            append (bool): If True and the endpoint is a source, append the new reference;
+                           otherwise, replace the references. Defaults to False.
+        Returns:
+            EndPointABC: Self with the reference set.
+        """
+        raise RuntimeError("Cannot modify a frozen EndPoint")
 
     def to_json(self, json_c_graph: bool = False) -> dict | list:
         """Convert the endpoint to a JSON-compatible object.
@@ -283,66 +346,3 @@ class FrozenEndPoint(EndPointABC):
                 raise TypeError(f"Reference index must be an integer, got {type(ref[1])}")
             if not 0 <= ref[1] <= 255:
                 raise ValueError(f"Reference index must be between 0 and 255, got {ref[1]}")
-
-    def consistency(self) -> None:
-        """Check the consistency of the FrozenEndPoint.
-
-        Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
-
-        Validates:
-            - Reference structure matches endpoint class rules
-            - Source endpoints can have multiple refs, destinations only one
-            - All references point to appropriate row types
-        """
-        # Destination endpoints should have exactly 0 or 1 reference
-        if self.epcls == EPCls.DST and len(self.refs_tuple) > 1:
-            raise ValueError(
-                f"Destination endpoint can only have 0 or 1 reference, has {len(self.refs_tuple)}"
-            )
-
-        # Source endpoints reference destination rows, and vice versa
-        if self.epcls == EPCls.SRC:
-            for ref in self.refs_tuple:
-                if ref[0] not in DESTINATION_ROW_SET:
-                    raise ValueError(
-                        f"Source endpoint can only reference destination rows, got {ref[0]}"
-                    )
-        else:  # DST
-            for ref in self.refs_tuple:
-                if ref[0] not in SOURCE_ROW_SET:
-                    raise ValueError(
-                        f"Destination endpoint can only reference source rows, got {ref[0]}"
-                    )
-
-    def clr_refs(self) -> EndPointABC:
-        """Clear all references in the endpoint."""
-        raise RuntimeError("Cannot modify a frozen EndPoint")
-
-    def ref_shift(self, shift: int) -> EndPointABC:
-        """Shift all references in the endpoint by a given amount.
-
-        Args:
-            shift (int): The amount to shift each reference index.
-        Raises:
-            RuntimeError: Always raises since frozen endpoints are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen EndPoint")
-
-    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
-        """Set or append to the references for an endpoint.
-
-        This method always sets (replaces) the reference of a destination endpoint
-        to the specified row and index. For a source endpoint, it appends the new reference
-        to the existing list of references if append is True; otherwise, it replaces the
-        entire list with the new reference.
-
-        Args:
-            row (Row): The row of the endpoint to reference.
-            idx (int): The index of the endpoint to reference.
-            append (bool): If True and the endpoint is a source, append the new reference;
-                           otherwise, replace the references. Defaults to False.
-        Returns:
-            EndPointABC: Self with the reference set.
-        """
-        raise RuntimeError("Cannot modify a frozen EndPoint")

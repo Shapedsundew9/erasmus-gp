@@ -43,6 +43,21 @@ class TestSpinner(TestCase):
         self.assertIsNone(self.spinner.spinner_thread)
         self.assertEqual(self.spinner.spinner_chars, ["|", "/", "-", "\\"])
 
+    def test_multiple_starts_and_stops(self) -> None:
+        """Test multiple starts and stops of the spinner."""
+        with mock.patch.object(self.spinner, "_spin"):
+            self.spinner.start()
+            t1 = self.spinner.spinner_thread
+            with mock.patch("sys.stdout.write") as mock_write, mock.patch("sys.stdout.flush"):
+                self.spinner.stop("Stopped 1")
+                mock_write.assert_any_call("\r\033[2KTesting...Stopped 1\n")
+            self.spinner.start()
+            t2 = self.spinner.spinner_thread
+            self.assertNotEqual(t1, t2)
+            with mock.patch("sys.stdout.write") as mock_write2, mock.patch("sys.stdout.flush"):
+                self.spinner.stop("Stopped 2")
+                mock_write2.assert_any_call("\r\033[2KTesting...Stopped 2\n")
+
     def test_spin_stops_when_running_false(self) -> None:
         """Test that the spinner stops spinning when 'running' is set to False."""
         # Patch sys.stdout.write and time.sleep to avoid actual output and delay
@@ -61,6 +76,20 @@ class TestSpinner(TestCase):
             t.join(timeout=1)
             self.assertFalse(self.spinner.running)
 
+    def test_spinner_thread_is_daemon(self) -> None:
+        """Test that the spinner thread is set as a daemon thread."""
+        with mock.patch.object(self.spinner, "_spin"):
+            self.spinner.start()
+            assert isinstance(self.spinner.spinner_thread, threading.Thread)
+            self.assertTrue(self.spinner.spinner_thread.daemon)
+            self.spinner.running = False
+            self.spinner.spinner_thread.join(timeout=1)
+
+    def test_spinner_with_default_message(self) -> None:
+        """Test the spinner with the default message."""
+        s = Spinner()
+        self.assertEqual(s.message, "Processing...")
+
     def test_start_creates_and_starts_thread(self) -> None:
         """Test that starting the spinner creates and starts a thread."""
         with mock.patch.object(self.spinner, "_spin") as mock_spin:
@@ -72,6 +101,13 @@ class TestSpinner(TestCase):
             self.spinner.spinner_thread.join(timeout=1)
             # The thread should have started and called _spin
             mock_spin.assert_called()
+
+    def test_stop_appends_final_message_to_message(self) -> None:
+        """Regression: final output should be '<message><final>' on same line with clear code."""
+        s = Spinner("Generating codons...")
+        with mock.patch("sys.stdout.write") as mock_write, mock.patch("sys.stdout.flush"):
+            s.stop("Done.")
+            mock_write.assert_any_call("\r\033[2KGenerating codons...Done.\n")
 
     def test_stop_joins_thread_and_prints_final_message(self) -> None:
         """Test that stopping the spinner joins the thread and prints the final message."""
@@ -90,39 +126,3 @@ class TestSpinner(TestCase):
             self.spinner.running = False
             self.spinner.stop("Done!")
             mock_write.assert_any_call("\r\033[2KTesting...Done!\n")
-
-    def test_spinner_thread_is_daemon(self) -> None:
-        """Test that the spinner thread is set as a daemon thread."""
-        with mock.patch.object(self.spinner, "_spin"):
-            self.spinner.start()
-            assert isinstance(self.spinner.spinner_thread, threading.Thread)
-            self.assertTrue(self.spinner.spinner_thread.daemon)
-            self.spinner.running = False
-            self.spinner.spinner_thread.join(timeout=1)
-
-    def test_spinner_with_default_message(self) -> None:
-        """Test the spinner with the default message."""
-        s = Spinner()
-        self.assertEqual(s.message, "Processing...")
-
-    def test_multiple_starts_and_stops(self) -> None:
-        """Test multiple starts and stops of the spinner."""
-        with mock.patch.object(self.spinner, "_spin"):
-            self.spinner.start()
-            t1 = self.spinner.spinner_thread
-            with mock.patch("sys.stdout.write") as mock_write, mock.patch("sys.stdout.flush"):
-                self.spinner.stop("Stopped 1")
-                mock_write.assert_any_call("\r\033[2KTesting...Stopped 1\n")
-            self.spinner.start()
-            t2 = self.spinner.spinner_thread
-            self.assertNotEqual(t1, t2)
-            with mock.patch("sys.stdout.write") as mock_write2, mock.patch("sys.stdout.flush"):
-                self.spinner.stop("Stopped 2")
-                mock_write2.assert_any_call("\r\033[2KTesting...Stopped 2\n")
-
-    def test_stop_appends_final_message_to_message(self) -> None:
-        """Regression: final output should be '<message><final>' on same line with clear code."""
-        s = Spinner("Generating codons...")
-        with mock.patch("sys.stdout.write") as mock_write, mock.patch("sys.stdout.flush"):
-            s.stop("Done.")
-            mock_write.assert_any_call("\r\033[2KGenerating codons...Done.\n")

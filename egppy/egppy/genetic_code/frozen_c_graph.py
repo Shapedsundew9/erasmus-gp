@@ -140,20 +140,6 @@ class FrozenCGraph(CGraph, CommonObj):
         # For consistency, we use the same hash calculation as unfrozen graphs
         self._hash = hash(tuple(hash(iface) for iface in self.values()))
 
-    # Container Protocol Methods (from Collection)
-
-    def __setitem__(self, key: str, value: InterfaceABC) -> None:
-        """Set the interface with the given key.
-
-        Args:
-            key: Interface identifier.
-            value: Interface object to set.
-
-        Raises:
-            RuntimeError: Always raises since frozen graphs are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
-
     def __delitem__(self, key: str) -> None:
         """Delete the interface with the given key.
 
@@ -173,18 +159,19 @@ class FrozenCGraph(CGraph, CommonObj):
         """
         return self._hash
 
-    # Graph State Methods
+    # Container Protocol Methods (from Collection)
 
-    def is_stable(self) -> bool:
-        """Return True if the Connection Graph is stable.
+    def __setitem__(self, key: str, value: InterfaceABC) -> None:
+        """Set the interface with the given key.
 
-        A stable graph has all destination endpoints connected to source endpoints.
-        Frozen graphs are guaranteed to be stable.
+        Args:
+            key: Interface identifier.
+            value: Interface object to set.
 
-        Returns:
-            True (always, since frozen graphs are stable by definition).
+        Raises:
+            RuntimeError: Always raises since frozen graphs are immutable.
         """
-        return True
+        raise RuntimeError("Cannot modify a frozen Connection Graph")
 
     # Connection Management Methods
 
@@ -214,17 +201,6 @@ class FrozenCGraph(CGraph, CommonObj):
         Args:
             if_locked: Ignored for frozen graphs.
             rng: Ignored for frozen graphs.
-
-        Raises:
-            RuntimeError: Always raises since frozen graphs cannot be modified.
-        """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
-
-    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
-        """Stabilize the graph by connecting all unconnected destinations.
-
-        Args:
-            if_locked: Ignored for frozen graphs.
 
         Raises:
             RuntimeError: Always raises since frozen graphs cannot be modified.
@@ -319,6 +295,30 @@ class FrozenCGraph(CGraph, CommonObj):
                 f"Hash inconsistency: stored hash {self._hash} does not match "
                 f"recomputed hash {recomputed_hash}"
             )
+
+    # Graph State Methods
+
+    def is_stable(self) -> bool:
+        """Return True if the Connection Graph is stable.
+
+        A stable graph has all destination endpoints connected to source endpoints.
+        Frozen graphs are guaranteed to be stable.
+
+        Returns:
+            True (always, since frozen graphs are stable by definition).
+        """
+        return True
+
+    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+        """Stabilize the graph by connecting all unconnected destinations.
+
+        Args:
+            if_locked: Ignored for frozen graphs.
+
+        Raises:
+            RuntimeError: Always raises since frozen graphs cannot be modified.
+        """
+        raise RuntimeError("Cannot modify a frozen Connection Graph")
 
     def verify(self) -> None:
         """Verify the FrozenCGraph object.

@@ -54,67 +54,6 @@ class OutputFileType(StrEnum):
     MARKDOWN = "markdown"
 
 
-def write_function_to_file(
-    ec: ExecutionContext,
-    gcsig: bytes | GCABC,
-    filepath: str = "",
-    fwconfig: FWConfig = FWC4FILE,
-    oft: OutputFileType = OutputFileType.MARKDOWN,
-) -> Path:
-    """Write a single function from the execution context to a file.
-    The file is nicely formatted and contains everything needed to execute the GC
-    function. It also includes license information and a signature of authenticity.
-
-    Args
-    ----
-        ec: ExecutionContext: The execution context to write from.
-        gcsig: bytes | GCABC: The signature or GC object of the function to write.
-        filepath: str: The file to write to. If empty, a temporary file is created.
-        fwconfig: FWConfig: The function writing configuration to use.
-        oft: OutputFileType: The output file type.
-    """
-    if oft == OutputFileType.MARKDOWN:
-        _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
-        with open(_filepath, mode="w", encoding="utf-8") as f:
-            nec = ec.new_context()
-            sig = gcsig if isinstance(gcsig, bytes) else gcsig["signature"]
-            func = ec.function_map[sig]
-            node = nec.create_graphs(func.gc, False)[0]
-            f.write(f"# Python Code for {sig.hex()}\n\n")
-            f.write("This code is generated for inspection purposes only.\n\n")
-            f.write("```python\n")
-            f.write(nec.function_def(node, fwconfig).replace("\t", "    "))
-            f.write("\n```\n")
-    else:
-        raise ValueError(f"Unsupported output file type: {oft}")
-    return Path(_filepath)
-
-
-def write_context_to_file(
-    ec: ExecutionContext,
-    filepath: str = "",
-    fwconfig: FWConfig = FWC4FILE,
-    oft: OutputFileType = OutputFileType.PYTHON,
-) -> Path:
-    """Write the execution context to a file.
-    The file is nicely formatted and contains everything needed to execute GC
-    functions. It also includes license information and a signature of authenticity.
-
-    Args
-    ----
-        ec: ExecutionContext: The execution context to write.
-        filepath: str: The file to write to. If empty, a temporary file is created.
-        fwconfig: FWConfig: The function writing configuration to use.
-        oft: OutputFileType: The output file type.
-    """
-    if oft == OutputFileType.PYTHON:
-        return format_file_with_black(_py_context_writer(ec, filepath, fwconfig))
-    elif oft == OutputFileType.MARKDOWN:
-        return _md_context_writer(ec, filepath, fwconfig)
-    else:
-        raise ValueError(f"Unsupported output file type: {oft}")
-
-
 def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> Path:
     """Write the execution context as a markdown file."""
     _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
@@ -277,3 +216,64 @@ def format_file_with_black(filepath: str | Path) -> Path:
         raise RuntimeError(f"An unexpected error occurred while running black: {e}") from e
 
     return input_path
+
+
+def write_context_to_file(
+    ec: ExecutionContext,
+    filepath: str = "",
+    fwconfig: FWConfig = FWC4FILE,
+    oft: OutputFileType = OutputFileType.PYTHON,
+) -> Path:
+    """Write the execution context to a file.
+    The file is nicely formatted and contains everything needed to execute GC
+    functions. It also includes license information and a signature of authenticity.
+
+    Args
+    ----
+        ec: ExecutionContext: The execution context to write.
+        filepath: str: The file to write to. If empty, a temporary file is created.
+        fwconfig: FWConfig: The function writing configuration to use.
+        oft: OutputFileType: The output file type.
+    """
+    if oft == OutputFileType.PYTHON:
+        return format_file_with_black(_py_context_writer(ec, filepath, fwconfig))
+    elif oft == OutputFileType.MARKDOWN:
+        return _md_context_writer(ec, filepath, fwconfig)
+    else:
+        raise ValueError(f"Unsupported output file type: {oft}")
+
+
+def write_function_to_file(
+    ec: ExecutionContext,
+    gcsig: bytes | GCABC,
+    filepath: str = "",
+    fwconfig: FWConfig = FWC4FILE,
+    oft: OutputFileType = OutputFileType.MARKDOWN,
+) -> Path:
+    """Write a single function from the execution context to a file.
+    The file is nicely formatted and contains everything needed to execute the GC
+    function. It also includes license information and a signature of authenticity.
+
+    Args
+    ----
+        ec: ExecutionContext: The execution context to write from.
+        gcsig: bytes | GCABC: The signature or GC object of the function to write.
+        filepath: str: The file to write to. If empty, a temporary file is created.
+        fwconfig: FWConfig: The function writing configuration to use.
+        oft: OutputFileType: The output file type.
+    """
+    if oft == OutputFileType.MARKDOWN:
+        _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
+        with open(_filepath, mode="w", encoding="utf-8") as f:
+            nec = ec.new_context()
+            sig = gcsig if isinstance(gcsig, bytes) else gcsig["signature"]
+            func = ec.function_map[sig]
+            node = nec.create_graphs(func.gc, False)[0]
+            f.write(f"# Python Code for {sig.hex()}\n\n")
+            f.write("This code is generated for inspection purposes only.\n\n")
+            f.write("```python\n")
+            f.write(nec.function_def(node, fwconfig).replace("\t", "    "))
+            f.write("\n```\n")
+    else:
+        raise ValueError(f"Unsupported output file type: {oft}")
+    return Path(_filepath)

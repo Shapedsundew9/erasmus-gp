@@ -31,14 +31,6 @@ class StorableObjABC(CommonObjABC):
         raise NotImplementedError("StoreableObjABC.__init__ must be overridden")
 
     @abstractmethod
-    def to_json(self) -> dict[str, Any] | list:
-        """Return a JSON serializable representation of the object.
-        The returned JSON serializable object will not contain any references to data in
-        this object. The return object must be serializable by json.dump().
-        """
-        raise NotImplementedError("StoreableObjABC.to_json must be overridden")
-
-    @abstractmethod
     def modified(self) -> tuple[str | int, ...] | bool:
         """Return a tuple of modified fields or a boolean indicating if the object has been
         modified. Since the object is a collection, the modified method may be used by the StoreABC
@@ -49,3 +41,11 @@ class StorableObjABC(CommonObjABC):
         NOTE: Stores are not obligated to use this information, but it is provided for efficiency.
         """
         raise NotImplementedError("StoreableObjABC.modified must be overridden")
+
+    @abstractmethod
+    def to_json(self) -> dict[str, Any] | list:
+        """Return a JSON serializable representation of the object.
+        The returned JSON serializable object will not contain any references to data in
+        this object. The return object must be serializable by json.dump().
+        """
+        raise NotImplementedError("StoreableObjABC.to_json must be overridden")

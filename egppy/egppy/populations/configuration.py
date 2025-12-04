@@ -88,30 +88,16 @@ class SourceConfig(Validator, DictTypeAccessor, CommonObj):
             assert False, "Invalid source type."
 
     @property
-    def source(self) -> str:
-        """Get the source."""
-        return self._source
+    def fitness_threshold(self) -> float:
+        """Get the fitness_threshold."""
+        return self._fitness_threshold
 
-    @source.setter
-    def source(self, value: str) -> None:
-        """The source of the genetic code."""
-        self.value_error(
-            self._is_one_of("source", value, INITIAL_POPULATION_SOURCES),
-            f"source must be one of {INITIAL_POPULATION_SOURCES}, but is {value}",
-        )
-        self._source = value
-
-    @property
-    def scope(self) -> int:
-        """Get the scope."""
-        return self._scope
-
-    @scope.setter
-    def scope(self, value: int) -> None:
-        """The scope of the source."""
-        self._is_int("scope", value)
-        self._in_range("scope", value, 1, 127)
-        self._scope = value
+    @fitness_threshold.setter
+    def fitness_threshold(self, value: float) -> None:
+        """The fitness threshold."""
+        self._is_float("fitness_threshold", value)
+        self._in_range("fitness_threshold", value, 0.0, 1.0)
+        self._fitness_threshold = value
 
     @property
     def limit(self) -> int:
@@ -126,51 +112,16 @@ class SourceConfig(Validator, DictTypeAccessor, CommonObj):
         self._limit = value
 
     @property
-    def underflow(self) -> str:
-        """Get the underflow."""
-        return self._underflow
+    def maximum_generation(self) -> int:
+        """Get the maximum_generation."""
+        return self._maximum_generation
 
-    @underflow.setter
-    def underflow(self, value: str) -> None:
-        """The underflow of the source."""
-        self._is_one_of("underflow", value, UNDERFLOW_OPTIONS)
-        self._underflow = value
-
-    @property
-    def minimum_distance(self) -> int:
-        """Get the minimum_distance."""
-        return self._minimum_distance
-
-    @minimum_distance.setter
-    def minimum_distance(self, value: int) -> None:
-        """The minimum distance."""
-        self._is_int("minimum_distance", value)
-        self._in_range("minimum_distance", value, 1, 2**31 - 1)
-        self._minimum_distance = value
-
-    @property
-    def fitness_threshold(self) -> float:
-        """Get the fitness_threshold."""
-        return self._fitness_threshold
-
-    @fitness_threshold.setter
-    def fitness_threshold(self, value: float) -> None:
-        """The fitness threshold."""
-        self._is_float("fitness_threshold", value)
-        self._in_range("fitness_threshold", value, 0.0, 1.0)
-        self._fitness_threshold = value
-
-    @property
-    def novelty_threshold(self) -> float:
-        """Get the novelty_threshold."""
-        return self._novelty_threshold
-
-    @novelty_threshold.setter
-    def novelty_threshold(self, value: float) -> None:
-        """The novelty threshold."""
-        self._is_float("novelty_threshold", value)
-        self._in_range("novelty_threshold", value, 0.0, 1.0)
-        self._novelty_threshold = value
+    @maximum_generation.setter
+    def maximum_generation(self, value: int) -> None:
+        """The maximum generation."""
+        self._is_int("maximum_generation", value)
+        self._in_range("maximum_generation", value, 0, 2**31 - 1)
+        self._maximum_generation = value
 
     @property
     def maximum_problem_distance(self) -> int:
@@ -185,40 +136,16 @@ class SourceConfig(Validator, DictTypeAccessor, CommonObj):
         self._maximum_problem_distance = value
 
     @property
-    def minimum_problem_distance(self) -> int:
-        """Get the minimum_problem_distance."""
-        return self._minimum_problem_distance
+    def minimum_distance(self) -> int:
+        """Get the minimum_distance."""
+        return self._minimum_distance
 
-    @minimum_problem_distance.setter
-    def minimum_problem_distance(self, value: int) -> None:
-        """The minimum problem distance."""
-        self._is_int("minimum_problem_distance", value)
-        self._in_range("minimum_problem_distance", value, 1, 2**31 - 1)
-        self._minimum_problem_distance = value
-
-    @property
-    def tolerence(self) -> int:
-        """Get the tolerence."""
-        return self._tolerence
-
-    @tolerence.setter
-    def tolerence(self, value: int) -> None:
-        """The tolerence."""
-        self._is_int("tolerence", value)
-        self._in_range("tolerence", value, 1, 2**31 - 1)
-        self._tolerence = value
-
-    @property
-    def sse_limit(self) -> int:
-        """Get the sse_limit."""
-        return self._sse_limit
-
-    @sse_limit.setter
-    def sse_limit(self, value: int) -> None:
-        """The sse limit."""
-        self._is_int("sse_limit", value)
-        self._in_range("sse_limit", value, 1, 2**31 - 1)
-        self._sse_limit = value
+    @minimum_distance.setter
+    def minimum_distance(self, value: int) -> None:
+        """The minimum distance."""
+        self._is_int("minimum_distance", value)
+        self._in_range("minimum_distance", value, 1, 2**31 - 1)
+        self._minimum_distance = value
 
     @property
     def minimum_generation(self) -> int:
@@ -233,16 +160,66 @@ class SourceConfig(Validator, DictTypeAccessor, CommonObj):
         self._minimum_generation = value
 
     @property
-    def maximum_generation(self) -> int:
-        """Get the maximum_generation."""
-        return self._maximum_generation
+    def minimum_problem_distance(self) -> int:
+        """Get the minimum_problem_distance."""
+        return self._minimum_problem_distance
 
-    @maximum_generation.setter
-    def maximum_generation(self, value: int) -> None:
-        """The maximum generation."""
-        self._is_int("maximum_generation", value)
-        self._in_range("maximum_generation", value, 0, 2**31 - 1)
-        self._maximum_generation = value
+    @minimum_problem_distance.setter
+    def minimum_problem_distance(self, value: int) -> None:
+        """The minimum problem distance."""
+        self._is_int("minimum_problem_distance", value)
+        self._in_range("minimum_problem_distance", value, 1, 2**31 - 1)
+        self._minimum_problem_distance = value
+
+    @property
+    def novelty_threshold(self) -> float:
+        """Get the novelty_threshold."""
+        return self._novelty_threshold
+
+    @novelty_threshold.setter
+    def novelty_threshold(self, value: float) -> None:
+        """The novelty threshold."""
+        self._is_float("novelty_threshold", value)
+        self._in_range("novelty_threshold", value, 0.0, 1.0)
+        self._novelty_threshold = value
+
+    @property
+    def scope(self) -> int:
+        """Get the scope."""
+        return self._scope
+
+    @scope.setter
+    def scope(self, value: int) -> None:
+        """The scope of the source."""
+        self._is_int("scope", value)
+        self._in_range("scope", value, 1, 127)
+        self._scope = value
+
+    @property
+    def source(self) -> str:
+        """Get the source."""
+        return self._source
+
+    @source.setter
+    def source(self, value: str) -> None:
+        """The source of the genetic code."""
+        self.value_error(
+            self._is_one_of("source", value, INITIAL_POPULATION_SOURCES),
+            f"source must be one of {INITIAL_POPULATION_SOURCES}, but is {value}",
+        )
+        self._source = value
+
+    @property
+    def sse_limit(self) -> int:
+        """Get the sse_limit."""
+        return self._sse_limit
+
+    @sse_limit.setter
+    def sse_limit(self, value: int) -> None:
+        """The sse limit."""
+        self._is_int("sse_limit", value)
+        self._in_range("sse_limit", value, 1, 2**31 - 1)
+        self._sse_limit = value
 
     def to_json(self) -> dict[str, Any]:
         """Return the JSON representation of the configuration."""
@@ -283,6 +260,29 @@ class SourceConfig(Validator, DictTypeAccessor, CommonObj):
             }
         else:
             return common
+
+    @property
+    def tolerence(self) -> int:
+        """Get the tolerence."""
+        return self._tolerence
+
+    @tolerence.setter
+    def tolerence(self, value: int) -> None:
+        """The tolerence."""
+        self._is_int("tolerence", value)
+        self._in_range("tolerence", value, 1, 2**31 - 1)
+        self._tolerence = value
+
+    @property
+    def underflow(self) -> str:
+        """Get the underflow."""
+        return self._underflow
+
+    @underflow.setter
+    def underflow(self, value: str) -> None:
+        """The underflow of the source."""
+        self._is_one_of("underflow", value, UNDERFLOW_OPTIONS)
+        self._underflow = value
 
 
 class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
@@ -345,101 +345,37 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         setattr(self, "spontaneous_source", spontaneous_source)
 
     @property
-    def uid(self) -> int:
-        """Get the uid."""
-        return self._uid
+    def best_source(self) -> SourceConfig:
+        """Get the best_source."""
+        return self._best_source
 
-    @uid.setter
-    def uid(self, value: int) -> None:
-        """The uid of the population."""
+    @best_source.setter
+    def best_source(self, value: SourceConfig | dict[str, Any]) -> None:
+        """The best source."""
+        if isinstance(value, dict):
+            value = SourceConfig(**value)
+        self.value_error(isinstance(value, SourceConfig), "best_source must be a SourceConfig")
         self.value_error(
-            self._in_range("uid", value, 1, 2**15 - 1),
-            f"uid must be an integer between 1 and {2**15 - 1}, but is {value}",
+            value.source == "BEST", f"best_source must be the BEST source but is {value.source}"
         )
-        self._uid = value
+        self._best_source = value
 
     @property
-    def problem(self) -> bytes:
-        """Get the problem."""
-        return self._problem
+    def created(self) -> datetime:
+        """Get the created."""
+        return self._created
 
-    @problem.setter
-    def problem(self, value: str | bytes) -> None:
-        """The problem to solve."""
+    @created.setter
+    def created(self, value: datetime | str) -> None:
+        """The created date."""
         if isinstance(value, str):
-            value = bytes.fromhex(value)
+            value = datetime.fromisoformat(value)
         else:
             self.value_error(
-                self._is_bytes("problem", value), f"problem must be bytes, but is {type(value)}"
+                self._is_datetime("created", value),
+                f"created must be a datetime, but is {type(value)}",
             )
-        self.value_error(
-            self._is_length("problem", value, 32, 32),
-            f"problem must be exactly 32 bytes, but is {len(value)} bytes",
-        )
-        self._problem = value
-
-    @property
-    def worker_id(self) -> UUID:
-        """Get the worker_id."""
-        return self._worker_id
-
-    @worker_id.setter
-    def worker_id(self, value: str | UUID) -> None:
-        """The worker id."""
-        if isinstance(value, str):
-            value = UUID(value)
-        else:
-            self.value_error(
-                self._is_uuid("worker_id", value), f"worker_id must be a UUID, but is {type(value)}"
-            )
-        self._worker_id = value
-
-    @property
-    def inputs(self) -> Interface:
-        """Get the inputs."""
-        return self._inputs
-
-    @inputs.setter
-    def inputs(
-        self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
-    ) -> None:
-        """The inputs."""
-        self.value_error(
-            self._is_sequence("inputs", value), f"inputs must be a sequence, but is {type(value)}"
-        )
-        self._inputs = Interface(value, SrcRow.I)
-
-    @property
-    def outputs(self) -> Interface:
-        """Get the outputs."""
-        return self._outputs
-
-    @outputs.setter
-    def outputs(
-        self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
-    ) -> None:
-        """The inputs."""
-        self.value_error(
-            self._is_sequence("inputs", value), f"outputs must be a sequence, but is {type(value)}"
-        )
-        self._outputs = Interface(value, DstRow.O)
-
-    @property
-    def name(self) -> str:
-        """Get the name."""
-        return self._name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        """The name of the population."""
-        self.value_error(
-            self._is_string("name", value), f"name must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("name", value, 1, 255),
-            f"name must be between 1 and 255 characters, but is {len(value)} characters",
-        )
-        self._name = value
+        self._created = value
 
     @property
     def description(self) -> str:
@@ -464,6 +400,52 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
             self._description = ""
 
     @property
+    def diverse_source(self) -> SourceConfig:
+        """Get the diverse_source."""
+        return self._diverse_source
+
+    @diverse_source.setter
+    def diverse_source(self, value: SourceConfig | dict[str, Any]) -> None:
+        """The diverse source."""
+        if isinstance(value, dict):
+            value = SourceConfig(**value)
+        self.value_error(isinstance(value, SourceConfig), "diverse_source must be a SourceConfig")
+        self.value_error(
+            value.source == "DIVERSE",
+            f"diverse_source must be the DIVERSE source but is {value.source}",
+        )
+        self._diverse_source = value
+
+    @property
+    def fitness_function(self) -> FitnessFunction:
+        """Get the fitness_function."""
+        return self._fitness_function
+
+    @fitness_function.setter
+    def fitness_function(self, value: FitnessFunction) -> None:
+        """The fitness function."""
+        self.value_error(
+            self._is_callable("fitness_function", value),
+            f"fitness_function must be callable, but is {type(value)}",
+        )
+        self._fitness_function = value
+
+    @property
+    def inputs(self) -> Interface:
+        """Get the inputs."""
+        return self._inputs
+
+    @inputs.setter
+    def inputs(
+        self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
+    ) -> None:
+        """The inputs."""
+        self.value_error(
+            self._is_sequence("inputs", value), f"inputs must be a sequence, but is {type(value)}"
+        )
+        self._inputs = Interface(value, SrcRow.I)
+
+    @property
     def meta_data(self) -> str:
         """Get the meta_data."""
         return self._meta_data
@@ -485,99 +467,56 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
             self._meta_data = ""
 
     @property
-    def created(self) -> datetime:
-        """Get the created."""
-        return self._created
+    def name(self) -> str:
+        """Get the name."""
+        return self._name
 
-    @created.setter
-    def created(self, value: datetime | str) -> None:
-        """The created date."""
+    @name.setter
+    def name(self, value: str) -> None:
+        """The name of the population."""
+        self.value_error(
+            self._is_string("name", value), f"name must be a string, but is {type(value)}"
+        )
+        self.value_error(
+            self._is_length("name", value, 1, 255),
+            f"name must be between 1 and 255 characters, but is {len(value)} characters",
+        )
+        self._name = value
+
+    @property
+    def outputs(self) -> Interface:
+        """Get the outputs."""
+        return self._outputs
+
+    @outputs.setter
+    def outputs(
+        self, value: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef]
+    ) -> None:
+        """The inputs."""
+        self.value_error(
+            self._is_sequence("inputs", value), f"outputs must be a sequence, but is {type(value)}"
+        )
+        self._outputs = Interface(value, DstRow.O)
+
+    @property
+    def problem(self) -> bytes:
+        """Get the problem."""
+        return self._problem
+
+    @problem.setter
+    def problem(self, value: str | bytes) -> None:
+        """The problem to solve."""
         if isinstance(value, str):
-            value = datetime.fromisoformat(value)
+            value = bytes.fromhex(value)
         else:
             self.value_error(
-                self._is_datetime("created", value),
-                f"created must be a datetime, but is {type(value)}",
+                self._is_bytes("problem", value), f"problem must be bytes, but is {type(value)}"
             )
-        self._created = value
-
-    @property
-    def updated(self) -> datetime:
-        """Get the updated."""
-        return self._updated
-
-    @updated.setter
-    def updated(self, value: datetime | str) -> None:
-        """The updated date."""
-        if isinstance(value, str):
-            value = datetime.fromisoformat(value)
-        else:
-            self.value_error(
-                self._is_datetime("updated", value),
-                f"updated must be a datetime, but is {type(value)}",
-            )
-        self._updated = value
-
-    @property
-    def survivability_function(self) -> SurvivabilityFunction:
-        """Get the survivability_function."""
-        return self._survivability_function
-
-    @survivability_function.setter
-    def survivability_function(self, value: SurvivabilityFunction) -> None:
-        """The survivability function."""
         self.value_error(
-            self._is_callable("survivability_function", value),
-            f"survivability_function must be callable, but is {type(value)}",
+            self._is_length("problem", value, 32, 32),
+            f"problem must be exactly 32 bytes, but is {len(value)} bytes",
         )
-        self._survivability_function = value
-
-    @property
-    def fitness_function(self) -> FitnessFunction:
-        """Get the fitness_function."""
-        return self._fitness_function
-
-    @fitness_function.setter
-    def fitness_function(self, value: FitnessFunction) -> None:
-        """The fitness function."""
-        self.value_error(
-            self._is_callable("fitness_function", value),
-            f"fitness_function must be callable, but is {type(value)}",
-        )
-        self._fitness_function = value
-
-    @property
-    def best_source(self) -> SourceConfig:
-        """Get the best_source."""
-        return self._best_source
-
-    @best_source.setter
-    def best_source(self, value: SourceConfig | dict[str, Any]) -> None:
-        """The best source."""
-        if isinstance(value, dict):
-            value = SourceConfig(**value)
-        self.value_error(isinstance(value, SourceConfig), "best_source must be a SourceConfig")
-        self.value_error(
-            value.source == "BEST", f"best_source must be the BEST source but is {value.source}"
-        )
-        self._best_source = value
-
-    @property
-    def diverse_source(self) -> SourceConfig:
-        """Get the diverse_source."""
-        return self._diverse_source
-
-    @diverse_source.setter
-    def diverse_source(self, value: SourceConfig | dict[str, Any]) -> None:
-        """The diverse source."""
-        if isinstance(value, dict):
-            value = SourceConfig(**value)
-        self.value_error(isinstance(value, SourceConfig), "diverse_source must be a SourceConfig")
-        self.value_error(
-            value.source == "DIVERSE",
-            f"diverse_source must be the DIVERSE source but is {value.source}",
-        )
-        self._diverse_source = value
+        self._problem = value
 
     @property
     def related_source(self) -> SourceConfig:
@@ -597,23 +536,6 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
         self._related_source = value
 
     @property
-    def unrelated_source(self) -> SourceConfig:
-        """Get the unrelated_source."""
-        return self._unrelated_source
-
-    @unrelated_source.setter
-    def unrelated_source(self, value: SourceConfig | dict[str, Any]) -> None:
-        """The unrelated source."""
-        if isinstance(value, dict):
-            value = SourceConfig(**value)
-        self.value_error(isinstance(value, SourceConfig), "unrelated_source must be a SourceConfig")
-        self.value_error(
-            value.source == "UNRELATED",
-            f"unrelated_source must be the UNRELATED source but is {value.source}",
-        )
-        self._unrelated_source = value
-
-    @property
     def spontaneous_source(self) -> SourceConfig:
         """Get the spontaneous_source."""
         return self._spontaneous_source
@@ -631,6 +553,20 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
             f"spontaneous_source must be the SPONTANEOUS source but is {value.source}",
         )
         self._spontaneous_source = value
+
+    @property
+    def survivability_function(self) -> SurvivabilityFunction:
+        """Get the survivability_function."""
+        return self._survivability_function
+
+    @survivability_function.setter
+    def survivability_function(self, value: SurvivabilityFunction) -> None:
+        """The survivability function."""
+        self.value_error(
+            self._is_callable("survivability_function", value),
+            f"survivability_function must be callable, but is {type(value)}",
+        )
+        self._survivability_function = value
 
     def to_json(self) -> dict[str, Any]:
         """Return the JSON representation of the configuration."""
@@ -655,6 +591,70 @@ class PopulationConfig(Validator, DictTypeAccessor, CommonObj):
             "spontaneous_source": self.spontaneous_source.to_json(),
         }
 
+    @property
+    def uid(self) -> int:
+        """Get the uid."""
+        return self._uid
+
+    @uid.setter
+    def uid(self, value: int) -> None:
+        """The uid of the population."""
+        self.value_error(
+            self._in_range("uid", value, 1, 2**15 - 1),
+            f"uid must be an integer between 1 and {2**15 - 1}, but is {value}",
+        )
+        self._uid = value
+
+    @property
+    def unrelated_source(self) -> SourceConfig:
+        """Get the unrelated_source."""
+        return self._unrelated_source
+
+    @unrelated_source.setter
+    def unrelated_source(self, value: SourceConfig | dict[str, Any]) -> None:
+        """The unrelated source."""
+        if isinstance(value, dict):
+            value = SourceConfig(**value)
+        self.value_error(isinstance(value, SourceConfig), "unrelated_source must be a SourceConfig")
+        self.value_error(
+            value.source == "UNRELATED",
+            f"unrelated_source must be the UNRELATED source but is {value.source}",
+        )
+        self._unrelated_source = value
+
+    @property
+    def updated(self) -> datetime:
+        """Get the updated."""
+        return self._updated
+
+    @updated.setter
+    def updated(self, value: datetime | str) -> None:
+        """The updated date."""
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value)
+        else:
+            self.value_error(
+                self._is_datetime("updated", value),
+                f"updated must be a datetime, but is {type(value)}",
+            )
+        self._updated = value
+
+    @property
+    def worker_id(self) -> UUID:
+        """Get the worker_id."""
+        return self._worker_id
+
+    @worker_id.setter
+    def worker_id(self, value: str | UUID) -> None:
+        """The worker id."""
+        if isinstance(value, str):
+            value = UUID(value)
+        else:
+            self.value_error(
+                self._is_uuid("worker_id", value), f"worker_id must be a UUID, but is {type(value)}"
+            )
+        self._worker_id = value
+
 
 class PopulationsConfig(Validator, DictTypeAccessor, CommonObj):
     """Validate the populations configuration.
@@ -672,22 +672,6 @@ class PopulationsConfig(Validator, DictTypeAccessor, CommonObj):
         """Initialize the class."""
         setattr(self, "worker_id", worker_id)
         setattr(self, "configs", configs if configs is not None else [])
-
-    @property
-    def worker_id(self) -> UUID:
-        """Get the worker_id."""
-        return self._worker_id
-
-    @worker_id.setter
-    def worker_id(self, value: UUID | str) -> None:
-        """The worker id."""
-        if isinstance(value, str):
-            value = UUID(value)
-        else:
-            self.value_error(
-                self._is_uuid("worker_id", value), f"worker_id must be a UUID, but is {type(value)}"
-            )
-        self._worker_id = value
 
     @property
     def configs(self) -> list[PopulationConfig]:
@@ -731,3 +715,19 @@ class PopulationsConfig(Validator, DictTypeAccessor, CommonObj):
     def to_json(self) -> dict[str, Any]:
         """Return the JSON representation of the configuration."""
         return {"worker_id": self.worker_id, "configs": [item.to_json() for item in self.configs]}
+
+    @property
+    def worker_id(self) -> UUID:
+        """Get the worker_id."""
+        return self._worker_id
+
+    @worker_id.setter
+    def worker_id(self, value: UUID | str) -> None:
+        """The worker id."""
+        if isinstance(value, str):
+            value = UUID(value)
+        else:
+            self.value_error(
+                self._is_uuid("worker_id", value), f"worker_id must be a UUID, but is {type(value)}"
+            )
+        self._worker_id = value

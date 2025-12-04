@@ -139,12 +139,6 @@ class CGraph(CommonObj, CGraphABC):
             return False
         return all(a == b for a, b in zip(self.values(), value.values()))
 
-    def __hash__(self) -> int:
-        """Return the hash of the Connection Graph.
-        NOTE: All CGraphABC with the same state must return the same hash value.
-        """
-        return hash(tuple(hash(iface) for iface in self.values()))
-
     def __getitem__(self, key: str) -> InterfaceABC:
         """Get the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
@@ -153,6 +147,12 @@ class CGraph(CommonObj, CGraphABC):
         if value is None:
             raise KeyError(f"Connection Graph key not set: {key}")
         return value
+
+    def __hash__(self) -> int:
+        """Return the hash of the Connection Graph.
+        NOTE: All CGraphABC with the same state must return the same hash value.
+        """
+        return hash(tuple(hash(iface) for iface in self.values()))
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the Interfaces of the Connection Graph."""
@@ -178,39 +178,156 @@ class CGraph(CommonObj, CGraphABC):
             raise TypeError(f"Value must be an Interface, got {type(value)}")
         setattr(self, _UNDER_KEY_DICT[key], value)
 
-    def is_stable(self) -> bool:
-        """Return True if the Connection Graph is stable, i.e. all destinations are connected."""
-        difs = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
-        return all(not iface.unconnected_eps() for iface in difs if iface is not None)
-
-    def graph_type(self) -> CGraphType:
-        """Identify and return the type of this connection graph."""
-        return c_graph_type(self)
-
-    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
-        """Convert the Connection Graph to a JSON-compatible dictionary.
-
-        IMPORTANT: The JSON representation produced by this method is
-        guaranteed to be in a consistent format and order. This is crucial
-        for ensuring that hash values computed from the JSON representation
-        are stable and reproducible across different runs and environments.
-        The method systematically processes each interface in a predefined
-        order, and constructs the JSON dictionary in a consistent manner.
+    def _verify_all_destinations_connected(self) -> None:
+        """Verify that all destination endpoints are connected.
+        This check applies to stable graphs only.
         """
-        jcg: dict = {}
-        row_u = []
-        for key in DstRow:  # This order is important for consistent JSON output
-            iface: Interface = getattr(self, _UNDER_DST_KEY_DICT[key])
+        unconnected: list[str] = []
+        for dst_row in DstRow:
+            dst_iface = getattr(self, _UNDER_DST_KEY_DICT[dst_row])
+            if dst_iface is None:
+                continue
+
+            for ep in dst_iface.endpoints:
+                if not ep.is_connected():
+                    unconnected.append(f"{dst_row}{ep.idx}")
+
+        self.value_error(
+            len(unconnected) == 0,
+            f"Stable/frozen graph has unconnected destination endpoints: {unconnected}",
+        )
+
+    def _verify_connectivity_rules(
+        self,
+        graph_type: CGraphType,
+        valid_src_rows_dict: dict[DstRow, frozenset[SrcRow]],
+        valid_dst_rows_dict: dict[SrcRow, frozenset[DstRow]],
+    ) -> None:
+        """Verify that endpoint connections follow the graph type rules.
+        CGraph is a mutable connection graph class that may be stable or unstable.
+        Verification must pass for both stable and unstable graphs.
+        """
+        # Check destination endpoints connect to valid source rows
+        for dst_row in DstRow:
+            dst_iface = getattr(self, _UNDER_DST_KEY_DICT[dst_row])
+            if dst_iface is None:
+                continue
+
+            valid_srcs = valid_src_rows_dict.get(dst_row, frozenset())
+            for ep in dst_iface.endpoints:
+                if ep.is_connected():
+                    for ref in ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Check that the source row is valid for this destination
+                        self.value_error(
+                            ref_row_str in valid_srcs,
+                            f"Destination {dst_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str} is not a valid source for"
+                            f" {dst_row} in {graph_type} graphs. "
+                            f"Valid sources: {valid_srcs}",
+                        )
+
+        # Check source endpoints connect to valid destination rows
+        for src_row in SrcRow:
+            src_iface = getattr(self, _UNDER_SRC_KEY_DICT[src_row])
+            if src_iface is None:
+                continue
+
+            valid_dsts = valid_dst_rows_dict.get(src_row, frozenset())
+            for ep in src_iface.endpoints:
+                if ep.is_connected():
+                    for ref in ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Check that the destination row is valid for this source
+                        self.value_error(
+                            ref_row_str in valid_dsts,
+                            f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str} is not a valid destination for "
+                            f"{src_row} in {graph_type.name} graphs. "
+                            f"Valid destinations: {valid_dsts}",
+                        )
+
+    def _verify_interface_presence(
+        self, graph_type: CGraphType, valid_rows_set: frozenset[Row]
+    ) -> None:
+        """Verify that only valid interfaces for the graph type are present.
+        CGraph is a mutable connection graph class that may be stable or unstable.
+        Verification must pass for both stable and unstable graphs.
+        """
+        for key in ROW_CLS_INDEXED_ORDERED:
+            iface = getattr(self, _UNDER_KEY_DICT[key])
             if iface is not None:
-                jcg[str(key) if json_c_graph else key] = iface.to_json(json_c_graph=json_c_graph)
-        for key in SrcRow:  # This order is important for consistent JSON output
-            iface: Interface = getattr(self, _UNDER_SRC_KEY_DICT[key])
-            if iface is not None and len(iface) > 0:
-                unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
-                row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
-        if json_c_graph and row_u:
-            jcg["U"] = row_u
-        return jcg
+                # Extract the row from the key (first character)
+                row_str = key[0]
+                self.value_error(
+                    row_str in valid_rows_set,
+                    f"Interface {key} is not valid for graph type {graph_type}. "
+                    f"Valid rows: {valid_rows_set}",
+                )
+
+    def _verify_single_endpoint_interfaces(self) -> None:
+        """Verify that F, L, W interfaces have at most 1 endpoint.
+        CGraph is a mutable connection graph class that may be stable or unstable.
+        Verification must pass for both stable and unstable graphs.
+        """
+        for row in [DstRow.F, DstRow.L, DstRow.W]:
+            iface = getattr(self, _UNDER_DST_KEY_DICT[row])
+            if iface is not None:
+                self.value_error(
+                    len(iface) <= 1,
+                    f"Interface {row}d must have at most 1 endpoint, found {len(iface)}",
+                )
+
+        # L source interface must also have at most 1 endpoint
+        ls_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.L])
+        if ls_iface is not None:
+            self.value_error(
+                len(ls_iface) <= 1,
+                f"Interface Ls must have at most 1 endpoint, found {len(ls_iface)}",
+            )
+
+        # W source interface must also have at most 1 endpoint
+        ws_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.W])
+        if ws_iface is not None:
+            self.value_error(
+                len(ws_iface) <= 1,
+                f"Interface Ws must have at most 1 endpoint, found {len(ws_iface)}",
+            )
+
+    def _verify_type_consistency(self) -> None:
+        """Verify that connected endpoints have matching types.
+        CGraph is a mutable connection graph class that may be stable or unstable.
+        Verification must pass for both stable and unstable graphs.
+        """
+        # Check all destination endpoints
+        for dst_row in DstRow:
+            dst_iface = getattr(self, _UNDER_DST_KEY_DICT[dst_row])
+            if dst_iface is None:
+                continue
+
+            for dst_ep in dst_iface.endpoints:
+                if dst_ep.is_connected():
+                    for ref in dst_ep.refs:
+                        ref_row_str, ref_idx = ref
+                        # Get the source endpoint
+                        src_iface = getattr(self, _UNDER_SRC_KEY_DICT[ref_row_str])
+                        self.value_error(
+                            src_iface is not None,
+                            f"Destination {dst_row}{dst_ep.idx} references non-existent"
+                            f" source interface {ref_row_str}s",
+                        )
+                        self.value_error(
+                            ref_idx < len(src_iface),
+                            f"Destination {dst_row}{dst_ep.idx} references {ref_row_str}{ref_idx}, "
+                            f"but {ref_row_str}s only has {len(src_iface)} endpoints",
+                        )
+                        src_ep = src_iface[ref_idx]
+                        # Verify type consistency
+                        self.value_error(
+                            dst_ep.typ == src_ep.typ,
+                            f"Type mismatch: {dst_row}{dst_ep.idx} has type {dst_ep.typ} "
+                            f"but connects to {ref_row_str}{ref_idx} with type {src_ep.typ}",
+                        )
 
     def connect(self, src_row: SrcRow, src_idx: int, dst_row: DstRow, dst_idx: int) -> None:
         """Connect a source endpoint to a destination endpoint.
@@ -316,22 +433,14 @@ class CGraph(CommonObj, CGraphABC):
         """
         return getattr(self, _UNDER_KEY_DICT[key], default)
 
-    def keys(self) -> Iterator[str]:
-        """Return an iterator over the keys of the Connection Graph.
+    def graph_type(self) -> CGraphType:
+        """Identify and return the type of this connection graph."""
+        return c_graph_type(self)
 
-        Returns:
-            Iterator over interface keys.
-        """
-        return iter(self)
-
-    def values(self) -> Iterator[InterfaceABC]:
-        """Return an iterator over the interfaces of the Connection Graph.
-        Returns:
-            Iterator over interfaces.
-        """
-        return (
-            getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None
-        )
+    def is_stable(self) -> bool:
+        """Return True if the Connection Graph is stable, i.e. all destinations are connected."""
+        difs = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
+        return all(not iface.unconnected_eps() for iface in difs if iface is not None)
 
     def items(self) -> Iterator[tuple[str, InterfaceABC]]:
         """Return an iterator over the (key, interface) pairs in the Connection Graph.
@@ -342,6 +451,14 @@ class CGraph(CommonObj, CGraphABC):
             iface = getattr(self, _UNDER_KEY_DICT[key])
             if iface is not None:
                 yield key, iface
+
+    def keys(self) -> Iterator[str]:
+        """Return an iterator over the keys of the Connection Graph.
+
+        Returns:
+            Iterator over interface keys.
+        """
+        return iter(self)
 
     def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """Stablization involves making all the mandatory connections and
@@ -357,6 +474,40 @@ class CGraph(CommonObj, CGraphABC):
         self.connect_all(if_locked, rng)
         if _logger.isEnabledFor(level=VERIFY):
             self.verify()
+
+    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
+        """Convert the Connection Graph to a JSON-compatible dictionary.
+
+        IMPORTANT: The JSON representation produced by this method is
+        guaranteed to be in a consistent format and order. This is crucial
+        for ensuring that hash values computed from the JSON representation
+        are stable and reproducible across different runs and environments.
+        The method systematically processes each interface in a predefined
+        order, and constructs the JSON dictionary in a consistent manner.
+        """
+        jcg: dict = {}
+        row_u = []
+        for key in DstRow:  # This order is important for consistent JSON output
+            iface: Interface = getattr(self, _UNDER_DST_KEY_DICT[key])
+            if iface is not None:
+                jcg[str(key) if json_c_graph else key] = iface.to_json(json_c_graph=json_c_graph)
+        for key in SrcRow:  # This order is important for consistent JSON output
+            iface: Interface = getattr(self, _UNDER_SRC_KEY_DICT[key])
+            if iface is not None and len(iface) > 0:
+                unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
+                row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
+        if json_c_graph and row_u:
+            jcg["U"] = row_u
+        return jcg
+
+    def values(self) -> Iterator[InterfaceABC]:
+        """Return an iterator over the interfaces of the Connection Graph.
+        Returns:
+            Iterator over interfaces.
+        """
+        return (
+            getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None
+        )
 
     def verify(self) -> None:
         """Verify the Connection Graph structure and connectivity rules.
@@ -425,154 +576,3 @@ class CGraph(CommonObj, CGraphABC):
 
         # Call parent verify
         super().verify()
-
-    def _verify_interface_presence(
-        self, graph_type: CGraphType, valid_rows_set: frozenset[Row]
-    ) -> None:
-        """Verify that only valid interfaces for the graph type are present.
-        CGraph is a mutable connection graph class that may be stable or unstable.
-        Verification must pass for both stable and unstable graphs.
-        """
-        for key in ROW_CLS_INDEXED_ORDERED:
-            iface = getattr(self, _UNDER_KEY_DICT[key])
-            if iface is not None:
-                # Extract the row from the key (first character)
-                row_str = key[0]
-                self.value_error(
-                    row_str in valid_rows_set,
-                    f"Interface {key} is not valid for graph type {graph_type}. "
-                    f"Valid rows: {valid_rows_set}",
-                )
-
-    def _verify_connectivity_rules(
-        self,
-        graph_type: CGraphType,
-        valid_src_rows_dict: dict[DstRow, frozenset[SrcRow]],
-        valid_dst_rows_dict: dict[SrcRow, frozenset[DstRow]],
-    ) -> None:
-        """Verify that endpoint connections follow the graph type rules.
-        CGraph is a mutable connection graph class that may be stable or unstable.
-        Verification must pass for both stable and unstable graphs.
-        """
-        # Check destination endpoints connect to valid source rows
-        for dst_row in DstRow:
-            dst_iface = getattr(self, _UNDER_DST_KEY_DICT[dst_row])
-            if dst_iface is None:
-                continue
-
-            valid_srcs = valid_src_rows_dict.get(dst_row, frozenset())
-            for ep in dst_iface.endpoints:
-                if ep.is_connected():
-                    for ref in ep.refs:
-                        ref_row_str, ref_idx = ref
-                        # Check that the source row is valid for this destination
-                        self.value_error(
-                            ref_row_str in valid_srcs,
-                            f"Destination {dst_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
-                            f"but {ref_row_str} is not a valid source for"
-                            f" {dst_row} in {graph_type} graphs. "
-                            f"Valid sources: {valid_srcs}",
-                        )
-
-        # Check source endpoints connect to valid destination rows
-        for src_row in SrcRow:
-            src_iface = getattr(self, _UNDER_SRC_KEY_DICT[src_row])
-            if src_iface is None:
-                continue
-
-            valid_dsts = valid_dst_rows_dict.get(src_row, frozenset())
-            for ep in src_iface.endpoints:
-                if ep.is_connected():
-                    for ref in ep.refs:
-                        ref_row_str, ref_idx = ref
-                        # Check that the destination row is valid for this source
-                        self.value_error(
-                            ref_row_str in valid_dsts,
-                            f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
-                            f"but {ref_row_str} is not a valid destination for "
-                            f"{src_row} in {graph_type.name} graphs. "
-                            f"Valid destinations: {valid_dsts}",
-                        )
-
-    def _verify_single_endpoint_interfaces(self) -> None:
-        """Verify that F, L, W interfaces have at most 1 endpoint.
-        CGraph is a mutable connection graph class that may be stable or unstable.
-        Verification must pass for both stable and unstable graphs.
-        """
-        for row in [DstRow.F, DstRow.L, DstRow.W]:
-            iface = getattr(self, _UNDER_DST_KEY_DICT[row])
-            if iface is not None:
-                self.value_error(
-                    len(iface) <= 1,
-                    f"Interface {row}d must have at most 1 endpoint, found {len(iface)}",
-                )
-
-        # L source interface must also have at most 1 endpoint
-        ls_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.L])
-        if ls_iface is not None:
-            self.value_error(
-                len(ls_iface) <= 1,
-                f"Interface Ls must have at most 1 endpoint, found {len(ls_iface)}",
-            )
-
-        # W source interface must also have at most 1 endpoint
-        ws_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.W])
-        if ws_iface is not None:
-            self.value_error(
-                len(ws_iface) <= 1,
-                f"Interface Ws must have at most 1 endpoint, found {len(ws_iface)}",
-            )
-
-    def _verify_type_consistency(self) -> None:
-        """Verify that connected endpoints have matching types.
-        CGraph is a mutable connection graph class that may be stable or unstable.
-        Verification must pass for both stable and unstable graphs.
-        """
-        # Check all destination endpoints
-        for dst_row in DstRow:
-            dst_iface = getattr(self, _UNDER_DST_KEY_DICT[dst_row])
-            if dst_iface is None:
-                continue
-
-            for dst_ep in dst_iface.endpoints:
-                if dst_ep.is_connected():
-                    for ref in dst_ep.refs:
-                        ref_row_str, ref_idx = ref
-                        # Get the source endpoint
-                        src_iface = getattr(self, _UNDER_SRC_KEY_DICT[ref_row_str])
-                        self.value_error(
-                            src_iface is not None,
-                            f"Destination {dst_row}{dst_ep.idx} references non-existent"
-                            f" source interface {ref_row_str}s",
-                        )
-                        self.value_error(
-                            ref_idx < len(src_iface),
-                            f"Destination {dst_row}{dst_ep.idx} references {ref_row_str}{ref_idx}, "
-                            f"but {ref_row_str}s only has {len(src_iface)} endpoints",
-                        )
-                        src_ep = src_iface[ref_idx]
-                        # Verify type consistency
-                        self.value_error(
-                            dst_ep.typ == src_ep.typ,
-                            f"Type mismatch: {dst_row}{dst_ep.idx} has type {dst_ep.typ} "
-                            f"but connects to {ref_row_str}{ref_idx} with type {src_ep.typ}",
-                        )
-
-    def _verify_all_destinations_connected(self) -> None:
-        """Verify that all destination endpoints are connected.
-        This check applies to stable graphs only.
-        """
-        unconnected: list[str] = []
-        for dst_row in DstRow:
-            dst_iface = getattr(self, _UNDER_DST_KEY_DICT[dst_row])
-            if dst_iface is None:
-                continue
-
-            for ep in dst_iface.endpoints:
-                if not ep.is_connected():
-                    unconnected.append(f"{dst_row}{ep.idx}")
-
-        self.value_error(
-            len(unconnected) == 0,
-            f"Stable/frozen graph has unconnected destination endpoints: {unconnected}",
-        )

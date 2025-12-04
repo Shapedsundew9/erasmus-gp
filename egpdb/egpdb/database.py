@@ -104,40 +104,6 @@ _CTYPE: dict[str, Any] = {
 }
 
 
-def db_connect(dbname, config):
-    """Connect to the specified database.
-
-    If a connection already exists then it is reused. If not a new one is created
-    and return it.
-
-    Args
-    ----
-    dbname (str): Name of the database to connect too
-    config (dict): Database server details. Must have: {
-            'host' (str): Fully qualified host name of the DB server
-            'port' (int): Port to access database server on
-            'user' (str): Username to login with
-            'password' (str): Password to login with
-    }
-
-    Returns
-    -------
-    (psycopg2.connection) object with open connection.
-    """
-    connection = _get_connection(dbname, config["host"])
-    if connection is None:
-        connection = db_reconnect(dbname, config)
-        _connections[config["host"]][dbname][get_ident()] = connection
-        _clean_connections()
-    return connection
-
-
-def _get_connection(dbname, host):
-    dbs = _connections.setdefault(host, {})
-    threads = dbs.setdefault(dbname, {})
-    return threads.setdefault(get_ident(), None)
-
-
 def _clean_connections() -> None:
     """If threads no longer exist close any connections they may have had."""
     idents: list[int | None] = [
@@ -165,108 +131,6 @@ def _clean_connections() -> None:
                         )
                     else:
                         del threads[ident]
-
-
-def db_disconnect(dbname, config) -> None:
-    """Disconnect from the specified database.
-
-    If a connection does not exist this function is a no-op.
-
-    Args
-    ----
-    dbname (str): Name of the database to disconnect from.
-    config (dict): Database server details. Must have: {
-            'host' (str): Fully qualified host name of the DB server
-    }
-    """
-    connection = _get_connection(dbname, config["host"])
-    if connection is not None:
-        try:
-            connection.close()
-        except (InterfaceError, OperationalError, ProgrammingError) as exc:
-            _logger.warning(
-                TextToken(
-                    {
-                        "W04006": {
-                            "host": config["host"],
-                            "dbname": dbname,
-                            "error": str(exc),
-                        }
-                    }
-                )
-            )
-        else:
-            _connections[config["host"]][dbname][get_ident()] = None
-
-
-def db_disconnect_all():
-    """Disconnect all connections.
-
-    Additionally, delete all internal state.
-    """
-    for host, db_dict in tuple(_connections.items()):
-        for dbname in db_dict.keys():
-            db_disconnect(dbname, {"host": host})
-        del _connections[host]
-
-
-def db_reconnect(dbname, config):
-    """Reconnect to the specified database.
-
-    If a connection already exists and is open close it and establish
-    a new connection. The new connection is stored for resuse via the
-    db_connection() function.
-    If a connection cannot be established
-    step through an increasing backoff delay and try again.
-    Retries are infinite.
-
-    Args
-    ----
-    dbname (str): Name of the database to connect too.
-    config (dict): Database server details. Must have: {
-            'host' (str): Fully qualified host name of the DB server
-            'port' (int): Port to access database server on
-            'user' (str): Username to login with
-            'password' (str): Password to login with
-            'retries (int): Number of time to retry a failed connection.
-    }
-
-    Returns
-    -------
-    psycopg2.connection object with open connection.
-    """
-    connection = _get_connection(dbname, config["host"])
-    if connection is not None:
-        db_disconnect(dbname, config)
-    backoff_gen = backoff_generator(_INITIAL_DELAY, _BACKOFF_STEPS, _BACKOFF_FUZZ)
-    attempts = 0
-    connection, error = _connect_core(dbname, config)
-    while connection is None and attempts < config["retries"]:
-        try:
-            backoff = next(backoff_gen)
-        except StopIteration:
-            break
-        attempts += 1
-        _logger.warning(
-            TextToken(
-                {
-                    "W04000": {
-                        "attempts": attempts,
-                        "dbname": dbname,
-                        "config": config,
-                        "backoff": backoff,
-                    }
-                }
-            )
-        )
-        sleep(backoff)
-        connection, error = _connect_core(dbname, config)
-    if error is not None:
-        raise error
-    if connection is None:
-        raise RuntimeError("Something went horribly wrong!")
-    _connections[config["host"]][dbname][get_ident()] = connection
-    return connection
 
 
 def _connect_core(dbname, config):
@@ -314,6 +178,136 @@ def _connect_core(dbname, config):
         err = None
         _logger.info(TextToken({"I04000": {"dbname": dbname, "config": config}}))
     return connection, err
+
+
+def _get_connection(dbname, host):
+    dbs = _connections.setdefault(host, {})
+    threads = dbs.setdefault(dbname, {})
+    return threads.setdefault(get_ident(), None)
+
+
+def db_connect(dbname, config):
+    """Connect to the specified database.
+
+    If a connection already exists then it is reused. If not a new one is created
+    and return it.
+
+    Args
+    ----
+    dbname (str): Name of the database to connect too
+    config (dict): Database server details. Must have: {
+            'host' (str): Fully qualified host name of the DB server
+            'port' (int): Port to access database server on
+            'user' (str): Username to login with
+            'password' (str): Password to login with
+    }
+
+    Returns
+    -------
+    (psycopg2.connection) object with open connection.
+    """
+    connection = _get_connection(dbname, config["host"])
+    if connection is None:
+        connection = db_reconnect(dbname, config)
+        _connections[config["host"]][dbname][get_ident()] = connection
+        _clean_connections()
+    return connection
+
+
+def db_create(dbname, config):
+    """Connect to the maintenance database to create dbname.
+
+    The connection to the maintenance DB is closed after dbname
+    is created.
+
+    Args
+    ----
+    dbname (str): Name of the database to connect too.
+    config (dict): Database server details. Must have: {
+            'host' (str): Fully qualified host name of the DB server
+            'port' (int): Port to access database server on
+            'user' (str): Username to login with for maintenance DB
+            'password' (str): Password to login with for maintenance DB
+            'maintenance_db' (str): Name of the maintenance DB
+    }
+    """
+    sql_str = _DB_CREATE_SQL.format(sql.Identifier(dbname))
+    connection = db_connect(config["maintenance_db"], config)
+    connection.autocommit = True
+    _logger.info(sql_str.as_string(connection))
+    db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
+    _logger.info(TextToken({"I04002": {"dbname": config["maintenance_db"], "config": config}}))
+    db_disconnect(config["maintenance_db"], config)
+
+
+def db_delete(dbname, config):
+    """Connect to the maintenance database to create dbname.
+
+    The connection to the maintenance DB is closed after dbname
+    is created.
+
+    Args
+    ----
+    dbname (str): Name of the database to connect too.
+    config (dict): Database server details. Must have: {
+            'host' (str): Fully qualified host name of the DB server
+            'port' (int): Port to access database server on
+            'user' (str): Username to login with for maintenance DB
+            'password' (str): Password to login with for maintenance DB
+            'maintenance_db' (str): Name of the maintenance DB
+    }
+    """
+    sql_str = _DB_DELETE_SQL.format(sql.Identifier(dbname))
+    db_disconnect(dbname, config)
+    connection = db_connect(config["maintenance_db"], config)
+    connection.autocommit = True
+    _logger.info(sql_str.as_string(connection))
+    db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
+    _logger.info(TextToken({"I04003": {"dbname": dbname, "config": config}}))
+    db_disconnect(config["maintenance_db"], config)
+
+
+def db_disconnect(dbname, config) -> None:
+    """Disconnect from the specified database.
+
+    If a connection does not exist this function is a no-op.
+
+    Args
+    ----
+    dbname (str): Name of the database to disconnect from.
+    config (dict): Database server details. Must have: {
+            'host' (str): Fully qualified host name of the DB server
+    }
+    """
+    connection = _get_connection(dbname, config["host"])
+    if connection is not None:
+        try:
+            connection.close()
+        except (InterfaceError, OperationalError, ProgrammingError) as exc:
+            _logger.warning(
+                TextToken(
+                    {
+                        "W04006": {
+                            "host": config["host"],
+                            "dbname": dbname,
+                            "error": str(exc),
+                        }
+                    }
+                )
+            )
+        else:
+            _connections[config["host"]][dbname][get_ident()] = None
+
+
+def db_disconnect_all():
+    """Disconnect all connections.
+
+    Additionally, delete all internal state.
+    """
+    for host, db_dict in tuple(_connections.items()):
+        for dbname in db_dict.keys():
+            db_disconnect(dbname, {"host": host})
+        del _connections[host]
 
 
 def db_exists(dbname, config):
@@ -374,37 +368,15 @@ def db_exists(dbname, config):
     return retval
 
 
-def db_create(dbname, config):
-    """Connect to the maintenance database to create dbname.
+def db_reconnect(dbname, config):
+    """Reconnect to the specified database.
 
-    The connection to the maintenance DB is closed after dbname
-    is created.
-
-    Args
-    ----
-    dbname (str): Name of the database to connect too.
-    config (dict): Database server details. Must have: {
-            'host' (str): Fully qualified host name of the DB server
-            'port' (int): Port to access database server on
-            'user' (str): Username to login with for maintenance DB
-            'password' (str): Password to login with for maintenance DB
-            'maintenance_db' (str): Name of the maintenance DB
-    }
-    """
-    sql_str = _DB_CREATE_SQL.format(sql.Identifier(dbname))
-    connection = db_connect(config["maintenance_db"], config)
-    connection.autocommit = True
-    _logger.info(sql_str.as_string(connection))
-    db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
-    _logger.info(TextToken({"I04002": {"dbname": config["maintenance_db"], "config": config}}))
-    db_disconnect(config["maintenance_db"], config)
-
-
-def db_delete(dbname, config):
-    """Connect to the maintenance database to create dbname.
-
-    The connection to the maintenance DB is closed after dbname
-    is created.
+    If a connection already exists and is open close it and establish
+    a new connection. The new connection is stored for resuse via the
+    db_connection() function.
+    If a connection cannot be established
+    step through an increasing backoff delay and try again.
+    Retries are infinite.
 
     Args
     ----
@@ -412,19 +384,47 @@ def db_delete(dbname, config):
     config (dict): Database server details. Must have: {
             'host' (str): Fully qualified host name of the DB server
             'port' (int): Port to access database server on
-            'user' (str): Username to login with for maintenance DB
-            'password' (str): Password to login with for maintenance DB
-            'maintenance_db' (str): Name of the maintenance DB
+            'user' (str): Username to login with
+            'password' (str): Password to login with
+            'retries (int): Number of time to retry a failed connection.
     }
+
+    Returns
+    -------
+    psycopg2.connection object with open connection.
     """
-    sql_str = _DB_DELETE_SQL.format(sql.Identifier(dbname))
-    db_disconnect(dbname, config)
-    connection = db_connect(config["maintenance_db"], config)
-    connection.autocommit = True
-    _logger.info(sql_str.as_string(connection))
-    db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
-    _logger.info(TextToken({"I04003": {"dbname": dbname, "config": config}}))
-    db_disconnect(config["maintenance_db"], config)
+    connection = _get_connection(dbname, config["host"])
+    if connection is not None:
+        db_disconnect(dbname, config)
+    backoff_gen = backoff_generator(_INITIAL_DELAY, _BACKOFF_STEPS, _BACKOFF_FUZZ)
+    attempts = 0
+    connection, error = _connect_core(dbname, config)
+    while connection is None and attempts < config["retries"]:
+        try:
+            backoff = next(backoff_gen)
+        except StopIteration:
+            break
+        attempts += 1
+        _logger.warning(
+            TextToken(
+                {
+                    "W04000": {
+                        "attempts": attempts,
+                        "dbname": dbname,
+                        "config": config,
+                        "backoff": backoff,
+                    }
+                }
+            )
+        )
+        sleep(backoff)
+        connection, error = _connect_core(dbname, config)
+    if error is not None:
+        raise error
+    if connection is None:
+        raise RuntimeError("Something went horribly wrong!")
+    _connections[config["host"]][dbname][get_ident()] = connection
+    return connection
 
 
 def db_transaction(dbname, config, sql_str, read=True, recons=_DB_RECONNECTIONS, ctype="tuple"):

@@ -137,17 +137,17 @@ class TypesDef(FreezableObject, Validator):
             return self.__uid == value.uid
         return False
 
-    def __gt__(self, other: object) -> bool:
-        """Return True if this object's UID is greater than the other object's UID."""
-        if not isinstance(other, TypesDef):
-            return NotImplemented
-        return self.__uid > other.uid
-
     def __ge__(self, other: object) -> bool:
         """Return True if this object's UID is greater than or equal to the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
         return self.__uid >= other.uid
+
+    def __gt__(self, other: object) -> bool:
+        """Return True if this object's UID is greater than the other object's UID."""
+        if not isinstance(other, TypesDef):
+            return NotImplemented
+        return self.__uid > other.uid
 
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
@@ -342,11 +342,6 @@ class TypesDef(FreezableObject, Validator):
         """Return the parents of the type definition."""
         return self.__parents
 
-    @property
-    def uid(self) -> int:
-        """Return the UID of the type definition."""
-        return self.bd.to_int()
-
     def to_json(self) -> dict:
         """Return Type Definition as a JSON serializable dictionary."""
         return {
@@ -366,6 +361,11 @@ class TypesDef(FreezableObject, Validator):
         retval = bd["tt"]
         assert isinstance(retval, int), "TT must be an integer."
         return retval
+
+    @property
+    def uid(self) -> int:
+        """Return the UID of the type definition."""
+        return self.bd.to_int()
 
     def xuid(self) -> int:
         """Return the XUID of the type definition."""
@@ -399,25 +399,6 @@ class TypesDefStore:
     _cache_maxsize: int = 1024
     _cache_hits: int = 0
     _cache_misses: int = 0
-
-    def _initialize_db_store(self) -> None:
-        """Initialize the database store if it has not been initialized yet.
-        This is done lazily to avoid import overheads when not used.
-        """
-        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
-        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
-        if DB_STORE_TABLE_CONFIG.delete_table:
-            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
-            for name in DB_STORE_TABLE_CONFIG.data_files:
-                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
-                if not verify_signed_file(filename):
-                    raise InvalidSignatureError(
-                        f"Signature verification failed for file: {filename}"
-                    )
-                sig_data = load_signature_data(filename + ".sig")
-                sig_data["source_path"] = filename
-                TypesDefStore._db_sources.insert((sig_data,))
-        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
     def __contains__(self, key: int | str) -> bool:
         """Check if the key is in the store."""
@@ -467,6 +448,25 @@ class TypesDefStore:
             del TypesDefStore._cache[evict_key]
 
         return ntd
+
+    def _initialize_db_store(self) -> None:
+        """Initialize the database store if it has not been initialized yet.
+        This is done lazily to avoid import overheads when not used.
+        """
+        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
+        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
+        if DB_STORE_TABLE_CONFIG.delete_table:
+            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+            for name in DB_STORE_TABLE_CONFIG.data_files:
+                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
+                if not verify_signed_file(filename):
+                    raise InvalidSignatureError(
+                        f"Signature verification failed for file: {filename}"
+                    )
+                sig_data = load_signature_data(filename + ".sig")
+                sig_data["source_path"] = filename
+                TypesDefStore._db_sources.insert((sig_data,))
+        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
     def _should_reload_table(self) -> bool:
         """Determine if the types_def table should be reloaded."""

@@ -26,15 +26,15 @@ class FunctionInfo:
     # the GPI everytime it is accessed to reduce memory usage.
     gc: GCABC
 
-    def name(self) -> str:
-        """Return the function name."""
-        return f"f_{self.global_index:x}"
-
     def call_str(self, ivns: Sequence[str]) -> str:
         """Return the function call string using the map of input variable names."""
         if len(ivns):
             return f"{self.name()}(({', '.join(f'{ivn}' for ivn in ivns)},))"
         return f"{self.name()}()"
+
+    def name(self) -> str:
+        """Return the function name."""
+        return f"f_{self.global_index:x}"
 
 
 NULL_FUNCTION_MAP: FunctionInfo = FunctionInfo(NULL_EXECUTABLE, -1, 0, NULL_GC)

@@ -10,6 +10,18 @@ class JSONFileStoreTestBase(StoreTestBase):
     the original key type.
     """
 
+    def test_items(self) -> None:
+        """
+        Test the items method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
+        items = self.store.items()
+        second = [(str(self.key1), self.value1), (str(self.key2), self.value2)]
+        self.assertEqual(first=list(items), second=second)
+
     def test_iter(self) -> None:
         """
         Test the iter method.
@@ -32,15 +44,3 @@ class JSONFileStoreTestBase(StoreTestBase):
         keys = self.store.keys()
         self.assertEqual(first=list(keys), second=[
                          str(self.key1), str(self.key2)])
-
-    def test_items(self) -> None:
-        """
-        Test the items method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key1] = self.value1
-        self.store[self.key2] = self.value2
-        items = self.store.items()
-        second = [(str(self.key1), self.value1), (str(self.key2), self.value2)]
-        self.assertEqual(first=list(items), second=second)

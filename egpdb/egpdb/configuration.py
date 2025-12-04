@@ -84,6 +84,24 @@ class DatabaseConfig(Validator, DictTypeAccessor, CommonObj):
         self._host = value
 
     @property
+    def maintenance_db(self) -> str:
+        """Get the maintenance database."""
+        return self._maintenance_db
+
+    @maintenance_db.setter
+    def maintenance_db(self, value: str) -> None:
+        """The maintenance database."""
+        self.value_error(
+            self._is_string("maintenance_db", value),
+            f"maintenance_db must be a string, but is {type(value)}",
+        )
+        self.value_error(
+            self._is_regex("maintenance_db", value, self._dbname_regex),
+            f"maintenance_db must match regex {self._dbname_regex_str}, but is {value}",
+        )
+        self._maintenance_db = value
+
+    @property
     def password(self) -> str:
         """Get the password."""
         with open(self._password, "r", encoding="utf-8") as f:
@@ -115,24 +133,6 @@ class DatabaseConfig(Validator, DictTypeAccessor, CommonObj):
             f"port must be between 1024 and 65535, but is {value}",
         )
         self._port = value
-
-    @property
-    def maintenance_db(self) -> str:
-        """Get the maintenance database."""
-        return self._maintenance_db
-
-    @maintenance_db.setter
-    def maintenance_db(self, value: str) -> None:
-        """The maintenance database."""
-        self.value_error(
-            self._is_string("maintenance_db", value),
-            f"maintenance_db must be a string, but is {type(value)}",
-        )
-        self.value_error(
-            self._is_regex("maintenance_db", value, self._dbname_regex),
-            f"maintenance_db must match regex {self._dbname_regex_str}, but is {value}",
-        )
-        self._maintenance_db = value
 
     @property
     def retries(self) -> int:
@@ -254,30 +254,18 @@ class ColumnSchema(Validator, DictTypeAccessor, CommonObj):
         setattr(self, "alignment", alignment)
         self.verify()
 
-    def verify(self) -> None:
-        """Check the schema column."""
-        if self.primary_key:
-            self.value_error(not self.nullable, "Primary key columns cannot have NULL entries.")
-            self.runtime_error(self.unique, "Primary key columns must also be unique.")
-        if self.index is not None:
-            self.value_error(
-                not self.primary_key, "Primary key columns cannot be additionally indexed."
-            )
-            self.value_error(not self.unique, "Unique columns cannot be additionally indexed.")
-        super().verify()
+    @property
+    def alignment(self) -> int:
+        """Get the alignment."""
+        return self._alignment
 
-    def to_json(self) -> dict:
-        """Get the configuration as a JSON object."""
-        return {
-            "db_type": self.db_type,
-            "volatile": self.volatile,
-            "default": self.default,
-            "description": self.description,
-            "nullable": self.nullable,
-            "primary_key": self.primary_key,
-            "index": self.index,
-            "unique": self.unique,
-        }
+    @alignment.setter
+    def alignment(self, value: int) -> None:
+        """Set the alignment."""
+        self.value_error(
+            self._is_int("alignment", value), f"alignment must be an int, but is {type(value)}"
+        )
+        self._alignment = value
 
     @property
     def db_type(self) -> str:
@@ -297,19 +285,6 @@ class ColumnSchema(Validator, DictTypeAccessor, CommonObj):
             f"db_type length must be between 1 and 64, but is {len(value)}",
         )
         self._db_type = value
-
-    @property
-    def volatile(self) -> bool:
-        """Get the volatile."""
-        return self._volatile
-
-    @volatile.setter
-    def volatile(self, value: bool) -> None:
-        """Application hint that the column may be updated after initialisation when True."""
-        self.value_error(
-            self._is_bool("volatile", value), f"volatile must be a bool, but is {type(value)}"
-        )
-        self._volatile = value
 
     @property
     def default(self) -> str | None:
@@ -349,6 +324,21 @@ class ColumnSchema(Validator, DictTypeAccessor, CommonObj):
         self._description = value
 
     @property
+    def index(self) -> str | None:
+        """Get the index."""
+        return self._index
+
+    @index.setter
+    def index(self, value: str | None) -> None:
+        """Column is indexed with the selected algorithm."""
+        if value is not None:
+            self.value_error(
+                self._is_one_of("index", value, ("btree", "hash", "gist", "gin")),
+                f"index must be one of ('btree', 'hash', 'gist', 'gin'), but is {value}",
+            )
+        self._index = value
+
+    @property
     def nullable(self) -> bool:
         """Get the nullable."""
         return self._nullable
@@ -374,20 +364,18 @@ class ColumnSchema(Validator, DictTypeAccessor, CommonObj):
         )
         self._primary_key = value
 
-    @property
-    def index(self) -> str | None:
-        """Get the index."""
-        return self._index
-
-    @index.setter
-    def index(self, value: str | None) -> None:
-        """Column is indexed with the selected algorithm."""
-        if value is not None:
-            self.value_error(
-                self._is_one_of("index", value, ("btree", "hash", "gist", "gin")),
-                f"index must be one of ('btree', 'hash', 'gist', 'gin'), but is {value}",
-            )
-        self._index = value
+    def to_json(self) -> dict:
+        """Get the configuration as a JSON object."""
+        return {
+            "db_type": self.db_type,
+            "volatile": self.volatile,
+            "default": self.default,
+            "description": self.description,
+            "nullable": self.nullable,
+            "primary_key": self.primary_key,
+            "index": self.index,
+            "unique": self.unique,
+        }
 
     @property
     def unique(self) -> bool:
@@ -402,18 +390,30 @@ class ColumnSchema(Validator, DictTypeAccessor, CommonObj):
         )
         self._unique = value
 
-    @property
-    def alignment(self) -> int:
-        """Get the alignment."""
-        return self._alignment
+    def verify(self) -> None:
+        """Check the schema column."""
+        if self.primary_key:
+            self.value_error(not self.nullable, "Primary key columns cannot have NULL entries.")
+            self.runtime_error(self.unique, "Primary key columns must also be unique.")
+        if self.index is not None:
+            self.value_error(
+                not self.primary_key, "Primary key columns cannot be additionally indexed."
+            )
+            self.value_error(not self.unique, "Unique columns cannot be additionally indexed.")
+        super().verify()
 
-    @alignment.setter
-    def alignment(self, value: int) -> None:
-        """Set the alignment."""
+    @property
+    def volatile(self) -> bool:
+        """Get the volatile."""
+        return self._volatile
+
+    @volatile.setter
+    def volatile(self, value: bool) -> None:
+        """Application hint that the column may be updated after initialisation when True."""
         self.value_error(
-            self._is_int("alignment", value), f"alignment must be an int, but is {type(value)}"
+            self._is_bool("volatile", value), f"volatile must be a bool, but is {type(value)}"
         )
-        self._alignment = value
+        self._volatile = value
 
 
 ConversionFunc = Callable | None
@@ -488,133 +488,68 @@ class TableConfig(Validator, DictTypeAccessor, CommonObj):
         setattr(self, "conversions", conversions)
         self.verify()
 
-    def verify(self) -> None:
-        """Check the table configuration."""
-        for k, v in self.ptr_map.items():  # pylint error? pylint: disable=no-member
-            self.value_error(k in self.schema, f"Pointer map key '{k}' not in schema.")
-            self.value_error(v in self.schema, f"Pointer map value '{v}' not in schema.")
-            self.value_error(
-                v not in self.ptr_map, f"Pointer map value '{v}' is also a key. Circular reference."
-            )
-        if self.delete_db:
-            self.value_error(self.create_db, "Delete DB requires create DB.")
-            self.value_error(not self.wait_for_db, "Delete DB requires wait for DB to be False.")
-            self.value_error(
-                self.create_table or self.wait_for_table,
-                "Delete DB requires create table or wait for table.",
-            )
-        if self.delete_table:
-            self.value_error(self.create_table, "Delete table requires create table.")
-            self.value_error(
-                not self.wait_for_table, "Delete table requires wait for table to be False."
-            )
-        self.value_error(
-            not (self.create_db and self.wait_for_db),
-            "Create DB requires wait for DB to be False.",
-        )
-        self.value_error(
-            not (self.create_table and self.wait_for_table),
-            "Create table requires wait for table to be False.",
-        )
-        super().verify()
+    @property
+    def conversions(self) -> Conversions:
+        """Get the conversions."""
+        return self._conversions
 
-    def to_json(self) -> dict:
-        """Get the configuration as a JSON object."""
-        return {
-            "database": self.database.to_json(),
-            "table": self.table,
-            "schema": {k: v.to_json() for k, v in self.schema.items()},
-            "ptr_map": self.ptr_map,
-            "data_file_folder": self.data_file_folder,
-            "data_files": self.data_files,
-            "delete_db": self.delete_db,
-            "delete_table": self.delete_table,
-            "create_db": self.create_db,
-            "create_table": self.create_table,
-            "wait_for_db": self.wait_for_db,
-            "wait_for_table": self.wait_for_table,
-            "conversions": self.conversions,
-        }
+    @conversions.setter
+    def conversions(self, value: Conversions) -> None:
+        """Conversions."""
+        self.value_error(self._is_tuple("conversions", value), "conversions must be a tuple")
+        for v in value:
+            if isinstance(v, tuple):
+                self.value_error(self._is_tuple("conversions", v), "conversion must be a tuple")
+                self.value_error(
+                    self._is_length("conversions", v, 3, 3), "conversion tuple must have 3 elements"
+                )
+                self.value_error(
+                    self._is_printable_string("conversions", v[0]),
+                    f"conversion column name must be a printable string, but is {v[0]}",
+                )
+                if v[1] is not None:
+                    self.value_error(
+                        self._is_callable("conversions", v[1]),
+                        f"conversion encode function must be callable, but is {type(v[1])}",
+                    )
+                if v[2] is not None:
+                    self.value_error(
+                        self._is_callable("conversions", v[2]),
+                        f"conversion decode function must be callable, but is {type(v[2])}",
+                    )
+            else:
+                self.value_error(
+                    self._is_callable("conversions", v),
+                    f"conversion must be callable, but is {type(v)}",
+                )
+        self._conversions = value
 
     @property
-    def database(self) -> DatabaseConfig:
-        """Get the database."""
-        return self._database
+    def create_db(self) -> bool:
+        """Get the create_db."""
+        return self._create_db
 
-    @database.setter
-    def database(self, value: DatabaseConfig | dict[str, Any]) -> None:
-        """Normalized DB configuration."""
-        if isinstance(value, dict):
-            value = DatabaseConfig(**value)
+    @create_db.setter
+    def create_db(self, value: bool) -> None:
+        """Create the database."""
         self.value_error(
-            self._is_instance("database", value, DatabaseConfig),
-            f"database must be a DatabaseConfig, but is {type(value)}",
+            self._is_bool("create_db", value), f"create_db must be a bool, but is {type(value)}"
         )
-        self._database = value
+        self._create_db = value
 
     @property
-    def table(self) -> str:
-        """Get the table."""
-        return self._table
+    def create_table(self) -> bool:
+        """Get the create_table."""
+        return self._create_table
 
-    @table.setter
-    def table(self, value: str) -> None:
-        """The table name."""
+    @create_table.setter
+    def create_table(self, value: bool) -> None:
+        """Create the table."""
         self.value_error(
-            self._is_printable_string("table", value),
-            f"table must be a printable string, but is {value}",
+            self._is_bool("create_table", value),
+            f"create_table must be a bool, but is {type(value)}",
         )
-        self.value_error(
-            self._is_length("table", value, 1, 64),
-            f"table length must be between 1 and 64, but is {len(value)}",
-        )
-        self._table = value
-
-    @property
-    def schema(self) -> TableSchema:
-        """Get the schema."""
-        return self._schema
-
-    @schema.setter
-    def schema(self, value: TableSchema | dict[str, dict[str, Any]]) -> None:
-        """Table schema."""
-        self.value_error(
-            self._is_dict("schema", value), f"schema must be a dict, but is {type(value)}"
-        )
-        _value: TableSchema = {}
-        for k, v in value.items():
-            _value[k] = ColumnSchema(**v) if isinstance(v, dict) else v
-        self._schema = _value
-
-    @property
-    def ptr_map(self) -> PtrMap:
-        """Get the ptr_map."""
-        return self._ptr_map
-
-    @ptr_map.setter
-    def ptr_map(self, value: PtrMap) -> None:
-        """Pointer map."""
-        self.value_error(
-            self._is_dict("ptr_map", value), f"ptr_map must be a dict, but is {type(value)}"
-        )
-        for k, v in value.items():
-            self.value_error(
-                self._is_printable_string("ptr_map", k),
-                f"ptr_map key must be a printable string, but is {k}",
-            )
-            self.value_error(
-                self._is_printable_string("ptr_map", v),
-                f"ptr_map value must be a printable string, but is {v}",
-            )
-            self.value_error(
-                self._is_length("ptr_map", k, 1, 64),
-                f"ptr_map key length must be between 1 and 64, but is {len(k)}",
-            )
-            self.value_error(
-                self._is_length("ptr_map", v, 1, 64),
-                f"ptr_map value length must be between 1 and 64, but is {len(v)}",
-            )
-        self._ptr_map = value
+        self._create_table = value
 
     @property
     def data_file_folder(self) -> str:
@@ -653,6 +588,22 @@ class TableConfig(Validator, DictTypeAccessor, CommonObj):
         self._data_files = value
 
     @property
+    def database(self) -> DatabaseConfig:
+        """Get the database."""
+        return self._database
+
+    @database.setter
+    def database(self, value: DatabaseConfig | dict[str, Any]) -> None:
+        """Normalized DB configuration."""
+        if isinstance(value, dict):
+            value = DatabaseConfig(**value)
+        self.value_error(
+            self._is_instance("database", value, DatabaseConfig),
+            f"database must be a DatabaseConfig, but is {type(value)}",
+        )
+        self._database = value
+
+    @property
     def delete_db(self) -> bool:
         """Get the delete_db."""
         return self._delete_db
@@ -680,31 +631,116 @@ class TableConfig(Validator, DictTypeAccessor, CommonObj):
         self._delete_table = value
 
     @property
-    def create_db(self) -> bool:
-        """Get the create_db."""
-        return self._create_db
+    def ptr_map(self) -> PtrMap:
+        """Get the ptr_map."""
+        return self._ptr_map
 
-    @create_db.setter
-    def create_db(self, value: bool) -> None:
-        """Create the database."""
+    @ptr_map.setter
+    def ptr_map(self, value: PtrMap) -> None:
+        """Pointer map."""
         self.value_error(
-            self._is_bool("create_db", value), f"create_db must be a bool, but is {type(value)}"
+            self._is_dict("ptr_map", value), f"ptr_map must be a dict, but is {type(value)}"
         )
-        self._create_db = value
+        for k, v in value.items():
+            self.value_error(
+                self._is_printable_string("ptr_map", k),
+                f"ptr_map key must be a printable string, but is {k}",
+            )
+            self.value_error(
+                self._is_printable_string("ptr_map", v),
+                f"ptr_map value must be a printable string, but is {v}",
+            )
+            self.value_error(
+                self._is_length("ptr_map", k, 1, 64),
+                f"ptr_map key length must be between 1 and 64, but is {len(k)}",
+            )
+            self.value_error(
+                self._is_length("ptr_map", v, 1, 64),
+                f"ptr_map value length must be between 1 and 64, but is {len(v)}",
+            )
+        self._ptr_map = value
 
     @property
-    def create_table(self) -> bool:
-        """Get the create_table."""
-        return self._create_table
+    def schema(self) -> TableSchema:
+        """Get the schema."""
+        return self._schema
 
-    @create_table.setter
-    def create_table(self, value: bool) -> None:
-        """Create the table."""
+    @schema.setter
+    def schema(self, value: TableSchema | dict[str, dict[str, Any]]) -> None:
+        """Table schema."""
         self.value_error(
-            self._is_bool("create_table", value),
-            f"create_table must be a bool, but is {type(value)}",
+            self._is_dict("schema", value), f"schema must be a dict, but is {type(value)}"
         )
-        self._create_table = value
+        _value: TableSchema = {}
+        for k, v in value.items():
+            _value[k] = ColumnSchema(**v) if isinstance(v, dict) else v
+        self._schema = _value
+
+    @property
+    def table(self) -> str:
+        """Get the table."""
+        return self._table
+
+    @table.setter
+    def table(self, value: str) -> None:
+        """The table name."""
+        self.value_error(
+            self._is_printable_string("table", value),
+            f"table must be a printable string, but is {value}",
+        )
+        self.value_error(
+            self._is_length("table", value, 1, 64),
+            f"table length must be between 1 and 64, but is {len(value)}",
+        )
+        self._table = value
+
+    def to_json(self) -> dict:
+        """Get the configuration as a JSON object."""
+        return {
+            "database": self.database.to_json(),
+            "table": self.table,
+            "schema": {k: v.to_json() for k, v in self.schema.items()},
+            "ptr_map": self.ptr_map,
+            "data_file_folder": self.data_file_folder,
+            "data_files": self.data_files,
+            "delete_db": self.delete_db,
+            "delete_table": self.delete_table,
+            "create_db": self.create_db,
+            "create_table": self.create_table,
+            "wait_for_db": self.wait_for_db,
+            "wait_for_table": self.wait_for_table,
+            "conversions": self.conversions,
+        }
+
+    def verify(self) -> None:
+        """Check the table configuration."""
+        for k, v in self.ptr_map.items():  # pylint error? pylint: disable=no-member
+            self.value_error(k in self.schema, f"Pointer map key '{k}' not in schema.")
+            self.value_error(v in self.schema, f"Pointer map value '{v}' not in schema.")
+            self.value_error(
+                v not in self.ptr_map, f"Pointer map value '{v}' is also a key. Circular reference."
+            )
+        if self.delete_db:
+            self.value_error(self.create_db, "Delete DB requires create DB.")
+            self.value_error(not self.wait_for_db, "Delete DB requires wait for DB to be False.")
+            self.value_error(
+                self.create_table or self.wait_for_table,
+                "Delete DB requires create table or wait for table.",
+            )
+        if self.delete_table:
+            self.value_error(self.create_table, "Delete table requires create table.")
+            self.value_error(
+                not self.wait_for_table, "Delete table requires wait for table to be False."
+            )
+        self.value_error(
+            not (self.create_db and self.wait_for_db),
+            "Create DB requires wait for DB to be False.",
+        )
+        self.value_error(
+            not (self.create_table and self.wait_for_table),
+            "Create table requires wait for table to be False.",
+        )
+        super().verify()
 
     @property
     def wait_for_db(self) -> bool:
@@ -732,39 +768,3 @@ class TableConfig(Validator, DictTypeAccessor, CommonObj):
             f"wait_for_table must be a bool, but is {type(value)}",
         )
         self._wait_for_table = value
-
-    @property
-    def conversions(self) -> Conversions:
-        """Get the conversions."""
-        return self._conversions
-
-    @conversions.setter
-    def conversions(self, value: Conversions) -> None:
-        """Conversions."""
-        self.value_error(self._is_tuple("conversions", value), "conversions must be a tuple")
-        for v in value:
-            if isinstance(v, tuple):
-                self.value_error(self._is_tuple("conversions", v), "conversion must be a tuple")
-                self.value_error(
-                    self._is_length("conversions", v, 3, 3), "conversion tuple must have 3 elements"
-                )
-                self.value_error(
-                    self._is_printable_string("conversions", v[0]),
-                    f"conversion column name must be a printable string, but is {v[0]}",
-                )
-                if v[1] is not None:
-                    self.value_error(
-                        self._is_callable("conversions", v[1]),
-                        f"conversion encode function must be callable, but is {type(v[1])}",
-                    )
-                if v[2] is not None:
-                    self.value_error(
-                        self._is_callable("conversions", v[2]),
-                        f"conversion decode function must be callable, but is {type(v[2])}",
-                    )
-            else:
-                self.value_error(
-                    self._is_callable("conversions", v),
-                    f"conversion must be callable, but is {type(v)}",
-                )
-        self._conversions = value

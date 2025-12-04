@@ -12,19 +12,6 @@ from scripts.reorder_methods import FunctionInfo, MethodExtractor, find_python_f
 class TestFunctionInfo(TestCase):
     """Test cases for FunctionInfo dataclass."""
 
-    def test_sort_key_init(self) -> None:
-        """Test that __init__ gets priority 0."""
-
-        code = "def __init__(self): pass"
-        tree = parse(code)
-        node = tree.body[0]
-        assert isinstance(node, FunctionDef)
-
-        info = FunctionInfo(
-            name="__init__", node=node, start_line=1, end_line=1, lines=["def __init__(self): pass"]
-        )
-        self.assertEqual(info.sort_key, (0, "__init__"))
-
     def test_sort_key_dunder(self) -> None:
         """Test that dunder methods get priority 1."""
 
@@ -37,6 +24,19 @@ class TestFunctionInfo(TestCase):
             name="__str__", node=node, start_line=1, end_line=1, lines=["def __str__(self): pass"]
         )
         self.assertEqual(info.sort_key, (1, "__str__"))
+
+    def test_sort_key_init(self) -> None:
+        """Test that __init__ gets priority 0."""
+
+        code = "def __init__(self): pass"
+        tree = parse(code)
+        node = tree.body[0]
+        assert isinstance(node, FunctionDef)
+
+        info = FunctionInfo(
+            name="__init__", node=node, start_line=1, end_line=1, lines=["def __init__(self): pass"]
+        )
+        self.assertEqual(info.sort_key, (0, "__init__"))
 
     def test_sort_key_private(self) -> None:
         """Test that private methods get priority 2."""
@@ -121,27 +121,26 @@ class TestMethodExtractor(TestCase):
 class TestFindPythonFiles(TestCase):
     """Test cases for find_python_files."""
 
-    def test_find_single_file(self) -> None:
-        """Test finding a single Python file."""
-        with TemporaryDirectory() as tmpdir:
-            test_file = Path(tmpdir) / "test.py"
-            test_file.write_text("# test")
-
-            files = find_python_files(test_file)
-            self.assertEqual(len(files), 1)
-            self.assertEqual(files[0], test_file)
-
-    def test_find_directory(self) -> None:
-        """Test finding Python files in a directory."""
+    def test_exclude_cache_directories(self) -> None:
+        """Test that cache and build directories are excluded."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
-            (tmppath / "test1.py").write_text("# test1")
-            (tmppath / "test2.py").write_text("# test2")
-            (tmppath / "test.txt").write_text("# not python")
+            (tmppath / "source.py").write_text("# source")
+
+            # Create cache directories with Python files
+            for cache_name in ["__pycache__", ".pytest_cache", ".mypy_cache"]:
+                cache_dir = tmppath / cache_name
+                cache_dir.mkdir()
+                (cache_dir / "cached.py").write_text("# cached")
+
+            # Also test .egg-info pattern matching
+            egg_dir = tmppath / "my_package.egg-info"
+            egg_dir.mkdir()
+            (egg_dir / "metadata.py").write_text("# metadata")
 
             files = find_python_files(tmppath)
-            self.assertEqual(len(files), 2)
-            self.assertTrue(all(f.suffix == ".py" for f in files))
+            self.assertEqual(len(files), 1)
+            self.assertEqual(files[0].name, "source.py")
 
     def test_exclude_hidden_directories(self) -> None:
         """Test that hidden directories are excluded."""
@@ -174,26 +173,27 @@ class TestFindPythonFiles(TestCase):
             self.assertEqual(len(files), 1)
             self.assertEqual(files[0].name, "main.py")
 
-    def test_exclude_cache_directories(self) -> None:
-        """Test that cache and build directories are excluded."""
+    def test_find_directory(self) -> None:
+        """Test finding Python files in a directory."""
         with TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
-            (tmppath / "source.py").write_text("# source")
-
-            # Create cache directories with Python files
-            for cache_name in ["__pycache__", ".pytest_cache", ".mypy_cache"]:
-                cache_dir = tmppath / cache_name
-                cache_dir.mkdir()
-                (cache_dir / "cached.py").write_text("# cached")
-
-            # Also test .egg-info pattern matching
-            egg_dir = tmppath / "my_package.egg-info"
-            egg_dir.mkdir()
-            (egg_dir / "metadata.py").write_text("# metadata")
+            (tmppath / "test1.py").write_text("# test1")
+            (tmppath / "test2.py").write_text("# test2")
+            (tmppath / "test.txt").write_text("# not python")
 
             files = find_python_files(tmppath)
+            self.assertEqual(len(files), 2)
+            self.assertTrue(all(f.suffix == ".py" for f in files))
+
+    def test_find_single_file(self) -> None:
+        """Test finding a single Python file."""
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "test.py"
+            test_file.write_text("# test")
+
+            files = find_python_files(test_file)
             self.assertEqual(len(files), 1)
-            self.assertEqual(files[0].name, "source.py")
+            self.assertEqual(files[0], test_file)
 
     def test_nested_exclusion(self) -> None:
         """Test that exclusion works for nested directories."""
@@ -218,6 +218,38 @@ class TestFindPythonFiles(TestCase):
 
 class TestReorderFile(TestCase):
     """Test cases for reorder_file."""
+
+    def test_no_reorder_needed(self) -> None:
+        """Test that files already in order are not modified."""
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "test.py"
+            test_file.write_text(
+                "class TestClass:\n    def __init__(self):\n        "
+                "pass\n\n    def public(self):\n        pass\n"
+            )
+
+            result = reorder_file(test_file, dry_run=False, verbose=False)
+            self.assertFalse(result)
+
+    def test_preserve_decorators(self) -> None:
+        """Test that decorators are preserved with their functions."""
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "test.py"
+            test_file.write_text(
+                "class TestClass:\n    @property\n    def value(self):\n        "
+                "pass\n\n    def __init__(self):\n        pass\n"
+            )
+
+            result = reorder_file(test_file, dry_run=False, verbose=False)
+            self.assertTrue(result)
+
+            content = test_file.read_text()
+            # Check that @property is still before def value
+            self.assertIn("@property\n    def value", content)
+            # Check that __init__ comes first
+            init_pos = content.find("def __init__")
+            value_pos = content.find("def value")
+            self.assertLess(init_pos, value_pos)
 
     def test_reorder_class_methods(self) -> None:
         """Test reordering methods in a class."""
@@ -262,38 +294,6 @@ class TestReorderFile(TestCase):
             zebra_pos = content.find("def zebra")
 
             self.assertLess(apple_pos, zebra_pos)
-
-    def test_no_reorder_needed(self) -> None:
-        """Test that files already in order are not modified."""
-        with TemporaryDirectory() as tmpdir:
-            test_file = Path(tmpdir) / "test.py"
-            test_file.write_text(
-                "class TestClass:\n    def __init__(self):\n        "
-                "pass\n\n    def public(self):\n        pass\n"
-            )
-
-            result = reorder_file(test_file, dry_run=False, verbose=False)
-            self.assertFalse(result)
-
-    def test_preserve_decorators(self) -> None:
-        """Test that decorators are preserved with their functions."""
-        with TemporaryDirectory() as tmpdir:
-            test_file = Path(tmpdir) / "test.py"
-            test_file.write_text(
-                "class TestClass:\n    @property\n    def value(self):\n        "
-                "pass\n\n    def __init__(self):\n        pass\n"
-            )
-
-            result = reorder_file(test_file, dry_run=False, verbose=False)
-            self.assertTrue(result)
-
-            content = test_file.read_text()
-            # Check that @property is still before def value
-            self.assertIn("@property\n    def value", content)
-            # Check that __init__ comes first
-            init_pos = content.find("def __init__")
-            value_pos = content.find("def value")
-            self.assertLess(init_pos, value_pos)
 
 
 if __name__ == "__main__":

@@ -53,6 +53,43 @@ class TestPsqlCodons(unittest.TestCase):
         # Reset counter for deterministic UIDs
         PsqlType.counter = count(0)
 
+    def test_exceptions(self):
+        """Test that type errors are raised for invalid operations."""
+        with self.assertRaises(TypeError):
+            psql_add(PsqlInt(1), PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_subtract(PsqlInt(1), PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_multiply(PsqlInt(1), PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_divide(PsqlInt(1), PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_modulo(PsqlInt(1), PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_exp(PsqlInt(1), PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_abs(PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_negate(PsqlBool(True))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_bitwise_and(PsqlInt(1), PsqlReal(1.0))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_bitwise_or(PsqlInt(1), PsqlReal(1.0))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_bitwise_xor(PsqlInt(1), PsqlReal(1.0))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_bitwise_not(PsqlReal(1.0))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_lshift(PsqlInt(1), PsqlReal(1.0))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_rshift(PsqlInt(1), PsqlReal(1.0))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_sqrt(PsqlInt(1))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_cbrt(PsqlInt(1))  # type: ignore
+        with self.assertRaises(TypeError):
+            psql_concat(PsqlIntArray([1]), PsqlBoolArray([True]))  # type: ignore
+
     def test_string_rendering(self):
         """Test the string rendering of PSQL codons."""
         # Test simple binary operators
@@ -196,43 +233,6 @@ class TestPsqlCodons(unittest.TestCase):
             ),
             "({a} + {literal24})",
         )
-
-    def test_exceptions(self):
-        """Test that type errors are raised for invalid operations."""
-        with self.assertRaises(TypeError):
-            psql_add(PsqlInt(1), PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_subtract(PsqlInt(1), PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_multiply(PsqlInt(1), PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_divide(PsqlInt(1), PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_modulo(PsqlInt(1), PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_exp(PsqlInt(1), PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_abs(PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_negate(PsqlBool(True))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_bitwise_and(PsqlInt(1), PsqlReal(1.0))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_bitwise_or(PsqlInt(1), PsqlReal(1.0))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_bitwise_xor(PsqlInt(1), PsqlReal(1.0))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_bitwise_not(PsqlReal(1.0))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_lshift(PsqlInt(1), PsqlReal(1.0))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_rshift(PsqlInt(1), PsqlReal(1.0))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_sqrt(PsqlInt(1))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_cbrt(PsqlInt(1))  # type: ignore
-        with self.assertRaises(TypeError):
-            psql_concat(PsqlIntArray([1]), PsqlBoolArray([True]))  # type: ignore
 
 
 if __name__ == "__main__":

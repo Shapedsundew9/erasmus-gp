@@ -28,19 +28,28 @@ class TestMetaCodons(unittest.TestCase):
         """Setup class method for test setup."""
         cls.gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
-    def test_raise_if_not_instance_of_success(self):
-        """Test raise_if_not_instance_of with valid instance."""
-        self.assertEqual(raise_if_not_instance_of(1, int), 1)
-        self.assertEqual(raise_if_not_instance_of(1.0, float), 1.0)
-        self.assertEqual(raise_if_not_instance_of("s", str), "s")
-        self.assertEqual(raise_if_not_instance_of(1, object), 1)
+    def test_meta_type_cast_existing_gc(self):
+        """Test meta type cast when an existing GC is found."""
+        sig = find_codon_signature(
+            ["PsqlBigInt"],
+            ["PsqlIntegral"],
+            "raise_if_not_instance_of(ix, tx)",
+        )
+        existing_gc = self.gpi[sig]
+        rtctxt = RuntimeContext(self.gpi)
+        ifa = Interface(["PsqlBigInt"] * 2, SrcRow.I)
+        ifb = Interface(["PsqlIntegral"] * 2, DstRow.O)
+        gc = meta_type_cast(rtctxt, ifa, ifb)
+        self.assertEqual(gc, existing_gc)
 
-    def test_raise_if_not_instance_of_failure(self):
-        """Test raise_if_not_instance_of with invalid instance."""
-        with self.assertRaises(MetaCodonTypeError):
-            raise_if_not_instance_of(1, str)
-        with self.assertRaises(MetaCodonTypeError):
-            raise_if_not_instance_of("s", int)
+    def test_meta_type_cast_identical_interfaces(self):
+        """Test meta type cast with identical interfaces."""
+        rtctxt = RuntimeContext(self.gpi)
+        ifa = Interface(["int", "float"], SrcRow.I)
+        ifb = Interface(["int", "float"], DstRow.O)
+
+        with self.assertRaises(MetaCodonValueError):
+            meta_type_cast(rtctxt, ifa, ifb)
 
     def test_meta_type_cast_simple(self):
         """Test simple meta type cast."""
@@ -66,25 +75,16 @@ class TestMetaCodons(unittest.TestCase):
 
         self.assertEqual(PropertiesBD(gc["properties"])["gc_type"], GCType.META)
 
-    def test_meta_type_cast_identical_interfaces(self):
-        """Test meta type cast with identical interfaces."""
-        rtctxt = RuntimeContext(self.gpi)
-        ifa = Interface(["int", "float"], SrcRow.I)
-        ifb = Interface(["int", "float"], DstRow.O)
+    def test_raise_if_not_instance_of_failure(self):
+        """Test raise_if_not_instance_of with invalid instance."""
+        with self.assertRaises(MetaCodonTypeError):
+            raise_if_not_instance_of(1, str)
+        with self.assertRaises(MetaCodonTypeError):
+            raise_if_not_instance_of("s", int)
 
-        with self.assertRaises(MetaCodonValueError):
-            meta_type_cast(rtctxt, ifa, ifb)
-
-    def test_meta_type_cast_existing_gc(self):
-        """Test meta type cast when an existing GC is found."""
-        sig = find_codon_signature(
-            ["PsqlBigInt"],
-            ["PsqlIntegral"],
-            "raise_if_not_instance_of(ix, tx)",
-        )
-        existing_gc = self.gpi[sig]
-        rtctxt = RuntimeContext(self.gpi)
-        ifa = Interface(["PsqlBigInt"] * 2, SrcRow.I)
-        ifb = Interface(["PsqlIntegral"] * 2, DstRow.O)
-        gc = meta_type_cast(rtctxt, ifa, ifb)
-        self.assertEqual(gc, existing_gc)
+    def test_raise_if_not_instance_of_success(self):
+        """Test raise_if_not_instance_of with valid instance."""
+        self.assertEqual(raise_if_not_instance_of(1, int), 1)
+        self.assertEqual(raise_if_not_instance_of(1.0, float), 1.0)
+        self.assertEqual(raise_if_not_instance_of("s", str), "s")
+        self.assertEqual(raise_if_not_instance_of(1, object), 1)

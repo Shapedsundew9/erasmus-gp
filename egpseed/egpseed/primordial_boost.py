@@ -102,21 +102,6 @@ def _stack_connect(ec: ExecutionContext, rtctxt: RuntimeContext, gc1: GCABC, gc2
     return ec.execute(codons["CONNECT_ALL"], (egc,))
 
 
-def load_codons(gpi: GenePoolInterface) -> None:
-    """Loadf the codons that will be used and store them in the codons dict."""
-    if codons:
-        return
-
-    # Load the primitive genetic code signatures from the gene pool
-    for name, signature in _GC_SIGNATURES.items():
-        codons[name] = gpi[find_codon_signature(*signature)]
-
-
-def nrtc(ec: ExecutionContext) -> RuntimeContext:
-    """Create a default runtime context for primordial boost operations."""
-    return RuntimeContext(ec.gpi, creator=SHAPEDSUNDEW9_UUID)
-
-
 def build_custom_gcs() -> ExecutionContext:
     """Manually create genetic codes that have the same function as the python code
     equivilents in egpseed/egpseed/primordial_python.py. The GC's are persisted in the
@@ -148,6 +133,36 @@ def build_custom_gcs() -> ExecutionContext:
 
     # Return the execution context for inspection if needed.
     return ec
+
+
+def harmony_gc(ec: ExecutionContext) -> GCABC:
+    """Build a genetic code with the functional equivalence of harmony_py()."""
+
+    # Can reuse the RuntimeContext for all operations the data is the same for each operation
+    # and no debug data is collected.
+    rtctxt = nrtc(ec)
+    load_codons(ec.gpi)
+
+    # A harmony_py has two GGCode (GCABC) inputs and produces one EGCode (GCABC) output.
+    # Step 1: Get the 'cgraph' fields from both input GC's. To do this we can make a harmony
+    # GC that uses the
+
+    return
+
+
+def load_codons(gpi: GenePoolInterface) -> None:
+    """Loadf the codons that will be used and store them in the codons dict."""
+    if codons:
+        return
+
+    # Load the primitive genetic code signatures from the gene pool
+    for name, signature in _GC_SIGNATURES.items():
+        codons[name] = gpi[find_codon_signature(*signature)]
+
+
+def nrtc(ec: ExecutionContext) -> RuntimeContext:
+    """Create a default runtime context for primordial boost operations."""
+    return RuntimeContext(ec.gpi, creator=SHAPEDSUNDEW9_UUID)
 
 
 def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
@@ -209,21 +224,6 @@ def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
     sggc = _stack_connect(ec, rtctxt, tmp5_ggc, codons["GPI_SELECT_GC"])
     ec.write_executable(sggc)
     return sggc
-
-
-def harmony_gc(ec: ExecutionContext) -> GCABC:
-    """Build a genetic code with the functional equivalence of harmony_py()."""
-
-    # Can reuse the RuntimeContext for all operations the data is the same for each operation
-    # and no debug data is collected.
-    rtctxt = nrtc(ec)
-    load_codons(ec.gpi)
-
-    # A harmony_py has two GGCode (GCABC) inputs and produces one EGCode (GCABC) output.
-    # Step 1: Get the 'cgraph' fields from both input GC's. To do this we can make a harmony
-    # GC that uses the
-
-    return
 
 
 if __name__ == "__main__":

@@ -28,6 +28,21 @@ from egppy.genetic_code.json_cgraph import (
 class TestValidSrcRowsComprehensive(unittest.TestCase):
     """Comprehensive tests for valid_src_rows function."""
 
+    def test_valid_src_rows_empty(self) -> None:
+        """Test valid_src_rows for EMPTY graph type."""
+        result = valid_src_rows(CGraphType.EMPTY)
+
+        self.assertIn(DstRow.O, result)
+        self.assertEqual(result[DstRow.O], frozenset())
+
+    def test_valid_src_rows_for_loop(self) -> None:
+        """Test valid_src_rows for FOR_LOOP graph type."""
+        result = valid_src_rows(CGraphType.FOR_LOOP)
+
+        self.assertIn(DstRow.L, result)
+        self.assertEqual(result[DstRow.L], frozenset({SrcRow.I}))
+        self.assertEqual(result[DstRow.A], frozenset({SrcRow.I, SrcRow.L, SrcRow.S}))
+
     def test_valid_src_rows_if_then(self) -> None:
         """Test valid_src_rows for IF_THEN graph type."""
         result = valid_src_rows(CGraphType.IF_THEN)
@@ -51,52 +66,12 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
         self.assertEqual(result[DstRow.B], frozenset({SrcRow.I}))
         self.assertEqual(result[DstRow.P], frozenset({SrcRow.I, SrcRow.B}))
 
-    def test_valid_src_rows_empty(self) -> None:
-        """Test valid_src_rows for EMPTY graph type."""
-        result = valid_src_rows(CGraphType.EMPTY)
-
-        self.assertIn(DstRow.O, result)
-        self.assertEqual(result[DstRow.O], frozenset())
-
-    def test_valid_src_rows_for_loop(self) -> None:
-        """Test valid_src_rows for FOR_LOOP graph type."""
-        result = valid_src_rows(CGraphType.FOR_LOOP)
-
-        self.assertIn(DstRow.L, result)
-        self.assertEqual(result[DstRow.L], frozenset({SrcRow.I}))
-        self.assertEqual(result[DstRow.A], frozenset({SrcRow.I, SrcRow.L, SrcRow.S}))
-
-    def test_valid_src_rows_while_loop(self) -> None:
-        """Test valid_src_rows for WHILE_LOOP graph type."""
-        result = valid_src_rows(CGraphType.WHILE_LOOP)
-
-        self.assertIn(DstRow.W, result)
-        self.assertEqual(result[DstRow.W], frozenset({SrcRow.I}))
-
-    def test_valid_src_rows_standard(self) -> None:
-        """Test valid_src_rows for STANDARD graph type."""
-        result = valid_src_rows(CGraphType.STANDARD)
-
-        self.assertIn(DstRow.B, result)
-        self.assertEqual(result[DstRow.B], frozenset({SrcRow.I, SrcRow.A}))
-        self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A, SrcRow.B}))
-
     def test_valid_src_rows_primitive(self) -> None:
         """Test valid_src_rows for PRIMITIVE graph type."""
         result = valid_src_rows(CGraphType.PRIMITIVE)
 
         self.assertEqual(result[DstRow.A], frozenset({SrcRow.I}))
         self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A}))
-
-    def test_valid_src_rows_unknown(self) -> None:
-        """Test valid_src_rows for UNKNOWN graph type (superset)."""
-        result = valid_src_rows(CGraphType.UNKNOWN)
-
-        # UNKNOWN should contain all possible valid connections
-        self.assertIn(DstRow.F, result)
-        self.assertIn(DstRow.L, result)
-        self.assertIn(DstRow.W, result)
-        self.assertIn(DstRow.B, result)
 
     def test_valid_src_rows_reserved(self) -> None:
         """Test valid_src_rows for RESERVED graph types."""
@@ -110,6 +85,14 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
             self.assertEqual(len(result), 1)
             self.assertIn(DstRow.U, result)
 
+    def test_valid_src_rows_standard(self) -> None:
+        """Test valid_src_rows for STANDARD graph type."""
+        result = valid_src_rows(CGraphType.STANDARD)
+
+        self.assertIn(DstRow.B, result)
+        self.assertEqual(result[DstRow.B], frozenset({SrcRow.I, SrcRow.A}))
+        self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A, SrcRow.B}))
+
     def test_valid_src_rows_u_is_superset(self) -> None:
         """Test that U row is always a superset of all other sources."""
         for graph_type in CGraphType:
@@ -121,9 +104,40 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
             )
             self.assertEqual(result[DstRow.U], all_sources, f"Failed for {graph_type}")
 
+    def test_valid_src_rows_unknown(self) -> None:
+        """Test valid_src_rows for UNKNOWN graph type (superset)."""
+        result = valid_src_rows(CGraphType.UNKNOWN)
+
+        # UNKNOWN should contain all possible valid connections
+        self.assertIn(DstRow.F, result)
+        self.assertIn(DstRow.L, result)
+        self.assertIn(DstRow.W, result)
+        self.assertIn(DstRow.B, result)
+
+    def test_valid_src_rows_while_loop(self) -> None:
+        """Test valid_src_rows for WHILE_LOOP graph type."""
+        result = valid_src_rows(CGraphType.WHILE_LOOP)
+
+        self.assertIn(DstRow.W, result)
+        self.assertEqual(result[DstRow.W], frozenset({SrcRow.I}))
+
 
 class TestValidDstRowsComprehensive(unittest.TestCase):
     """Comprehensive tests for valid_dst_rows function."""
+
+    def test_valid_dst_rows_empty(self) -> None:
+        """Test valid_dst_rows for EMPTY graph type."""
+        result = valid_dst_rows(CGraphType.EMPTY)
+
+        self.assertIn(SrcRow.I, result)
+        self.assertEqual(result[SrcRow.I], frozenset())
+
+    def test_valid_dst_rows_for_loop(self) -> None:
+        """Test valid_dst_rows for FOR_LOOP graph type."""
+        result = valid_dst_rows(CGraphType.FOR_LOOP)
+
+        self.assertIn(SrcRow.L, result)
+        self.assertEqual(result[SrcRow.L], frozenset({DstRow.A}))
 
     def test_valid_dst_rows_if_then(self) -> None:
         """Test valid_dst_rows for IF_THEN graph type."""
@@ -141,47 +155,12 @@ class TestValidDstRowsComprehensive(unittest.TestCase):
         self.assertIn(SrcRow.B, result)
         self.assertEqual(result[SrcRow.B], frozenset({DstRow.P}))
 
-    def test_valid_dst_rows_empty(self) -> None:
-        """Test valid_dst_rows for EMPTY graph type."""
-        result = valid_dst_rows(CGraphType.EMPTY)
-
-        self.assertIn(SrcRow.I, result)
-        self.assertEqual(result[SrcRow.I], frozenset())
-
-    def test_valid_dst_rows_for_loop(self) -> None:
-        """Test valid_dst_rows for FOR_LOOP graph type."""
-        result = valid_dst_rows(CGraphType.FOR_LOOP)
-
-        self.assertIn(SrcRow.L, result)
-        self.assertEqual(result[SrcRow.L], frozenset({DstRow.A}))
-
-    def test_valid_dst_rows_while_loop(self) -> None:
-        """Test valid_dst_rows for WHILE_LOOP graph type."""
-        result = valid_dst_rows(CGraphType.WHILE_LOOP)
-
-        self.assertIn(SrcRow.A, result)
-        self.assertEqual(result[SrcRow.A], frozenset({DstRow.O, DstRow.T, DstRow.X}))
-
-    def test_valid_dst_rows_standard(self) -> None:
-        """Test valid_dst_rows for STANDARD graph type."""
-        result = valid_dst_rows(CGraphType.STANDARD)
-
-        self.assertEqual(result[SrcRow.B], frozenset({DstRow.O}))
-
     def test_valid_dst_rows_primitive(self) -> None:
         """Test valid_dst_rows for PRIMITIVE graph type."""
         result = valid_dst_rows(CGraphType.PRIMITIVE)
 
         self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.O}))
         self.assertEqual(result[SrcRow.A], frozenset({DstRow.O}))
-
-    def test_valid_dst_rows_unknown(self) -> None:
-        """Test valid_dst_rows for UNKNOWN graph type."""
-        result = valid_dst_rows(CGraphType.UNKNOWN)
-
-        # Should contain all possible destinations
-        self.assertIn(SrcRow.L, result)
-        self.assertIn(DstRow.U, result[SrcRow.I])
 
     def test_valid_dst_rows_reserved(self) -> None:
         """Test valid_dst_rows for RESERVED graph types."""
@@ -192,6 +171,27 @@ class TestValidDstRowsComprehensive(unittest.TestCase):
         ]:
             result = valid_dst_rows(reserved_type)
             self.assertEqual(result, {})
+
+    def test_valid_dst_rows_standard(self) -> None:
+        """Test valid_dst_rows for STANDARD graph type."""
+        result = valid_dst_rows(CGraphType.STANDARD)
+
+        self.assertEqual(result[SrcRow.B], frozenset({DstRow.O}))
+
+    def test_valid_dst_rows_unknown(self) -> None:
+        """Test valid_dst_rows for UNKNOWN graph type."""
+        result = valid_dst_rows(CGraphType.UNKNOWN)
+
+        # Should contain all possible destinations
+        self.assertIn(SrcRow.L, result)
+        self.assertIn(DstRow.U, result[SrcRow.I])
+
+    def test_valid_dst_rows_while_loop(self) -> None:
+        """Test valid_dst_rows for WHILE_LOOP graph type."""
+        result = valid_dst_rows(CGraphType.WHILE_LOOP)
+
+        self.assertIn(SrcRow.A, result)
+        self.assertEqual(result[SrcRow.A], frozenset({DstRow.O, DstRow.T, DstRow.X}))
 
 
 class TestValidRows(unittest.TestCase):
@@ -228,68 +228,6 @@ class TestValidJCG(unittest.TestCase):
         jcg = {DstRow.O: [], DstRow.U: []}
         self.assertTrue(valid_jcg(jcg))
 
-    def test_valid_jcg_primitive(self) -> None:
-        """Test validation of a primitive JSON connection graph."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
-        self.assertTrue(valid_jcg(jcg))
-
-    def test_valid_jcg_invalid_key(self) -> None:
-        """Test that invalid keys raise ValueError."""
-        jcg = {"InvalidKey": [], DstRow.O: [], DstRow.U: []}
-        with self.assertRaises(ValueError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Invalid key", str(context.exception))
-
-    def test_valid_jcg_invalid_value_type(self) -> None:
-        """Test that invalid value types raise TypeError."""
-        jcg = {DstRow.O: "not a list", DstRow.U: []}
-        with self.assertRaises(TypeError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Invalid value", str(context.exception))
-
-    def test_valid_jcg_invalid_endpoint_structure(self) -> None:
-        """Test that invalid endpoint structures raise TypeError."""
-        jcg = {DstRow.O: ["not a list"], DstRow.U: []}
-        with self.assertRaises(TypeError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Expected a list", str(context.exception))
-
-    def test_valid_jcg_invalid_source_row_type(self) -> None:
-        """Test that non-string source rows raise TypeError."""
-        jcg = {DstRow.O: [[123, 0, "int"]], DstRow.U: []}
-        with self.assertRaises(TypeError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Expected a destination row", str(context.exception))
-
-    def test_valid_jcg_invalid_source_row_value(self) -> None:
-        """Test that invalid source row values raise ValueError."""
-        jcg = {DstRow.O: [["X", 0, "int"]], DstRow.U: []}
-        with self.assertRaises(ValueError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Expected a valid source row", str(context.exception))
-
-    def test_valid_jcg_invalid_index_type(self) -> None:
-        """Test that non-integer indices raise TypeError."""
-        jcg = {DstRow.O: [["I", "0", "int"]], DstRow.U: []}
-        with self.assertRaises(TypeError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Expected an integer index", str(context.exception))
-
-    def test_valid_jcg_invalid_type_type(self) -> None:
-        """Test that non-string types raise TypeError."""
-        jcg = {DstRow.O: [["I", 0, 123]], DstRow.U: []}
-        with self.assertRaises(TypeError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Expected a list of endpoint int types", str(context.exception))
-
-    def test_valid_jcg_invalid_source_for_destination(self) -> None:
-        """Test that invalid source->destination connections raise ValueError."""
-        # In PRIMITIVE graphs, only I can connect to A
-        jcg = {DstRow.A: [["B", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
-        with self.assertRaises(ValueError) as context:
-            valid_jcg(jcg)
-        self.assertIn("Invalid source row", str(context.exception))
-
     def test_valid_jcg_index_out_of_range_negative(self) -> None:
         """Test that negative indices raise ValueError."""
         # Create a STANDARD graph with valid structure first
@@ -316,6 +254,13 @@ class TestValidJCG(unittest.TestCase):
         # The error is caught during index validation
         self.assertIn("Index", str(context.exception))
 
+    def test_valid_jcg_invalid_endpoint_structure(self) -> None:
+        """Test that invalid endpoint structures raise TypeError."""
+        jcg = {DstRow.O: ["not a list"], DstRow.U: []}
+        with self.assertRaises(TypeError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Expected a list", str(context.exception))
+
     def test_valid_jcg_invalid_endpoint_type(self) -> None:
         """Test that invalid TypesDef types raise ValueError."""
         # Create a STANDARD graph structure to avoid early validation
@@ -329,18 +274,87 @@ class TestValidJCG(unittest.TestCase):
         # The error is caught during endpoint type validation
         self.assertIn("Invalid endpoint type", str(context.exception))
 
+    def test_valid_jcg_invalid_index_type(self) -> None:
+        """Test that non-integer indices raise TypeError."""
+        jcg = {DstRow.O: [["I", "0", "int"]], DstRow.U: []}
+        with self.assertRaises(TypeError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Expected an integer index", str(context.exception))
+
+    def test_valid_jcg_invalid_key(self) -> None:
+        """Test that invalid keys raise ValueError."""
+        jcg = {"InvalidKey": [], DstRow.O: [], DstRow.U: []}
+        with self.assertRaises(ValueError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Invalid key", str(context.exception))
+
+    def test_valid_jcg_invalid_source_for_destination(self) -> None:
+        """Test that invalid source->destination connections raise ValueError."""
+        # In PRIMITIVE graphs, only I can connect to A
+        jcg = {DstRow.A: [["B", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        with self.assertRaises(ValueError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Invalid source row", str(context.exception))
+
+    def test_valid_jcg_invalid_source_row_type(self) -> None:
+        """Test that non-string source rows raise TypeError."""
+        jcg = {DstRow.O: [[123, 0, "int"]], DstRow.U: []}
+        with self.assertRaises(TypeError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Expected a destination row", str(context.exception))
+
+    def test_valid_jcg_invalid_source_row_value(self) -> None:
+        """Test that invalid source row values raise ValueError."""
+        jcg = {DstRow.O: [["X", 0, "int"]], DstRow.U: []}
+        with self.assertRaises(ValueError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Expected a valid source row", str(context.exception))
+
+    def test_valid_jcg_invalid_type_type(self) -> None:
+        """Test that non-string types raise TypeError."""
+        jcg = {DstRow.O: [["I", 0, 123]], DstRow.U: []}
+        with self.assertRaises(TypeError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Expected a list of endpoint int types", str(context.exception))
+
+    def test_valid_jcg_invalid_value_type(self) -> None:
+        """Test that invalid value types raise TypeError."""
+        jcg = {DstRow.O: "not a list", DstRow.U: []}
+        with self.assertRaises(TypeError) as context:
+            valid_jcg(jcg)
+        self.assertIn("Invalid value", str(context.exception))
+
+    def test_valid_jcg_primitive(self) -> None:
+        """Test validation of a primitive JSON connection graph."""
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        self.assertTrue(valid_jcg(jcg))
+
 
 class TestJsonCGraphToInterfaces(unittest.TestCase):
     """Test the json_cgraph_to_interfaces function."""
 
-    def test_json_cgraph_to_interfaces_empty(self) -> None:
-        """Test conversion of empty graph."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+    def test_json_cgraph_to_interfaces_creates_as_when_ad_exists(self) -> None:
+        """Test that As is created when Ad exists but As doesn't."""
+        # This tests line 320 - creating As when Ad exists
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
         interfaces = json_cgraph_to_interfaces(jcg)
+        # Both As and Ad should exist
+        self.assertIn("As", interfaces)
+        self.assertIn("Ad", interfaces)
 
-        self.assertIn("Is", interfaces)
-        self.assertIn("Od", interfaces)
-        self.assertEqual(len(interfaces["Od"]), 0)
+    def test_json_cgraph_to_interfaces_creates_bs_when_bd_exists(self) -> None:
+        """Test that Bs is created when Bd exists but Bs doesn't."""
+        # This tests line 324 - creating Bs when Bd exists
+        jcg = {
+            DstRow.A: [["I", 0, "int"]],
+            DstRow.B: [["I", 1, "int"]],
+            DstRow.O: [["A", 0, "int"]],
+            DstRow.U: [],
+        }
+        interfaces = json_cgraph_to_interfaces(jcg)
+        # Both Bs and Bd should exist
+        self.assertIn("Bs", interfaces)
+        self.assertIn("Bd", interfaces)
 
     def test_json_cgraph_to_interfaces_creates_missing_interfaces(self) -> None:
         """Test that missing complementary interfaces are created."""
@@ -379,6 +393,29 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         # Should create Pd for loop graphs
         self.assertIn("Pd", interfaces)
 
+    def test_json_cgraph_to_interfaces_empty(self) -> None:
+        """Test conversion of empty graph."""
+        jcg = {DstRow.O: [], DstRow.U: []}
+        interfaces = json_cgraph_to_interfaces(jcg)
+
+        self.assertIn("Is", interfaces)
+        self.assertIn("Od", interfaces)
+        self.assertEqual(len(interfaces["Od"]), 0)
+
+    def test_json_cgraph_to_interfaces_sorted_source_endpoints(self) -> None:
+        """Test that source endpoints are sorted by index."""
+        jcg = {
+            DstRow.A: [["I", 2, "int"], ["I", 0, "str"], ["I", 1, "bool"]],
+            DstRow.O: [["A", 0, "str"]],
+            DstRow.U: [],
+        }
+        interfaces = json_cgraph_to_interfaces(jcg)
+
+        # Source endpoints should be sorted by index
+        is_interface = interfaces["Is"]
+        indices = [ep[1] for ep in is_interface]
+        self.assertEqual(indices, [0, 1, 2])
+
     def test_json_cgraph_to_interfaces_type_inconsistency(self) -> None:
         """Test that type inconsistencies raise ValueError."""
         jcg = {
@@ -401,119 +438,9 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             interfaces = json_cgraph_to_interfaces(jcg)
             self.assertIsInstance(interfaces, dict)
 
-    def test_json_cgraph_to_interfaces_sorted_source_endpoints(self) -> None:
-        """Test that source endpoints are sorted by index."""
-        jcg = {
-            DstRow.A: [["I", 2, "int"], ["I", 0, "str"], ["I", 1, "bool"]],
-            DstRow.O: [["A", 0, "str"]],
-            DstRow.U: [],
-        }
-        interfaces = json_cgraph_to_interfaces(jcg)
-
-        # Source endpoints should be sorted by index
-        is_interface = interfaces["Is"]
-        indices = [ep[1] for ep in is_interface]
-        self.assertEqual(indices, [0, 1, 2])
-
-    def test_json_cgraph_to_interfaces_creates_as_when_ad_exists(self) -> None:
-        """Test that As is created when Ad exists but As doesn't."""
-        # This tests line 320 - creating As when Ad exists
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
-        interfaces = json_cgraph_to_interfaces(jcg)
-        # Both As and Ad should exist
-        self.assertIn("As", interfaces)
-        self.assertIn("Ad", interfaces)
-
-    def test_json_cgraph_to_interfaces_creates_bs_when_bd_exists(self) -> None:
-        """Test that Bs is created when Bd exists but Bs doesn't."""
-        # This tests line 324 - creating Bs when Bd exists
-        jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.B: [["I", 1, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
-        }
-        interfaces = json_cgraph_to_interfaces(jcg)
-        # Both Bs and Bd should exist
-        self.assertIn("Bs", interfaces)
-        self.assertIn("Bd", interfaces)
-
 
 class TestCGraphType(unittest.TestCase):
     """Test the c_graph_type function."""
-
-    def test_c_graph_type_empty(self) -> None:
-        """Test identification of EMPTY graph type."""
-        jcg = {DstRow.O: [], DstRow.U: []}
-        self.assertEqual(c_graph_type(jcg), CGraphType.EMPTY)
-
-    def test_c_graph_type_primitive(self) -> None:
-        """Test identification of PRIMITIVE graph type."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
-        self.assertEqual(c_graph_type(jcg), CGraphType.PRIMITIVE)
-
-    def test_c_graph_type_if_then(self) -> None:
-        """Test identification of IF_THEN graph type."""
-        jcg = {
-            DstRow.F: [["I", 0, "bool"]],
-            DstRow.A: [["I", 1, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
-        }
-        self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
-
-    def test_c_graph_type_if_then_else(self) -> None:
-        """Test identification of IF_THEN_ELSE graph type."""
-        jcg = {
-            DstRow.F: [["I", 0, "bool"]],
-            DstRow.A: [["I", 1, "int"]],
-            DstRow.B: [["I", 2, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["B", 0, "int"]],
-            DstRow.U: [],
-        }
-        self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN_ELSE)
-
-    def test_c_graph_type_for_loop(self) -> None:
-        """Test identification of FOR_LOOP graph type."""
-        jcg = {
-            DstRow.L: [["I", 0, "list"]],
-            DstRow.A: [["L", 0, "int"]],
-            DstRow.O: [["A", 0, "int"]],
-            DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
-        }
-        self.assertEqual(c_graph_type(jcg), CGraphType.FOR_LOOP)
-
-    def test_c_graph_type_while_loop(self) -> None:
-        """Test identification of WHILE_LOOP graph type."""
-        jcg = {
-            DstRow.W: [["A", 0, "bool"]],
-            DstRow.O: [["A", 1, "int"]],
-            DstRow.P: [["I", 0, "int"]],
-            DstRow.U: [],
-        }
-        self.assertEqual(c_graph_type(jcg), CGraphType.WHILE_LOOP)
-
-    def test_c_graph_type_standard(self) -> None:
-        """Test identification of STANDARD graph type."""
-        jcg = {
-            DstRow.A: [["I", 0, "int"]],
-            DstRow.B: [["A", 0, "int"]],
-            DstRow.O: [["B", 0, "int"]],
-            DstRow.U: [],
-        }
-        self.assertEqual(c_graph_type(jcg), CGraphType.STANDARD)
-
-    def test_c_graph_type_with_cgraph_abc(self) -> None:
-        """Test c_graph_type with CGraphABC instance."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
-        interfaces = json_cgraph_to_interfaces(jcg)
-        cgraph = CGraph(interfaces)
-
-        # Should work with CGraphABC instance
-        self.assertEqual(c_graph_type(cgraph), CGraphType.PRIMITIVE)
 
     def test_c_graph_type_debug_conditional_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for conditional without A (DEBUG mode)."""
@@ -542,8 +469,24 @@ class TestCGraphType(unittest.TestCase):
                 c_graph_type(jcg)
             self.assertIn("standard graph must have a row A", str(context.exception))
 
-    def test_c_graph_type_non_debug_if_then(self) -> None:
-        """Test c_graph_type for IF_THEN without DEBUG (line 358)."""
+    def test_c_graph_type_empty(self) -> None:
+        """Test identification of EMPTY graph type."""
+        jcg = {DstRow.O: [], DstRow.U: []}
+        self.assertEqual(c_graph_type(jcg), CGraphType.EMPTY)
+
+    def test_c_graph_type_for_loop(self) -> None:
+        """Test identification of FOR_LOOP graph type."""
+        jcg = {
+            DstRow.L: [["I", 0, "list"]],
+            DstRow.A: [["L", 0, "int"]],
+            DstRow.O: [["A", 0, "int"]],
+            DstRow.P: [["I", 1, "int"]],
+            DstRow.U: [],
+        }
+        self.assertEqual(c_graph_type(jcg), CGraphType.FOR_LOOP)
+
+    def test_c_graph_type_if_then(self) -> None:
+        """Test identification of IF_THEN graph type."""
         jcg = {
             DstRow.F: [["I", 0, "bool"]],
             DstRow.A: [["I", 1, "int"]],
@@ -551,8 +494,19 @@ class TestCGraphType(unittest.TestCase):
             DstRow.P: [["I", 1, "int"]],
             DstRow.U: [],
         }
-        with patch.object(_logger, "isEnabledFor", return_value=False):
-            self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
+        self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
+
+    def test_c_graph_type_if_then_else(self) -> None:
+        """Test identification of IF_THEN_ELSE graph type."""
+        jcg = {
+            DstRow.F: [["I", 0, "bool"]],
+            DstRow.A: [["I", 1, "int"]],
+            DstRow.B: [["I", 2, "int"]],
+            DstRow.O: [["A", 0, "int"]],
+            DstRow.P: [["B", 0, "int"]],
+            DstRow.U: [],
+        }
+        self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN_ELSE)
 
     def test_c_graph_type_non_debug_for_loop(self) -> None:
         """Test c_graph_type for FOR_LOOP without DEBUG (line 360)."""
@@ -566,6 +520,18 @@ class TestCGraphType(unittest.TestCase):
         with patch.object(_logger, "isEnabledFor", return_value=False):
             self.assertEqual(c_graph_type(jcg), CGraphType.FOR_LOOP)
 
+    def test_c_graph_type_non_debug_if_then(self) -> None:
+        """Test c_graph_type for IF_THEN without DEBUG (line 358)."""
+        jcg = {
+            DstRow.F: [["I", 0, "bool"]],
+            DstRow.A: [["I", 1, "int"]],
+            DstRow.O: [["A", 0, "int"]],
+            DstRow.P: [["I", 1, "int"]],
+            DstRow.U: [],
+        }
+        with patch.object(_logger, "isEnabledFor", return_value=False):
+            self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
+
     def test_c_graph_type_non_debug_standard(self) -> None:
         """Test c_graph_type for STANDARD without DEBUG (line 362)."""
         jcg = {
@@ -577,20 +543,43 @@ class TestCGraphType(unittest.TestCase):
         with patch.object(_logger, "isEnabledFor", return_value=False):
             self.assertEqual(c_graph_type(jcg), CGraphType.STANDARD)
 
+    def test_c_graph_type_primitive(self) -> None:
+        """Test identification of PRIMITIVE graph type."""
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        self.assertEqual(c_graph_type(jcg), CGraphType.PRIMITIVE)
+
+    def test_c_graph_type_standard(self) -> None:
+        """Test identification of STANDARD graph type."""
+        jcg = {
+            DstRow.A: [["I", 0, "int"]],
+            DstRow.B: [["A", 0, "int"]],
+            DstRow.O: [["B", 0, "int"]],
+            DstRow.U: [],
+        }
+        self.assertEqual(c_graph_type(jcg), CGraphType.STANDARD)
+
+    def test_c_graph_type_while_loop(self) -> None:
+        """Test identification of WHILE_LOOP graph type."""
+        jcg = {
+            DstRow.W: [["A", 0, "bool"]],
+            DstRow.O: [["A", 1, "int"]],
+            DstRow.P: [["I", 0, "int"]],
+            DstRow.U: [],
+        }
+        self.assertEqual(c_graph_type(jcg), CGraphType.WHILE_LOOP)
+
+    def test_c_graph_type_with_cgraph_abc(self) -> None:
+        """Test c_graph_type with CGraphABC instance."""
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        interfaces = json_cgraph_to_interfaces(jcg)
+        cgraph = CGraph(interfaces)
+
+        # Should work with CGraphABC instance
+        self.assertEqual(c_graph_type(cgraph), CGraphType.PRIMITIVE)
+
 
 class TestConstants(unittest.TestCase):
     """Test the pre-computed constant dictionaries."""
-
-    def test_cgt_valid_src_rows_constant(self) -> None:
-        """Test that CGT_VALID_SRC_ROWS matches valid_src_rows function."""
-        for graph_type in CGraphType:
-            if graph_type.name.startswith("RESERVED"):
-                continue
-            self.assertEqual(
-                CGT_VALID_SRC_ROWS[graph_type],
-                valid_src_rows(graph_type),
-                f"Mismatch for {graph_type}",
-            )
 
     def test_cgt_valid_dst_rows_constant(self) -> None:
         """Test that CGT_VALID_DST_ROWS matches valid_dst_rows function."""
@@ -610,6 +599,17 @@ class TestConstants(unittest.TestCase):
                 continue
             self.assertEqual(
                 CGT_VALID_ROWS[graph_type], valid_rows(graph_type), f"Mismatch for {graph_type}"
+            )
+
+    def test_cgt_valid_src_rows_constant(self) -> None:
+        """Test that CGT_VALID_SRC_ROWS matches valid_src_rows function."""
+        for graph_type in CGraphType:
+            if graph_type.name.startswith("RESERVED"):
+                continue
+            self.assertEqual(
+                CGT_VALID_SRC_ROWS[graph_type],
+                valid_src_rows(graph_type),
+                f"Mismatch for {graph_type}",
             )
 
 

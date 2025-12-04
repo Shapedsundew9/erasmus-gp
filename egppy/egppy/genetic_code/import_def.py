@@ -74,20 +74,6 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
         self._aip = tuple(value)
 
     @property
-    def name(self) -> str:
-        """Return the name of the import."""
-        return self._name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        """Set the name of the import."""
-        if _logger.isEnabledFor(level=DEBUG):
-            self._is_string("name", value)
-            self._is_length("name", value, 1, 64)
-            self._is_printable_string("name", value)
-        self._name = value
-
-    @property
     def as_name(self) -> str:
         """Return the as name of the import."""
         return self._as_name
@@ -100,6 +86,20 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
             self._is_length("as_name", value, 0, 64)
             self._is_printable_string("as_name", value)
         self._as_name = value
+
+    @property
+    def name(self) -> str:
+        """Return the name of the import."""
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the name of the import."""
+        if _logger.isEnabledFor(level=DEBUG):
+            self._is_string("name", value)
+            self._is_length("name", value, 1, 64)
+            self._is_printable_string("name", value)
+        self._name = value
 
     def to_json(self) -> dict[str, Any]:
         """Return the object as a JSON serializable dictionary."""

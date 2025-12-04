@@ -49,12 +49,6 @@ class TestDBTableStore(JSONFileStoreTestBase):
     value2: StorableObjABC = StorableDict({"a": 7, "b": 8, "c": 9, "pk": "key2"})
     table_counter = count()
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        """Set up the test."""
-        db_delete(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
-        db_create(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
-
     def setUp(self) -> None:
         """Set up the test.
 
@@ -79,6 +73,12 @@ class TestDBTableStore(JSONFileStoreTestBase):
         self.key: Hashable = self.test_type.key
         self.key1: Hashable = self.test_type.key1
         self.key2: Hashable = self.test_type.key2
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Set up the test."""
+        db_delete(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
+        db_create(f"test_db_{_START_DB_COUNTER}", _CONFIG["database"])
 
     @classmethod
     def tearDownClass(cls) -> None:

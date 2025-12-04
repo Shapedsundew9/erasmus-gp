@@ -68,13 +68,6 @@ MetaCodonValueError = MetaCodonExceptionModule.get_parallel_equivalent(ValueErro
 MetaCodonTypeError = MetaCodonExceptionModule.get_parallel_equivalent(TypeError)
 
 
-def raise_if_not_instance_of(obj: Any, t: type) -> Any:
-    """Raise an error if the object is not an instance of the given types."""
-    if not isinstance(obj, t):
-        raise MetaCodonTypeError(f"Expected {t}, got {type(obj)} instead.")
-    return obj
-
-
 def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC) -> GCABC:
     """Find or create a meta genetic code that casts ifa types to exactly match ifb types.
 
@@ -120,3 +113,10 @@ def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC)
             },
         }
     )
+
+
+def raise_if_not_instance_of(obj: Any, t: type) -> Any:
+    """Raise an error if the object is not an instance of the given types."""
+    if not isinstance(obj, t):
+        raise MetaCodonTypeError(f"Expected {t}, got {type(obj)} instead.")
+    return obj

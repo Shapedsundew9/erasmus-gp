@@ -17,14 +17,14 @@ class TestConnectionStrFromConfig(unittest.TestCase):
             dbname="testdb"
         )
 
-    def test_connection_str_without_password(self):
-        """Test the connection string without a password."""
-        expected = "postgresql://testuser@localhost:5432/testdb"
-        result = connection_str_from_config(self.db_config, with_password=False)
-        self.assertEqual(result, expected)
-
     def test_connection_str_with_password(self):
         """Test the connection string with a password."""
         expected = "postgresql://testuser:testpassword@localhost:5432/testdb"
         result = connection_str_from_config(self.db_config, with_password=True)
+        self.assertEqual(result, expected)
+
+    def test_connection_str_without_password(self):
+        """Test the connection string without a password."""
+        expected = "postgresql://testuser@localhost:5432/testdb"
+        result = connection_str_from_config(self.db_config, with_password=False)
         self.assertEqual(result, expected)

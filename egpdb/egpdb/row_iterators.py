@@ -32,6 +32,10 @@ class BaseIter:
         ]
         self.columns: Iterable[str] = columns
 
+    def __del__(self) -> None:
+        if isinstance(self.values, cursor):
+            self.values.close()
+
     def __iter__(self) -> Self:
         """Self iteration."""
         return self
@@ -39,10 +43,6 @@ class BaseIter:
     def __next__(self) -> Any:
         """Never gets run."""
         raise NotImplementedError
-
-    def __del__(self) -> None:
-        if isinstance(self.values, cursor):
-            self.values.close()
 
 
 class GenIter(BaseIter):

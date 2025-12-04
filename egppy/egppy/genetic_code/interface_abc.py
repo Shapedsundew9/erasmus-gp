@@ -32,6 +32,34 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
 
     __slots__ = ()
 
+    # Abstract Arithmetic Operations
+
+    @abstractmethod
+    def __add__(self, other: InterfaceABC) -> InterfaceABC:
+        """Concatenate two interfaces to create a new interface.
+
+        Args:
+            other: The interface to concatenate with this interface.
+
+        Returns:
+            A new interface containing endpoints from both interfaces.
+        """
+        raise NotImplementedError("InterfaceABC.__add__ must be overridden")
+
+    # Abstract Comparison Methods
+
+    @abstractmethod
+    def __eq__(self, value: object) -> bool:
+        """Check equality of Interface instances.
+
+        Args:
+            value: Object to compare with.
+
+        Returns:
+            True if equal, False otherwise.
+        """
+        raise NotImplementedError("InterfaceABC.__eq__ must be overridden")
+
     # Abstract Container Protocol Methods
 
     @abstractmethod
@@ -48,6 +76,15 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
             IndexError: If idx is out of range.
         """
         raise NotImplementedError("InterfaceABC.__getitem__ must be overridden")
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        """Return the hash of the interface.
+
+        Returns:
+            Hash value for the interface.
+        """
+        raise NotImplementedError("InterfaceABC.__hash__ must be overridden")
 
     @abstractmethod
     def __iter__(self) -> Iterator[EndPointABC]:
@@ -77,29 +114,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("InterfaceABC.__setitem__ must be overridden")
 
-    # Abstract Comparison Methods
-
-    @abstractmethod
-    def __eq__(self, value: object) -> bool:
-        """Check equality of Interface instances.
-
-        Args:
-            value: Object to compare with.
-
-        Returns:
-            True if equal, False otherwise.
-        """
-        raise NotImplementedError("InterfaceABC.__eq__ must be overridden")
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        """Return the hash of the interface.
-
-        Returns:
-            Hash value for the interface.
-        """
-        raise NotImplementedError("InterfaceABC.__hash__ must be overridden")
-
     # Abstract String Representation
 
     @abstractmethod
@@ -111,20 +125,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("InterfaceABC.__str__ must be overridden")
 
-    # Abstract Arithmetic Operations
-
-    @abstractmethod
-    def __add__(self, other: InterfaceABC) -> InterfaceABC:
-        """Concatenate two interfaces to create a new interface.
-
-        Args:
-            other: The interface to concatenate with this interface.
-
-        Returns:
-            A new interface containing endpoints from both interfaces.
-        """
-        raise NotImplementedError("InterfaceABC.__add__ must be overridden")
-
     # Abstract Modification Methods
 
     @abstractmethod
@@ -135,6 +135,26 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
             value: The endpoint to append.
         """
         raise NotImplementedError("InterfaceABC.append must be overridden")
+
+    @abstractmethod
+    def clr_refs(self) -> InterfaceABC:
+        """Clear all references in the interface endpoints.
+
+        Returns:
+            Self with all endpoint references cleared.
+        """
+        raise NotImplementedError("InterfaceABC.clr_refs must be overridden")
+
+    # Abstract Property Methods
+
+    @abstractmethod
+    def cls(self) -> EPCls:
+        """Return the class of the interface.
+
+        Returns:
+            The EndPointClass (SRC or DST) of this interface.
+        """
+        raise NotImplementedError("InterfaceABC.cls must be overridden")
 
     @abstractmethod
     def extend(
@@ -150,16 +170,62 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("InterfaceABC.extend must be overridden")
 
-    # Abstract Property Methods
+    @abstractmethod
+    def ref_shift(self, shift: int) -> InterfaceABC:
+        """Shift all references in the interface endpoints by a specified amount.
+
+        Args:
+            shift: The amount to shift each reference.
+        Returns:
+            Self with all endpoint references shifted.
+        """
+        raise NotImplementedError("InterfaceABC.ref_shift must be overridden")
 
     @abstractmethod
-    def cls(self) -> EPCls:
-        """Return the class of the interface.
+    def set_cls(self, ep_cls: EPCls) -> InterfaceABC:
+        """Set the class of all endpoints in the interface.
+
+        Args:
+            ep_cls: The EndPointClass to set (SRC or DST).
 
         Returns:
-            The EndPointClass (SRC or DST) of this interface.
+            Self with row class set.
         """
-        raise NotImplementedError("InterfaceABC.cls must be overridden")
+        raise NotImplementedError("InterfaceABC.set_cls must be overridden")
+
+    @abstractmethod
+    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
+        """Set references for all endpoints in the interface.
+
+        Args:
+            row: The Row to set (e.g., IS, OD).
+            start_ref: The starting reference number.
+
+        Returns:
+            Self with references set.
+        """
+        raise NotImplementedError("InterfaceABC.set_refs must be overridden")
+
+    @abstractmethod
+    def set_row(self, row: Row) -> InterfaceABC:
+        """Set the row of all endpoints in the interface.
+
+        Args:
+            row: The Row to set (e.g., IS, OD).
+
+        Returns:
+            Self with row set.
+        """
+        raise NotImplementedError("InterfaceABC.set_row must be overridden")
+
+    @abstractmethod
+    def sorted_unique_td_uids(self) -> list[int]:
+        """Return the sorted unique type definition UIDs.
+
+        Returns:
+            Sorted list of unique TypesDef UIDs.
+        """
+        raise NotImplementedError("InterfaceABC.ordered_td_uids must be overridden")
 
     # Abstract Data Export Methods
 
@@ -176,15 +242,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.to_json must be overridden")
 
     @abstractmethod
-    def to_td_uids(self) -> list[int]:
-        """Convert the interface to a list of TypesDef UIDs (ints).
-
-        Returns:
-            Sequence (tuple or list) of TypesDef UIDs for each endpoint.
-        """
-        raise NotImplementedError("InterfaceABC.to_td_uids must be overridden")
-
-    @abstractmethod
     def to_td(self) -> tuple[TypesDef, ...]:
         """Convert the interface to a tuple of TypesDef objects.
 
@@ -192,6 +249,15 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
             Tuple of TypesDef objects for each endpoint.
         """
         raise NotImplementedError("InterfaceABC.to_td must be overridden")
+
+    @abstractmethod
+    def to_td_uids(self) -> list[int]:
+        """Convert the interface to a list of TypesDef UIDs (ints).
+
+        Returns:
+            Sequence (tuple or list) of TypesDef UIDs for each endpoint.
+        """
+        raise NotImplementedError("InterfaceABC.to_td_uids must be overridden")
 
     @abstractmethod
     def types_and_indices(self) -> tuple[list[int], bytes]:
@@ -203,15 +269,6 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.types must be overridden")
 
     @abstractmethod
-    def sorted_unique_td_uids(self) -> list[int]:
-        """Return the sorted unique type definition UIDs.
-
-        Returns:
-            Sorted list of unique TypesDef UIDs.
-        """
-        raise NotImplementedError("InterfaceABC.ordered_td_uids must be overridden")
-
-    @abstractmethod
     def unconnected_eps(self) -> list[EndPointABC]:
         """Return a list of unconnected endpoints.
 
@@ -219,60 +276,3 @@ class InterfaceABC(CommonObjABC, metaclass=ABCMeta):
             List of EndPoint objects that have no connections.
         """
         raise NotImplementedError("InterfaceABC.unconnected_eps must be overridden")
-
-    @abstractmethod
-    def set_cls(self, ep_cls: EPCls) -> InterfaceABC:
-        """Set the class of all endpoints in the interface.
-
-        Args:
-            ep_cls: The EndPointClass to set (SRC or DST).
-
-        Returns:
-            Self with row class set.
-        """
-        raise NotImplementedError("InterfaceABC.set_cls must be overridden")
-
-    @abstractmethod
-    def set_row(self, row: Row) -> InterfaceABC:
-        """Set the row of all endpoints in the interface.
-
-        Args:
-            row: The Row to set (e.g., IS, OD).
-
-        Returns:
-            Self with row set.
-        """
-        raise NotImplementedError("InterfaceABC.set_row must be overridden")
-
-    @abstractmethod
-    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
-        """Set references for all endpoints in the interface.
-
-        Args:
-            row: The Row to set (e.g., IS, OD).
-            start_ref: The starting reference number.
-
-        Returns:
-            Self with references set.
-        """
-        raise NotImplementedError("InterfaceABC.set_refs must be overridden")
-
-    @abstractmethod
-    def clr_refs(self) -> InterfaceABC:
-        """Clear all references in the interface endpoints.
-
-        Returns:
-            Self with all endpoint references cleared.
-        """
-        raise NotImplementedError("InterfaceABC.clr_refs must be overridden")
-
-    @abstractmethod
-    def ref_shift(self, shift: int) -> InterfaceABC:
-        """Shift all references in the interface endpoints by a specified amount.
-
-        Args:
-            shift: The amount to shift each reference.
-        Returns:
-            Self with all endpoint references shifted.
-        """
-        raise NotImplementedError("InterfaceABC.ref_shift must be overridden")

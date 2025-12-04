@@ -21,6 +21,36 @@ app = FastAPI(
 API_PREFIX = "/api/v1"
 
 
+    # --- End Placeholder Logic ---
+
+
+@app.post(
+    f"{API_PREFIX}/keys/{{app_uuid}}/add",
+    response_model=models.KeyInfoResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add New Active Key",
+    tags=["Keys"],
+)
+async def add_key(app_uuid: str, key_to_add: models.KeyInfoCreate):
+    """
+    Adds a new key as "Active" for an *existing* `applicationUuid`.
+    Requires the caller to be authenticated and own the `app_uuid`.
+    Fails if another key is already active or limits exceeded (checks in later phases).
+
+    **(Phase 1 Placeholder): Accepts data, prints it, and returns a simulated response.**
+    """
+    print(f"Received request to add key for existing UUID: {app_uuid}")
+    print(f"New Public Key PEM received:\n{key_to_add.publicKeyPem}")
+
+    # --- Placeholder Logic ---
+    # In Phase 3, we'll add checks: ownership, no active key exists, limits.
+    # For now, simulate success.
+    response_data = models.KeyInfoResponse(
+        publicKeyPem=key_to_add.publicKeyPem,
+        status="Active",  # Newly added key becomes Active
+        statusTimestamp=datetime.now(timezone.utc),
+    )
+    return response_data
 @app.get(
     f"{API_PREFIX}/keys/{{app_uuid}}",
     response_model=list[models.KeyInfoResponse],
@@ -65,6 +95,14 @@ async def get_keys(app_uuid: str) -> list[models.KeyInfoResponse]:
     # --- End Placeholder Logic ---
 
 
+# --- Root Endpoint (Optional) ---
+@app.get("/", include_in_schema=False)  # Basic check endpoint, excluded from OpenAPI docs
+async def read_root():
+    """Basic check"""
+    return {"message": "EGPPKR API is running!"}
+    # --- End Placeholder Logic ---
+
+
 @app.post(
     f"{API_PREFIX}/keys",
     response_model=models.KeyInfoResponse,
@@ -89,36 +127,6 @@ async def register_first_key(registration_info: models.ApplicationRegistrationRe
     response_data = models.KeyInfoResponse(
         publicKeyPem=registration_info.publicKeyPem,
         status="Active",  # Newly registered key is always Active
-        statusTimestamp=datetime.now(timezone.utc),
-    )
-    return response_data
-    # --- End Placeholder Logic ---
-
-
-@app.post(
-    f"{API_PREFIX}/keys/{{app_uuid}}/add",
-    response_model=models.KeyInfoResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Add New Active Key",
-    tags=["Keys"],
-)
-async def add_key(app_uuid: str, key_to_add: models.KeyInfoCreate):
-    """
-    Adds a new key as "Active" for an *existing* `applicationUuid`.
-    Requires the caller to be authenticated and own the `app_uuid`.
-    Fails if another key is already active or limits exceeded (checks in later phases).
-
-    **(Phase 1 Placeholder): Accepts data, prints it, and returns a simulated response.**
-    """
-    print(f"Received request to add key for existing UUID: {app_uuid}")
-    print(f"New Public Key PEM received:\n{key_to_add.publicKeyPem}")
-
-    # --- Placeholder Logic ---
-    # In Phase 3, we'll add checks: ownership, no active key exists, limits.
-    # For now, simulate success.
-    response_data = models.KeyInfoResponse(
-        publicKeyPem=key_to_add.publicKeyPem,
-        status="Active",  # Newly added key becomes Active
         statusTimestamp=datetime.now(timezone.utc),
     )
     return response_data
@@ -152,11 +160,3 @@ async def update_key_status(app_uuid: str, update_info: models.KeyInfoStatusUpda
         statusTimestamp=datetime.now(timezone.utc),  # Reflect update time
     )
     return response_data
-    # --- End Placeholder Logic ---
-
-
-# --- Root Endpoint (Optional) ---
-@app.get("/", include_in_schema=False)  # Basic check endpoint, excluded from OpenAPI docs
-async def read_root():
-    """Basic check"""
-    return {"message": "EGPPKR API is running!"}

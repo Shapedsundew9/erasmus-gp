@@ -80,16 +80,40 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("EndPointABC.__eq__ must be overridden")
 
     @abstractmethod
-    def __ne__(self, value: object) -> bool:
-        """Check inequality of EndPoint instances.
+    def __ge__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting.
+
+        Endpoints are compared based on their idx attribute, enabling
+        natural ordering within a row.
 
         Args:
-            value (object): Object to compare with.
+            other (object): Object to compare with.
 
         Returns:
-            bool: True if the endpoints are not equal, False otherwise.
+            bool: True if self.idx >= other.idx, False otherwise.
+
+        Raises:
+            TypeError: If other is not an EndPoint instance.
         """
-        raise NotImplementedError("EndPointABC.__ne__ must be overridden")
+        raise NotImplementedError("EndPointABC.__ge__ must be overridden")
+
+    @abstractmethod
+    def __gt__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting.
+
+        Endpoints are compared based on their idx attribute, enabling
+        natural ordering within a row.
+
+        Args:
+            other (object): Object to compare with.
+
+        Returns:
+            bool: True if self.idx > other.idx, False otherwise.
+
+        Raises:
+            TypeError: If other is not an EndPoint instance.
+        """
+        raise NotImplementedError("EndPointABC.__gt__ must be overridden")
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -105,6 +129,24 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             int: Hash value for the endpoint.
         """
         raise NotImplementedError("EndPointABC.__hash__ must be overridden")
+
+    @abstractmethod
+    def __le__(self, other: object) -> bool:
+        """Compare EndPoint instances for sorting.
+
+        Endpoints are compared based on their idx attribute, enabling
+        natural ordering within a row.
+
+        Args:
+            other (object): Object to compare with.
+
+        Returns:
+            bool: True if self.idx <= other.idx, False otherwise.
+
+        Raises:
+            TypeError: If other is not an EndPoint instance.
+        """
+        raise NotImplementedError("EndPointABC.__le__ must be overridden")
 
     # Abstract Ordering Methods
 
@@ -127,58 +169,16 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("EndPointABC.__lt__ must be overridden")
 
     @abstractmethod
-    def __le__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute, enabling
-        natural ordering within a row.
+    def __ne__(self, value: object) -> bool:
+        """Check inequality of EndPoint instances.
 
         Args:
-            other (object): Object to compare with.
+            value (object): Object to compare with.
 
         Returns:
-            bool: True if self.idx <= other.idx, False otherwise.
-
-        Raises:
-            TypeError: If other is not an EndPoint instance.
+            bool: True if the endpoints are not equal, False otherwise.
         """
-        raise NotImplementedError("EndPointABC.__le__ must be overridden")
-
-    @abstractmethod
-    def __gt__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute, enabling
-        natural ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx > other.idx, False otherwise.
-
-        Raises:
-            TypeError: If other is not an EndPoint instance.
-        """
-        raise NotImplementedError("EndPointABC.__gt__ must be overridden")
-
-    @abstractmethod
-    def __ge__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute, enabling
-        natural ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx >= other.idx, False otherwise.
-
-        Raises:
-            TypeError: If other is not an EndPoint instance.
-        """
-        raise NotImplementedError("EndPointABC.__ge__ must be overridden")
+        raise NotImplementedError("EndPointABC.__ne__ must be overridden")
 
     # Abstract String Representation
 
@@ -193,6 +193,14 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             str: String representation of the endpoint showing row, idx, cls, typ, and refs.
         """
         raise NotImplementedError("EndPointABC.__str__ must be overridden")
+
+    @abstractmethod
+    def clr_refs(self) -> EndPointABC:
+        """Clear all references in the endpoint.
+        Returns:
+            Self with all references cleared.
+        """
+        raise NotImplementedError("EndPointABC.clr_refs must be overridden")
 
     # Abstract Connection Methods
 
@@ -214,6 +222,31 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("EndPointABC.connect must be overridden")
 
+    # Abstract Validation Methods (inherited from CommonObjABC)
+
+    @abstractmethod
+    def consistency(self) -> None:
+        """Check the consistency of the endpoint.
+
+        Performs semantic validation that may be computationally expensive. This method
+        is called automatically by verify() when CONSISTENCY logging is enabled, following
+        the CommonObj validation pattern.
+
+        Validates:
+            - Reference structure and format (debug assertions)
+            - All referenced endpoints would be structurally valid (does not verify existence)
+            - Internal data structure integrity
+
+        Note:
+            Full bidirectional reference consistency checking (verifying that referenced
+            endpoints exist and reference back correctly) requires access to other endpoints
+            and is performed at the Interface or CGraph level, not here.
+
+        Raises:
+            AssertionError: If consistency checks fail (in debug mode with CONSISTENCY logging).
+        """
+        raise NotImplementedError("EndPointABC.consistency must be overridden")
+
     @abstractmethod
     def is_connected(self) -> bool:
         """Check if the endpoint is connected.
@@ -224,6 +257,35 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             bool: True if the endpoint has at least one reference in refs, False otherwise.
         """
         raise NotImplementedError("EndPointABC.is_connected must be overridden")
+
+    @abstractmethod
+    def ref_shift(self, shift: int) -> EndPointABC:
+        """Shift all references in the endpoint by a given amount.
+        Args:
+            shift: The amount to shift each reference index by.
+        Returns:
+            Self with all references shifted.
+        """
+        raise NotImplementedError("EndPointABC.ref_shift must be overridden")
+
+    @abstractmethod
+    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
+        """Set or append to the references for an endpoint.
+
+        This method always sets (replaces) the reference of a destination endpoint
+        to the specified row and index. For a source endpoint, it appends the new reference
+        to the existing list of references if append is True; otherwise, it replaces the
+        entire list with the new reference.
+
+        Args:
+            row (Row): The row of the endpoint to reference.
+            idx (int): The index of the endpoint to reference.
+            append (bool): If True and the endpoint is a source, append the new reference;
+                           otherwise, replace the references. Defaults to False.
+        Returns:
+            EndPointABC: Self with the reference set.
+        """
+        raise NotImplementedError("EndPointABC.set_ref must be overridden")
 
     # Abstract Data Export Methods
 
@@ -251,31 +313,6 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             ValueError: If json_c_graph is True for a source endpoint.
         """
         raise NotImplementedError("EndPointABC.to_json must be overridden")
-
-    # Abstract Validation Methods (inherited from CommonObjABC)
-
-    @abstractmethod
-    def consistency(self) -> None:
-        """Check the consistency of the endpoint.
-
-        Performs semantic validation that may be computationally expensive. This method
-        is called automatically by verify() when CONSISTENCY logging is enabled, following
-        the CommonObj validation pattern.
-
-        Validates:
-            - Reference structure and format (debug assertions)
-            - All referenced endpoints would be structurally valid (does not verify existence)
-            - Internal data structure integrity
-
-        Note:
-            Full bidirectional reference consistency checking (verifying that referenced
-            endpoints exist and reference back correctly) requires access to other endpoints
-            and is performed at the Interface or CGraph level, not here.
-
-        Raises:
-            AssertionError: If consistency checks fail (in debug mode with CONSISTENCY logging).
-        """
-        raise NotImplementedError("EndPointABC.consistency must be overridden")
 
     @abstractmethod
     def verify(self) -> None:
@@ -307,40 +344,3 @@ class EndPointABC(CommonObjABC, metaclass=ABCMeta):
             TypeError: If attribute types are incorrect.
         """
         raise NotImplementedError("EndPointABC.verify must be overridden")
-
-    @abstractmethod
-    def clr_refs(self) -> EndPointABC:
-        """Clear all references in the endpoint.
-        Returns:
-            Self with all references cleared.
-        """
-        raise NotImplementedError("EndPointABC.clr_refs must be overridden")
-
-    @abstractmethod
-    def ref_shift(self, shift: int) -> EndPointABC:
-        """Shift all references in the endpoint by a given amount.
-        Args:
-            shift: The amount to shift each reference index by.
-        Returns:
-            Self with all references shifted.
-        """
-        raise NotImplementedError("EndPointABC.ref_shift must be overridden")
-
-    @abstractmethod
-    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
-        """Set or append to the references for an endpoint.
-
-        This method always sets (replaces) the reference of a destination endpoint
-        to the specified row and index. For a source endpoint, it appends the new reference
-        to the existing list of references if append is True; otherwise, it replaces the
-        entire list with the new reference.
-
-        Args:
-            row (Row): The row of the endpoint to reference.
-            idx (int): The index of the endpoint to reference.
-            append (bool): If True and the endpoint is a source, append the new reference;
-                           otherwise, replace the references. Defaults to False.
-        Returns:
-            EndPointABC: Self with the reference set.
-        """
-        raise NotImplementedError("EndPointABC.set_ref must be overridden")

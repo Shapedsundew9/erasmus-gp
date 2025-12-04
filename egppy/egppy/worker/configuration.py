@@ -69,6 +69,11 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
             )
         self._databases = cast(dict[str, DatabaseConfig], value)
 
+    def dump_config(self) -> None:
+        """Dump the configuration to disk."""
+        dump_signed_json(self.to_json(), "./config.json")
+        print("Configuration written to ./config.json")
+
     @property
     def gene_pool(self) -> str:
         """Get the gene pool."""
@@ -87,6 +92,17 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
         )
         self.value_error(value in self.databases, "gene_pool must be a database")
         self._gene_pool = value
+
+    def load_config(self, config_file: str) -> None:
+        """Load the configuration from disk."""
+        config = load_signed_json(config_file)
+        assert isinstance(config, dict), "Configuration must be a dictionary"
+        self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
+        self.gene_pool = config["gene_pool"]
+        self.microbiome = config["microbiome"]
+        self.populations = PopulationsConfig(**config["populations"])
+        self.problem_definitions = config["problem_definitions"]
+        self.problem_folder = config["problem_folder"]
 
     @property
     def microbiome(self) -> str:
@@ -157,22 +173,6 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
             f"problem_folder must be a valid path, but is {value}",
         )
         self._problem_folder = value
-
-    def dump_config(self) -> None:
-        """Dump the configuration to disk."""
-        dump_signed_json(self.to_json(), "./config.json")
-        print("Configuration written to ./config.json")
-
-    def load_config(self, config_file: str) -> None:
-        """Load the configuration from disk."""
-        config = load_signed_json(config_file)
-        assert isinstance(config, dict), "Configuration must be a dictionary"
-        self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
-        self.gene_pool = config["gene_pool"]
-        self.microbiome = config["microbiome"]
-        self.populations = PopulationsConfig(**config["populations"])
-        self.problem_definitions = config["problem_definitions"]
-        self.problem_folder = config["problem_folder"]
 
     def to_json(self) -> dict[str, Any]:
         """Return the configuration as a JSON type."""

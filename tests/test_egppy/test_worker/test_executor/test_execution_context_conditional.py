@@ -25,6 +25,32 @@ class TestConditionalCodeGeneration(unittest.TestCase):
         self.mock_gpi = MagicMock()
         self.ec = ExecutionContext(self.mock_gpi, line_limit=64, wmc=False)
 
+    def test_code_lines_detects_conditional(self):
+        """Test that code_lines() detects conditional GCs."""
+        # This is an integration-style test that verifies the routing logic
+        # We'll check that conditional GCs take a different code path
+        mock_root = MagicMock(spec=GCNode)
+        mock_root.write = True
+        mock_root.is_conditional = True
+        mock_root.graph_type = CGraphType.IF_THEN
+        mock_root.gc = {
+            "outputs": [{"typ": {"name": "int"}}],
+            "signature": b"test",
+            "cgraph": {DstRow.F: [], DstRow.O: [], DstRow.P: []},
+        }
+        mock_root.terminal_connections = []
+
+        fwconfig = FWConfig(lean=True)
+
+        # This should route to _generate_conditional_function_code
+        # which will fail with our minimal mock, but that's OK - we're just
+        # testing that it tries to call it
+        try:
+            self.ec.code_lines(mock_root, fwconfig)
+        except (ValueError, AttributeError, KeyError):
+            # Expected - we're not setting up a full mock
+            pass
+
     def test_gcnode_caches_graph_type(self):
         """Test that GCNode caches the graph type during initialization."""
         # Create a mock GC with IF_THEN graph (as a codon to avoid GPI requirement)
@@ -119,32 +145,6 @@ class TestConditionalCodeGeneration(unittest.TestCase):
             self.assertEqual(node.graph_type, CGraphType.PRIMITIVE)
             self.assertFalse(node.is_conditional)
             self.assertFalse(node.f_connection)
-
-    def test_code_lines_detects_conditional(self):
-        """Test that code_lines() detects conditional GCs."""
-        # This is an integration-style test that verifies the routing logic
-        # We'll check that conditional GCs take a different code path
-        mock_root = MagicMock(spec=GCNode)
-        mock_root.write = True
-        mock_root.is_conditional = True
-        mock_root.graph_type = CGraphType.IF_THEN
-        mock_root.gc = {
-            "outputs": [{"typ": {"name": "int"}}],
-            "signature": b"test",
-            "cgraph": {DstRow.F: [], DstRow.O: [], DstRow.P: []},
-        }
-        mock_root.terminal_connections = []
-
-        fwconfig = FWConfig(lean=True)
-
-        # This should route to _generate_conditional_function_code
-        # which will fail with our minimal mock, but that's OK - we're just
-        # testing that it tries to call it
-        try:
-            self.ec.code_lines(mock_root, fwconfig)
-        except (ValueError, AttributeError, KeyError):
-            # Expected - we're not setting up a full mock
-            pass
 
 
 class TestConditionalFunctionCodeGenerator(unittest.TestCase):

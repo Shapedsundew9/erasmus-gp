@@ -80,6 +80,39 @@ class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
         setattr(self, "root_path", root_path)
 
     @property
+    def description(self) -> str:
+        """Get the description."""
+        return self._description
+
+    @description.setter
+    def description(self, value: str) -> None:
+        """User defined arbitrary string. Not used by Erasmus for any
+        internal processing or logic."""
+        self.value_error(
+            self._is_printable_string("description", value),
+            "description must be a printable string, but contains non-printable characters",
+        )
+        self.value_error(
+            self._is_length("description", value, 0, 1024),
+            f"description must be between 0 and 1024 characters, but is {len(value)} characters",
+        )
+        self._description = value
+
+    @property
+    def ff_code_file(self) -> str:
+        """Get the fitness function code file."""
+        return self._ff_code_file
+
+    @ff_code_file.setter
+    def ff_code_file(self, value: str) -> None:
+        """The name of the fitness function code file."""
+        self.value_error(
+            self._is_filename("ff_code_file", value),
+            f"ff_code_file must be a valid filename, but is {value}",
+        )
+        self._ff_code_file = value
+
+    @property
     def git_hash(self) -> bytes:
         """Get the git hash."""
         return self._git_hash
@@ -137,73 +170,6 @@ class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
         self._git_url = value
 
     @property
-    def ordered_interface_hash(self) -> bytes:
-        """Get the ordered interface hash."""
-        return self._ordered_interface_hash
-
-    @ordered_interface_hash.setter
-    def ordered_interface_hash(self, value: bytes | str) -> None:
-        """The hash of the ordered interface."""
-        if isinstance(value, str):
-            value = bytes.fromhex(value)
-        self.value_error(
-            self._is_hash8("ordered_interface_hash", value),
-            "ordered_interface_hash must be an 8-byte hash, but is "
-            f"{len(value) if isinstance(value, bytes) else type(value)}",
-        )
-        self._ordered_interface_hash = value
-
-    @property
-    def unordered_interface_hash(self) -> bytes:
-        """Get the unordered interface hash."""
-        return self._unordered_interface_hash
-
-    @unordered_interface_hash.setter
-    def unordered_interface_hash(self, value: bytes | str) -> None:
-        """The hash of the unordered interface."""
-        if isinstance(value, str):
-            value = bytes.fromhex(value)
-        self.value_error(
-            self._is_hash8("unordered_interface_hash", value),
-            "unordered_interface_hash must be an 8-byte hash, but is "
-            f"{len(value) if isinstance(value, bytes) else type(value)}",
-        )
-        self._unordered_interface_hash = value
-
-    @property
-    def description(self) -> str:
-        """Get the description."""
-        return self._description
-
-    @description.setter
-    def description(self, value: str) -> None:
-        """User defined arbitrary string. Not used by Erasmus for any
-        internal processing or logic."""
-        self.value_error(
-            self._is_printable_string("description", value),
-            "description must be a printable string, but contains non-printable characters",
-        )
-        self.value_error(
-            self._is_length("description", value, 0, 1024),
-            f"description must be between 0 and 1024 characters, but is {len(value)} characters",
-        )
-        self._description = value
-
-    @property
-    def ff_code_file(self) -> str:
-        """Get the fitness function code file."""
-        return self._ff_code_file
-
-    @ff_code_file.setter
-    def ff_code_file(self, value: str) -> None:
-        """The name of the fitness function code file."""
-        self.value_error(
-            self._is_filename("ff_code_file", value),
-            f"ff_code_file must be a valid filename, but is {value}",
-        )
-        self._ff_code_file = value
-
-    @property
     def last_verified_live(self) -> datetime:
         """Get the last verified live."""
         return self._last_verified_live
@@ -232,6 +198,23 @@ class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
             "name must be a printable string, but contains non-printable characters",
         )
         self._name = value
+
+    @property
+    def ordered_interface_hash(self) -> bytes:
+        """Get the ordered interface hash."""
+        return self._ordered_interface_hash
+
+    @ordered_interface_hash.setter
+    def ordered_interface_hash(self, value: bytes | str) -> None:
+        """The hash of the ordered interface."""
+        if isinstance(value, str):
+            value = bytes.fromhex(value)
+        self.value_error(
+            self._is_hash8("ordered_interface_hash", value),
+            "ordered_interface_hash must be an 8-byte hash, but is "
+            f"{len(value) if isinstance(value, bytes) else type(value)}",
+        )
+        self._ordered_interface_hash = value
 
     @property
     def requirements_file_name(self) -> str:
@@ -275,3 +258,20 @@ class ProblemConfig(Validator, DictTypeAccessor, CommonObj):
             "requirements_file_name": self.requirements_file_name,
             "root_path": self.root_path,
         }
+
+    @property
+    def unordered_interface_hash(self) -> bytes:
+        """Get the unordered interface hash."""
+        return self._unordered_interface_hash
+
+    @unordered_interface_hash.setter
+    def unordered_interface_hash(self, value: bytes | str) -> None:
+        """The hash of the unordered interface."""
+        if isinstance(value, str):
+            value = bytes.fromhex(value)
+        self.value_error(
+            self._is_hash8("unordered_interface_hash", value),
+            "unordered_interface_hash must be an 8-byte hash, but is "
+            f"{len(value) if isinstance(value, bytes) else type(value)}",
+        )
+        self._unordered_interface_hash = value

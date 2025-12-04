@@ -13,14 +13,6 @@ from egppy.genetic_code.interface import Interface
 _CODON_SELECTOR_LITERALS = {"mask": CODON_MASK}
 
 
-def random_codon_selector(gp: GenePoolInterface) -> GCABC:
-    """Select a codon GC randomly from the gene pool."""
-    gc = gp.select("NOT ({properties} & {mask})", literals=_CODON_SELECTOR_LITERALS)
-    if not gc:
-        raise ValueError("No codons found. Has the gene pool been initialized?")
-    return GGCDict(gc[0])
-
-
 def exact_input_types_selector(gp: GenePoolInterface, _: int, ept_types: Interface) -> GCABC:
     """Select a GC with the exact input types.
 
@@ -42,4 +34,12 @@ def exact_input_types_selector(gp: GenePoolInterface, _: int, ept_types: Interfa
     )
     if not gc:
         raise ValueError("No GC found with the exact input types.")
+    return GGCDict(gc[0])
+
+
+def random_codon_selector(gp: GenePoolInterface) -> GCABC:
+    """Select a codon GC randomly from the gene pool."""
+    gc = gp.select("NOT ({properties} & {mask})", literals=_CODON_SELECTOR_LITERALS)
+    if not gc:
+        raise ValueError("No codons found. Has the gene pool been initialized?")
     return GGCDict(gc[0])
