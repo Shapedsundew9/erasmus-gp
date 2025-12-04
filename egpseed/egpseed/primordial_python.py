@@ -175,8 +175,9 @@ def random_codon_selector_py(rtctxt: RuntimeContext) -> GGCode:
     Returns:
         A random codon genetic code.
     """
-    return rtctxt.gpi.select_gc(
+    ggc = rtctxt.gpi.select_gc(
         "{codon_mask} & {properties} = {zero}",
         literals={"codon_mask": CODON_MASK, "zero": 0},
-        order_by="RANDOM()",
+        order_by="ORDER BY RANDOM()",
     )
+    return GGCode(ggc) if not isinstance(ggc, GGCode) else ggc

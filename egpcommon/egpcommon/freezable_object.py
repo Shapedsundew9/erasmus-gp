@@ -10,8 +10,8 @@ from copy import deepcopy
 from typing import Any, Self
 from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
-from egpcommon.common_obj import DEBUG, CommonObj
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.object_deduplicator import ObjectDeduplicator
 
 # Standard EGP logging pattern

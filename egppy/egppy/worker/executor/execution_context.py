@@ -581,7 +581,7 @@ class ExecutionContext:
 
         # Ensure the function is defined & get its info
         if signature not in self.function_map:
-            self.write_executable(signature)
+            self.write_executable(gcsig)
         finfo = self.function_map[signature]
         if finfo.executable is NULL_EXECUTABLE:
             raise RuntimeError(

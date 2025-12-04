@@ -57,6 +57,9 @@ class EGCMixin(GCMixin):
             self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))
 
         # GCA
+        # TODO: NULL_SIGNATURE / NULL_SHA256 needs to become None to reduce the storage and
+        # computation overhead. There is a lot of testing for NULL_SIGNATURE currently so
+        # this will be a future task.
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
         gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
         self["gca"] = signature_store[bytes.fromhex(gca) if isinstance(gca, str) else gca]

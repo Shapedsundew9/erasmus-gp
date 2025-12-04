@@ -1,7 +1,7 @@
 """Common Object  Class."""
 
 from egpcommon.common import debug_exceptions
-from egpcommon.egp_log import DEBUG, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -147,8 +147,6 @@ class CommonObj:
 
         NOTE: Likely to significantly slow down the code.
         """
-        if _logger.isEnabledFor(level=DEBUG):
-            _logger.debug("Consistency check passed for %r", self)
 
     def verify(self):
         """Verify the CommonObj object.
@@ -171,5 +169,3 @@ class CommonObj:
         See `egpcommon.common.debug_exceptions` for appropriate usage.
         See `egpcommon.egp_log` for logging level usage.
         """
-        if _logger.isEnabledFor(level=DEBUG):
-            _logger.debug("Verify check passed for %r", self)

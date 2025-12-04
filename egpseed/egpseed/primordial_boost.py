@@ -150,12 +150,13 @@ def build_custom_gcs() -> ExecutionContext:
     return ec
 
 
-def random_codon_selector_gc(ec: ExecutionContext) -> None:
-    """Build a genetic code with the functional equivilence of random_codon_selector_py()."""
+def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
+    """Build a genetic code with the functional equivalence of random_codon_selector_py()."""
 
     # Can reuse the RuntimeContext for all operations the data is the same for each operation
     # and no debug data is collected.
     rtctxt = nrtc(ec)
+    load_codons(ec.gpi)
 
     # A GC is built up in stages, each stage creating
     # a temporary GC that is used in the next stage. The final GC is written
@@ -171,8 +172,8 @@ def random_codon_selector_gc(ec: ExecutionContext) -> None:
     # _GC_SIGNATURES dict.
 
     # The random codon selector GC is built up in stages as follows:
-    # 1. Get the properties codon mask (PSQL_CDN_PRP_MSK) and the properties column (PSQL_PRP_COLUMN)
-    #    codons and package them into a harmony GC (tmp1_ggc).
+    # 1. Get the properties codon mask (PSQL_CDN_PRP_MSK) and the properties column
+    #    (PSQL_PRP_COLUMN) codons and package them into a harmony GC (tmp1_ggc).
     # 2. Get the PSQL_2x64_TO_IGRL codon which type casts a BIGINT to an Integral and the
     #    PSQL_BITWISE_AND codon which performs a bitwise AND operation on two Integrals and
     #    stack them to create a GC that takes 2x BIGINT and does a bitwise and on it to return an
@@ -207,6 +208,7 @@ def random_codon_selector_gc(ec: ExecutionContext) -> None:
     tmp5_ggc = _harmony_connect(ec, rtctxt, tmp4_ggc, codons["PSQL_ORDERBY_RND"])
     sggc = _stack_connect(ec, rtctxt, tmp5_ggc, codons["GPI_SELECT_GC"])
     ec.write_executable(sggc)
+    return sggc
 
 
 if __name__ == "__main__":

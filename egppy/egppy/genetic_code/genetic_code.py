@@ -223,13 +223,16 @@ class GCMixin(CommonObj):
         return hash(self["signature"])
 
     def is_codon(self) -> bool:
-        """Return True if the genetic code is a codon."""
+        """Return True if the genetic code is a codon or meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         codon = PropertiesBD.fast_fetch("gc_type", self["properties"])
         retval = codon == GCType.CODON or codon == GCType.META
         assert (
             retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or not retval, "If gc_type is a codon or meta-codon then cgraph must be primitive."
+        assert (
+            retval and self["ancestora"] == NULL_SIGNATURE and self["ancestorb"] == NULL_SIGNATURE
+        ) or not retval, "Codons must not have ancestors."
         return retval
 
     def is_conditional(self) -> bool:
@@ -251,6 +254,9 @@ class GCMixin(CommonObj):
         assert (
             meta == GCType.META and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or meta != GCType.META, "If gc_type is a meta-codon then cgraph must be primitive."
+        assert (
+            meta and self["ancestora"] == NULL_SIGNATURE and self["ancestorb"] == NULL_SIGNATURE
+        ) or not meta, "Meta-codons must not have ancestors."
         return meta == GCType.META or meta == GCType.ORDINARY_META
 
     def logical_mermaid_chart(self) -> str:
