@@ -186,6 +186,11 @@ class TestFindPythonFiles(TestCase):
                 cache_dir.mkdir()
                 (cache_dir / "cached.py").write_text("# cached")
 
+            # Also test .egg-info pattern matching
+            egg_dir = tmppath / "my_package.egg-info"
+            egg_dir.mkdir()
+            (egg_dir / "metadata.py").write_text("# metadata")
+
             files = find_python_files(tmppath)
             self.assertEqual(len(files), 1)
             self.assertEqual(files[0].name, "source.py")

@@ -210,9 +210,12 @@ def _should_skip_directory(path: Path) -> bool:
         "build",
         "dist",
         ".eggs",
-        "*.egg-info",
     }
     if name in build_cache_names:
+        return True
+
+    # Skip .egg-info directories
+    if name.endswith(".egg-info"):
         return True
 
     return False
@@ -237,8 +240,10 @@ def find_python_files(root_path: Path) -> list[Path]:
     for py_file in root_path.rglob("*.py"):
         # Check if any parent directory should be skipped
         skip = False
-        for parent in py_file.relative_to(root_path).parents:
-            if parent != Path(".") and _should_skip_directory(root_path / parent):
+        # Use parts of the relative path for efficient checking
+        relative_path = py_file.relative_to(root_path)
+        for part in relative_path.parts[:-1]:  # Exclude the file name itself
+            if _should_skip_directory(Path(part)):
                 skip = True
                 break
         if not skip:
