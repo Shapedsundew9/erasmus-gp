@@ -336,7 +336,7 @@ class EGCMixin(GCMixin):
             # At least one of gca or gcb must be present for ordinary codes
             self.value_error(
                 self["gca"] is not None or self["gcb"] is not None,
-                "ORDINARY gc_type requires at least one of gca or gcb to be non-NULL",
+                "ORDINARY gc_type requires at least one of gca or gcb to be non-None",
             )
 
         # Extra coverage is asserted in DEBUG mode
