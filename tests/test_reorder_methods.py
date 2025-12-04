@@ -143,6 +143,78 @@ class TestFindPythonFiles(TestCase):
             self.assertEqual(len(files), 2)
             self.assertTrue(all(f.suffix == ".py" for f in files))
 
+    def test_exclude_hidden_directories(self) -> None:
+        """Test that hidden directories are excluded."""
+        with TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+            (tmppath / "visible.py").write_text("# visible")
+
+            # Create hidden directory with Python file
+            hidden_dir = tmppath / ".hidden"
+            hidden_dir.mkdir()
+            (hidden_dir / "hidden.py").write_text("# hidden")
+
+            files = find_python_files(tmppath)
+            self.assertEqual(len(files), 1)
+            self.assertEqual(files[0].name, "visible.py")
+
+    def test_exclude_venv_directories(self) -> None:
+        """Test that virtual environment directories are excluded."""
+        with TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+            (tmppath / "main.py").write_text("# main")
+
+            # Create various venv directories with Python files
+            for venv_name in ["venv", ".venv", "env", "ENV"]:
+                venv_dir = tmppath / venv_name
+                venv_dir.mkdir()
+                (venv_dir / "lib.py").write_text("# lib")
+
+            files = find_python_files(tmppath)
+            self.assertEqual(len(files), 1)
+            self.assertEqual(files[0].name, "main.py")
+
+    def test_exclude_cache_directories(self) -> None:
+        """Test that cache and build directories are excluded."""
+        with TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+            (tmppath / "source.py").write_text("# source")
+
+            # Create cache directories with Python files
+            for cache_name in ["__pycache__", ".pytest_cache", ".mypy_cache"]:
+                cache_dir = tmppath / cache_name
+                cache_dir.mkdir()
+                (cache_dir / "cached.py").write_text("# cached")
+
+            # Also test .egg-info pattern matching
+            egg_dir = tmppath / "my_package.egg-info"
+            egg_dir.mkdir()
+            (egg_dir / "metadata.py").write_text("# metadata")
+
+            files = find_python_files(tmppath)
+            self.assertEqual(len(files), 1)
+            self.assertEqual(files[0].name, "source.py")
+
+    def test_nested_exclusion(self) -> None:
+        """Test that exclusion works for nested directories."""
+        with TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+            (tmppath / "root.py").write_text("# root")
+
+            # Create nested structure: src/venv/lib.py
+            src_dir = tmppath / "src"
+            src_dir.mkdir()
+            (src_dir / "app.py").write_text("# app")
+
+            venv_dir = src_dir / "venv"
+            venv_dir.mkdir()
+            (venv_dir / "lib.py").write_text("# lib")
+
+            files = find_python_files(tmppath)
+            self.assertEqual(len(files), 2)
+            file_names = {f.name for f in files}
+            self.assertEqual(file_names, {"root.py", "app.py"})
+
 
 class TestReorderFile(TestCase):
     """Test cases for reorder_file."""

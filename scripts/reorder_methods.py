@@ -93,40 +93,6 @@ class MethodExtractor(NodeVisitor):
         self.classes: dict[str, dict[str, Any]] = {}
         self.current_class: str | None = None
 
-    def visit_ClassDef(self, node: ClassDef) -> None:  # pylint: disable=invalid-name
-        """Visit a class definition.
-
-        Args:
-            node: The ClassDef AST node.
-        """
-        self.current_class = node.name
-        self.classes[node.name] = {
-            "node": node,
-            "methods": [],
-            "start_line": node.lineno,
-            "end_line": node.end_lineno or node.lineno,
-        }
-        self.generic_visit(node)
-        self.current_class = None
-
-    def visit_FunctionDef(self, node: FunctionDef) -> None:  # pylint: disable=invalid-name
-        """Visit a function definition.
-
-        Args:
-            node: The FunctionDef AST node.
-        """
-        self._visit_function(node)
-
-    def visit_AsyncFunctionDef(  # pylint: disable=invalid-name
-        self, node: AsyncFunctionDef
-    ) -> None:
-        """Visit an async function definition.
-
-        Args:
-            node: The AsyncFunctionDef AST node.
-        """
-        self._visit_function(node)
-
     def _visit_function(self, node: FunctionDef | AsyncFunctionDef) -> None:
         """Process a function or async function definition.
 
@@ -167,6 +133,167 @@ class MethodExtractor(NodeVisitor):
         else:
             self.module_functions.append(func_info)
 
+    def visit_AsyncFunctionDef(  # pylint: disable=invalid-name
+        self, node: AsyncFunctionDef
+    ) -> None:
+        """Visit an async function definition.
+
+        Args:
+            node: The AsyncFunctionDef AST node.
+        """
+        self._visit_function(node)
+
+    def visit_ClassDef(self, node: ClassDef) -> None:  # pylint: disable=invalid-name
+        """Visit a class definition.
+
+        Args:
+            node: The ClassDef AST node.
+        """
+        self.current_class = node.name
+        self.classes[node.name] = {
+            "node": node,
+            "methods": [],
+            "start_line": node.lineno,
+            "end_line": node.end_lineno or node.lineno,
+        }
+        self.generic_visit(node)
+        self.current_class = None
+
+    def visit_FunctionDef(self, node: FunctionDef) -> None:  # pylint: disable=invalid-name
+        """Visit a function definition.
+
+        Args:
+            node: The FunctionDef AST node.
+        """
+        self._visit_function(node)
+
+
+def _should_skip_directory(path: Path) -> bool:
+    """Check if a directory should be skipped during file search.
+
+    Args:
+        path: Directory path to check.
+
+    Returns:
+        True if the directory should be skipped, False otherwise.
+    """
+    name = path.name
+
+    # Skip hidden directories (starting with .)
+    if name.startswith("."):
+        return True
+
+    # Skip common virtual environment directories
+    venv_names = {
+        "venv",
+        ".venv",
+        "env",
+        "ENV",
+        "env.bak",
+        "venv.bak",
+        "__pypackages__",
+        ".pixi",
+    }
+    if name in venv_names:
+        return True
+
+    # Skip build and cache directories
+    build_cache_names = {
+        "__pycache__",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytype",
+        ".tox",
+        ".nox",
+        "build",
+        "dist",
+        ".eggs",
+    }
+    if name in build_cache_names:
+        return True
+
+    # Skip .egg-info directories
+    if name.endswith(".egg-info"):
+        return True
+
+    return False
+
+
+def find_python_files(root_path: Path) -> list[Path]:
+    """Recursively find all Python files in the given path.
+
+    Excludes hidden directories (starting with '.'), virtual environments,
+    and build/cache directories.
+
+    Args:
+        root_path: Root directory or file path to search.
+
+    Returns:
+        List of Path objects for Python files.
+    """
+    if root_path.is_file():
+        return [root_path] if root_path.suffix == ".py" else []
+
+    python_files = []
+    for py_file in root_path.rglob("*.py"):
+        # Check if any parent directory should be skipped
+        skip = False
+        # Use parts of the relative path for efficient checking
+        relative_path = py_file.relative_to(root_path)
+        for part in relative_path.parts[:-1]:  # Exclude the file name itself
+            if _should_skip_directory(Path(part)):
+                skip = True
+                break
+        if not skip:
+            python_files.append(py_file)
+
+    return sorted(python_files)
+
+
+def main() -> None:
+    """Main entry point for the reorder methods script."""
+    args = parse_arguments()
+
+    try:
+        root_path = Path(args.path).resolve()
+
+        if not root_path.exists():
+            print(f"Error: Path does not exist: {root_path}")
+            sys_exit(1)
+
+        # Find all Python files
+        python_files = find_python_files(root_path)
+
+        if not python_files:
+            print(f"No Python files found in {root_path}")
+            sys_exit(0)
+
+        if args.verbose:
+            print(f"Found {len(python_files)} Python file(s)")
+
+        # Process each file
+        modified_count = 0
+        for file_path in python_files:
+            if args.verbose:
+                print(f"\nProcessing: {file_path}")
+
+            if reorder_file(file_path, dry_run=args.dry_run, verbose=args.verbose):
+                modified_count += 1
+
+        # Summary
+        if args.dry_run:
+            print(f"\nDry run complete. {modified_count} file(s) would be modified.")
+        else:
+            print(f"\nComplete. {modified_count} file(s) modified.")
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys_exit(130)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys_exit(1)
+
 
 def parse_arguments() -> Namespace:
     """Parse command line arguments.
@@ -198,21 +325,6 @@ def parse_arguments() -> Namespace:
         help="Enable verbose output",
     )
     return parser.parse_args()
-
-
-def find_python_files(root_path: Path) -> list[Path]:
-    """Recursively find all Python files in the given path.
-
-    Args:
-        root_path: Root directory or file path to search.
-
-    Returns:
-        List of Path objects for Python files.
-    """
-    if root_path.is_file():
-        return [root_path] if root_path.suffix == ".py" else []
-
-    return sorted(root_path.rglob("*.py"))
 
 
 def reorder_file(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -360,51 +472,6 @@ def reorder_file(  # pylint: disable=too-many-locals,too-many-branches,too-many-
     except Exception as e:
         print(f"Error processing {file_path}: {e}")
         raise
-
-
-def main() -> None:
-    """Main entry point for the reorder methods script."""
-    args = parse_arguments()
-
-    try:
-        root_path = Path(args.path).resolve()
-
-        if not root_path.exists():
-            print(f"Error: Path does not exist: {root_path}")
-            sys_exit(1)
-
-        # Find all Python files
-        # TODO: Do not go into virtual environments or hidden folders
-        python_files = find_python_files(root_path)
-
-        if not python_files:
-            print(f"No Python files found in {root_path}")
-            sys_exit(0)
-
-        if args.verbose:
-            print(f"Found {len(python_files)} Python file(s)")
-
-        # Process each file
-        modified_count = 0
-        for file_path in python_files:
-            if args.verbose:
-                print(f"\nProcessing: {file_path}")
-
-            if reorder_file(file_path, dry_run=args.dry_run, verbose=args.verbose):
-                modified_count += 1
-
-        # Summary
-        if args.dry_run:
-            print(f"\nDry run complete. {modified_count} file(s) would be modified.")
-        else:
-            print(f"\nComplete. {modified_count} file(s) modified.")
-
-    except KeyboardInterrupt:
-        print("\nOperation cancelled by user.")
-        sys_exit(130)
-    except Exception as e:
-        print(f"Error: {e}")
-        sys_exit(1)
 
 
 if __name__ == "__main__":
