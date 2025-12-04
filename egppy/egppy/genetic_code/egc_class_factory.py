@@ -124,12 +124,12 @@ class EGCMixin(GCMixin):
         tmp: str | bytes | None = gcabc.get("signature")
         if tmp is None:
             self["signature"] = sha256_signature(
-                self["ancestora"] if self["ancestora"] is not None else NULL_TUPLE,
-                self["ancestorb"] if self["ancestorb"] is not None else NULL_TUPLE,
-                self["gca"] if self["gca"] is not None else NULL_TUPLE,
-                self["gcb"] if self["gcb"] is not None else NULL_TUPLE,
+                self["ancestora"],
+                self["ancestorb"],
+                self["gca"],
+                self["gcb"],
                 self["cgraph"].to_json(True),
-                self["pgc"] if self["pgc"] is not None else NULL_TUPLE,
+                self["pgc"],
                 NULL_TUPLE,
                 NULL_STR,
                 NULL_STR,

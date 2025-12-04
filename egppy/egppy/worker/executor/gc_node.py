@@ -275,8 +275,8 @@ class GCNode(Iterable, Hashable):
         self.finfo: FunctionInfo = finfo
         self.write: bool = False  # True if the node is to be written as a function
         self.assess: bool = True  # True if the number of lines has not been determined
-        self.gca: GCABC | bytes = gc["gca"]
-        self.gcb: GCABC | bytes = gc["gcb"]
+        self.gca: GCABC | bytes = gc["gca"] if gc["gca"] is not None else NULL_GC
+        self.gcb: GCABC | bytes = gc["gcb"] if gc["gcb"] is not None else NULL_GC
         self.terminal: bool = False  # A terminal node is where a connection ends
         # Cache the graph type to avoid repeated lookups
         self.graph_type: CGraphType = (

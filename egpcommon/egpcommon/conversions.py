@@ -78,7 +78,6 @@ def memoryview_to_bytes(obj: memoryview | None) -> bytes | None:
 def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
     """Convert a memory view to a signature bytes object.
 
-    None is converted to NULL_SHA256.
     Signatures are de-duplicated.
 
     Args
@@ -89,7 +88,7 @@ def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
     -------
     (bytes or NoneType)
     """
-    return NULL_SHA256 if obj is None else signature_store[bytes(obj)]
+    return None if obj is None else signature_store[bytes(obj)]
 
 
 def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
