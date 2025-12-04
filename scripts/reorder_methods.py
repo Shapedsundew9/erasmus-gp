@@ -351,108 +351,83 @@ def reorder_file(  # pylint: disable=too-many-locals,too-many-branches,too-many-
         extractor = MethodExtractor(original_lines)
         extractor.visit(tree)
 
-        # Check if any reordering is needed
-        modified = False
+        replacements = []
 
         # Check module functions
-        module_funcs_need_reorder = False
         if extractor.module_functions:
             current_func_order = [f.name for f in extractor.module_functions]
-            sorted_func_order = [
-                f.name for f in sorted(extractor.module_functions, key=lambda f: f.name)
-            ]
-            module_funcs_need_reorder = current_func_order != sorted_func_order
+            sorted_funcs = sorted(extractor.module_functions, key=lambda f: f.name)
+            sorted_func_order = [f.name for f in sorted_funcs]
+
+            if current_func_order != sorted_func_order:
+                if verbose:
+                    print(f"  Module functions: {current_func_order} -> {sorted_func_order}")
+
+                # Create replacements using slots strategy
+                slots = sorted(extractor.module_functions, key=lambda f: f.start_line)
+                for slot, new_func in zip(slots, sorted_funcs):
+                    replacements.append(
+                        {
+                            "start_line": slot.start_line,
+                            "end_line": slot.end_line,
+                            "lines": new_func.lines,
+                        }
+                    )
 
         # Check classes
-        classes_need_reorder = {}
         for class_name, class_info in extractor.classes.items():
             if not class_info["methods"]:
                 continue
 
             current_order = [m.name for m in class_info["methods"]]
-            sorted_order = [m.name for m in sorted(class_info["methods"], key=lambda m: m.sort_key)]
+            sorted_methods = sorted(class_info["methods"], key=lambda m: m.sort_key)
+            sorted_order = [m.name for m in sorted_methods]
 
             if current_order != sorted_order:
-                classes_need_reorder[class_name] = True
-                modified = True
                 if verbose:
                     print(f"  Class {class_name}: {current_order} -> {sorted_order}")
 
-        if module_funcs_need_reorder:
-            modified = True
-            if verbose:
-                current_func_order = [f.name for f in extractor.module_functions]
-                sorted_func_order = [
-                    f.name for f in sorted(extractor.module_functions, key=lambda f: f.name)
-                ]
-                print(f"  Module functions: {current_func_order} -> {sorted_func_order}")
+                # Create replacements using slots strategy
+                slots = sorted(class_info["methods"], key=lambda m: m.start_line)
+                for slot, new_method in zip(slots, sorted_methods):
+                    replacements.append(
+                        {
+                            "start_line": slot.start_line,
+                            "end_line": slot.end_line,
+                            "lines": new_method.lines,
+                        }
+                    )
 
-        if not modified:
+        if not replacements:
             if verbose:
                 print(f"No changes needed: {file_path}")
             return False
 
+        # Sort replacements by start_line
+        replacements.sort(key=lambda x: x["start_line"])
+
         # Build the new file
         new_lines: list[str] = []
-        skip_until_line: int = -1
+        current_line_idx = 0  # 0-based index in original_lines
 
-        for line_idx, line in enumerate(original_lines):
-            line_num = line_idx + 1  # 1-indexed
+        for rep in replacements:
+            # Copy lines before the replacement
+            # rep["start_line"] is 1-based
+            start_idx = rep["start_line"] - 1
 
-            # Skip lines we've already handled
-            if line_num <= skip_until_line:
-                continue
+            if start_idx > current_line_idx:
+                new_lines.extend(original_lines[current_line_idx:start_idx])
 
-            # Check if we're at the start of a class that needs reordering
-            class_to_reorder = None
-            for class_name, needs_reorder in classes_need_reorder.items():
-                if needs_reorder:
-                    class_info = extractor.classes[class_name]
-                    if line_num == class_info["start_line"]:
-                        class_to_reorder = class_info
-                        break
+            # Add replacement lines
+            new_lines.extend(rep["lines"])
 
-            if class_to_reorder:
-                # Add class header (everything before first method)
-                first_method_start = min(m.start_line for m in class_to_reorder["methods"])
+            # Advance current_line_idx
+            # rep["end_line"] is 1-based inclusive, so it matches the index of the next line
+            current_line_idx = rep["end_line"]
 
-                # Add lines from class start to first method
-                for i in range(class_to_reorder["start_line"] - 1, first_method_start - 1):
-                    new_lines.append(original_lines[i])
-
-                # Add sorted methods with blank lines between them
-                sorted_methods = sorted(class_to_reorder["methods"], key=lambda m: m.sort_key)
-                for idx, method in enumerate(sorted_methods):
-                    # Add blank line before method (except first)
-                    if idx > 0:
-                        new_lines.append("")
-                    new_lines.extend(method.lines)
-
-                # Skip to end of class
-                skip_until_line = class_to_reorder["end_line"]
-                continue
-
-            # Check if we're at the start of module functions that need reordering
-            if module_funcs_need_reorder and extractor.module_functions:
-                # Check if this is the first module function
-                first_module_func = min(extractor.module_functions, key=lambda f: f.start_line)
-                if line_num == first_module_func.start_line:
-                    # Sort and add all module functions
-                    sorted_funcs = sorted(extractor.module_functions, key=lambda f: f.name)
-                    for idx, func in enumerate(sorted_funcs):
-                        if idx > 0:
-                            new_lines.append("")
-                            new_lines.append("")
-                        new_lines.extend(func.lines)
-
-                    # Skip all the original function lines
-                    last_func_line = max(f.end_line for f in extractor.module_functions)
-                    skip_until_line = last_func_line
-                    module_funcs_need_reorder = False  # Only do this once
-                    continue
-
-            # Otherwise, keep the line as-is
-            new_lines.append(line)
+        # Copy remaining lines
+        if current_line_idx < len(original_lines):
+            new_lines.extend(original_lines[current_line_idx:])
 
         # Write the result
         new_content = "\n".join(new_lines) + "\n" if new_lines else ""
