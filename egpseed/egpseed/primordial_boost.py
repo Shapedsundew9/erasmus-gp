@@ -211,6 +211,21 @@ def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
     return sggc
 
 
+def harmony_gc(ec: ExecutionContext) -> GCABC:
+    """Build a genetic code with the functional equivalence of harmony_py()."""
+
+    # Can reuse the RuntimeContext for all operations the data is the same for each operation
+    # and no debug data is collected.
+    rtctxt = nrtc(ec)
+    load_codons(ec.gpi)
+
+    # A harmony_py has two GGCode (GCABC) inputs and produces one EGCode (GCABC) output.
+    # Step 1: Get the 'cgraph' fields from both input GC's. To do this we can make a harmony
+    # GC that uses the
+
+    return
+
+
 if __name__ == "__main__":
     ectxt: ExecutionContext = build_custom_gcs()
     fwconfig = FWConfig(hints=True, lean=False, inline_sigs=True)
