@@ -219,7 +219,7 @@ class GCMixin(CommonObj):
         Signature is guaranteed unique for a given genetic code.
         """
         assert isinstance(self, GCABC)
-        assert self["signature"] is not NULL_SIGNATURE, "Signature must not be NULL."
+        assert self["signature"] is not None, "Signature must not be None."
         return hash(self["signature"])
 
     def is_codon(self) -> bool:

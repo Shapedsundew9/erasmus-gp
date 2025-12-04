@@ -17,7 +17,7 @@ from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.egc_class_factory import EGCMixin
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
-from egppy.genetic_code.genetic_code import GCABC, NULL_SIGNATURE
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.import_def import ImportDef
 from egppy.storage.cache.cacheable_obj import CacheableDict
 

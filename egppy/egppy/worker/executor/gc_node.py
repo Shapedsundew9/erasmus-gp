@@ -20,7 +20,7 @@ from egppy.genetic_code.genetic_code import (
     mc_hexagon_str,
     mc_rectangle_str,
 )
-from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
+from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import c_graph_type
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
