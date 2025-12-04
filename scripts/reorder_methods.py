@@ -374,6 +374,7 @@ def main() -> None:
             sys_exit(1)
 
         # Find all Python files
+        # TODO: Do not go into virtual environments or hidden folders
         python_files = find_python_files(root_path)
 
         if not python_files:
