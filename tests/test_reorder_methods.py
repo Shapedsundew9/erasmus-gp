@@ -1,15 +1,12 @@
 """Unit tests for the reorder_methods script."""
 
+# Import the functions we want to test
+from ast import FunctionDef, parse
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-# Import the functions we want to test
-import sys
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
-
-from reorder_methods import FunctionInfo, MethodExtractor, find_python_files, reorder_file
+from scripts.reorder_methods import FunctionInfo, MethodExtractor, find_python_files, reorder_file
 
 
 class TestFunctionInfo(TestCase):
@@ -17,7 +14,6 @@ class TestFunctionInfo(TestCase):
 
     def test_sort_key_init(self) -> None:
         """Test that __init__ gets priority 0."""
-        from ast import FunctionDef, parse
 
         code = "def __init__(self): pass"
         tree = parse(code)
@@ -31,7 +27,6 @@ class TestFunctionInfo(TestCase):
 
     def test_sort_key_dunder(self) -> None:
         """Test that dunder methods get priority 1."""
-        from ast import FunctionDef, parse
 
         code = "def __str__(self): pass"
         tree = parse(code)
@@ -45,7 +40,6 @@ class TestFunctionInfo(TestCase):
 
     def test_sort_key_private(self) -> None:
         """Test that private methods get priority 2."""
-        from ast import FunctionDef, parse
 
         code = "def _helper(self): pass"
         tree = parse(code)
@@ -59,7 +53,6 @@ class TestFunctionInfo(TestCase):
 
     def test_sort_key_public(self) -> None:
         """Test that public methods get priority 3."""
-        from ast import FunctionDef, parse
 
         code = "def public_method(self): pass"
         tree = parse(code)
@@ -81,17 +74,11 @@ class TestMethodExtractor(TestCase):
 
     def test_extract_class_methods(self) -> None:
         """Test extracting methods from a class."""
-        code = """
-class TestClass:
-    def __init__(self):
-        pass
-    def public(self):
-        pass
-    def _private(self):
-        pass
-"""
+        code = str(
+            "class TestClass:\n    def __init__(self):\n        pass\n    def public(self):\n"
+            "        pass\n    def _private(self):\n        pass\n"
+        )
         lines = code.strip().split("\n")
-        from ast import parse
 
         tree = parse(code)
         extractor = MethodExtractor(lines)
@@ -104,15 +91,8 @@ class TestClass:
 
     def test_extract_module_functions(self) -> None:
         """Test extracting module-level functions."""
-        code = """
-def function_a():
-    pass
-
-def function_b():
-    pass
-"""
+        code = str("def function_a():\n    pass\n\ndef function_b():\n    pass\n")
         lines = code.strip().split("\n")
-        from ast import parse
 
         tree = parse(code)
         extractor = MethodExtractor(lines)
@@ -124,13 +104,8 @@ def function_b():
 
     def test_extract_with_decorators(self) -> None:
         """Test that decorators are included with functions."""
-        code = """class TestClass:
-    @property
-    def value(self):
-        return 1
-"""
+        code = str("class TestClass:\n    @property\n    def value(self):\n        return 1\n")
         lines = code.split("\n")
-        from ast import parse
 
         tree = parse(code)
         extractor = MethodExtractor(lines)
@@ -177,17 +152,15 @@ class TestReorderFile(TestCase):
         with TemporaryDirectory() as tmpdir:
             test_file = Path(tmpdir) / "test.py"
             test_file.write_text(
-                """
-class TestClass:
-    def public(self):
-        pass
-
-    def _private(self):
-        pass
-
-    def __init__(self):
-        pass
-"""
+                "class TestClass:\n"
+                "    def public(self):\n"
+                "        pass\n"
+                "\n"
+                "    def _private(self):\n"
+                "        pass\n"
+                "\n"
+                "    def __init__(self):\n"
+                "        pass\n"
             )
 
             result = reorder_file(test_file, dry_run=False, verbose=False)
@@ -206,15 +179,7 @@ class TestClass:
         """Test reordering module-level functions."""
         with TemporaryDirectory() as tmpdir:
             test_file = Path(tmpdir) / "test.py"
-            test_file.write_text(
-                """
-def zebra():
-    pass
-
-def apple():
-    pass
-"""
-            )
+            test_file.write_text("def zebra():\n    pass\n\ndef apple():\n    pass\n")
 
             result = reorder_file(test_file, dry_run=False, verbose=False)
             self.assertTrue(result)
@@ -231,14 +196,8 @@ def apple():
         with TemporaryDirectory() as tmpdir:
             test_file = Path(tmpdir) / "test.py"
             test_file.write_text(
-                """
-class TestClass:
-    def __init__(self):
-        pass
-
-    def public(self):
-        pass
-"""
+                "class TestClass:\n    def __init__(self):\n        "
+                "pass\n\n    def public(self):\n        pass\n"
             )
 
             result = reorder_file(test_file, dry_run=False, verbose=False)
@@ -249,15 +208,8 @@ class TestClass:
         with TemporaryDirectory() as tmpdir:
             test_file = Path(tmpdir) / "test.py"
             test_file.write_text(
-                """
-class TestClass:
-    @property
-    def value(self):
-        pass
-
-    def __init__(self):
-        pass
-"""
+                "class TestClass:\n    @property\n    def value(self):\n        "
+                "pass\n\n    def __init__(self):\n        pass\n"
             )
 
             result = reorder_file(test_file, dry_run=False, verbose=False)
