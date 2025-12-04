@@ -24,11 +24,11 @@ _logger: Logger = egp_logger(name=__name__)
 
 
 # GC signature None type management
-# It is space efficient to have None types in the DB for signatures but not in the cache.
-# In the GPC a None type is represented by a 0 SHA256
-NULL_SIGNATURE: bytes = NULL_SHA256
-NULL_PROBLEM: bytes = NULL_SHA256
-NULL_PROBLEM_SET: bytes = NULL_SHA256
+# NULL signatures are represented as None in both the cache and the DB.
+# This reduces storage overhead and simplifies comparison operations.
+NULL_SIGNATURE: None = None
+NULL_PROBLEM: None = None
+NULL_PROBLEM_SET: None = None
 
 
 # Mermaid Chart header and footer
@@ -231,7 +231,7 @@ class GCMixin(CommonObj):
             retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or not retval, "If gc_type is a codon or meta-codon then cgraph must be primitive."
         assert (
-            retval and self["ancestora"] == NULL_SIGNATURE and self["ancestorb"] == NULL_SIGNATURE
+            retval and self["ancestora"] is None and self["ancestorb"] is None
         ) or not retval, "Codons must not have ancestors."
         return retval
 
@@ -255,7 +255,7 @@ class GCMixin(CommonObj):
             meta and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or not meta, "If gc_type is a meta-codon then cgraph must be primitive."
         assert (
-            meta and self["ancestora"] == NULL_SIGNATURE and self["ancestorb"] == NULL_SIGNATURE
+            meta and self["ancestora"] is None and self["ancestorb"] is None
         ) or not meta, "Meta-codons must not have ancestors."
         return meta
 
@@ -273,11 +273,11 @@ class GCMixin(CommonObj):
             # deepcode ignore unguarded~next~call: This is an infinite generator
             nct = str(next(counter))
             for gcx, prefix, row in [(gca, "a" + nct, SrcRow.A), (gcb, "b" + nct, SrcRow.B)]:
-                if isinstance(gcx, GCABC) and gcx is not NULL_SIGNATURE:
+                if isinstance(gcx, GCABC) and gcx is not None:
                     work_queue.append((gcx, gcx["gca"], gcx["gcb"], prefix))
                     chart_txt.append(mc_gc_str(gcx, prefix, row))
                     chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
-                if isinstance(gcx, bytes) and gcx is not NULL_SIGNATURE:
+                if isinstance(gcx, bytes) and gcx is not None:
                     chart_txt.append(mc_unknown_str(gcx, prefix, row))
                     chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
         return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
@@ -318,14 +318,16 @@ class GCMixin(CommonObj):
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
-                retval[key] = value["signature"].hex() if value is not NULL_SIGNATURE else None
+                retval[key] = value["signature"].hex() if value is not None else None
             elif isinstance(value, CGraphABC):
                 # Need to set json_c_graph to True so that the endpoints are correctly serialized
                 retval[key] = value.to_json(json_c_graph=True)
             elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()
             elif isinstance(value, bytes):
-                retval[key] = value.hex() if value is not NULL_SIGNATURE else None
+                retval[key] = value.hex()
+            elif value is None:
+                retval[key] = None
             elif isinstance(value, datetime):
                 retval[key] = value.isoformat()
             elif isinstance(value, UUID):

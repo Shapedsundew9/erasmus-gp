@@ -321,11 +321,11 @@ class GCNode(Iterable, Hashable):
 
         if self.is_codon:
             assert (
-                self.gca is NULL_GC or self.gca == NULL_SIGNATURE
-            ), "GCA must be NULL_GC for a codon"
+                self.gca is NULL_GC or self.gca is None
+            ), "GCA must be NULL_GC or None for a codon"
             assert (
-                self.gcb is NULL_GC or self.gcb == NULL_SIGNATURE
-            ), "GCB must be NULL_GC for a codon"
+                self.gcb is NULL_GC or self.gcb is None
+            ), "GCB must be NULL_GC or None for a codon"
 
             # Make sure we are not holding bytes for GCA or GCB
             self.gca = NULL_GC
@@ -346,7 +346,7 @@ class GCNode(Iterable, Hashable):
             if isinstance(self.gca, bytes):
                 self.gca = gpi[self.gca]
             if isinstance(self.gcb, bytes):
-                self.gcb = NULL_GC if self.gcb == NULL_SIGNATURE else gpi[self.gcb]
+                self.gcb = NULL_GC if self.gcb is None else gpi[self.gcb]
 
         if self.exists and (isinstance(self.gca, bytes) or isinstance(self.gcb, bytes)):
             # This is a unknown executable (treated like a codon in many respects)

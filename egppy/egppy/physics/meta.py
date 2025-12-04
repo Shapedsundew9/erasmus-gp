@@ -9,7 +9,7 @@ of EGP's type management system.
 from copy import deepcopy
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, NULL_SHA256, SHAPEDSUNDEW9_UUID
+from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID
 from egpcommon.parallel_exceptions import create_parallel_exceptions
 from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.genetic_code import GCABC
@@ -19,11 +19,11 @@ from egppy.physics.runtime_context import RuntimeContext
 
 META_CODON_TEMPLATE: dict[str, Any] = {
     "code_depth": 1,
-    "gca": NULL_SHA256,
-    "gcb": NULL_SHA256,
-    "ancestora": NULL_SHA256,
-    "ancestorb": NULL_SHA256,
-    "pgc": NULL_SHA256,
+    "gca": None,
+    "gcb": None,
+    "ancestora": None,
+    "ancestorb": None,
+    "pgc": None,
     "generation": 1,
     "num_codes": 1,
     "num_codons": 1,

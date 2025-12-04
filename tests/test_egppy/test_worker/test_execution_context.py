@@ -6,7 +6,6 @@ from random import choice, getrandbits, randint, seed
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egppy.genetic_code.genetic_code import NULL_SIGNATURE
 from egppy.genetic_code.ggc_class_factory import GCABC
 from egppy.worker.executor.context_writer import (
     FWC4FILE,
@@ -211,15 +210,15 @@ class TestExecutor(unittest.TestCase):
         gca = choice(self.gcm[3][3])
 
         # Now create an IF_THEN GC that uses GCA as the "then" branch. The "else"
-        # branch is NULL_SIGNATURE which has no function just connects inputs to
+        # branch is None which has no function just connects inputs to
         # outputs in pass_through_order.
         pass_through_order = (1, 2, 0)
         ggc = inherit_members(
             {
                 "ancestora": gca,
-                "ancestorb": NULL_SIGNATURE,
+                "ancestorb": None,
                 "gca": gca,
-                "gcb": NULL_SIGNATURE,
+                "gcb": None,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
                     "A": [["I", i, INT_T] for i in range(len(gca["inputs"]))],
@@ -253,16 +252,16 @@ class TestExecutor(unittest.TestCase):
         r_true_expected = self.ec2.execute(gca, (a, b, c))
 
         # Now create an IF_THEN GC that uses GCA as the "then" branch. The "else"
-        # branch is NULL_SIGNATURE which has no function just connects inputs to
+        # branch is None which has no function just connects inputs to
         # outputs in pass_through_order.
         pass_through_order = (1, 2, 0)
         r_false_expected = tuple((a, b, c)[i] for i in pass_through_order)
         ggc = inherit_members(
             {
                 "ancestora": gca,
-                "ancestorb": NULL_SIGNATURE,
+                "ancestorb": None,
                 "gca": gca,
-                "gcb": NULL_SIGNATURE,
+                "gcb": None,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
                     "A": [["I", i, INT_T] for i in range(len(gca["inputs"]))],
@@ -429,9 +428,9 @@ class TestExecutor(unittest.TestCase):
         ggc = inherit_members(
             {
                 "ancestora": body_gc,
-                "ancestorb": NULL_SIGNATURE,
+                "ancestorb": None,
                 "gca": body_gc,
-                "gcb": NULL_SIGNATURE,
+                "gcb": None,
                 "cgraph": {
                     "L": [["I", 0, "tuple"]],  # Iterable input
                     "S": [["I", 1, INT_T]],  # Initial State
@@ -486,9 +485,9 @@ class TestExecutor(unittest.TestCase):
         ggc = inherit_members(
             {
                 "ancestora": body_gc,
-                "ancestorb": NULL_SIGNATURE,
+                "ancestorb": None,
                 "gca": body_gc,
-                "gcb": NULL_SIGNATURE,
+                "gcb": None,
                 "cgraph": {
                     "W": [["I", 0, "bool"]],  # Initial Condition
                     "S": [["I", 1, INT_T]],  # Initial State
