@@ -59,10 +59,7 @@ class EGCMixin(GCMixin):
         # GCA
         # TODO: NULL_SIGNATURE / NULL_SHA256 needs to become None to reduce the storage and
         # computation overhead. There is a lot of testing for NULL_SIGNATURE currently so
-        # this will be a future task. This means allowing NULL in the DB schema for fields
-        # that use them and changing all the code that tests for NULL_SIGNATURE to test for None.
-        # The egpseed generation will also need to be modified and run to generate then new
-        # .json files to pre-load the DB.
+        # this will be a future task. The DB schema already uses NULL for these fields.
         tgca: str | bytes | GCABC = NULL_SIGNATURE if gcabc.get("gca") is None else gcabc["gca"]
         gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
         self["gca"] = signature_store[bytes.fromhex(gca) if isinstance(gca, str) else gca]
@@ -328,6 +325,12 @@ class EGCMixin(GCMixin):
                 self["gca"] != NULL_SIGNATURE or self["gcb"] != NULL_SIGNATURE,
                 "ORDINARY gc_type requires at least one of gca or gcb to be non-NULL",
             )
+
+        # Extra coverage is asserted in DEBUG mode
+        if _logger.isEnabledFor(level=DEBUG):
+            self.is_codon()
+            self.is_meta()
+            self.is_conditional()
 
         # Call base class verify at the end
         super().verify()

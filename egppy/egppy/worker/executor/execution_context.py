@@ -861,16 +861,15 @@ class ExecutionContext:
             return None
 
         # Make sure we have all the data we need to proceed.
-        if sig not in self.gpi:
-            if isinstance(gc, GCABC):
-                # Assume the GC has been locally created and just needs to be added to the GP
-                # If it did come from a higher layer and has just been purged then the DB upsert
-                # logic will combine and updates correctly.
-                self.gpi[sig] = gc
-            else:
-                # Its a signature not in the Gene Pool so it must be from a higher layer
-                # Load it from the GP interface
-                gc = self.gpi[sig]
+        if isinstance(gc, GCABC) and sig not in self.gpi:
+            # Assume the GC has been locally created and just needs to be added to the GP
+            # If it did come from a higher layer and has just been purged then the DB upsert
+            # logic will combine and updates correctly.
+            self.gpi[sig] = gc
+        else:
+            # Its a signature not in the Gene Pool so it must be from a higher layer
+            # Load it from the GP interface
+            gc = self.gpi[sig]
 
         # The GC may have been assessed as part of another GC but not an executable in its own right
         # The GC node graph is needed to determine connectivity and so we reset the num_lines

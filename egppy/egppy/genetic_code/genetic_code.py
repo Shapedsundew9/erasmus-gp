@@ -250,14 +250,14 @@ class GCMixin(CommonObj):
     def is_meta(self) -> bool:
         """Return True if the genetic code is a meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        meta = PropertiesBD.fast_fetch("gc_type", self["properties"])
+        meta = PropertiesBD.fast_fetch("gc_type", self["properties"]) == GCType.META
         assert (
-            meta == GCType.META and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
-        ) or meta != GCType.META, "If gc_type is a meta-codon then cgraph must be primitive."
+            meta and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
+        ) or not meta, "If gc_type is a meta-codon then cgraph must be primitive."
         assert (
             meta and self["ancestora"] == NULL_SIGNATURE and self["ancestorb"] == NULL_SIGNATURE
         ) or not meta, "Meta-codons must not have ancestors."
-        return meta == GCType.META or meta == GCType.ORDINARY_META
+        return meta
 
     def logical_mermaid_chart(self) -> str:
         """Return a Mermaid chart of the logical genetic code structure."""
