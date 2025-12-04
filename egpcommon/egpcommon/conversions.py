@@ -25,6 +25,20 @@ from egpcommon.properties import PropertiesBD
 _logger: Logger = egp_logger(name=__name__)
 
 
+def bytes_to_list_int(obj: bytes | None) -> list[int] | None:
+    """Convert a bytes object to a list of integers.
+
+    Args
+    ----
+    obj (bytes or NoneType):
+
+    Returns
+    -------
+    (list[int] or NoneType)
+    """
+    return None if obj is None else list(obj)
+
+
 def compress_json(
     obj: dict | list | memoryview | bytearray | bytes | None,
 ) -> bytes | memoryview | bytearray | None:
@@ -47,6 +61,11 @@ def compress_json(
     raise TypeError(f"Un-encodeable type '{type(obj)}': Expected 'dict' or byte type.")
 
 
+def decode_properties(properties: dict | int) -> dict:
+    """Decode properties."""
+    return PropertiesBD(properties).to_json() if isinstance(properties, int) else properties
+
+
 def decompress_json(obj: bytes | None) -> dict | list | None:
     """Decompress a compressed JSON dict object.
 
@@ -61,6 +80,26 @@ def decompress_json(obj: bytes | None) -> dict | list | None:
     return None if obj is None else loads(decompress(obj).decode())
 
 
+def encode_properties(properties: dict | int) -> int:
+    """Encode properties."""
+    return PropertiesBD(properties).to_int() if isinstance(properties, dict) else properties
+
+
+def list_int_to_bytes(obj: list[int] | bytes | None) -> bytes | None:
+    """Convert a list of integers to a bytes object.
+
+    Args
+    ----
+    obj (list[int] or bytes or NoneType):
+
+    Returns
+    -------
+    (bytes or NoneType)
+    """
+    # A bytes(bytes) call returns the same object as bytes are immutable.
+    return None if obj is None else bytes(obj)
+
+
 def memoryview_to_bytes(obj: memoryview | None) -> bytes | None:
     """Convert a memory view to a bytes object.
 
@@ -73,6 +112,20 @@ def memoryview_to_bytes(obj: memoryview | None) -> bytes | None:
     (bytes or NoneType)
     """
     return None if obj is None else bytes(obj)
+
+
+def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
+    """Convert a memory view to a 32 uint8 numpy ndarray.
+
+    Args
+    ----
+    obj (memoryview or NoneType):
+
+    Returns
+    -------
+    (numpy.ndarray or NoneType)
+    """
+    return None if obj is None else frombuffer(obj, dtype=uint8, count=32)
 
 
 def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
@@ -91,34 +144,22 @@ def memoryview_to_signature(obj: memoryview | None) -> bytes | None:
     return None if obj is None else signature_store[bytes(obj)]
 
 
-def memoryview_to_ndarray(obj: memoryview | None) -> NDArray | None:
-    """Convert a memory view to a 32 uint8 numpy ndarray.
+def ndarray_to_bytes(obj: NDArray | bytes | None) -> bytes | None:
+    """Convert a numpy 32 uint8 ndarray to a bytes object.
 
     Args
     ----
-    obj (memoryview or NoneType):
+    obj (numpy.ndarray or NoneType):
 
     Returns
     -------
-    (numpy.ndarray or NoneType)
+    (bytes or NoneType)
     """
-    return None if obj is None else frombuffer(obj, dtype=uint8, count=32)
-
-
-def signature_to_bytes(obj: bytes | None) -> bytes | None:
-    """Convert a signature to None as needed.
-
-    NULL_SHA256 is converted to None.
-
-    Args
-    ----
-    obj (bytes or None):
-
-    Returns
-    -------
-    (bytes or None)
-    """
-    return None if obj is NULL_SHA256 else obj
+    if isinstance(obj, ndarray):
+        return obj.tobytes()
+    if isinstance(obj, bytes) or obj is None:
+        return obj
+    assert False, "Un-encodeable type"
 
 
 def ndarray_to_memoryview(obj: NDArray | bytes | None) -> memoryview | None:
@@ -141,53 +182,6 @@ def ndarray_to_memoryview(obj: NDArray | bytes | None) -> memoryview | None:
     assert False, f"Un-encodeable type '{type(obj)}': Expected 'ndarray' or byte type."
 
 
-def ndarray_to_bytes(obj: NDArray | bytes | None) -> bytes | None:
-    """Convert a numpy 32 uint8 ndarray to a bytes object.
-
-    Args
-    ----
-    obj (numpy.ndarray or NoneType):
-
-    Returns
-    -------
-    (bytes or NoneType)
-    """
-    if isinstance(obj, ndarray):
-        return obj.tobytes()
-    if isinstance(obj, bytes) or obj is None:
-        return obj
-    assert False, "Un-encodeable type"
-
-
-def list_int_to_bytes(obj: list[int] | bytes | None) -> bytes | None:
-    """Convert a list of integers to a bytes object.
-
-    Args
-    ----
-    obj (list[int] or bytes or NoneType):
-
-    Returns
-    -------
-    (bytes or NoneType)
-    """
-    # A bytes(bytes) call returns the same object as bytes are immutable.
-    return None if obj is None else bytes(obj)
-
-
-def bytes_to_list_int(obj: bytes | None) -> list[int] | None:
-    """Convert a bytes object to a list of integers.
-
-    Args
-    ----
-    obj (bytes or NoneType):
-
-    Returns
-    -------
-    (list[int] or NoneType)
-    """
-    return None if obj is None else list(obj)
-
-
 def null_sha256_to_none(obj: bytes | None) -> bytes | None:
     """Convert a null signature to None.
 
@@ -202,11 +196,17 @@ def null_sha256_to_none(obj: bytes | None) -> bytes | None:
     return None if obj is NULL_SHA256 or obj == NULL_SHA256 else obj
 
 
-def encode_properties(properties: dict | int) -> int:
-    """Encode properties."""
-    return PropertiesBD(properties).to_int() if isinstance(properties, dict) else properties
+def signature_to_bytes(obj: bytes | None) -> bytes | None:
+    """Convert a signature to None as needed.
 
+    NULL_SHA256 is converted to None.
 
-def decode_properties(properties: dict | int) -> dict:
-    """Decode properties."""
-    return PropertiesBD(properties).to_json() if isinstance(properties, int) else properties
+    Args
+    ----
+    obj (bytes or None):
+
+    Returns
+    -------
+    (bytes or None)
+    """
+    return None if obj is NULL_SHA256 else obj

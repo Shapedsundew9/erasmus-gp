@@ -40,13 +40,6 @@ class ObjectDeduplicator(CommonObj):
 
     __slots__ = ("_objects", "name", "target_rate")
 
-    def __new__(cls, *args, **kwargs):
-        """Prevent duplicate deduplicators with the same name."""
-        name = args[0] if args else kwargs.get("name")
-        if name in deduplicators_registry:
-            return deduplicators_registry[name]
-        return super().__new__(cls)
-
     def __init__(self, name: str, size: int = 2**12, target_rate: float = 0.811) -> None:
         """Initialize a ObjectDeduplicator object.
 
@@ -75,6 +68,7 @@ class ObjectDeduplicator(CommonObj):
             self._objects = cached_hash
             self.name: str = name
             self.target_rate: float = target_rate
+
             # TODO: In MONITOR mode and below send stats to prometheus
 
     def __getitem__(self, obj: Hashable) -> Any:
@@ -83,6 +77,13 @@ class ObjectDeduplicator(CommonObj):
             "FreezableObjects must be frozen to be placed in an ObjectDeduplicator."
         )
         return self._objects(obj)
+
+    def __new__(cls, *args, **kwargs):
+        """Prevent duplicate deduplicators with the same name."""
+        name = args[0] if args else kwargs.get("name")
+        if name in deduplicators_registry:
+            return deduplicators_registry[name]
+        return super().__new__(cls)
 
     def clear(self) -> None:
         """Clear the deduplicator cache."""

@@ -245,6 +245,20 @@ class Validator:
             )
         return result
 
+    def _is_length(self, attr: str, value: Any, minm: int, maxm: int) -> bool:
+        """Check the length of the value."""
+        result = len(value) >= minm and len(value) <= maxm
+        if not result:
+            _logger.log(
+                VERIFY,
+                "%s must be between %s and %s in length but is %s",
+                attr,
+                minm,
+                maxm,
+                len(value),
+            )
+        return result
+
     def _is_list(self, attr: str, value: Any) -> bool:
         """Check if the value is a list."""
         result = isinstance(value, list)
@@ -284,6 +298,13 @@ class Validator:
         if not result:
             _logger.log(VERIFY, "%s must be a printable string but is not.", attr)
         return result
+
+    def _is_regex(self, attr: str, value: str, pattern: Pattern) -> bool:
+        """Check the value against a regex."""
+        result = pattern.fullmatch(value)
+        if not result:
+            _logger.log(VERIFY, "%s must match the pattern %s but does not", attr, pattern)
+        return bool(result)
 
     def _is_sequence(self, attr: str, value: Any) -> bool:
         """Check if the value is a sequence."""
@@ -344,24 +365,3 @@ class Validator:
         if not result:
             _logger.log(VERIFY, "%s must be a UUID but is %s", attr, type(value))
         return result
-
-    def _is_length(self, attr: str, value: Any, minm: int, maxm: int) -> bool:
-        """Check the length of the value."""
-        result = len(value) >= minm and len(value) <= maxm
-        if not result:
-            _logger.log(
-                VERIFY,
-                "%s must be between %s and %s in length but is %s",
-                attr,
-                minm,
-                maxm,
-                len(value),
-            )
-        return result
-
-    def _is_regex(self, attr: str, value: str, pattern: Pattern) -> bool:
-        """Check the value against a regex."""
-        result = pattern.fullmatch(value)
-        if not result:
-            _logger.log(VERIFY, "%s must match the pattern %s but does not", attr, pattern)
-        return bool(result)

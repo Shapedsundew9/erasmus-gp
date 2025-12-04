@@ -46,7 +46,7 @@
             "EGCode"
         ],
         "outputs": [
-            "CGraph"
+            "bytes"
         ]
     },
     "code_depth": {

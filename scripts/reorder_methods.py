@@ -290,7 +290,7 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")
         sys_exit(130)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"Error: {e}")
         sys_exit(1)
 
@@ -469,7 +469,7 @@ def reorder_file(  # pylint: disable=too-many-locals,too-many-branches,too-many-
     except SyntaxError as e:
         print(f"Syntax error in {file_path}: {e}")
         return False
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"Error processing {file_path}: {e}")
         raise
 
