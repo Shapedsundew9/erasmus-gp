@@ -11,11 +11,11 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.types_def import TypesDef
 
 
-class FrozenInterface(InterfaceABC):
+class FrozenInterface(FrozenInterfaceABC):
     """Frozen interfaces are immutable and introspect FrozenCGraph data structures directly.
 
     This class provides an immutable interface implementation that stores endpoint data
@@ -46,7 +46,7 @@ class FrozenInterface(InterfaceABC):
         # Pre-compute hash for frozen interface
         self._hash = hash((self.row, self.epcls, self.type_tuple, self.refs_tuple))
 
-    def __add__(self, other: InterfaceABC) -> InterfaceABC:
+    def __add__(self, other: FrozenInterfaceABC) -> FrozenInterfaceABC:
         """Concatenate two interfaces to create a new interface.
 
         Args:
@@ -56,10 +56,10 @@ class FrozenInterface(InterfaceABC):
             A new FrozenInterface containing endpoints from both interfaces.
 
         Raises:
-            TypeError: If other is not an InterfaceABC instance.
+            TypeError: If other is not an FrozenInterfaceABC instance.
             ValueError: If the interfaces have incompatible row or class properties.
         """
-        if not isinstance(other, InterfaceABC):
+        if not isinstance(other, FrozenInterfaceABC):
             raise TypeError(f"Cannot concatenate Interface with {type(other)}")
 
         # Handle empty interfaces
@@ -103,7 +103,7 @@ class FrozenInterface(InterfaceABC):
         Returns:
             True if equal, False otherwise.
         """
-        if not isinstance(value, InterfaceABC):
+        if not isinstance(value, FrozenInterfaceABC):
             return False
         # Fast path for FrozenInterface comparison
         if isinstance(value, FrozenInterface):
@@ -168,18 +168,6 @@ class FrozenInterface(InterfaceABC):
         """
         return len(self.type_tuple)
 
-    def __setitem__(self, idx: int, value: EndPointABC) -> None:
-        """Set an endpoint at a specific index.
-
-        Args:
-            idx: The index at which to set the endpoint.
-            value: The endpoint to set.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
     def __str__(self) -> str:
         """Return the string representation of the interface.
 
@@ -187,21 +175,6 @@ class FrozenInterface(InterfaceABC):
             String representation of the interface.
         """
         return f"FrozenInterface({', '.join(str(typ) for typ in self.type_tuple)})"
-
-    def append(self, value: EndPointABC) -> None:
-        """Append an endpoint to the interface.
-
-        Args:
-            value: The endpoint to append.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def clr_refs(self) -> InterfaceABC:
-        """Clear all references in the interface endpoints."""
-        raise RuntimeError("Cannot modify a frozen Interface")
 
     def cls(self) -> EPCls:
         """Return the class of the interface.
@@ -249,7 +222,7 @@ class FrozenInterface(InterfaceABC):
                             f" source rows, got {ref[0]}"
                         )
 
-    def ept_type_match(self, other: InterfaceABC) -> bool:
+    def ept_type_match(self, other: FrozenInterfaceABC) -> bool:
         """Check if the endpoint types match another interface.
 
         The type, order and number of endpoints must be identical for match to be true.
@@ -265,65 +238,6 @@ class FrozenInterface(InterfaceABC):
             if ep_self != ep_other.typ:
                 return False
         return True
-
-    def extend(
-        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
-    ) -> InterfaceABC:
-        """Extend the interface with multiple endpoints.
-
-        Args:
-            values: The endpoints to add.
-        Returns:
-            Self with endpoints extended.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def ref_shift(self, shift: int) -> InterfaceABC:
-        """Shift all reference indices in the interface endpoints.
-
-        Args:
-            shift: The integer amount to shift all reference indices by.
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def set_cls(self, ep_cls) -> InterfaceABC:
-        """Set the class of all endpoints in the interface.
-
-        Args:
-            ep_cls: The EndPointClass to set (SRC or DST).
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def set_refs(self, row: Row, start_ref: int = 0) -> InterfaceABC:
-        """Set references for all endpoints in the interface.
-
-        Args:
-            row: The Row to set (e.g., IS, OD).
-            start_ref: The starting reference number.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
-
-    def set_row(self, row) -> InterfaceABC:
-        """Set the row of all endpoints in the interface.
-
-        Args:
-            row: The Row to set.
-
-        Raises:
-            RuntimeError: Always raises since frozen interfaces are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen Interface")
 
     def sorted_unique_td_uids(self) -> list[int]:
         """Return the ordered type definition UIDs.

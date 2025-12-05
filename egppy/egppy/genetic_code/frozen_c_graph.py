@@ -45,13 +45,9 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
-from egppy.genetic_code.frozen_interface import (
-    DESTINATION_ROW_SET,
-    SOURCE_ROW_SET,
-    FrozenInterface,
-)
+from egppy.genetic_code.frozen_interface import DESTINATION_ROW_SET, SOURCE_ROW_SET, FrozenInterface
 from egppy.genetic_code.interface import ROW_SET
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
     CGT_VALID_ROWS,
@@ -98,9 +94,9 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
     def __init__(  # pylint: disable=super-init-not-called
         self,
-        graph: dict[str, list[EndpointMemberType]]
-        | dict[str, InterfaceABC]
-        | FrozenCGraphABC,
+        graph: (
+            dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | FrozenCGraphABC
+        ),
     ) -> None:
         """Initialize the Frozen Connection Graph.
 
@@ -126,16 +122,14 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
                 iface = graph[key]
-                if isinstance(iface, InterfaceABC):
+                if isinstance(iface, FrozenInterfaceABC):
                     type_tuple = tuple(ep.typ for ep in iface)
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep.refs)]
                         for ep in iface
                     )
                 else:
-                    assert isinstance(
-                        iface, list
-                    ), "Interface must be a list of EndpointMemberType"
+                    assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
                     type_tuple = tuple(type_tuple_store[ep[3]] for ep in iface)
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
@@ -152,9 +146,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
         # Special cases for JSONCGraphs
         # Ensure PD exists if LD, WD, or FD exist and OD is empty
-        need_p = any(
-            getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS
-        )
+        need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
             setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
 
@@ -201,7 +193,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             return False
         return all(a == b for a, b in zip(self.values(), value.values()))
 
-    def __getitem__(self, key: str) -> InterfaceABC:
+    def __getitem__(self, key: str) -> FrozenInterfaceABC:
         """Get the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
@@ -228,15 +220,13 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
     def __len__(self) -> int:
         """Return the number of interfaces in the Connection Graph."""
-        return sum(
-            1 for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None
-        )
+        return sum(1 for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None)
 
     def __repr__(self) -> str:
         """Return a string representation of the Connection Graph."""
         return pformat(self.to_json(), indent=4, width=120)
 
-    def get(self, key: str, default: InterfaceABC | None = None) -> InterfaceABC | None:
+    def get(self, key: str, default: FrozenInterfaceABC | None = None) -> FrozenInterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
         NOTE: This method does not raise KeyError if key is not a valid interface key.
         """
@@ -246,7 +236,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         """Identify and return the type of this connection graph."""
         return c_graph_type(self)
 
-    def items(self) -> ItemsView[str, InterfaceABC]:
+    def items(self) -> ItemsView[str, FrozenInterfaceABC]:
         """Return a view of the items in the Connection Graph."""
         return ItemsView(self)
 
@@ -267,23 +257,19 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         jcg: dict = {}
         row_u = []
         for key in DstRow:  # This order is important for consistent JSON output
-            iface: InterfaceABC = getattr(self, _UNDER_DST_KEY_DICT[key])
+            iface: FrozenInterfaceABC = getattr(self, _UNDER_DST_KEY_DICT[key])
             if iface is not None:
-                jcg[str(key) if json_c_graph else key] = iface.to_json(
-                    json_c_graph=json_c_graph
-                )
+                jcg[str(key) if json_c_graph else key] = iface.to_json(json_c_graph=json_c_graph)
         for key in SrcRow:  # This order is important for consistent JSON output
-            iface: InterfaceABC = getattr(self, _UNDER_SRC_KEY_DICT[key])
+            iface: FrozenInterfaceABC = getattr(self, _UNDER_SRC_KEY_DICT[key])
             if iface is not None and len(iface) > 0:
                 unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
-                row_u.extend(
-                    [str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs
-                )
+                row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
         if json_c_graph and row_u:
             jcg["U"] = row_u
         return jcg
 
-    def values(self) -> ValuesView[InterfaceABC]:
+    def values(self) -> ValuesView[FrozenInterfaceABC]:
         """Return a view of the values in the Connection Graph."""
         return ValuesView(self)
 
@@ -408,9 +394,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             if key in self:
                 iface = self[key]
                 if not isinstance(iface, FrozenInterface):
-                    raise TypeError(
-                        f"Interface {key} must be a FrozenInterface, got {type(iface)}"
-                    )
+                    raise TypeError(f"Interface {key} must be a FrozenInterface, got {type(iface)}")
                 iface.verify()
 
         # Identify the graph type

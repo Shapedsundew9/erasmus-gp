@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from itertools import chain
-from typing import Any
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import VERIFY, Logger, egp_logger
@@ -30,6 +29,7 @@ from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph
 from egppy.genetic_code.interface import Interface, InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
     CGT_VALID_ROWS,
@@ -50,9 +50,7 @@ class CGraph(FrozenCGraph, CGraphABC):
 
     def __init__(
         self,
-        graph: dict[str, list[EndpointMemberType]]
-        | dict[str, InterfaceABC]
-        | CGraphABC,
+        graph: dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | CGraphABC,
     ) -> None:
         """Initialize the Connection Graph.
 
@@ -87,9 +85,7 @@ class CGraph(FrozenCGraph, CGraphABC):
 
         # Special cases for JSONCGraphs
         # Ensure PD exists if LD, WD, or FD exist and OD is empty
-        need_p = any(
-            getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS
-        )
+        need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
             setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
 
@@ -105,12 +101,17 @@ class CGraph(FrozenCGraph, CGraphABC):
         """
         return hash(tuple(hash(iface) for iface in self.values()))
 
-    def __setitem__(self, key: str, value: InterfaceABC) -> None:
+    def __setitem__(self, key: str, value: FrozenInterfaceABC) -> None:
         """Set the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
-        if not isinstance(value, InterfaceABC):
+        if not isinstance(value, FrozenInterfaceABC):
             raise TypeError(f"Value must be an Interface, got {type(value)}")
+
+        # Convert to mutable Interface if it's not already
+        if not isinstance(value, InterfaceABC):
+            value = Interface(value)
+
         setattr(self, _UNDER_KEY_DICT[key], value)
 
     def _verify_all_destinations_connected(self) -> None:
@@ -265,9 +266,7 @@ class CGraph(FrozenCGraph, CGraphABC):
                             f"{ref_row_str}{ref_idx} type '{src_ep.typ.name}'",
                         )
 
-    def connect(
-        self, src_row: SrcRow, src_idx: int, dst_row: DstRow, dst_idx: int
-    ) -> None:
+    def connect(self, src_row: SrcRow, src_idx: int, dst_row: DstRow, dst_idx: int) -> None:
         """Connect a source endpoint to a destination endpoint.
         Establishes a directed connection from the specified source endpoint
         to the specified destination endpoint updating both endpoints accordingly.
@@ -285,9 +284,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         """
         dst_iface: Interface | None = getattr(self, _UNDER_DST_KEY_DICT[dst_row], None)
         if dst_iface is None:
-            raise KeyError(
-                f"Destination interface {dst_row}d does not exist in the graph."
-            )
+            raise KeyError(f"Destination interface {dst_row}d does not exist in the graph.")
         src_iface: Interface | None = getattr(self, _UNDER_SRC_KEY_DICT[src_row], None)
         if src_iface is None:
             raise KeyError(f"Source interface {src_row}s does not exist in the graph.")
@@ -333,9 +330,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         # Make a list of unconnected endpoints and shuffle it
         ifaces = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         unconnected: list[EndPoint] = list(
-            chain.from_iterable(
-                iface.unconnected_eps() for iface in ifaces if iface is not None
-            )
+            chain.from_iterable(iface.unconnected_eps() for iface in ifaces if iface is not None)
         )
         rng.shuffle(unconnected)  # type: ignore
 
@@ -346,9 +341,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         for dep in unconnected:
             # Gather all the viable source interfaces for this destination endpoint.
             valid_src_rows_for_dst = vsrc_rows[DstRow(dep.row)]
-            _vifs = (
-                getattr(self, _UNDER_SRC_KEY_DICT[row]) for row in valid_src_rows_for_dst
-            )
+            _vifs = (getattr(self, _UNDER_SRC_KEY_DICT[row]) for row in valid_src_rows_for_dst)
             vifs = (vif for vif in _vifs if vif is not None)
             # Gather all the source endpoints that match the type of the destination endpoint.
             vsrcs = [sep for vif in vifs for sep in vif if sep.typ == dep.typ]
@@ -444,9 +437,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         self._verify_interface_presence(graph_type, valid_rows_set)
 
         # Verify endpoint connectivity rules
-        self._verify_connectivity_rules(
-            graph_type, valid_src_rows_dict, valid_dst_rows_dict
-        )
+        self._verify_connectivity_rules(graph_type, valid_src_rows_dict, valid_dst_rows_dict)
 
         # Verify single endpoint rules for F, L, W interfaces
         self._verify_single_endpoint_interfaces()

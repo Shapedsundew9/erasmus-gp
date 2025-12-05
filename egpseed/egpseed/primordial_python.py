@@ -14,6 +14,7 @@ important that these functions are correct & thus well tested.
 
 from typing import Any
 
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.physics.helpers import merge_properties
 from egppy.physics.pgc_api import (
     CODON_MASK,
@@ -155,11 +156,11 @@ def unstablized_stack_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict
     dict[str, Any] -- the resultant stacked proto-GC
     """
     igc_cgraph: CGraphABC = igc["cgraph"]
-    igc_is: InterfaceABC = igc_cgraph["Is"]
-    igc_od: InterfaceABC = igc_cgraph["Od"]
+    igc_is: FrozenInterfaceABC = igc_cgraph["Is"]
+    igc_od: FrozenInterfaceABC = igc_cgraph["Od"]
     tgc_cgraph: CGraphABC = tgc["cgraph"]
-    tgc_is: InterfaceABC = tgc_cgraph["Is"]
-    tgc_od: InterfaceABC = tgc_cgraph["Od"]
+    tgc_is: FrozenInterfaceABC = tgc_cgraph["Is"]
+    tgc_od: FrozenInterfaceABC = tgc_cgraph["Od"]
     cgraph = CGraph(
         {
             "Is": Interface(igc_is, SrcRow.I, DstRow.A),

@@ -204,15 +204,15 @@ class TestFrozenInterface(unittest.TestCase):
 
     def test_immutability(self) -> None:
         """Test that frozen interfaces cannot be modified."""
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             self.frozen_iface[0] = self.frozen_iface[0]
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AttributeError):
             self.frozen_iface.append(
                 FrozenEndPoint(SrcRow.I, 2, EPCls.SRC, types_def_store["bool"], ())
             )
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AttributeError):
             self.frozen_iface.extend([])
 
     def test_init(self) -> None:

@@ -21,6 +21,8 @@ class TestInterfaceABC(TestCase):
                 "__iter__",
                 "__len__",
                 "__setitem__",
+                "__delitem__",
+                "insert",
                 "__eq__",
                 "__hash__",
                 "__str__",

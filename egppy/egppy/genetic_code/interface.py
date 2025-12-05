@@ -18,7 +18,8 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.endpoint import EndPoint, TypesDef
 from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.frozen_interface import FrozenInterface
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -76,7 +77,7 @@ def unpack_src_ref(ref: list[int | str] | tuple[str, int]) -> tuple[SrcRow, int]
     return SrcRow(row), idx
 
 
-class Interface(CommonObj, InterfaceABC):
+class Interface(CommonObj, FrozenInterface, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
     __slots__ = ("endpoints", "_hash")
@@ -88,7 +89,7 @@ class Interface(CommonObj, InterfaceABC):
             | Sequence[EndpointMemberType]
             | Sequence[list | tuple]
             | Sequence[str | int | TypesDef]
-            | InterfaceABC
+            | FrozenInterfaceABC
         ),
         row: Row | None = None,
         rrow: Row | None = None,
@@ -112,7 +113,7 @@ class Interface(CommonObj, InterfaceABC):
             any ref row specified in the endpoint sequences.
         rsidx: int: The starting index to use for references when rrow is provided.
         """
-        super().__init__()
+        CommonObj.__init__(self)
         self.endpoints: list[EndPoint] = []
         self._hash: int = 0
 
@@ -123,8 +124,8 @@ class Interface(CommonObj, InterfaceABC):
         if len(endpoints) == 0:
             return
 
-        # Handle case where endpoints is an InterfaceABC or contains EndPointABC instances
-        if isinstance(endpoints, InterfaceABC) or isinstance(endpoints[0], EndPointABC):
+        # Handle case where endpoints is an FrozenInterfaceABC or contains EndPointABC instances
+        if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], EndPointABC):
             ep0 = endpoints[0]
             assert isinstance(ep0, EndPointABC), "All endpoints must be EndPointABC instances"
             _row = row if row is not None else ep0.row
@@ -198,14 +199,14 @@ class Interface(CommonObj, InterfaceABC):
         raise TypeError(
             f"Unsupported endpoints type: {type(endpoints)} with first"
             f" element type {type(endpoints[0])}. "
-            "Supported types are: InterfaceABC, sequence of EndPointABC, "
+            "Supported types are: FrozenInterfaceABC, sequence of EndPointABC, "
             "sequence of 3-element tuples (e.g. ['row', idx, type]), "
             "sequence of types (e.g. [TypesDef, ...]), or sequence of 5-element"
             " tuples (e.g. [row, idx, cls, type, refs]). "
             "Example of valid input: [('dst', 0, EPCls.DST, TypesDef, [[...]]), ...]"
         )
 
-    def __add__(self, other: InterfaceABC) -> InterfaceABC:
+    def __add__(self, other: FrozenInterfaceABC) -> InterfaceABC:
         """Concatenate two interfaces to create a new interface.
 
         Add correctly updates the indices of the endpoints in the new interface.
@@ -219,8 +220,8 @@ class Interface(CommonObj, InterfaceABC):
         -------
         Interface: A new interface containing endpoints from both interfaces.
         """
-        if not isinstance(other, InterfaceABC):
-            raise TypeError(f"Can only add InterfaceABC to InterfaceABC, got {type(other)}")
+        if not isinstance(other, FrozenInterfaceABC):
+            raise TypeError(f"Can only add FrozenInterfaceABC to InterfaceABC, got {type(other)}")
 
         # Handle empty interfaces
         if len(self.endpoints) == 0:
@@ -232,12 +233,23 @@ class Interface(CommonObj, InterfaceABC):
         # Create copies of endpoints with updated indices (with clean references)
         return Interface(self).extend(other)
 
+    def __delitem__(self, idx: int) -> None:
+        """Delete an endpoint at a specific index.
+
+        Args:
+            idx: The index of the endpoint to delete.
+        """
+        del self.endpoints[idx]
+        # Update indices of subsequent endpoints
+        for i in range(idx, len(self.endpoints)):
+            self.endpoints[i].idx = i
+
     def __eq__(self, value: object) -> bool:
         """Check equality of Interface instances.
         This implements deep equality checking between two Interface instances
         which can be quite expensive for large interfaces.
         """
-        if not isinstance(value, InterfaceABC):
+        if not isinstance(value, FrozenInterfaceABC):
             return False
         if len(self) != len(value):
             return False
@@ -329,7 +341,7 @@ class Interface(CommonObj, InterfaceABC):
         super().consistency()
 
     def extend(
-        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | InterfaceABC
+        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | FrozenInterfaceABC
     ) -> InterfaceABC:
         """Extend the interface with multiple endpoints.
 
@@ -345,6 +357,19 @@ class Interface(CommonObj, InterfaceABC):
             _value.idx = idx  # Ensure the index is correct
             self.endpoints.append(_value)
         return self
+
+    def insert(self, idx: int, value: EndPointABC) -> None:
+        """Insert an endpoint at a specific index.
+
+        Args:
+            idx: The index at which to insert the endpoint.
+            value: The endpoint to insert.
+        """
+        _value = EndPoint(value)
+        self.endpoints.insert(idx, _value)
+        # Update indices of subsequent endpoints
+        for i in range(idx, len(self.endpoints)):
+            self.endpoints[i].idx = i
 
     def ref_shift(self, shift: int) -> InterfaceABC:
         """Shift all references in the interface endpoints by a specified amount.

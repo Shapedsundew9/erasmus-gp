@@ -184,7 +184,7 @@ from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 
 
 class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
@@ -228,7 +228,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
     # Abstract Mapping Protocol Methods
 
     @abstractmethod
-    def __getitem__(self, key: str) -> InterfaceABC:
+    def __getitem__(self, key: str) -> FrozenInterfaceABC:
         """Get the interface with the given key.
 
         Args:
@@ -274,7 +274,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.__len__ must be overridden")
 
     @abstractmethod
-    def items(self) -> ItemsView[str, InterfaceABC]:
+    def items(self) -> ItemsView[str, FrozenInterfaceABC]:
         """Return a view of the items in the Connection Graph.
 
         Returns:
@@ -292,7 +292,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.keys must be overridden")
 
     @abstractmethod
-    def values(self) -> ValuesView[InterfaceABC]:
+    def values(self) -> ValuesView[FrozenInterfaceABC]:
         """Return a view of the values in the Connection Graph.
 
         Returns:
@@ -315,8 +315,8 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
 
     @abstractmethod
     def get(  # type: ignore[override]
-        self, key: str, default: InterfaceABC | None = None
-    ) -> InterfaceABC | None:
+        self, key: str, default: FrozenInterfaceABC | None = None
+    ) -> FrozenInterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
 
         Args:
@@ -389,7 +389,7 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         raise NotImplementedError("CGraphABC.__delitem__ must be overridden")
 
     @abstractmethod
-    def __setitem__(self, key: str, value: InterfaceABC) -> None:
+    def __setitem__(self, key: str, value: FrozenInterfaceABC) -> None:
         """Set the interface with the given key.
 
         Args:
