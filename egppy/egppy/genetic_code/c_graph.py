@@ -48,7 +48,7 @@ class CGraph(FrozenCGraph, CGraphABC):
     # Inherit slots from FrozenCGraph
     __slots__ = ()
 
-    def __init__(
+    def __init__(  # pylint: disable=super-init-not-called
         self,
         graph: dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | CGraphABC,
     ) -> None:
@@ -57,7 +57,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         A full copy of all data is made from the provided graph to ensure independence.
         """
         # Initialize CommonObj directly, skipping FrozenCGraph.__init__
-        CommonObj.__init__(self)
+        CommonObj.__init__(self)  # pylint: disable=non-parent-init-called
 
         # Set all interfaces from the provided graph.
         # Note that this is a mutable instance so a full copy of the initializing

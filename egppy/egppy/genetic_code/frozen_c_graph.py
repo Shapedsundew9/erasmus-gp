@@ -21,7 +21,6 @@ from typing import Any
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
-from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.object_deduplicator import ObjectDeduplicator
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
@@ -29,7 +28,6 @@ from egppy.genetic_code.c_graph_constants import (
     _UNDER_DST_KEY_DICT,
     _UNDER_KEY_DICT,
     _UNDER_ROW_CLS_INDEXED,
-    _UNDER_ROW_DST_INDEXED,
     _UNDER_SRC_KEY_DICT,
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
@@ -47,7 +45,7 @@ from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 from egppy.genetic_code.frozen_interface import DESTINATION_ROW_SET, SOURCE_ROW_SET, FrozenInterface
 from egppy.genetic_code.interface import ROW_SET
-from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
     CGT_VALID_ROWS,

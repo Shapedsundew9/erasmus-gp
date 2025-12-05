@@ -82,7 +82,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
     __slots__ = ("endpoints", "_hash")
 
-    def __init__(
+    def __init__(  # pylint: disable=super-init-not-called
         self,
         endpoints: (
             Sequence[EndPoint]
@@ -358,17 +358,17 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             self.endpoints.append(_value)
         return self
 
-    def insert(self, idx: int, value: EndPointABC) -> None:
+    def insert(self, index: int, value: EndPointABC) -> None:
         """Insert an endpoint at a specific index.
 
         Args:
-            idx: The index at which to insert the endpoint.
+            index: The index at which to insert the endpoint.
             value: The endpoint to insert.
         """
         _value = EndPoint(value)
-        self.endpoints.insert(idx, _value)
+        self.endpoints.insert(index, _value)
         # Update indices of subsequent endpoints
-        for i in range(idx, len(self.endpoints)):
+        for i in range(index, len(self.endpoints)):
             self.endpoints[i].idx = i
 
     def ref_shift(self, shift: int) -> InterfaceABC:

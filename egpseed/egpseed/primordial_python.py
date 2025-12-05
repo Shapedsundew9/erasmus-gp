@@ -25,7 +25,6 @@ from egppy.physics.pgc_api import (
     EGCode,
     GGCode,
     Interface,
-    InterfaceABC,
     SrcRow,
 )
 from egppy.physics.runtime_context import RuntimeContext

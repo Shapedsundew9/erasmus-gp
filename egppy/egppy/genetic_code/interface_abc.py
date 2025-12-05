@@ -64,7 +64,7 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
     # Abstract Container Protocol Methods
 
     @abstractmethod
-    def __getitem__(self, idx: int) -> EndPointABC:
+    def __getitem__(self, idx: int) -> EndPointABC:  # type: ignore[override]
         """Get an endpoint by index.
 
         Args:
@@ -197,7 +197,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
     __slots__ = ()
 
     @abstractmethod
-    def __setitem__(self, idx: int, value: EndPointABC) -> None:
+    def __setitem__(self, idx: int, value: EndPointABC) -> None:  # type: ignore[override]
         """Set an endpoint at a specific index.
 
         Args:
@@ -207,7 +207,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.__setitem__ must be overridden")
 
     @abstractmethod
-    def __delitem__(self, idx: int) -> None:
+    def __delitem__(self, idx: int) -> None:  # type: ignore[override]
         """Delete an endpoint at a specific index.
 
         Args:
@@ -216,11 +216,11 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.__delitem__ must be overridden")
 
     @abstractmethod
-    def insert(self, idx: int, value: EndPointABC) -> None:
+    def insert(self, index: int, value: EndPointABC) -> None:
         """Insert an endpoint at a specific index.
 
         Args:
-            idx: The index at which to insert the endpoint.
+            index: The index at which to insert the endpoint.
             value: The endpoint to insert.
         """
         raise NotImplementedError("InterfaceABC.insert must be overridden")
@@ -246,7 +246,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.clr_refs must be overridden")
 
     @abstractmethod
-    def extend(
+    def extend(  # type: ignore[override]
         self, values: list[EndPointABC] | tuple[EndPointABC, ...] | FrozenInterfaceABC
     ) -> InterfaceABC:
         """Extend the interface with multiple endpoints.

@@ -184,7 +184,7 @@ from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
-from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
 class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):

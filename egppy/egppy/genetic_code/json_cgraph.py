@@ -5,7 +5,7 @@ from __future__ import annotations
 from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     SOURCE_ROW_MAP,
@@ -254,7 +254,7 @@ CGT_VALID_DST_ROWS = {cgt: valid_dst_rows(cgt) for cgt in CGraphType}
 CGT_VALID_ROWS = {cgt: valid_rows(cgt) for cgt in CGraphType}
 
 
-def c_graph_type(jcg: JSONCGraph | CGraphABC) -> CGraphType:
+def c_graph_type(jcg: JSONCGraph | FrozenCGraphABC) -> CGraphType:
     """Identify the connection graph type from the JSON graph."""
     # Find all the rows present in the connection graph
     # For a JSONCGraph it is necessarily to introspect all the destination
