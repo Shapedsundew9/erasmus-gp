@@ -522,10 +522,10 @@ def generate_types_def(write: bool = False) -> None:
     new_tdd["Iterable[Pair[Any, Any]]"]["parents"] = ["object"]
 
     # Triplet
-    new_tdd["Iterable[Triplet[Any, Any, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
     new_tdd["Iterator[Triplet[Any, Any, Any]]"] = deepcopy(new_tdd["Iterator[Any]"])
     new_tdd["Iterator[Triplet[Any, Any, Any]]"]["name"] = "Iterator[Triplet[Any, Any, Any]]"
     new_tdd["Iterator[Triplet[Any, Any, Any]]"]["parents"] = ["Iterable[Triplet[Any, Any, Any]]"]
+    new_tdd["Iterable[Triplet[Any, Any, Any]]"] = deepcopy(new_tdd["Iterable[Any]"])
     new_tdd["Iterable[Triplet[Any, Any, Any]]"]["name"] = "Iterable[Triplet[Any, Any, Any]]"
     new_tdd["Iterable[Triplet[Any, Any, Any]]"]["parents"] = ["object"]
 

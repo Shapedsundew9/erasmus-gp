@@ -39,6 +39,22 @@
       "object"
     ]
   },
+  "CGraphType": {
+    "default": "CGraphType.PRIMITIVE",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
   "CPI": {
     "default": "CPI.IDX",
     "imports": [
@@ -263,6 +279,22 @@
       "object"
     ]
   },
+  "FrozenCGraph": {
+    "default": "FrozenCGraph()",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
   "GGCode": {
     "imports": [
       {
@@ -302,6 +334,22 @@
           "abc"
         ],
         "name": "Hashable"
+      }
+    ],
+    "parents": [
+      "object"
+    ]
+  },
+  "IfKey": {
+    "default": "IfKey.IS",
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
       }
     ],
     "parents": [
