@@ -27,14 +27,22 @@ from egppy.storage.cache.cacheable_obj import CacheableDict
 _logger: Logger = egp_logger(name=__name__)
 
 
-class EGCMixin(GCMixin):
-    """Embryonic Genetic Code Mixin Class."""
+class EGCDict(GCMixin, CacheableDict, GCABC):  # type: ignore
+    """Embryonic Genetic Code Dictionary Class."""
 
     # The types are used for perising the genetic code object to a database.
     GC_KEY_TYPES: dict[str, dict[str, str | bool]] = EGC_KVT
 
     # Keys that reference other GC's
     REFERENCE_KEYS: set[str] = {"gca", "gcb", "ancestora", "ancestorb", "pgc"}
+
+    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
+        """Initialize the EGCDict.
+        Args:
+            gcabc: The genetic code object or dictionary to initialize from.
+        """
+        super().__init__()
+        self.set_members(gcabc if gcabc is not None else {})
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the EGC.
@@ -139,6 +147,12 @@ class EGCMixin(GCMixin):
         else:
             self["signature"] = signature_store[bytes.fromhex(tmp) if isinstance(tmp, str) else tmp]
 
+    def consistency(self) -> None:
+        """Check the genetic code object for consistency."""
+        # Need to call consistency down both MRO paths.
+        CacheableDict.consistency(self)
+        GCMixin.consistency(self)
+
     def verify(self) -> None:
         """Verify the genetic code object.
 
@@ -154,6 +168,9 @@ class EGCMixin(GCMixin):
             ValueError: If GC type and connection graph constraints are violated.
             RuntimeError: If properties validation fails.
         """
+        # Need to call verify down both MRO paths.
+        CacheableDict.verify(self)
+
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
         assert isinstance(self, CommonObj), "EGC must be a CommonObj."
 
@@ -347,27 +364,3 @@ class EGCMixin(GCMixin):
 
         # Call base class verify at the end
         super().verify()
-
-
-class EGCDict(EGCMixin, CacheableDict, GCABC):  # type: ignore
-    """Embryonic Genetic Code Dictionary Class."""
-
-    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Initialize the EGCDict.
-        Args:
-            gcabc: The genetic code object or dictionary to initialize from.
-        """
-        super().__init__()
-        self.set_members(gcabc if gcabc is not None else {})
-
-    def consistency(self) -> None:
-        """Check the genetic code object for consistency."""
-        # Need to call consistency down both MRO paths.
-        CacheableDict.consistency(self)
-        EGCMixin.consistency(self)
-
-    def verify(self) -> None:
-        """Verify the genetic code object."""
-        # Need to call verify down both MRO paths.
-        CacheableDict.verify(self)
-        EGCMixin.verify(self)

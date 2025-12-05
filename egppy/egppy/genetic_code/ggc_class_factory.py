@@ -15,19 +15,17 @@ from egpcommon.deduplication import int_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
-from egppy.genetic_code.egc_class_factory import EGCMixin
+from egppy.genetic_code.egc_class_factory import EGCDict
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.import_def import ImportDef
-from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
 
-# pylint: disable=abstract-method
-class GGCMixin(EGCMixin):
-    """General Genetic Code Mixin Class."""
+class GGCDict(EGCDict):
+    """Dirty Dictionary Embryonic Genetic Code Class."""
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
 
@@ -336,28 +334,6 @@ class GGCMixin(EGCMixin):
         )
         # Call base class verify at the end
         super().verify()
-
-
-class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
-    """Dirty Dictionary Embryonic Genetic Code Class."""
-
-    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
-        """Constructor for DirtyDictGGC"""
-        super().__init__()
-        # CacheableDict.__init__(self)
-        self.set_members(gcabc if gcabc is not None else {})
-
-    def consistency(self) -> None:
-        """Check the genetic code object for consistency."""
-        # Need to call consistency down both MRO paths.
-        CacheableDict.consistency(self)
-        GGCMixin.consistency(self)
-
-    def verify(self) -> None:
-        """Verify the genetic code object."""
-        # Need to call verify down both MRO paths.
-        CacheableDict.verify(self)
-        GGCMixin.verify(self)
 
 
 # The NULL GC is a placeholder for a genetic code object that does not exist.

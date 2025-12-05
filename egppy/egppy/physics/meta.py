@@ -106,7 +106,7 @@ def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC)
     return GGCDict(
         deepcopy(META_CODON_TEMPLATE)
         | {
-            # Passing in as a JSONCGraph which will get converted to a CGraph in EGCMixin
+            # Passing in as a JSONCGraph which will get converted to a CGraph in EGCDict
             "cgraph": {
                 "A": [["I", i, pt[0].name] for i, pt in enumerate(pts)],
                 "O": [["A", i, pt[1].name] for i, pt in enumerate(pts)],
