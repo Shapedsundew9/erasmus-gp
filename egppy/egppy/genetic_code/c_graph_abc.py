@@ -97,7 +97,8 @@ Common Rules
     - Destination endpoints may only be unconnected (have no connections) in unstable graphs.
     - Interfaces may have 0 to MAX_NUM_ENDPOINTS (inclusive) endpoints
     - MAX_NUM_ENDPOINTS == 255
-    - Fd, Ld, Wd and Ls, Ws, if they exist, must have exactly 1 endpoint in the interface when stable.
+    - Fd, Ld, Wd and Ls, Ws, if they exist, must have exactly 1 endpoint
+      in the interface when stable.
     - Pd must have the same interface, i.e. endpoint number, order and types as Od.
     - Td must have the same interface, i.e. endpoint number, order and types as Sd and Ss.
     - Xd must have the same interface, i.e. endpoint number, order and types as Wd and Ws.
@@ -176,7 +177,7 @@ Additional to the Common Rules Primitive connection graphs have the following ru
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import Collection, Iterator
+from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
 from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
@@ -186,11 +187,11 @@ from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
 from egppy.genetic_code.interface_abc import InterfaceABC
 
 
-class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
+class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Connection Graphs.
 
     This class defines the essential interface that all Connection Graph
-    implementations must provide. It inherits Collection for standard container
+    implementations must provide. It inherits Mapping for standard container
     operations, and CommonObjABC for validation methods.
 
     Connection Graphs represent the internal connectivity structure of genetic
@@ -289,6 +290,33 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("CGraphABC.__len__ must be overridden")
 
+    @abstractmethod
+    def items(self) -> ItemsView[str, InterfaceABC]:
+        """Return a view of the items in the Connection Graph.
+
+        Returns:
+            A view of the items (key, value pairs).
+        """
+        raise NotImplementedError("CGraphABC.items must be overridden")
+
+    @abstractmethod
+    def keys(self) -> KeysView[str]:
+        """Return a view of the keys in the Connection Graph.
+
+        Returns:
+            A view of the keys.
+        """
+        raise NotImplementedError("CGraphABC.keys must be overridden")
+
+    @abstractmethod
+    def values(self) -> ValuesView[InterfaceABC]:
+        """Return a view of the values in the Connection Graph.
+
+        Returns:
+            A view of the values.
+        """
+        raise NotImplementedError("CGraphABC.values must be overridden")
+
     # Abstract String Representation
 
     @abstractmethod
@@ -360,7 +388,9 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
     # Abstract Graph State Methods
 
     @abstractmethod
-    def get(self, key: str, default: InterfaceABC | None = None) -> InterfaceABC | None:
+    def get(  # type: ignore[override]
+        self, key: str, default: InterfaceABC | None = None
+    ) -> InterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
 
         Args:
@@ -396,24 +426,6 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("CGraphABC.is_stable must be overridden")
 
     @abstractmethod
-    def items(self) -> Iterator[tuple[str, InterfaceABC]]:
-        """Return an iterator over the (key, interface) pairs in the Connection Graph.
-
-        Returns:
-            Iterator over (key, interface) pairs.
-        """
-        raise NotImplementedError("CGraphABC.items must be overridden")
-
-    @abstractmethod
-    def keys(self) -> Iterator[str]:
-        """Return an iterator over the interface keys in the Connection Graph.
-
-        Returns:
-            Iterator over non-null interface keys.
-        """
-        raise NotImplementedError("CGraphABC.keys must be overridden")
-
-    @abstractmethod
     def stabilize(self, if_locked: bool = True) -> None:
         """Stabilize the graph by connecting all unconnected destinations.
 
@@ -439,12 +451,3 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
             JSON-compatible dictionary representation of the graph.
         """
         raise NotImplementedError("CGraphABC.to_json must be overridden")
-
-    @abstractmethod
-    def values(self) -> Iterator[InterfaceABC]:
-        """Return an iterator over the interfaces in the Connection Graph.
-
-        Returns:
-            Iterator over non-null interfaces.
-        """
-        raise NotImplementedError("CGraphABC.values must be overridden")

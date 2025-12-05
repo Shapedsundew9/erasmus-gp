@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import ItemsView, Iterator, KeysView, ValuesView
 from itertools import chain
 from pprint import pformat
 from typing import Any
@@ -165,6 +165,18 @@ class CGraph(CommonObj, CGraphABC):
     def __len__(self) -> int:
         """Return the number of interfaces in the Connection Graph."""
         return sum(1 for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None)
+
+    def items(self) -> ItemsView[str, InterfaceABC]:
+        """Return a view of the items in the Connection Graph."""
+        return ItemsView(self)
+
+    def keys(self) -> KeysView[str]:
+        """Return a view of the keys in the Connection Graph."""
+        return KeysView(self)
+
+    def values(self) -> ValuesView[InterfaceABC]:
+        """Return a view of the values in the Connection Graph."""
+        return ValuesView(self)
 
     def __repr__(self) -> str:
         """Return a string representation of the Connection Graph."""
@@ -442,24 +454,6 @@ class CGraph(CommonObj, CGraphABC):
         difs = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         return all(not iface.unconnected_eps() for iface in difs if iface is not None)
 
-    def items(self) -> Iterator[tuple[str, InterfaceABC]]:
-        """Return an iterator over the (key, interface) pairs in the Connection Graph.
-        Returns:
-            Iterator over (key, interface) pairs.
-        """
-        for key in ROW_CLS_INDEXED_ORDERED:
-            iface = getattr(self, _UNDER_KEY_DICT[key])
-            if iface is not None:
-                yield key, iface
-
-    def keys(self) -> Iterator[str]:
-        """Return an iterator over the keys of the Connection Graph.
-
-        Returns:
-            Iterator over interface keys.
-        """
-        return iter(self)
-
     def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
         """Stablization involves making all the mandatory connections and
         connecting all the remaining unconnected destination endpoints.
@@ -499,15 +493,6 @@ class CGraph(CommonObj, CGraphABC):
         if json_c_graph and row_u:
             jcg["U"] = row_u
         return jcg
-
-    def values(self) -> Iterator[InterfaceABC]:
-        """Return an iterator over the interfaces of the Connection Graph.
-        Returns:
-            Iterator over interfaces.
-        """
-        return (
-            getattr(self, key) for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None
-        )
 
     def verify(self) -> None:
         """Verify the Connection Graph structure and connectivity rules.
