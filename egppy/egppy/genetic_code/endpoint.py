@@ -42,7 +42,7 @@ from egppy.genetic_code.c_graph_constants import (
     EPCls,
     Row,
 )
-from egppy.genetic_code.endpoint_abc import EndPointABC
+from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # Standard EGP logging pattern
@@ -82,7 +82,7 @@ class EndPoint(CommonObj, EndPointABC):
 
         This constructor supports multiple initialization patterns:
 
-        1. Copy from another EndPointABC instance:
+        1. Copy from another FrozenEndPointABC instance:
            EndPoint(other_endpoint)
 
         2. Initialize from a 5-tuple:
@@ -104,8 +104,8 @@ class EndPoint(CommonObj, EndPointABC):
         """
         super().__init__()
         if len(args) == 1:
-            if isinstance(args[0], EndPointABC):
-                other: EndPointABC = args[0]
+            if isinstance(args[0], FrozenEndPointABC):
+                other: FrozenEndPointABC = args[0]
                 self.row = other.row
                 self.idx = other.idx
                 self.cls = other.cls
@@ -138,7 +138,7 @@ class EndPoint(CommonObj, EndPointABC):
         Returns:
             bool: True if all attributes are equal, False otherwise.
         """
-        if not isinstance(value, EndPointABC):
+        if not isinstance(value, FrozenEndPointABC):
             return False
         if len(self.refs) != len(value.refs):
             return False
@@ -147,7 +147,9 @@ class EndPoint(CommonObj, EndPointABC):
             and self.idx == value.idx
             and self.cls == value.cls
             and self.typ == value.typ
-            and all(a == b for a, b in zip(self.refs, value.refs))
+            and all(
+                (ref[0], ref[1]) == (vref[0], vref[1]) for ref, vref in zip(self.refs, value.refs)
+            )
         )
 
     def __ge__(self, other: object) -> bool:
@@ -160,9 +162,9 @@ class EndPoint(CommonObj, EndPointABC):
 
         Returns:
             bool: True if self.idx >= other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx >= other.idx
 
@@ -176,9 +178,9 @@ class EndPoint(CommonObj, EndPointABC):
 
         Returns:
             bool: True if self.idx > other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx > other.idx
 
@@ -205,9 +207,9 @@ class EndPoint(CommonObj, EndPointABC):
 
         Returns:
             bool: True if self.idx <= other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx <= other.idx
 
@@ -221,9 +223,9 @@ class EndPoint(CommonObj, EndPointABC):
 
         Returns:
             bool: True if self.idx < other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx < other.idx
 
@@ -260,7 +262,7 @@ class EndPoint(CommonObj, EndPointABC):
         self.refs.clear()
         return self
 
-    def connect(self, other: EndPointABC) -> None:
+    def connect(self, other: FrozenEndPointABC) -> None:
         """Connect this endpoint to another endpoint.
 
         Establishes a unidirectional reference from this endpoint to the other endpoint.
@@ -273,9 +275,9 @@ class EndPoint(CommonObj, EndPointABC):
         call connect() on both endpoints or use higher-level methods in Interface/CGraph.
 
         Args:
-            other (EndPointABC): The endpoint to connect to.
+            other (FrozenEndPointABC): The endpoint to connect to.
         """
-        assert isinstance(other, EndPointABC), "Can only connect to another EndPoint instance"
+        assert isinstance(other, FrozenEndPointABC), "Can only connect to another EndPoint instance"
         if self.cls == EPCls.DST:
             self.refs = [[other.row, other.idx]]
         else:

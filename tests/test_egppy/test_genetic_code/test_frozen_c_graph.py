@@ -89,11 +89,6 @@ class TestFrozenEndPoint(unittest.TestCase):
         self.assertEqual(hash(ep1), hash(ep2))
         self.assertEqual(ep1._hash, ep1._hash)  # Calling hash multiple times returns same value
 
-    def test_immutability(self) -> None:
-        """Test that frozen endpoints cannot be modified."""
-        with self.assertRaises(RuntimeError):
-            self.frozen_ep_src.connect(self.frozen_ep_dst)
-
     def test_init(self) -> None:
         """Test FrozenEndPoint initialization."""
         self.assertEqual(self.frozen_ep_src.row, SrcRow.I)

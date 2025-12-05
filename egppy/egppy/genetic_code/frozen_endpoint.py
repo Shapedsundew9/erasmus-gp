@@ -7,11 +7,11 @@ from egppy.genetic_code.c_graph_constants import (
     EPCls,
     Row,
 )
-from egppy.genetic_code.endpoint_abc import EndPointABC
+from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
 from egppy.genetic_code.types_def import TypesDef
 
 
-class FrozenEndPoint(EndPointABC):
+class FrozenEndPoint(FrozenEndPointABC):
     """Frozen End Points are immutable and introspect FrozenInterface data structures directly.
 
     This class provides an immutable endpoint implementation that stores references as a
@@ -61,7 +61,7 @@ class FrozenEndPoint(EndPointABC):
         Returns:
             bool: True if all attributes are equal, False otherwise.
         """
-        if not isinstance(value, EndPointABC):
+        if not isinstance(value, FrozenEndPointABC):
             return False
         # Fast path for FrozenEndPoint comparison using hash
         if isinstance(value, FrozenEndPoint):
@@ -90,9 +90,9 @@ class FrozenEndPoint(EndPointABC):
 
         Returns:
             bool: True if self.idx >= other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx >= other.idx
 
@@ -106,9 +106,9 @@ class FrozenEndPoint(EndPointABC):
 
         Returns:
             bool: True if self.idx > other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx > other.idx
 
@@ -132,9 +132,9 @@ class FrozenEndPoint(EndPointABC):
 
         Returns:
             bool: True if self.idx <= other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx <= other.idx
 
@@ -148,9 +148,9 @@ class FrozenEndPoint(EndPointABC):
 
         Returns:
             bool: True if self.idx < other.idx, False otherwise.
-            NotImplemented: If other is not an EndPointABC instance.
+            NotImplemented: If other is not an FrozenEndPointABC instance.
         """
-        if not isinstance(other, EndPointABC):
+        if not isinstance(other, FrozenEndPointABC):
             return NotImplemented
         return self.idx < other.idx
 
@@ -178,21 +178,6 @@ class FrozenEndPoint(EndPointABC):
             f"FrozenEndPoint(row={self.row}, idx={self.idx}, cls={self.epcls}"
             f", typ={self.typ}, refs={list(self.refs_tuple)})"
         )
-
-    def clr_refs(self) -> EndPointABC:
-        """Clear all references in the endpoint."""
-        raise RuntimeError("Cannot modify a frozen EndPoint")
-
-    def connect(self, other: EndPointABC) -> None:
-        """Connect this endpoint to another endpoint.
-
-        Args:
-            other (EndPointABC): The endpoint to connect to.
-
-        Raises:
-            RuntimeError: Always raises since frozen endpoints are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen EndPoint")
 
     def consistency(self) -> None:
         """Check the consistency of the FrozenEndPoint.
@@ -234,34 +219,6 @@ class FrozenEndPoint(EndPointABC):
             bool: True if the endpoint has at least one reference, False otherwise.
         """
         return len(self.refs_tuple) > 0
-
-    def ref_shift(self, shift: int) -> EndPointABC:
-        """Shift all references in the endpoint by a given amount.
-
-        Args:
-            shift (int): The amount to shift each reference index.
-        Raises:
-            RuntimeError: Always raises since frozen endpoints are immutable.
-        """
-        raise RuntimeError("Cannot modify a frozen EndPoint")
-
-    def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
-        """Set or append to the references for an endpoint.
-
-        This method always sets (replaces) the reference of a destination endpoint
-        to the specified row and index. For a source endpoint, it appends the new reference
-        to the existing list of references if append is True; otherwise, it replaces the
-        entire list with the new reference.
-
-        Args:
-            row (Row): The row of the endpoint to reference.
-            idx (int): The index of the endpoint to reference.
-            append (bool): If True and the endpoint is a source, append the new reference;
-                           otherwise, replace the references. Defaults to False.
-        Returns:
-            EndPointABC: Self with the reference set.
-        """
-        raise RuntimeError("Cannot modify a frozen EndPoint")
 
     def to_json(self, json_c_graph: bool = False) -> dict | list:
         """Convert the endpoint to a JSON-compatible object.
