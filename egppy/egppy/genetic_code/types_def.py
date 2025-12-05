@@ -400,6 +400,18 @@ class TypesDefStore:
     _cache_hits: int = 0
     _cache_misses: int = 0
 
+    _ancestors_cache: dict[int, frozenset[TypesDef]] = {}
+    _ancestors_cache_order: list[int] = []
+    _ancestors_cache_maxsize: int = 128
+    _ancestors_cache_hits: int = 0
+    _ancestors_cache_misses: int = 0
+
+    _descendants_cache: dict[int, frozenset[TypesDef]] = {}
+    _descendants_cache_order: list[int] = []
+    _descendants_cache_maxsize: int = 128
+    _descendants_cache_hits: int = 0
+    _descendants_cache_misses: int = 0
+
     def __contains__(self, key: int | str) -> bool:
         """Check if the key is in the store."""
         if TypesDefStore._db_store is None:
@@ -497,7 +509,12 @@ class TypesDefStore:
             self._initialize_db_store()
         td = self[key] if not isinstance(key, TypesDef) else key
 
-        # TODO: Add caching of ancestors and descendants based on the Typesdef as this is used frequently.
+        if td.uid in TypesDefStore._ancestors_cache:
+            TypesDefStore._ancestors_cache_hits += 1
+            return TypesDefStore._ancestors_cache[td.uid]
+
+        TypesDefStore._ancestors_cache_misses += 1
+
         stack: set[TypesDef] = {td}
         ancestors: set[TypesDef] = set()
         while stack:
@@ -505,7 +522,16 @@ class TypesDefStore:
             if parent not in ancestors:
                 ancestors.add(parent)
                 stack.update(self[p] for p in parent.parents)
-        return frozenset(ancestors)
+
+        result = frozenset(ancestors)
+        TypesDefStore._ancestors_cache[td.uid] = result
+        TypesDefStore._ancestors_cache_order.append(td.uid)
+
+        if len(TypesDefStore._ancestors_cache_order) > TypesDefStore._ancestors_cache_maxsize:
+            evict_key = TypesDefStore._ancestors_cache_order.pop(0)
+            del TypesDefStore._ancestors_cache[evict_key]
+
+        return result
 
     def descendants(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Return the all the descendants of a type.
@@ -514,6 +540,13 @@ class TypesDefStore:
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         td = self[key] if not isinstance(key, TypesDef) else key
+
+        if td.uid in TypesDefStore._descendants_cache:
+            TypesDefStore._descendants_cache_hits += 1
+            return TypesDefStore._descendants_cache[td.uid]
+
+        TypesDefStore._descendants_cache_misses += 1
+
         stack: set[TypesDef] = {td}
         descendants: set[TypesDef] = set()
         while stack:
@@ -521,7 +554,16 @@ class TypesDefStore:
             if child not in descendants:
                 descendants.add(child)
                 stack.update(self[c] for c in child.children)
-        return frozenset(descendants)
+
+        result = frozenset(descendants)
+        TypesDefStore._descendants_cache[td.uid] = result
+        TypesDefStore._descendants_cache_order.append(td.uid)
+
+        if len(TypesDefStore._descendants_cache_order) > TypesDefStore._descendants_cache_maxsize:
+            evict_key = TypesDefStore._descendants_cache_order.pop(0)
+            del TypesDefStore._descendants_cache[evict_key]
+
+        return result
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
@@ -537,11 +579,28 @@ class TypesDefStore:
         """Print cache hit and miss statistics."""
         total = TypesDefStore._cache_hits + TypesDefStore._cache_misses
         hit_rate = TypesDefStore._cache_hits / total if total > 0 else 0.0
+
+        total_anc = TypesDefStore._ancestors_cache_hits + TypesDefStore._ancestors_cache_misses
+        hit_rate_anc = TypesDefStore._ancestors_cache_hits / total_anc if total_anc > 0 else 0.0
+
+        total_desc = TypesDefStore._descendants_cache_hits + TypesDefStore._descendants_cache_misses
+        hit_rate_desc = (
+            TypesDefStore._descendants_cache_hits / total_desc if total_desc > 0 else 0.0
+        )
+
         info_str = (
             f"TypesDefStore Cache hits: {TypesDefStore._cache_hits}\n"
             f"TypesDefStore Cache misses: {TypesDefStore._cache_misses}\n"
             f"TypesDefStore Cache hit rate: {hit_rate:.2%}\n"
-            f"TypesDefStore Cache size: {len(TypesDefStore._cache)}/{TypesDefStore._cache_maxsize}"
+            f"TypesDefStore Cache size: {len(TypesDefStore._cache)}/{TypesDefStore._cache_maxsize}\n"
+            f"Ancestors Cache hits: {TypesDefStore._ancestors_cache_hits}\n"
+            f"Ancestors Cache misses: {TypesDefStore._ancestors_cache_misses}\n"
+            f"Ancestors Cache hit rate: {hit_rate_anc:.2%}\n"
+            f"Ancestors Cache size: {len(TypesDefStore._ancestors_cache)}/{TypesDefStore._cache_maxsize}\n"
+            f"Descendants Cache hits: {TypesDefStore._descendants_cache_hits}\n"
+            f"Descendants Cache misses: {TypesDefStore._descendants_cache_misses}\n"
+            f"Descendants Cache hit rate: {hit_rate_desc:.2%}\n"
+            f"Descendants Cache size: {len(TypesDefStore._descendants_cache)}/{TypesDefStore._cache_maxsize}"
         )
         _logger.info(info_str)
         return info_str
