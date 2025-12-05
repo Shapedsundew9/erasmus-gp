@@ -360,12 +360,6 @@ class GGCDict(GGCMixin, CacheableDict, GCABC):  # type: ignore
         GGCMixin.verify(self)
 
 
-# XGC is an execution genetic code object. It is a read-only GGC object.
-# This can be more robustly implemented.
-class XGCType(GGCDict):
-    """Execution Genetic Code Class."""
-
-
 # The NULL GC is a placeholder for a genetic code object that does not exist.
 NULL_GC: GCABC = GGCDict(
     {
