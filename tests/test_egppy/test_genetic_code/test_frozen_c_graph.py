@@ -343,16 +343,16 @@ class TestFrozenCGraph(unittest.TestCase):
 
     def test_immutability(self) -> None:
         """Test that frozen graphs cannot be modified."""
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             self.frozen_graph["Bd"] = Interface([])
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             del self.frozen_graph["Is"]
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AttributeError):
             self.frozen_graph.connect_all()
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(AttributeError):
             self.frozen_graph.stabilize()
 
     def test_init(self) -> None:

@@ -1,13 +1,13 @@
 """
-Abstract Base Class for Connection Graphs.
+Abstract Base Classes for Connection Graphs.
 
-This module defines the abstract interface that all Connection Graph implementations
+This module defines the abstract interfaces that all Connection Graph implementations
 must adhere to. It establishes the contract for graph operations while allowing
 for different concrete implementations.
 
-The abstract base class ensures consistency in the API across different graph types
-and implementations while maintaining the flexibility to optimize specific graph
-variants.
+The hierarchy is split into:
+1. FrozenCGraphABC: Read-only interface for immutable graphs
+2. CGraphABC: Mutable interface extending FrozenCGraphABC
 
 Genetic Codes, GCs, have a property called a 'connection graph'
 (a CGraphABC instance) which defines the connectivity between the constituent GC A and GC B
@@ -177,7 +177,7 @@ Additional to the Common Rules Primitive connection graphs have the following ru
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
+from collections.abc import ItemsView, Iterator, KeysView, Mapping, MutableMapping, ValuesView
 from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
@@ -187,16 +187,12 @@ from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
 from egppy.genetic_code.interface_abc import InterfaceABC
 
 
-class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
-    """Abstract Base Class for Connection Graphs.
+class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
+    """Abstract Base Class for Frozen (Immutable) Connection Graphs.
 
-    This class defines the essential interface that all Connection Graph
-    implementations must provide. It inherits Mapping for standard container
-    operations, and CommonObjABC for validation methods.
-
-    Connection Graphs represent the internal connectivity structure of genetic
-    code nodes, defining how inputs, outputs, and internal components are
-    connected through various interface types.
+    This class defines the read-only interface for Connection Graphs.
+    It inherits Mapping for standard container operations, and CommonObjABC
+    for validation methods.
     """
 
     __slots__ = ()
@@ -213,20 +209,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             True if the interface exists, False otherwise.
         """
-        raise NotImplementedError("CGraphABC.__contains__ must be overridden")
-
-    @abstractmethod
-    def __delitem__(self, key: str) -> None:
-        """Delete the interface with the given key.
-
-        Args:
-            key: Interface identifier.
-
-        Raises:
-            RuntimeError: If the graph is frozen.
-            KeyError: If the key is invalid.
-        """
-        raise NotImplementedError("CGraphABC.__delitem__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__contains__ must be overridden")
 
     # Abstract Equality and Hashing
 
@@ -240,7 +223,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             True if graphs are equivalent, False otherwise.
         """
-        raise NotImplementedError("CGraphABC.__eq__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__eq__ must be overridden")
 
     # Abstract Mapping Protocol Methods
 
@@ -257,7 +240,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Raises:
             KeyError: If the key is invalid.
         """
-        raise NotImplementedError("CGraphABC.__getitem__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__getitem__ must be overridden")
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -270,7 +253,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             Hash value for the graph.
         """
-        raise NotImplementedError("CGraphABC.__hash__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__hash__ must be overridden")
 
     @abstractmethod
     def __iter__(self) -> Iterator[str]:
@@ -279,7 +262,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             Iterator over non-null interface keys.
         """
-        raise NotImplementedError("CGraphABC.__iter__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__iter__ must be overridden")
 
     @abstractmethod
     def __len__(self) -> int:
@@ -288,7 +271,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             Number of non-null interfaces.
         """
-        raise NotImplementedError("CGraphABC.__len__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__len__ must be overridden")
 
     @abstractmethod
     def items(self) -> ItemsView[str, InterfaceABC]:
@@ -297,7 +280,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             A view of the items (key, value pairs).
         """
-        raise NotImplementedError("CGraphABC.items must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.items must be overridden")
 
     @abstractmethod
     def keys(self) -> KeysView[str]:
@@ -306,7 +289,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             A view of the keys.
         """
-        raise NotImplementedError("CGraphABC.keys must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.keys must be overridden")
 
     @abstractmethod
     def values(self) -> ValuesView[InterfaceABC]:
@@ -315,7 +298,7 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             A view of the values.
         """
-        raise NotImplementedError("CGraphABC.values must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.values must be overridden")
 
     # Abstract String Representation
 
@@ -326,7 +309,84 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         Returns:
             String representation suitable for debugging and logging.
         """
-        raise NotImplementedError("CGraphABC.__repr__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__repr__ must be overridden")
+
+    # Abstract Graph State Methods
+
+    @abstractmethod
+    def get(  # type: ignore[override]
+        self, key: str, default: InterfaceABC | None = None
+    ) -> InterfaceABC | None:
+        """Get the interface with the given key, or return default if not found.
+
+        Args:
+            key: Interface identifier.
+            default: Value to return if key is not found.
+
+        Returns:
+            The Interface object for the given key, or default if not found.
+        Raises:
+            KeyError: If the key is not a valid interface key.
+        """
+        raise NotImplementedError("FrozenCGraphABC.get must be overridden")
+
+    @abstractmethod
+    def graph_type(self) -> CGraphType:
+        """Identify and return the type of this connection graph.
+
+        Returns:
+            The CGraphType enum value representing this graph's type.
+        """
+        raise NotImplementedError("FrozenCGraphABC.graph_type must be overridden")
+
+    @abstractmethod
+    def is_stable(self) -> bool:
+        """Return True if the Connection Graph is stable.
+
+        A stable graph has all destination endpoints connected to source endpoints.
+        Frozen graphs are guaranteed to be stable.
+
+        Returns:
+            True if all destinations are connected, False otherwise.
+        """
+        raise NotImplementedError("FrozenCGraphABC.is_stable must be overridden")
+
+    # Abstract Serialization Methods
+
+    @abstractmethod
+    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
+        """Convert the Connection Graph to a JSON-compatible dictionary.
+
+        Args:
+            json_c_graph: If True, return a JSONCGraph format.
+
+        Returns:
+            JSON-compatible dictionary representation of the graph.
+        """
+        raise NotImplementedError("FrozenCGraphABC.to_json must be overridden")
+
+
+class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
+    """Abstract Base Class for Mutable Connection Graphs.
+
+    This class extends FrozenCGraphABC with methods for modifying the graph.
+    It inherits MutableMapping for standard mutable container operations.
+    """
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __delitem__(self, key: str) -> None:
+        """Delete the interface with the given key.
+
+        Args:
+            key: Interface identifier.
+
+        Raises:
+            RuntimeError: If the graph is frozen.
+            KeyError: If the key is invalid.
+        """
+        raise NotImplementedError("CGraphABC.__delitem__ must be overridden")
 
     @abstractmethod
     def __setitem__(self, key: str, value: InterfaceABC) -> None:
@@ -385,46 +445,6 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("CGraphABC.connect_all must be overridden")
 
-    # Abstract Graph State Methods
-
-    @abstractmethod
-    def get(  # type: ignore[override]
-        self, key: str, default: InterfaceABC | None = None
-    ) -> InterfaceABC | None:
-        """Get the interface with the given key, or return default if not found.
-
-        Args:
-            key: Interface identifier.
-            default: Value to return if key is not found.
-
-        Returns:
-            The Interface object for the given key, or default if not found.
-        Raises:
-            KeyError: If the key is not a valid interface key.
-        """
-        raise NotImplementedError("CGraphABC.get must be overridden")
-
-    @abstractmethod
-    def graph_type(self) -> CGraphType:
-        """Identify and return the type of this connection graph.
-
-        Returns:
-            The CGraphType enum value representing this graph's type.
-        """
-        raise NotImplementedError("CGraphABC.graph_type must be overridden")
-
-    @abstractmethod
-    def is_stable(self) -> bool:
-        """Return True if the Connection Graph is stable.
-
-        A stable graph has all destination endpoints connected to source endpoints.
-        Frozen graphs are guaranteed to be stable.
-
-        Returns:
-            True if all destinations are connected, False otherwise.
-        """
-        raise NotImplementedError("CGraphABC.is_stable must be overridden")
-
     @abstractmethod
     def stabilize(self, if_locked: bool = True) -> None:
         """Stabilize the graph by connecting all unconnected destinations.
@@ -437,17 +457,3 @@ class CGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
                       If False, allows extending input interface as needed.
         """
         raise NotImplementedError("CGraphABC.stabilize must be overridden")
-
-    # Abstract Serialization Methods
-
-    @abstractmethod
-    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
-        """Convert the Connection Graph to a JSON-compatible dictionary.
-
-        Args:
-            json_c_graph: If True, return a JSONCGraph format.
-
-        Returns:
-            JSON-compatible dictionary representation of the graph.
-        """
-        raise NotImplementedError("CGraphABC.to_json must be overridden")

@@ -15,27 +15,42 @@ The FrozenCGraph class is particularly useful for:
 
 from __future__ import annotations
 
+from collections.abc import ItemsView, Iterator, KeysView, ValuesView
+from pprint import pformat
+from typing import Any
+
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.object_deduplicator import ObjectDeduplicator
-from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_abc import CGraphABC
+from egpcommon.properties import CGraphType
+from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import (
+    _UNDER_DST_KEY_DICT,
     _UNDER_KEY_DICT,
+    _UNDER_ROW_CLS_INDEXED,
+    _UNDER_ROW_DST_INDEXED,
+    _UNDER_SRC_KEY_DICT,
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
+    ROW_CLS_INDEXED_SET,
     SINGLE_CLS_INDEXED_SET,
     DstIfKey,
     DstRow,
     EPCls,
     EPClsPostfix,
+    JSONCGraph,
     SrcIfKey,
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
-from egppy.genetic_code.frozen_interface import FrozenInterface
+from egppy.genetic_code.frozen_interface import (
+    DESTINATION_ROW_SET,
+    SOURCE_ROW_SET,
+    FrozenInterface,
+)
+from egppy.genetic_code.interface import ROW_SET
 from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
@@ -55,7 +70,7 @@ refs_store: ObjectDeduplicator = ObjectDeduplicator("Reference Tuple", 2**11)
 frozen_cgraph_store: ObjectDeduplicator = ObjectDeduplicator("Frozen CGraph", 2**12)
 
 
-class FrozenCGraph(CGraph, CommonObj):
+class FrozenCGraph(FrozenCGraphABC, CommonObj):
     """Frozen Connection Graph implementation.
 
     This class provides an immutable, memory-efficient implementation of CGraphABC
@@ -79,10 +94,13 @@ class FrozenCGraph(CGraph, CommonObj):
     interface to the underlying data.
     """
 
-    __slots__ = ("_hash",)
+    __slots__ = _UNDER_ROW_CLS_INDEXED + ("_hash",)
 
     def __init__(  # pylint: disable=super-init-not-called
-        self, graph: dict[str, list[EndpointMemberType]] | dict[str, InterfaceABC] | CGraphABC
+        self,
+        graph: dict[str, list[EndpointMemberType]]
+        | dict[str, InterfaceABC]
+        | FrozenCGraphABC,
     ) -> None:
         """Initialize the Frozen Connection Graph.
 
@@ -115,7 +133,9 @@ class FrozenCGraph(CGraph, CommonObj):
                         for ep in iface
                     )
                 else:
-                    assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
+                    assert isinstance(
+                        iface, list
+                    ), "Interface must be a list of EndpointMemberType"
                     type_tuple = tuple(type_tuple_store[ep[3]] for ep in iface)
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
@@ -132,7 +152,9 @@ class FrozenCGraph(CGraph, CommonObj):
 
         # Special cases for JSONCGraphs
         # Ensure PD exists if LD, WD, or FD exist and OD is empty
-        need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
+        need_p = any(
+            getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS
+        )
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
             setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
 
@@ -140,16 +162,53 @@ class FrozenCGraph(CGraph, CommonObj):
         # For consistency, we use the same hash calculation as unfrozen graphs
         self._hash = hash(tuple(hash(iface) for iface in self.values()))
 
-    def __delitem__(self, key: str) -> None:
-        """Delete the interface with the given key.
+    def __contains__(self, key: object) -> bool:
+        """Check if the interface exists in the Connection Graph.
 
         Args:
-            key: Interface identifier.
+            key: Interface identifier, may be a row or row with class postfix.
+
+        Returns:
+            True if the interface exists, False otherwise.
 
         Raises:
-            RuntimeError: Always raises since frozen graphs are immutable.
+            KeyError: If the key is not a valid interface identifier.
         """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
+        assert isinstance(key, str), f"Key must be a string, got {type(key)}"
+        if len(key) == 1:
+            exists = False
+            if key not in ROW_SET:
+                raise KeyError(f"Invalid Connection Graph key: {key}")
+            if key in DESTINATION_ROW_SET:
+                exists = getattr(self, _UNDER_DST_KEY_DICT[key]) is not None
+            if key in SOURCE_ROW_SET:
+                exists = exists or getattr(self, _UNDER_SRC_KEY_DICT[key]) is not None
+            return exists
+        if key not in ROW_CLS_INDEXED_SET:
+            raise KeyError(f"Invalid Connection Graph key: {key}")
+        return getattr(self, _UNDER_KEY_DICT[key]) is not None
+
+    def __eq__(self, value: object) -> bool:
+        """Check equality of Connection Graphs.
+        This implements deep equality checking between two Connection Graph instances
+        which can be quite expensive for large graphs.
+        """
+        if not isinstance(value, FrozenCGraphABC):
+            return False
+        if len(self) != len(value):
+            return False
+        if not all(key in value for key in self):
+            return False
+        return all(a == b for a, b in zip(self.values(), value.values()))
+
+    def __getitem__(self, key: str) -> InterfaceABC:
+        """Get the interface with the given key."""
+        if key not in ROW_CLS_INDEXED_SET:
+            raise KeyError(f"Invalid Connection Graph key: {key}")
+        value = getattr(self, _UNDER_KEY_DICT[key])
+        if value is None:
+            raise KeyError(f"Connection Graph key not set: {key}")
+        return value
 
     def __hash__(self) -> int:
         """Return the hash of the Connection Graph.
@@ -159,53 +218,74 @@ class FrozenCGraph(CGraph, CommonObj):
         """
         return self._hash
 
-    # Container Protocol Methods (from Collection)
+    def __iter__(self) -> Iterator[str]:
+        """Return an iterator over the Interfaces of the Connection Graph."""
+        return (
+            key
+            for key in ROW_CLS_INDEXED_ORDERED
+            if getattr(self, _UNDER_KEY_DICT[key]) is not None
+        )
 
-    def __setitem__(self, key: str, value: InterfaceABC) -> None:
-        """Set the interface with the given key.
+    def __len__(self) -> int:
+        """Return the number of interfaces in the Connection Graph."""
+        return sum(
+            1 for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None
+        )
 
-        Args:
-            key: Interface identifier.
-            value: Interface object to set.
+    def __repr__(self) -> str:
+        """Return a string representation of the Connection Graph."""
+        return pformat(self.to_json(), indent=4, width=120)
 
-        Raises:
-            RuntimeError: Always raises since frozen graphs are immutable.
+    def get(self, key: str, default: InterfaceABC | None = None) -> InterfaceABC | None:
+        """Get the interface with the given key, or return default if not found.
+        NOTE: This method does not raise KeyError if key is not a valid interface key.
         """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
+        return getattr(self, _UNDER_KEY_DICT[key], default)
 
-    # Connection Management Methods
+    def graph_type(self) -> CGraphType:
+        """Identify and return the type of this connection graph."""
+        return c_graph_type(self)
 
-    def connect(self, src_row: SrcRow, src_idx: int, dst_row: DstRow, dst_idx: int) -> None:
-        """Connect a source endpoint to a destination endpoint.
+    def items(self) -> ItemsView[str, InterfaceABC]:
+        """Return a view of the items in the Connection Graph."""
+        return ItemsView(self)
 
-        Establishes a directed connection from the specified source endpoint
-        to the specified destination endpoint updating both endpoints accordingly.
-        NOTE: If there is an existing connection to the destination endpoint
-        it will be replaced.
+    def keys(self) -> KeysView[str]:
+        """Return a view of the keys in the Connection Graph."""
+        return KeysView(self)
 
-        Args:
-            src_row: Row identifier of the source interface.
-            src_idx: Index of the source endpoint within its interface.
-            dst_row: Row identifier of the destination interface.
-            dst_idx: Index of the destination endpoint within its interface.
-        Raises:
-            RuntimeError: If the graph is frozen.
-            KeyError: If the specified interfaces do not exist.
-            IndexError: If the specified endpoint indices are out of range.
+    def to_json(self, json_c_graph: bool = False) -> dict[str, Any] | JSONCGraph:
+        """Convert the Connection Graph to a JSON-compatible dictionary.
+
+        IMPORTANT: The JSON representation produced by this method is
+        guaranteed to be in a consistent format and order. This is crucial
+        for ensuring that hash values computed from the JSON representation
+        are stable and reproducible across different runs and environments.
+        The method systematically processes each interface in a predefined
+        order, and constructs the JSON dictionary in a consistent manner.
         """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
+        jcg: dict = {}
+        row_u = []
+        for key in DstRow:  # This order is important for consistent JSON output
+            iface: InterfaceABC = getattr(self, _UNDER_DST_KEY_DICT[key])
+            if iface is not None:
+                jcg[str(key) if json_c_graph else key] = iface.to_json(
+                    json_c_graph=json_c_graph
+                )
+        for key in SrcRow:  # This order is important for consistent JSON output
+            iface: InterfaceABC = getattr(self, _UNDER_SRC_KEY_DICT[key])
+            if iface is not None and len(iface) > 0:
+                unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
+                row_u.extend(
+                    [str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs
+                )
+        if json_c_graph and row_u:
+            jcg["U"] = row_u
+        return jcg
 
-    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
-        """Connect all unconnected destination endpoints to valid source endpoints.
-
-        Args:
-            if_locked: Ignored for frozen graphs.
-            rng: Ignored for frozen graphs.
-
-        Raises:
-            RuntimeError: Always raises since frozen graphs cannot be modified.
-        """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
+    def values(self) -> ValuesView[InterfaceABC]:
+        """Return a view of the values in the Connection Graph."""
+        return ValuesView(self)
 
     # Validation Methods (from CommonObjABC)
 
@@ -309,17 +389,6 @@ class FrozenCGraph(CGraph, CommonObj):
         """
         return True
 
-    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
-        """Stabilize the graph by connecting all unconnected destinations.
-
-        Args:
-            if_locked: Ignored for frozen graphs.
-
-        Raises:
-            RuntimeError: Always raises since frozen graphs cannot be modified.
-        """
-        raise RuntimeError("Cannot modify a frozen Connection Graph")
-
     def verify(self) -> None:
         """Verify the FrozenCGraph object.
 
@@ -339,7 +408,9 @@ class FrozenCGraph(CGraph, CommonObj):
             if key in self:
                 iface = self[key]
                 if not isinstance(iface, FrozenInterface):
-                    raise TypeError(f"Interface {key} must be a FrozenInterface, got {type(iface)}")
+                    raise TypeError(
+                        f"Interface {key} must be a FrozenInterface, got {type(iface)}"
+                    )
                 iface.verify()
 
         # Identify the graph type
