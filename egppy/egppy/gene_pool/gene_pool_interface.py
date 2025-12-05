@@ -12,7 +12,7 @@ from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_class_factory import NULL_GC, GGCDict
+from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
 from egppy.genetic_code.types_def import TypesDef
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache

@@ -21,7 +21,7 @@ from egpcommon.properties import CGraphType, GCType
 from egpcommon.security import dump_signed_json, load_signed_json_list
 from egpcommon.spinner import Spinner
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces, valid_jcg
 

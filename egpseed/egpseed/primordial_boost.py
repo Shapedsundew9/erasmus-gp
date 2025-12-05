@@ -25,7 +25,7 @@ for chance discoveries.
 from egpcommon.codon_dev_load import find_codon_signature
 from egpcommon.common import SHAPEDSUNDEW9_UUID
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.ggc_class_factory import GCABC
+from egppy.genetic_code.ggc_dict import GCABC
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.physics.runtime_context import RuntimeContext
 from egppy.worker.executor.context_writer import OutputFileType, write_context_to_file

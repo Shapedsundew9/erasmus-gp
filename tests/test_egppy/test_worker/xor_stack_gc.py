@@ -29,9 +29,9 @@ from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.egc_class_factory import EGCDict
+from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
-from egppy.genetic_code.ggc_class_factory import NULL_GC, GGCDict
+from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
 from egppy.genetic_code.types_def import types_def_store
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode

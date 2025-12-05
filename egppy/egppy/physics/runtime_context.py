@@ -6,7 +6,7 @@ from uuid import UUID
 from egpcommon.common import ANONYMOUS_CREATOR
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_class_factory import NULL_GC
+from egppy.genetic_code.ggc_dict import NULL_GC
 
 
 class RuntimeContext:

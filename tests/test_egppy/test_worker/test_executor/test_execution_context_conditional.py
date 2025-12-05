@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
-from egppy.genetic_code.ggc_class_factory import GCABC
+from egppy.genetic_code.ggc_dict import GCABC
 from egppy.worker.executor.execution_context import ExecutionContext
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP
 from egppy.worker.executor.fw_config import FWConfig

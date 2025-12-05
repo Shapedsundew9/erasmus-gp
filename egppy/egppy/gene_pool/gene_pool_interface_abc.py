@@ -5,7 +5,7 @@ from abc import abstractmethod
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_log import Logger, egp_logger
 from egpdb.configuration import DatabaseConfig
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.populations.configuration import PopulationConfig
 
 # Standard EGP logging pattern

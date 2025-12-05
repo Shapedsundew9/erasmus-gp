@@ -13,7 +13,7 @@ from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID
 from egpcommon.parallel_exceptions import create_parallel_exceptions
 from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_class_factory import NULL_GC, GGCDict
+from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
 from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.physics.runtime_context import RuntimeContext
 

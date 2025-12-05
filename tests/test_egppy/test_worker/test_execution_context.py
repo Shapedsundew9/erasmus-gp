@@ -6,7 +6,7 @@ from random import choice, getrandbits, randint, seed
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egppy.genetic_code.ggc_class_factory import GCABC
+from egppy.genetic_code.ggc_dict import GCABC
 from egppy.worker.executor.context_writer import (
     FWC4FILE,
     OutputFileType,
@@ -446,6 +446,7 @@ class TestExecutor(unittest.TestCase):
 
         result = self.ec2.execute(ggc, (initial_cond, initial_state))
         self.assertEqual(result, 0)
+
     def test_write_function_ec1_basic(self) -> None:
         """Test the write_function function."""
         node = self.ec1.write_executable(primitive_gcs["one_to_two"])
@@ -493,6 +494,7 @@ class TestExecutor(unittest.TestCase):
             "\treturn o0, o1"
         )
         self.assertEqual(ftext, expected)
+
     def test_write_gene_pool_ec1(self) -> None:
         """Test the functions execute.
         This is a placeholder test for now as it is deep and complex."""

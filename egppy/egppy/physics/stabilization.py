@@ -3,7 +3,7 @@
 from egpcommon.egp_rnd_gen import EGPRndGen
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
+from egppy.genetic_code.ggc_dict import GCABC, GGCDict
 from egppy.physics.runtime_context import RuntimeContext
 
 

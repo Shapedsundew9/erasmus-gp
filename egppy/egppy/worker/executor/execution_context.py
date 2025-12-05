@@ -14,7 +14,7 @@ from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
-from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
+from egppy.genetic_code.ggc_dict import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.interface import Interface, unpack_src_ref
 from egppy.physics.pgc_api import RuntimeContext
@@ -1098,6 +1098,7 @@ class ExecutionContext:
                 else:
                     node_stack.append(gc_node_graph_entry)
         return gc_node_graph
+
     def result_cache(self, root: GCNode) -> None:
         """Apply result caching to the GC function.
         This optimisations uses the functools lru_cache to cache the results of the function.

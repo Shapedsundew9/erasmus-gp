@@ -6,7 +6,7 @@ The selectors defined here are selector codons (primitives).
 
 from egpcommon.properties import CODON_MASK
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
+from egppy.genetic_code.ggc_dict import GCABC, GGCDict
 from egppy.genetic_code.interface import Interface
 
 # Constants
