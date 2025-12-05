@@ -412,6 +412,10 @@ class TypesDefStore:
 
     def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
+
         # Check cache first
         if key in TypesDefStore._cache:
             TypesDefStore._cache_hits += 1
@@ -419,9 +423,6 @@ class TypesDefStore:
 
         TypesDefStore._cache_misses += 1
 
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        assert TypesDefStore._db_store is not None, "DB store must be initialized."
         if isinstance(key, int):
             td = TypesDefStore._db_store.get(key, {})
         elif isinstance(key, str):
@@ -488,37 +489,39 @@ class TypesDefStore:
         TypesDefStore._db_sources = db_sources
         return num_entries < num_files
 
-    def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
+    def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Return the type definition and all ancestors by name or UID.
         The ancestors are the parents, grandparents etc. in depth order (type "key" first).
         """
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
-        if not isinstance(key, (int, str)):
-            raise TypeError(f"Invalid key type: {type(key)}")
-        stack: set[TypesDef] = {self[key]}
+        td = self[key] if not isinstance(key, TypesDef) else key
+
+        # TODO: Add caching of ancestors and descendants based on the Typesdef as this is used frequently.
+        stack: set[TypesDef] = {td}
         ancestors: set[TypesDef] = set()
         while stack:
             parent: TypesDef = stack.pop()
             if parent not in ancestors:
                 ancestors.add(parent)
                 stack.update(self[p] for p in parent.parents)
-        return tuple(sorted(ancestors, key=lambda td: td.depth, reverse=True))
+        return frozenset(ancestors)
 
-    def descendants(self, key: str | int) -> tuple[TypesDef, ...]:
-        """Return the type definition and all descendants by name or UID.
+    def descendants(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
+        """Return the all the descendants of a type.
         The descendants are the children, grandchildren etc. in depth order (type "key" first).
         """
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
-        stack: set[TypesDef] = {self[key]}
+        td = self[key] if not isinstance(key, TypesDef) else key
+        stack: set[TypesDef] = {td}
         descendants: set[TypesDef] = set()
         while stack:
             child: TypesDef = stack.pop()
             if child not in descendants:
                 descendants.add(child)
                 stack.update(self[c] for c in child.children)
-        return tuple(sorted(descendants, key=lambda td: td.depth, reverse=True))
+        return frozenset(descendants)
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
