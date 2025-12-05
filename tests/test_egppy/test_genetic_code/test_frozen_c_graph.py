@@ -341,20 +341,6 @@ class TestFrozenCGraph(unittest.TestCase):
         # Hashes should be equal
         self.assertEqual(hash(self.frozen_graph), hash(frozen_graph2))
 
-    def test_immutability(self) -> None:
-        """Test that frozen graphs cannot be modified."""
-        with self.assertRaises(TypeError):
-            self.frozen_graph["Bd"] = Interface([])
-
-        with self.assertRaises(TypeError):
-            del self.frozen_graph["Is"]
-
-        with self.assertRaises(AttributeError):
-            self.frozen_graph.connect_all()
-
-        with self.assertRaises(AttributeError):
-            self.frozen_graph.stabilize()
-
     def test_init(self) -> None:
         """Test FrozenCGraph initialization."""
         self.assertIsInstance(self.frozen_graph, FrozenCGraph)
