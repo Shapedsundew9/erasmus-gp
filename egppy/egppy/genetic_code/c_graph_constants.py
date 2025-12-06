@@ -77,6 +77,15 @@ class DstIfKey(StrEnum):
     UD = DstRow.U + EPClsPostfix.DST
 
 
+# The superset
+IfKey = SrcIfKey | DstIfKey
+
+
+# Sanity
+assert len(SrcIfKey) == len(SrcRow), "Mismatch between SrcIfKey and SrcRow lengths"
+assert len(DstIfKey) == len(DstRow), "Mismatch between DstIfKey and DstRow lengths"
+
+
 class EPCls(IntEnum):
     """End Point Class."""
 
@@ -132,7 +141,7 @@ EPC_MAP: dict[str, EPCls] = {"s": EPCls.SRC, "d": EPCls.DST}
 ALL_ROWS_STR: str = "".join(ROWS)
 IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.S, DstRow.W}
 IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.SD, DstIfKey.WD}
-ROW_CLS_INDEXED_ORDERED: tuple[str, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
+ROW_CLS_INDEXED_ORDERED: tuple[IfKey, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
 ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED_ORDERED)
 _UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED_ORDERED)
 _UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple("_" + row + EPClsPostfix.DST for row in DstRow)

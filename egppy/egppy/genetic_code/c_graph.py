@@ -8,7 +8,7 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import VERIFY, Logger, egp_logger
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import (
     _UNDER_DST_KEY_DICT,
     _UNDER_KEY_DICT,
@@ -21,6 +21,7 @@ from egppy.genetic_code.c_graph_constants import (
     DstIfKey,
     DstRow,
     EPCls,
+    IfKey,
     Row,
     SrcIfKey,
     SrcRow,
@@ -50,7 +51,9 @@ class CGraph(FrozenCGraph, CGraphABC):
 
     def __init__(  # pylint: disable=super-init-not-called
         self,
-        graph: dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | CGraphABC,
+        graph: (
+            dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | FrozenCGraphABC
+        ),
     ) -> None:
         """Initialize the Connection Graph.
 
@@ -89,7 +92,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
             setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
 
-    def __delitem__(self, key: str) -> None:
+    def __delitem__(self, key: IfKey) -> None:
         """Delete the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
@@ -101,7 +104,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         """
         return hash(tuple(hash(iface) for iface in self.values()))
 
-    def __setitem__(self, key: str, value: FrozenInterfaceABC) -> None:
+    def __setitem__(self, key: IfKey, value: FrozenInterfaceABC) -> None:
         """Set the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")

@@ -36,7 +36,7 @@ from egppy.genetic_code.c_graph_constants import (
     DstIfKey,
     DstRow,
     EPCls,
-    EPClsPostfix,
+    IfKey,
     JSONCGraph,
     SrcIfKey,
     SrcRow,
@@ -90,10 +90,12 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
     __slots__ = _UNDER_ROW_CLS_INDEXED + ("_hash",)
 
-    def __init__(  # pylint: disable=super-init-not-called
+    def __init__(
         self,
         graph: (
-            dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | FrozenCGraphABC
+            dict[IfKey, list[EndpointMemberType]]
+            | dict[IfKey, FrozenInterfaceABC]
+            | FrozenCGraphABC
         ),
     ) -> None:
         """Initialize the Frozen Connection Graph.
@@ -191,7 +193,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             return False
         return all(a == b for a, b in zip(self.values(), value.values()))
 
-    def __getitem__(self, key: str) -> FrozenInterfaceABC:
+    def __getitem__(self, key: IfKey) -> FrozenInterfaceABC:
         """Get the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:
             raise KeyError(f"Invalid Connection Graph key: {key}")
@@ -208,7 +210,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         """
         return self._hash
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[IfKey]:
         """Return an iterator over the Interfaces of the Connection Graph."""
         return (
             key
@@ -224,7 +226,9 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         """Return a string representation of the Connection Graph."""
         return pformat(self.to_json(), indent=4, width=120)
 
-    def get(self, key: str, default: FrozenInterfaceABC | None = None) -> FrozenInterfaceABC | None:
+    def get(
+        self, key: IfKey, default: FrozenInterfaceABC | None = None
+    ) -> FrozenInterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
         NOTE: This method does not raise KeyError if key is not a valid interface key.
         """
@@ -234,11 +238,11 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         """Identify and return the type of this connection graph."""
         return c_graph_type(self)
 
-    def items(self) -> ItemsView[str, FrozenInterfaceABC]:
+    def items(self) -> ItemsView[IfKey, FrozenInterfaceABC]:
         """Return a view of the items in the Connection Graph."""
         return ItemsView(self)
 
-    def keys(self) -> KeysView[str]:
+    def keys(self) -> KeysView[IfKey]:
         """Return a view of the keys in the Connection Graph."""
         return KeysView(self)
 
@@ -416,8 +420,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
         # Verify endpoint connectivity rules
         # Check destination endpoints connect to valid source rows
-        for dst_row in DstRow:
-            dst_key = dst_row + EPClsPostfix.DST
+        for dst_row, dst_key in zip(DstRow, DstIfKey):
             if dst_key not in self:
                 continue
 
@@ -434,8 +437,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                             )
 
         # Check source endpoints connect to valid destination rows
-        for src_row in SrcRow:
-            src_key = src_row + EPClsPostfix.SRC
+        for src_row, src_key in zip(SrcRow, SrcIfKey):
             if src_key not in self:
                 continue
 
@@ -464,15 +466,13 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # Verify type consistency across connections
         # Build a map of all source endpoints by (row, idx)
         src_ep_map: dict[tuple[str, int], FrozenEndPoint] = {}
-        for src_row in SrcRow:
-            src_key = src_row + EPClsPostfix.SRC
+        for src_key in SrcIfKey:
             if src_key in self:
                 for ep in self[src_key]:
                     src_ep_map[(ep.row, ep.idx)] = ep  # type: ignore
 
         # Check each destination endpoint's connection for type consistency
-        for dst_row in DstRow:
-            dst_key = dst_row + EPClsPostfix.DST
+        for dst_row, dst_key in zip(DstRow, DstIfKey):
             if dst_key not in self:
                 continue
             for dst_ep in self[dst_key]:
@@ -489,8 +489,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                                 )
 
         # Frozen graphs are always stable - verify all destinations are connected
-        for dst_row in DstRow:
-            dst_key = dst_row + EPClsPostfix.DST
+        for dst_row, dst_key in zip(DstRow, DstIfKey):
             if dst_key not in self:
                 continue
             for dst_ep in self[dst_key]:

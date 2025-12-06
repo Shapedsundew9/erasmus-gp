@@ -183,7 +183,7 @@ from typing import Any
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
+from egppy.genetic_code.c_graph_constants import DstRow, IfKey, JSONCGraph, SrcRow
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
@@ -228,7 +228,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
     # Abstract Mapping Protocol Methods
 
     @abstractmethod
-    def __getitem__(self, key: str) -> FrozenInterfaceABC:
+    def __getitem__(self, key: IfKey) -> FrozenInterfaceABC:
         """Get the interface with the given key.
 
         Args:
@@ -256,7 +256,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.__hash__ must be overridden")
 
     @abstractmethod
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[IfKey]:
         """Return an iterator over the interface keys in the Connection Graph.
 
         Returns:
@@ -274,7 +274,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.__len__ must be overridden")
 
     @abstractmethod
-    def items(self) -> ItemsView[str, FrozenInterfaceABC]:
+    def items(self) -> ItemsView[IfKey, FrozenInterfaceABC]:
         """Return a view of the items in the Connection Graph.
 
         Returns:
@@ -283,7 +283,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.items must be overridden")
 
     @abstractmethod
-    def keys(self) -> KeysView[str]:
+    def keys(self) -> KeysView[IfKey]:
         """Return a view of the keys in the Connection Graph.
 
         Returns:
@@ -315,7 +315,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
 
     @abstractmethod
     def get(  # type: ignore[override]
-        self, key: str, default: FrozenInterfaceABC | None = None
+        self, key: IfKey, default: FrozenInterfaceABC | None = None
     ) -> FrozenInterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
 
@@ -376,7 +376,7 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
     __slots__ = ()
 
     @abstractmethod
-    def __delitem__(self, key: str) -> None:
+    def __delitem__(self, key: IfKey) -> None:
         """Delete the interface with the given key.
 
         Args:
@@ -389,7 +389,7 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         raise NotImplementedError("CGraphABC.__delitem__ must be overridden")
 
     @abstractmethod
-    def __setitem__(self, key: str, value: FrozenInterfaceABC) -> None:
+    def __setitem__(self, key: IfKey, value: FrozenInterfaceABC) -> None:
         """Set the interface with the given key.
 
         Args:
