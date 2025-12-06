@@ -38,10 +38,12 @@ class TestFrozenEndPoint(unittest.TestCase):
         self.assertEqual(self.frozen_ep_src.idx, self.ep_src.idx)
         self.assertEqual(self.frozen_ep_src.cls, self.ep_src.cls)
         self.assertEqual(self.frozen_ep_src.typ, self.ep_src.typ)
-
-        # Test refs property returns list format
-        self.assertIsInstance(self.frozen_ep_src.refs, list)
-        self.assertEqual(self.frozen_ep_src.refs, self.ep_src.refs)
+        self.assertTrue(
+            all(
+                a[0] == b[0] and a[1] == b[1]
+                for a, b in zip(self.frozen_ep_src.refs, self.ep_src.refs)
+            )
+        )
 
     def test_comparison(self) -> None:
         """Test comparison operators."""
@@ -95,13 +97,13 @@ class TestFrozenEndPoint(unittest.TestCase):
         self.assertEqual(self.frozen_ep_src.idx, 0)
         self.assertEqual(self.frozen_ep_src.cls, EPCls.SRC)
         self.assertEqual(self.frozen_ep_src.typ.name, "int")
-        self.assertEqual(len(self.frozen_ep_src.refs_tuple), 0)
+        self.assertEqual(len(self.frozen_ep_src.refs), 0)
 
         self.assertEqual(self.frozen_ep_dst.row, DstRow.A)
         self.assertEqual(self.frozen_ep_dst.idx, 0)
         self.assertEqual(self.frozen_ep_dst.cls, EPCls.DST)
         self.assertEqual(self.frozen_ep_dst.typ.name, "float")
-        self.assertEqual(len(self.frozen_ep_dst.refs_tuple), 1)
+        self.assertEqual(len(self.frozen_ep_dst.refs), 1)
 
     def test_is_connected(self) -> None:
         """Test is_connected method."""

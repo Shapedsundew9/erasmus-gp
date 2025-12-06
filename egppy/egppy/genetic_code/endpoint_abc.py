@@ -47,7 +47,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     idx: int
     cls: EPCls
     typ: TypesDef
-    refs: Sequence[Sequence[str | int]]
+    refs: Sequence[Sequence[Row | int]]
 
     # Abstract Comparison Methods
 
@@ -287,7 +287,7 @@ class EndPointABC(FrozenEndPointABC, metaclass=ABCMeta):
     __slots__ = ()
 
     # Abstract Attributes
-    refs: list[list[str | int]]
+    refs: list[list[Row | int]]  # type: ignore
 
     @abstractmethod
     def clr_refs(self) -> EndPointABC:

@@ -33,23 +33,17 @@ See Also:
 from __future__ import annotations
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
-from egppy.genetic_code.c_graph_constants import (
-    DESTINATION_ROW_SET,
-    ROW_SET,
-    SINGLE_ONLY_ROWS,
-    SOURCE_ROW_SET,
-    EPCls,
-    Row,
-)
+from egpcommon.egp_log import Logger, egp_logger
+from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
+from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
 
-class EndPoint(CommonObj, EndPointABC):
+class EndPoint(FrozenEndPoint, EndPointABC):
     """Mutable Endpoint class implementation.
 
     This concrete implementation of EndPointABC uses builtin Python collections for
@@ -75,9 +69,7 @@ class EndPoint(CommonObj, EndPointABC):
         - CGraph: Connection graph composed of interfaces
     """
 
-    __slots__ = ("row", "idx", "cls", "typ", "refs")
-
-    def __init__(self, *args) -> None:
+    def __init__(self, *args) -> None:  # pylint: disable=super-init-not-called
         """Initialize the endpoint.
 
         This constructor supports multiple initialization patterns:
@@ -102,7 +94,7 @@ class EndPoint(CommonObj, EndPointABC):
         Raises:
             TypeError: If arguments don't match any supported initialization pattern.
         """
-        super().__init__()
+        CommonObj.__init__(self)  # pylint: disable=non-parent-init-called
         if len(args) == 1:
             if isinstance(args[0], FrozenEndPointABC):
                 other: FrozenEndPointABC = args[0]
@@ -126,64 +118,6 @@ class EndPoint(CommonObj, EndPointABC):
         else:
             raise TypeError("Invalid arguments for EndPoint constructor")
 
-    def __eq__(self, value: object) -> bool:
-        """Check equality of EndPoint instances.
-
-        Two endpoints are equal if all their attributes match: row, idx, cls, typ,
-        and refs (including the order and content of references).
-
-        Args:
-            value (object): Object to compare with.
-
-        Returns:
-            bool: True if all attributes are equal, False otherwise.
-        """
-        if not isinstance(value, FrozenEndPointABC):
-            return False
-        if len(self.refs) != len(value.refs):
-            return False
-        return (
-            self.row == value.row
-            and self.idx == value.idx
-            and self.cls == value.cls
-            and self.typ == value.typ
-            and all(
-                (ref[0], ref[1]) == (vref[0], vref[1]) for ref, vref in zip(self.refs, value.refs)
-            )
-        )
-
-    def __ge__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute for ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx >= other.idx, False otherwise.
-            NotImplemented: If other is not an FrozenEndPointABC instance.
-        """
-        if not isinstance(other, FrozenEndPointABC):
-            return NotImplemented
-        return self.idx >= other.idx
-
-    def __gt__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute for ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx > other.idx, False otherwise.
-            NotImplemented: If other is not an FrozenEndPointABC instance.
-        """
-        if not isinstance(other, FrozenEndPointABC):
-            return NotImplemented
-        return self.idx > other.idx
-
     def __hash__(self) -> int:
         """Return the hash of the endpoint.
 
@@ -196,63 +130,6 @@ class EndPoint(CommonObj, EndPointABC):
         """
         tuple_refs = tuple(tuple(ref) for ref in self.refs)
         return hash((self.row, self.idx, self.cls, self.typ, tuple_refs))
-
-    def __le__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute for ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx <= other.idx, False otherwise.
-            NotImplemented: If other is not an FrozenEndPointABC instance.
-        """
-        if not isinstance(other, FrozenEndPointABC):
-            return NotImplemented
-        return self.idx <= other.idx
-
-    def __lt__(self, other: object) -> bool:
-        """Compare EndPoint instances for sorting.
-
-        Endpoints are compared based on their idx attribute for ordering within a row.
-
-        Args:
-            other (object): Object to compare with.
-
-        Returns:
-            bool: True if self.idx < other.idx, False otherwise.
-            NotImplemented: If other is not an FrozenEndPointABC instance.
-        """
-        if not isinstance(other, FrozenEndPointABC):
-            return NotImplemented
-        return self.idx < other.idx
-
-    def __ne__(self, value: object) -> bool:
-        """Check inequality of EndPoint instances.
-
-        Args:
-            value (object): Object to compare with.
-
-        Returns:
-            bool: True if endpoints are not equal, False otherwise.
-        """
-        return not self.__eq__(value)
-
-    def __str__(self) -> str:
-        """Return the string representation of the endpoint.
-
-        Provides a detailed string showing all endpoint attributes for debugging
-        and logging purposes.
-
-        Returns:
-            str: String in format "EndPoint(row=X, idx=N, cls=CLS, typ=TYPE, refs=[...])"
-        """
-        return (
-            f"EndPoint(row={self.row}, idx={self.idx}, cls={self.cls}"
-            f", typ={self.typ}, refs=[{self.refs}])"
-        )
 
     def clr_refs(self) -> EndPointABC:
         """Clear all references in the endpoint.
@@ -282,45 +159,6 @@ class EndPoint(CommonObj, EndPointABC):
             self.refs = [[other.row, other.idx]]
         else:
             self.refs.append([other.row, other.idx])
-
-    def consistency(self) -> None:
-        """Check the consistency of the endpoint.
-
-        Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
-
-        Validates:
-        - Reference structure and format (debug assertions)
-        - All referenced endpoints would be valid (structural check only)
-
-        Note: Full bidirectional reference consistency checking requires access
-        to other endpoints and is performed at the Interface or CGraph level.
-        """
-        if _logger.isEnabledFor(level=CONSISTENCY):
-            _logger.log(
-                level=CONSISTENCY,
-                msg=f"Consistency check for EndPoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
-
-            # Additional debug assertions for reference validation
-            for ref in self.refs:
-                assert isinstance(ref, list), f"Reference must be a list, got {type(ref)}"
-                assert len(ref) == 2, f"Reference must have 2 elements, got {len(ref)}"
-                assert isinstance(ref[0], str), f"Row must be a string, got {type(ref[0])}"
-                assert ref[0] in ROW_SET, f"Row must be in ROW_SET, got {ref[0]}"
-                assert isinstance(ref[1], int), f"Index must be an int, got {type(ref[1])}"
-                assert 0 <= ref[1] <= 255, f"Index must be 0-255, got {ref[1]}"
-
-        # Call parent consistency()
-        super().consistency()
-
-    def is_connected(self) -> bool:
-        """Check if the endpoint is connected.
-
-        Returns:
-            bool: True if refs contains at least one reference, False otherwise.
-        """
-        return len(self.refs) > 0
 
     def ref_shift(self, shift: int) -> EndPointABC:
         """Shift all references in the endpoint by a specified amount.
@@ -355,196 +193,6 @@ class EndPoint(CommonObj, EndPointABC):
         else:
             self.refs = [[row, idx]]
         return self
-
-    def to_json(self, json_c_graph: bool = False) -> dict | list:
-        """Convert the endpoint to a JSON-compatible object.
-
-        Supports two output formats:
-
-        1. Standard format (json_c_graph=False):
-           Returns a dictionary with all endpoint attributes:
-           {"row": "X", "idx": N, "cls": "DST"|"SRC", "typ": "type_str", "refs": [[...], ...]}
-
-        2. Connection Graph format (json_c_graph=True):
-           Returns a compact list representing the connected source endpoint: [row, idx, type_str]
-           Only valid for destination endpoints.
-
-        Args:
-            json_c_graph (bool): If True, returns connection graph format. Defaults to False.
-
-        Returns:
-            dict | list: Dictionary (standard format) or list (connection graph format).
-
-        Raises:
-            ValueError: If json_c_graph is True for a source endpoint.
-        """
-        if json_c_graph and self.cls == EPCls.DST:
-            if len(self.refs) == 0:
-                raise ValueError(
-                    "Destination endpoint has no references for JSON Connection Graph format."
-                )
-            return [str(self.refs[0][0]), self.refs[0][1], str(self.typ)]
-        if json_c_graph and self.cls == EPCls.SRC:
-            raise ValueError(
-                "Source endpoints cannot be converted to JSON Connection Graph format."
-            )
-        return {
-            "row": str(self.row),
-            "idx": self.idx,
-            "cls": self.cls,
-            "typ": str(self.typ),
-            "refs": [list(ref) for ref in self.refs],
-        }
-
-    def verify(self) -> None:
-        """Verify the integrity of the endpoint.
-
-        Validates that the endpoint has valid structure including:
-        - Index is within valid range (0-255)
-        - Row and class are compatible (destination rows with DST class, source rows with SRC class)
-        - Single-only rows (F, W, L) have index 0
-        - Destination endpoints have at most 1 reference
-        - All references are properly formatted and valid
-
-        Raises:
-            ValueError: If the endpoint is invalid.
-        """
-        # Verify index range
-        self.value_error(
-            0 <= self.idx < 256,
-            f"Endpoint index must be between 0 and 255, got {self.idx} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
-
-        # Verify that row is not U (special case)
-        self.value_error(
-            self.row != "U",
-            f"Endpoint row cannot be 'U', got {self.row} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
-
-        # Verify that typ is a TypesDef instance
-        self.type_error(
-            isinstance(self.typ, TypesDef),
-            f"Endpoint type must be a TypesDef instance, got {type(self.typ).__name__} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
-
-        # Verify row and class compatibility for destination endpoints
-        if self.cls == EPCls.DST:
-            self.value_error(
-                self.row in DESTINATION_ROW_SET,
-                f"Destination endpoint must use a destination row. "
-                f"Got row={self.row} with cls=DST for endpoint {self.row}d{self.idx}. "
-                f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}",
-            )
-
-        # Verify row and class compatibility for source endpoints
-        if self.cls == EPCls.SRC:
-            self.value_error(
-                self.row in SOURCE_ROW_SET,
-                f"Source endpoint must use a source row. "
-                f"Got row={self.row} with cls=SRC for endpoint {self.row}s{self.idx}. "
-                f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
-            )
-
-        # Verify single-only row constraint (F, W, L rows can only have index 0)
-        if self.row in SINGLE_ONLY_ROWS:
-            self.value_error(
-                self.idx == 0,
-                f"Row {self.row} can only have a single endpoint (index 0). "
-                f"Got index {self.idx} for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
-
-        # Verify destination endpoints have at most one reference
-        if self.cls == EPCls.DST:
-            self.value_error(
-                len(self.refs) <= 1,
-                f"Destination endpoint can have at most 1 reference. "
-                f"Got {len(self.refs)} references for endpoint {self.row}d{self.idx}: {self.refs}",
-            )
-
-        # Verify reference structure and validity
-        ref_set = set()
-        for ref_idx, ref in enumerate(self.refs):
-
-            # Check for duplicate references
-            ref_tuple = tuple(ref)
-            self.value_error(
-                ref_tuple not in ref_set,
-                f"Duplicate reference {ref} found at index {ref_idx} "
-                f"in endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
-            ref_set.add(ref_tuple)
-
-            # Check reference is a list
-            self.type_error(
-                isinstance(ref, list),
-                f"Reference must be a list, got {type(ref).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
-
-            # Check reference has exactly 2 elements [row, idx]
-            self.value_error(
-                len(ref) == 2,
-                f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
-
-            # Extract and validate reference components
-            ref_row = ref[0]
-            ref_ep_idx = ref[1]
-
-            # Check reference row is valid
-            self.type_error(
-                isinstance(ref_row, str),
-                f"Reference row must be a string, got {type(ref_row).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
-
-            # Verify reference row is in valid ROW_SET
-            self.value_error(
-                ref_row in ROW_SET,
-                f"Reference row must be a valid row. "
-                f"Got '{ref_row}' at index {ref_idx} in endpoint"
-                f"{self.row}{self.cls.name[0]}{self.idx}. "
-                f"Valid rows: {ROW_SET}",
-            )
-
-            # Check reference index is valid
-            self.type_error(
-                isinstance(ref_ep_idx, int),
-                f"Reference index must be an integer, got {type(ref_ep_idx).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
-
-            # Verify reference index is within valid range (0-255)
-            assert isinstance(ref_ep_idx, int), "Reference index must be an integer"
-            self.value_error(
-                0 <= ref_ep_idx < 256,
-                f"Reference index must be between 0 and 255, got {ref_ep_idx}",
-            )
-
-            # Verify row/class pairing: DST endpoints should reference SRC rows, and vice versa
-            if self.cls == EPCls.DST:
-                self.value_error(
-                    ref_row in SOURCE_ROW_SET,
-                    f"Destination endpoint must reference a source row. "
-                    f"Got reference to row '{ref_row}' at index {ref_idx} "
-                    f"in endpoint {self.row}d{self.idx}. "
-                    f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
-                )
-            else:  # self.cls == EndPointClass.SRC
-                self.value_error(
-                    ref_row in DESTINATION_ROW_SET,
-                    f"Source endpoint must reference a destination row. "
-                    f"Got reference to row '{ref_row}' at index {ref_idx} "
-                    f"in endpoint {self.row}s{self.idx}. "
-                    f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}",
-                )
-
-        # Call parent verify() which will trigger consistency() if CONSISTENCY logging is enabled
-        super().verify()
 
 
 class SrcEndPoint(EndPoint):
