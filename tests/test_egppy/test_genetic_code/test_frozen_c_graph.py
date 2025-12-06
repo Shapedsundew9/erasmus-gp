@@ -9,7 +9,7 @@ import unittest
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, FrozenEndPoint, FrozenInterface
 from egppy.genetic_code.interface import Interface
@@ -154,14 +154,6 @@ class TestFrozenInterface(unittest.TestCase):
             ((), ()),
         )
 
-    def test_add(self) -> None:
-        """Test concatenating frozen interfaces."""
-        frozen2 = FrozenInterface(SrcRow.I, EPCls.SRC, (types_def_store["bool"],), ((),))
-
-        result = self.frozen_iface + frozen2
-        self.assertEqual(len(result), 3)
-        self.assertIsInstance(result, FrozenInterface)
-
     def test_api_compatibility_with_mutable(self) -> None:
         """Test that frozen interfaces are API compatible with mutable interfaces."""
         self.assertEqual(len(self.frozen_iface), len(self.mutable_iface))
@@ -246,20 +238,20 @@ class TestFrozenCGraph(unittest.TestCase):
         # Create a simple mutable graph
         self.mutable_graph = CGraph(
             {
-                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                SrcIfKey.IS: [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
         # Create equivalent frozen graph - ensure bidirectional references
         self.frozen_graph = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                SrcIfKey.IS: [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
@@ -281,25 +273,25 @@ class TestFrozenCGraph(unittest.TestCase):
         # This is intentional for performance
         frozen_graph2 = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                SrcIfKey.IS: [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
         self.assertEqual(self.frozen_graph, frozen_graph2)
 
     def test_get(self) -> None:
         """Test get method."""
-        iface = self.frozen_graph.get("Is")
+        iface = self.frozen_graph.get(SrcIfKey.IS)
         self.assertIsNotNone(iface)
 
-        missing = self.frozen_graph.get("Bd", None)
+        missing = self.frozen_graph.get(DstIfKey.BD, None)
         self.assertIsNone(missing)
 
     def test_getitem(self) -> None:
         """Test getting interfaces by key."""
-        iface = self.frozen_graph["Is"]
+        iface = self.frozen_graph[SrcIfKey.IS]
         self.assertIsInstance(iface, FrozenInterface)
         self.assertEqual(len(iface), 1)
 
@@ -313,10 +305,10 @@ class TestFrozenCGraph(unittest.TestCase):
         # Create another identical graph
         frozen_graph2 = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                SrcIfKey.IS: [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
@@ -337,8 +329,8 @@ class TestFrozenCGraph(unittest.TestCase):
         """Test iterating over interface keys."""
         keys = list(self.frozen_graph)
         self.assertEqual(len(keys), 4)
-        self.assertIn("Is", keys)
-        self.assertIn("Ad", keys)
+        self.assertIn(SrcIfKey.IS, keys)
+        self.assertIn(DstIfKey.AD, keys)
 
     def test_keys_values_items(self) -> None:
         """Test keys(), values(), and items() methods."""
@@ -373,16 +365,18 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
         """Test a FOR_LOOP graph type."""
         graph = FrozenCGraph(
             {
-                "Is": [
+                SrcIfKey.IS: [
                     (SrcRow.I, 0, EPCls.SRC, types_def_store["list[int]"], [[DstRow.L, 0]]),
                     (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [[DstRow.P, 0]]),
                 ],
-                "Ld": [(DstRow.L, 0, EPCls.DST, types_def_store["list[int]"], [[SrcRow.I, 0]])],
-                "Ls": [(SrcRow.L, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.L, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
-                "Pd": [(DstRow.P, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
+                DstIfKey.LD: [
+                    (DstRow.L, 0, EPCls.DST, types_def_store["list[int]"], [[SrcRow.I, 0]])
+                ],
+                SrcIfKey.LS: [(SrcRow.L, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.L, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                DstIfKey.PD: [(DstRow.P, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
             }
         )
 
@@ -393,15 +387,15 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
         """Test an IF_THEN graph type."""
         graph = FrozenCGraph(
             {
-                "Is": [
+                SrcIfKey.IS: [
                     (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [[DstRow.F, 0]]),
                     (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]]),
                 ],
-                "Fd": [(DstRow.F, 0, EPCls.DST, types_def_store["bool"], [[SrcRow.I, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
-                "Pd": [(DstRow.P, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
+                DstIfKey.FD: [(DstRow.F, 0, EPCls.DST, types_def_store["bool"], [[SrcRow.I, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                DstIfKey.PD: [(DstRow.P, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
             }
         )
 
@@ -412,21 +406,21 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
         """Test a STANDARD graph type."""
         graph = FrozenCGraph(
             {
-                "Is": [
+                SrcIfKey.IS: [
                     (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]]),
                     (SrcRow.I, 1, EPCls.SRC, types_def_store["float"], [[DstRow.B, 0]]),
                 ],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.B, 1]])],
-                "Bd": [
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.B, 1]])],
+                DstIfKey.BD: [
                     (DstRow.B, 0, EPCls.DST, types_def_store["float"], [[SrcRow.I, 1]]),
                     (DstRow.B, 1, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]]),
                 ],
-                "Bs": [
+                SrcIfKey.BS: [
                     (SrcRow.B, 0, EPCls.SRC, types_def_store["float"], [[DstRow.O, 0]]),
                     (SrcRow.B, 1, EPCls.SRC, types_def_store["int"], [[DstRow.O, 1]]),
                 ],
-                "Od": [
+                DstIfKey.OD: [
                     (DstRow.O, 0, EPCls.DST, types_def_store["float"], [[SrcRow.B, 0]]),
                     (DstRow.O, 1, EPCls.DST, types_def_store["int"], [[SrcRow.B, 1]]),
                 ],
@@ -446,10 +440,10 @@ class TestJSONConversion(unittest.TestCase):
         # Create a mutable graph
         mutable = CGraph(
             {
-                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                SrcIfKey.IS: [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 
@@ -459,10 +453,10 @@ class TestJSONConversion(unittest.TestCase):
         # Create frozen graph from same data
         frozen = FrozenCGraph(
             {
-                "Is": [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
-                "Ad": [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
-                "Od": [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
+                SrcIfKey.IS: [(SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]])],
+                DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 0]])],
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [[DstRow.O, 0]])],
+                DstIfKey.OD: [(DstRow.O, 0, EPCls.DST, types_def_store["int"], [[SrcRow.A, 0]])],
             }
         )
 

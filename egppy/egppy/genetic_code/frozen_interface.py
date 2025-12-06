@@ -9,7 +9,7 @@ from egppy.genetic_code.c_graph_constants import (
     EPCls,
     Row,
 )
-from egppy.genetic_code.endpoint_abc import EndPointABC
+from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.types_def import TypesDef
@@ -46,54 +46,6 @@ class FrozenInterface(FrozenInterfaceABC):
         # Pre-compute hash for frozen interface
         self._hash = hash((self.row, self.epcls, self.type_tuple, self.refs_tuple))
 
-    def __add__(self, other: FrozenInterfaceABC) -> FrozenInterfaceABC:
-        """Concatenate two interfaces to create a new interface.
-
-        Args:
-            other: The interface to concatenate with this interface.
-
-        Returns:
-            A new FrozenInterface containing endpoints from both interfaces.
-
-        Raises:
-            TypeError: If other is not an FrozenInterfaceABC instance.
-            ValueError: If the interfaces have incompatible row or class properties.
-        """
-        if not isinstance(other, FrozenInterfaceABC):
-            raise TypeError(f"Cannot concatenate Interface with {type(other)}")
-
-        # Handle empty interfaces
-        if len(self) == 0:
-            return other
-        if len(other) == 0:
-            return self
-
-        # Check compatibility - must have same row and class
-        first_ep = next(iter(self))
-        other_first_ep = next(iter(other))
-        if first_ep.row != other_first_ep.row:
-            raise ValueError(
-                f"Cannot concatenate interfaces with different rows: {first_ep.row}"
-                f" vs {other_first_ep.row}"
-            )
-        if first_ep.cls != other_first_ep.cls:
-            raise ValueError(
-                f"Cannot concatenate interfaces with different classes: {first_ep.cls}"
-                f" vs {other_first_ep.cls}"
-            )
-
-        # For frozen interfaces, we need to create new tuples
-        # Note: This returns a FrozenInterface, maintaining immutability
-        new_type_tuple = self.type_tuple + tuple(ep.typ for ep in other)
-        # Build refs_tuple - ep.refs is list[list[str | int]], convert to proper format
-        other_refs = []
-        for ep in other:
-            ep_refs = tuple((ref[0], ref[1]) for ref in ep.refs)  # type: ignore
-            other_refs.append(ep_refs)
-        new_refs_tuple = self.refs_tuple + tuple(other_refs)
-
-        return FrozenInterface(self.row, self.epcls, new_type_tuple, new_refs_tuple)
-
     def __eq__(self, value: object) -> bool:
         """Check equality of FrozenInterface instances.
 
@@ -113,7 +65,7 @@ class FrozenInterface(FrozenInterfaceABC):
             return False
         return all(a == b for a, b in zip(self, value))
 
-    def __getitem__(self, idx: int) -> EndPointABC:
+    def __getitem__(self, idx: int) -> FrozenEndPointABC:
         """Get an endpoint by index.
 
         Args:
@@ -145,7 +97,7 @@ class FrozenInterface(FrozenInterfaceABC):
         """
         return self._hash
 
-    def __iter__(self) -> Iterator[EndPointABC]:
+    def __iter__(self) -> Iterator[FrozenEndPointABC]:
         """Return an iterator over the endpoints.
 
         Returns:
@@ -291,7 +243,7 @@ class FrozenInterface(FrozenInterfaceABC):
 
         return unique_types, indices
 
-    def unconnected_eps(self) -> list[EndPointABC]:
+    def unconnected_eps(self) -> list[FrozenEndPointABC]:
         """Return a list of unconnected endpoints.
 
         Returns:

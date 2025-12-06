@@ -16,7 +16,7 @@ from collections.abc import Iterator, MutableSequence, Sequence
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egppy.genetic_code.c_graph_constants import EPCls, Row
-from egppy.genetic_code.endpoint_abc import EndPointABC
+from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.types_def import TypesDef
 
 
@@ -32,20 +32,6 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
     """
 
     __slots__ = ()
-
-    # Abstract Arithmetic Operations
-
-    @abstractmethod
-    def __add__(self, other: FrozenInterfaceABC) -> FrozenInterfaceABC:
-        """Concatenate two interfaces to create a new interface.
-
-        Args:
-            other: The interface to concatenate with this interface.
-
-        Returns:
-            A new interface containing endpoints from both interfaces.
-        """
-        raise NotImplementedError("FrozenInterfaceABC.__add__ must be overridden")
 
     # Abstract Comparison Methods
 
@@ -64,7 +50,7 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
     # Abstract Container Protocol Methods
 
     @abstractmethod
-    def __getitem__(self, idx: int) -> EndPointABC:  # type: ignore[override]
+    def __getitem__(self, idx: int) -> FrozenEndPointABC:  # type: ignore[override]
         """Get an endpoint by index.
 
         Args:
@@ -88,7 +74,7 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
         raise NotImplementedError("FrozenInterfaceABC.__hash__ must be overridden")
 
     @abstractmethod
-    def __iter__(self) -> Iterator[EndPointABC]:
+    def __iter__(self) -> Iterator[FrozenEndPointABC]:
         """Return an iterator over the endpoints.
 
         Returns:
@@ -178,7 +164,7 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
         raise NotImplementedError("FrozenInterfaceABC.types must be overridden")
 
     @abstractmethod
-    def unconnected_eps(self) -> list[EndPointABC]:
+    def unconnected_eps(self) -> list[FrozenEndPointABC]:
         """Return a list of unconnected endpoints.
 
         Returns:
@@ -197,7 +183,48 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
     __slots__ = ()
 
     @abstractmethod
-    def __setitem__(self, idx: int, value: EndPointABC) -> None:  # type: ignore[override]
+    def __add__(self, other: FrozenInterfaceABC) -> InterfaceABC:
+        """Concatenate two interfaces to create a new interface.
+
+        Add correctly updates the indices of the endpoints in the new interface.
+        However, it does not change the row or class of the endpoints.
+
+        Args
+        ----
+        other: Interface: The interface to concatenate with this interface.
+
+        Returns
+        -------
+        Interface: A new interface containing endpoints from both interfaces.
+        """
+        raise NotImplementedError("InterfaceABC.__add__ must be overridden")
+
+    @abstractmethod
+    def __getitem__(self, idx: int) -> EndPointABC:  # type: ignore[override]
+        """Get an endpoint by index.
+
+        Args:
+            idx: The index of the endpoint to retrieve.
+
+        Returns:
+            The EndPoint at the specified index.
+
+        Raises:
+            IndexError: If idx is out of range.
+        """
+        raise NotImplementedError("InterfaceABC.__getitem__ must be overridden")
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[EndPointABC]:
+        """Return an iterator over the endpoints.
+
+        Returns:
+            Iterator over EndPoint objects in the interface.
+        """
+        raise NotImplementedError("InterfaceABC.__iter__ must be overridden")
+
+    @abstractmethod
+    def __setitem__(self, idx: int, value: FrozenEndPointABC) -> None:  # type: ignore[override]
         """Set an endpoint at a specific index.
 
         Args:
@@ -216,7 +243,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.__delitem__ must be overridden")
 
     @abstractmethod
-    def insert(self, index: int, value: EndPointABC) -> None:
+    def insert(self, index: int, value: FrozenEndPointABC) -> None:
         """Insert an endpoint at a specific index.
 
         Args:
@@ -228,7 +255,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
     # Abstract Modification Methods
 
     @abstractmethod
-    def append(self, value: EndPointABC) -> None:
+    def append(self, value: FrozenEndPointABC) -> None:
         """Append an endpoint to the interface.
 
         Args:
@@ -247,8 +274,8 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
 
     @abstractmethod
     def extend(  # type: ignore[override]
-        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | FrozenInterfaceABC
-    ) -> InterfaceABC:
+        self, values: Sequence[FrozenEndPointABC] | FrozenInterfaceABC
+    ) -> None:
         """Extend the interface with multiple endpoints.
 
         Args:
@@ -306,3 +333,12 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
             Self with row set.
         """
         raise NotImplementedError("InterfaceABC.set_row must be overridden")
+
+    @abstractmethod
+    def unconnected_eps(self) -> list[EndPointABC]:  # type: ignore[override]
+        """Return a list of unconnected endpoints.
+
+        Returns:
+            List of EndPoint objects that have no connections.
+        """
+        raise NotImplementedError("InterfaceABC.unconnected_eps must be overridden")

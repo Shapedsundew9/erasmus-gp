@@ -52,7 +52,7 @@ class CGraph(FrozenCGraph, CGraphABC):
     def __init__(  # pylint: disable=super-init-not-called
         self,
         graph: (
-            dict[str, list[EndpointMemberType]] | dict[str, FrozenInterfaceABC] | FrozenCGraphABC
+            dict[str, list[EndpointMemberType]] | dict[IfKey, FrozenInterfaceABC] | FrozenCGraphABC
         ),
     ) -> None:
         """Initialize the Connection Graph.

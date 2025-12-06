@@ -21,10 +21,12 @@ from egppy.physics.pgc_api import (
     GCABC,
     CGraph,
     CGraphABC,
+    DstIfKey,
     DstRow,
     EGCode,
     GGCode,
     Interface,
+    SrcIfKey,
     SrcRow,
 )
 from egppy.physics.runtime_context import RuntimeContext
@@ -36,19 +38,19 @@ def harmony_py(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
     """
     gca_cgraph: CGraphABC = gca["cgraph"]
     gcb_cgraph: CGraphABC = gcb["cgraph"]
-    gca_is_len = len(gca_cgraph["Is"])
-    gca_od_len = len(gca_cgraph["Od"])
+    gca_is_len = len(gca_cgraph[SrcIfKey.IS])
+    gca_od_len = len(gca_cgraph[DstIfKey.OD])
 
     cgraph = CGraph(
         {
-            "Is": gca_cgraph["Is"] + Interface(gcb_cgraph["Is"], SrcRow.I, DstRow.B),
-            "Ad": Interface(gca_cgraph["Is"].to_td(), DstRow.A, SrcRow.I),
-            "As": Interface(gca_cgraph["Od"].to_td(), SrcRow.A, DstRow.O),
-            "Bd": Interface(gcb_cgraph["Is"].to_td(), DstRow.B, SrcRow.I, gca_is_len),
-            "Bs": Interface(gcb_cgraph["Od"].to_td(), SrcRow.B, DstRow.O, gca_od_len),
-            "Od": Interface(gca_cgraph["Od"].to_td(), DstRow.O, SrcRow.A).extend(
-                Interface(gcb_cgraph["Od"].to_td(), DstRow.O, SrcRow.B)
-            ),
+            SrcIfKey.IS: Interface(gca_cgraph[SrcIfKey.IS])
+            + Interface(gcb_cgraph[SrcIfKey.IS], SrcRow.I, DstRow.B),
+            DstIfKey.AD: Interface(gca_cgraph[SrcIfKey.IS].to_td(), DstRow.A, SrcRow.I),
+            SrcIfKey.AS: Interface(gca_cgraph[DstIfKey.OD].to_td(), SrcRow.A, DstRow.O),
+            DstIfKey.BD: Interface(gcb_cgraph[SrcIfKey.IS].to_td(), DstRow.B, SrcRow.I, gca_is_len),
+            SrcIfKey.BS: Interface(gcb_cgraph[DstIfKey.OD].to_td(), SrcRow.B, DstRow.O, gca_od_len),
+            DstIfKey.OD: Interface(gca_cgraph[DstIfKey.OD].to_td(), DstRow.O, SrcRow.A)
+            + Interface(gcb_cgraph[DstIfKey.OD].to_td(), DstRow.O, SrcRow.B),
         }
     )
 
@@ -155,19 +157,19 @@ def unstablized_stack_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict
     dict[str, Any] -- the resultant stacked proto-GC
     """
     igc_cgraph: CGraphABC = igc["cgraph"]
-    igc_is: FrozenInterfaceABC = igc_cgraph["Is"]
-    igc_od: FrozenInterfaceABC = igc_cgraph["Od"]
+    igc_is: FrozenInterfaceABC = igc_cgraph[SrcIfKey.IS]
+    igc_od: FrozenInterfaceABC = igc_cgraph[DstIfKey.OD]
     tgc_cgraph: CGraphABC = tgc["cgraph"]
-    tgc_is: FrozenInterfaceABC = tgc_cgraph["Is"]
-    tgc_od: FrozenInterfaceABC = tgc_cgraph["Od"]
+    tgc_is: FrozenInterfaceABC = tgc_cgraph[SrcIfKey.IS]
+    tgc_od: FrozenInterfaceABC = tgc_cgraph[DstIfKey.OD]
     cgraph = CGraph(
         {
-            "Is": Interface(igc_is, SrcRow.I, DstRow.A),
-            "Ad": Interface(igc_is, DstRow.A, SrcRow.I),
-            "As": Interface(igc_od, SrcRow.A).clr_refs(),
-            "Bd": Interface(tgc_is, DstRow.B).clr_refs(),
-            "Bs": Interface(tgc_od, SrcRow.B, DstRow.O),
-            "Od": Interface(tgc_od, DstRow.O, SrcRow.B),
+            SrcIfKey.IS: Interface(igc_is, SrcRow.I, DstRow.A),
+            DstIfKey.AD: Interface(igc_is, DstRow.A, SrcRow.I),
+            SrcIfKey.AS: Interface(igc_od, SrcRow.A).clr_refs(),
+            DstIfKey.BD: Interface(tgc_is, DstRow.B).clr_refs(),
+            SrcIfKey.BS: Interface(tgc_od, SrcRow.B, DstRow.O),
+            DstIfKey.OD: Interface(tgc_od, DstRow.O, SrcRow.B),
         }
     )
     rgc = {

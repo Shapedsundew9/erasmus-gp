@@ -17,7 +17,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint import EndPoint, TypesDef
-from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType
+from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType, FrozenEndPointABC
 from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 
@@ -231,7 +231,9 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Create new interface with copied endpoints from both
         # Create copies of endpoints with updated indices (with clean references)
-        return Interface(self).extend(other)
+        niface = Interface(self)
+        niface.extend(other)
+        return niface
 
     def __delitem__(self, idx: int) -> None:
         """Delete an endpoint at a specific index.
@@ -271,7 +273,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         """Return the number of endpoints in the interface."""
         return len(self.endpoints)
 
-    def __setitem__(self, idx: int, value: EndPointABC) -> None:
+    def __setitem__(self, idx: int, value: FrozenEndPointABC) -> None:
         """Set an endpoint at a specific index.
 
         Args
@@ -286,7 +288,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         IndexError: If idx is out of range.
         ValueError: If the endpoint's row or class doesn't match existing endpoints.
         """
-        if not isinstance(value, EndPointABC):
+        if not isinstance(value, FrozenEndPointABC):
             raise TypeError(f"Expected EndPointABC, got {type(value)}")
         if idx < 0 or idx >= len(self.endpoints):
             raise IndexError(
@@ -300,7 +302,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         """Return the string representation of the interface."""
         return f"Interface({', '.join(str(ep.typ) for ep in self.endpoints)})"
 
-    def append(self, value: EndPointABC) -> None:
+    def append(self, value: FrozenEndPointABC) -> None:
         """Append an endpoint to the interface.
 
         Append correctly sets the index of the appended endpoint.
@@ -340,9 +342,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         # Call parent consistency()
         super().consistency()
 
-    def extend(
-        self, values: list[EndPointABC] | tuple[EndPointABC, ...] | FrozenInterfaceABC
-    ) -> InterfaceABC:
+    def extend(self, values: Sequence[FrozenEndPointABC] | FrozenInterfaceABC) -> None:
         """Extend the interface with multiple endpoints.
 
         Extend correctly sets the indices of the appended endpoints.
@@ -356,9 +356,8 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             _value = EndPoint(value)  # Make a copy to ensure mutability & independence
             _value.idx = idx  # Ensure the index is correct
             self.endpoints.append(_value)
-        return self
 
-    def insert(self, index: int, value: EndPointABC) -> None:
+    def insert(self, index: int, value: FrozenEndPointABC) -> None:
         """Insert an endpoint at a specific index.
 
         Args:
@@ -445,7 +444,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         indices = bytes(lookup_indices[ep.typ.uid] for ep in self.endpoints)
         return otu, indices
 
-    def unconnected_eps(self) -> list[EndPointABC]:
+    def unconnected_eps(self) -> list[EndPointABC]:  # type: ignore[override]
         """Return a list of unconnected endpoints."""
         return [ep for ep in self.endpoints if not ep.is_connected()]
 
