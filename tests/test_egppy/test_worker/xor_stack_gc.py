@@ -29,6 +29,7 @@ from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
@@ -68,7 +69,6 @@ _codon_specs = {
     "LITERAL_1_SIG": ([], ["int"], "1"),
     "SIXTYFOUR_SIG": ([], ["int"], "64"),
     "CUSTOM_PGC_SIG": ([], [], "custom"),
-    "INT_TO_SIG": (["int"], ["Integral"], "raise_if_not_instance_of(i0, t0)"),
     "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
 }
 
@@ -118,21 +118,9 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
     meta codons.
     """
 
-    int_to: dict[str, GGCDict] = {"Integral": gpi[CODON_SIGS["INT_TO_SIG"]]}
     to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
 
-    # Find all the endpoint in the input interface that are not 'int'
-    while iepl := [iep for iep in gc["cgraph"]["Is"] if iep.typ != INT_TD]:
-        # We will only process the first endpoint in the iepl list
-        # Find the appropriate meta codon to cast the first endpoint to 'int'
-        meta_codon = int_to.get(iepl[0].typ.name)
-        if meta_codon is None:
-            raise ValueError(f"No meta-codon found to cast {iepl[0].typ.name} to int.")
-        # Create an new GC with that endpoint cast. This GC will be evaluated to see
-        # if all its inputs are 'int' in the next iteration
-        gc = cast_to_int_at_input_idx(meta_codon, gc, iepl[0].idx)
-
-    # Now do the same with the outputs
+    # Upcast the outputs
     while oepl := [oep for oep in gc["cgraph"]["Od"] if oep.typ != INT_TD]:
         # We will only process the first endpoint in the oepl list
         # Find the appropriate meta codon to cast the first endpoint to 'int'
@@ -145,42 +133,6 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
 
     # The original GC with the input & output types converted to 'int'
     return gc
-
-
-def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
-    """Cast the input at the given index to 'int'.
-    This is done by stacking a meta codon that does the right conversion
-    as GCA and wiring through the inputs and outputs directly
-    to ensure the interface remains in the same order.
-
-    Args
-    ----
-    mc: The meta codon to use for the cast.
-    gc: The original GC to cast.
-    idx: The index of the input in gc to cast.
-    """
-    mcot = mc["cgraph"]["Od"][0].typ.name
-    return inherit_members(
-        {
-            "ancestora": gc,
-            "ancestorb": mc,
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": mc,
-            "gcb": gc,
-            "cgraph": {
-                "A": [["I", idx, mc["cgraph"]["Is"][0].typ.name]],
-                "B": [
-                    ["I", ep.idx, ep.typ.name] if ep.idx != idx else ["A", 0, mcot]
-                    for ep in gc["cgraph"]["Is"]
-                ],
-                "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
 
 
 def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
@@ -326,8 +278,11 @@ def create_primitive_gcs() -> None:
             "generation": 2,
             "cgraph": {
                 "A": [],
-                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-                "O": [["B", 0, INT_T]],
+                "B": [
+                    ["I", 0, rshift_gc["cgraph"][SrcIfKey.IS][0].typ.name],
+                    ["A", 0, rshift_gc["cgraph"][SrcIfKey.IS][1].typ.name],
+                ],
+                "O": [["B", 0, rshift_gc["cgraph"][DstIfKey.OD][0].typ.name]],
                 "U": [],
             },
             "num_codes": 3,
@@ -347,9 +302,12 @@ def create_primitive_gcs() -> None:
             "gca": rshift_1_gc,
             "gcb": xor_gc,
             "cgraph": {
-                "A": [["I", 1, INT_T]],
-                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-                "O": [["B", 0, INT_T]],
+                "A": [["I", 1, rshift_1_gc["cgraph"][SrcIfKey.IS][0].typ.name]],
+                "B": [
+                    ["I", 0, xor_gc["cgraph"][SrcIfKey.IS][0].typ.name],
+                    ["A", 0, rshift_1_gc["cgraph"][DstIfKey.OD][0].typ.name],
+                ],
+                "O": [["B", 0, xor_gc["cgraph"][DstIfKey.OD][0].typ.name]],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -542,7 +500,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
     # Ad in this GC must be the same as Is in the GCA
     # NOTE: That the TypesDef ObjectSet should ensure they are the same object
     for idx, (a, i) in enumerate(zip(egc["cgraph"]["Ad"], gca["cgraph"]["Is"])):
-        if a.typ is not i.typ:
+        if a.typ not in types_def_store.ancestors(i.typ):
             raise ValueError(
                 f"Input types do not match for GCA at position {idx}: "
                 f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
@@ -551,7 +509,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
 
     # As in this GC must be the same as Od in the GCA
     for idx, (a, o) in enumerate(zip(egc["cgraph"]["As"], gca["cgraph"]["Od"])):
-        if a.typ is not o.typ:
+        if a.typ not in types_def_store.ancestors(o.typ):
             raise ValueError(
                 f"Output types do not match for GCA at position {idx}: "
                 f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
@@ -568,11 +526,17 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
 
         # Bd in this GC must be the same as Is in the GCB
         # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-        if not all(b.typ is i.typ for b, i in zip(egc["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
+        if not all(
+            i.typ in types_def_store.ancestors(b.typ)
+            for b, i in zip(egc["cgraph"][DstIfKey.BD], gcb["cgraph"][SrcIfKey.IS])
+        ):
             raise ValueError("Input types do not match for GCB")
 
         # Bs in this GC must be the same as Od in the GCB
-        if not all(b.typ is o.typ for b, o in zip(egc["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
+        if not all(
+            o.typ in types_def_store.ancestors(b.typ)
+            for b, o in zip(egc["cgraph"][SrcIfKey.BS], gcb["cgraph"][DstIfKey.OD])
+        ):
             raise ValueError("Output types do not match for GCB")
 
     return egc

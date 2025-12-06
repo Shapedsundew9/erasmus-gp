@@ -213,12 +213,10 @@ def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
     #     and properties column (sggc).
     # 11. Write the final GC to the execution context which adds it to the Gene Pool.
     tmp1_ggc = _harmony_connect(ec, rtctxt, codons["PSQL_CDN_PRP_MSK"], codons["PSQL_PRP_COLUMN"])
-    tmp2_ggc = _stack_connect(ec, rtctxt, codons["PSQL_2x64_TO_IGRL"], codons["PSQL_BITWISE_AND"])
-    tmp3_ggc = _stack_connect(ec, rtctxt, tmp1_ggc, tmp2_ggc)
+    tmp3_ggc = _stack_connect(ec, rtctxt, tmp1_ggc, codons["PSQL_BITWISE_AND"])
     tmp3a_ggc = _stack_connect(ec, rtctxt, tmp3_ggc, codons["PSQL_IGRL_TO_64"])
     tmp3b_ggc = _harmony_connect(ec, rtctxt, tmp3a_ggc, codons["PSQL_0_BIGINT"])
-    tmp3c_ggc = _stack_connect(ec, rtctxt, codons["PSQL_2x64_TO_TYPE"], codons["PSQL_EQUALS"])
-    tmp3d_ggc = _stack_connect(ec, rtctxt, tmp3b_ggc, tmp3c_ggc)
+    tmp3d_ggc = _stack_connect(ec, rtctxt, tmp3b_ggc, codons["PSQL_EQUALS"])
     tmp4_ggc = _stack_connect(ec, rtctxt, tmp3d_ggc, codons["PSQL_WHERE"])
     tmp5_ggc = _harmony_connect(ec, rtctxt, tmp4_ggc, codons["PSQL_ORDERBY_RND"])
     sggc = _stack_connect(ec, rtctxt, tmp5_ggc, codons["GPI_SELECT_GC"])

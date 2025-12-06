@@ -17,8 +17,8 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import properties_store, signature_store, uuid_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
-from egpcommon.properties import GCType, PropertiesBD
-from egppy.genetic_code.c_graph import CGraph, CGraphType, c_graph_type
+from egpcommon.properties import CGraphType, GCType, PropertiesBD
+from egppy.genetic_code.c_graph import CGraph, c_graph_type
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import JSONCGraph, SrcRow
 from egppy.genetic_code.genetic_code import (

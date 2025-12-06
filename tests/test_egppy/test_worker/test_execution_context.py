@@ -147,10 +147,10 @@ class TestExecutor(unittest.TestCase):
                 "gcb": None,
                 "cgraph": {
                     "L": [["I", 0, "tuple"]],  # Iterable input
-                    "S": [["I", 1, INT_T]],  # Initial State
-                    "A": [["S", 0, INT_T], ["L", 0, INT_T]],  # Body inputs: State, Item
-                    "T": [["A", 0, INT_T]],  # Next State
-                    "O": [["A", 0, INT_T]],  # Output
+                    "S": [["I", 1, "Integral"]],  # Initial State
+                    "A": [["S", 0, "Integral"], ["L", 0, "Integral"]],  # Body inputs: State, Item
+                    "T": [["A", 0, "Integral"]],  # Next State
+                    "O": [["A", 0, "Integral"]],  # Output
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
@@ -417,11 +417,11 @@ class TestExecutor(unittest.TestCase):
                 "gcb": None,
                 "cgraph": {
                     "W": [["I", 0, "bool"]],  # Initial Condition
-                    "S": [["I", 1, INT_T]],  # Initial State
-                    "A": [["S", 0, INT_T]],  # Body inputs: State
-                    "T": [["A", 0, INT_T]],  # Next State
-                    "X": [["A", 0, INT_T]],  # Next Condition (Same as state)
-                    "O": [["A", 0, INT_T]],  # Output
+                    "S": [["I", 1, "Integral"]],  # Initial State
+                    "A": [["S", 0, "Integral"]],  # Body inputs: State
+                    "T": [["A", 0, "Integral"]],  # Next State
+                    "X": [["A", 0, "Integral"]],  # Next Condition (Same as state)
+                    "O": [["A", 0, "Integral"]],  # Output
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
@@ -456,11 +456,11 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 9530e66953e1708bcdbd7fa5270f58b6eb465b252c07c32511c62f47ddf04a64\n'
+            '\t"""Signature: c6adb00c0e2f5a797782a2e8b96e6e06fea288ab3415f13d5037d4d7f81fb056\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\tGeneration: 7\n"
+            "\tGeneration: 5\n"
             '\t"""\n'
             "\to1 = f_0()\n"
             "\tt0 = f_7fffffff((o1,))\n"
@@ -478,18 +478,16 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 9530e66953e1708bcdbd7fa5270f58b6eb465b252c07c32511c62f47ddf04a64\n'
+            '\t"""Signature: c6adb00c0e2f5a797782a2e8b96e6e06fea288ab3415f13d5037d4d7f81fb056\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\tGeneration: 7\n"
+            "\tGeneration: 5\n"
             '\t"""\n'
             "\tt0 = 64\n"
             "\to1 = getrandbits(t0)\n"
-            "\tt3 = f_7fffffff((o1,))\n"
-            "\tt2 = raise_if_not_instance_of(t3, Integral)\n"
-            "\tt4 = raise_if_not_instance_of(i[0], Integral)\n"
-            "\tt1 = t4 ^ t2\n"
+            "\tt2 = f_7fffffff((o1,))\n"
+            "\tt1 = i[0] ^ t2\n"
             "\to0 = raise_if_not_instance_of(t1, int)\n"
             "\treturn o0, o1"
         )
