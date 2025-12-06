@@ -128,10 +128,10 @@ class TestCodonDevLoad(unittest.TestCase):
 
     def test_find_meta_codon_signature(self) -> None:
         """Test finding a meta-codon signature (type cast)."""
-        # Meta-codons are type casts - find one
+        # Meta-codons are type upcasts - find one
         signature = find_codon_signature(
-            input_types=["PsqlNumeric"],
-            output_types=["object"],
+            input_types=["object"],
+            output_types=["PsqlNumeric"],
             name="raise_if_not_instance_of(i0, t0)",
         )
 

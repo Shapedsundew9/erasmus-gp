@@ -43,20 +43,10 @@ _GC_SIGNATURES: dict[str, tuple] = {
     "PSQL_0_BIGINT": ([], ["PsqlBigInt"], "0::BIGINT"),
     "PSQL_ORDERBY_RND": ([], ["PsqlFragmentOrderBy"], "ORDER BY RANDOM"),
     "PSQL_WHERE": (["PsqlBool"], ["PsqlFragmentWhere"], "WHERE"),
-    "PSQL_2x64_TO_IGRL": (
-        ["PsqlBigInt"],
-        ["PsqlIntegral"],
-        "raise_if_not_instance_of(ix, tx)",
-    ),
     "PSQL_IGRL_TO_64": (
         ["PsqlIntegral"],
         ["PsqlBigInt"],
         "raise_if_not_instance_of(i0, t0)",
-    ),
-    "PSQL_2x64_TO_TYPE": (
-        ["PsqlBigInt"],
-        ["PsqlType"],
-        "raise_if_not_instance_of(ix, tx)",
     ),
     "GPI_SELECT_GC": (["PsqlFragmentOrderBy", "PsqlFragmentWhere"], ["GGCode"], "select"),
     "CONNECT_ALL": (["EGCode"], ["GGCode"], "connect_all"),

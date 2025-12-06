@@ -31,14 +31,14 @@ class TestMetaCodons(unittest.TestCase):
     def test_meta_type_cast_existing_gc(self):
         """Test meta type cast when an existing GC is found."""
         sig = find_codon_signature(
-            ["PsqlBigInt"],
             ["PsqlIntegral"],
+            ["PsqlBigInt"],
             "raise_if_not_instance_of(ix, tx)",
         )
         existing_gc = self.gpi[sig]
         rtctxt = RuntimeContext(self.gpi)
-        ifa = Interface(["PsqlBigInt"] * 2, SrcRow.I)
-        ifb = Interface(["PsqlIntegral"] * 2, DstRow.O)
+        ifa = Interface(["PsqlIntegral"] * 2, DstRow.O)
+        ifb = Interface(["PsqlBigInt"] * 2, SrcRow.I)
         gc = meta_type_cast(rtctxt, ifa, ifb)
         self.assertEqual(gc, existing_gc)
 

@@ -59,9 +59,11 @@ def generate_meta_codons(write: bool = False) -> None:
     """
     _logger.log(DEBUG, "Generating meta codons...")
 
-    # Find the set of type "casts". Types may be cast in two ways:
-    #   - To an ancestor (parent, grandparent ... 'object' at the root)
-    #   - To a valid child (this implies it was previously cast to a parent)
+    # Find the set of type "upcasts". Casts are used to convert outputs
+    # to a child type. This may not be successful at runtime if the object is not
+    # actually of the child type. It is needed because there is a general
+    # pressure to downcast types e.g. arithmetic operations take Numbers and so the
+    # result is a Number but often it is really a "int" or "float" etc.
     # Casts use isinstance() to validate they are correct and so can only be applied
     # to types that have tt = 0
     cast_set: set[tuple[int, int]] = {
@@ -86,48 +88,43 @@ def generate_meta_codons(write: bool = False) -> None:
 
         # One and two parameter variants
         for codon_template in (CODON_ONE_PARAMETER, CODON_TWO_PARAMETER):
-            # Do both directions
-            for inpt, oupt, upcast in ((ctd, ptd, True), (ptd, ctd, False)):
+            inpt, oupt, upcast = (ptd, ctd, True)
 
-                # Create a copy of the codon template
-                codon: dict[str, Any] = deepcopy(codon_template)
-                codon["properties"]["gctsp"]["type_upcast"] = upcast
-                codon["properties"]["gctsp"]["type_downcast"] = not upcast
+            # Create a copy of the codon template
+            codon: dict[str, Any] = deepcopy(codon_template)
+            codon["properties"]["gctsp"]["type_upcast"] = upcast
+            codon["properties"]["gctsp"]["type_downcast"] = not upcast
 
-                # Set the type for the connections in the connection graph
-                for ept in codon["cgraph"]["A"]:
-                    ept[2] = inpt.name
-                for ept in codon["cgraph"]["O"]:
-                    ept[2] = oupt.name
+            # Set the type for the connections in the connection graph
+            for ept in codon["cgraph"]["A"]:
+                ept[2] = inpt.name
+            for ept in codon["cgraph"]["O"]:
+                ept[2] = oupt.name
 
-                base = codon["meta_data"]["function"]["python3"]["0"]
-                assert valid_jcg(codon["cgraph"]), "Invalid codon connection graph at construction."
-                codon["signature"] = sha256_signature(
-                    codon["ancestora"],
-                    codon["ancestorb"],
-                    codon["gca"],
-                    codon["gcb"],
-                    CGraph(json_cgraph_to_interfaces(codon["cgraph"])).to_json(
-                        True
-                    ),  # type: ignore
-                    codon["pgc"],
-                    tuple(ImportDef(**md) for md in base["imports"]),
-                    base["inline"],
-                    NULL_STR,
-                    int(datetime.fromisoformat(codon["created"]).timestamp()),
-                    codon["creator"].bytes,
-                )
+            base = codon["meta_data"]["function"]["python3"]["0"]
+            assert valid_jcg(codon["cgraph"]), "Invalid codon connection graph at construction."
+            codon["signature"] = sha256_signature(
+                codon["ancestora"],
+                codon["ancestorb"],
+                codon["gca"],
+                codon["gcb"],
+                CGraph(json_cgraph_to_interfaces(codon["cgraph"])).to_json(True),  # type: ignore
+                codon["pgc"],
+                tuple(ImportDef(**md) for md in base["imports"]),
+                base["inline"],
+                NULL_STR,
+                int(datetime.fromisoformat(codon["created"]).timestamp()),
+                codon["creator"].bytes,
+            )
 
-                new_codon = GGCDict(codon)
-                new_codon.verify()
-                codon = new_codon.to_json()
-                assert valid_jcg(
-                    codon["cgraph"]
-                ), "Invalid codon connection graph after verification."
+            new_codon = GGCDict(codon)
+            new_codon.verify()
+            codon = new_codon.to_json()
+            assert valid_jcg(codon["cgraph"]), "Invalid codon connection graph after verification."
 
-                if codon["signature"] in meta_codons:
-                    raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
-                meta_codons[codon["signature"]] = codon
+            if codon["signature"] in meta_codons:
+                raise ValueError(f"Duplicate meta codon signature: {codon['signature']}")
+            meta_codons[codon["signature"]] = codon
 
     # If we are debugging verify the signatures are correct
     if _logger.isEnabledFor(DEBUG) and not write:
