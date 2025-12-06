@@ -502,8 +502,24 @@ class TypesDefStore:
         return num_entries < num_files
 
     def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
-        """Return the type definition and all ancestors by name or UID.
-        The ancestors are the parents, grandparents etc. in depth order (type "key" first).
+        """Returns the specified type definition and all its ancestor type
+        definitions in depth order.
+
+        Ancestors are defined as the parents, grandparents, etc., of the given type,
+        including the type itself. The search starts from the provided key
+        (which can be a name, UID, or TypesDef instance) and traverses up the parent hierarchy.
+        Results are cached for performance.
+
+        Args:
+            key (str | int | TypesDef): The identifier (name, UID, or TypesDef instance)
+            of the type definition to start from.
+
+        Returns:
+            frozenset[TypesDef]: A frozenset containing the type definition and all its
+            ancestors, in depth order.
+
+        Raises:
+            KeyError: If the provided key does not correspond to a valid type definition.
         """
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
@@ -534,8 +550,24 @@ class TypesDefStore:
         return result
 
     def descendants(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
-        """Return the all the descendants of a type.
-        The descendants are the children, grandchildren etc. in depth order (type "key" first).
+        """Returns the specified type definition and all its descendant type
+        definitions in depth order.
+
+        Descendants are defined as the children, grandchildren, etc., of the given type,
+        including the type itself. The search starts from the provided key
+        (which can be a name, UID, or TypesDef instance) and traverses down the child hierarchy.
+        Results are cached for performance.
+
+        Args:
+            key (str | int | TypesDef): The identifier (name, UID, or TypesDef instance)
+            of the type definition to start from.
+
+        Returns:
+            frozenset[TypesDef]: A frozenset containing the type definition and all its
+            descendants, in depth order.
+
+        Raises:
+            KeyError: If the provided key does not correspond to a valid type definition.
         """
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
