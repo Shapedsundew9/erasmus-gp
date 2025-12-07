@@ -6,19 +6,23 @@ for simplicity. The UGC allows any values to be stored in the genetic code objec
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
 
+from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID
 
-from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, SHAPEDSUNDEW9_UUID
+from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, SHAPEDSUNDEW9_UUID, sha256_signature
 from egpcommon.common_obj import CommonObj
-from egpcommon.deduplication import int_store
+from egpcommon.deduplication import int_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.import_def import ImportDef
+from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -45,6 +49,26 @@ class GGCDict(EGCDict):
 
         if not isinstance(self["cgraph"], FrozenCGraph):
             self["cgraph"] = frozen_cgraph_store[FrozenCGraph(self["cgraph"])]
+
+        if isinstance(self["gca"], GCABC):
+            # TODO: If GCA is an EGCDict we need to resolve it to a GGCDict
+            # That requires walking the tree of genetic codes as GCA may itself
+            # depend on EGCDict objects. That needs to be implemented as a separate
+            # method (using a stack). It is a fundamental assumption that all
+            # EGCDicts are stable and can be resolved to GGCDicts.
+            self["gca"] = self["gca"]["signature"]
+        if isinstance(self["gcb"], GCABC):
+            # TODO: If GCB is an EGCDict we need to resolve it to a GGCDict (see GCA)
+            self["gcb"] = self["gcb"]["signature"]
+        if isinstance(self["ancestora"], GCABC):
+            # TODO: If Ancestor A is an EGCDict we need to resolve it to a GGCDict (see GCA)
+            self["ancestora"] = self["ancestora"]["signature"]
+        if isinstance(self["ancestorb"], GCABC):
+            # TODO: If Ancestor B is an EGCDict we need to resolve it to a GGCDict (see GCA)
+            self["ancestorb"] = self["ancestorb"]["signature"]
+        if isinstance(self["pgc"], GCABC):
+            # TODO: If PGC is an EGCDict we need to resolve it to a GGCDict (see GCA)
+            self["pgc"] = self["pgc"]["signature"]
 
         self["code_depth"] = int_store[gcabc["code_depth"]]
         self["generation"] = int_store[gcabc["generation"]]
@@ -88,6 +112,24 @@ class GGCDict(EGCDict):
         self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
 
         self["reference_count"] = int_store[gcabc.get("reference_count", 0)]
+
+        if self.get("signature") is None:
+            self["signature"] = signature_store[
+                sha256_signature(
+                    self["ancestora"],
+                    self["ancestorb"],
+                    self["gca"],
+                    self["gcb"],
+                    self["cgraph"].to_json(True),
+                    self["pgc"],
+                    self["imports"],
+                    self["inline"],
+                    self["code"],
+                    int(self["created"].timestamp()),
+                    self["creator"].bytes,
+                )
+            ]
+
         tmp = gcabc.get("updated", datetime.now(UTC))
         self["updated"] = (
             # If the datetime exists it is from the database and has no timezone info.
@@ -98,6 +140,58 @@ class GGCDict(EGCDict):
 
         if _logger.isEnabledFor(DEBUG):
             self.verify()
+
+    def to_json(self) -> dict[str, int | str | float | list | dict]:
+        """Return a JSON serializable dictionary."""
+        retval = {}
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        # Only keys that are persisted in the DB are included in the JSON.
+        for key in (k for k in self if self.GC_KEY_TYPES.get(k, {})):
+            value = self[key]
+            if key == "meta_data":
+                assert isinstance(value, dict), "Meta data must be a dict."
+                md = deepcopy(value)
+                if (
+                    "function" in md
+                    and "python3" in md["function"]
+                    and "0" in md["function"]["python3"]
+                    and "imports" in md["function"]["python3"]["0"]
+                ):
+                    md["function"]["python3"]["0"]["imports"] = [
+                        imp.to_json() for imp in self["imports"]
+                    ]
+                retval[key] = md
+            elif key == "properties":
+                # Make properties humman readable.
+                assert isinstance(value, int), "Properties must be an int."
+                retval[key] = PropertiesBD(value).to_json()
+            elif key.endswith("_types"):
+                # Make types human readable.
+                retval[key] = [types_def_store[t].name for t in value]
+            elif isinstance(value, GCABC):
+                # Must get signatures from GC objects first otherwise will recursively
+                # call this function.
+                retval[key] = value["signature"].hex() if value is not None else None
+            elif isinstance(value, CGraphABC):
+                # Need to set json_c_graph to True so that the endpoints are correctly serialized
+                retval[key] = value.to_json(json_c_graph=True)
+            elif getattr(self[key], "to_json", None) is not None:
+                retval[key] = self[key].to_json()
+            elif isinstance(value, bytes):
+                retval[key] = value.hex()
+            elif value is None:
+                retval[key] = None
+            elif isinstance(value, datetime):
+                retval[key] = value.isoformat()
+            elif isinstance(value, UUID):
+                retval[key] = str(value)
+            else:
+                retval[key] = value
+                if _logger.isEnabledFor(DEBUG):
+                    assert isinstance(
+                        value, (int, str, float, list, dict, tuple)
+                    ), f"Invalid type: {type(value)}"
+        return retval
 
     def verify(self) -> None:
         """Verify the genetic code object."""
@@ -332,6 +426,11 @@ class GGCDict(EGCDict):
             self["updated"] <= datetime.now(UTC),
             "updated time must be less than or equal to the current time.",
         )
+        self.debug_type_error(
+            isinstance(self["signature"], bytes), "signature must be a bytes object"
+        )
+        self.debug_value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
+
         # Call base class verify at the end
         super().verify()
 

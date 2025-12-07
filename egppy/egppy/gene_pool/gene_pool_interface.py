@@ -80,13 +80,13 @@ class GenePoolInterface(GPIABC):
         """Check if a Genetic Code exists in the local cache using its signature."""
         return signature in self._ggc_cache
 
-    def __getitem__(self, signature: bytes) -> GGCDict:
+    def __getitem__(self, gc: bytes | GGCDict) -> GGCDict:
         """Get a Genetic Code by its signature."""
         # TODO: Need to handle the case where the GC is not found in the GP.
         # In that case we fall back to the microbiome GPL (which will fallback
-        # to the biome GPL etc.) and we could recieve a timeout or rate limit
+        # to the biome GPL etc.) and we could receive a timeout or rate limit
         # response.
-        return self._ggc_cache[signature]
+        return self._ggc_cache[gc if isinstance(gc, bytes) else gc["signature"]]
 
     def __setitem__(self, signature: bytes, value: GCABC) -> None:
         """Place a genetic code in the cache. NB: It is not persisted to the

@@ -6,13 +6,12 @@ code class. As a working genetic code object, it only contains the essentials of
 genetic code object avoiding all the derived data.
 """
 
-from copy import deepcopy
 from datetime import UTC, datetime
 from itertools import count
 from typing import Any
 from uuid import UUID
 
-from egpcommon.common import ANONYMOUS_CREATOR, NULL_STR, NULL_TUPLE, sha256_signature
+from egpcommon.common import ANONYMOUS_CREATOR
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import properties_store, signature_store, uuid_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
@@ -30,7 +29,6 @@ from egppy.genetic_code.genetic_code import (
     mc_unknown_str,
 )
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
-from egppy.genetic_code.types_def import types_def_store
 from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
@@ -77,47 +75,48 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         # GCA
         # NULL signatures are now represented as None for storage and computation efficiency.
         tgca: str | bytes | GCABC | None = gcabc.get("gca")
-        if tgca is None:
-            self["gca"] = None
+        if isinstance(tgca, str):
+            tgca = bytes.fromhex(tgca)
+        if isinstance(tgca, bytes):
+            self["gca"] = signature_store[tgca]
         else:
-            gca: str | bytes = tgca["signature"] if isinstance(tgca, GCABC) else tgca
-            self["gca"] = signature_store[bytes.fromhex(gca) if isinstance(gca, str) else gca]
+            self["gca"] = tgca
 
         # GCB
         tgcb: str | bytes | GCABC | None = gcabc.get("gcb")
-        if tgcb is None:
-            self["gcb"] = None
+        if isinstance(tgcb, str):
+            tgcb = bytes.fromhex(tgcb)
+        if isinstance(tgcb, bytes):
+            self["gcb"] = signature_store[tgcb]
         else:
-            gcb: str | bytes = tgcb["signature"] if isinstance(tgcb, GCABC) else tgcb
-            self["gcb"] = signature_store[bytes.fromhex(gcb) if isinstance(gcb, str) else gcb]
+            self["gcb"] = tgcb
 
         # Ancestor A
         taa: str | bytes | GCABC | None = gcabc.get("ancestora")
-        if taa is None:
-            self["ancestora"] = None
+        if isinstance(taa, str):
+            taa = bytes.fromhex(taa)
+        if isinstance(taa, bytes):
+            self["ancestora"] = signature_store[taa]
         else:
-            ancestora: str | bytes = taa["signature"] if isinstance(taa, GCABC) else taa
-            self["ancestora"] = signature_store[
-                bytes.fromhex(ancestora) if isinstance(ancestora, str) else ancestora
-            ]
+            self["ancestora"] = taa
 
         # Ancestor B
         tab: str | bytes | GCABC | None = gcabc.get("ancestorb")
-        if tab is None:
-            self["ancestorb"] = None
+        if isinstance(tab, str):
+            tab = bytes.fromhex(tab)
+        if isinstance(tab, bytes):
+            self["ancestorb"] = signature_store[tab]
         else:
-            ancestorb: str | bytes = tab["signature"] if isinstance(tab, GCABC) else tab
-            self["ancestorb"] = signature_store[
-                bytes.fromhex(ancestorb) if isinstance(ancestorb, str) else ancestorb
-            ]
+            self["ancestorb"] = tab
 
         # Parent Genetic Code
         tpgc: str | bytes | GCABC | None = gcabc.get("pgc")
-        if tpgc is None:
-            self["pgc"] = None
+        if isinstance(tpgc, str):
+            tpgc = bytes.fromhex(tpgc)
+        if isinstance(tpgc, bytes):
+            self["pgc"] = signature_store[tpgc]
         else:
-            pgc: str | bytes = tpgc["signature"] if isinstance(tpgc, GCABC) else tpgc
-            self["pgc"] = signature_store[bytes.fromhex(pgc) if isinstance(pgc, str) else pgc]
+            self["pgc"] = tpgc
 
         # Created Timestamp
         tmp = gcabc.get("created", datetime.now(UTC))
@@ -138,25 +137,6 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         creator = UUID(creator) if isinstance(creator, str) else creator
         self["creator"] = uuid_store[creator]
 
-        # Signature
-        tmp: str | bytes | None = gcabc.get("signature")
-        if tmp is None:
-            self["signature"] = sha256_signature(
-                self["ancestora"],
-                self["ancestorb"],
-                self["gca"],
-                self["gcb"],
-                self["cgraph"].to_json(True),
-                self["pgc"],
-                NULL_TUPLE,
-                NULL_STR,
-                NULL_STR,
-                int(self["created"].timestamp()),
-                self["creator"].bytes,
-            )
-        else:
-            self["signature"] = signature_store[bytes.fromhex(tmp) if isinstance(tmp, str) else tmp]
-
     def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         # Need to call consistency down both MRO paths.
@@ -164,16 +144,18 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
 
     def __eq__(self, other: object) -> bool:
         """Return True if the genetic code objects have the same signature."""
-        assert isinstance(self, GCABC)
-        return isinstance(other, GCABC) and self["signature"] == other["signature"]
+        return (
+            isinstance(other, GCABC)
+            and self["gca"] == other["gca"]
+            and self["gcb"] == other["gcb"]
+            and self["cgraph"] == other["cgraph"]
+        )
 
     def __hash__(self) -> int:
         """Return the hash of the genetic code object.
         Signature is guaranteed unique for a given genetic code.
         """
-        assert isinstance(self, GCABC)
-        assert self["signature"] is not None, "Signature must not be None."
-        return hash(self["signature"])
+        return hash(self["gca"]) ^ hash(self["gcb"]) ^ hash(self["cgraph"])
 
     def is_codon(self) -> bool:
         """Return True if the genetic code is a codon or meta-codon."""
@@ -235,58 +217,6 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
                     chart_txt.append(mc_connection_str(gc, cts, gcx, prefix))
         return "\n".join(MERMAID_HEADER + chart_txt + MERMAID_FOOTER)
 
-    def to_json(self) -> dict[str, int | str | float | list | dict]:
-        """Return a JSON serializable dictionary."""
-        retval = {}
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        # Only keys that are persisted in the DB are included in the JSON.
-        for key in (k for k in self if self.GC_KEY_TYPES.get(k, {})):
-            value = self[key]
-            if key == "meta_data":
-                assert isinstance(value, dict), "Meta data must be a dict."
-                md = deepcopy(value)
-                if (
-                    "function" in md
-                    and "python3" in md["function"]
-                    and "0" in md["function"]["python3"]
-                    and "imports" in md["function"]["python3"]["0"]
-                ):
-                    md["function"]["python3"]["0"]["imports"] = [
-                        imp.to_json() for imp in self["imports"]
-                    ]
-                retval[key] = md
-            elif key == "properties":
-                # Make properties humman readable.
-                assert isinstance(value, int), "Properties must be an int."
-                retval[key] = PropertiesBD(value).to_json()
-            elif key.endswith("_types"):
-                # Make types human readable.
-                retval[key] = [types_def_store[t].name for t in value]
-            elif isinstance(value, GCABC):
-                # Must get signatures from GC objects first otherwise will recursively
-                # call this function.
-                retval[key] = value["signature"].hex() if value is not None else None
-            elif isinstance(value, CGraphABC):
-                # Need to set json_c_graph to True so that the endpoints are correctly serialized
-                retval[key] = value.to_json(json_c_graph=True)
-            elif getattr(self[key], "to_json", None) is not None:
-                retval[key] = self[key].to_json()
-            elif isinstance(value, bytes):
-                retval[key] = value.hex()
-            elif value is None:
-                retval[key] = None
-            elif isinstance(value, datetime):
-                retval[key] = value.isoformat()
-            elif isinstance(value, UUID):
-                retval[key] = str(value)
-            else:
-                retval[key] = value
-                if _logger.isEnabledFor(DEBUG):
-                    assert isinstance(
-                        value, (int, str, float, list, dict, tuple)
-                    ), f"Invalid type: {type(value)}"
-        return retval
-
     def verify(self) -> None:
         """Verify the genetic code object.
 
@@ -314,44 +244,35 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         graph_type = properties["graph_type"]
 
         if _logger.isEnabledFor(level=DEBUG):
-            # Type and length validation for all members
-            self.debug_type_error(
-                isinstance(self["cgraph"], CGraphABC), "cgraph must be a Connection Graph object"
-            )
-            self.debug_type_error(
-                self["gca"] is None or isinstance(self["gca"], bytes),
-                "gca must be None or a bytes object",
-            )
-            if self["gca"] is not None:
-                self.debug_value_error(len(self["gca"]) == 32, "gca must be 32 bytes")
-            self.debug_type_error(
-                self["gcb"] is None or isinstance(self["gcb"], bytes),
-                "gcb must be None or a bytes object",
-            )
-            if self["gcb"] is not None:
-                self.debug_value_error(len(self["gcb"]) == 32, "gcb must be 32 bytes")
-            self.debug_type_error(
-                self["ancestora"] is None or isinstance(self["ancestora"], bytes),
-                "ancestora must be None or a bytes object",
-            )
-            if self["ancestora"] is not None:
-                self.debug_value_error(len(self["ancestora"]) == 32, "ancestora must be 32 bytes")
-            self.debug_type_error(
-                self["ancestorb"] is None or isinstance(self["ancestorb"], bytes),
-                "ancestorb must be None or a bytes object",
-            )
-            if self["ancestorb"] is not None:
-                self.debug_value_error(len(self["ancestorb"]) == 32, "ancestorb must be 32 bytes")
-            self.debug_type_error(
-                self["pgc"] is None or isinstance(self["pgc"], bytes),
-                "pgc must be None or a bytes object",
-            )
-            if self["pgc"] is not None:
-                self.debug_value_error(len(self["pgc"]) == 32, "pgc must be 32 bytes")
-            self.debug_type_error(
-                isinstance(self["signature"], bytes), "signature must be a bytes object"
-            )
-            self.debug_value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
+
+            # These are necessary as EGCDict must use object references to other GC's
+            # and GGCDict uses signatures. Due to circular importing we cannot use isinstance
+            # checks against GGCDict here.
+            if type(self) is EGCDict:  # pylint: disable=unidiomatic-typecheck
+                self.debug_type_error(
+                    isinstance(self["cgraph"], CGraphABC),
+                    "cgraph must be a Connection Graph object",
+                )
+                self.debug_type_error(
+                    self["gca"] is None or isinstance(self["gca"], GCABC),
+                    "gca must be None or a GCABC object",
+                )
+                self.debug_type_error(
+                    self["gcb"] is None or isinstance(self["gcb"], GCABC),
+                    "gcb must be None or a GCABC object",
+                )
+                self.debug_type_error(
+                    self["ancestora"] is None or isinstance(self["ancestora"], GCABC),
+                    "ancestora must be None or a GCABC object",
+                )
+                self.debug_type_error(
+                    self["ancestorb"] is None or isinstance(self["ancestorb"], GCABC),
+                    "ancestorb must be None or a GCABC object",
+                )
+                self.debug_type_error(
+                    self["pgc"] is None or isinstance(self["pgc"], GCABC),
+                    "pgc must be None or a GCABC object",
+                )
             self.debug_type_error(isinstance(self["created"], datetime), "created must be datetime")
             self.debug_type_error(isinstance(self["properties"], int), "properties must be int")
 
