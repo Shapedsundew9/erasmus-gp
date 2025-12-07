@@ -179,37 +179,30 @@ def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
     # The random codon selector GC is built up in stages as follows:
     # 1. Get the properties codon mask (PSQL_CDN_PRP_MSK) and the properties column
     #    (PSQL_PRP_COLUMN) codons and package them into a harmony GC (tmp1_ggc).
-    # 2. Get the PSQL_2x64_TO_IGRL codon which type casts a BIGINT to an Integral and the
-    #    PSQL_BITWISE_AND codon which performs a bitwise AND operation on two Integrals and
-    #    stack them to create a GC that takes 2x BIGINT and does a bitwise and on it to return an
-    #    Integral(tmp2_ggc).
-    # 3. Stack tmp1_ggc and tmp2_ggc to create a GC that takes the properties codon mask
-    #    and properties column, does a bitwise AND on them and returns an Integral (tmp3_ggc).
-    # 4. Take the Integral output of tmp3_ggc and type cast it back to a BIGINT using the
-    #    PSQL_IGRL_TO_64 codon (tmp3a_ggc).
-    # 5. Create a GC that returns the constant BIGINT 0 using the PSQL_0_BIGINT codon (tmp3b_ggc).
-    # 6. Get the PSQL_2x64_TO_TYPE codon which type casts a BIGINT to a Type and the
-    #    PSQL_EQUALS codon which compares two Types for equality and stack them to create a GC
-    #    that takes 2x BIGINT and compares them for equality to return a Bool (tmp3c_ggc).
-    # 7. Stack tmp3b_ggc and tmp3c_ggc to create a GC that compares the BIGINT 0 with the
-    #    BIGINT output of tmp3a_ggc for equality to return a Bool (tmp3d_ggc).
-    # 8. Stack tmp3d_ggc with the PSQL_WHERE codon to create a GC that takes a Bool (result of
-    #    the expression) and returns a PSQL WHERE fragment that can be used in a PSQL query
-    #    (tmp4_ggc).
-    # 9. Create a harmony GC that combines tmp4_ggc with the PSQL_ORDERBY_RND codon to create a
-    #    GC that provides both the WHERE fragment and ORDER BY RANDOM fragment (tmp5_ggc).
-    # 10. Finally, stack tmp5_ggc with the GPI_SELECT_GC codon to create the final GC that
-    #     selects a random codon from the gene pool based on the properties codon mask
-    #     and properties column (sggc).
-    # 11. Write the final GC to the execution context which adds it to the Gene Pool.
+    # 2. Stack tmp1_ggc on top of the bitwise AND codon (PSQL_BITWISE_AND) to create tmp2_ggc.
+    #    CONDON_MASK & "properties" is the output.
+    # 3. Stack tmp2_ggc on top of the integral to bigint upcast meta-codon (PSQL_IGRL_TO_64)
+    #    to create tmp3_ggc. This ensures the result is a bigint.
+    # 4. Create a harmony between tmp3_ggc and the bigint zero codon (PSQL_0_BIGINT)
+    #    to create tmp4_ggc. These are the left and right hand side of the WHERE clause
+    #    equality check.
+    # 5. Stack tmp4_ggc on top of the equals codon (PSQL_EQUALS) to create tmp5_ggc.
+    #    This produces a boolean indicating if the codon properties match the codon mask.
+    #    CONDON_MASK & "properties" = 0
+    # 6. Stack tmp5_ggc on top of the WHERE codon (PSQL_WHERE) to create tmp6_ggc.
+    # 7. Create a harmony between tmp6_ggc and the ORDER BY RANDOM codon (PSQL_ORDERBY_RND)
+    #    to create tmp7_ggc.
+    # 8. Stack tmp7_ggc on top of the gene pool interface select GC codon (GPI_SELECT_GC)
+    #    to create sggc. This is the final GC that selects a random codon matching the
+    #    properties mask.
     tmp1_ggc = _harmony_connect(ec, rtctxt, codons["PSQL_CDN_PRP_MSK"], codons["PSQL_PRP_COLUMN"])
-    tmp3_ggc = _stack_connect(ec, rtctxt, tmp1_ggc, codons["PSQL_BITWISE_AND"])
-    tmp3a_ggc = _stack_connect(ec, rtctxt, tmp3_ggc, codons["PSQL_IGRL_TO_64"])
-    tmp3b_ggc = _harmony_connect(ec, rtctxt, tmp3a_ggc, codons["PSQL_0_BIGINT"])
-    tmp3d_ggc = _stack_connect(ec, rtctxt, tmp3b_ggc, codons["PSQL_EQUALS"])
-    tmp4_ggc = _stack_connect(ec, rtctxt, tmp3d_ggc, codons["PSQL_WHERE"])
-    tmp5_ggc = _harmony_connect(ec, rtctxt, tmp4_ggc, codons["PSQL_ORDERBY_RND"])
-    sggc = _stack_connect(ec, rtctxt, tmp5_ggc, codons["GPI_SELECT_GC"])
+    tmp2_ggc = _stack_connect(ec, rtctxt, tmp1_ggc, codons["PSQL_BITWISE_AND"])
+    tmp3_ggc = _stack_connect(ec, rtctxt, tmp2_ggc, codons["PSQL_IGRL_TO_64"])
+    tmp4_ggc = _harmony_connect(ec, rtctxt, tmp3_ggc, codons["PSQL_0_BIGINT"])
+    tmp5_ggc = _stack_connect(ec, rtctxt, tmp4_ggc, codons["PSQL_EQUALS"])
+    tmp6_ggc = _stack_connect(ec, rtctxt, tmp5_ggc, codons["PSQL_WHERE"])
+    tmp7_ggc = _harmony_connect(ec, rtctxt, tmp6_ggc, codons["PSQL_ORDERBY_RND"])
+    sggc = _stack_connect(ec, rtctxt, tmp7_ggc, codons["GPI_SELECT_GC"])
     ec.write_executable(sggc)
     return sggc
 

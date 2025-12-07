@@ -7,16 +7,11 @@ import unittest
 from egpcommon.codon_dev_load import find_codon_signature
 from egpcommon.properties import GCType, PropertiesBD
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcRow
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.interface import Interface
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
-from egppy.physics.meta import (
-    MetaCodonTypeError,
-    MetaCodonValueError,
-    meta_type_cast,
-    raise_if_not_instance_of,
-)
+from egppy.physics.meta import MetaCodonTypeError, meta_upcast, raise_if_not_instance_of
 from egppy.physics.runtime_context import RuntimeContext
 
 
@@ -39,7 +34,7 @@ class TestMetaCodons(unittest.TestCase):
         rtctxt = RuntimeContext(self.gpi)
         ifa = Interface(["PsqlIntegral"] * 2, DstRow.O)
         ifb = Interface(["PsqlBigInt"] * 2, SrcRow.I)
-        gc = meta_type_cast(rtctxt, ifa, ifb)
+        gc = meta_upcast(rtctxt, ifa.to_td(), ifb.to_td())
         self.assertEqual(gc, existing_gc)
 
     def test_meta_type_cast_identical_interfaces(self):
@@ -48,30 +43,28 @@ class TestMetaCodons(unittest.TestCase):
         ifa = Interface(["int", "float"], SrcRow.I)
         ifb = Interface(["int", "float"], DstRow.O)
 
-        with self.assertRaises(MetaCodonValueError):
-            meta_type_cast(rtctxt, ifa, ifb)
+        with self.assertRaises(AssertionError):
+            meta_upcast(rtctxt, ifa.to_td(), ifb.to_td())
 
     def test_meta_type_cast_simple(self):
         """Test simple meta type cast."""
 
         rtctxt = RuntimeContext(self.gpi)
-        ifa = Interface(["int", "float", "object"], SrcRow.I)
-        ifb = Interface(["Integral", "float", "str"], DstRow.O)
+        ifa = Interface(["object"], SrcRow.I)
+        ifb = Interface(["str"], DstRow.O)
 
-        gc = meta_type_cast(rtctxt, ifa, ifb)
+        gc = meta_upcast(rtctxt, ifa.to_td(), ifb.to_td())
         self.assertIsInstance(gc, GCABC)
 
         # Check Ad (Destination A)
-        ad = gc["cgraph"]["Ad"]
-        self.assertEqual(len(ad), 2)
-        self.assertEqual(ad[0].typ.name, "int")
-        self.assertEqual(ad[1].typ.name, "object")
+        ad = gc["cgraph"][DstIfKey.AD]
+        self.assertEqual(len(ad), 1)
+        self.assertEqual(ad[0].typ.name, "object")
 
         # Check Od (Destination O)
-        od = gc["cgraph"]["Od"]
-        self.assertEqual(len(od), 2)
-        self.assertEqual(od[0].typ.name, "Integral")
-        self.assertEqual(od[1].typ.name, "str")
+        od = gc["cgraph"][DstIfKey.OD]
+        self.assertEqual(len(od), 1)
+        self.assertEqual(od[0].typ.name, "str")
 
         self.assertEqual(PropertiesBD(gc["properties"])["gc_type"], GCType.META)
 

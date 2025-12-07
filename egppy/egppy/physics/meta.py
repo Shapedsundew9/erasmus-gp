@@ -7,14 +7,14 @@ of EGP's type management system.
 """
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, Sequence
 
 from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID
 from egpcommon.parallel_exceptions import create_parallel_exceptions
 from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.types_def import TypesDef, types_def_store
 from egppy.physics.runtime_context import RuntimeContext
 
 META_CODON_TEMPLATE: dict[str, Any] = {
@@ -36,7 +36,7 @@ META_CODON_TEMPLATE: dict[str, Any] = {
         "deterministic": True,
         "side_effects": False,
         "static_creation": True,
-        "gctsp": {"type_upcast": False, "type_downcast": True},
+        "gctsp": {"type_upcast": True, "type_downcast": False},
     },
     "meta_data": {
         "function": {
@@ -68,36 +68,36 @@ MetaCodonValueError = MetaCodonExceptionModule.get_parallel_equivalent(ValueErro
 MetaCodonTypeError = MetaCodonExceptionModule.get_parallel_equivalent(TypeError)
 
 
-def meta_type_cast(rtctxt: RuntimeContext, ifa: InterfaceABC, ifb: InterfaceABC) -> GCABC:
-    """Find or create a meta genetic code that casts ifa types to exactly match ifb types.
+def meta_upcast(rtctxt: RuntimeContext, tsa: Sequence[TypesDef], tsb: Sequence[TypesDef]) -> GCABC:
+    """Find or create a meta-codon that upcasts ifa types to exactly match ifb types.
 
-    ifb must have the same length as ifa and each type in ifb must be a supertype or subtype
-    of the corresponding type in ifa.
+    ifb must have the same length as ifa and each type in ifb must a descendent of the
+    corresponding type in ifa.
 
     Example
     -------
     Suppose we have two interfaces:
         ifa: [int, float, object]
         ifb: [Integral, float, str]
-    Then the resulting meta genetic code will be one that casts:
-        int -> Integral
-        object -> str   # This an upcast and may fail at runtime if the object is not a str.
-    as float is already the same type in both interfaces.
+    Then the meta genetic code will be one that casts:
+        tsa = [object] -> tsb = [str]
+    as Integral is an ancestor of int and float is already the same type in both interfaces.
 
     Args:
         rtctxt: The runtime context.
-        ifa: The interface to cast from.
-        ifb: The interface to cast to.
+        tsa: The type sequence to cast from.
+        tsb: The type sequence to cast to.
     Returns:
         A meta genetic code that perform the appropriate casting for endpoints that need it.
-        Note that the order of casts is independent of the order in ifa and ifb.
+        Note that the order of casts is independent of the order in tsa and tsb.
 
     """
     # The implementation tries to find existing meta genetic codes that perform the required casts.
     # If none exist, a new one is created.
-    pts = [pt for pt in zip(ifa.to_td(), ifb.to_td()) if pt[0] != pt[1]]
-    if not pts:
-        raise MetaCodonValueError("No type casts required as interfaces are identical.")
+    pts: tuple[tuple[TypesDef, TypesDef], ...] = tuple(zip(tsa, tsb))
+    assert [
+        pt for pt in pts if pt[1] not in types_def_store.ancestors(pt[0])
+    ], "Invalid type upcast requested."
     mgc = rtctxt.gpi.select_meta(pts)
     if mgc is not NULL_GC:
         return mgc

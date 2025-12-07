@@ -7,5 +7,3 @@ The success of cross-over or insertion in creating a fit new GC is partly depend
 - Fitness: Bias selection by a suitability criteria e.g. abundance in the population, optional criteria
 
 ## Constraints
-
-
