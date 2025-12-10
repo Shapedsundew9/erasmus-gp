@@ -218,10 +218,10 @@ class TestExecutor(unittest.TestCase):
                 "gcb": gcb,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
-                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
+                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"][DstIfKey.OD]))],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
@@ -281,10 +281,10 @@ class TestExecutor(unittest.TestCase):
                 "gcb": gcb,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
-                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
+                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"][DstIfKey.OD]))],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,

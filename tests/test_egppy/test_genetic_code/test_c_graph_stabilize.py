@@ -13,7 +13,7 @@ from random import seed
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
-from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.genetic_code.types_def import types_def_store
@@ -52,7 +52,7 @@ class TestStabilizeLocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify the connections didn't change
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         self.assertEqual(len(ad_interface), 1)
         self.assertEqual(ad_interface[0].refs, [["I", 0]])
 
@@ -78,11 +78,11 @@ class TestStabilizeLocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ld": l_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.LD: l_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -96,7 +96,7 @@ class TestStabilizeLocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify L only connects to I
-        ld_interface = cgraph["Ld"]
+        ld_interface = cgraph[DstIfKey.LD]
         l_ref_row = ld_interface[0].refs[0][0]
         self.assertEqual(l_ref_row, "I")
 
@@ -122,11 +122,11 @@ class TestStabilizeLocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -140,17 +140,17 @@ class TestStabilizeLocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify F only connects to I
-        fd_interface = cgraph["Fd"]
+        fd_interface = cgraph[DstIfKey.FD]
         f_ref_row = fd_interface[0].refs[0][0]
         self.assertEqual(f_ref_row, "I")
 
         # Verify A only connects to I
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         a_ref_row = ad_interface[0].refs[0][0]
         self.assertEqual(a_ref_row, "I")
 
         # Verify P only connects to I
-        pd_interface = cgraph["Pd"]
+        pd_interface = cgraph[DstIfKey.PD]
         p_ref_row = pd_interface[0].refs[0][0]
         self.assertEqual(p_ref_row, "I")
 
@@ -173,10 +173,10 @@ class TestStabilizeLocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -190,15 +190,15 @@ class TestStabilizeLocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify connections respect standard graph rules
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         a_ref_row = ad_interface[0].refs[0][0]
         self.assertEqual(a_ref_row, "I")  # A can only connect to I
 
-        bd_interface = cgraph["Bd"]
+        bd_interface = cgraph[DstIfKey.BD]
         b_ref_row = bd_interface[0].refs[0][0]
         self.assertIn(b_ref_row, ["I", "A"])  # B can connect to I or A
 
-        od_interface = cgraph["Od"]
+        od_interface = cgraph[DstIfKey.OD]
         o_ref_row = od_interface[0].refs[0][0]
         self.assertIn(o_ref_row, ["I", "A", "B"])  # O can connect to I, A, or B
 
@@ -224,9 +224,9 @@ class TestStabilizeLocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -234,14 +234,14 @@ class TestStabilizeLocked(unittest.TestCase):
         cgraph.stabilize(if_locked=True)
 
         # Verify types match
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         a_ep = ad_interface[0]
         self.assertEqual(a_ep.typ, types_def_store["int"])
         # The reference should be to I0 (the only int source)
         ref_row, _ = a_ep.refs[0]
         self.assertEqual(ref_row, "I")
 
-        od_interface = cgraph["Od"]
+        od_interface = cgraph[DstIfKey.OD]
         o_ep = od_interface[0]
         self.assertEqual(o_ep.typ, types_def_store["bool"])
         # The reference should be to I1 (the bool source)
@@ -272,11 +272,11 @@ class TestStabilizeLocked(unittest.TestCase):
         # Let's create a simpler while loop without W for the locked test
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Wd": [],  # Empty W for now since we need A as a source first
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.WD: [],  # Empty W for now since we need A as a source first
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -307,9 +307,9 @@ class TestStabilizeLocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -323,18 +323,18 @@ class TestStabilizeLocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify all destinations are connected
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             self.assertTrue(ep.is_connected())
             self.assertEqual(len(ep.refs), 1)
 
-        od_interface = cgraph["Od"]
+        od_interface = cgraph[DstIfKey.OD]
         for ep in od_interface:
             self.assertTrue(ep.is_connected())
             self.assertEqual(len(ep.refs), 1)
 
         # Verify no new input endpoints were created
-        is_interface = cgraph["Is"]
+        is_interface = cgraph[SrcIfKey.IS]
         self.assertEqual(len(is_interface), 2)
 
 
@@ -365,14 +365,14 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
         # Initial input interface should have 1 endpoint
-        is_interface = cgraph["Is"]
+        is_interface = cgraph[SrcIfKey.IS]
         self.assertEqual(len(is_interface), 1)
 
         # Stabilize with unlocked interface
@@ -383,7 +383,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         # Input interface should now have at least 2 endpoints (new str endpoint created)
         # Note: Due to randomization, more may have been created
-        is_interface = cgraph["Is"]
+        is_interface = cgraph[SrcIfKey.IS]
         self.assertGreaterEqual(len(is_interface), 2)
 
         # Verify a str endpoint exists
@@ -408,11 +408,11 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ld": l_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.LD: l_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -426,7 +426,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # L should connect to I
-        ld_interface = cgraph["Ld"]
+        ld_interface = cgraph[DstIfKey.LD]
         self.assertEqual(ld_interface[0].refs[0][0], "I")
 
     def test_stabilize_unlocked_if_then_else_graph(self) -> None:
@@ -450,12 +450,12 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -469,7 +469,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify F, A, B, P all connect to I (per if-then-else rules)
-        for row in ["Fd", "Ad", "Bd", "Pd"]:
+        for row in [DstIfKey.FD, DstIfKey.AD, DstIfKey.BD, DstIfKey.PD]:
             iface = cgraph[row]
             for ep in iface:
                 self.assertTrue(ep.is_connected())
@@ -492,14 +492,14 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
         # Initial input interface has 1 endpoint
-        self.assertEqual(len(cgraph["Is"]), 1)
+        self.assertEqual(len(cgraph[SrcIfKey.IS]), 1)
 
         # Stabilize
         cgraph.stabilize(if_locked=False)
@@ -508,13 +508,13 @@ class TestStabilizeUnlocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # All A destinations should be connected
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             self.assertTrue(ep.is_connected())
 
         # Input interface should have grown to accommodate missing types
         # (at least 1, potentially up to 4)
-        self.assertGreaterEqual(len(cgraph["Is"]), 1)
+        self.assertGreaterEqual(len(cgraph[SrcIfKey.IS]), 1)
 
     def test_stabilize_unlocked_prefers_existing_sources(self) -> None:
         """Test that stabilize prefers existing sources over creating new ones."""
@@ -533,14 +533,14 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
         # Initial input interface has 2 endpoints
-        initial_len = len(cgraph["Is"])
+        initial_len = len(cgraph[SrcIfKey.IS])
 
         # Stabilize
         cgraph.stabilize(if_locked=False)
@@ -551,7 +551,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
         # Input interface should not have grown since existing sources suffice
         # (Note: it may grow if random selection creates new ones, but typically won't)
         # We just verify it's stable and doesn't fail
-        self.assertGreaterEqual(len(cgraph["Is"]), initial_len)
+        self.assertGreaterEqual(len(cgraph[SrcIfKey.IS]), initial_len)
 
     def test_stabilize_unlocked_standard_graph(self) -> None:
         """Test stabilize unlocked on a standard graph with missing types."""
@@ -569,10 +569,10 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -586,7 +586,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # All destinations should be connected
-        for row in ["Ad", "Bd", "Od"]:
+        for row in [DstIfKey.AD, DstIfKey.BD, DstIfKey.OD]:
             iface = cgraph[row]
             for ep in iface:
                 self.assertTrue(ep.is_connected())
@@ -619,12 +619,12 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "As": as_eps,  # Must provide As for W to connect to
-                "Wd": w_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: as_eps,  # Must provide As for W to connect to
+                DstIfKey.WD: w_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -638,7 +638,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # W should connect to A (per while-loop rules)
-        wd_interface = cgraph["Wd"]
+        wd_interface = cgraph[DstIfKey.WD]
         self.assertTrue(wd_interface[0].is_connected())
         # Verify W connects to Is (the only valid source for W)
         ref_row = wd_interface[0].refs[0][0]
@@ -704,9 +704,9 @@ class TestStabilizeEdgeCases(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -736,10 +736,10 @@ class TestStabilizeEdgeCases(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -750,7 +750,7 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         self.assertEqual(c_graph_type(cgraph), CGraphType.STANDARD)
 
         # Verify connections follow standard graph rules
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         # A can only connect to I in standard graphs
         self.assertEqual(ad_interface[0].refs[0][0], "I")
 
@@ -777,9 +777,9 @@ class TestStabilizeEdgeCases(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -790,7 +790,7 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # All A endpoints should be connected to some I endpoint
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             self.assertTrue(ep.is_connected())
             self.assertEqual(ep.refs[0][0], "I")
@@ -823,26 +823,26 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
         # Verify pre-existing connection
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         original_ref = ad_interface[0].refs[0]
 
         # Connect all
         cgraph.connect_all(if_locked=True)
 
         # Verify the pre-existing connection wasn't modified
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         self.assertEqual(ad_interface[0].refs[0], original_ref)
 
         # Verify unconnected endpoints were connected
         self.assertTrue(ad_interface[1].is_connected())
-        od_interface = cgraph["Od"]
+        od_interface = cgraph[DstIfKey.OD]
         self.assertTrue(od_interface[0].is_connected())
 
     def test_connect_all_randomization(self) -> None:
@@ -865,16 +865,16 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
             cgraph = CGraph(
                 {
-                    "Is": i_eps,
-                    "Ad": a_eps,
-                    "Od": o_eps,
+                    SrcIfKey.IS: i_eps,
+                    DstIfKey.AD: a_eps,
+                    DstIfKey.OD: o_eps,
                 }
             )
 
             cgraph.stabilize(if_locked=True)
 
             # Record which source A connected to
-            ad_interface = cgraph["Ad"]
+            ad_interface = cgraph[DstIfKey.AD]
             results.append(ad_interface[0].refs[0][1])  # Store the index
 
         # With randomization, we might see variation (though not guaranteed)
@@ -897,9 +897,9 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -924,9 +924,9 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -934,11 +934,11 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
         cgraph.connect_all(if_locked=False)
 
         # The A endpoint should now be connected
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         self.assertTrue(ad_interface[0].is_connected())
 
         # A new I endpoint should have been created
-        is_interface = cgraph["Is"]
+        is_interface = cgraph[SrcIfKey.IS]
         self.assertGreaterEqual(len(is_interface), 2)
 
 
@@ -976,12 +976,12 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -1012,10 +1012,10 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1026,7 +1026,7 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # All destinations should be connected
-        for row in ["Ad", "Bd", "Od"]:
+        for row in [DstIfKey.AD, DstIfKey.BD, DstIfKey.OD]:
             iface = cgraph[row]
             for ep in iface:
                 self.assertTrue(ep.is_connected())
@@ -1046,14 +1046,14 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
         # Initial input count
-        initial_input_count = len(cgraph["Is"])
+        initial_input_count = len(cgraph[SrcIfKey.IS])
 
         # Stabilize
         cgraph.stabilize(if_locked=False)
@@ -1062,7 +1062,7 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # May have added more inputs (or may have reused existing ones)
-        final_input_count = len(cgraph["Is"])
+        final_input_count = len(cgraph[SrcIfKey.IS])
         self.assertGreaterEqual(final_input_count, initial_input_count)
 
     def test_stabilize_mixed_types_locked(self) -> None:
@@ -1086,9 +1086,9 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1099,13 +1099,13 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify type matching
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             # Get the source this connects to
             ref_row, ref_idx = ep.refs[0]
             if ref_row == "I":
                 assert isinstance(ref_idx, int), "Reference index should be an integer"
-                is_interface = cgraph["Is"]
+                is_interface = cgraph[SrcIfKey.IS]
                 src_ep = is_interface[ref_idx]
                 # Types should match
                 self.assertEqual(ep.typ, src_ep.typ)
@@ -1126,9 +1126,9 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1139,11 +1139,11 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify that all destinations are connected
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             self.assertTrue(ep.is_connected())
 
-        od_interface = cgraph["Od"]
+        od_interface = cgraph[DstIfKey.OD]
         for ep in od_interface:
             self.assertTrue(ep.is_connected())
 
@@ -1183,9 +1183,9 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": [],  # Empty input interface
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: [],  # Empty input interface
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1199,8 +1199,8 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertFalse(cgraph.is_stable())
 
         # Verify nothing is connected
-        ad_interface = cgraph["Ad"]
-        od_interface = cgraph["Od"]
+        ad_interface = cgraph[DstIfKey.AD]
+        od_interface = cgraph[DstIfKey.OD]
         self.assertFalse(ad_interface[0].is_connected())
         self.assertFalse(od_interface[0].is_connected())
 
@@ -1228,12 +1228,12 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -1247,11 +1247,11 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertFalse(cgraph.is_stable())
 
         # F, A, O should be connected, B and P should not
-        self.assertTrue(cgraph["Fd"][0].is_connected())
-        self.assertTrue(cgraph["Ad"][0].is_connected())
-        self.assertTrue(cgraph["Od"][0].is_connected())
-        self.assertFalse(cgraph["Bd"][0].is_connected())
-        self.assertFalse(cgraph["Pd"][0].is_connected())
+        self.assertTrue(cgraph[DstIfKey.FD][0].is_connected())
+        self.assertTrue(cgraph[DstIfKey.AD][0].is_connected())
+        self.assertTrue(cgraph[DstIfKey.OD][0].is_connected())
+        self.assertFalse(cgraph[DstIfKey.BD][0].is_connected())
+        self.assertFalse(cgraph[DstIfKey.PD][0].is_connected())
 
     def test_stabilize_locked_insufficient_sources_fails(self) -> None:
         """Test that stabilize with if_locked=True may fail with no matching sources."""
@@ -1269,9 +1269,9 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1285,7 +1285,7 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertFalse(cgraph.is_stable())
 
         # Verify A0 got connected but A1 didn't
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         self.assertTrue(ad_interface[0].is_connected())
         self.assertFalse(ad_interface[1].is_connected())
 
@@ -1308,10 +1308,10 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Bd": b_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.BD: b_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1322,10 +1322,10 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertFalse(cgraph.is_stable())
 
         # A0 and O0 should be connected (both int), A1 and B0 should not
-        self.assertTrue(cgraph["Ad"][0].is_connected())
-        self.assertFalse(cgraph["Ad"][1].is_connected())
-        self.assertFalse(cgraph["Bd"][0].is_connected())
-        self.assertTrue(cgraph["Od"][0].is_connected())
+        self.assertTrue(cgraph[DstIfKey.AD][0].is_connected())
+        self.assertFalse(cgraph[DstIfKey.AD][1].is_connected())
+        self.assertFalse(cgraph[DstIfKey.BD][0].is_connected())
+        self.assertTrue(cgraph[DstIfKey.OD][0].is_connected())
 
     def test_stabilize_locked_while_loop_no_a_source_fails(self) -> None:
         """Test that while-loop stabilization fails without As source for W."""
@@ -1348,11 +1348,11 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Wd": w_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.WD: w_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -1369,7 +1369,7 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertFalse(cgraph.is_stable())
 
         # Verify W is not connected
-        wd_interface = cgraph["Wd"]
+        wd_interface = cgraph[DstIfKey.WD]
         self.assertFalse(wd_interface[0].is_connected())
 
     def test_stabilize_unlocked_always_succeeds(self) -> None:
@@ -1386,9 +1386,9 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": [],  # Start with no sources
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: [],  # Start with no sources
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -1402,13 +1402,13 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertTrue(cgraph.is_stable())
 
         # Verify all destinations are connected
-        for ep in cgraph["Ad"]:
+        for ep in cgraph[DstIfKey.AD]:
             self.assertTrue(ep.is_connected())
-        for ep in cgraph["Od"]:
+        for ep in cgraph[DstIfKey.OD]:
             self.assertTrue(ep.is_connected())
 
         # Verify new input endpoints were created
-        is_interface = cgraph["Is"]
+        is_interface = cgraph[SrcIfKey.IS]
         self.assertGreater(len(is_interface), 0)
 
 
