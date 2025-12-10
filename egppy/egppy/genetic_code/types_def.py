@@ -12,6 +12,7 @@ from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
+from egpcommon.object_deduplicator import format_deduplicator_info
 from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
@@ -609,30 +610,33 @@ class TypesDefStore:
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""
-        total = TypesDefStore._cache_hits + TypesDefStore._cache_misses
-        hit_rate = TypesDefStore._cache_hits / total if total > 0 else 0.0
-
-        total_anc = TypesDefStore._ancestors_cache_hits + TypesDefStore._ancestors_cache_misses
-        hit_rate_anc = TypesDefStore._ancestors_cache_hits / total_anc if total_anc > 0 else 0.0
-
-        total_desc = TypesDefStore._descendants_cache_hits + TypesDefStore._descendants_cache_misses
-        hit_rate_desc = (
-            TypesDefStore._descendants_cache_hits / total_desc if total_desc > 0 else 0.0
-        )
-
-        info_str = (
-            f"TypesDefStore Cache hits: {TypesDefStore._cache_hits}\n"
-            f"TypesDefStore Cache misses: {TypesDefStore._cache_misses}\n"
-            f"TypesDefStore Cache hit rate: {hit_rate:.2%}\n"
-            f"TypesDefStore Cache size: {len(TypesDefStore._cache)}/{TypesDefStore._cache_maxsize}\n"
-            f"Ancestors Cache hits: {TypesDefStore._ancestors_cache_hits}\n"
-            f"Ancestors Cache misses: {TypesDefStore._ancestors_cache_misses}\n"
-            f"Ancestors Cache hit rate: {hit_rate_anc:.2%}\n"
-            f"Ancestors Cache size: {len(TypesDefStore._ancestors_cache)}/{TypesDefStore._cache_maxsize}\n"
-            f"Descendants Cache hits: {TypesDefStore._descendants_cache_hits}\n"
-            f"Descendants Cache misses: {TypesDefStore._descendants_cache_misses}\n"
-            f"Descendants Cache hit rate: {hit_rate_desc:.2%}\n"
-            f"Descendants Cache size: {len(TypesDefStore._descendants_cache)}/{TypesDefStore._cache_maxsize}"
+        info_str = "\n".join(
+            (
+                format_deduplicator_info(
+                    "TypesDefStore",
+                    0.649,
+                    TypesDefStore._cache_hits,
+                    TypesDefStore._cache_misses,
+                    len(TypesDefStore._cache),
+                    TypesDefStore._cache_maxsize,
+                ),
+                format_deduplicator_info(
+                    "Ancestors",
+                    0.649,
+                    TypesDefStore._ancestors_cache_hits,
+                    TypesDefStore._ancestors_cache_misses,
+                    len(TypesDefStore._ancestors_cache),
+                    TypesDefStore._ancestors_cache_maxsize,
+                ),
+                format_deduplicator_info(
+                    "Descendants",
+                    0.649,
+                    TypesDefStore._descendants_cache_hits,
+                    TypesDefStore._descendants_cache_misses,
+                    len(TypesDefStore._descendants_cache),
+                    TypesDefStore._descendants_cache_maxsize,
+                ),
+            )
         )
         _logger.info(info_str)
         return info_str

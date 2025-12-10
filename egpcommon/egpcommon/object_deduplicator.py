@@ -23,10 +23,23 @@ deduplicators_registry: dict[str, "ObjectDeduplicator"] = {}
 
 def deduplicators_info() -> str:
     """Get information about all deduplicators."""
-    info = ""
-    for deduplicator in deduplicators_registry.values():
-        info += deduplicator.info() + "\n\n"
-    return info
+    return "\n".join(deduplicator.info() for deduplicator in deduplicators_registry.values())
+
+
+def format_deduplicator_info(
+    name: str, target_rate: float, hits: int, misses: int, currsize: int, maxsize: int | None
+) -> str:
+    """Format deduplicator cache information string."""
+    rate = hits / (hits + misses) if (hits + misses) > 0 else 0.0
+    occupancy = currsize / maxsize if maxsize is not None and maxsize > 0 else 0.0
+    return (
+        f"{name} Cache hits: {hits}\n"
+        f"{name} Cache misses: {misses}\n"
+        f"{name} Cache hit rate: {rate:.2%}"
+        f" (target rate: {target_rate:.2%})\n"
+        f"{name} Cache max size: {maxsize}\n"
+        f"{name} Current cache size: {currsize} ({occupancy:.2%})\n"
+    )
 
 
 class ObjectDeduplicator(CommonObj):
@@ -92,14 +105,13 @@ class ObjectDeduplicator(CommonObj):
     def info(self) -> str:
         """Print cache hit and miss statistics."""
         info = self._objects.cache_info()
-        rate = info.hits / (info.hits + info.misses) if (info.hits + info.misses) > 0 else 0.0
-        info_str = (
-            f"{self.name} Cache hits: {info.hits}\n"
-            f"{self.name} Cache misses: {info.misses}\n"
-            f"{self.name} Cache hit rate: {rate:.2%}"
-            f" (target rate: {self.target_rate:.2%})"
-            f" Cache max size: {info.maxsize}\n"
-            f"{self.name} Current cache size: {info.currsize}"
+        info_str = format_deduplicator_info(
+            self.name,
+            self.target_rate,
+            info.hits,
+            info.misses,
+            info.currsize,
+            info.maxsize,
         )
         _logger.info(info_str)
         return info_str

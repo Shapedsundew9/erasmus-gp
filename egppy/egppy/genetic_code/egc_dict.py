@@ -18,7 +18,7 @@ from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
-from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import JSONCGraph, SrcRow
 from egppy.genetic_code.genetic_code import (
     GCABC,
@@ -65,6 +65,9 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         cgraph: CGraphABC | JSONCGraph = gcabc["cgraph"]
         if isinstance(cgraph, CGraphABC):
             self["cgraph"] = cgraph
+        elif isinstance(cgraph, FrozenCGraphABC):
+            # EGDict must be mutable, so convert FrozenCGraph to CGraph
+            self["cgraph"] = CGraph(cgraph)
         else:
             # json_cgraph_to_interfaces may return a type not statically recognized
             # as valid input for CGraph,

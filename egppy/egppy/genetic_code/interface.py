@@ -25,7 +25,7 @@ from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 _logger: Logger = egp_logger(name=__name__)
 
 
-def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]:
+def unpack_dst_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[DstRow, int]:
     """Unpack a destination reference into its components.
 
     Args
@@ -41,7 +41,7 @@ def unpack_dst_ref(ref: list[int | str] | tuple[str, int]) -> tuple[DstRow, int]
     return DstRow(row), idx
 
 
-def unpack_ref(ref: list[int | str] | tuple[str, int]) -> tuple[str, int]:
+def unpack_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[Row, int]:
     """Unpack a reference into its components.
 
     Args
@@ -61,7 +61,7 @@ def unpack_ref(ref: list[int | str] | tuple[str, int]) -> tuple[str, int]:
     return row, idx
 
 
-def unpack_src_ref(ref: list[int | str] | tuple[str, int]) -> tuple[SrcRow, int]:
+def unpack_src_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[SrcRow, int]:
     """Unpack a source reference into its components.
 
     Args
@@ -127,7 +127,9 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         # Handle case where endpoints is an FrozenInterfaceABC or contains EndPointABC instances
         if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], EndPointABC):
             ep0 = endpoints[0]
-            assert isinstance(ep0, EndPointABC), "All endpoints must be EndPointABC instances"
+            assert isinstance(
+                ep0, FrozenEndPointABC
+            ), "All endpoints must be FrozenEndPointABC instances"
             _row = row if row is not None else ep0.row
             assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
             _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC

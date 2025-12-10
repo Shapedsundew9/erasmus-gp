@@ -94,12 +94,13 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
+                "A": [["I", i, INT_T] for i in randomrange(len(gca["cgraph"]["Is"]))],
                 "B": [
-                    ["I", i + len(gca["inputs"]), INT_T] for i in randomrange(len(gcb["inputs"]))
+                    ["I", i + len(gca["cgraph"]["Is"]), INT_T]
+                    for i in randomrange(len(gcb["cgraph"]["Is"]))
                 ],
-                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
-                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
+                "O": [["A", i, INT_T] for i in randomrange(len(gca["cgraph"]["Od"]))]
+                + [["B", i, INT_T] for i in randomrange(len(gcb["cgraph"]["Od"]))],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -221,11 +222,11 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
             # allowed outputs so that there is the possibility of finding an output
             # solution that meets the constraint.
             gca = choice([gc for no in _gcm[num_a] for gc in _gcm[num_a][no] if no < num_outputs])
-            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["outputs"])]))
+            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["cgraph"]["Od"])]))
             ngc = append_gcs(gca, gcb)
             target_set.append(ngc)
-            assert len(ngc["inputs"]) == num_inputs, f"ngx # inputs != {num_inputs}"
-            assert len(ngc["outputs"]) == num_outputs, f"ngx # outputs != {num_outputs}"
+            assert len(ngc["cgraph"]["Is"]) == num_inputs, f"ngx # inputs != {num_inputs}"
+            assert len(ngc["cgraph"]["Od"]) == num_outputs, f"ngx # outputs != {num_outputs}"
     return _gcm
 
 
@@ -356,10 +357,12 @@ def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
     # gc1 outputs.
     Connections on each interface are randomly assigned.
     """
-    assert len(gc1["outputs"]) + len(gc2["outputs"]) == len(
-        narrow_gc["inputs"]
+    assert len(gc1["cgraph"]["Od"]) + len(gc2["cgraph"]["Od"]) == len(
+        narrow_gc["cgraph"]["Is"]
     ), "gc1 + gc2 outputs != narrow_gc # inputs."
-    assert len(gc1["outputs"]) == len(narrow_gc["outputs"]), "gc1 outputs != narrow_gc outputs."
+    assert len(gc1["cgraph"]["Od"]) == len(
+        narrow_gc["cgraph"]["Od"]
+    ), "gc1 outputs != narrow_gc outputs."
     gca: GCABC = append_gcs(gc1, gc2)
     gcb: GCABC = narrow_gc
     return stack_gcs(gca, gcb)
@@ -418,6 +421,10 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """
     gca: GCABC = gc1
     gcb: GCABC = gc2
+    len_ai = len(gca["cgraph"]["Is"])
+    len_ao = len(gca["cgraph"]["Od"])
+    len_bi = len(gcb["cgraph"]["Is"])
+    len_bo = len(gcb["cgraph"]["Od"])
     return inherit_members(
         {
             "ancestora": gca,
@@ -425,10 +432,10 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
-                "B": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]), len(gcb["inputs"]))],
-                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
-                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
+                "A": [["I", i, INT_T] for i in randomrange(len_ai)],
+                "B": [["I", i, INT_T] for i in randomrange(len_ai, len_bi)],
+                "O": [["A", i, INT_T] for i in randomrange(len_ao)]
+                + [["B", i, INT_T] for i in randomrange(len_bo)],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -551,7 +558,11 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     It is assumed that GCA has the same number of outputs as GCB has inputs.
     GCA's outputs are randomly connected to GCB's inputs.
     """
-    assert len(gc1["outputs"]) == len(gc2["inputs"]), "gc1 # outputs != gc2 # inputs"
+    len_1i = len(gc1["cgraph"]["Is"])
+    len_1o = len(gc1["cgraph"]["Od"])
+    len_2i = len(gc2["cgraph"]["Is"])
+    len_2o = len(gc2["cgraph"]["Od"])
+    assert len_1o == len_2i, "gc1 # outputs != gc2 # inputs"
     return inherit_members(
         {
             "ancestora": gc1,
@@ -559,9 +570,9 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gc1,
             "gcb": gc2,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gc1["inputs"]))],
-                "B": [["A", i, INT_T] for i in randomrange(len(gc2["inputs"]))],
-                "O": [["B", i, INT_T] for i in randomrange(len(gc2["outputs"]))],
+                "A": [["I", i, INT_T] for i in randomrange(len_1i)],
+                "B": [["A", i, INT_T] for i in randomrange(len_2i)],
+                "O": [["B", i, INT_T] for i in randomrange(len_2o)],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -672,3 +683,4 @@ if __name__ == "__main__":
 
     # Deduplicator info
     print(f"GC markdown and JSON files created.\n\n{deduplicators_info()}")
+    print(f"{types_def_store.info()}")

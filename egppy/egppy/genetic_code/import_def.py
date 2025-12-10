@@ -20,7 +20,7 @@ _logger: Logger = egp_logger(name=__name__)
 EMPTY_STRING = ""
 
 
-class ImportDef(FreezableObject, Validator, DictTypeAccessor):
+class ImportDef(FreezableObject, Validator, DictTypeAccessor, size=256):
     """Class to define an import."""
 
     __slots__ = ("_aip", "_name", "_as_name")
@@ -40,6 +40,7 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor):
         setattr(self, "aip", aip)
         setattr(self, "name", name)
         setattr(self, "as_name", as_name)
+        self.freeze()
 
     def __eq__(self, value: object) -> bool:
         """Check equality of ImportDef instances."""

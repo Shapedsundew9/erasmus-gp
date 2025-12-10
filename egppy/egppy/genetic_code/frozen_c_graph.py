@@ -45,7 +45,7 @@ from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 from egppy.genetic_code.frozen_interface import DESTINATION_ROW_SET, SOURCE_ROW_SET, FrozenInterface
 from egppy.genetic_code.interface import ROW_SET
-from egppy.genetic_code.interface_abc import FrozenInterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
     CGT_VALID_ROWS,
@@ -123,22 +123,27 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
                 iface = graph[key]
-                if isinstance(iface, FrozenInterfaceABC):
-                    type_tuple = tuple(ep.typ for ep in iface)
+                if isinstance(iface, InterfaceABC):
+                    type_tuple = type_tuple_store[tuple(ep.typ for ep in iface)]
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep.refs)]
                         for ep in iface
                     )
                 else:
                     assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
-                    type_tuple = tuple(type_tuple_store[ep[3]] for ep in iface)
+                    type_tuple = type_tuple_store[tuple(ep[3] for ep in iface)]
                     con_tuple = tuple(
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
                         for ep in iface
                     )
                 epcls = EPCls.SRC if key[1] == "s" else EPCls.DST
                 row = DstRow(key[0]) if epcls == EPCls.DST else SrcRow(key[0])
-                setattr(self, _key, FrozenInterface(row, epcls, type_tuple, con_tuple))
+                fiface = (
+                    iface
+                    if type(iface) is FrozenInterface  # pylint: disable=unidiomatic-typecheck
+                    else FrozenInterface(row, epcls, type_tuple, con_tuple)
+                )
+                setattr(self, _key, fiface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):
                 # Is and Od must exist even if empty
                 setattr(self, _key, [])  # Empty interface

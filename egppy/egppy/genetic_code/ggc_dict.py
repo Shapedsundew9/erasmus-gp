@@ -17,7 +17,8 @@ from egpcommon.deduplication import int_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
-from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC
@@ -47,8 +48,11 @@ class GGCDict(EGCDict):
         if not isinstance(self, GCABC):
             raise ValueError("GGC must be a GCABC object.")
 
-        if not isinstance(self["cgraph"], FrozenCGraph):
+        if not type(self["cgraph"]) is FrozenCGraph:  # pylint: disable=unidiomatic-typecheck
             self["cgraph"] = frozen_cgraph_store[FrozenCGraph(self["cgraph"])]
+        else:
+            # Make sure it is deduplicated
+            self["cgraph"] = frozen_cgraph_store[self["cgraph"]]
 
         if isinstance(self["gca"], GCABC):
             # TODO: If GCA is an EGCDict we need to resolve it to a GGCDict
@@ -90,7 +94,7 @@ class GGCDict(EGCDict):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]
-        self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
+        # self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
         self["lost_descendants"] = int_store[gcabc.get("lost_descendants", 0)]
 
         # TODO: Need to resolve the meta_data references. Too deep.
@@ -109,7 +113,7 @@ class GGCDict(EGCDict):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
-        self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
+        # self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
 
         self["reference_count"] = int_store[gcabc.get("reference_count", 0)]
 
@@ -165,16 +169,19 @@ class GGCDict(EGCDict):
                 # Make properties humman readable.
                 assert isinstance(value, int), "Properties must be an int."
                 retval[key] = PropertiesBD(value).to_json()
-            elif key.endswith("_types"):
-                # Make types human readable.
-                retval[key] = [types_def_store[t].name for t in value]
             elif isinstance(value, GCABC):
                 # Must get signatures from GC objects first otherwise will recursively
                 # call this function.
                 retval[key] = value["signature"].hex() if value is not None else None
-            elif isinstance(value, CGraphABC):
+            elif isinstance(value, FrozenCGraphABC):
                 # Need to set json_c_graph to True so that the endpoints are correctly serialized
                 retval[key] = value.to_json(json_c_graph=True)
+                typ, idx = value[SrcIfKey.IS].types_and_indices()
+                retval["input_types"] = [types_def_store[t].name for t in typ]
+                retval["inputs"] = idx.hex()
+                typ, idx = value[DstIfKey.OD].types_and_indices()
+                retval["output_types"] = [types_def_store[t].name for t in typ]
+                retval["outputs"] = idx.hex()
             elif getattr(self[key], "to_json", None) is not None:
                 retval[key] = self[key].to_json()
             elif isinstance(value, bytes):
@@ -251,24 +258,6 @@ class GGCDict(EGCDict):
         )
         self.value_error(self["descendants"] <= 2**31 - 1, "Descendants must be less than 2**31-1.")
 
-        # The set of types of the inputs in ascending order of type number.
-        itypes = self["input_types"]
-        self.value_error(
-            len(itypes) <= 256, "input_types must have a length less than or equal to 256."
-        )
-        self.value_error(len(set(itypes)) == len(itypes), "input_types must be unique.")
-        self.value_error(
-            all(itypes[i] < itypes[i + 1] for i in range(len(itypes) - 1)),
-            "input_types must be in ascending order.",
-        )
-
-        # The index of the each input parameters type in the 'input_types' list in the order they
-        # are required for the function call.
-        self.value_error(
-            len(self["inputs"]) <= 256, "inputs must have a length less than or equal to 256."
-        )
-        self.value_error(all(x < 256 for x in self["inputs"]), "inputs indexes must be < 256.")
-
         # The number of descendants that have been lost in the evolution of the genetic code.
         self.value_error(
             self["lost_descendants"] >= 0,
@@ -295,24 +284,6 @@ class GGCDict(EGCDict):
         self.value_error(
             self["num_codons"] <= 2**31 - 1, "num_codons must be less than or equal to 2**31-1."
         )
-
-        # The set of types of the outputs in ascending order of type number.
-        otypes = self["output_types"]
-        self.value_error(
-            len(otypes) <= 256, "output_types must have a length less than or equal to 256."
-        )
-        self.value_error(len(set(otypes)) == len(otypes), "output_types must be unique.")
-        self.value_error(
-            all(otypes[i] < otypes[i + 1] for i in range(len(otypes) - 1)),
-            "output_types must be in ascending order.",
-        )
-
-        # The index of the each output parameters type in the 'output_types' list in the order they
-        # are returned from the function call.
-        self.value_error(
-            len(self["outputs"]) <= 256, "outputs must have a length less than or equal to 256."
-        )
-        self.value_error(all(x < 256 for x in self["outputs"]), "outputs indexes must be < 256.")
 
         # The properties of the genetic code.
         self.value_error(isinstance(self["properties"], int), "properties must be an integer.")
@@ -395,13 +366,6 @@ class GGCDict(EGCDict):
                 "A generation of 1 is a codon and can only have a None GCA.",
             )
 
-        if len(self["inputs"]) == 0:
-            self.runtime_error(len(self["input_types"]) == 0, "No inputs must have no input types.")
-
-        self.runtime_error(
-            len(self["input_types"]) <= len(self["inputs"]),
-            "The number of input types must be less than or equal to the number of inputs.",
-        )
         self.runtime_error(
             self["lost_descendants"] <= self["reference_count"],
             "lost_descendants must be less than or equal to reference_count.",
@@ -410,17 +374,6 @@ class GGCDict(EGCDict):
             self["num_codes"] >= self["code_depth"],
             "num_codes must be greater than or equal to code_depth.",
         )
-
-        if len(self["outputs"]) == 0:
-            self.runtime_error(
-                len(self["output_types"]) == 0, "No outputs must have no output types."
-            )
-
-        if len(self["output_types"]) > 0:
-            self.runtime_error(
-                len(self["output_types"]) <= len(self["outputs"]),
-                "The number of output types must be less than or equal to the number of outputs.",
-            )
 
         self.runtime_error(
             self["updated"] <= datetime.now(UTC),
