@@ -52,7 +52,7 @@ def mc_code_node_str(gcnode: GCNode) -> str:
     if not gcnode.is_meta:
         label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
-    label = f"is({gcnode.gc['cgraph']['Od'][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
+    label = f"is({gcnode.gc['cgraph'][DstIfKey.OD][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
     return mc_hexagon_str(gcnode.uid, label, MERMAID_GREEN)
 
 
