@@ -12,6 +12,7 @@ from abc import ABCMeta
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_constants import DstIfKey
 
 
 class IncompleteImplementation(CGraphABC):
@@ -63,7 +64,7 @@ class TestCGraphABC(unittest.TestCase):
         # Create a simple empty graph
         graph = CGraph(
             {
-                "Od": [],  # Empty output interface
+                DstIfKey.OD: [],  # Empty output interface
             }
         )
 
@@ -85,7 +86,7 @@ class TestCGraphABC(unittest.TestCase):
         # Create a simple empty graph with required interface
         graph = CGraph(
             {
-                "Od": [],  # Empty output interface
+                DstIfKey.OD: [],  # Empty output interface
             }
         )
         self.assertIsInstance(graph, CGraphABC)
@@ -99,7 +100,7 @@ class TestCGraphABC(unittest.TestCase):
 
         graph = CGraph(
             {
-                "Od": [],  # Empty output interface
+                DstIfKey.OD: [],  # Empty output interface
             }
         )
 

@@ -6,6 +6,7 @@ from random import choice, getrandbits, randint, seed
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.ggc_dict import GCABC
 from egppy.worker.executor.context_writer import (
     FWC4FILE,
@@ -83,7 +84,7 @@ class TestExecutor(unittest.TestCase):
                 # Execute the function
                 gc: GCABC = self.gene_pool[gci]
                 result = ec.execute(
-                    gc["signature"], tuple(getrandbits(64) for _ in range(len(gc["cgraph"]["Is"])))
+                    gc["signature"], tuple(getrandbits(64) for _ in range(len(gc["cgraph"][SrcIfKey.IS])))
                 )
                 baseline[num_lines].append(result)
                 if num_lines != NUM_LINES[0]:
@@ -325,8 +326,8 @@ class TestExecutor(unittest.TestCase):
                 "gcb": None,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
                     "P": [["I", i, INT_T] for i in pass_through_order],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -376,8 +377,8 @@ class TestExecutor(unittest.TestCase):
                 "gcb": None,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
                     "P": [["I", i, INT_T] for i in pass_through_order],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
