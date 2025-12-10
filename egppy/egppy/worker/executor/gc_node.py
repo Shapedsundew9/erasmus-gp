@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, Row, SrcIfKey, SrcRow
 from egppy.genetic_code.genetic_code import (
     MERMAID_BLUE,
     MERMAID_FOOTER,
@@ -425,9 +425,9 @@ class GCNode(Iterable, Hashable):
             "---",
         ]
         chart_txt: list[str] = []
-        if len(self.gc["cgraph"]["Is"]) > 0:
+        if len(self.gc["cgraph"][SrcIfKey.IS]) > 0:
             chart_txt.append(f'    {self.uid}I["inputs"]')
-        if len(self.gc["cgraph"]["Od"]) > 0:
+        if len(self.gc["cgraph"][DstIfKey.OD]) > 0:
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
@@ -453,7 +453,7 @@ class GCNode(Iterable, Hashable):
             that are required for any type hints.
         """
         # Define the function input parameters
-        iface: Interface = self.gc["cgraph"]["Is"]
+        iface: Interface = self.gc["cgraph"][SrcIfKey.IS]
         inum: int = len(iface)
         iparams = "i"
 
@@ -470,13 +470,13 @@ class GCNode(Iterable, Hashable):
 
         if hints:
             # Add type hints for output parameters
-            onum = len(self.gc["cgraph"]["Od"])
+            onum = len(self.gc["cgraph"][DstIfKey.OD])
             if onum > 1:
-                oface = self.gc["cgraph"]["Od"]
+                oface = self.gc["cgraph"][DstIfKey.OD]
                 output_types = ", ".join(str(oface[i].typ) for i in range(onum))
                 ret_type = f"tuple[{output_types}]"
             elif onum == 1:
-                ret_type = str(self.gc["cgraph"]["Od"][0].typ)
+                ret_type = str(self.gc["cgraph"][DstIfKey.OD][0].typ)
             elif onum == 0:
                 ret_type = "None"
             else:

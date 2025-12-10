@@ -9,11 +9,13 @@ from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     SOURCE_ROW_MAP,
+    DstIfKey,
     DstRow,
     EPCls,
     EPClsPostfix,
     JSONCGraph,
     Row,
+    SrcIfKey,
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
@@ -379,22 +381,22 @@ def json_cgraph_to_interfaces(jcg: JSONCGraph) -> dict[str, list[EndpointMemberT
         interfaces[src_iface_key] = sorted(eps.values(), key=lambda x: x[1])
 
     # Create missing interfaces with no endpoints
-    if "Is" not in interfaces:
-        interfaces["Is"] = []
-    if "Ad" not in interfaces and "As" in interfaces:
-        interfaces["Ad"] = []
-    if "As" not in interfaces and "Ad" in interfaces:
-        interfaces["As"] = []
-    if "Bd" not in interfaces and "Bs" in interfaces:
-        interfaces["Bd"] = []
-    if "Bs" not in interfaces and "Bd" in interfaces:
-        interfaces["Bs"] = []
-    if "Od" not in interfaces:
-        interfaces["Od"] = []
+    if SrcIfKey.IS not in interfaces:
+        interfaces[SrcIfKey.IS] = []
+    if DstIfKey.AD not in interfaces and SrcIfKey.AS in interfaces:
+        interfaces[DstIfKey.AD] = []
+    if SrcIfKey.AS not in interfaces and DstIfKey.AD in interfaces:
+        interfaces[SrcIfKey.AS] = []
+    if DstIfKey.BD not in interfaces and SrcIfKey.BS in interfaces:
+        interfaces[DstIfKey.BD] = []
+    if SrcIfKey.BS not in interfaces and DstIfKey.BD in interfaces:
+        interfaces[SrcIfKey.BS] = []
+    if DstIfKey.OD not in interfaces:
+        interfaces[DstIfKey.OD] = []
     if (
-        "Od" in interfaces
-        and any(k in interfaces for k in ("Fd", "Ld", "Sd", "Wd"))
-        and "Pd" not in interfaces
+        DstIfKey.OD in interfaces
+        and any(k in interfaces for k in (DstIfKey.FD, DstIfKey.LD, DstIfKey.SD, DstIfKey.WD))
+        and DstIfKey.PD not in interfaces
     ):
-        interfaces["Pd"] = []
+        interfaces[DstIfKey.PD] = []
     return interfaces
