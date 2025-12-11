@@ -6,6 +6,7 @@ from random import choice, getrandbits, randint, seed
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.ggc_dict import GCABC
 from egppy.worker.executor.context_writer import (
     FWC4FILE,
@@ -83,7 +84,8 @@ class TestExecutor(unittest.TestCase):
                 # Execute the function
                 gc: GCABC = self.gene_pool[gci]
                 result = ec.execute(
-                    gc["signature"], tuple(getrandbits(64) for _ in range(len(gc["cgraph"]["Is"])))
+                    gc["signature"],
+                    tuple(getrandbits(64) for _ in range(len(gc["cgraph"][SrcIfKey.IS]))),
                 )
                 baseline[num_lines].append(result)
                 if num_lines != NUM_LINES[0]:
@@ -217,10 +219,10 @@ class TestExecutor(unittest.TestCase):
                 "gcb": gcb,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
-                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
+                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"][DstIfKey.OD]))],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
@@ -280,10 +282,10 @@ class TestExecutor(unittest.TestCase):
                 "gcb": gcb,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
-                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "B": [["I", i, INT_T] for i in range(len(gcb["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
+                    "P": [["B", i, INT_T] for i in range(len(gcb["cgraph"][DstIfKey.OD]))],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                 "problem": ACYBERGENESIS_PROBLEM,
@@ -325,8 +327,8 @@ class TestExecutor(unittest.TestCase):
                 "gcb": None,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
                     "P": [["I", i, INT_T] for i in pass_through_order],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -376,8 +378,8 @@ class TestExecutor(unittest.TestCase):
                 "gcb": None,
                 "cgraph": {
                     "F": [["I", 3, "bool"]],  # Condition
-                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"]["Is"]))],
-                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"]["Od"]))],
+                    "A": [["I", i, INT_T] for i in range(len(gca["cgraph"][SrcIfKey.IS]))],
+                    "O": [["A", i, INT_T] for i in range(len(gca["cgraph"][DstIfKey.OD]))],
                     "P": [["I", i, INT_T] for i in pass_through_order],
                 },
                 "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -456,7 +458,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: c6adb00c0e2f5a797782a2e8b96e6e06fea288ab3415f13d5037d4d7f81fb056\n'
+            '\t"""Signature: 00a05165454f54ca9bf8dc8e9d656bf7b8e952cf8040fe76f39be61b4c5c0e00\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -478,7 +480,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: c6adb00c0e2f5a797782a2e8b96e6e06fea288ab3415f13d5037d4d7f81fb056\n'
+            '\t"""Signature: 00a05165454f54ca9bf8dc8e9d656bf7b8e952cf8040fe76f39be61b4c5c0e00\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"

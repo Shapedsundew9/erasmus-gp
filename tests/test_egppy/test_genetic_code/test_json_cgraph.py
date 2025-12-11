@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
 from egppy.genetic_code.json_cgraph import (
     CGT_VALID_DST_ROWS,
     CGT_VALID_ROWS,
@@ -339,8 +339,8 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
         interfaces = json_cgraph_to_interfaces(jcg)
         # Both As and Ad should exist
-        self.assertIn("As", interfaces)
-        self.assertIn("Ad", interfaces)
+        self.assertIn(SrcIfKey.AS, interfaces)
+        self.assertIn(DstIfKey.AD, interfaces)
 
     def test_json_cgraph_to_interfaces_creates_bs_when_bd_exists(self) -> None:
         """Test that Bs is created when Bd exists but Bs doesn't."""
@@ -353,8 +353,8 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         }
         interfaces = json_cgraph_to_interfaces(jcg)
         # Both Bs and Bd should exist
-        self.assertIn("Bs", interfaces)
-        self.assertIn("Bd", interfaces)
+        self.assertIn(SrcIfKey.BS, interfaces)
+        self.assertIn(DstIfKey.BD, interfaces)
 
     def test_json_cgraph_to_interfaces_creates_missing_interfaces(self) -> None:
         """Test that missing complementary interfaces are created."""
@@ -362,8 +362,8 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Should create both Ad and As
-        self.assertIn("Ad", interfaces)
-        self.assertIn("As", interfaces)
+        self.assertIn(DstIfKey.AD, interfaces)
+        self.assertIn(SrcIfKey.AS, interfaces)
 
     def test_json_cgraph_to_interfaces_creates_pd_for_conditional(self) -> None:
         """Test that Pd is created for conditional graphs."""
@@ -377,7 +377,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Should create Pd for conditional graphs
-        self.assertIn("Pd", interfaces)
+        self.assertIn(DstIfKey.PD, interfaces)
 
     def test_json_cgraph_to_interfaces_creates_pd_for_loop(self) -> None:
         """Test that Pd is created for loop graphs."""
@@ -391,16 +391,16 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Should create Pd for loop graphs
-        self.assertIn("Pd", interfaces)
+        self.assertIn(DstIfKey.PD, interfaces)
 
     def test_json_cgraph_to_interfaces_empty(self) -> None:
         """Test conversion of empty graph."""
         jcg = {DstRow.O: [], DstRow.U: []}
         interfaces = json_cgraph_to_interfaces(jcg)
 
-        self.assertIn("Is", interfaces)
-        self.assertIn("Od", interfaces)
-        self.assertEqual(len(interfaces["Od"]), 0)
+        self.assertIn(SrcIfKey.IS, interfaces)
+        self.assertIn(DstIfKey.OD, interfaces)
+        self.assertEqual(len(interfaces[DstIfKey.OD]), 0)
 
     def test_json_cgraph_to_interfaces_sorted_source_endpoints(self) -> None:
         """Test that source endpoints are sorted by index."""
@@ -412,7 +412,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Source endpoints should be sorted by index
-        is_interface = interfaces["Is"]
+        is_interface = interfaces[SrcIfKey.IS]
         indices = [ep[1] for ep in is_interface]
         self.assertEqual(indices, [0, 1, 2])
 

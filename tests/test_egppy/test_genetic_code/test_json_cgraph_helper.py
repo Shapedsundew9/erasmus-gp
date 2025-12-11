@@ -8,7 +8,7 @@ import unittest
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
-from egppy.genetic_code.c_graph_constants import DstRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 
 
@@ -27,7 +27,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Check that source interface I has 3 endpoints
-        is_interface = interfaces["Is"]
+        is_interface = interfaces[SrcIfKey.IS]
         self.assertEqual(len(is_interface), 3)
 
         # Check endpoint types
@@ -35,7 +35,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         self.assertEqual(types, ["int", "str", "bool"])
 
         # Check that A source interface has correct endpoints
-        as_interface = interfaces["As"]
+        as_interface = interfaces[SrcIfKey.AS]
         self.assertEqual(len(as_interface), 3)
 
         # Verify all connections are properly established
@@ -55,21 +55,21 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Verify we get all expected interfaces
-        self.assertIn("Fd", interfaces)
-        self.assertIn("Ad", interfaces)
-        self.assertIn("Od", interfaces)
-        self.assertIn("Pd", interfaces)
-        self.assertIn("Is", interfaces)
-        self.assertIn("As", interfaces)
+        self.assertIn(DstIfKey.FD, interfaces)
+        self.assertIn(DstIfKey.AD, interfaces)
+        self.assertIn(DstIfKey.OD, interfaces)
+        self.assertIn(DstIfKey.PD, interfaces)
+        self.assertIn(SrcIfKey.IS, interfaces)
+        self.assertIn(SrcIfKey.AS, interfaces)
 
         # Check F interface
-        fd_interface = interfaces["Fd"]
+        fd_interface = interfaces[DstIfKey.FD]
         self.assertEqual(len(fd_interface), 1)
         self.assertEqual(fd_interface[0][3].name, "bool")
         self.assertEqual(fd_interface[0][4], [["I", 0]])
 
         # Check source interface has correct endpoints
-        is_interface = interfaces["Is"]
+        is_interface = interfaces[SrcIfKey.IS]
         self.assertEqual(len(is_interface), 2)  # I0 and I1
         self.assertEqual(is_interface[0][1], 0)
         self.assertEqual(is_interface[0][3].name, "bool")
@@ -109,29 +109,29 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Check that we get the expected interface keys
-        self.assertIn("Ad", interfaces)
-        self.assertIn("Od", interfaces)
-        self.assertIn("Is", interfaces)
-        self.assertIn("As", interfaces)
+        self.assertIn(DstIfKey.AD, interfaces)
+        self.assertIn(DstIfKey.OD, interfaces)
+        self.assertIn(SrcIfKey.IS, interfaces)
+        self.assertIn(SrcIfKey.AS, interfaces)
 
         # Check destination interfaces
-        ad_interface = interfaces["Ad"]
+        ad_interface = interfaces[DstIfKey.AD]
         self.assertEqual(len(ad_interface), 1)
         self.assertEqual(ad_interface[0][3].name, "int")
         self.assertEqual(ad_interface[0][4], [["I", 0]])
 
-        od_interface = interfaces["Od"]
+        od_interface = interfaces[DstIfKey.OD]
         self.assertEqual(len(od_interface), 1)
         self.assertEqual(od_interface[0][3].name, "int")
         self.assertEqual(od_interface[0][4], [["A", 0]])
 
         # Check source interfaces
-        is_interface = interfaces["Is"]
+        is_interface = interfaces[SrcIfKey.IS]
         self.assertEqual(len(is_interface), 1)
         self.assertEqual(is_interface[0][3].name, "int")
         self.assertEqual(is_interface[0][4], [["A", 0]])
 
-        as_interface = interfaces["As"]
+        as_interface = interfaces[SrcIfKey.AS]
         self.assertEqual(len(as_interface), 1)
         self.assertEqual(as_interface[0][3].name, "int")
         self.assertEqual(as_interface[0][4], [["O", 0]])
@@ -148,21 +148,21 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Check interface creation
-        self.assertIn("Ad", interfaces)
-        self.assertIn("Bd", interfaces)
-        self.assertIn("Od", interfaces)
-        self.assertIn("Is", interfaces)
-        self.assertIn("As", interfaces)
-        self.assertIn("Bs", interfaces)
+        self.assertIn(DstIfKey.AD, interfaces)
+        self.assertIn(DstIfKey.BD, interfaces)
+        self.assertIn(DstIfKey.OD, interfaces)
+        self.assertIn(SrcIfKey.IS, interfaces)
+        self.assertIn(SrcIfKey.AS, interfaces)
+        self.assertIn(SrcIfKey.BS, interfaces)
 
         # Verify connection chain
-        od_interface = interfaces["Od"]
+        od_interface = interfaces[DstIfKey.OD]
         self.assertEqual(od_interface[0][4], [["B", 0]])
 
-        bd_interface = interfaces["Bd"]
+        bd_interface = interfaces[DstIfKey.BD]
         self.assertEqual(bd_interface[0][4], [["A", 0]])
 
-        ad_interface = interfaces["Ad"]
+        ad_interface = interfaces[DstIfKey.AD]
         self.assertEqual(ad_interface[0][4], [["I", 0]])
 
     def test_type_consistency_validation(self) -> None:

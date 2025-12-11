@@ -19,7 +19,7 @@ from egpcommon.gp_db_config import EGC_KVT
 from egpcommon.properties import CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
 from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
-from egppy.genetic_code.c_graph_constants import JSONCGraph, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, JSONCGraph, SrcIfKey, SrcRow
 from egppy.genetic_code.genetic_code import (
     GCABC,
     MERMAID_FOOTER,
@@ -328,8 +328,8 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         # Ancestral Relationship Validation based on Connection Graph Structure
         # Reference: egppy/egppy/genetic_code/docs/gc_types.md - Validation Rules
         cgraph = self["cgraph"]
-        has_row_a = "Ad" in cgraph or "As" in cgraph
-        has_row_b = "Bd" in cgraph or "Bs" in cgraph
+        has_row_a = DstIfKey.AD in cgraph or SrcIfKey.AS in cgraph
+        has_row_b = DstIfKey.BD in cgraph or SrcIfKey.BS in cgraph
 
         # Validate gca against connection graph structure
         if has_row_a and graph_type != CGraphType.PRIMITIVE:

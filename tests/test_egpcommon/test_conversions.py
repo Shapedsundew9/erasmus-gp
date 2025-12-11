@@ -5,7 +5,6 @@ import unittest
 from numpy import array, uint8
 from numpy.testing import assert_array_equal
 
-from egpcommon.common import NULL_SHA256
 from egpcommon.conversions import (
     bytes_to_list_int,
     compress_json,
@@ -15,7 +14,6 @@ from egpcommon.conversions import (
     memoryview_to_ndarray,
     ndarray_to_bytes,
     ndarray_to_memoryview,
-    null_sha256_to_none,
 )
 
 
@@ -54,6 +52,7 @@ class TestConversions(unittest.TestCase):
         """Test the decompress_json function."""
         obj = {"key": "value"}
         compressed = compress_json(obj)
+        assert isinstance(compressed, bytes), "Compression did not return bytes."
         decompressed = decompress_json(compressed)
         self.assertEqual(decompressed, obj)
 
@@ -107,10 +106,3 @@ class TestConversions(unittest.TestCase):
         result = ndarray_to_memoryview(b)
         assert isinstance(result, memoryview)
         self.assertEqual(result.tobytes(), b)
-
-    def test_null_sha256_to_none(self):
-        """Test the null_sha256_to_none function."""
-        self.assertIsNone(null_sha256_to_none(NULL_SHA256))
-        self.assertIsNone(null_sha256_to_none(NULL_SHA256))
-        self.assertEqual(null_sha256_to_none(b"test"), b"test")
-        self.assertIsNone(null_sha256_to_none(None))

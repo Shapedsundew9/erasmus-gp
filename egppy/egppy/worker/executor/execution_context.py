@@ -13,7 +13,7 @@ from egpcommon.common import NULL_STR
 from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.c_graph_constants import DstRow, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
 from egppy.genetic_code.ggc_dict import GCABC, NULL_GC
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.interface import Interface, unpack_src_ref
@@ -276,7 +276,7 @@ class ExecutionContext:
             code.append("\tpass")
 
         # Step 8: Return statement (outside the if/else)
-        if len(root.gc["cgraph"]["Od"]) > 0:
+        if len(root.gc["cgraph"][DstIfKey.OD]) > 0:
             code.append(f"return {', '.join(ovns)}")
 
         return code
@@ -553,7 +553,7 @@ class ExecutionContext:
         # So, the logic holds.
 
         # Step 8: Return statement (outside the loop)
-        if len(root.gc["cgraph"]["Od"]) > 0:
+        if len(root.gc["cgraph"][DstIfKey.OD]) > 0:
             code.append(f"return {', '.join(ovns)}")
 
         return code
@@ -621,12 +621,12 @@ class ExecutionContext:
                             assert node.gca is not NULL_GC, "Should never introspect a codon graph."
                             src.node = node.gca_node
                             src.terminal = node.gca_node.terminal
-                            iface = src.node.gc["cgraph"]["Od"]
+                            iface = src.node.gc["cgraph"][DstIfKey.OD]
                     case SrcRow.B:
                         assert node.gcb is not NULL_GC, "GCB cannot be NULL"
                         src.node = node.gcb_node
                         src.terminal = node.gcb_node.terminal
-                        iface = src.node.gc["cgraph"]["Od"]
+                        iface = src.node.gc["cgraph"][DstIfKey.OD]
                     case SrcRow.I | SrcRow.S | SrcRow.L | SrcRow.W:
                         parent: GCNode = node.parent
                         # Function is the root node. Going to its parent is moving
@@ -653,7 +653,7 @@ class ExecutionContext:
                                 # and this node must be B
                                 src.node = parent.gca_node
                                 assert node is parent.gcb_node, "Node must be GCB here."
-                                iface = src.node.gc["cgraph"]["Od"]
+                                iface = src.node.gc["cgraph"][DstIfKey.OD]
                                 node = parent
                                 src.terminal = src.node.terminal
                         else:
@@ -672,8 +672,8 @@ class ExecutionContext:
                     # inputs map directly to outputs so we can fake it.
                     src.row = SrcRow.I
                     src.terminal = False
-                    assert len(src.node.gc["cgraph"]["Is"]) == len(
-                        src.node.gc["cgraph"]["Od"]
+                    assert len(src.node.gc["cgraph"][SrcIfKey.IS]) == len(
+                        src.node.gc["cgraph"][DstIfKey.OD]
                     ), "Meta-codons must have matching input/output interfaces."
                     # src.idx stays the same.
                 else:
@@ -702,7 +702,7 @@ class ExecutionContext:
             if node is not NULL_GC_NODE and node.f_connection:
                 node.f_connection = False
                 # Get the source reference from the first endpoint in Fd interface
-                f_ep = node.gc["cgraph"]["Fd"][0]
+                f_ep = node.gc["cgraph"][DstIfKey.FD][0]
                 f_src_row, f_src_idx = unpack_src_ref(f_ep.refs[0])
                 connection_stack.append(
                     CodeConnection(
@@ -757,7 +757,7 @@ class ExecutionContext:
             code.append(self.inline_cstr(root=root, node=node) + scmnt)
 
         # Add a return statement if the function has outputs
-        if len(root.gc["cgraph"]["Od"]) > 0:
+        if len(root.gc["cgraph"][DstIfKey.OD]) > 0:
             code.append(f"return {', '.join(ovns)}")
         return code
 
@@ -891,18 +891,18 @@ class ExecutionContext:
         # By default the ovns is underscore (unused) for all outputs. This is then
         # overridden by any connection that starts (is source endpoint) at this node.
         ngc = node.gc
-        ovns: list[str] = ["_"] * len(ngc["cgraph"]["Od"])
+        ovns: list[str] = ["_"] * len(ngc["cgraph"][DstIfKey.OD])
         rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is node):
             ovns[idx] = ovn
 
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
-        ivns: list[str] = [NULL_STR] * len(ngc["cgraph"]["Is"])
+        ivns: list[str] = [NULL_STR] * len(ngc["cgraph"][SrcIfKey.IS])
         # Special case: If this node is a codon and it's the root, inputs come directly
         # from the function parameter 'i', not from connections
         if node.is_codon and node is root:
-            ivns = [i_cstr(i) for i in range(len(ngc["cgraph"]["Is"]))]
+            ivns = [i_cstr(i) for i in range(len(ngc["cgraph"][SrcIfKey.IS]))]
         else:
             for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
                 ivns[idx] = ivn
@@ -915,7 +915,7 @@ class ExecutionContext:
                 # Make sure the imports are captured
                 self._codon_register.add(ngc["signature"])
                 # Make an import chain
-                ifc = chain(ngc["cgraph"]["Is"], ngc["cgraph"]["Od"])
+                ifc = chain(ngc["cgraph"][SrcIfKey.IS], ngc["cgraph"][DstIfKey.OD])
                 ic = chain(ngc["imports"], chain.from_iterable(t.typ.imports for t in ifc))
                 # Only import what we have not already imported.
                 for impt in (i for i in ic if i not in self.imports):
@@ -924,7 +924,7 @@ class ExecutionContext:
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
             if node.is_meta:
                 # Meta codons require type information for their inline code
-                oface = node.gc["cgraph"]["Od"]
+                oface = node.gc["cgraph"][DstIfKey.OD]
                 ivns_map["i"] = "(" + ", ".join(ivn for ivn in ivns) + ")"
                 ivns_map.update({f"t{i}": t.typ.name for i, t in enumerate(oface)})
                 ivns_map["t"] = "(" + ", ".join(t.typ.name for t in oface) + ")"
@@ -942,7 +942,7 @@ class ExecutionContext:
 
         # Gather the output variable names to catch the case where an input is
         # directly connected to an output
-        _ovns: list[str] = ["" for _ in range(len(root.gc["cgraph"]["Od"]))]
+        _ovns: list[str] = ["" for _ in range(len(root.gc["cgraph"][DstIfKey.OD]))]
         root.terminal_connections.sort(key=connection_key)
         src_connection_map: dict[CodeEndPoint, CodeConnection] = {}
         for connection in root.terminal_connections:

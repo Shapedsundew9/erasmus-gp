@@ -3,6 +3,7 @@
 from egpcommon.egp_rnd_gen import EGPRndGen
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.ggc_dict import GCABC, GGCDict
 from egppy.physics.runtime_context import RuntimeContext
 
@@ -35,13 +36,13 @@ def stabilize_gc(
     ggc: GCABC = GGCDict(egc)
 
     # A bit of sanity checking
-    if not gca["cgraph"]["Is"].to_td() == ggc["cgraph"]["Ad"].to_td():
+    if not gca["cgraph"][SrcIfKey.IS].to_td() == ggc["cgraph"][DstIfKey.AD].to_td():
         raise ValueError("GCA row Is does not match GGCode row Ad")
-    if not gca["cgraph"]["Od"].to_td() == ggc["cgraph"]["As"].to_td():
+    if not gca["cgraph"][DstIfKey.OD].to_td() == ggc["cgraph"][SrcIfKey.AS].to_td():
         raise ValueError("GCA row Od does not match GGCode row As")
-    if not gcb["cgraph"]["Is"].to_td() == ggc["cgraph"]["Bd"].to_td():
+    if not gcb["cgraph"][SrcIfKey.IS].to_td() == ggc["cgraph"][DstIfKey.BD].to_td():
         raise ValueError("GCB row Is does not match GGCode row Bd")
-    if not gcb["cgraph"]["Od"].to_td() == ggc["cgraph"]["Bs"].to_td():
+    if not gcb["cgraph"][DstIfKey.OD].to_td() == ggc["cgraph"][SrcIfKey.BS].to_td():
         raise ValueError("GCB row Od does not match GGCode row Bs")
 
     # Add to Gene Pool

@@ -263,11 +263,11 @@ class TestFrozenCGraph(unittest.TestCase):
 
     def test_contains(self) -> None:
         """Test checking if interface exists."""
-        self.assertIn("Is", self.frozen_graph)
-        self.assertIn("Ad", self.frozen_graph)
+        self.assertIn(SrcIfKey.IS, self.frozen_graph)
+        self.assertIn(DstIfKey.AD, self.frozen_graph)
         self.assertIn("I", self.frozen_graph)  # Row check
         self.assertIn("A", self.frozen_graph)  # Row check
-        self.assertNotIn("Bd", self.frozen_graph)
+        self.assertNotIn(DstIfKey.BD, self.frozen_graph)
 
     def test_equality_with_mutable(self) -> None:
         """Test that frozen and mutable graphs can be compared."""

@@ -78,8 +78,6 @@ class DstIfKey(StrEnum):
 
 
 # The superset
-# TODO: There is rampant use through the code base of string literals for these keys.
-#  We should refactor to use these enums instead.
 IfKey = SrcIfKey | DstIfKey
 
 

@@ -94,13 +94,13 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gca["cgraph"]["Is"]))],
+                "A": [["I", i, INT_T] for i in randomrange(len(gca["cgraph"][SrcIfKey.IS]))],
                 "B": [
-                    ["I", i + len(gca["cgraph"]["Is"]), INT_T]
-                    for i in randomrange(len(gcb["cgraph"]["Is"]))
+                    ["I", i + len(gca["cgraph"][SrcIfKey.IS]), INT_T]
+                    for i in randomrange(len(gcb["cgraph"][SrcIfKey.IS]))
                 ],
-                "O": [["A", i, INT_T] for i in randomrange(len(gca["cgraph"]["Od"]))]
-                + [["B", i, INT_T] for i in randomrange(len(gcb["cgraph"]["Od"]))],
+                "O": [["A", i, INT_T] for i in randomrange(len(gca["cgraph"][DstIfKey.OD]))]
+                + [["B", i, INT_T] for i in randomrange(len(gcb["cgraph"][DstIfKey.OD]))],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -122,7 +122,7 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
     to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
 
     # Upcast the outputs
-    while oepl := [oep for oep in gc["cgraph"]["Od"] if oep.typ != INT_TD]:
+    while oepl := [oep for oep in gc["cgraph"][DstIfKey.OD] if oep.typ != INT_TD]:
         # We will only process the first endpoint in the oepl list
         # Find the appropriate meta codon to cast the first endpoint to 'int'
         meta_codon = to_int.get(oepl[0].typ.name)
@@ -148,7 +148,7 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
     gc: The original GC to cast.
     idx: The index of the output in gc to cast.
     """
-    mcot = mc["cgraph"]["Od"][0].typ.name
+    mcot = mc["cgraph"][DstIfKey.OD][0].typ.name
     return inherit_members(
         {
             "ancestora": gc,
@@ -157,11 +157,11 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
             "gca": gc,
             "gcb": mc,
             "cgraph": {
-                "A": [["I", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Is"]],
-                "B": [["A", idx, gc["cgraph"]["Od"][idx].typ.name]],
+                "A": [["I", ep.idx, ep.typ.name] for ep in gc["cgraph"][SrcIfKey.IS]],
+                "B": [["A", idx, gc["cgraph"][DstIfKey.OD][idx].typ.name]],
                 "O": [
                     ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
-                    for ep in gc["cgraph"]["Od"]
+                    for ep in gc["cgraph"][DstIfKey.OD]
                 ],
                 "U": [],
             },
@@ -222,11 +222,11 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
             # allowed outputs so that there is the possibility of finding an output
             # solution that meets the constraint.
             gca = choice([gc for no in _gcm[num_a] for gc in _gcm[num_a][no] if no < num_outputs])
-            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["cgraph"]["Od"])]))
+            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["cgraph"][DstIfKey.OD])]))
             ngc = append_gcs(gca, gcb)
             target_set.append(ngc)
-            assert len(ngc["cgraph"]["Is"]) == num_inputs, f"ngx # inputs != {num_inputs}"
-            assert len(ngc["cgraph"]["Od"]) == num_outputs, f"ngx # outputs != {num_outputs}"
+            assert len(ngc["cgraph"][SrcIfKey.IS]) == num_inputs, f"ngx # inputs != {num_inputs}"
+            assert len(ngc["cgraph"][DstIfKey.OD]) == num_outputs, f"ngx # outputs != {num_outputs}"
     return _gcm
 
 
@@ -357,11 +357,11 @@ def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
     # gc1 outputs.
     Connections on each interface are randomly assigned.
     """
-    assert len(gc1["cgraph"]["Od"]) + len(gc2["cgraph"]["Od"]) == len(
-        narrow_gc["cgraph"]["Is"]
+    assert len(gc1["cgraph"][DstIfKey.OD]) + len(gc2["cgraph"][DstIfKey.OD]) == len(
+        narrow_gc["cgraph"][SrcIfKey.IS]
     ), "gc1 + gc2 outputs != narrow_gc # inputs."
-    assert len(gc1["cgraph"]["Od"]) == len(
-        narrow_gc["cgraph"]["Od"]
+    assert len(gc1["cgraph"][DstIfKey.OD]) == len(
+        narrow_gc["cgraph"][DstIfKey.OD]
     ), "gc1 outputs != narrow_gc outputs."
     gca: GCABC = append_gcs(gc1, gc2)
     gcb: GCABC = narrow_gc
@@ -421,10 +421,10 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
     """
     gca: GCABC = gc1
     gcb: GCABC = gc2
-    len_ai = len(gca["cgraph"]["Is"])
-    len_ao = len(gca["cgraph"]["Od"])
-    len_bi = len(gcb["cgraph"]["Is"])
-    len_bo = len(gcb["cgraph"]["Od"])
+    len_ai = len(gca["cgraph"][SrcIfKey.IS])
+    len_ao = len(gca["cgraph"][DstIfKey.OD])
+    len_bi = len(gcb["cgraph"][SrcIfKey.IS])
+    len_bo = len(gcb["cgraph"][DstIfKey.OD])
     return inherit_members(
         {
             "ancestora": gca,
@@ -506,7 +506,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
 
     # Ad in this GC must be the same as Is in the GCA
     # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-    for idx, (a, i) in enumerate(zip(egc["cgraph"]["Ad"], gca["cgraph"]["Is"])):
+    for idx, (a, i) in enumerate(zip(egc["cgraph"][DstIfKey.AD], gca["cgraph"][SrcIfKey.IS])):
         if a.typ not in types_def_store.ancestors(i.typ):
             raise ValueError(
                 f"Input types do not match for GCA at position {idx}: "
@@ -515,7 +515,7 @@ def resolve_inherited_members(egc: GCABC) -> GCABC:
             )
 
     # As in this GC must be the same as Od in the GCA
-    for idx, (a, o) in enumerate(zip(egc["cgraph"]["As"], gca["cgraph"]["Od"])):
+    for idx, (a, o) in enumerate(zip(egc["cgraph"][SrcIfKey.AS], gca["cgraph"][DstIfKey.OD])):
         if a.typ not in types_def_store.ancestors(o.typ):
             raise ValueError(
                 f"Output types do not match for GCA at position {idx}: "
@@ -558,10 +558,10 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     It is assumed that GCA has the same number of outputs as GCB has inputs.
     GCA's outputs are randomly connected to GCB's inputs.
     """
-    len_1i = len(gc1["cgraph"]["Is"])
-    len_1o = len(gc1["cgraph"]["Od"])
-    len_2i = len(gc2["cgraph"]["Is"])
-    len_2o = len(gc2["cgraph"]["Od"])
+    len_1i = len(gc1["cgraph"][SrcIfKey.IS])
+    len_1o = len(gc1["cgraph"][DstIfKey.OD])
+    len_2i = len(gc2["cgraph"][SrcIfKey.IS])
+    len_2o = len(gc2["cgraph"][DstIfKey.OD])
     assert len_1o == len_2i, "gc1 # outputs != gc2 # inputs"
     return inherit_members(
         {

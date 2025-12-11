@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from egpcommon.egp_log import VERIFY
 from egppy.genetic_code.c_graph import CGraph, _logger
-from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.interface import Interface
@@ -103,10 +103,10 @@ class TestCGraphGetItemErrors(unittest.TestCase):
     def test_getitem_unset_key(self) -> None:
         """Test that __getitem__ raises KeyError for valid but unset keys."""
         # Delete an interface first
-        del self.cgraph["Ad"]
+        del self.cgraph[DstIfKey.AD]
 
         with self.assertRaises(KeyError) as context:
-            _ = self.cgraph["Ad"]
+            _ = self.cgraph[DstIfKey.AD]
         self.assertIn("Connection Graph key not set", str(context.exception))
 
 
@@ -135,7 +135,7 @@ class TestCGraphSetItemErrors(unittest.TestCase):
     def test_setitem_invalid_value_type(self) -> None:
         """Test that __setitem__ raises TypeError for non-Interface values."""
         with self.assertRaises(TypeError) as context:
-            self.cgraph["Ad"] = "not an interface"  # type: ignore
+            self.cgraph[DstIfKey.AD] = "not an interface"  # type: ignore
         self.assertIn("Value must be an Interface", str(context.exception))
 
 
@@ -155,20 +155,20 @@ class TestCGraphGetMethod(unittest.TestCase):
 
     def test_get_existing_key(self) -> None:
         """Test get() returns interface for existing keys."""
-        result = self.cgraph.get("Ad")
+        result = self.cgraph.get(DstIfKey.AD)
         self.assertIsNotNone(result)
         self.assertIsInstance(result, Interface)
 
     def test_get_with_custom_default(self) -> None:
         """Test get() returns custom default for missing keys."""
         custom_default = Interface([])
-        result = self.cgraph.get("Fd", custom_default)
+        result = self.cgraph.get(DstIfKey.FD, custom_default)
         # get() returns the attribute value or default, which is None for missing keys
         self.assertIsNone(result)
 
     def test_get_with_default_none(self) -> None:
         """Test get() returns None for missing keys with default=None."""
-        result = self.cgraph.get("Fd", None)
+        result = self.cgraph.get(DstIfKey.FD, None)
         self.assertIsNone(result)
 
 
@@ -228,12 +228,12 @@ class TestCGraphVerifyConnectivityErrors(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Bs": b_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.BS: b_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -267,12 +267,12 @@ class TestCGraphVerifyConnectivityErrors(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "As": [],
-                "Bs": b_eps,
-                "Bd": [],
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: [],
+                SrcIfKey.BS: b_eps,
+                DstIfKey.BD: [],
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -309,11 +309,11 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -351,11 +351,11 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ld": l_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.LD: l_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -396,12 +396,12 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ld": l_eps,
-                "Ls": ls_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.LD: l_eps,
+                SrcIfKey.LS: ls_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -444,13 +444,13 @@ class TestCGraphVerifySingleEndpointErrors(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ld": l_eps,
-                "Ad": a_eps,
-                "As": as_eps,
-                "Wd": w_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.LD: l_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: as_eps,
+                DstIfKey.WD: w_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 
@@ -478,9 +478,9 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -501,10 +501,10 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": [],
-                "Ad": a_eps,
-                "As": [],
-                "Od": o_eps,
+                SrcIfKey.IS: [],
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: [],
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -529,10 +529,10 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "As": [],
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: [],
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -561,10 +561,10 @@ class TestCGraphVerifyAllDestinationsConnected(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "As": [],
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: [],
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -602,10 +602,10 @@ class TestCGraphEdgeCases(unittest.TestCase):
         # Graph 1: Has Is, Ad, As, Od (4 interfaces)
         cgraph1 = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "As": [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [["O", 0]])],
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: [(SrcRow.A, 0, EPCls.SRC, types_def_store["int"], [["O", 0]])],
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -613,10 +613,10 @@ class TestCGraphEdgeCases(unittest.TestCase):
         # Let's try: Has Is, Bd, Bs, Od (4 interfaces, different keys)
         cgraph2 = CGraph(
             {
-                "Is": i_eps,
-                "Bd": [(DstRow.B, 0, EPCls.DST, types_def_store["int"], [["I", 0]])],
-                "Bs": [(SrcRow.B, 0, EPCls.SRC, types_def_store["int"], [["O", 0]])],
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.BD: [(DstRow.B, 0, EPCls.DST, types_def_store["int"], [["I", 0]])],
+                SrcIfKey.BS: [(SrcRow.B, 0, EPCls.SRC, types_def_store["int"], [["O", 0]])],
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -719,10 +719,10 @@ class TestCGraphEdgeCases(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Ad": a_eps,
-                "As": as_eps,
-                "Od": o_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.AD: a_eps,
+                SrcIfKey.AS: as_eps,
+                DstIfKey.OD: o_eps,
             }
         )
 
@@ -777,11 +777,11 @@ class TestCGraphEdgeCases(unittest.TestCase):
 
         cgraph = CGraph(
             {
-                "Is": i_eps,
-                "Fd": f_eps,
-                "Ad": a_eps,
-                "Od": o_eps,
-                "Pd": p_eps,
+                SrcIfKey.IS: i_eps,
+                DstIfKey.FD: f_eps,
+                DstIfKey.AD: a_eps,
+                DstIfKey.OD: o_eps,
+                DstIfKey.PD: p_eps,
             }
         )
 

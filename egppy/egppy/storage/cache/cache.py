@@ -62,9 +62,18 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
         """Set an item in the cache. If the cache is full make space first."""
         if key not in self:
             self.purge_check()
+
         # The value must be flavored (cast) to the type stored here. At a minimum this is a shallow
         # copy so the next layer dirty flag is not affected.
         item = self.flavor(value)
+        # TODO: ^^^^ Why? May be was thinking of a multi-layed cache?
+        # Seems like a load of overhead. Probably should just store the value directly.
+        # and raise an error if the type is incorrect.
+        # Does "shallow" copy mean only the CacheableObj state? But even that does not make sense
+        # as what does it mean to purge or clean a shallow copy of a cacheable object? I think
+        # only one layer of cache *can* work and own the object state. In which case this cast
+        # is redundant.
+
         self.data[key] = item  # type: ignore
         item.dirty()  # type: ignore
 

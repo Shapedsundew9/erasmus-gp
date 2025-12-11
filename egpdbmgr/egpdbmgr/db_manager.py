@@ -27,7 +27,6 @@ from egpcommon.conversions import (
     decompress_json,
     encode_properties,
     memoryview_to_signature,
-    signature_to_bytes,
 )
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
@@ -53,7 +52,7 @@ GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] =
     ("meta_data", compress_json, decompress_json),
     ("properties", encode_properties, None),
 ) + tuple(
-    (name, signature_to_bytes, memoryview_to_signature)
+    (name, None, memoryview_to_signature)
     for name, field in GGC_KVT.items()
     if field.get("signature", False)
 )

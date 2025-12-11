@@ -9,7 +9,7 @@ import unittest
 
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import (
@@ -424,18 +424,18 @@ class TestCGraph(unittest.TestCase):
         self.assertNotIn("L", cgraph)
 
         # Test with class postfix
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Od", cgraph)
-        self.assertIn("Is", cgraph)
-        self.assertIn("As", cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
+        self.assertIn(SrcIfKey.IS, cgraph)
+        self.assertIn(SrcIfKey.AS, cgraph)
 
     def test_cgraph_delitem(self) -> None:
         """Test CGraph __delitem__ method."""
         cgraph = CGraph(self.primitive_jcg)
 
         # Delete an interface
-        del cgraph["Ad"]
-        self.assertNotIn("Ad", cgraph)
+        del cgraph[DstIfKey.AD]
+        self.assertNotIn(DstIfKey.AD, cgraph)
 
     def test_cgraph_eq(self) -> None:
         """Test CGraph equality comparison."""
@@ -452,10 +452,10 @@ class TestCGraph(unittest.TestCase):
         cgraph = CGraph(self.primitive_jcg)
 
         # Get interfaces
-        ad_interface = cgraph["Ad"]
+        ad_interface = cgraph[DstIfKey.AD]
         self.assertIsInstance(ad_interface, Interface)
 
-        od_interface = cgraph["Od"]
+        od_interface = cgraph[DstIfKey.OD]
         self.assertIsInstance(od_interface, Interface)
 
     def test_cgraph_init_from_json(self) -> None:
@@ -474,11 +474,11 @@ class TestCGraph(unittest.TestCase):
         cgraph = CGraph(self.primitive_jcg)
 
         keys = list(cgraph)
-        self.assertIn("Is", keys)
-        self.assertIn("As", keys)
-        self.assertIn("Ad", keys)
-        self.assertIn("Od", keys)
-        self.assertNotIn("Fd", keys)
+        self.assertIn(SrcIfKey.IS, keys)
+        self.assertIn(SrcIfKey.AS, keys)
+        self.assertIn(DstIfKey.AD, keys)
+        self.assertIn(DstIfKey.OD, keys)
+        self.assertNotIn(DstIfKey.FD, keys)
 
     def test_cgraph_repr(self) -> None:
         """Test CGraph __repr__ method."""
@@ -494,9 +494,9 @@ class TestCGraph(unittest.TestCase):
 
         # Create a new interface
         new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")])
-        cgraph["Ad"] = new_interface
+        cgraph[DstIfKey.AD] = new_interface
 
-        self.assertEqual(cgraph["Ad"], new_interface)
+        self.assertEqual(cgraph[DstIfKey.AD], new_interface)
 
     def test_cgraph_to_json(self) -> None:
         """Test CGraph to_json conversion."""
@@ -545,14 +545,14 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must only have O (and potentially I if provided)
-        self.assertIn("Od", cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
 
         # Must not have F, L, W, A, B, P
-        self.assertNotIn("Fd", cgraph)
-        self.assertNotIn("Ld", cgraph)
-        self.assertNotIn("Wd", cgraph)
-        self.assertNotIn("Ad", cgraph)
-        self.assertNotIn("Bd", cgraph)
+        self.assertNotIn(DstIfKey.FD, cgraph)
+        self.assertNotIn(DstIfKey.LD, cgraph)
+        self.assertNotIn(DstIfKey.WD, cgraph)
+        self.assertNotIn(DstIfKey.AD, cgraph)
+        self.assertNotIn(DstIfKey.BD, cgraph)
 
     def test_for_loop_graph_rules(self) -> None:
         """Test For-Loop graph follows its specific rules."""
@@ -568,16 +568,16 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must not have F, W, B
-        self.assertNotIn("Fd", cgraph)
-        self.assertNotIn("Wd", cgraph)
-        self.assertNotIn("Bd", cgraph)
-        self.assertNotIn("Bs", cgraph)
+        self.assertNotIn(DstIfKey.FD, cgraph)
+        self.assertNotIn(DstIfKey.WD, cgraph)
+        self.assertNotIn(DstIfKey.BD, cgraph)
+        self.assertNotIn(SrcIfKey.BS, cgraph)
 
         # Must have L, A, O, P
-        self.assertIn("Ld", cgraph)
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Od", cgraph)
-        self.assertIn("Pd", cgraph)
+        self.assertIn(DstIfKey.LD, cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
+        self.assertIn(DstIfKey.PD, cgraph)
 
     def test_if_then_else_graph_rules(self) -> None:
         """Test If-Then-Else graph follows its specific rules."""
@@ -594,15 +594,15 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must not have L, W
-        self.assertNotIn("Ld", cgraph)
-        self.assertNotIn("Wd", cgraph)
+        self.assertNotIn(DstIfKey.LD, cgraph)
+        self.assertNotIn(DstIfKey.WD, cgraph)
 
         # Must have F, A, B, O, P
-        self.assertIn("Fd", cgraph)
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Bd", cgraph)
-        self.assertIn("Od", cgraph)
-        self.assertIn("Pd", cgraph)
+        self.assertIn(DstIfKey.FD, cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.BD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
+        self.assertIn(DstIfKey.PD, cgraph)
 
     def test_if_then_graph_rules(self) -> None:
         """Test If-Then graph follows its specific rules."""
@@ -618,16 +618,16 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must not have L, W, B interfaces
-        self.assertNotIn("Ld", cgraph)
-        self.assertNotIn("Wd", cgraph)
-        self.assertNotIn("Bd", cgraph)
-        self.assertNotIn("Bs", cgraph)
+        self.assertNotIn(DstIfKey.LD, cgraph)
+        self.assertNotIn(DstIfKey.WD, cgraph)
+        self.assertNotIn(DstIfKey.BD, cgraph)
+        self.assertNotIn(SrcIfKey.BS, cgraph)
 
         # Must have F, A, O, P
-        self.assertIn("Fd", cgraph)
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Od", cgraph)
-        self.assertIn("Pd", cgraph)
+        self.assertIn(DstIfKey.FD, cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
+        self.assertIn(DstIfKey.PD, cgraph)
 
     def test_primitive_graph_rules(self) -> None:
         """Test Primitive graph follows its specific rules."""
@@ -637,16 +637,16 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must not have F, L, W, P, B
-        self.assertNotIn("Fd", cgraph)
-        self.assertNotIn("Ld", cgraph)
-        self.assertNotIn("Wd", cgraph)
-        self.assertNotIn("Pd", cgraph)
-        self.assertNotIn("Bd", cgraph)
-        self.assertNotIn("Bs", cgraph)
+        self.assertNotIn(DstIfKey.FD, cgraph)
+        self.assertNotIn(DstIfKey.LD, cgraph)
+        self.assertNotIn(DstIfKey.WD, cgraph)
+        self.assertNotIn(DstIfKey.PD, cgraph)
+        self.assertNotIn(DstIfKey.BD, cgraph)
+        self.assertNotIn(SrcIfKey.BS, cgraph)
 
         # Must have A, O
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Od", cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
 
     def test_standard_graph_rules(self) -> None:
         """Test Standard graph follows its specific rules."""
@@ -661,15 +661,15 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must not have F, L, W, P
-        self.assertNotIn("Fd", cgraph)
-        self.assertNotIn("Ld", cgraph)
-        self.assertNotIn("Wd", cgraph)
-        self.assertNotIn("Pd", cgraph)
+        self.assertNotIn(DstIfKey.FD, cgraph)
+        self.assertNotIn(DstIfKey.LD, cgraph)
+        self.assertNotIn(DstIfKey.WD, cgraph)
+        self.assertNotIn(DstIfKey.PD, cgraph)
 
         # Must have A, B, O
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Bd", cgraph)
-        self.assertIn("Od", cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.BD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
 
     def test_while_loop_graph_rules(self) -> None:
         """Test While-Loop graph follows its specific rules."""
@@ -685,16 +685,16 @@ class TestCGraphGraphTypes(unittest.TestCase):
         cgraph = CGraph(jcg)
 
         # Must not have F, L, B
-        self.assertNotIn("Fd", cgraph)
-        self.assertNotIn("Ld", cgraph)
-        self.assertNotIn("Bd", cgraph)
-        self.assertNotIn("Bs", cgraph)
+        self.assertNotIn(DstIfKey.FD, cgraph)
+        self.assertNotIn(DstIfKey.LD, cgraph)
+        self.assertNotIn(DstIfKey.BD, cgraph)
+        self.assertNotIn(SrcIfKey.BS, cgraph)
 
         # Must have W, A, O, P
-        self.assertIn("Wd", cgraph)
-        self.assertIn("Ad", cgraph)
-        self.assertIn("Od", cgraph)
-        self.assertIn("Pd", cgraph)
+        self.assertIn(DstIfKey.WD, cgraph)
+        self.assertIn(DstIfKey.AD, cgraph)
+        self.assertIn(DstIfKey.OD, cgraph)
+        self.assertIn(DstIfKey.PD, cgraph)
 
 
 if __name__ == "__main__":
