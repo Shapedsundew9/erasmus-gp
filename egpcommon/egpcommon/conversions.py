@@ -16,7 +16,6 @@ from zlib import compress, decompress
 from numpy import frombuffer, ndarray, uint8
 from numpy.typing import NDArray
 
-from egpcommon.common import NULL_SHA256
 from egpcommon.deduplication import signature_store
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.properties import PropertiesBD
@@ -180,33 +179,3 @@ def ndarray_to_memoryview(obj: NDArray | bytes | None) -> memoryview | None:
     if isinstance(obj, (bytes, bytearray)):
         return memoryview(obj)
     assert False, f"Un-encodeable type '{type(obj)}': Expected 'ndarray' or byte type."
-
-
-def null_sha256_to_none(obj: bytes | None) -> bytes | None:
-    """Convert a null signature to None.
-
-    Args
-    ----
-    obj (bytes or NoneType):
-
-    Returns
-    -------
-    (bytes or NoneType)
-    """
-    return None if obj is NULL_SHA256 or obj == NULL_SHA256 else obj
-
-
-def signature_to_bytes(obj: bytes | None) -> bytes | None:
-    """Convert a signature to None as needed.
-
-    NULL_SHA256 is converted to None.
-
-    Args
-    ----
-    obj (bytes or None):
-
-    Returns
-    -------
-    (bytes or None)
-    """
-    return None if obj is NULL_SHA256 else obj

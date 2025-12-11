@@ -320,11 +320,17 @@ def sha256_signature(
     THIS FUNCTION MUST NOT CHANGE!
     MAKE SURE THE UNIT TESTS PASS!
     """
-    hash_obj = sha256(ancestora if ancestora is not None else NULL_SHA256)
-    hash_obj.update(ancestorb if ancestorb is not None else NULL_SHA256)
-    hash_obj.update(gca if gca is not None else NULL_SHA256)
-    hash_obj.update(gcb if gcb is not None else NULL_SHA256)
-    hash_obj.update(pgc if pgc is not None else NULL_SHA256)
+    hash_obj = sha256()
+    if ancestora is not None:
+        hash_obj.update(ancestora)
+    if ancestorb is not None:
+        hash_obj.update(ancestorb)
+    if gca is not None:
+        hash_obj.update(gca)
+    if gcb is not None:
+        hash_obj.update(gcb)
+    if pgc is not None:
+        hash_obj.update(pgc)
     hash_obj.update(creator)
     # The graph must be in a consistent format & order.
     # See CGraph.py CGraph.to_json() for details.

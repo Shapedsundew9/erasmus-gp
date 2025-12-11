@@ -84,7 +84,8 @@ class TestExecutor(unittest.TestCase):
                 # Execute the function
                 gc: GCABC = self.gene_pool[gci]
                 result = ec.execute(
-                    gc["signature"], tuple(getrandbits(64) for _ in range(len(gc["cgraph"][SrcIfKey.IS])))
+                    gc["signature"],
+                    tuple(getrandbits(64) for _ in range(len(gc["cgraph"][SrcIfKey.IS]))),
                 )
                 baseline[num_lines].append(result)
                 if num_lines != NUM_LINES[0]:
@@ -457,7 +458,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: c6adb00c0e2f5a797782a2e8b96e6e06fea288ab3415f13d5037d4d7f81fb056\n'
+            '\t"""Signature: 00a05165454f54ca9bf8dc8e9d656bf7b8e952cf8040fe76f39be61b4c5c0e00\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
@@ -479,7 +480,7 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: c6adb00c0e2f5a797782a2e8b96e6e06fea288ab3415f13d5037d4d7f81fb056\n'
+            '\t"""Signature: 00a05165454f54ca9bf8dc8e9d656bf7b8e952cf8040fe76f39be61b4c5c0e00\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"

@@ -94,7 +94,7 @@ class GGCDict(EGCDict):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["graph"]["I"]
-        # self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
+        self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
         self["lost_descendants"] = int_store[gcabc.get("lost_descendants", 0)]
 
         # TODO: Need to resolve the meta_data references. Too deep.
@@ -113,7 +113,7 @@ class GGCDict(EGCDict):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
-        # self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
+        self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
 
         self["reference_count"] = int_store[gcabc.get("reference_count", 0)]
 
@@ -152,7 +152,10 @@ class GGCDict(EGCDict):
         # Only keys that are persisted in the DB are included in the JSON.
         for key in (k for k in self if self.GC_KEY_TYPES.get(k, {})):
             value = self[key]
-            if key == "meta_data":
+            if key in {"input_types", "output_types", "inputs", "outputs"}:
+                # These are derived from the cgraph so skip them in the JSON.
+                continue
+            elif key == "meta_data":
                 assert isinstance(value, dict), "Meta data must be a dict."
                 md = deepcopy(value)
                 if (
