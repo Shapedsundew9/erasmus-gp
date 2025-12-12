@@ -276,7 +276,7 @@ class ExecutionContext:
             code.append("\tpass")
 
         # Step 8: Return statement (outside the if/else)
-        if len(root.gc["cgraph"][DstIfKey.OD]) > 0:
+        if root.gc["num_outputs"] > 0:
             code.append(f"return {', '.join(ovns)}")
 
         return code
@@ -553,7 +553,7 @@ class ExecutionContext:
         # So, the logic holds.
 
         # Step 8: Return statement (outside the loop)
-        if len(root.gc["cgraph"][DstIfKey.OD]) > 0:
+        if root.gc["num_outputs"] > 0:
             code.append(f"return {', '.join(ovns)}")
 
         return code
@@ -672,7 +672,7 @@ class ExecutionContext:
                     # inputs map directly to outputs so we can fake it.
                     src.row = SrcRow.I
                     src.terminal = False
-                    assert len(src.node.gc["cgraph"][SrcIfKey.IS]) == len(
+                    assert src.node.gc["num_inputs"] == len(
                         src.node.gc["cgraph"][DstIfKey.OD]
                     ), "Meta-codons must have matching input/output interfaces."
                     # src.idx stays the same.
@@ -757,7 +757,7 @@ class ExecutionContext:
             code.append(self.inline_cstr(root=root, node=node) + scmnt)
 
         # Add a return statement if the function has outputs
-        if len(root.gc["cgraph"][DstIfKey.OD]) > 0:
+        if root.gc["num_outputs"] > 0:
             code.append(f"return {', '.join(ovns)}")
         return code
 
@@ -891,18 +891,18 @@ class ExecutionContext:
         # By default the ovns is underscore (unused) for all outputs. This is then
         # overridden by any connection that starts (is source endpoint) at this node.
         ngc = node.gc
-        ovns: list[str] = ["_"] * len(ngc["cgraph"][DstIfKey.OD])
+        ovns: list[str] = ["_"] * ngc["num_outputs"]
         rtc: list[CodeConnection] = root.terminal_connections
         for ovn, idx in ((c.var_name, c.src.idx) for c in rtc if c.src.node is node):
             ovns[idx] = ovn
 
         # Similary the ivns are defined. However, they must have variable names as they
         # cannot be undefined.
-        ivns: list[str] = [NULL_STR] * len(ngc["cgraph"][SrcIfKey.IS])
+        ivns: list[str] = [NULL_STR] * ngc["num_inputs"]
         # Special case: If this node is a codon and it's the root, inputs come directly
         # from the function parameter 'i', not from connections
         if node.is_codon and node is root:
-            ivns = [i_cstr(i) for i in range(len(ngc["cgraph"][SrcIfKey.IS]))]
+            ivns = [i_cstr(i) for i in range(ngc["num_inputs"])]
         else:
             for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
                 ivns[idx] = ivn
@@ -942,7 +942,7 @@ class ExecutionContext:
 
         # Gather the output variable names to catch the case where an input is
         # directly connected to an output
-        _ovns: list[str] = ["" for _ in range(len(root.gc["cgraph"][DstIfKey.OD]))]
+        _ovns: list[str] = ["" for _ in range(root.gc["num_outputs"])]
         root.terminal_connections.sort(key=connection_key)
         src_connection_map: dict[CodeEndPoint, CodeConnection] = {}
         for connection in root.terminal_connections:

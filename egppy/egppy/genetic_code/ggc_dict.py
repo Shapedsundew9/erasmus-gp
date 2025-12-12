@@ -15,6 +15,7 @@ from egpcommon.deduplication import int_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC
@@ -91,6 +92,8 @@ class GGCDict(EGCDict):
         self["imports"] = gcabc.get("imports", NULL_TUPLE)
         self["inline"] = gcabc.get("inline", NULL_STR)
         self["code"] = gcabc.get("code", NULL_STR)
+        self["num_inputs"] = int_store[len(self["cgraph"][SrcIfKey.IS])]
+        self["num_outputs"] = int_store[len(self["cgraph"][DstIfKey.OD])]
 
         # TODO: These are derived properties from self["cgraph"]["SrcIfKey.IS"].
         # self["cgraph"] is the source of truth.
