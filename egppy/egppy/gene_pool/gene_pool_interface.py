@@ -13,6 +13,7 @@ from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
+from egppy.genetic_code.gpg_view import GPGCView
 from egppy.genetic_code.types_def import TypesDef
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
@@ -47,7 +48,7 @@ class GenePoolInterface(GPIABC):
         if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
             self._dbm = DBManager(config, delete=True)
-        self._local_dbt = DBTableStore(self._dbm.managed_gc_table.raw.config, GGCDict)
+        self._local_dbt = DBTableStore(self._dbm.managed_gc_table.raw.config, GPGCView, GGCDict)
         self._ggc_cache = DictCache(
             {
                 "max_items": cache_size,

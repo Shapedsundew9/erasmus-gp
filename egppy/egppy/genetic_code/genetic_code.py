@@ -151,6 +151,11 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.__iter__ must be overridden")
 
     @abstractmethod
+    def __len__(self) -> int:
+        """Return the number of keys."""
+        raise NotImplementedError("GCABC.__len__ must be overridden")
+
+    @abstractmethod
     def __setitem__(self, key: str, value: Any) -> None:
         """Set the value of a key."""
         raise NotImplementedError("GCABC.__setitem__ must be overridden")

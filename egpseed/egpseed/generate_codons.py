@@ -201,9 +201,13 @@ def generate_codons(write: bool = False) -> None:
             assert sig in codon_dict, f"Codon signature {sig} not found in existing codons."
             del codon["updated"]  # Ignore updated timestamp for comparison
             del codon_dict[sig]["updated"]
-            assert (
-                codon == codon_dict[sig]
-            ), f"Codon signature {sig} does not match existing codon definition."
+            for key in codon:
+                assert key in codon_dict[sig], f"Codon key {key} not found in existing codon."
+                assert (
+                    codon[key] == codon_dict[sig][key]
+                ), f"Codon key {key} does not match existing codon definition."
+            for key in codon_dict[sig]:
+                assert key in codon, f"Codon key {key} not found in new codon."
 
     # If we are writing the codons to a file then we need to ensure that the signatures are unique
     if write:

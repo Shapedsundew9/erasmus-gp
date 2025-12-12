@@ -6,10 +6,8 @@ for simplicity. The UGC allows any values to be stored in the genetic code objec
 by considered to be a dict[str, Any] object with the additional constraints of the GCABC.
 """
 
-from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
 
 from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, SHAPEDSUNDEW9_UUID, sha256_signature
 from egpcommon.common_obj import CommonObj
@@ -17,13 +15,11 @@ from egpcommon.deduplication import int_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
-from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
-from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.gpg_view import GPGCView
 from egppy.genetic_code.import_def import ImportDef
-from egppy.genetic_code.types_def import types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -33,6 +29,10 @@ class GGCDict(EGCDict):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
+
+    def as_gpc_view(self) -> GPGCView:
+        """Return a GPGCView of the GGCDict."""
+        return GPGCView(self)
 
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
         """Set the attributes of the GGC.
@@ -92,9 +92,9 @@ class GGCDict(EGCDict):
         self["inline"] = gcabc.get("inline", NULL_STR)
         self["code"] = gcabc.get("code", NULL_STR)
 
-        # TODO: What do we need these for internally. Need to write them to the DB
-        # but internally we can use the graph interface e.g. self["graph"]["I"]
-        self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
+        # TODO: These are derived properties from self["cgraph"]["SrcIfKey.IS"].
+        # self["cgraph"] is the source of truth.
+        # self["input_types"], self["inputs"] = self["cgraph"]["Is"].types_and_indices()
         self["lost_descendants"] = int_store[gcabc.get("lost_descendants", 0)]
 
         # TODO: Need to resolve the meta_data references. Too deep.
@@ -113,7 +113,7 @@ class GGCDict(EGCDict):
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
-        self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
+        # self["output_types"], self["outputs"] = self["cgraph"]["Od"].types_and_indices()
 
         self["reference_count"] = int_store[gcabc.get("reference_count", 0)]
 
@@ -134,74 +134,20 @@ class GGCDict(EGCDict):
                 )
             ]
 
-        tmp = gcabc.get("updated", datetime.now(UTC))
-        self["updated"] = (
-            # If the datetime exists it is from the database and has no timezone info.
-            tmp.replace(tzinfo=UTC)
-            if isinstance(tmp, datetime)
-            else datetime.fromisoformat(tmp)
-        )
+        # tmp = gcabc.get("updated", datetime.now(UTC))
+        # self["updated"] = (
+        # If the datetime exists it is from the database and has no timezone info.
+        # tmp.replace(tzinfo=UTC)
+        # if isinstance(tmp, datetime)
+        # else datetime.fromisoformat(tmp)
+        # )
 
         if _logger.isEnabledFor(DEBUG):
             self.verify()
 
     def to_json(self) -> dict[str, int | str | float | list | dict]:
         """Return a JSON serializable dictionary."""
-        retval = {}
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        # Only keys that are persisted in the DB are included in the JSON.
-        for key in (k for k in self if self.GC_KEY_TYPES.get(k, {})):
-            value = self[key]
-            if key in {"input_types", "output_types", "inputs", "outputs"}:
-                # These are derived from the cgraph so skip them in the JSON.
-                continue
-            elif key == "meta_data":
-                assert isinstance(value, dict), "Meta data must be a dict."
-                md = deepcopy(value)
-                if (
-                    "function" in md
-                    and "python3" in md["function"]
-                    and "0" in md["function"]["python3"]
-                    and "imports" in md["function"]["python3"]["0"]
-                ):
-                    md["function"]["python3"]["0"]["imports"] = [
-                        imp.to_json() for imp in self["imports"]
-                    ]
-                retval[key] = md
-            elif key == "properties":
-                # Make properties humman readable.
-                assert isinstance(value, int), "Properties must be an int."
-                retval[key] = PropertiesBD(value).to_json()
-            elif isinstance(value, GCABC):
-                # Must get signatures from GC objects first otherwise will recursively
-                # call this function.
-                retval[key] = value["signature"].hex() if value is not None else None
-            elif isinstance(value, FrozenCGraphABC):
-                # Need to set json_c_graph to True so that the endpoints are correctly serialized
-                retval[key] = value.to_json(json_c_graph=True)
-                typ, idx = value[SrcIfKey.IS].types_and_indices()
-                retval["input_types"] = [types_def_store[t].name for t in typ]
-                retval["inputs"] = idx.hex()
-                typ, idx = value[DstIfKey.OD].types_and_indices()
-                retval["output_types"] = [types_def_store[t].name for t in typ]
-                retval["outputs"] = idx.hex()
-            elif getattr(self[key], "to_json", None) is not None:
-                retval[key] = self[key].to_json()
-            elif isinstance(value, bytes):
-                retval[key] = value.hex()
-            elif value is None:
-                retval[key] = None
-            elif isinstance(value, datetime):
-                retval[key] = value.isoformat()
-            elif isinstance(value, UUID):
-                retval[key] = str(value)
-            else:
-                retval[key] = value
-                if _logger.isEnabledFor(DEBUG):
-                    assert isinstance(
-                        value, (int, str, float, list, dict, tuple)
-                    ), f"Invalid type: {type(value)}"
-        return retval
+        return GPGCView(self).to_json()
 
     def verify(self) -> None:
         """Verify the genetic code object."""
@@ -325,16 +271,6 @@ class GGCDict(EGCDict):
             "reference_count must be less than or equal to 2**63-1.",
         )
 
-        # The date and time the genetic code was last updated.
-        self.value_error(
-            self["updated"] <= datetime.now(UTC),
-            "Updated must be less than or equal to the current date and time.",
-        )
-        self.value_error(
-            self["updated"] >= EGP_EPOCH, "Updated must be greater than or equal to EGP_EPOCH."
-        )
-        self.value_error(self["updated"].tzinfo == UTC, "Updated must be in the UTC time zone.")
-
         self.runtime_error(
             self["_lost_descendants"] <= self["lost_descendants"],
             "_lost_descendants must be less than or equal to lost_descendants.",
@@ -359,10 +295,6 @@ class GGCDict(EGCDict):
                 "A code depth greater than 1 must have a non-None GCA.",
             )
 
-        self.runtime_error(
-            self["created"] <= self["updated"], "created time must be less than updated time."
-        )
-
         if self["generation"] == 1:
             self.runtime_error(
                 self["gca"] is None,
@@ -378,10 +310,6 @@ class GGCDict(EGCDict):
             "num_codes must be greater than or equal to code_depth.",
         )
 
-        self.runtime_error(
-            self["updated"] <= datetime.now(UTC),
-            "updated time must be less than or equal to the current time.",
-        )
         self.debug_type_error(
             isinstance(self["signature"], bytes), "signature must be a bytes object"
         )
