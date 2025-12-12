@@ -22,9 +22,9 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
     Providing all the automated function of a cache with a small overhead.
     """
 
-    def __init__(self, config: CacheConfig) -> None:
+    def __init__(self, config: CacheConfig, level_one: bool = True) -> None:
         """Initialize the cache."""
-        super().__init__(config=config)
+        super().__init__(config=config, level_one=level_one)
         self.data: dict[Hashable, CacheableObjABC] = {}
 
     def __contains__(self, key: Hashable) -> bool:
@@ -64,15 +64,8 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
             self.purge_check()
 
         # The value must be flavored (cast) to the type stored here. At a minimum this is a shallow
-        # copy so the next layer dirty flag is not affected.
-        item = self.flavor(value)
-        # TODO: ^^^^ Why? May be was thinking of a multi-layed cache?
-        # Seems like a load of overhead. Probably should just store the value directly.
-        # and raise an error if the type is incorrect.
-        # Does "shallow" copy mean only the CacheableObj state? But even that does not make sense
-        # as what does it mean to purge or clean a shallow copy of a cacheable object? I think
-        # only one layer of cache *can* work and own the object state. In which case this cast
-        # is redundant.
+        # copy so the next layer cache dirty flag is not affected.
+        item = value if self.level_one and isinstance(value, self.flavor) else self.flavor(value)
 
         self.data[key] = item  # type: ignore
         item.dirty()  # type: ignore

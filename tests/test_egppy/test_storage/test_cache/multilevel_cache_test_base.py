@@ -89,7 +89,8 @@ class MultilevelCacheTestBase(unittest.TestCase):
                 "purge_count": SECOND_LEVEL_CACHE_SIZE // 2,
                 "next_level": self.store,
                 "flavor": self.get_second_level_value_cls(),
-            }
+            },
+            False,  # Not a level 1 cache
         )
         flc_type = self.get_first_level_cache_cls()
         self.first_level_cache = flc_type(

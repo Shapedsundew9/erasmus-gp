@@ -13,7 +13,7 @@ _logger: Logger = egp_logger(name=__name__)
 class CacheBase(StoreBase):
     """Cache Base class has methods generic to all cache classes."""
 
-    def __init__(self, config: CacheConfig) -> None:
+    def __init__(self, config: CacheConfig, level_one: bool = True) -> None:
         """Must be implemented by subclasses."""
         self.max_items: int = config["max_items"]
         self.purge_count: int = config["purge_count"]
@@ -23,6 +23,7 @@ class CacheBase(StoreBase):
         assert issubclass(self.flavor, CacheableObjABC)
         assert isinstance(self.next_level, StoreBase)
         self._convert = self.flavor != self.next_level.flavor
+        self.level_one: bool = level_one
 
     def validate_cache_config(self, config: CacheConfig) -> None:
         """Validate the cache configuration."""
