@@ -159,7 +159,7 @@ class TestFrozenInterface(unittest.TestCase):
     def test_api_compatibility_with_mutable(self) -> None:
         """Test that frozen interfaces are API compatible with mutable interfaces."""
         self.assertEqual(len(self.frozen_iface), len(self.mutable_iface))
-        self.assertEqual(self.frozen_iface.cls, self.mutable_iface.cls)
+        self.assertEqual(self.frozen_iface._cls, self.mutable_iface._cls)
 
     def test_consistency(self) -> None:
         """Test consistency method."""
@@ -192,8 +192,8 @@ class TestFrozenInterface(unittest.TestCase):
 
     def test_init(self) -> None:
         """Test FrozenInterface initialization."""
-        self.assertEqual(self.frozen_iface.row, SrcRow.I)
-        self.assertEqual(self.frozen_iface.cls, EPCls.SRC)
+        self.assertEqual(self.frozen_iface._row, SrcRow.I)
+        self.assertEqual(self.frozen_iface._cls, EPCls.SRC)
         self.assertEqual(len(self.frozen_iface.type_tuple), 2)
         self.assertEqual(len(self.frozen_iface.refs_tuple), 2)
 

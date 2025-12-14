@@ -37,8 +37,8 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
     __slots__ = ()
 
     # Abstract Attributes
-    row: Row
-    cls: EPCls
+    _row: Row
+    _cls: EPCls
 
     # Abstract Comparison Methods
 

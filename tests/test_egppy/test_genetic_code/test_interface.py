@@ -122,12 +122,12 @@ class TestInterface(unittest.TestCase):
     def test_cls_empty_interface(self) -> None:
         """Test that cls() returns DST for empty interface."""
         interface = Interface([], DstRow.A)
-        self.assertEqual(interface.cls, EPCls.DST)
+        self.assertEqual(interface._cls, EPCls.DST)
 
     def test_cls_with_endpoints(self) -> None:
         """Test that cls() returns the class of the first endpoint."""
         interface = Interface([self.ep1, self.ep2], DstRow.A)
-        self.assertEqual(interface.cls, EPCls.DST)
+        self.assertEqual(interface._cls, EPCls.DST)
 
     def test_consistency(self) -> None:
         """Test the consistency() method."""
@@ -342,6 +342,9 @@ class TestInterface(unittest.TestCase):
         ep2 = EndPoint(SrcRow.A, 1, EPCls.SRC, "float")
         interface = Interface.__new__(Interface)
         interface.endpoints = [ep1, ep2]
+        # pylint: disable=protected-access
+        interface._row = DstRow.A  # Manually set row for testing
+        interface._cls = EPCls.DST  # Manually set cls for testing
         with self.assertRaises(ValueError) as context:
             interface.verify()
         self.assertIn("same class", str(context.exception))
@@ -352,6 +355,9 @@ class TestInterface(unittest.TestCase):
         ep2 = EndPoint(DstRow.B, 1, EPCls.DST, "float")
         interface = Interface.__new__(Interface)
         interface.endpoints = [ep1, ep2]
+        # pylint: disable=protected-access
+        interface._row = DstRow.A  # Manually set row for testing
+        interface._cls = EPCls.DST  # Manually set cls for testing
         with self.assertRaises(ValueError) as context:
             interface.verify()
         self.assertIn("same row", str(context.exception))

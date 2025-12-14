@@ -29,7 +29,7 @@ class FrozenInterface(FrozenInterfaceABC):
                     reference tuples for each endpoint.
     """
 
-    __slots__ = ("row", "cls", "type_tuple", "refs_tuple", "_hash")
+    __slots__ = ("_row", "_cls", "type_tuple", "refs_tuple", "_hash")
 
     def __init__(
         self,
@@ -38,12 +38,12 @@ class FrozenInterface(FrozenInterfaceABC):
         refs_tuple: tuple[tuple[tuple[Row, int], ...], ...],
     ):
         super().__init__()
-        self.row = row
-        self.cls = EPCls.SRC if isinstance(row, SrcRow) else EPCls.DST
+        self._row = row
+        self._cls = EPCls.SRC if isinstance(row, SrcRow) else EPCls.DST
         self.type_tuple = type_tuple
         self.refs_tuple = refs_tuple
         # Pre-compute hash for frozen interface
-        self._hash = hash((self.row, self.cls, self.type_tuple, self.refs_tuple))
+        self._hash = hash((self._row, self._cls, self.type_tuple, self.refs_tuple))
 
     def __eq__(self, value: object) -> bool:
         """Check equality of FrozenInterface instances.
@@ -81,9 +81,9 @@ class FrozenInterface(FrozenInterfaceABC):
                 f"Index {idx} out of range for interface with {len(self.type_tuple)} endpoints"
             )
         return FrozenEndPoint(
-            self.row,
+            self._row,
             idx,
-            self.cls,
+            self._cls,
             self.type_tuple[idx],
             self.refs_tuple[idx],
         )
@@ -104,9 +104,9 @@ class FrozenInterface(FrozenInterfaceABC):
         """
         for idx, typ in enumerate(self.type_tuple):
             yield FrozenEndPoint(
-                self.row,
+                self._row,
                 idx,
-                self.cls,
+                self._cls,
                 typ,
                 self.refs_tuple[idx],
             )
@@ -144,13 +144,13 @@ class FrozenInterface(FrozenInterfaceABC):
             refs = self.refs_tuple[idx]
 
             # Destination endpoints should have exactly 0 or 1 reference
-            if self.cls == EPCls.DST and len(refs) > 1:
+            if self._cls == EPCls.DST and len(refs) > 1:
                 raise ValueError(
                     f"Destination endpoint {idx} can only have 0 or 1 reference, has {len(refs)}"
                 )
 
             # Source endpoints reference destination rows, and vice versa
-            if self.cls == EPCls.SRC:
+            if self._cls == EPCls.SRC:
                 for ref in refs:
                     if ref[0] not in DESTINATION_ROW_SET:
                         raise ValueError(

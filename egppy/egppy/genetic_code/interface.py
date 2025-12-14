@@ -80,7 +80,7 @@ def unpack_src_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[SrcRow, int]
 class Interface(CommonObj, FrozenInterface, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
-    __slots__ = ("endpoints", "_hash", "row", "cls")
+    __slots__ = ("endpoints", "_hash", "_row", "_cls")
 
     def __init__(  # pylint: disable=super-init-not-called
         self,
@@ -115,8 +115,8 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         CommonObj.__init__(self)
         self.endpoints: list[EndPoint] = []
         self._hash: int = 0
-        self.row = row
-        self.cls = EPCls.DST if isinstance(row, DstRow) else EPCls.SRC
+        self._row = row
+        self._cls = EPCls.DST if isinstance(row, DstRow) else EPCls.SRC
 
         # Assert valid row if provided
         assert isinstance(row, (DstRow, SrcRow, type(None))), "Row must be DstRow, SrcRow or None"
@@ -132,9 +132,9 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             ), "All endpoints must be FrozenEndPointABC instances"
             self.endpoints = [
                 EndPoint(
-                    self.row,
+                    self._row,
                     idx,
-                    self.cls,
+                    self._cls,
                     ep.typ,  # type: ignore
                     ep.refs if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -146,9 +146,9 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         if isinstance(endpoints[0], (list, tuple)) and len(endpoints[0]) == 3:
             self.endpoints = [
                 EndPoint(
-                    self.row,
+                    self._row,
                     idx,
-                    self.cls,
+                    self._cls,
                     ep[2],  # type: ignore
                     [ep[0:2]] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -160,9 +160,9 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         if isinstance(endpoints[0], (str, int, TypesDef)):
             self.endpoints = [
                 EndPoint(
-                    self.row,
+                    self._row,
                     idx,
-                    self.cls,
+                    self._cls,
                     ep,  # type: ignore
                     [] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -174,9 +174,9 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         if isinstance(endpoints[0], tuple) and len(endpoints[0]) == 5:
             self.endpoints = [
                 EndPoint(
-                    self.row,
+                    self._row,
                     idx,
-                    self.cls,
+                    self._cls,
                     ep[3],  # type: ignore
                     ep[4] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -214,13 +214,13 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Handle empty interfaces
         if len(self.endpoints) == 0:
-            return Interface(other, self.row)
+            return Interface(other, self._row)
         if len(other) == 0:
-            return Interface(self, self.row)
+            return Interface(self, self._row)
 
         # Create new interface with copied endpoints from both
         # Create copies of endpoints with updated indices (with clean references)
-        niface = Interface(self, self.row)
+        niface = Interface(self, self._row)
         niface.extend(other)
         return niface
 
@@ -303,6 +303,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         """
         _value = EndPoint(value)  # Make a copy to ensure mutability & independence
         _value.idx = len(self.endpoints)  # Ensure the index is correct
+        _value.cls = self._cls  # Ensure the class matches
         if _value.idx >= MAX_EPS:
             raise ValueError(f"Cannot append endpoint to interface beyond {MAX_EPS} endpoints")
         self.endpoints.append(_value)
@@ -347,6 +348,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         for idx, value in enumerate(values, start=len(self.endpoints)):
             _value = EndPoint(value)  # Make a copy to ensure mutability & independence
             _value.idx = idx  # Ensure the index is correct
+            _value.cls = self._cls  # Ensure the class matches
             self.endpoints.append(_value)
 
     def insert(self, index: int, value: FrozenEndPointABC) -> None:
@@ -357,6 +359,8 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             value: The endpoint to insert.
         """
         _value = EndPoint(value)
+        _value.cls = self._cls  # Ensure the class matches
+        _value.row = self._row  # Ensure the row matches
         self.endpoints.insert(index, _value)
         # Update indices of subsequent endpoints
         for i in range(index, len(self.endpoints)):
@@ -376,6 +380,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
     def set_cls(self, ep_cls) -> InterfaceABC:
         """Set the class of all endpoints in the interface."""
+        self._cls = ep_cls
         for ep in self.endpoints:
             ep.cls = ep_cls
         return self
@@ -407,6 +412,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         -------
         Interface: Self with row set.
         """
+        self._row = row
         for ep in self.endpoints:
             ep.row = row
         return self
@@ -460,14 +466,12 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             raise ValueError("All endpoints must be EndPoint instances.")
 
         # Check all endpoints have the same row
-        first_row = self.endpoints[0].row
-        if not all(ep.row == first_row for ep in self.endpoints):
-            raise ValueError(f"All endpoints must have the same row. Expected {first_row}.")
+        if not all(ep.row == self._row for ep in self.endpoints):
+            raise ValueError(f"All endpoints must have the same row. Expected {self._row}.")
 
         # Check all endpoints have the same class
-        first_cls = self.endpoints[0].cls
-        if not all(ep.cls == first_cls for ep in self.endpoints):
-            raise ValueError(f"All endpoints must have the same class. Expected {first_cls}.")
+        if not all(ep.cls == self._cls for ep in self.endpoints):
+            raise ValueError(f"All endpoints must have the same class. Expected {self._cls}.")
 
         # Verify each endpoint
         for ep in self.endpoints:

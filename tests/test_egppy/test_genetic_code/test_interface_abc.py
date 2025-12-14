@@ -108,7 +108,6 @@ class TestInterfaceABC(TestCase):
         self.assertTrue(hasattr(interface, "__add__"))
         self.assertTrue(hasattr(interface, "append"))
         self.assertTrue(hasattr(interface, "extend"))
-        self.assertTrue(hasattr(interface, "cls"))
         self.assertTrue(hasattr(interface, "to_json"))
         self.assertTrue(hasattr(interface, "to_td_uids"))
         self.assertTrue(hasattr(interface, "to_td"))
