@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
+from typing import Mapping
+
 from egpcommon.common import NULL_FROZENSET
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import CGraphType
@@ -28,62 +31,89 @@ from egppy.genetic_code.types_def import types_def_store
 _logger: Logger = egp_logger(name=__name__)
 
 
-def valid_dst_rows(graph_type: CGraphType) -> dict[SrcRow, frozenset[DstRow]]:
-    """Return a dictionary of valid destination rows for the given graph type."""
-    match graph_type:
-        case CGraphType.IF_THEN:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.O, DstRow.P}),
-                SrcRow.A: frozenset({DstRow.O}),
-            }
-        case CGraphType.IF_THEN_ELSE:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.B, DstRow.P, DstRow.O}),
-                SrcRow.A: frozenset({DstRow.O}),
-                SrcRow.B: frozenset({DstRow.P}),
-            }
-        case CGraphType.EMPTY:
-            return {
-                SrcRow.I: NULL_FROZENSET,
-            }
-        case CGraphType.FOR_LOOP:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.S, DstRow.O, DstRow.P}),
-                SrcRow.L: frozenset({DstRow.A}),
-                SrcRow.S: frozenset({DstRow.A}),
-                SrcRow.A: frozenset({DstRow.T, DstRow.O}),
-            }
-        case CGraphType.WHILE_LOOP:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.S, DstRow.W, DstRow.O, DstRow.P}),
-                SrcRow.S: frozenset({DstRow.A}),
-                SrcRow.W: frozenset({DstRow.A}),
-                SrcRow.A: frozenset({DstRow.T, DstRow.X, DstRow.O}),
-            }
-        case CGraphType.STANDARD:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.B, DstRow.O}),
-                SrcRow.A: frozenset({DstRow.B, DstRow.O}),
-                SrcRow.B: frozenset({DstRow.O}),
-            }
-        case CGraphType.PRIMITIVE:
-            return {
-                SrcRow.I: frozenset({DstRow.A, DstRow.O}),
-                SrcRow.A: frozenset({DstRow.O}),
-            }
-        case CGraphType.UNKNOWN:  # The superset case
-            return {
-                SrcRow.I: frozenset(
-                    {DstRow.A, DstRow.B, DstRow.F, DstRow.L, DstRow.O, DstRow.P, DstRow.W, DstRow.U}
-                ),
-                # FIXME: Can L ever not be connected?
-                SrcRow.L: frozenset({DstRow.A, DstRow.U}),
-                SrcRow.A: frozenset({DstRow.B, DstRow.O, DstRow.W, DstRow.U}),
-                SrcRow.B: frozenset({DstRow.O, DstRow.P, DstRow.U}),
-            }
-        case _:
-            # There are no valid rows for this graph type (likely RESERVED)
-            return {}
+# --- 1. Define Constant Rule Sets ---
+IF_THEN_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.O, DstRow.P}),
+        SrcRow.A: frozenset({DstRow.O}),
+    }
+)
+IF_THEN_ELSE_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset({DstRow.A, DstRow.F, DstRow.B, DstRow.P, DstRow.O}),
+        SrcRow.A: frozenset({DstRow.O}),
+        SrcRow.B: frozenset({DstRow.P}),
+    }
+)
+EMPTY_VALID = MappingProxyType(
+    {
+        SrcRow.I: NULL_FROZENSET,
+    }
+)
+FOR_LOOP_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset({DstRow.A, DstRow.L, DstRow.S, DstRow.O, DstRow.P}),
+        SrcRow.L: frozenset({DstRow.A}),
+        SrcRow.S: frozenset({DstRow.A}),
+        SrcRow.A: frozenset({DstRow.T, DstRow.O}),
+    }
+)
+WHILE_LOOP_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset({DstRow.A, DstRow.S, DstRow.W, DstRow.O, DstRow.P}),
+        SrcRow.S: frozenset({DstRow.A}),
+        SrcRow.W: frozenset({DstRow.A}),
+        SrcRow.A: frozenset({DstRow.T, DstRow.X, DstRow.O}),
+    }
+)
+STANDARD_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset({DstRow.A, DstRow.B, DstRow.O}),
+        SrcRow.A: frozenset({DstRow.B, DstRow.O}),
+        SrcRow.B: frozenset({DstRow.O}),
+    }
+)
+PRIMITIVE_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset({DstRow.A, DstRow.O}),
+        SrcRow.A: frozenset({DstRow.O}),
+    }
+)
+UNKNOWN_VALID = MappingProxyType(
+    {
+        SrcRow.I: frozenset(
+            {DstRow.A, DstRow.B, DstRow.F, DstRow.L, DstRow.O, DstRow.P, DstRow.W, DstRow.U}
+        ),
+        SrcRow.L: frozenset({DstRow.A, DstRow.U}),
+        SrcRow.A: frozenset({DstRow.B, DstRow.O, DstRow.W, DstRow.U}),
+        SrcRow.B: frozenset({DstRow.O, DstRow.P, DstRow.U}),
+    }
+)
+EMPTY_RESULT = MappingProxyType({})
+
+# --- 2. Map Enums to Constants for O(1) Lookup ---
+VALID_ROWS_MAP = {
+    CGraphType.IF_THEN: IF_THEN_VALID,
+    CGraphType.IF_THEN_ELSE: IF_THEN_ELSE_VALID,
+    CGraphType.EMPTY: EMPTY_VALID,
+    CGraphType.FOR_LOOP: FOR_LOOP_VALID,
+    CGraphType.WHILE_LOOP: WHILE_LOOP_VALID,
+    CGraphType.STANDARD: STANDARD_VALID,
+    CGraphType.PRIMITIVE: PRIMITIVE_VALID,
+    CGraphType.UNKNOWN: UNKNOWN_VALID,
+}
+
+
+# --- 3. The Optimized Function ---
+# TODO: Replace calls to this function with the constant lookups in VALID_ROWS_MAP
+# and move VALID_ROWS_MAP to the c_graph_constants.py module. Probably also need
+# better naming for the constants i.e. *_SRC_TO_DST_MAP or similar.
+def valid_dst_rows(graph_type: CGraphType) -> Mapping[SrcRow, frozenset[DstRow]]:
+    """
+    Return a read-only dictionary of valid destination rows for the given graph type.
+    Returns a constant reference (zero allocation).
+    """
+    return VALID_ROWS_MAP.get(graph_type, EMPTY_RESULT)
 
 
 def valid_jcg(jcg: JSONCGraph) -> bool:

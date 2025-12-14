@@ -493,7 +493,7 @@ class TestCGraph(unittest.TestCase):
         cgraph = CGraph(self.empty_jcg)
 
         # Create a new interface
-        new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")])
+        new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")], DstRow.A)
         cgraph[DstIfKey.AD] = new_interface
 
         self.assertEqual(cgraph[DstIfKey.AD], new_interface)

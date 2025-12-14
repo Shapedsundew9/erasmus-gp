@@ -8,8 +8,10 @@ from egppy.genetic_code.c_graph_constants import (
     SOURCE_ROW_SET,
     EPCls,
     Row,
+    SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
+from egppy.genetic_code.json_cgraph import UNKNOWN_VALID
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 
@@ -204,6 +206,92 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             f"FrozenEndPoint(row={self.row}, idx={self.idx}, cls={self.cls}"
             f", typ={self.typ}, refs={list(self.refs)})"
         )
+
+    def can_connect(self, other: FrozenEndPointABC) -> bool:
+        """Check if this endpoint can connect to another endpoint.
+
+        Connection rules:
+            - Source endpoints can connect to destination endpoints.
+            - Destination endpoints can connect to source endpoints.
+            - Types must be compatible for connection (upcasts are not considered compatible).
+            - The row connection rules must be followed.
+
+        Args:
+            other (FrozenEndPointABC): The other endpoint to check connection with.
+        Returns:
+            bool: True if connection is possible, False otherwise.
+        """
+        assert isinstance(other, FrozenEndPointABC), "Other endpoint is not a FrozenEndPointABC"
+        # Self id the source endpoint
+        if self.cls == EPCls.SRC:
+            if other.cls != EPCls.DST:
+                return False
+            assert isinstance(self.row, SrcRow), "self.row is not a SrcRow"
+            if other.row not in UNKNOWN_VALID[self.row]:
+                return False
+            if other.typ not in types_def_store.ancestors(self.typ):
+                return False
+
+            return True
+
+        # Other is the source endpoint
+        if other.cls != EPCls.SRC:
+            return False
+        assert isinstance(other.row, SrcRow), "other.row is not a SrcRow"
+        if other.row not in UNKNOWN_VALID[other.row]:
+            return False
+        if self.typ not in types_def_store.ancestors(other.typ):
+            return False
+        return True
+
+    def can_upcast_connect(self, other: FrozenEndPointABC) -> bool:
+        """Check if this endpoint can connect to another endpoint if it is upcast.
+
+        Connection rules:
+            - Source endpoints can connect to destination endpoints.
+            - Destination endpoints can connect to source endpoints.
+            - Src type must be upcast-able to Dst type (downcasts & equal types return False).
+            - The row connection rules must be followed.
+
+        Args:
+            other (FrozenEndPointABC): The other endpoint to check connection with.
+        Returns:
+            bool: True if connection is possible, False otherwise.
+        """
+        assert isinstance(other, FrozenEndPointABC), "Other endpoint is not a FrozenEndPointABC"
+
+        # Self is the source endpoint
+        if self.cls == EPCls.SRC:
+            # Most common reason not to connect first
+            if other.is_connected():
+                return False
+            if other.cls != EPCls.DST:
+                return False
+            assert isinstance(self.row, SrcRow), "self.row is not a SrcRow"
+            if other.row not in UNKNOWN_VALID[self.row]:
+                return False
+            if other.typ == self.typ:
+                return False
+            # Descendants includes self.typ, so we need to exclude that case (above)
+            if other.typ not in types_def_store.descendants(self.typ):
+                return False
+            return True
+
+        # Other is the source endpoint
+        # Most common reason not to connect first
+        if self.is_connected():
+            return False
+        if other.cls != EPCls.SRC:
+            return False
+        assert isinstance(other.row, SrcRow), "other.row is not a SrcRow"
+        if other.row not in UNKNOWN_VALID[other.row]:
+            return False
+        if self.typ == other.typ:
+            return False
+        # Descendants includes other.typ, so we need to exclude that case (above)
+        if self.typ not in types_def_store.descendants(other.typ):
+            return False
+        return True
 
     def consistency(self) -> None:
         """Check the consistency of the FrozenEndPoint.

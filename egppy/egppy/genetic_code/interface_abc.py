@@ -19,6 +19,9 @@ from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.types_def import TypesDef
 
+# Constants
+MAX_EPS = 256  # Maximum number of endpoints in an interface
+
 
 class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
     """Abstract Base Class for Immutable Interface.
@@ -32,6 +35,10 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
     """
 
     __slots__ = ()
+
+    # Abstract Attributes
+    row: Row
+    cls: EPCls
 
     # Abstract Comparison Methods
 
@@ -101,17 +108,6 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
             String representation of the interface.
         """
         raise NotImplementedError("FrozenInterfaceABC.__str__ must be overridden")
-
-    # Abstract Property Methods
-
-    @abstractmethod
-    def cls(self) -> EPCls:
-        """Return the class of the interface.
-
-        Returns:
-            The EndPointClass (SRC or DST) of this interface.
-        """
-        raise NotImplementedError("FrozenInterfaceABC.cls must be overridden")
 
     @abstractmethod
     def sorted_unique_td_uids(self) -> list[int]:

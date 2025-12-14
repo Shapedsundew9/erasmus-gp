@@ -29,7 +29,6 @@ class TestInterfaceABC(TestCase):
                 "__add__",
                 "append",
                 "extend",
-                "cls",
                 "to_json",
                 "to_td_uids",
                 "to_td",

@@ -182,6 +182,40 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     # Abstract Validation Methods (inherited from CommonObjABC)
 
     @abstractmethod
+    def can_connect(self, other: FrozenEndPointABC) -> bool:
+        """Check if this endpoint can connect to another endpoint.
+
+        Connection rules:
+            - Source endpoints can connect to destination endpoints.
+            - Destination endpoints can connect to source endpoints.
+            - Types must be compatible for connection (upcasts are not considered compatible).
+            - The row connection rules must be followed.
+
+        Args:
+            other (FrozenEndPointABC): The other endpoint to check connection with.
+        Returns:
+            bool: True if connection is possible, False otherwise.
+        """
+        raise NotImplementedError("FrozenEndPointABC.can_connect must be overridden")
+
+    @abstractmethod
+    def can_upcast_connect(self, other: FrozenEndPointABC) -> bool:
+        """Check if this endpoint can connect to another endpoint if it is upcast.
+
+        Connection rules:
+            - Source endpoints can connect to destination endpoints.
+            - Destination endpoints can connect to source endpoints.
+            - Src type must be upcast-able to Dst type (downcasts & equal types return False).
+            - The row connection rules must be followed.
+
+        Args:
+            other (FrozenEndPointABC): The other endpoint to check connection with.
+        Returns:
+            bool: True if connection is possible, False otherwise.
+        """
+        raise NotImplementedError("FrozenEndPointABC.can_connect must be overridden")
+
+    @abstractmethod
     def consistency(self) -> None:
         """Check the consistency of the endpoint.
 

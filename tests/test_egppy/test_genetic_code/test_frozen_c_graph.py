@@ -145,13 +145,13 @@ class TestFrozenInterface(unittest.TestCase):
             [
                 EndPoint(SrcRow.I, 0, EPCls.SRC, "int"),
                 EndPoint(SrcRow.I, 1, EPCls.SRC, "float"),
-            ]
+            ],
+            SrcRow.I,
         )
 
         # Create frozen interface
         self.frozen_iface = FrozenInterface(
             SrcRow.I,
-            EPCls.SRC,
             (types_def_store["int"], types_def_store["float"]),
             ((), ()),
         )
@@ -159,7 +159,7 @@ class TestFrozenInterface(unittest.TestCase):
     def test_api_compatibility_with_mutable(self) -> None:
         """Test that frozen interfaces are API compatible with mutable interfaces."""
         self.assertEqual(len(self.frozen_iface), len(self.mutable_iface))
-        self.assertEqual(self.frozen_iface.cls(), self.mutable_iface.cls())
+        self.assertEqual(self.frozen_iface.cls, self.mutable_iface.cls)
 
     def test_consistency(self) -> None:
         """Test consistency method."""
@@ -185,7 +185,6 @@ class TestFrozenInterface(unittest.TestCase):
         """Test that frozen interfaces have consistent hashes."""
         frozen2 = FrozenInterface(
             SrcRow.I,
-            EPCls.SRC,
             (types_def_store["int"], types_def_store["float"]),
             ((), ()),
         )
@@ -194,7 +193,7 @@ class TestFrozenInterface(unittest.TestCase):
     def test_init(self) -> None:
         """Test FrozenInterface initialization."""
         self.assertEqual(self.frozen_iface.row, SrcRow.I)
-        self.assertEqual(self.frozen_iface.epcls, EPCls.SRC)
+        self.assertEqual(self.frozen_iface.cls, EPCls.SRC)
         self.assertEqual(len(self.frozen_iface.type_tuple), 2)
         self.assertEqual(len(self.frozen_iface.refs_tuple), 2)
 
@@ -228,7 +227,7 @@ class TestFrozenInterface(unittest.TestCase):
         self.frozen_iface.verify()
 
         # Empty interface should verify
-        empty_iface = FrozenInterface(SrcRow.I, EPCls.SRC, (), ())
+        empty_iface = FrozenInterface(SrcRow.I, (), ())
         empty_iface.verify()
 
 

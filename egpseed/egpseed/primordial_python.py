@@ -43,7 +43,7 @@ def harmony_py(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
 
     cgraph = CGraph(
         {
-            SrcIfKey.IS: Interface(gca_cgraph[SrcIfKey.IS])
+            SrcIfKey.IS: Interface(gca_cgraph[SrcIfKey.IS], SrcRow.I)
             + Interface(gcb_cgraph[SrcIfKey.IS], SrcRow.I, DstRow.B),
             DstIfKey.AD: Interface(gca_cgraph[SrcIfKey.IS].to_td(), DstRow.A, SrcRow.I),
             SrcIfKey.AS: Interface(gca_cgraph[DstIfKey.OD].to_td(), SrcRow.A, DstRow.O),
@@ -60,9 +60,9 @@ def harmony_py(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
             "gcb": gcb,
             "ancestora": gca,
             "ancestorb": gcb,
-            "pgc": rtctxt.parent_pgc,
+            "pgc": rtctxt.root_gc,
             "creator": rtctxt.creator,
-            "properties": merge_properties(gca=gca, gcb=gcb),
+            "properties": merge_properties(rtctxt, gca=gca, gcb=gcb),
             "cgraph": cgraph,
         }
     )
@@ -177,9 +177,9 @@ def unstablized_stack_py(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> dict
         "gcb": tgc,
         "ancestora": igc,
         "ancestorb": tgc,
-        "pgc": rtctxt.parent_pgc,
+        "pgc": rtctxt.root_gc,
         "creator": rtctxt.creator,
-        "properties": merge_properties(gca=igc, gcb=tgc),
+        "properties": merge_properties(rtctxt, gca=igc, gcb=tgc),
         "cgraph": cgraph,
     }
     return rgc

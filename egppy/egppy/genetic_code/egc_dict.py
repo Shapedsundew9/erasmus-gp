@@ -62,7 +62,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
 
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
-        cgraph: CGraphABC | JSONCGraph = gcabc["cgraph"]
+        cgraph: FrozenCGraphABC | JSONCGraph = gcabc["cgraph"]
         if isinstance(cgraph, CGraphABC):
             self["cgraph"] = cgraph
         elif isinstance(cgraph, FrozenCGraphABC):

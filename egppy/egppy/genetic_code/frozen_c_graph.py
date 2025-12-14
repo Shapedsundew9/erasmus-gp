@@ -15,7 +15,7 @@ The FrozenCGraph class is particularly useful for:
 
 from __future__ import annotations
 
-from collections.abc import ItemsView, Iterator, KeysView, ValuesView
+from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
 from pprint import pformat
 from typing import Any
 
@@ -29,12 +29,12 @@ from egppy.genetic_code.c_graph_constants import (
     _UNDER_KEY_DICT,
     _UNDER_ROW_CLS_INDEXED,
     _UNDER_SRC_KEY_DICT,
+    IFKEY_ROW_MAP,
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
     ROW_CLS_INDEXED_SET,
     DstIfKey,
     DstRow,
-    EPCls,
     IfKey,
     JSONCGraph,
     Row,
@@ -94,8 +94,8 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
     def __init__(
         self,
         graph: (
-            dict[IfKey, list[EndpointMemberType]]
-            | dict[IfKey, FrozenInterfaceABC]
+            Mapping[IfKey, list[EndpointMemberType]]
+            | Mapping[IfKey, FrozenInterfaceABC]
             | FrozenCGraphABC
         ),
     ) -> None:
@@ -120,6 +120,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             any(key in graph for key in ROW_CLS_INDEXED_ORDERED) and graph
         ), "Input graph not empty but contains no valid interface keys."
         for key in ROW_CLS_INDEXED_ORDERED:
+            row = IFKEY_ROW_MAP[key]
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
                 iface = graph[key]
@@ -136,12 +137,10 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                         src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
                         for ep in iface
                     )
-                epcls = EPCls.SRC if key[1] == "s" else EPCls.DST
-                row = DstRow(key[0]) if epcls == EPCls.DST else SrcRow(key[0])
                 fiface = (
                     iface
                     if type(iface) is FrozenInterface  # pylint: disable=unidiomatic-typecheck
-                    else FrozenInterface(row, epcls, type_tuple, con_tuple)
+                    else FrozenInterface(row, type_tuple, con_tuple)
                 )
                 setattr(self, _key, fiface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):
@@ -254,8 +253,8 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
     def _verify_connectivity_rules(
         self,
         graph_type: CGraphType,
-        valid_src_rows_dict: dict[DstRow, frozenset[SrcRow]],
-        valid_dst_rows_dict: dict[SrcRow, frozenset[DstRow]],
+        valid_src_rows_dict: Mapping[DstRow, frozenset[SrcRow]],
+        valid_dst_rows_dict: Mapping[SrcRow, frozenset[DstRow]],
     ) -> None:
         """Verify that endpoint connections follow the graph type rules.
         CGraph is a mutable connection graph class that may be stable or unstable.

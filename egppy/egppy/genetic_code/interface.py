@@ -19,7 +19,7 @@ from egppy.genetic_code.c_graph_constants import (
 from egppy.genetic_code.endpoint import EndPoint, TypesDef
 from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType, FrozenEndPointABC
 from egppy.genetic_code.frozen_interface import FrozenInterface
-from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
+from egppy.genetic_code.interface_abc import MAX_EPS, FrozenInterfaceABC, InterfaceABC
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -80,7 +80,7 @@ def unpack_src_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[SrcRow, int]
 class Interface(CommonObj, FrozenInterface, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
-    __slots__ = ("endpoints", "_hash")
+    __slots__ = ("endpoints", "_hash", "row", "cls")
 
     def __init__(  # pylint: disable=super-init-not-called
         self,
@@ -91,7 +91,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             | Sequence[str | int | TypesDef]
             | FrozenInterfaceABC
         ),
-        row: Row | None = None,
+        row: Row,
         rrow: Row | None = None,
         rsidx: int = 0,
     ) -> None:
@@ -106,8 +106,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             they will be treated as EGP types, in order, as destinations on the row specified unless
             the row can only be a source.
             Any objects will be deep-copied to ensure mutability & independence.
-        row: Row | None: The row associated with the interface. Required if endpoints are not
-            EndPoints. If None, the row will be inferred from the first endpoint.
+        row: Row: The row of the interface. The correct row enum must be used (DstRow or SrcRow).
         rrow: Row | None: The row to use for references. When endpoints are not EndPoints
             None indicates no references i.e. an empty list. If provided, this will override
             any ref row specified in the endpoint sequences.
@@ -116,6 +115,8 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         CommonObj.__init__(self)
         self.endpoints: list[EndPoint] = []
         self._hash: int = 0
+        self.row = row
+        self.cls = EPCls.DST if isinstance(row, DstRow) else EPCls.SRC
 
         # Assert valid row if provided
         assert isinstance(row, (DstRow, SrcRow, type(None))), "Row must be DstRow, SrcRow or None"
@@ -126,18 +127,14 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Handle case where endpoints is an FrozenInterfaceABC or contains EndPointABC instances
         if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], EndPointABC):
-            ep0 = endpoints[0]
-            assert isinstance(
-                ep0, FrozenEndPointABC
+            assert all(
+                isinstance(ep, FrozenEndPointABC) for ep in endpoints
             ), "All endpoints must be FrozenEndPointABC instances"
-            _row = row if row is not None else ep0.row
-            assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
-            _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC
             self.endpoints = [
                 EndPoint(
-                    _row,
+                    self.row,
                     idx,
-                    _cls,
+                    self.cls,
                     ep.typ,  # type: ignore
                     ep.refs if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -147,15 +144,11 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Handle case where endpoints are JSONCGraph-style sequences
         if isinstance(endpoints[0], (list, tuple)) and len(endpoints[0]) == 3:
-            if row is None:
-                raise ValueError("Row parameter must be provided when endpoints are sequences")
-            if isinstance(row, SrcRow):
-                raise ValueError("Row parameter cannot be a source row for JSON endpoint sequences")
             self.endpoints = [
                 EndPoint(
-                    row,
+                    self.row,
                     idx,
-                    EPCls.DST,
+                    self.cls,
                     ep[2],  # type: ignore
                     [ep[0:2]] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -165,14 +158,11 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Handle the type sequence case
         if isinstance(endpoints[0], (str, int, TypesDef)):
-            if row is None:
-                raise ValueError("Row parameter must be provided when endpoints are types")
-            row_cls = EPCls.DST if isinstance(row, DstRow) else EPCls.SRC
             self.endpoints = [
                 EndPoint(
-                    row,
+                    self.row,
                     idx,
-                    row_cls,
+                    self.cls,
                     ep,  # type: ignore
                     [] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -182,14 +172,11 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Handle mixed endpoint member types
         if isinstance(endpoints[0], tuple) and len(endpoints[0]) == 5:
-            _row = row if row is not None else endpoints[0][0]
-            assert isinstance(_row, (DstRow, SrcRow)), "Row must be DstRow or SrcRow"
-            _cls = EPCls.DST if isinstance(_row, DstRow) else EPCls.SRC
             self.endpoints = [
                 EndPoint(
-                    _row,
+                    self.row,
                     idx,
-                    _cls,
+                    self.cls,
                     ep[3],  # type: ignore
                     ep[4] if rrow is None else [[rrow, rsidx + idx]],  # type: ignore
                 )
@@ -227,13 +214,13 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
 
         # Handle empty interfaces
         if len(self.endpoints) == 0:
-            return Interface(other)
+            return Interface(other, self.row)
         if len(other) == 0:
-            return Interface(self)
+            return Interface(self, self.row)
 
         # Create new interface with copied endpoints from both
         # Create copies of endpoints with updated indices (with clean references)
-        niface = Interface(self)
+        niface = Interface(self, self.row)
         niface.extend(other)
         return niface
 
@@ -316,6 +303,8 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         """
         _value = EndPoint(value)  # Make a copy to ensure mutability & independence
         _value.idx = len(self.endpoints)  # Ensure the index is correct
+        if _value.idx >= MAX_EPS:
+            raise ValueError(f"Cannot append endpoint to interface beyond {MAX_EPS} endpoints")
         self.endpoints.append(_value)
 
     def clr_refs(self) -> InterfaceABC:
@@ -325,10 +314,6 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         for ep in self.endpoints:
             ep.clr_refs()
         return self
-
-    def cls(self) -> EPCls:
-        """Return the class of the interface. Defaults to destination if no endpoints."""
-        return self.endpoints[0].cls if self.endpoints else EPCls.DST
 
     def consistency(self) -> None:
         """Check the consistency of the Interface.
@@ -354,6 +339,11 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         ----
         values: list[EndPoint] | tuple[EndPoint, ...]: The endpoints to add.
         """
+        if len(self) + len(values) > MAX_EPS:
+            raise ValueError(
+                f"Cannot extend interface beyond {MAX_EPS} endpoints "
+                f"(current: {len(self)}, adding: {len(values)})"
+            )
         for idx, value in enumerate(values, start=len(self.endpoints)):
             _value = EndPoint(value)  # Make a copy to ensure mutability & independence
             _value.idx = idx  # Ensure the index is correct
@@ -494,7 +484,7 @@ class SrcInterface(Interface):
     def __init__(
         self,
         endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
-        row: SrcRow | None = None,
+        row: SrcRow,
     ) -> None:
         """Initialize the Source Interface class.
 
@@ -513,7 +503,7 @@ class DstInterface(Interface):
     def __init__(
         self,
         endpoints: Sequence[EndPoint] | Sequence[list | tuple] | Sequence[str | int | TypesDef],
-        row: DstRow | None = None,
+        row: DstRow,
     ) -> None:
         """Initialize the Destination Interface class.
 

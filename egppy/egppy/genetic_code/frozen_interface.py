@@ -8,6 +8,7 @@ from egppy.genetic_code.c_graph_constants import (
     SOURCE_ROW_SET,
     EPCls,
     Row,
+    SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
@@ -22,29 +23,27 @@ class FrozenInterface(FrozenInterfaceABC):
     as tuples instead of lists. It creates FrozenEndPoint instances on-the-fly when accessed.
 
     Attributes:
-        row (Row): The row identifier for all endpoints in this interface.
-        epcls (EndPointClass): The endpoint class (SRC or DST) for all endpoints.
+        row: Row: The row of the interface. The correct row enum must be used (DstRow or SrcRow).
         type_tuple (tuple[TypesDef, ...]): Tuple of types for each endpoint.
         refs_tuple (tuple[tuple[tuple[Row, int], ...], ...]): Tuple of
                     reference tuples for each endpoint.
     """
 
-    __slots__ = ("row", "epcls", "type_tuple", "refs_tuple", "_hash")
+    __slots__ = ("row", "cls", "type_tuple", "refs_tuple", "_hash")
 
     def __init__(
         self,
         row: Row,
-        epcls: EPCls,
         type_tuple: tuple[TypesDef, ...],
         refs_tuple: tuple[tuple[tuple[Row, int], ...], ...],
     ):
         super().__init__()
         self.row = row
-        self.epcls = epcls
+        self.cls = EPCls.SRC if isinstance(row, SrcRow) else EPCls.DST
         self.type_tuple = type_tuple
         self.refs_tuple = refs_tuple
         # Pre-compute hash for frozen interface
-        self._hash = hash((self.row, self.epcls, self.type_tuple, self.refs_tuple))
+        self._hash = hash((self.row, self.cls, self.type_tuple, self.refs_tuple))
 
     def __eq__(self, value: object) -> bool:
         """Check equality of FrozenInterface instances.
@@ -84,7 +83,7 @@ class FrozenInterface(FrozenInterfaceABC):
         return FrozenEndPoint(
             self.row,
             idx,
-            self.epcls,
+            self.cls,
             self.type_tuple[idx],
             self.refs_tuple[idx],
         )
@@ -107,7 +106,7 @@ class FrozenInterface(FrozenInterfaceABC):
             yield FrozenEndPoint(
                 self.row,
                 idx,
-                self.epcls,
+                self.cls,
                 typ,
                 self.refs_tuple[idx],
             )
@@ -128,14 +127,6 @@ class FrozenInterface(FrozenInterfaceABC):
         """
         return f"FrozenInterface({', '.join(str(typ) for typ in self.type_tuple)})"
 
-    def cls(self) -> EPCls:
-        """Return the class of the interface.
-
-        Returns:
-            The EndPointClass (SRC or DST) of this interface.
-        """
-        return self.epcls
-
     def consistency(self) -> None:
         """Check the consistency of the FrozenInterface.
 
@@ -153,13 +144,13 @@ class FrozenInterface(FrozenInterfaceABC):
             refs = self.refs_tuple[idx]
 
             # Destination endpoints should have exactly 0 or 1 reference
-            if self.epcls == EPCls.DST and len(refs) > 1:
+            if self.cls == EPCls.DST and len(refs) > 1:
                 raise ValueError(
                     f"Destination endpoint {idx} can only have 0 or 1 reference, has {len(refs)}"
                 )
 
             # Source endpoints reference destination rows, and vice versa
-            if self.epcls == EPCls.SRC:
+            if self.cls == EPCls.SRC:
                 for ref in refs:
                     if ref[0] not in DESTINATION_ROW_SET:
                         raise ValueError(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from itertools import chain
 
 from egpcommon.common_obj import CommonObj
@@ -13,6 +14,7 @@ from egppy.genetic_code.c_graph_constants import (
     _UNDER_KEY_DICT,
     _UNDER_ROW_DST_INDEXED,
     _UNDER_SRC_KEY_DICT,
+    IFKEY_ROW_MAP,
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
     ROW_CLS_INDEXED_SET,
@@ -44,7 +46,9 @@ class CGraph(FrozenCGraph, CGraphABC):
     def __init__(  # pylint: disable=super-init-not-called
         self,
         graph: (
-            dict[str, list[EndpointMemberType]] | dict[IfKey, FrozenInterfaceABC] | FrozenCGraphABC
+            Mapping[str, list[EndpointMemberType]]
+            | Mapping[IfKey, FrozenInterfaceABC]
+            | FrozenCGraphABC
         ),
     ) -> None:
         """Initialize the Connection Graph.
@@ -65,9 +69,10 @@ class CGraph(FrozenCGraph, CGraphABC):
             any(key in graph for key in ROW_CLS_INDEXED_SET) and graph
         ), "Input graph not empty but contains no valid interface keys."
         for key in ROW_CLS_INDEXED_ORDERED:
+            row = IFKEY_ROW_MAP[key]
             _key = _UNDER_KEY_DICT[key]
             if key in graph:
-                iface = Interface(graph[key])
+                iface = Interface(graph[key], row)
                 assert isinstance(
                     iface, (InterfaceABC, type(None))
                 ), f"Invalid interface definition for {key}: {iface}"
@@ -105,7 +110,7 @@ class CGraph(FrozenCGraph, CGraphABC):
 
         # Convert to mutable Interface if it's not already
         if not isinstance(value, InterfaceABC):
-            value = Interface(value)
+            value = Interface(value, row=IFKEY_ROW_MAP[key])
 
         setattr(self, _UNDER_KEY_DICT[key], value)
 

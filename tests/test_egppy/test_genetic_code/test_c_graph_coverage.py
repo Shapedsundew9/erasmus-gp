@@ -76,7 +76,7 @@ class TestCGraphDelItemErrors(unittest.TestCase):
     def test_delitem_invalid_key(self) -> None:
         """Test that __delitem__ raises KeyError for invalid keys."""
         with self.assertRaises(KeyError) as context:
-            del self.cgraph["d"]
+            del self.cgraph["d"]  # type: ignore
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
 
@@ -97,7 +97,7 @@ class TestCGraphGetItemErrors(unittest.TestCase):
     def test_getitem_invalid_key(self) -> None:
         """Test that __getitem__ raises KeyError for invalid keys."""
         with self.assertRaises(KeyError) as context:
-            _ = self.cgraph["Zd"]
+            _ = self.cgraph["Zd"]  # type: ignore
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
     def test_getitem_unset_key(self) -> None:
@@ -126,10 +126,10 @@ class TestCGraphSetItemErrors(unittest.TestCase):
 
     def test_setitem_invalid_key(self) -> None:
         """Test that __setitem__ raises KeyError for invalid keys."""
-        new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")])
+        new_interface = Interface([EndPoint(DstRow.A, 0, EPCls.DST, "int")], DstRow.A)
 
         with self.assertRaises(KeyError) as context:
-            self.cgraph["Zd"] = new_interface
+            self.cgraph["Zd"] = new_interface  # type: ignore
         self.assertIn("Invalid Connection Graph key", str(context.exception))
 
     def test_setitem_invalid_value_type(self) -> None:
@@ -161,7 +161,7 @@ class TestCGraphGetMethod(unittest.TestCase):
 
     def test_get_with_custom_default(self) -> None:
         """Test get() returns custom default for missing keys."""
-        custom_default = Interface([])
+        custom_default = Interface([], DstRow.A)
         result = self.cgraph.get(DstIfKey.FD, custom_default)
         # get() returns the attribute value or default, which is None for missing keys
         self.assertIsNone(result)

@@ -150,3 +150,7 @@ _UNDER_SRC_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.SRC f
 _UNDER_KEY_DICT: dict[str | DstIfKey | SrcIfKey, str] = {
     k: ("_" + k) for k in chain(DstIfKey, SrcIfKey)
 }
+IFKEY_ROW_MAP: dict[IfKey, Row] = {
+    **{key: SrcRow(key[0]) for key in SrcIfKey},
+    **{key: DstRow(key[0]) for key in DstIfKey},
+}

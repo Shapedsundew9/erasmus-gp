@@ -79,7 +79,7 @@ def meta_upcast(rtctxt: RuntimeContext, tsa: Sequence[TypesDef], tsb: Sequence[T
     Suppose we have two interfaces:
         ifa: [int, float, object]
         ifb: [Integral, float, str]
-    Then the meta genetic code will be one that casts:
+    Then the meta genetic code needed will be one that casts:
         tsa = [object] -> tsb = [str]
     as Integral is an ancestor of int and float is already the same type in both interfaces.
 

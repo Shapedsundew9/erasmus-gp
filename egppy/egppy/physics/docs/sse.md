@@ -45,14 +45,14 @@ Note that ISA is *wrapping* constituant GC's with an empty GC interface and only
 
 Spontaneous Codon Aggregation, SCA, is the most fundamental GC creation mechanism in EGP. SCA is when two codons are *stacked* to form a 1st generation *standard* GC.
 
-## Paths to Stability
+## Stabilization
 
 ```mermaid
 %% Paths to Stability
 flowchart TB
     UM["Unstabilized Mutation"]
 
-    subgraph FSS["Static Full Stack Stabilizer"]
+    subgraph FSS["Static Full Stack Stabilization"]
         LCA["Local Connect All"]
         LUC["Local Upcast"]
         GCA["Global Connect All"]
