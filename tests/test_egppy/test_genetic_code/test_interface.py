@@ -122,12 +122,12 @@ class TestInterface(unittest.TestCase):
     def test_cls_empty_interface(self) -> None:
         """Test that cls() returns DST for empty interface."""
         interface = Interface([], DstRow.A)
-        self.assertEqual(interface._cls, EPCls.DST)
+        self.assertEqual(interface._cls, EPCls.DST)  # pylint: disable=protected-access
 
     def test_cls_with_endpoints(self) -> None:
         """Test that cls() returns the class of the first endpoint."""
         interface = Interface([self.ep1, self.ep2], DstRow.A)
-        self.assertEqual(interface._cls, EPCls.DST)
+        self.assertEqual(interface._cls, EPCls.DST)  # pylint: disable=protected-access
 
     def test_consistency(self) -> None:
         """Test the consistency() method."""

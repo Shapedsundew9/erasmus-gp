@@ -19,7 +19,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Hashable, Sequence
 
 from egpcommon.common_obj_abc import CommonObjABC
-from egppy.genetic_code.c_graph_constants import EPCls, Row
+from egppy.genetic_code.c_graph_constants import EPCls, IfKey, Row
 from egppy.genetic_code.types_def import TypesDef
 
 # Endpoint Member Types
@@ -237,6 +237,17 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
             AssertionError: If consistency checks fail (in debug mode with CONSISTENCY logging).
         """
         raise NotImplementedError("FrozenEndPointABC.consistency must be overridden")
+
+    @abstractmethod
+    def if_key(self) -> IfKey:
+        """Get the IfKey corresponding to this endpoint.
+
+        Combines the row and class of the endpoint to produce the appropriate IfKey.
+
+        Returns:
+            IfKey: The IfKey representing this endpoint's row and class.
+        """
+        raise NotImplementedError("FrozenEndPointABC.if_key must be overridden")
 
     @abstractmethod
     def is_connected(self) -> bool:

@@ -6,8 +6,12 @@ from egppy.genetic_code.c_graph_constants import (
     ROW_SET,
     SINGLE_ONLY_ROWS,
     SOURCE_ROW_SET,
+    DstIfKey,
     EPCls,
+    EPClsPostfix,
+    IfKey,
     Row,
+    SrcIfKey,
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
@@ -323,6 +327,16 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                     raise ValueError(
                         f"Destination endpoint can only reference source rows, got {ref[0]}"
                     )
+
+    def if_key(self) -> IfKey:
+        """Get the IfKey corresponding to this endpoint.
+
+        Returns:
+            IfKey: The interface key for this endpoint based on its row and class.
+        """
+        if self.cls == EPCls.SRC:
+            return SrcIfKey(f"{self.row}{EPClsPostfix.SRC}")
+        return DstIfKey(f"{self.row}{EPClsPostfix.DST}")
 
     def is_connected(self) -> bool:
         """Check if the endpoint is connected.

@@ -1,5 +1,6 @@
 """Helper functions for physics of Genetic Codes."""
 
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import BitDictABC, CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph, IfKey
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
@@ -8,6 +9,9 @@ from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
+
+# Logging setup
+_logger: Logger = egp_logger(name=__name__)
 
 
 def merge_properties(
@@ -129,7 +133,7 @@ def direct_connect_interfaces(
         dst_iface: The destination interface to connect to.
         check: If True, verify that all the connections can be made before making any.
     """
-    if check:
+    if check or _logger.isEnabledFor(DEBUG):
         if len(src_iface) != len(dst_iface):
             raise ValueError("Source and destination interfaces have different lengths.")
         for src_ep, dst_ep in zip(src_iface, dst_iface):

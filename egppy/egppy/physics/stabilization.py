@@ -104,6 +104,14 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
             # Insert the meta-codon above the destination row/interface
             insert(rtctxt, mgc, egc, dst_if)
 
+            # Now set the types. The insertion copied the endpoints so we need
+            # to set the inserted interface type to match the source type.
+            # The source endpoint is the orginal but the destination endpoint
+            # is the one from the old interface so we need to find the new one.
+            for src_ep, dst_ep in upcast_list:
+                egc["cgraph"][dst_ep.if_key()][dst_ep.idx].typ = src_ep.typ
+                # TODO: Set the FGC input interface endpoint type too. Need to figure
+                # out how to determine which gcx is fgc first.
     return cgraph.is_stable()
 
 

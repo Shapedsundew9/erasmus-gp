@@ -43,12 +43,10 @@ In any insertion event TGC and IGC are not modified RGC and any FGC are new GC's
 The xGC[yc] interface is critical to stabilization of of Connection Graphs. Consider an unstable graph where there is an unconnected GCA destination endpoint because row I does not have a matching type. To fix this situation a GC must be inserted above row A that has the missing source endpoint type (Case 4 defined below). To give the maximum likihood of stability and the minimum distruption for the resultant RGC and FGC the following needs to happen:
 
 - The low index FGC outputs (row O) must be the same as TGC[GCA]
-- The the connections in TGC to GCA destinations must persist to GCA in FGC
-- Any TGC[I] endpoints that match IGC destination must be passed in to FGC
+- The the connections in TGC to GCA destinations must persist to GCA (now FGC)
 
-In this way existing connections from the original TGC are guaranteed and IGC has the maximum opportunity to resolve the original instability without creating a new instability (with somewhat careful selection of IGC the risks collapse a great deal if not entirely).
-
-NB: IGC[O] is appended to TGC[GCA] source endpoints to make FGC[O] to maximise the exposure of IGC outputs.
+In this way existing connections from the original TGC are guaranteed and connection of the IGC destinations can occur naturally through stabilization.
+This is the Principle of Least Exposure as applied to insertion.
 
 ## Stacking
 
@@ -154,7 +152,7 @@ flowchart TB
         GCA2["A: IGC"]
         GCB2["B: TGC[A]"]
     end
-    O2["TGC[A] + IGC[O]"]
+    O2["TGC[A]"]
     I2 --> FGC --> O2
 
 classDef newGC fill:#010,stroke:#333,stroke-width:4px
@@ -184,19 +182,19 @@ flowchart TB
     I1["TGC[I]"]
     subgraph RGC
         direction RL
-        GCA1["A: FGC"]
-        GCB1["B: TGC[B]"]
+        GCA1["A: TGC[A]"]
+        GCB1["B: FGC"]
     end
     O1["TGC[O]"]
     I1 --> RGC --> O1
 
-    I2["TGC[Ac]"]
+    I2["TGC[Bc]"]
     subgraph FGC
         direction RL
-        GCA2["A: TGC[A]"]
-        GCB2["B: IGC"]
+        GCA2["A: IGC"]
+        GCB2["B: TGC[B]"]
     end
-    O2["TGC[A] + IGC[O]"]
+    O2["TGC[B]"]
     I2 --> FGC --> O2
 
 classDef newGC fill:#010,stroke:#333,stroke-width:4px
@@ -238,7 +236,7 @@ flowchart TB
         GCA2["A: TGC[B]"]
         GCB2["B: IGC"]
     end
-    O2["TGC[B] + IGC[O]"]
+    O2["TGC[B]"]
     I2 --> FGC --> O2
 
 classDef newGC fill:#010,stroke:#333,stroke-width:4px

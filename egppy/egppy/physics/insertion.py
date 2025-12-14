@@ -28,6 +28,12 @@ def insert(
     match above:
         case DstIfKey.AD:
             insert_case_3(rtctxt, igc, tgc, pc)
+        case DstIfKey.BD:
+            raise NotImplementedError("Insertion above BD is not yet implemented.")
+        case DstIfKey.OD:
+            raise NotImplementedError("Insertion above OD is not yet implemented.")
+        case _:
+            raise ValueError(f"Invalid destination interface key for insertion: {above}")
 
 
 def insert_case_3(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, pc: bool = True) -> None:
@@ -46,7 +52,14 @@ def insert_case_3(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, pc: bool = Tr
     """
     fgc = new_egc(rtctxt, gca=igc, gcb=tgc["gca"], ancestora=tgc)
     fgc_cgraph = fgc["cgraph"]
-    fgc_cgraph[SrcIfKey.IS] = Interface(tgc["cgraph"][SrcIfKey.IS], SrcRow.I).clr_refs()
-    fgc_cgraph[DstIfKey.OD] = Interface(tgc["cgraph"][SrcIfKey.BS], DstRow.O).clr_refs()
-    fgc_cgraph[DstIfKey.OD].extend(fgc_cgraph[SrcIfKey.AS])
-    direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.AD], check=False)
+    tgc_cgraph = tgc["cgraph"]
+    fgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.AD], SrcRow.I).clr_refs()
+    fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.AS], DstRow.O).clr_refs()
+    tgc["gca"] = fgc
+
+    if pc:
+        # We know FGC's input interface is the same as TGC's BD interface
+        # and FGC's output interface is the same as TGC's BS interface so need
+        # to check those connections.
+        direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.BD], check=False)
+        direct_connect_interfaces(fgc_cgraph[SrcIfKey.BS], fgc_cgraph[DstIfKey.OD], check=False)
