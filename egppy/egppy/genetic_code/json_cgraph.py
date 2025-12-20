@@ -104,7 +104,59 @@ VALID_ROWS_MAP = {
 }
 
 
-# --- 3. The Optimized Function ---
+# --- 3. Helper Function to Reverse Mappings ---
+def _reverse_src_to_dst_map(
+    src_to_dst: Mapping[SrcRow, frozenset[DstRow]]
+) -> dict[DstRow, frozenset[SrcRow]]:
+    """Reverse a source-to-destination mapping to destination-to-source.
+
+    This function takes a mapping of SrcRow -> frozenset[DstRow] and returns
+    the inverse mapping of DstRow -> frozenset[SrcRow]. It also adds a 'U' row
+    that contains the union of all source rows.
+
+    Args:
+        src_to_dst: A mapping from source rows to sets of destination rows.
+
+    Returns:
+        A dictionary mapping destination rows to sets of source rows.
+    """
+    result: dict[DstRow, frozenset[SrcRow]] = {}
+    for src_row, dst_rows in src_to_dst.items():
+        for dst_row in dst_rows:
+            if dst_row not in result:
+                result[dst_row] = frozenset({src_row})
+            else:
+                result[dst_row] = result[dst_row] | frozenset({src_row})
+
+    # Add the U row to the dictionary (super set of all sources)
+    result[DstRow.U] = frozenset({src for srcs in result.values() for src in srcs})
+    return result
+
+
+# --- 4. Generate Reversed Constant Maps ---
+IF_THEN_REVERSED = MappingProxyType(_reverse_src_to_dst_map(IF_THEN_VALID))
+IF_THEN_ELSE_REVERSED = MappingProxyType(_reverse_src_to_dst_map(IF_THEN_ELSE_VALID))
+EMPTY_REVERSED = MappingProxyType(_reverse_src_to_dst_map(EMPTY_VALID))
+FOR_LOOP_REVERSED = MappingProxyType(_reverse_src_to_dst_map(FOR_LOOP_VALID))
+WHILE_LOOP_REVERSED = MappingProxyType(_reverse_src_to_dst_map(WHILE_LOOP_VALID))
+STANDARD_REVERSED = MappingProxyType(_reverse_src_to_dst_map(STANDARD_VALID))
+PRIMITIVE_REVERSED = MappingProxyType(_reverse_src_to_dst_map(PRIMITIVE_VALID))
+UNKNOWN_REVERSED = MappingProxyType(_reverse_src_to_dst_map(UNKNOWN_VALID))
+
+# --- 5. Map Enums to Reversed Constants for O(1) Lookup ---
+VALID_SRC_ROWS_MAP = {
+    CGraphType.IF_THEN: IF_THEN_REVERSED,
+    CGraphType.IF_THEN_ELSE: IF_THEN_ELSE_REVERSED,
+    CGraphType.EMPTY: EMPTY_REVERSED,
+    CGraphType.FOR_LOOP: FOR_LOOP_REVERSED,
+    CGraphType.WHILE_LOOP: WHILE_LOOP_REVERSED,
+    CGraphType.STANDARD: STANDARD_REVERSED,
+    CGraphType.PRIMITIVE: PRIMITIVE_REVERSED,
+    CGraphType.UNKNOWN: UNKNOWN_REVERSED,
+}
+
+
+# --- 6. The Optimized Function ---
 # TODO: Replace calls to this function with the constant lookups in VALID_ROWS_MAP
 # and move VALID_ROWS_MAP to the c_graph_constants.py module. Probably also need
 # better naming for the constants i.e. *_SRC_TO_DST_MAP or similar.
@@ -196,87 +248,19 @@ def valid_rows(graph_type: CGraphType) -> frozenset[Row]:
     )
 
 
-# TODO: First this function should not dynamically build the dictionaries
-# on each call. Second, all calls to this function should be replaced with
-# constant lookups similar to valid_dst_rows. For consistency, the valid source row
-# constant maps should be generated at import time as a reverse map of the
-# valid destination row maps.
-def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
-    """Return a dictionary of valid source rows for the given graph type.
+def valid_src_rows(graph_type: CGraphType) -> Mapping[DstRow, frozenset[SrcRow]]:
+    """Return a read-only dictionary of valid source rows for the given graph type.
+
+    This function returns a pre-computed reverse mapping from the valid destination
+    rows constants. Returns a constant reference (zero allocation).
 
     Args:
         graph_type: The type of graph to validate.
-    """
-    retval: dict[DstRow, frozenset[SrcRow]] = {}
-    match graph_type:
-        case CGraphType.IF_THEN:
-            retval = {
-                DstRow.A: frozenset({SrcRow.I}),
-                DstRow.F: frozenset({SrcRow.I}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.P: frozenset({SrcRow.I}),
-            }
-        case CGraphType.IF_THEN_ELSE:
-            retval = {
-                DstRow.A: frozenset({SrcRow.I}),
-                DstRow.F: frozenset({SrcRow.I}),
-                DstRow.B: frozenset({SrcRow.I}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.P: frozenset({SrcRow.I, SrcRow.B}),
-                DstRow.U: frozenset({SrcRow.I}),
-            }
-        case CGraphType.EMPTY:
-            retval = {
-                DstRow.O: NULL_FROZENSET,
-            }
-        case CGraphType.FOR_LOOP:
-            retval = {
-                DstRow.A: frozenset({SrcRow.I, SrcRow.L, SrcRow.S}),
-                DstRow.L: frozenset({SrcRow.I}),
-                DstRow.S: frozenset({SrcRow.I}),
-                DstRow.T: frozenset({SrcRow.A}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.P: frozenset({SrcRow.I}),
-            }
-        case CGraphType.WHILE_LOOP:
-            retval = {
-                DstRow.A: frozenset({SrcRow.I, SrcRow.S, SrcRow.W}),
-                DstRow.S: frozenset({SrcRow.I}),
-                DstRow.W: frozenset({SrcRow.I}),
-                DstRow.T: frozenset({SrcRow.A}),
-                DstRow.X: frozenset({SrcRow.A}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.P: frozenset({SrcRow.I}),
-            }
-        case CGraphType.STANDARD:
-            retval = {
-                DstRow.A: frozenset({SrcRow.I}),
-                DstRow.B: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A, SrcRow.B}),
-            }
-        case CGraphType.PRIMITIVE:
-            retval = {
-                DstRow.A: frozenset({SrcRow.I}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
-            }
-        case CGraphType.UNKNOWN:  # The superset case
-            retval = {
-                DstRow.A: frozenset({SrcRow.I, SrcRow.L}),
-                DstRow.B: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.F: frozenset({SrcRow.I}),
-                DstRow.L: frozenset({SrcRow.I}),
-                DstRow.W: frozenset({SrcRow.A}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A, SrcRow.B}),
-                DstRow.P: frozenset({SrcRow.I, SrcRow.B}),
-                # FIXME: Can L ever not be connected?
-                DstRow.U: frozenset({SrcRow.A, SrcRow.I, SrcRow.L, SrcRow.B}),
-            }
-        case _:
-            retval = {}
 
-    # Add the U row to the dictionary (super set of all sources)
-    retval[DstRow.U] = frozenset({src for srcs in retval.values() for src in srcs})
-    return retval
+    Returns:
+        A read-only mapping of destination rows to sets of valid source rows.
+    """
+    return VALID_SRC_ROWS_MAP.get(graph_type, EMPTY_RESULT)
 
 
 # Constants
