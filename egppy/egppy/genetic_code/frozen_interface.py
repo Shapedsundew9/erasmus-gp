@@ -45,6 +45,19 @@ class FrozenInterface(FrozenInterfaceABC):
         # Pre-compute hash for frozen interface
         self._hash = hash((self._row, self._cls, self.type_tuple, self.refs_tuple))
 
+    def __copy__(self):
+        """Called by copy.copy()"""
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy().
+        'memo' is a dictionary used to track recursion loops.
+        """
+        # Since we are returning self, we don't need to use memo,
+        # but the signature requires it.
+        return self
+
     def __eq__(self, value: object) -> bool:
         """Check equality of FrozenInterface instances.
 

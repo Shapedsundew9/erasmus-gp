@@ -49,6 +49,8 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         Args:
             gcabc: The genetic code object or dictionary to initialize from.
         """
+        # __init__ must do no more than this. All member setting must be
+        # done in set_members() as it is used to rebuild the EGC.
         super().__init__()
         self.set_members(gcabc if gcabc is not None else {})
 

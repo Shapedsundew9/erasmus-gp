@@ -81,6 +81,8 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
     __slots__ = ("endpoints", "_hash", "_row", "_cls")
+    __copy__ = None  # type: ignore (reset to default behaviour)
+    __deepcopy__ = None  # type: ignore (reset to default behaviour)
 
     def __init__(  # pylint: disable=super-init-not-called
         self,

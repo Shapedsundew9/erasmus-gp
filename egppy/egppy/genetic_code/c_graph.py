@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Generator, Mapping
 from itertools import chain
 
 from egpcommon.common_obj import CommonObj
@@ -42,6 +42,8 @@ class CGraph(FrozenCGraph, CGraphABC):
 
     # Inherit slots from FrozenCGraph
     __slots__ = ()
+    __copy__ = None  # type: ignore (reset to default behaviour)
+    __deepcopy__ = None  # type: ignore (reset to default behaviour)
 
     def __init__(  # pylint: disable=super-init-not-called
         self,
@@ -214,9 +216,22 @@ class CGraph(FrozenCGraph, CGraphABC):
                 # Connect the destination endpoint to the source endpoint
                 dep.connect(sep)
 
+    def disconnect_all(self) -> None:
+        """Disconnect all connections in the Connection Graph.
+
+        This method removes all existing connections between source and
+        destination endpoints, leaving all endpoints unconnected.
+        """
+        for ifkey in self:
+            iface = self[ifkey]
+            assert isinstance(
+                iface, InterfaceABC
+            ), f"Invalid interface type for {ifkey}: {type(iface)}"
+            iface.clr_refs()
+
     def is_stable(self) -> bool:
         """Return True if the Connection Graph is stable, i.e. all destinations are connected."""
-        difs = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
+        difs: Generator[InterfaceABC] = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         return all(not iface.unconnected_eps() for iface in difs if iface is not None)
 
     def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:

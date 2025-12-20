@@ -39,6 +39,7 @@ class TestCGraphABC(unittest.TestCase):
             "get",
             "graph_type",
             "to_json",
+            "disconnect_all",
             "connect_all",
             "stabilize",
             "__eq__",

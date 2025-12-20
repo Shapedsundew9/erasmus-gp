@@ -4,7 +4,7 @@ A Genetic Code graph defines how values from the GC input are passed to sub-GC's
 (and directly from the input) are connected to the GC's outputs. There are 7 types of Connection Graph.
 
 | Type | GC Type | Comments |
-|------|---------|----------|
+| ------ | --------- | ---------- |
 | If-Then | Ordinary | Conditional graph with a single execution path (GCA) chosen when condition is true. |
 | If-Then-Else | Ordinary | Conditional graph with two execution paths (GCA/GCB) chosen based on condition. |
 | Empty | Ordinary | Defines an interface. Has no sub-GCs and generates no code. Used to seed problems. |
@@ -39,7 +39,7 @@ Note that row _P_ only exists logically. It is the same interface as row O i.e. 
 Similarly, rows _T_ and _X_ are semantically identical to _S_ and _W_ respectively, but serve as destination endpoints for loop body outputs while _S_ and _W_ serve as source endpoints providing state to the loop body. The implicit feedback connection from _Td→Ss_ and _Xd→Ws_ between iterations is handled in code generation, not the connection graph.
 
 | Type | I | F | L | S | T | W | X | A | B | O | P | U |
-|------|---|---|---|---|---|---|---|---|---|---|---|---|
+| ------ | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | If-Then | X | X | - | - | - | - | - | X | - | M | M | m |
 | If-Then-Else | X | X | - | - | - | - | - | X | X | M | M | m |
 | Empty | o | - | - | - | - | - | - | - | - | o | - | m |
@@ -58,7 +58,7 @@ Similarly, rows _T_ and _X_ are semantically identical to _S_ and _W_ respective
 Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-Loop, While-Loop, and Standard graphs have connections between row interfaces but not all combinations are permitted. In the matrix below the source of the connection is the column label and the destination of the connection is the row label.
 
 | Dst\Src | I | L | S | W | A | B |
-|---------|---|---|---|---|---|---|
+| --------- | --- | --- | --- | --- | --- | --- |
 | F | IT,IE | - | - | - | - | - |
 | L | FL | - | - | - | - | - |
 | S | FL,WL | - | - | - | - | - |
@@ -67,7 +67,7 @@ Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-
 | X | - | - | - | - | WL | - |
 | A | IT,IE,FL,WL,S,P | FL | FL,WL | WL | - | - |
 | B | IE,S | - | - | - | S | - |
-| O | IT,IE,FL,WL,S,P | - | - | - | IT,IE,FL,WL,S,P | S |
+| O | IT,IE,FL,WL | - | - | - | IT,IE,FL,WL,S,P | S |
 | P | IT,IE,FL,WL | - | - | - | - | IE |
 | U | All | All | All | All | All | All |
 
@@ -81,7 +81,7 @@ Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-
 - **P** = Primitive graph
 - **-** = Not allowed
 
-Note that required connections are a consequence of the rule that an interface must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist. Note that these rules do allow for a standard graph to have an A and B row that do not connect to each other. The GC is then functionaly equivilent to its sub-GC's. This arrangement is called a _harmony_.
+Note that required connections are a consequence of the rule that some interfaces must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist. Note that these rules do allow for a standard graph to have an A and B row that do not connect to each other. The GC is then functionaly equivilent to its sub-GC's. This arrangement is called a _harmony_.
 
 Flow charts of the allowed connectivity for each graph type are below.
 
@@ -360,7 +360,6 @@ flowchart TB
     A --> O
     I --> A --> B --> O
     I --> B
-    I --> O
     
 classDef Icd fill:#888888,stroke:#333,stroke-width:1px
 classDef Acd fill:#882222,stroke:#333,stroke-width:1px
@@ -382,7 +381,6 @@ class O Ocd
 # Single execution:
 Is → Ad          # inputs to GCA
 Is → Bd          # inputs to GCB
-Is → Od          # inputs can pass through to output
 Ad → As          # GCA destination becomes source
 As → Bd          # GCA results feed into GCB
 As → Od          # GCA results can output directly
@@ -409,7 +407,6 @@ flowchart TB
     A["GC[A] primitive operation"]
     O["[O]utputs"]
     I --> A --> O
-    I --> O
     
 classDef Icd fill:#888888,stroke:#333,stroke-width:1px
 classDef Acd fill:#882222,stroke:#333,stroke-width:1px

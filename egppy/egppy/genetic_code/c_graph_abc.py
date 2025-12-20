@@ -96,13 +96,11 @@ Common Rules
     - Destination endpoints must have 1 and only 1 connection to it to be stable.
     - Destination endpoints may only be unconnected (have no connections) in unstable graphs.
     - Interfaces may have 0 to MAX_NUM_ENDPOINTS (inclusive) endpoints
-    - MAX_NUM_ENDPOINTS == 255
     - Fd, Ld, Wd and Ls, Ws, if they exist, must have exactly 1 endpoint
       in the interface when stable.
     - Pd must have the same interface, i.e. endpoint number, order and types as Od.
     - Td must have the same interface, i.e. endpoint number, order and types as Sd and Ss.
     - Xd must have the same interface, i.e. endpoint number, order and types as Wd and Ws.
-    - Any Is endpoint may be a source to any destination endpoint with the exception of Ws
     - Any source endpoint that is not connected to any other destination endpoint is connected
       to the Ud interface in a JSON Connection Graph representation.
     - Ud only exists in JSON Connection Graph representations and only if there are
@@ -168,10 +166,12 @@ Additional to the Common Rules While-Loop graphs have the following rules
 Additional to the Common Rules Standard graphs have the following rules
     - Must not have an Fd, Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, or Pd interface
     - Bs can only connect to Od or Ud
+    - Is cannot connect to Od
 
 Additional to the Common Rules Primitive connection graphs have the following rules
     - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
     - All sources must be connected to destinations
+    - Is cannot connect to Od
 """
 
 from __future__ import annotations
@@ -444,6 +444,15 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
                       If False, allows extending input interface when needed.
         """
         raise NotImplementedError("CGraphABC.connect_all must be overridden")
+
+    @abstractmethod
+    def disconnect_all(self) -> None:
+        """Disconnect all connections in the Connection Graph.
+
+        This method removes all existing connections between source and
+        destination endpoints, leaving all endpoints unconnected.
+        """
+        raise NotImplementedError("CGraphABC.disconnect_all must be overridden")
 
     @abstractmethod
     def stabilize(self, if_locked: bool = True) -> None:

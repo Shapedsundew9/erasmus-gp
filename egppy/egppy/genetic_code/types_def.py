@@ -423,6 +423,19 @@ class TypesDefStore:
             return False
         return True
 
+    def __copy__(self):
+        """Called by copy.copy()"""
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy().
+        'memo' is a dictionary used to track recursion loops.
+        """
+        # Since we are returning self, we don't need to use memo,
+        # but the signature requires it.
+        return self
+
     def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
         if TypesDefStore._db_store is None:

@@ -203,8 +203,8 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
         """Check if this endpoint can connect to another endpoint if it is upcast.
 
         Connection rules:
-            - Source endpoints can connect to destination endpoints.
-            - Destination endpoints can connect to source endpoints.
+            - The destination endpoint is not already connected
+            - It is a source-destination connection (or vice-versa)
             - Src type must be upcast-able to Dst type (downcasts & equal types return False).
             - The row connection rules must be followed.
 

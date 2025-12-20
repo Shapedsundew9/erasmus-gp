@@ -159,7 +159,7 @@ class TestValidDstRowsComprehensive(unittest.TestCase):
         """Test valid_dst_rows for PRIMITIVE graph type."""
         result = valid_dst_rows(CGraphType.PRIMITIVE)
 
-        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.O}))
+        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A}))
         self.assertEqual(result[SrcRow.A], frozenset({DstRow.O}))
 
     def test_valid_dst_rows_reserved(self) -> None:

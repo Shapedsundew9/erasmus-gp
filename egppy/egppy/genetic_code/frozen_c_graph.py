@@ -185,6 +185,19 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             raise KeyError(f"Invalid Connection Graph key: {key}")
         return getattr(self, _UNDER_KEY_DICT[key]) is not None
 
+    def __copy__(self):
+        """Called by copy.copy()"""
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy().
+        'memo' is a dictionary used to track recursion loops.
+        """
+        # Since we are returning self, we don't need to use memo,
+        # but the signature requires it.
+        return self
+
     def __eq__(self, value: object) -> bool:
         """Check equality of Connection Graphs.
         This implements deep equality checking between two Connection Graph instances

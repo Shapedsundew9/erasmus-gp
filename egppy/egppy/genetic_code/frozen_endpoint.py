@@ -88,6 +88,19 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         # Pre-compute hash for frozen endpoint
         self._hash = hash((self.row, self.idx, self.cls, self.typ, self.refs))
 
+    def __copy__(self):
+        """Called by copy.copy()"""
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy().
+        'memo' is a dictionary used to track recursion loops.
+        """
+        # Since we are returning self, we don't need to use memo,
+        # but the signature requires it.
+        return self
+
     def __eq__(self, value: object) -> bool:
         """Check equality of FrozenEndPoint instances.
 
@@ -252,8 +265,8 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         """Check if this endpoint can connect to another endpoint if it is upcast.
 
         Connection rules:
-            - Source endpoints can connect to destination endpoints.
-            - Destination endpoints can connect to source endpoints.
+            - The destination endpoint is not already connected
+            - It is a source-destination connection (or vice-versa)
             - Src type must be upcast-able to Dst type (downcasts & equal types return False).
             - The row connection rules must be followed.
 

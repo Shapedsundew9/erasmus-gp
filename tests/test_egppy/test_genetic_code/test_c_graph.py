@@ -235,7 +235,7 @@ class TestValidDstRows(unittest.TestCase):
         self.assertIn(SrcRow.I, result)
         self.assertIn(SrcRow.A, result)
 
-        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.O}))
+        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A}))
         self.assertEqual(result[SrcRow.A], frozenset({DstRow.O}))
 
     def test_standard_valid_dst_rows(self) -> None:
@@ -246,7 +246,7 @@ class TestValidDstRows(unittest.TestCase):
         self.assertIn(SrcRow.A, result)
         self.assertIn(SrcRow.B, result)
 
-        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.B, DstRow.O}))
+        self.assertEqual(result[SrcRow.I], frozenset({DstRow.A, DstRow.B}))
         self.assertEqual(result[SrcRow.A], frozenset({DstRow.B, DstRow.O}))
         self.assertEqual(result[SrcRow.B], frozenset({DstRow.O}))
 

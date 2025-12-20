@@ -69,6 +69,9 @@ class EndPoint(FrozenEndPoint, EndPointABC):
         - CGraph: Connection graph composed of interfaces
     """
 
+    __copy__ = None  # type: ignore (reset to default behaviour)
+    __deepcopy__ = None  # type: ignore (reset to default behaviour)
+
     def __init__(self, *args) -> None:  # pylint: disable=super-init-not-called
         """Initialize the endpoint.
 

@@ -84,6 +84,7 @@ def new_egc(
     gcb: GCABC | bytes | None = None,
     ancestora: GCABC | bytes | None = None,
     ancestorb: GCABC | bytes | None = None,
+    rebuild: EGCode | None = None,
 ) -> GCABC:
     """Create a new EGCode from GCA and GCB.
 
@@ -93,9 +94,10 @@ def new_egc(
         gcb: The GCB genetic code or its signature, or None for single-parent GCs.
         ancestora: The ancestor of GCA or its signature, or None.
         ancestorb: The ancestor of GCB or its signature, or None.
+        rebuild: An existing EGCode to rebuild else a new one is created.
     Returns:
-        The newly created EGCode. Note that only row A and B (if it is used) interfaces
-        are populated with all referencves cleared.
+        The newly created/rebuilt EGCode. Note that only row A and B (if it is used) interfaces
+        are populated with all references cleared.
         The I and O rows are left as None for later assignment as well as any other rows for
         the non-standard graph types.
     """
@@ -109,18 +111,20 @@ def new_egc(
         _gcb = gcb if isinstance(gcb, GCABC) else rtctxt.gpi[gcb]
         _cgraph[DstIfKey.BD] = Interface(_gcb["cgraph"][SrcIfKey.IS], DstRow.B).clr_refs()
         _cgraph[SrcIfKey.BS] = Interface(_gcb["cgraph"][DstIfKey.OD], SrcRow.B).clr_refs()
-    return EGCode(
-        {
-            "gca": gca,
-            "gcb": gcb,
-            "cgraph": CGraph(_cgraph),
-            "ancestora": ancestora,
-            "ancestorb": ancestorb,
-            "pgc": rtctxt.root_gc,
-            "creator": rtctxt.creator,
-            "properties": merge_properties(rtctxt=rtctxt, gca=gca, gcb=gcb),
-        }
-    )
+    init_dict = {
+        "gca": gca,
+        "gcb": gcb,
+        "cgraph": CGraph(_cgraph),
+        "ancestora": ancestora,
+        "ancestorb": ancestorb,
+        "pgc": rtctxt.root_gc,
+        "creator": rtctxt.creator,
+        "properties": merge_properties(rtctxt=rtctxt, gca=gca, gcb=gcb),
+    }
+    if rebuild is None:
+        return EGCode(init_dict)
+    rebuild.set_members(init_dict)
+    return rebuild
 
 
 def direct_connect_interfaces(

@@ -26,6 +26,7 @@ from typing import Callable
 from egpcommon.egp_rnd_gen import EGPRndGen
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.ggc_dict import GCABC, GGCDict
@@ -90,6 +91,8 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
         # Build a list of direct connections that require upcasting
         upcast_list: list[tuple[EndPointABC, EndPointABC]] = []
         for src_ep, dst_ep in zip(cgraph[src_if], cgraph[dst_if]):
+            assert isinstance(src_ep, EndPointABC), "Source endpoint is not an EndPointABC"
+            assert isinstance(dst_ep, EndPointABC), "Destination endpoint is not an EndPointABC"
             if dst_ep.can_upcast_connect(src_ep):
                 upcast_list.append((src_ep, dst_ep))
 
@@ -101,17 +104,71 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
                 [dst_ep.typ for _, dst_ep in upcast_list],
             )
 
-            # Insert the meta-codon above the destination row/interface
-            insert(rtctxt, mgc, egc, dst_if)
+            # Insert the meta-codon below the source row/interface
+            # This is so we know the relative positions of the interfaces
+            insert(rtctxt, mgc, egc, src_if)
 
-            # Now set the types. The insertion copied the endpoints so we need
-            # to set the inserted interface type to match the source type.
-            # The source endpoint is the orginal but the destination endpoint
-            # is the one from the old interface so we need to find the new one.
-            for src_ep, dst_ep in upcast_list:
-                egc["cgraph"][dst_ep.if_key()][dst_ep.idx].typ = src_ep.typ
-                # TODO: Set the FGC input interface endpoint type too. Need to figure
-                # out how to determine which gcx is fgc first.
+            # Now set the types.
+            cgraph = egc["cgraph"]
+            for idx, (src_ep, dst_ep) in enumerate(upcast_list):
+                # The insertion changed the cgraph so we need to re-get the endpoints
+                src_ep = cgraph[src_if][src_ep.idx]
+                dst_ep = cgraph[dst_if][dst_ep.idx]
+                assert isinstance(src_ep, EndPointABC), "Source endpoint is not an EndPointABC"
+                assert isinstance(dst_ep, EndPointABC), "Destination endpoint is not an EndPointABC"
+
+                # Match the types (this is the type to be upcast) then we can connect
+                # directly in the egc (rgc) cgraph
+                dst_ep.typ = src_ep.typ
+                src_ep.connect(dst_ep)
+                dst_ep.connect(src_ep)
+
+                # Find fgc and update its input interface type in ther same spot
+                fgc = egc["gca"] if dst_ep.row is DstIfKey.AD else egc["gcb"]
+                fgc_cgraph = fgc["cgraph"]
+                assert isinstance(fgc_cgraph, CGraphABC), "FGC cgraph is not a CGraphABC"
+                fgc_is_ep = fgc_cgraph[SrcIfKey.IS][dst_ep.idx]
+                assert isinstance(fgc_is_ep, EndPointABC), "FGC IS endpoint is not an EndPointABC"
+                fgc_is_ep.typ = src_ep.typ
+
+                # Find mgc
+                mdk, msk, tdk = (
+                    (DstIfKey.AD, SrcIfKey.AS, DstIfKey.BD)
+                    if fgc["gca"] is mgc
+                    else (DstIfKey.BD, SrcIfKey.BS, DstIfKey.AD)
+                )
+
+                # Connect the ep to upcast to the mgc input interface
+                mgc_dst_ep = fgc_cgraph[mdk][idx]
+                assert isinstance(
+                    mgc_dst_ep, EndPointABC
+                ), f"FGC {mdk} endpoint is not an EndPointABC"
+                assert not mgc_dst_ep.is_connected(), f"FGC {mdk} endpoint is already connected"
+                assert (
+                    mgc_dst_ep.typ == fgc_is_ep.typ
+                ), f"FGC {mdk} endpoint type mismatch with FGC IS endpoint"
+                mgc_dst_ep.connect(fgc_is_ep)
+                fgc_is_ep.connect(mgc_dst_ep)
+
+                # Now connect the mgc output ep (which has been upcast) to the tgc sub-GC
+                # ep that needed the upcast
+                mgc_src_ep = fgc_cgraph[msk][idx]
+                assert isinstance(
+                    mgc_src_ep, EndPointABC
+                ), f"FGC {msk} endpoint is not an EndPointABC"
+                assert (
+                    not mgc_src_ep.is_connected()
+                ), f"FGC {msk} (MGC) endpoint is already connected"
+                tgc_dst_ep = fgc_cgraph[tdk][dst_ep.idx]
+                assert isinstance(
+                    tgc_dst_ep, EndPointABC
+                ), f"TGC {tdk} endpoint is not an EndPointABC"
+                assert (
+                    mgc_src_ep.typ == tgc_dst_ep.typ
+                ), f"FGC {msk} (MGC) and TGC {tdk} endpoint type mismatch"
+                mgc_src_ep.connect(tgc_dst_ep)
+                tgc_dst_ep.connect(mgc_src_ep)
+
     return cgraph.is_stable()
 
 

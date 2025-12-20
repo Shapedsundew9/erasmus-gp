@@ -68,14 +68,14 @@ WHILE_LOOP_VALID = MappingProxyType(
 )
 STANDARD_VALID = MappingProxyType(
     {
-        SrcRow.I: frozenset({DstRow.A, DstRow.B, DstRow.O}),
+        SrcRow.I: frozenset({DstRow.A, DstRow.B}),
         SrcRow.A: frozenset({DstRow.B, DstRow.O}),
         SrcRow.B: frozenset({DstRow.O}),
     }
 )
 PRIMITIVE_VALID = MappingProxyType(
     {
-        SrcRow.I: frozenset({DstRow.A, DstRow.O}),
+        SrcRow.I: frozenset({DstRow.A}),
         SrcRow.A: frozenset({DstRow.O}),
     }
 )
