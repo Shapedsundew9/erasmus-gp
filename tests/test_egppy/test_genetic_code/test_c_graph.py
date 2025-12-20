@@ -285,13 +285,13 @@ class TestValidJCG(unittest.TestCase):
 
     def test_invalid_endpoint_format_in_jcg(self) -> None:
         """Test that invalid endpoint formats raise TypeError."""
-        jcg = {DstRow.O: ["not a list"], DstRow.U: []}
+        jcg = {DstRow.O: ["not a list"], DstRow.A: []}
         with self.assertRaises(TypeError):
             valid_jcg(jcg)
 
     def test_invalid_index_in_endpoint(self) -> None:
         """Test that invalid indices raise ValueError."""
-        jcg = {DstRow.O: [["I", 256, "int"]], DstRow.U: []}  # Index out of range
+        jcg = {DstRow.O: [["I", 256, "int"]], DstRow.A: []}  # Index out of range
         with self.assertRaises(ValueError):
             valid_jcg(jcg)
 
@@ -303,7 +303,7 @@ class TestValidJCG(unittest.TestCase):
 
     def test_invalid_row_in_endpoint(self) -> None:
         """Test that invalid source rows in endpoints raise ValueError."""
-        jcg = {DstRow.O: [["X", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.O: [["X", 0, "int"]], DstRow.A: []}
         with self.assertRaises(ValueError):
             valid_jcg(jcg)
 

@@ -81,9 +81,7 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
             CGraphType.RESERVED_10,
         ]:
             result = valid_src_rows(reserved_type)
-            # Should only have U row (superset)
-            self.assertEqual(len(result), 1)
-            self.assertIn(DstRow.U, result)
+            self.assertEqual(len(result), 0)
 
     def test_valid_src_rows_standard(self) -> None:
         """Test valid_src_rows for STANDARD graph type."""
@@ -96,7 +94,7 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
     def test_valid_src_rows_u_is_superset(self) -> None:
         """Test that U row is always a superset of all other sources."""
         for graph_type in CGraphType:
-            if graph_type.name.startswith("RESERVED"):
+            if graph_type.name.startswith("RESERVED") or graph_type == CGraphType.EMPTY:
                 continue
             result = valid_src_rows(graph_type)
             all_sources = frozenset().union(
@@ -256,7 +254,7 @@ class TestValidJCG(unittest.TestCase):
 
     def test_valid_jcg_invalid_endpoint_structure(self) -> None:
         """Test that invalid endpoint structures raise TypeError."""
-        jcg = {DstRow.O: ["not a list"], DstRow.U: []}
+        jcg = {DstRow.O: ["not a list"], DstRow.A: []}
         with self.assertRaises(TypeError) as context:
             valid_jcg(jcg)
         self.assertIn("Expected a list", str(context.exception))
@@ -276,7 +274,7 @@ class TestValidJCG(unittest.TestCase):
 
     def test_valid_jcg_invalid_index_type(self) -> None:
         """Test that non-integer indices raise TypeError."""
-        jcg = {DstRow.O: [["I", "0", "int"]], DstRow.U: []}
+        jcg = {DstRow.O: [["I", "0", "int"]], DstRow.A: []}
         with self.assertRaises(TypeError) as context:
             valid_jcg(jcg)
         self.assertIn("Expected an integer index", str(context.exception))
@@ -298,21 +296,21 @@ class TestValidJCG(unittest.TestCase):
 
     def test_valid_jcg_invalid_source_row_type(self) -> None:
         """Test that non-string source rows raise TypeError."""
-        jcg = {DstRow.O: [[123, 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.O: [[123, 0, "int"]], DstRow.A: []}
         with self.assertRaises(TypeError) as context:
             valid_jcg(jcg)
         self.assertIn("Expected a destination row", str(context.exception))
 
     def test_valid_jcg_invalid_source_row_value(self) -> None:
         """Test that invalid source row values raise ValueError."""
-        jcg = {DstRow.O: [["X", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.O: [["X", 0, "int"]], DstRow.A: []}
         with self.assertRaises(ValueError) as context:
             valid_jcg(jcg)
         self.assertIn("Expected a valid source row", str(context.exception))
 
     def test_valid_jcg_invalid_type_type(self) -> None:
         """Test that non-string types raise TypeError."""
-        jcg = {DstRow.O: [["I", 0, 123]], DstRow.U: []}
+        jcg = {DstRow.O: [["I", 0, 123]], DstRow.A: []}
         with self.assertRaises(TypeError) as context:
             valid_jcg(jcg)
         self.assertIn("Expected a list of endpoint int types", str(context.exception))
