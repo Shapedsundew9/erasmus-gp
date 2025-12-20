@@ -473,7 +473,7 @@ class TestCGraphVerifyTypeConsistency(unittest.TestCase):
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], [["I", 1]]),
         ]
         o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["I", 0]]),
+            (DstRow.O, 0, EPCls.DST, types_def_store["int"], [["A", 0]]),
         ]
 
         cgraph = CGraph(

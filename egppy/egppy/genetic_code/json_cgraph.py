@@ -252,12 +252,12 @@ def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
             retval = {
                 DstRow.A: frozenset({SrcRow.I}),
                 DstRow.B: frozenset({SrcRow.I, SrcRow.A}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A, SrcRow.B}),
+                DstRow.O: frozenset({SrcRow.A, SrcRow.B}),
             }
         case CGraphType.PRIMITIVE:
             retval = {
                 DstRow.A: frozenset({SrcRow.I}),
-                DstRow.O: frozenset({SrcRow.I, SrcRow.A}),
+                DstRow.O: frozenset({SrcRow.A}),
             }
         case CGraphType.UNKNOWN:  # The superset case
             retval = {
