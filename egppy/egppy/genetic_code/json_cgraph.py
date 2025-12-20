@@ -136,7 +136,7 @@ def _reverse_src_to_dst_map(
 # --- 4. Generate Reversed Constant Maps ---
 IF_THEN_REVERSED = MappingProxyType(_reverse_src_to_dst_map(IF_THEN_VALID))
 IF_THEN_ELSE_REVERSED = MappingProxyType(_reverse_src_to_dst_map(IF_THEN_ELSE_VALID))
-EMPTY_REVERSED = MappingProxyType(_reverse_src_to_dst_map(EMPTY_VALID))
+EMPTY_REVERSED = MappingProxyType({DstRow.O: NULL_FROZENSET})
 FOR_LOOP_REVERSED = MappingProxyType(_reverse_src_to_dst_map(FOR_LOOP_VALID))
 WHILE_LOOP_REVERSED = MappingProxyType(_reverse_src_to_dst_map(WHILE_LOOP_VALID))
 STANDARD_REVERSED = MappingProxyType(_reverse_src_to_dst_map(STANDARD_VALID))

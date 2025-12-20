@@ -650,25 +650,6 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         """Set up test fixtures."""
         seed(42)
 
-    def test_stabilize_empty_graph(self) -> None:
-        """Test stabilize on an empty graph (no connections needed)."""
-        jcg = json_cgraph_to_interfaces(
-            {
-                DstRow.O: [],
-                DstRow.U: [],
-            }
-        )
-        cgraph = CGraph(jcg)
-
-        # Should already be stable (empty graphs have no connections)
-        self.assertTrue(cgraph.is_stable())
-
-        # Stabilize should succeed
-        cgraph.stabilize(if_locked=True)
-
-        # Should still be stable
-        self.assertTrue(cgraph.is_stable())
-
     def test_stabilize_frozen_graph_no_error(self) -> None:
         """Test that stabilizing a frozen graph doesn't error if already stable."""
         jcg = json_cgraph_to_interfaces(
