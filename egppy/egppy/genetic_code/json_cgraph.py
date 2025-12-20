@@ -196,12 +196,11 @@ def valid_rows(graph_type: CGraphType) -> frozenset[Row]:
     )
 
 
-# NOTE: There are a lot of duplicate frozensets in this module. They have not been reduced to
-# constants because they are used in different contexts and it is not clear that they
-# can be safely reused as they are in different contexts (and future changes may then
-# propagate inappropriately).
-
-
+# TODO: First this function should not dynamically build the dictionaries
+# on each call. Second, all calls to this function should be replaced with
+# constant lookups similar to valid_dst_rows. For consistency, the valid source row
+# constant maps should be generated at import time as a reverse map of the
+# valid destination row maps.
 def valid_src_rows(graph_type: CGraphType) -> dict[DstRow, frozenset[SrcRow]]:
     """Return a dictionary of valid source rows for the given graph type.
 
