@@ -103,7 +103,7 @@ class TestValidSrcRows(unittest.TestCase):
 
         # Check connectivity rules
         self.assertEqual(result[DstRow.A], frozenset({SrcRow.I}))  # Only I to A
-        self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A}))  # I and A to O
+        self.assertEqual(result[DstRow.O], frozenset({SrcRow.A}))  # I and A to O
 
     def test_standard_valid_src_rows(self) -> None:
         """Test valid source rows for Standard graphs."""
@@ -117,9 +117,7 @@ class TestValidSrcRows(unittest.TestCase):
         # Check connectivity rules
         self.assertEqual(result[DstRow.A], frozenset({SrcRow.I}))  # Only I to A
         self.assertEqual(result[DstRow.B], frozenset({SrcRow.I, SrcRow.A}))  # I and A to B
-        self.assertEqual(
-            result[DstRow.O], frozenset({SrcRow.I, SrcRow.A, SrcRow.B})
-        )  # I, A, B to O
+        self.assertEqual(result[DstRow.O], frozenset({SrcRow.A, SrcRow.B}))  # I, A, B to O
 
     def test_u_row_is_superset(self) -> None:
         """Test that U row contains all sources from other rows."""

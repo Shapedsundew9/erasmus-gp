@@ -164,8 +164,11 @@ class TestStabilizeLocked(unittest.TestCase):
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
-        b_eps: list[EndpointMemberType] = [
+        bd_eps: list[EndpointMemberType] = [
             (DstRow.B, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
+        ]
+        bs_eps: list[EndpointMemberType] = [
+            (SrcRow.B, 0, EPCls.SRC, types_def_store["int"], []),
         ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
@@ -175,7 +178,8 @@ class TestStabilizeLocked(unittest.TestCase):
             {
                 SrcIfKey.IS: i_eps,
                 DstIfKey.AD: a_eps,
-                DstIfKey.BD: b_eps,
+                DstIfKey.BD: bd_eps,
+                SrcIfKey.BS: bs_eps,
                 DstIfKey.OD: o_eps,
             }
         )
@@ -244,9 +248,9 @@ class TestStabilizeLocked(unittest.TestCase):
         od_interface = cgraph[DstIfKey.OD]
         o_ep = od_interface[0]
         self.assertEqual(o_ep.typ, types_def_store["bool"])
-        # The reference should be to I1 (the bool source)
-        ref_row, _ = o_ep.refs[0]
-        self.assertEqual(ref_row, "I")
+
+        # O should not be connected
+        self.assertEqual(len(o_ep.refs), 0)
 
     def test_stabilize_locked_while_loop_graph(self) -> None:
         """Test stabilize with if_locked=True on a while-loop graph."""
@@ -254,9 +258,6 @@ class TestStabilizeLocked(unittest.TestCase):
         # Need to provide I sources and ensure A sources are available for W
         i_eps: list[EndpointMemberType] = [
             (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], []),
-        ]
-        l_eps: list[EndpointMemberType] = [
-            (DstRow.L, 0, EPCls.DST, types_def_store["int"], []),  # Will connect to I
         ]
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Will connect to I or L
@@ -301,6 +302,9 @@ class TestStabilizeLocked(unittest.TestCase):
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
             (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # Unconnected
         ]
+        b_eps: list[EndpointMemberType] = [
+            (SrcRow.B, 0, EPCls.SRC, types_def_store["int"], []),
+        ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),  # Unconnected
         ]
@@ -309,6 +313,7 @@ class TestStabilizeLocked(unittest.TestCase):
             {
                 SrcIfKey.IS: i_eps,
                 DstIfKey.AD: a_eps,
+                SrcIfKey.BS: b_eps,
                 DstIfKey.OD: o_eps,
             }
         )
@@ -359,9 +364,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
             (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),  # No str source exists
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -486,9 +489,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
             (DstRow.A, 1, EPCls.DST, types_def_store["bool"], []),
             (DstRow.A, 2, EPCls.DST, types_def_store["float"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -527,9 +528,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
             (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -562,10 +561,9 @@ class TestStabilizeUnlocked(unittest.TestCase):
         ]
         b_eps: list[EndpointMemberType] = [
             (DstRow.B, 0, EPCls.DST, types_def_store["str"], []),
+            (DstRow.B, 1, EPCls.DST, types_def_store["bool"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["bool"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -698,9 +696,7 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, 0, EPCls.DST, types_def_store["int"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -771,9 +767,7 @@ class TestStabilizeEdgeCases(unittest.TestCase):
             (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
             (DstRow.A, 2, EPCls.DST, types_def_store["int"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -842,8 +836,10 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
         # Verify unconnected endpoints were connected
         self.assertTrue(ad_interface[1].is_connected())
+
+        # Verify O endpoint was not connected (no matches)
         od_interface = cgraph[DstIfKey.OD]
-        self.assertTrue(od_interface[0].is_connected())
+        self.assertFalse(od_interface[0].is_connected())
 
     def test_connect_all_randomization(self) -> None:
         """Test that connect_all uses randomization for connections."""
@@ -1003,8 +999,11 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, i, EPCls.DST, types_def_store["int"], []) for i in range(15)
         ]
-        b_eps: list[EndpointMemberType] = [
+        bd_eps: list[EndpointMemberType] = [
             (DstRow.B, i, EPCls.DST, types_def_store["int"], []) for i in range(10)
+        ]
+        bs_eps: list[EndpointMemberType] = [
+            (SrcRow.B, i, EPCls.SRC, types_def_store["int"], []) for i in range(5)
         ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, i, EPCls.DST, types_def_store["int"], []) for i in range(5)
@@ -1014,7 +1013,8 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
             {
                 SrcIfKey.IS: i_eps,
                 DstIfKey.AD: a_eps,
-                DstIfKey.BD: b_eps,
+                DstIfKey.BD: bd_eps,
+                SrcIfKey.BS: bs_eps,
                 DstIfKey.OD: o_eps,
             }
         )
@@ -1040,6 +1040,9 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         a_eps: list[EndpointMemberType] = [
             (DstRow.A, i, EPCls.DST, types_def_store["int"], []) for i in range(20)
         ]
+        bs_eps: list[EndpointMemberType] = [
+            (SrcRow.B, i, EPCls.SRC, types_def_store["int"], []) for i in range(5)
+        ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, i, EPCls.DST, types_def_store["int"], []) for i in range(10)
         ]
@@ -1048,6 +1051,7 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
             {
                 SrcIfKey.IS: i_eps,
                 DstIfKey.AD: a_eps,
+                SrcIfKey.BS: bs_eps,
                 DstIfKey.OD: o_eps,
             }
         )
@@ -1079,6 +1083,10 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
             (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
             (DstRow.A, 2, EPCls.DST, types_def_store["bool"], []),
         ]
+        b_eps: list[EndpointMemberType] = [
+            (SrcRow.B, 0, EPCls.SRC, types_def_store["int"], []),
+            (SrcRow.B, 1, EPCls.SRC, types_def_store["float"], []),
+        ]
         o_eps: list[EndpointMemberType] = [
             (DstRow.O, 0, EPCls.DST, types_def_store["float"], []),
             (DstRow.O, 1, EPCls.DST, types_def_store["int"], []),
@@ -1088,6 +1096,7 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
             {
                 SrcIfKey.IS: i_eps,
                 DstIfKey.AD: a_eps,
+                SrcIfKey.BS: b_eps,
                 DstIfKey.OD: o_eps,
             }
         )
@@ -1120,9 +1129,7 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
             (DstRow.A, 1, EPCls.DST, types_def_store["int"], []),
             (DstRow.A, 2, EPCls.DST, types_def_store["int"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["int"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {
@@ -1325,7 +1332,7 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
         self.assertTrue(cgraph[DstIfKey.AD][0].is_connected())
         self.assertFalse(cgraph[DstIfKey.AD][1].is_connected())
         self.assertFalse(cgraph[DstIfKey.BD][0].is_connected())
-        self.assertTrue(cgraph[DstIfKey.OD][0].is_connected())
+        self.assertFalse(cgraph[DstIfKey.OD][0].is_connected())
 
     def test_stabilize_locked_while_loop_no_a_source_fails(self) -> None:
         """Test that while-loop stabilization fails without As source for W."""
@@ -1380,9 +1387,7 @@ class TestStabilizeUnstableGraphs(unittest.TestCase):
             (DstRow.A, 1, EPCls.DST, types_def_store["str"], []),
             (DstRow.A, 2, EPCls.DST, types_def_store["bool"], []),
         ]
-        o_eps: list[EndpointMemberType] = [
-            (DstRow.O, 0, EPCls.DST, types_def_store["float"], []),
-        ]
+        o_eps: list[EndpointMemberType] = []
 
         cgraph = CGraph(
             {

@@ -71,7 +71,7 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
         result = valid_src_rows(CGraphType.PRIMITIVE)
 
         self.assertEqual(result[DstRow.A], frozenset({SrcRow.I}))
-        self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A}))
+        self.assertEqual(result[DstRow.O], frozenset({SrcRow.A}))
 
     def test_valid_src_rows_reserved(self) -> None:
         """Test valid_src_rows for RESERVED graph types."""
@@ -91,7 +91,7 @@ class TestValidSrcRowsComprehensive(unittest.TestCase):
 
         self.assertIn(DstRow.B, result)
         self.assertEqual(result[DstRow.B], frozenset({SrcRow.I, SrcRow.A}))
-        self.assertEqual(result[DstRow.O], frozenset({SrcRow.I, SrcRow.A, SrcRow.B}))
+        self.assertEqual(result[DstRow.O], frozenset({SrcRow.A, SrcRow.B}))
 
     def test_valid_src_rows_u_is_superset(self) -> None:
         """Test that U row is always a superset of all other sources."""
