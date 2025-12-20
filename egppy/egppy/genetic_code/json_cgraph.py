@@ -106,7 +106,7 @@ VALID_ROWS_MAP = {
 
 # --- 3. Helper Function to Reverse Mappings ---
 def _reverse_src_to_dst_map(
-    src_to_dst: Mapping[SrcRow, frozenset[DstRow]]
+    src_to_dst: Mapping[SrcRow, frozenset[DstRow]],
 ) -> dict[DstRow, frozenset[SrcRow]]:
     """Reverse a source-to-destination mapping to destination-to-source.
 
