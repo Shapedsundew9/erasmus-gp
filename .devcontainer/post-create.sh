@@ -30,11 +30,6 @@ echo "Adding custom aliases to .bashrc..."
 echo "# My Custom Aliases" >> ~/.bashrc
 echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o profile.prof -m unittest discover && /workspaces/erasmus-gp/.venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
 
-# Generate data files
-echo "Generating data files..."
-mkdir -p ./egpdbmgr/egpdbmgr/data
-.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write
-
 # Higher layer configuration tooling
 if [ -d "/workspaces/egpseed" ]; then
     echo "Detected egpseed folder in /workspaces. Installing and generating data from there..."
@@ -43,6 +38,15 @@ if [ -d "/workspaces/egpseed" ]; then
     .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
     echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+else
+    local DIR="/workspaces/erasmus-gp/egppy/egppy/data"
+    local URL="https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data"
+    
+    # Use brace expansion to loop through all 4 file variations
+    for f in {meta_,}codons.json{,.sig}; do
+        curl -z "$DIR/$f" -L -o "$DIR/$f" "$URL/$f"
+    done
+    echo "alias pull='for f in {meta_,}codons.json{,.sig}; do p="/workspaces/erasmus-gp/egppy/egppy/data/$f"; curl -z "$p" -L -o "$p" "https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data/$f"; done'" >> ~/.bashrc
 fi
 
 # Done
