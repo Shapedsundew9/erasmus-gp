@@ -212,7 +212,6 @@ __marimo__/
 
 # VSCode
 *.local.json
-erasmus-master.code-workspace
 
 # EGP
 codons.json

@@ -28,8 +28,7 @@ sudo cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
 # Add aliases to .bashrc
 echo "Adding custom aliases to .bashrc..."
 echo "# My Custom Aliases" >> ~/.bashrc
-echo "alias profile='.venv/bin/python -m cProfile -o profile.prof -m unittest discover && .venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
-echo "alias generate='.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write && .venv/bin/python ./egpseed/egpseed/generate_types.py --write && .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write && .venv/bin/python ./egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o profile.prof -m unittest discover && /workspaces/erasmus-gp/.venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
 
 # Generate data files
 echo "Generating data files..."
@@ -43,6 +42,7 @@ if [ -d "/workspaces/egpseed" ]; then
     .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
+    echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/erasmus-gp/egpcommon/egpcommon/gp_db_config.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 fi
 
 # Done
