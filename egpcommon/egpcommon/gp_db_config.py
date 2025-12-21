@@ -5,7 +5,7 @@ The GP schema is used in egppy & egpdbmgr.
 """
 
 from json import dump
-from os.path import dirname, join
+from os.path import dirname, exists, join
 from typing import Any
 
 # GP GC Fields with Postgres definitions.
@@ -254,6 +254,9 @@ if __name__ == "__main__":
         "--write", "-w", action="store_true", help="If set, write the codons to a JSON file."
     )
     args = parser.parse_args()
-    print("Generating GCABC JSON schemas...")
-    generate_gcabc_py_json(write=args.write)
-    generate_gcabc_psql_json(write=args.write)
+    if exists(join(dirname(__file__), "..", "..", "egpseed", "egpseed")):
+        print("Generating GCABC JSON schemas...")
+        generate_gcabc_py_json(write=args.write)
+        generate_gcabc_psql_json(write=args.write)
+    else:
+        print("egpseed not found, not generating GCABC JSON schemas.")

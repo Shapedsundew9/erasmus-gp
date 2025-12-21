@@ -36,13 +36,13 @@ echo "Generating data files..."
 mkdir -p ./egpdbmgr/egpdbmgr/data
 .venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write
 
-
+# Higher layer configuration tooling
 if [ -d "/workspaces/egpseed" ]; then
     echo "Detected egpseed folder in /workspaces. Installing and generating data from there..."
-    .venv/bin/pip install -e ./egpseed
-    .venv/bin/python ./egpseed/egpseed/generate_types.py --write
-    .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
-    .venv/bin/python ./egpseed/egpseed/generate_codons.py --write
+    .venv/bin/pip install -e /workspaces/egpseed
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
 fi
 
 # Done
