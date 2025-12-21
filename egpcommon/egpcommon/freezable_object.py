@@ -10,8 +10,8 @@ from copy import deepcopy
 from typing import Any, Self
 from typing import Set as TypingSet  # Using TypingSet for type hint for clarity
 
-from egpcommon.common_obj import DEBUG, CommonObj
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.common_obj import CommonObj
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.object_deduplicator import ObjectDeduplicator
 
 # Standard EGP logging pattern
@@ -77,36 +77,6 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
     __slots__ = ("_frozen", "__weakref__")
     object_store: ObjectDeduplicator | None = None
 
-    @classmethod
-    def __init_subclass__(cls, name: str | None = None, size: int = 0, **kwargs):
-        """
-        This hook is called when a class inherits from FreezableObject.
-        'cls' is the new subclass being created.
-
-        Args:
-            name (str | None): Optional name for the ObjectDeduplicator store
-                               (else uses class name).
-            size (int): Optional size for the ObjectDeduplicator store. If 0, no store is created.
-            **kwargs: Additional keyword arguments passed to the superclass
-        """
-        # Call the parent's __init_subclass__ to be cooperative
-        super().__init_subclass__(**kwargs)
-
-        # Ensure that subclasses define __slots__ to avoid __dict__
-        if not hasattr(cls, "__slots__"):
-            raise TypeError(
-                f"Subclass '{cls.__name__}' of FreezableObject "
-                "must define __slots__ to avoid __dict__."
-            )
-
-        # Create the ObjectDeduplicator instance, labeled with the new class's name
-        # Attach the store as a CLASS ATTRIBUTE to the new subclass
-        name = name if name is not None else cls.__name__
-        if size > 0:
-            cls.object_store = ObjectDeduplicator(name=name, size=size)
-        else:
-            cls.object_store = None
-
     def __init__(self, frozen: bool = False) -> None:
         """
         Initialize a FreezableObject object.
@@ -158,6 +128,46 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
             )
         super().__delattr__(name)
 
+    @abstractmethod
+    def __eq__(self, value: object) -> bool:
+        """Derived classes must implement equality checking."""
+        raise NotImplementedError(f"{type(self).__name__}.__eq__ must be overridden")
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        """Derived classes must implement hashing."""
+        raise NotImplementedError(f"{type(self).__name__}.__hash__ must be overridden")
+
+    @classmethod
+    def __init_subclass__(cls, name: str | None = None, size: int = 0, **kwargs):
+        """
+        This hook is called when a class inherits from FreezableObject.
+        'cls' is the new subclass being created.
+
+        Args:
+            name (str | None): Optional name for the ObjectDeduplicator store
+                               (else uses class name).
+            size (int): Optional size for the ObjectDeduplicator store. If 0, no store is created.
+            **kwargs: Additional keyword arguments passed to the superclass
+        """
+        # Call the parent's __init_subclass__ to be cooperative
+        super().__init_subclass__(**kwargs)
+
+        # Ensure that subclasses define __slots__ to avoid __dict__
+        if not hasattr(cls, "__slots__"):
+            raise TypeError(
+                f"Subclass '{cls.__name__}' of FreezableObject "
+                "must define __slots__ to avoid __dict__."
+            )
+
+        # Create the ObjectDeduplicator instance, labeled with the new class's name
+        # Attach the store as a CLASS ATTRIBUTE to the new subclass
+        name = name if name is not None else cls.__name__
+        if size > 0:
+            cls.object_store = ObjectDeduplicator(name=name, size=size)
+        else:
+            cls.object_store = None
+
     def __setattr__(self, name: str, value: Any) -> None:
         """Set an attribute. Raises AttributeError if frozen, unless setting '_frozen' itself."""
         # Allow internal modification of _frozen (e.g., by freeze() or __init__).
@@ -171,15 +181,76 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
             )
         object.__setattr__(self, name, value)
 
-    @abstractmethod
-    def __eq__(self, value: object) -> bool:
-        """Derived classes must implement equality checking."""
-        raise NotImplementedError(f"{type(self).__name__}.__eq__ must be overridden")
+    def _freeze(
+        self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
+    ) -> Self:
+        """
+        Freezes the object, making it immutable.
+        This method recursively freezes:
+        1. The object itself.
+        2. Any direct members (in slots) that are FreezableObject instances.
+        3. Any FreezableObject instances found as elements within tuple or frozenset members.
 
-    @abstractmethod
-    def __hash__(self) -> int:
-        """Derived classes must implement hashing."""
-        raise NotImplementedError(f"{type(self).__name__}.__hash__ must be overridden")
+        It does NOT convert mutable collections (e.g., list to tuple).
+        Subclass designers should ensure mutable collections are handled (e.g., converted
+        to immutable counterparts and their FreezableObject elements frozen if necessary)
+        appropriately *before* calling this base freeze() method if such collections are
+        part of their state and need to contribute to the overall immutability as checked
+        by `is_immutable()`.
+
+        Args:
+            store (bool): If True, the object is stored in the FreezableObject store.
+                This is used to avoid duplicates. Default is True.
+            _fo_visited_in_freeze_call (set[int], optional): Used internally to track
+                FreezableObject IDs during a single top-level freeze operation to prevent
+                infinite recursion in case of cyclic references. Callers should not
+                provide this argument.
+        Returns:
+            Self: This method returns an immutable version of itself. Note that the object
+            may not be the same object as self if store = True so the caller should execute
+            _FreezableInstance = FreezableInstance.freeze()_ to ensure
+            the object is frozen and immutable.
+        """
+        # Initialize the visited set for the top-level call.
+        if _fo_visited_in_freeze_call is None:
+            _fo_visited_in_freeze_call = set()
+
+        # If this FreezableObject instance is already in the visited set for this
+        # specific top-level freeze() call, it means we're in a cycle. Stop here for this path.
+        if id(self) in _fo_visited_in_freeze_call:
+            return self
+
+        # If the object is already marked as frozen, its members should have been
+        # handled during the call that originally froze it.
+        # Add to visited set to prevent re-processing if encountered again via a
+        # different path in the current (potentially ongoing) top-level freeze operation.
+        if self.is_frozen():
+            _fo_visited_in_freeze_call.add(id(self))
+            return self
+
+        # Mark this FreezableObject as visited for the current freeze operation *before*
+        # processing members to handle cycles correctly.
+        _fo_visited_in_freeze_call.add(id(self))
+
+        # Recursively process members before freezing self
+        for slot_name in self._get_all_data_slots():
+            try:
+                member_value = getattr(self, slot_name)
+                # Delegate to the static helper to process the member's value
+                FreezableObject._recursively_freeze_member_value(
+                    member_value, store, _fo_visited_in_freeze_call
+                )
+            except AttributeError:
+                # Slot defined but attribute not set on this instance. This is fine.
+                pass
+
+        # Finally, freeze this object itself by setting the internal _frozen flag.
+        object.__setattr__(self, "_frozen", True)
+        # The ID remains in _fo_visited_in_freeze_call for the duration of the top-level call
+        # to signify it has been processed.
+
+        # Return the object itself, or add it to the store if requested.
+        return self
 
     def _get_all_data_slots(self) -> TypingSet[str]:
         """
@@ -292,6 +363,7 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
                 FreezableObject._recursively_freeze_member_value(
                     item, store, _fo_visited_in_freeze_call
                 )
+
         # Any other types of values are not processed further by this freezing logic.
         # For example, lists or dicts are not modified, nor are their contents inspected here.
 
@@ -314,77 +386,6 @@ class FreezableObject(Hashable, CommonObj, metaclass=ABCMeta):
         if _logger.isEnabledFor(DEBUG) and not was_already_frozen:
             retval.verify()  # Verify the object after freezing to ensure consistency.
         return self.object_store[retval] if store and self.object_store is not None else retval
-
-    def _freeze(
-        self, store: bool = True, _fo_visited_in_freeze_call: TypingSet[int] | None = None
-    ) -> Self:
-        """
-        Freezes the object, making it immutable.
-        This method recursively freezes:
-        1. The object itself.
-        2. Any direct members (in slots) that are FreezableObject instances.
-        3. Any FreezableObject instances found as elements within tuple or frozenset members.
-
-        It does NOT convert mutable collections (e.g., list to tuple).
-        Subclass designers should ensure mutable collections are handled (e.g., converted
-        to immutable counterparts and their FreezableObject elements frozen if necessary)
-        appropriately *before* calling this base freeze() method if such collections are
-        part of their state and need to contribute to the overall immutability as checked
-        by `is_immutable()`.
-
-        Args:
-            store (bool): If True, the object is stored in the FreezableObject store.
-                This is used to avoid duplicates. Default is True.
-            _fo_visited_in_freeze_call (set[int], optional): Used internally to track
-                FreezableObject IDs during a single top-level freeze operation to prevent
-                infinite recursion in case of cyclic references. Callers should not
-                provide this argument.
-        Returns:
-            Self: This method returns an immutable version of itself. Note that the object
-            may not be the same object as self if store = True so the caller should execute
-            _FreezableInstance = FreezableInstance.freeze()_ to ensure
-            the object is frozen and immutable.
-        """
-        # Initialize the visited set for the top-level call.
-        if _fo_visited_in_freeze_call is None:
-            _fo_visited_in_freeze_call = set()
-
-        # If this FreezableObject instance is already in the visited set for this
-        # specific top-level freeze() call, it means we're in a cycle. Stop here for this path.
-        if id(self) in _fo_visited_in_freeze_call:
-            return self
-
-        # If the object is already marked as frozen, its members should have been
-        # handled during the call that originally froze it.
-        # Add to visited set to prevent re-processing if encountered again via a
-        # different path in the current (potentially ongoing) top-level freeze operation.
-        if self.is_frozen():
-            _fo_visited_in_freeze_call.add(id(self))
-            return self
-
-        # Mark this FreezableObject as visited for the current freeze operation *before*
-        # processing members to handle cycles correctly.
-        _fo_visited_in_freeze_call.add(id(self))
-
-        # Recursively process members before freezing self
-        for slot_name in self._get_all_data_slots():
-            try:
-                member_value = getattr(self, slot_name)
-                # Delegate to the static helper to process the member's value
-                FreezableObject._recursively_freeze_member_value(
-                    member_value, store, _fo_visited_in_freeze_call
-                )
-            except AttributeError:
-                # Slot defined but attribute not set on this instance. This is fine.
-                pass
-
-        # Finally, freeze this object itself by setting the internal _frozen flag.
-        object.__setattr__(self, "_frozen", True)
-        # The ID remains in _fo_visited_in_freeze_call for the duration of the top-level call
-        # to signify it has been processed.
-
-        # Return the object itself, or add it to the store if requested.
-        return self
 
     def is_frozen(self) -> bool:
         """Returns True if the object is marked as frozen, False otherwise."""

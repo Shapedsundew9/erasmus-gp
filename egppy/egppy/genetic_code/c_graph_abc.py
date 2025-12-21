@@ -1,13 +1,13 @@
 """
-Abstract Base Class for Connection Graphs.
+Abstract Base Classes for Connection Graphs.
 
-This module defines the abstract interface that all Connection Graph implementations
+This module defines the abstract interfaces that all Connection Graph implementations
 must adhere to. It establishes the contract for graph operations while allowing
 for different concrete implementations.
 
-The abstract base class ensures consistency in the API across different graph types
-and implementations while maintaining the flexibility to optimize specific graph
-variants.
+The hierarchy is split into:
+1. FrozenCGraphABC: Read-only interface for immutable graphs
+2. CGraphABC: Mutable interface extending FrozenCGraphABC
 
 Genetic Codes, GCs, have a property called a 'connection graph'
 (a CGraphABC instance) which defines the connectivity between the constituent GC A and GC B
@@ -66,9 +66,14 @@ connection graph. Unless otherwise stated, these rules apply to both stable and 
 Using the nomenclature:
     - Is: GC Node input source interface
     - Fd: GC Node conditional destination interface
-    - Ld: GC Node loop iterable destination interface (for both for and while loops)
-    - Ls: GC Node loop object source interface
-    - Wd: GC Node while loop object destination interface
+    - Ld: GC Node loop iterable destination interface (for loops only)
+    - Ls: GC Node loop object source interface (for loops only)
+    - Sd: GC Node loop state destination interface (loop state input, for both loop types)
+    - Ss: GC Node loop state source interface (loop state output, for both loop types)
+    - Td: GC Node loop next-state destination interface (for both loop types)
+    - Wd: GC Node while loop condition state destination interface (while loops only, boolean)
+    - Ws: GC Node while loop condition state source interface (while loops only, boolean)
+    - Xd: GC Node while loop next-condition destination interface (while loops only, boolean)
     - Ad: GCA input interface as a destination in the GC Node graph
     - As: GCA output interface as a source in the GC Node graph
     - Bd: GCB input interface as a destination in the GC Node graph
@@ -79,16 +84,23 @@ Using the nomenclature:
     - Ud: GC Node destination interface for otherwise unconnected source endpoints
       (JSON format only)
 
+Note: The connection from Td to Ss and from Xd to Ws on subsequent loop iterations is
+implicit in the loop semantics and is not represented in the connection graph. The graph
+only shows the explicit connections for initialization (Is → Sd/Wd) and updates (As → Td/Xd).
+Td and Xd are semantically identical to Ss and Ws respectively - they represent the same
+interface but serve as destination endpoints for the loop body outputs.
+
 Common Rules
     - Endpoints can only be connected to endpoints of the same or a compatible type.
     - Source endpoints may be connected to 0, 1 or multiple destination endpoints.
     - Destination endpoints must have 1 and only 1 connection to it to be stable.
     - Destination endpoints may only be unconnected (have no connections) in unstable graphs.
     - Interfaces may have 0 to MAX_NUM_ENDPOINTS (inclusive) endpoints
-    - MAX_NUM_ENDPOINTS == 255
-    - Fd, Ld, Wd and Ls, if they exist, must have exactly 1 endpoint in the interface when stable.
+    - Fd, Ld, Wd and Ls, Ws, if they exist, must have exactly 1 endpoint
+      in the interface when stable.
     - Pd must have the same interface, i.e. endpoint number, order and types as Od.
-    - Any Is endpoint may be a source to any destination endpoint with the exception of Wd
+    - Td must have the same interface, i.e. endpoint number, order and types as Sd and Ss.
+    - Xd must have the same interface, i.e. endpoint number, order and types as Wd and Ws.
     - Any source endpoint that is not connected to any other destination endpoint is connected
       to the Ud interface in a JSON Connection Graph representation.
     - Ud only exists in JSON Connection Graph representations and only if there are
@@ -100,19 +112,21 @@ Common Rules
     - Is and Od must exist (and so Pd must exist in graph types that have Pd)
     - Either both of As and Ad exist or neither exist
     - Either both of Bs and Bd exist or neither exist
+    - If Sd exists, then Ss and Td must also exist
+    - If Wd exists, then Ws and Xd must also exist
     - Interfaces on the same row cannot connect to each other (e.g. Bs cannot connect to Bd)
     - References must be consistent, i.e. if a destination endpoint references a source endpoint,
       the source endpoint must also reference the destination endpoint. This is still just a
       single directed connection. (NB: This is to facilitate verification of integrity.)
 
 Additional to the Common Rules Conditional If-Then graphs have the following rules
-    - Must not have Ld, Wd, Bd, Bs or Ls interfaces
+    - Must not have Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, Bd, or Bs interfaces
     - Only Is can connect to Fd
     - As can only connect to Od or Ud
     - Only Is can connect to Pd
 
 Additional to the Common Rules Conditional If-Then-Else graphs have the following rules
-    - Must not have Ld, Wd or Ls interfaces
+    - Must not have Ld, Ls, Sd, Ss, Td, Wd, Ws, or Xd interfaces
     - Only Is can connect to Fd
     - As can only connect to Od or Ud
     - Bs can only connect to Pd or Ud
@@ -123,55 +137,62 @@ Additional to the Common Rules Empty graphs have the following rules
     - An empty graph has no connections (and is thus always unstable if Od has endpoints)
 
 Additional to the Common Rules For-Loop graphs have the following rules
-    - Must not have an Fd, Wd, Bs, or Bd interface
+    - Must not have an Fd, Wd, Ws, Xd, Bs, or Bd interface
     - Only Is can connect to Ld
+    - Only Is can connect to Sd
     - Ls can only connect to Ad
+    - Ss can only connect to Ad or Ud
+    - As can only connect to Td or Od
+    - Td can only connect to Od or Ud
     - Ld must be an iterable compatible endpoint type.
     - Ls must be the object type returned by iterating Ld.
-    - As can only connect to Od or Ud
+    - Is can connect to Od or Ud
     - Only Is can connect to Pd
 
 Additional to the Common Rules While-Loop graphs have the following rules
-    - Must not have an Fd, Bs or Bd interface
-    - Only Is can connect to Ld
-    - Ls can only connect to Ad
-    - Only As can connect to Wd
-    - Wd and Ls must be the same type as Ld
-    - Is and As can connect to Od or Ud
+    - Must not have an Fd, Ld, Ls, Bs, or Bd interface
+    - Only Is can connect to Wd
+    - Only Is can connect to Sd
+    - Ws can only connect to Ad or Ud
+    - Ss can only connect to Ad or Ud
+    - As can only connect to Xd, Td, or Od
+    - Xd can only connect to Od or Ud
+    - Td can only connect to Od or Ud
+    - Wd and Ws must be boolean type
+    - Xd must be boolean type
+    - Is can connect to Od or Ud
     - Only Is can connect to Pd
 
 Additional to the Common Rules Standard graphs have the following rules
-    - Must not have an Fd, Ld, Wd, Ls or Pd interface
+    - Must not have an Fd, Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, or Pd interface
     - Bs can only connect to Od or Ud
+    - Is cannot connect to Od
 
 Additional to the Common Rules Primitive connection graphs have the following rules
     - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
     - All sources must be connected to destinations
+    - Is cannot connect to Od
 """
 
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import Collection, Iterator
+from collections.abc import ItemsView, Iterator, KeysView, Mapping, MutableMapping, ValuesView
 from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_constants import DstRow, JSONCGraph, SrcRow
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.c_graph_constants import DstRow, IfKey, JSONCGraph, SrcRow
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
-class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
-    """Abstract Base Class for Connection Graphs.
+class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
+    """Abstract Base Class for Frozen (Immutable) Connection Graphs.
 
-    This class defines the essential interface that all Connection Graph
-    implementations must provide. It inherits Collection for standard container
-    operations, and CommonObjABC for validation methods.
-
-    Connection Graphs represent the internal connectivity structure of genetic
-    code nodes, defining how inputs, outputs, and internal components are
-    connected through various interface types.
+    This class defines the read-only interface for Connection Graphs.
+    It inherits Mapping for standard container operations, and CommonObjABC
+    for validation methods.
     """
 
     __slots__ = ()
@@ -188,30 +209,26 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         Returns:
             True if the interface exists, False otherwise.
         """
-        raise NotImplementedError("CGraphABC.__contains__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__contains__ must be overridden")
+
+    # Abstract Equality and Hashing
 
     @abstractmethod
-    def __iter__(self) -> Iterator[str]:
-        """Return an iterator over the interface keys in the Connection Graph.
+    def __eq__(self, other: object) -> bool:
+        """Check equality of Connection Graphs.
+
+        Args:
+            other: Object to compare with.
 
         Returns:
-            Iterator over non-null interface keys.
+            True if graphs are equivalent, False otherwise.
         """
-        raise NotImplementedError("CGraphABC.__iter__ must be overridden")
-
-    @abstractmethod
-    def __len__(self) -> int:
-        """Return the number of interfaces in the Connection Graph.
-
-        Returns:
-            Number of non-null interfaces.
-        """
-        raise NotImplementedError("CGraphABC.__len__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__eq__ must be overridden")
 
     # Abstract Mapping Protocol Methods
 
     @abstractmethod
-    def __getitem__(self, key: str) -> InterfaceABC:
+    def __getitem__(self, key: IfKey) -> FrozenInterfaceABC:
         """Get the interface with the given key.
 
         Args:
@@ -223,40 +240,83 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         Raises:
             KeyError: If the key is invalid.
         """
-        raise NotImplementedError("CGraphABC.__getitem__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__getitem__ must be overridden")
 
     @abstractmethod
-    def __setitem__(self, key: str, value: InterfaceABC) -> None:
-        """Set the interface with the given key.
+    def __hash__(self) -> int:
+        """Return the hash of the Connection Graph.
 
-        Args:
-            key: Interface identifier.
-            value: Interface object to set.
+        For frozen graphs, should use a persistent hash.
+        For unfrozen graphs, should calculate dynamically.
+        Both must be equal for the same graph state.
 
-        Raises:
-            RuntimeError: If the graph is frozen.
-            KeyError: If the key is invalid.
-            TypeError: If value is not an Interface.
+        Returns:
+            Hash value for the graph.
         """
-        raise NotImplementedError("CGraphABC.__setitem__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__hash__ must be overridden")
 
     @abstractmethod
-    def __delitem__(self, key: str) -> None:
-        """Delete the interface with the given key.
+    def __iter__(self) -> Iterator[IfKey]:
+        """Return an iterator over the interface keys in the Connection Graph.
 
-        Args:
-            key: Interface identifier.
-
-        Raises:
-            RuntimeError: If the graph is frozen.
-            KeyError: If the key is invalid.
+        Returns:
+            Iterator over non-null interface keys.
         """
-        raise NotImplementedError("CGraphABC.__delitem__ must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.__iter__ must be overridden")
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """Return the number of interfaces in the Connection Graph.
+
+        Returns:
+            Number of non-null interfaces.
+        """
+        raise NotImplementedError("FrozenCGraphABC.__len__ must be overridden")
+
+    @abstractmethod
+    def items(self) -> ItemsView[IfKey, FrozenInterfaceABC]:
+        """Return a view of the items in the Connection Graph.
+
+        Returns:
+            A view of the items (key, value pairs).
+        """
+        raise NotImplementedError("FrozenCGraphABC.items must be overridden")
+
+    @abstractmethod
+    def keys(self) -> KeysView[IfKey]:
+        """Return a view of the keys in the Connection Graph.
+
+        Returns:
+            A view of the keys.
+        """
+        raise NotImplementedError("FrozenCGraphABC.keys must be overridden")
+
+    @abstractmethod
+    def values(self) -> ValuesView[FrozenInterfaceABC]:
+        """Return a view of the values in the Connection Graph.
+
+        Returns:
+            A view of the values.
+        """
+        raise NotImplementedError("FrozenCGraphABC.values must be overridden")
+
+    # Abstract String Representation
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        """Return a string representation of the Connection Graph.
+
+        Returns:
+            String representation suitable for debugging and logging.
+        """
+        raise NotImplementedError("FrozenCGraphABC.__repr__ must be overridden")
 
     # Abstract Graph State Methods
 
     @abstractmethod
-    def get(self, key: str, default: InterfaceABC | None = None) -> InterfaceABC | None:
+    def get(  # type: ignore[override]
+        self, key: IfKey, default: FrozenInterfaceABC | None = None
+    ) -> FrozenInterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
 
         Args:
@@ -268,34 +328,16 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         Raises:
             KeyError: If the key is not a valid interface key.
         """
-        raise NotImplementedError("CGraphABC.get must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.get must be overridden")
 
     @abstractmethod
-    def keys(self) -> Iterator[str]:
-        """Return an iterator over the interface keys in the Connection Graph.
+    def graph_type(self) -> CGraphType:
+        """Identify and return the type of this connection graph.
 
         Returns:
-            Iterator over non-null interface keys.
+            The CGraphType enum value representing this graph's type.
         """
-        raise NotImplementedError("CGraphABC.keys must be overridden")
-
-    @abstractmethod
-    def values(self) -> Iterator[InterfaceABC]:
-        """Return an iterator over the interfaces in the Connection Graph.
-
-        Returns:
-            Iterator over non-null interfaces.
-        """
-        raise NotImplementedError("CGraphABC.values must be overridden")
-
-    @abstractmethod
-    def items(self) -> Iterator[tuple[str, InterfaceABC]]:
-        """Return an iterator over the (key, interface) pairs in the Connection Graph.
-
-        Returns:
-            Iterator over (key, interface) pairs.
-        """
-        raise NotImplementedError("CGraphABC.items must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.graph_type must be overridden")
 
     @abstractmethod
     def is_stable(self) -> bool:
@@ -307,16 +349,7 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         Returns:
             True if all destinations are connected, False otherwise.
         """
-        raise NotImplementedError("CGraphABC.is_stable must be overridden")
-
-    @abstractmethod
-    def graph_type(self) -> CGraphType:
-        """Identify and return the type of this connection graph.
-
-        Returns:
-            The CGraphType enum value representing this graph's type.
-        """
-        raise NotImplementedError("CGraphABC.graph_type must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.is_stable must be overridden")
 
     # Abstract Serialization Methods
 
@@ -330,7 +363,45 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         Returns:
             JSON-compatible dictionary representation of the graph.
         """
-        raise NotImplementedError("CGraphABC.to_json must be overridden")
+        raise NotImplementedError("FrozenCGraphABC.to_json must be overridden")
+
+
+class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
+    """Abstract Base Class for Mutable Connection Graphs.
+
+    This class extends FrozenCGraphABC with methods for modifying the graph.
+    It inherits MutableMapping for standard mutable container operations.
+    """
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __delitem__(self, key: IfKey) -> None:
+        """Delete the interface with the given key.
+
+        Args:
+            key: Interface identifier.
+
+        Raises:
+            RuntimeError: If the graph is frozen.
+            KeyError: If the key is invalid.
+        """
+        raise NotImplementedError("CGraphABC.__delitem__ must be overridden")
+
+    @abstractmethod
+    def __setitem__(self, key: IfKey, value: FrozenInterfaceABC) -> None:
+        """Set the interface with the given key.
+
+        Args:
+            key: Interface identifier.
+            value: Interface object to set.
+
+        Raises:
+            RuntimeError: If the graph is frozen.
+            KeyError: If the key is invalid.
+            TypeError: If value is not an Interface.
+        """
+        raise NotImplementedError("CGraphABC.__setitem__ must be overridden")
 
     # Abstract Connection Management Methods
 
@@ -375,6 +446,15 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("CGraphABC.connect_all must be overridden")
 
     @abstractmethod
+    def disconnect_all(self) -> None:
+        """Disconnect all connections in the Connection Graph.
+
+        This method removes all existing connections between source and
+        destination endpoints, leaving all endpoints unconnected.
+        """
+        raise NotImplementedError("CGraphABC.disconnect_all must be overridden")
+
+    @abstractmethod
     def stabilize(self, if_locked: bool = True) -> None:
         """Stabilize the graph by connecting all unconnected destinations.
 
@@ -386,41 +466,3 @@ class CGraphABC(Collection, CommonObjABC, metaclass=ABCMeta):
                       If False, allows extending input interface as needed.
         """
         raise NotImplementedError("CGraphABC.stabilize must be overridden")
-
-    # Abstract Equality and Hashing
-
-    @abstractmethod
-    def __eq__(self, other: object) -> bool:
-        """Check equality of Connection Graphs.
-
-        Args:
-            other: Object to compare with.
-
-        Returns:
-            True if graphs are equivalent, False otherwise.
-        """
-        raise NotImplementedError("CGraphABC.__eq__ must be overridden")
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        """Return the hash of the Connection Graph.
-
-        For frozen graphs, should use a persistent hash.
-        For unfrozen graphs, should calculate dynamically.
-        Both must be equal for the same graph state.
-
-        Returns:
-            Hash value for the graph.
-        """
-        raise NotImplementedError("CGraphABC.__hash__ must be overridden")
-
-    # Abstract String Representation
-
-    @abstractmethod
-    def __repr__(self) -> str:
-        """Return a string representation of the Connection Graph.
-
-        Returns:
-            String representation suitable for debugging and logging.
-        """
-        raise NotImplementedError("CGraphABC.__repr__ must be overridden")

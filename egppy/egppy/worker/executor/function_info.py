@@ -6,7 +6,7 @@ This class is used to store the information about the executable function for th
 from dataclasses import dataclass
 from typing import Callable, Sequence
 
-from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC
+from egppy.genetic_code.ggc_dict import GCABC, NULL_GC
 
 
 # For GC's with no executable (yet)
@@ -22,17 +22,19 @@ class FunctionInfo:
     executable: Callable
     global_index: int
     line_count: int
+    # TODO: This keeps the GCABC hanging around. It should not. Should be pulled from
+    # the GPI everytime it is accessed to reduce memory usage.
     gc: GCABC
-
-    def name(self) -> str:
-        """Return the function name."""
-        return f"f_{self.global_index:x}"
 
     def call_str(self, ivns: Sequence[str]) -> str:
         """Return the function call string using the map of input variable names."""
         if len(ivns):
             return f"{self.name()}(({', '.join(f'{ivn}' for ivn in ivns)},))"
         return f"{self.name()}()"
+
+    def name(self) -> str:
+        """Return the function name."""
+        return f"f_{self.global_index:x}"
 
 
 NULL_FUNCTION_MAP: FunctionInfo = FunctionInfo(NULL_EXECUTABLE, -1, 0, NULL_GC)

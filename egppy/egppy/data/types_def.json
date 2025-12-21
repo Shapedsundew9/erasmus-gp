@@ -13,6 +13,9 @@
       9,
       10,
       11,
+      12,
+      13,
+      14,
       16,
       17,
       18,
@@ -196,18 +199,26 @@
       268435544,
       268435545,
       268435546,
+      268435547,
+      268435548,
+      268435549,
+      268435550,
       268435551,
       268435552,
       268435553,
       268435554,
+      268435555,
       268435556,
       268435557,
       268435558,
       268435559,
       268435560,
+      268435561,
       268435562,
+      268435563,
       268435564,
       268435565,
+      268435566,
       268435567,
       268435568,
       268435569,
@@ -225,24 +236,46 @@
       268435581,
       268435582,
       268435583,
+      268435584,
       268435585,
       268435586,
+      268435587,
+      268435588,
+      268435589,
       268435590,
       268435591,
       268435592,
+      268435593,
+      268435594,
       268435595,
       268435596,
       268435597,
       268435598,
+      268435599,
       268435600,
       268435601,
       268435602,
+      268435603,
+      268435604,
+      268435605,
+      268435606,
+      268435607,
       268435608,
       268435609,
       268435610,
       268435611,
       268435612,
       268435613,
+      268435614,
+      268435615,
+      268435616,
+      268435617,
+      268435618,
+      268435619,
+      268435620,
+      268435621,
+      268435622,
+      268435623,
       268435634,
       268435635,
       268435640,
@@ -1480,6 +1513,29 @@
     "tt": 0,
     "uid": 142
   },
+  "CGraphType": {
+    "abstract": false,
+    "children": [],
+    "default": "CGraphType.PRIMITIVE",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "CGraphType",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 14
+  },
   "CPI": {
     "abstract": false,
     "children": [],
@@ -1643,6 +1699,41 @@
     ],
     "tt": 1,
     "uid": 268435461
+  },
+  "Collection[CGraphType]": {
+    "abstract": true,
+    "children": [
+      268435620,
+      268435621
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[CGraphType]",
+    "parents": [
+      89,
+      268435615,
+      268435616
+    ],
+    "tt": 1,
+    "uid": 268435614
   },
   "Collection[CGraph]": {
     "abstract": true,
@@ -2407,6 +2498,41 @@
     "tt": 1,
     "uid": 268437457
   },
+  "Collection[FrozenCGraph]": {
+    "abstract": true,
+    "children": [
+      268435563,
+      268435566
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[FrozenCGraph]",
+    "parents": [
+      89,
+      268435548,
+      268435549
+    ],
+    "tt": 1,
+    "uid": 268435547
+  },
   "Collection[GGCode]": {
     "abstract": true,
     "children": [
@@ -2511,6 +2637,41 @@
     ],
     "tt": 1,
     "uid": 268435505
+  },
+  "Collection[IfKey]": {
+    "abstract": true,
+    "children": [
+      268435604,
+      268435605
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Collection"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Collection[IfKey]",
+    "parents": [
+      89,
+      268435589,
+      268435593
+    ],
+    "tt": 1,
+    "uid": 268435588
   },
   "Collection[Integral]": {
     "abstract": true,
@@ -5589,6 +5750,38 @@
     "tt": 1,
     "uid": 268435591
   },
+  "Container[CGraphType]": {
+    "abstract": true,
+    "children": [
+      268435614
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "Container[CGraphType]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268435615
+  },
   "Container[CGraph]": {
     "abstract": true,
     "children": [
@@ -6279,6 +6472,38 @@
     "tt": 1,
     "uid": 268437464
   },
+  "Container[FrozenCGraph]": {
+    "abstract": true,
+    "children": [
+      268435547
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "Container[FrozenCGraph]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268435548
+  },
   "Container[GGCode]": {
     "abstract": true,
     "children": [
@@ -6372,6 +6597,38 @@
     ],
     "tt": 1,
     "uid": 268435635
+  },
+  "Container[IfKey]": {
+    "abstract": true,
+    "children": [
+      268435588
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Container"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Container[IfKey]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268435589
   },
   "Container[Integral]": {
     "abstract": true,
@@ -9339,6 +9596,29 @@
     "tt": 0,
     "uid": 11
   },
+  "FrozenCGraph": {
+    "abstract": false,
+    "children": [],
+    "default": "FrozenCGraph()",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "FrozenCGraph",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 12
+  },
   "GGCode": {
     "abstract": false,
     "children": [],
@@ -9420,6 +9700,9 @@
       268435520,
       268435528,
       268435542,
+      268435587,
+      268435607,
+      268435623,
       268436734,
       268436759,
       268436764,
@@ -9571,6 +9854,29 @@
     ],
     "tt": 0,
     "uid": 43
+  },
+  "IfKey": {
+    "abstract": false,
+    "children": [],
+    "default": "IfKey.IS",
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "IfKey",
+    "parents": [
+      106
+    ],
+    "tt": 0,
+    "uid": 13
   },
   "Integral": {
     "abstract": true,
@@ -9761,6 +10067,40 @@
     ],
     "tt": 1,
     "uid": 268435721
+  },
+  "Iterable[CGraphType]": {
+    "abstract": true,
+    "children": [
+      268435614,
+      268435617,
+      268435619
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[CGraphType]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268435616
   },
   "Iterable[CGraph]": {
     "abstract": true,
@@ -10521,6 +10861,40 @@
     "tt": 1,
     "uid": 268437472
   },
+  "Iterable[FrozenCGraph]": {
+    "abstract": true,
+    "children": [
+      268435547,
+      268435550,
+      268435561
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[FrozenCGraph]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268435549
+  },
   "Iterable[GGCode]": {
     "abstract": true,
     "children": [
@@ -10620,6 +10994,40 @@
     ],
     "tt": 1,
     "uid": 268435765
+  },
+  "Iterable[IfKey]": {
+    "abstract": true,
+    "children": [
+      268435588,
+      268435594,
+      268435603
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterable"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Iterable[IfKey]",
+    "parents": [
+      106
+    ],
+    "tt": 1,
+    "uid": 268435593
   },
   "Iterable[Integral]": {
     "abstract": true,
@@ -13779,6 +14187,36 @@
     "tt": 1,
     "uid": 268435859
   },
+  "Iterator[CGraphType]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[CGraphType]",
+    "parents": [
+      268435616
+    ],
+    "tt": 1,
+    "uid": 268435617
+  },
   "Iterator[CGraph]": {
     "abstract": true,
     "children": [],
@@ -14442,6 +14880,36 @@
     "tt": 1,
     "uid": 268437479
   },
+  "Iterator[FrozenCGraph]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[FrozenCGraph]",
+    "parents": [
+      268435549
+    ],
+    "tt": 1,
+    "uid": 268435550
+  },
   "Iterator[GGCode]": {
     "abstract": true,
     "children": [],
@@ -14529,6 +14997,36 @@
     ],
     "tt": 1,
     "uid": 268435903
+  },
+  "Iterator[IfKey]": {
+    "abstract": true,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Iterator"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Iterator[IfKey]",
+    "parents": [
+      268435593
+    ],
+    "tt": 1,
+    "uid": 268435594
   },
   "Iterator[Integral]": {
     "abstract": true,
@@ -17902,6 +18400,9 @@
       268435507,
       268435508,
       268435539,
+      268435566,
+      268435605,
+      268435621,
       268435997,
       268436022,
       268436027,
@@ -18212,6 +18713,38 @@
     ],
     "tt": 1,
     "uid": 268436070
+  },
+  "MutableSequence[CGraphType]": {
+    "abstract": true,
+    "children": [
+      268435622
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[CGraphType]",
+    "parents": [
+      268435620
+    ],
+    "tt": 1,
+    "uid": 268435618
   },
   "MutableSequence[CGraph]": {
     "abstract": true,
@@ -18924,6 +19457,38 @@
     "tt": 1,
     "uid": 268437487
   },
+  "MutableSequence[FrozenCGraph]": {
+    "abstract": true,
+    "children": [
+      268435584
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[FrozenCGraph]",
+    "parents": [
+      268435563
+    ],
+    "tt": 1,
+    "uid": 268435555
+  },
   "MutableSequence[GGCode]": {
     "abstract": true,
     "children": [
@@ -19017,6 +19582,38 @@
     ],
     "tt": 1,
     "uid": 268436114
+  },
+  "MutableSequence[IfKey]": {
+    "abstract": true,
+    "children": [
+      268435606
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "MutableSequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "MutableSequence[IfKey]",
+    "parents": [
+      268435604
+    ],
+    "tt": 1,
+    "uid": 268435599
   },
   "MutableSequence[Integral]": {
     "abstract": true,
@@ -23451,6 +24048,39 @@
     "tt": 1,
     "uid": 268436272
   },
+  "Reversible[CGraphType]": {
+    "abstract": true,
+    "children": [
+      268435620,
+      268435621
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[CGraphType]",
+    "parents": [
+      268435616
+    ],
+    "tt": 1,
+    "uid": 268435619
+  },
   "Reversible[CGraph]": {
     "abstract": true,
     "children": [
@@ -24187,6 +24817,39 @@
     "tt": 1,
     "uid": 268437494
   },
+  "Reversible[FrozenCGraph]": {
+    "abstract": true,
+    "children": [
+      268435563,
+      268435566
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[FrozenCGraph]",
+    "parents": [
+      268435549
+    ],
+    "tt": 1,
+    "uid": 268435561
+  },
   "Reversible[GGCode]": {
     "abstract": true,
     "children": [
@@ -24284,6 +24947,39 @@
     ],
     "tt": 1,
     "uid": 268436316
+  },
+  "Reversible[IfKey]": {
+    "abstract": true,
+    "children": [
+      268435604,
+      268435605
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Reversible"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Reversible[IfKey]",
+    "parents": [
+      268435593
+    ],
+    "tt": 1,
+    "uid": 268435603
   },
   "Reversible[Integral]": {
     "abstract": true,
@@ -27191,6 +27887,40 @@
     "tt": 1,
     "uid": 268436402
   },
+  "Sequence[CGraphType]": {
+    "abstract": true,
+    "children": [
+      268435618,
+      268435623
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[CGraphType]",
+    "parents": [
+      268435614,
+      268435619
+    ],
+    "tt": 1,
+    "uid": 268435620
+  },
   "Sequence[CGraph]": {
     "abstract": true,
     "children": [
@@ -27950,6 +28680,40 @@
     "tt": 1,
     "uid": 268437502
   },
+  "Sequence[FrozenCGraph]": {
+    "abstract": true,
+    "children": [
+      268435555,
+      268435587
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[FrozenCGraph]",
+    "parents": [
+      268435547,
+      268435561
+    ],
+    "tt": 1,
+    "uid": 268435563
+  },
   "Sequence[GGCode]": {
     "abstract": true,
     "children": [
@@ -28049,6 +28813,40 @@
     ],
     "tt": 1,
     "uid": 268436446
+  },
+  "Sequence[IfKey]": {
+    "abstract": true,
+    "children": [
+      268435599,
+      268435607
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "Sequence"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "Sequence[IfKey]",
+    "parents": [
+      268435588,
+      268435603
+    ],
+    "tt": 1,
+    "uid": 268435604
   },
   "Sequence[Integral]": {
     "abstract": true,
@@ -31644,6 +32442,7 @@
       268435544,
       268435545,
       268435546,
+      268435547,
       268435551,
       268435552,
       268435553,
@@ -31675,6 +32474,8 @@
       268435583,
       268435585,
       268435586,
+      268435588,
+      268435614,
       268437135,
       268437136,
       268437137,
@@ -32057,6 +32858,38 @@
     ],
     "tt": 1,
     "uid": 268436605
+  },
+  "ValuesView[CGraphType]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[CGraphType]",
+    "parents": [
+      57,
+      268435614,
+      268435619
+    ],
+    "tt": 1,
+    "uid": 268435621
   },
   "ValuesView[CGraph]": {
     "abstract": false,
@@ -32769,6 +33602,38 @@
     "tt": 1,
     "uid": 268437526
   },
+  "ValuesView[FrozenCGraph]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[FrozenCGraph]",
+    "parents": [
+      57,
+      268435547,
+      268435561
+    ],
+    "tt": 1,
+    "uid": 268435566
+  },
   "ValuesView[GGCode]": {
     "abstract": false,
     "children": [],
@@ -32862,6 +33727,38 @@
     ],
     "tt": 1,
     "uid": 268436649
+  },
+  "ValuesView[IfKey]": {
+    "abstract": false,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "name": "ValuesView"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "ValuesView[IfKey]",
+    "parents": [
+      57,
+      268435588,
+      268435603
+    ],
+    "tt": 1,
+    "uid": 268435605
   },
   "ValuesView[Integral]": {
     "abstract": false,
@@ -36153,6 +37050,29 @@
     "tt": 1,
     "uid": 268436807
   },
+  "list[CGraphType]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "list[CGraphType]",
+    "parents": [
+      268435618
+    ],
+    "tt": 1,
+    "uid": 268435622
+  },
   "list[CGraph]": {
     "abstract": false,
     "children": [],
@@ -36642,6 +37562,29 @@
     "tt": 1,
     "uid": 268437529
   },
+  "list[FrozenCGraph]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "list[FrozenCGraph]",
+    "parents": [
+      268435555
+    ],
+    "tt": 1,
+    "uid": 268435584
+  },
   "list[GGCode]": {
     "abstract": false,
     "children": [],
@@ -36708,6 +37651,29 @@
     ],
     "tt": 1,
     "uid": 268436851
+  },
+  "list[IfKey]": {
+    "abstract": false,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "list[IfKey]",
+    "parents": [
+      268435599
+    ],
+    "tt": 1,
+    "uid": 268435606
   },
   "list[Integral]": {
     "abstract": false,
@@ -38573,6 +39539,9 @@
       6,
       10,
       11,
+      12,
+      13,
+      14,
       16,
       17,
       18,
@@ -38612,9 +39581,13 @@
       268435491,
       268435530,
       268435531,
+      268435548,
+      268435549,
+      268435589,
       268435590,
       268435591,
       268435592,
+      268435593,
       268435595,
       268435596,
       268435597,
@@ -38628,6 +39601,8 @@
       268435611,
       268435612,
       268435613,
+      268435615,
+      268435616,
       268435634,
       268435635,
       268435640,
@@ -39417,6 +40392,30 @@
     "tt": 1,
     "uid": 268437443
   },
+  "tuple[CGraphType, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "CGraphType"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[CGraphType, ...]",
+    "parents": [
+      43,
+      268435620
+    ],
+    "tt": 1,
+    "uid": 268435623
+  },
   "tuple[CPI, ...]": {
     "abstract": false,
     "children": [],
@@ -39906,6 +40905,30 @@
     "tt": 1,
     "uid": 268435542
   },
+  "tuple[FrozenCGraph, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "FrozenCGraph"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[FrozenCGraph, ...]",
+    "parents": [
+      43,
+      268435563
+    ],
+    "tt": 1,
+    "uid": 268435587
+  },
   "tuple[GGCode, ...]": {
     "abstract": false,
     "children": [],
@@ -39975,6 +40998,30 @@
     ],
     "tt": 1,
     "uid": 268437053
+  },
+  "tuple[IfKey, ...]": {
+    "abstract": false,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "IfKey"
+      }
+    ],
+    "meta": false,
+    "name": "tuple[IfKey, ...]",
+    "parents": [
+      43,
+      268435604
+    ],
+    "tt": 1,
+    "uid": 268435607
   },
   "tuple[Integral, ...]": {
     "abstract": false,

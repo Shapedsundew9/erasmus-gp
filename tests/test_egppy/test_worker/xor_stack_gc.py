@@ -24,14 +24,15 @@ from time import time
 from typing import Any
 
 from egpcommon.codon_dev_load import find_codon_signature
-from egpcommon.common import ACYBERGENESIS_PROBLEM, NULL_SHA256, bin_counts
+from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.egc_class_factory import EGCDict
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
+from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
 from egppy.genetic_code.types_def import types_def_store
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
@@ -68,360 +69,13 @@ _codon_specs = {
     "LITERAL_1_SIG": ([], ["int"], "1"),
     "SIXTYFOUR_SIG": ([], ["int"], "64"),
     "CUSTOM_PGC_SIG": ([], [], "custom"),
-    "INT_TO_SIG": (["int"], ["Integral"], "raise_if_not_instance_of(int, Integral)"),
-    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(EGPNumber, int)"),
+    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
 }
 
 
 # Dictionary of primitive GCs
 # This is empty on initialization and populated on first use
 primitive_gcs: dict[str, GCABC] = {}
-
-
-def find_gc(signature: bytes) -> GCABC:
-    """Find a GC in the cache."""
-    retval = gpi[signature]
-    assert isinstance(retval, GCABC), f"GC with signature {signature.hex()} is not a GCABC object."
-    return retval
-
-
-def resolve_inherited_members(egc: GCABC) -> GCABC:
-    """Resolve inherited members from ancestor GCs."""
-    assert isinstance(egc, GCABC), "GC must be a GCABC object."
-    gca = egc["gca"]
-    gcb = egc["gcb"]
-    if gca == NULL_SHA256:
-        raise ValueError("Cannot resolve inherited members. GC is a codon.")
-    gca = find_gc(gca)
-
-    # Populate inherited members as if just GCA is set
-    egc["num_codons"] = gca["num_codons"]
-    egc["num_codes"] = gca["num_codes"] + 1
-    egc["generation"] = gca["generation"] + 1
-    egc["code_depth"] = gca["code_depth"] + 1
-
-    # Ad in this GC must be the same as Is in the GCA
-    # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-    for idx, (a, i) in enumerate(zip(egc["cgraph"]["Ad"], gca["cgraph"]["Is"])):
-        if a.typ is not i.typ:
-            raise ValueError(
-                f"Input types do not match for GCA at position {idx}: "
-                f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
-                f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
-            )
-
-    # As in this GC must be the same as Od in the GCA
-    for idx, (a, o) in enumerate(zip(egc["cgraph"]["As"], gca["cgraph"]["Od"])):
-        if a.typ is not o.typ:
-            raise ValueError(
-                f"Output types do not match for GCA at position {idx}: "
-                f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
-                f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
-            )
-
-    # If GCB exists modify
-    if gcb != NULL_SHA256:
-        gcb = find_gc(gcb)
-        egc["num_codons"] += gcb["num_codons"]
-        egc["num_codes"] += gcb["num_codes"]
-        egc["generation"] = max(egc["generation"], gcb["generation"] + 1)
-        egc["code_depth"] = max(egc["code_depth"], gcb["code_depth"] + 1)
-
-        # Bd in this GC must be the same as Is in the GCB
-        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
-        if not all(b.typ is i.typ for b, i in zip(egc["cgraph"]["Bd"], gcb["cgraph"]["Is"])):
-            raise ValueError("Input types do not match for GCB")
-
-        # Bs in this GC must be the same as Od in the GCB
-        if not all(b.typ is o.typ for b, o in zip(egc["cgraph"]["Bs"], gcb["cgraph"]["Od"])):
-            raise ValueError("Output types do not match for GCB")
-
-    return egc
-
-
-def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
-    """Create a EGC, inherit members from its sub-GCs and create a new GGC."""
-    egc = EGCDict(gc)
-    ggc = GGCDict(resolve_inherited_members(egc))
-    if check:
-        try:
-            ggc.verify()
-        except (ValueError, RuntimeError) as e:
-            raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.") from e
-    gpi[ggc["signature"]] = ggc
-    return ggc
-
-
-def cast_to_int_at_input_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
-    """Cast the input at the given index to 'int'.
-    This is done by stacking a meta codon that does the right conversion
-    as GCA and wiring through the inputs and outputs directly
-    to ensure the interface remains in the same order.
-
-    Args
-    ----
-    mc: The meta codon to use for the cast.
-    gc: The original GC to cast.
-    idx: The index of the input in gc to cast.
-    """
-    mcot = mc["cgraph"]["Od"][0].typ.name
-    return inherit_members(
-        {
-            "ancestora": gc,
-            "ancestorb": mc,
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": mc,
-            "gcb": gc,
-            "cgraph": {
-                "A": [["I", idx, mc["cgraph"]["Is"][0].typ.name]],
-                "B": [
-                    ["I", ep.idx, ep.typ.name] if ep.idx != idx else ["A", 0, mcot]
-                    for ep in gc["cgraph"]["Is"]
-                ],
-                "O": [["B", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Od"]],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
-
-
-def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
-    """Cast the output at the given index to 'int'.
-    This is done by stacking a meta codon that does the right conversion
-    as GCB and wiring through the inputs and outputs directly
-    to ensure the interface remains in the same order.
-
-    Args
-    ----
-    mc: The meta codon to use for the cast.
-    gc: The original GC to cast.
-    idx: The index of the output in gc to cast.
-    """
-    mcot = mc["cgraph"]["Od"][0].typ.name
-    return inherit_members(
-        {
-            "ancestora": gc,
-            "ancestorb": mc,
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": gc,
-            "gcb": mc,
-            "cgraph": {
-                "A": [["I", ep.idx, ep.typ.name] for ep in gc["cgraph"]["Is"]],
-                "B": [["A", idx, gc["cgraph"]["Od"][idx].typ.name]],
-                "O": [
-                    ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
-                    for ep in gc["cgraph"]["Od"]
-                ],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
-
-
-def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
-    """Cast the interfaces of the GC to 'int'.
-    The functional GC's have interfaces defined by the most generic type (usually 'Integral').
-    Since EGP requires typing to be explicit each interface needs to be 'cast' to 'int' using
-    meta codons.
-    """
-
-    int_to: dict[str, GGCDict] = {"Integral": gpi[CODON_SIGS["INT_TO_SIG"]]}
-    to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
-
-    # Find all the endpoint in the input interface that are not 'int'
-    while iepl := [iep for iep in gc["cgraph"]["Is"] if iep.typ != INT_TD]:
-        # We will only process the first endpoint in the iepl list
-        # Find the appropriate meta codon to cast the first endpoint to 'int'
-        meta_codon = int_to.get(iepl[0].typ.name)
-        if meta_codon is None:
-            raise ValueError(f"No meta-codon found to cast {iepl[0].typ.name} to int.")
-        # Create an new GC with that endpoint cast. This GC will be evaluated to see
-        # if all its inputs are 'int' in the next iteration
-        gc = cast_to_int_at_input_idx(meta_codon, gc, iepl[0].idx)
-
-    # Now do the same with the outputs
-    while oepl := [oep for oep in gc["cgraph"]["Od"] if oep.typ != INT_TD]:
-        # We will only process the first endpoint in the oepl list
-        # Find the appropriate meta codon to cast the first endpoint to 'int'
-        meta_codon = to_int.get(oepl[0].typ.name)
-        if meta_codon is None:
-            raise ValueError(f"No meta-codon found to cast {oepl[0].typ.name} to int.")
-        # Create an new GC with that endpoint cast. This GC will be evaluated to see
-        # if all its outputs are 'int' in the next iteration
-        gc = cast_to_int_at_output_idx(meta_codon, gc, oepl[0].idx)
-
-    # The original GC with the input & output types converted to 'int'
-    return gc
-
-
-# Shift right by one GC function. Note that this function needs to
-# be defined with the format and naming convention of the GC function
-# i.e. inputs are encapsulated in a tuple (even if there is only one)
-# and the output is a tuple (even if there is only one). The function
-# name must end in an 8 character unsigned hexadecimal value.
-def f_7fffffff(i: tuple[int]) -> int:
-    """Shift right by one."""
-    return i[0] >> 1
-
-
-def create_primitive_gcs() -> None:
-    """Create the primitive GC's used in the tests."""
-    if primitive_gcs:
-        return  # Already created
-
-    # Load and validate all codon signatures
-    for cname, (input_types, output_types, codon_name) in _codon_specs.items():
-        csig = find_codon_signature(input_types, output_types, codon_name)
-        assert csig is not None, f"{cname} codon signature not found"
-        CODON_SIGS[cname] = csig
-
-    # Right shift and xor need interfaces casting
-    rshift_gc = cast_interfaces_to_int(gpi[CODON_SIGS["RSHIFT_SIG"]])
-    xor_gc = cast_interfaces_to_int(gpi[CODON_SIGS["XOR_SIG"]])
-
-    # random_long_gc signature:
-    random_long_gc = inherit_members(
-        {
-            "ancestora": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
-            "ancestorb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
-            "gcb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
-            "cgraph": {
-                "A": [],
-                "B": [["A", 0, INT_T]],
-                "O": [["B", 0, INT_T]],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
-
-    # rshift_1_gc signature:
-    rshift_1_gc = inherit_members(
-        {
-            "ancestora": gpi[CODON_SIGS["LITERAL_1_SIG"]],
-            "ancestorb": rshift_gc,
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "code_depth": 2,
-            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]][
-                "signature"
-            ],  # Makes the structure of this GC unknown
-            "gcb": rshift_gc,
-            "generation": 2,
-            "cgraph": {
-                "A": [],
-                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-                "O": [["B", 0, INT_T]],
-                "U": [],
-            },
-            "num_codes": 3,
-            "num_codons": 2,
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
-
-    # rshift_xor_gc signature:
-    rshift_xor_gc = inherit_members(
-        {
-            "ancestora": rshift_1_gc,
-            "ancestorb": xor_gc,
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": rshift_1_gc,
-            "gcb": xor_gc,
-            "cgraph": {
-                "A": [["I", 1, INT_T]],
-                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-                "O": [["B", 0, INT_T]],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
-
-    # one_to_two signature:
-    one_to_two = inherit_members(
-        {
-            "ancestora": random_long_gc,
-            "ancestorb": rshift_xor_gc,
-            "created": "2025-03-29 22:05:08.489847+00:00",
-            "gca": random_long_gc,
-            "gcb": rshift_xor_gc,
-            "cgraph": {
-                "A": [],
-                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
-                "O": [["B", 0, INT_T], ["A", 0, INT_T]],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-        }
-    )
-    two_to_one = rshift_xor_gc
-
-    # Populate the primitive GC dictionary
-    primitive_gcs["random_long"] = random_long_gc
-    primitive_gcs["rshift_1"] = rshift_1_gc
-    primitive_gcs["rshift_xor"] = rshift_xor_gc
-    primitive_gcs["one_to_two"] = one_to_two
-    primitive_gcs["two_to_one"] = two_to_one
-
-
-def randomrange(a: int, num: int = 0) -> list[int]:
-    """Return a randomly ordered range between a and b."""
-    rr = list(range(a))
-    if num > 0 and num < a:
-        rr = rr[:num]
-    if num > 0 and num > a:
-        rr.extend(rr * (num // a) + rr[: num % a])
-    shuffle(rr)
-    assert len(rr) == num or num == 0, f"len(rr) = {len(rr)} != num = {num}"
-    return rr
-
-
-def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
-    """Expand the GC.
-
-    Create a new GC where GCA = gc1 and GCB = gc2.
-    The inputs to the new GC are the same as the inputs to gc and
-    are connected directly to the inputs of GCA & GCB. The outputs
-    of the new GC are the concatenation of the outputs of GCA & GCB.
-    """
-    gca: GCABC = gc1
-    gcb: GCABC = gc2
-    return inherit_members(
-        {
-            "ancestora": gca,
-            "ancestorb": gcb,
-            "gca": gca,
-            "gcb": gcb,
-            "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
-                "B": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]), len(gcb["inputs"]))],
-                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
-                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
-                "U": [],
-            },
-            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
-            "problem": ACYBERGENESIS_PROBLEM,
-            "properties": BASIC_ORDINARY_PROPERTIES,
-            "num_codons": gca["num_codons"] + gcb["num_codons"],
-        },
-        random() < CONSISTENCY_SAMPLE,
-    )
 
 
 def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
@@ -440,12 +94,10 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
             "gca": gca,
             "gcb": gcb,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gca["inputs"]))],
-                "B": [
-                    ["I", i + len(gca["inputs"]), INT_T] for i in randomrange(len(gcb["inputs"]))
-                ],
-                "O": [["A", i, INT_T] for i in randomrange(len(gca["outputs"]))]
-                + [["B", i, INT_T] for i in randomrange(len(gcb["outputs"]))],
+                "A": [["I", i, INT_T] for i in randomrange(gca["num_inputs"])],
+                "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
+                "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
+                + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
@@ -457,54 +109,63 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
     )
 
 
-def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
-    """Expand the GC.
-
-    Append gc2 to gc1 as per append_gcs then stack it on the narrow to
-    reduce the number of outputs back to the original number of outputs.
-
-    This asserts that the number of inputs to the narrow GC is
-    # gc1 outputs + # gc2 outputs and the number of outputs is
-    # gc1 outputs.
-    Connections on each interface are randomly assigned.
+def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
+    """Cast the interfaces of the GC to 'int'.
+    The functional GC's have interfaces defined by the most generic type (usually 'Integral').
+    Since EGP requires typing to be explicit each interface needs to be 'cast' to 'int' using
+    meta codons.
     """
-    assert len(gc1["outputs"]) + len(gc2["outputs"]) == len(
-        narrow_gc["inputs"]
-    ), "gc1 + gc2 outputs != narrow_gc # inputs."
-    assert len(gc1["outputs"]) == len(narrow_gc["outputs"]), "gc1 outputs != narrow_gc outputs."
-    gca: GCABC = append_gcs(gc1, gc2)
-    gcb: GCABC = narrow_gc
-    return stack_gcs(gca, gcb)
+
+    to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
+
+    # Downcast the outputs
+    while oepl := [oep for oep in gc["cgraph"][DstIfKey.OD] if oep.typ != INT_TD]:
+        # We will only process the first endpoint in the oepl list
+        # Find the appropriate meta codon to cast the first endpoint to 'int'
+        meta_codon = to_int.get(oepl[0].typ.name)
+        if meta_codon is None:
+            raise ValueError(f"No meta-codon found to cast {oepl[0].typ.name} to int.")
+        # Create an new GC with that endpoint cast. This GC will be evaluated to see
+        # if all its outputs are 'int' in the next iteration
+        gc = cast_to_int_at_output_idx(meta_codon, gc, oepl[0].idx)
+
+    # The original GC with the input & output types converted to 'int'
+    return gc
 
 
-def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
-    """Stack two GC's gc1 on top of gc2.
+def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
+    """Cast the output at the given index to 'int'.
+    This is done by stacking a meta codon that does the right conversion
+    as GCB and wiring through the inputs and outputs directly
+    to ensure the interface remains in the same order.
 
-    Create a new GC where GCA = gc1 and GCB = gc2.
-    The inputs to the new GC are those of GCA.
-    The outputs of the new GC are those of GCB.
-    It is assumed that GCA has the same number of outputs as GCB has inputs.
-    GCA's outputs are randomly connected to GCB's inputs.
+    Args
+    ----
+    mc: The meta codon to use for the cast.
+    gc: The original GC to cast.
+    idx: The index of the output in gc to cast.
     """
-    assert len(gc1["outputs"]) == len(gc2["inputs"]), "gc1 # outputs != gc2 # inputs"
+    mcot = mc["cgraph"][DstIfKey.OD][0].typ.name
     return inherit_members(
         {
-            "ancestora": gc1,
-            "ancestorb": gc2,
-            "gca": gc1,
-            "gcb": gc2,
+            "ancestora": gc,
+            "ancestorb": mc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": gc,
+            "gcb": mc,
             "cgraph": {
-                "A": [["I", i, INT_T] for i in randomrange(len(gc1["inputs"]))],
-                "B": [["A", i, INT_T] for i in randomrange(len(gc2["inputs"]))],
-                "O": [["B", i, INT_T] for i in randomrange(len(gc2["outputs"]))],
+                "A": [["I", ep.idx, ep.typ.name] for ep in gc["cgraph"][SrcIfKey.IS]],
+                "B": [["A", idx, gc["cgraph"][DstIfKey.OD][idx].typ.name]],
+                "O": [
+                    ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
+                    for ep in gc["cgraph"][DstIfKey.OD]
+                ],
                 "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
             "properties": BASIC_ORDINARY_PROPERTIES,
-            "num_codons": gc1["num_codons"] + gc2["num_codons"],
-        },
-        random() < CONSISTENCY_SAMPLE,
+        }
     )
 
 
@@ -558,12 +219,148 @@ def create_gc_matrix(max_epc: int) -> dict[int, dict[int, list[GCABC]]]:
             # allowed outputs so that there is the possibility of finding an output
             # solution that meets the constraint.
             gca = choice([gc for no in _gcm[num_a] for gc in _gcm[num_a][no] if no < num_outputs])
-            gcb = choice(tuple(_gcm[num_b][num_outputs - len(gca["outputs"])]))
+            gcb = choice(tuple(_gcm[num_b][num_outputs - gca["num_outputs"]]))
             ngc = append_gcs(gca, gcb)
             target_set.append(ngc)
-            assert len(ngc["inputs"]) == num_inputs, f"ngx # inputs != {num_inputs}"
-            assert len(ngc["outputs"]) == num_outputs, f"ngx # outputs != {num_outputs}"
+            assert ngc["num_inputs"] == num_inputs, f"ngx # inputs != {num_inputs}"
+            assert ngc["num_outputs"] == num_outputs, f"ngx # outputs != {num_outputs}"
     return _gcm
+
+
+def create_primitive_gcs() -> None:
+    """Create the primitive GC's used in the tests."""
+    if primitive_gcs:
+        return  # Already created
+
+    # Load and validate all codon signatures
+    for cname, (input_types, output_types, codon_name) in _codon_specs.items():
+        csig = find_codon_signature(input_types, output_types, codon_name)
+        assert csig is not None, f"{cname} codon signature not found"
+        CODON_SIGS[cname] = csig
+
+    # Right shift and xor need interfaces casting
+    rshift_gc = cast_interfaces_to_int(gpi[CODON_SIGS["RSHIFT_SIG"]])
+    xor_gc = cast_interfaces_to_int(gpi[CODON_SIGS["XOR_SIG"]])
+
+    # random_long_gc signature:
+    random_long_gc = inherit_members(
+        {
+            "ancestora": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
+            "ancestorb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": gpi[CODON_SIGS["SIXTYFOUR_SIG"]],
+            "gcb": gpi[CODON_SIGS["GETRANDBITS_SIG"]],
+            "cgraph": {
+                "A": [],
+                "B": [["A", 0, INT_T]],
+                "O": [["B", 0, INT_T]],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+    # rshift_1_gc signature:
+    rshift_1_gc = inherit_members(
+        {
+            "ancestora": gpi[CODON_SIGS["LITERAL_1_SIG"]],
+            "ancestorb": rshift_gc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "code_depth": 2,
+            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]][
+                "signature"
+            ],  # Makes the structure of this GC unknown
+            "gcb": rshift_gc,
+            "generation": 2,
+            "cgraph": {
+                "A": [],
+                "B": [
+                    ["I", 0, rshift_gc["cgraph"][SrcIfKey.IS][0].typ.name],
+                    ["A", 0, rshift_gc["cgraph"][SrcIfKey.IS][1].typ.name],
+                ],
+                "O": [["B", 0, rshift_gc["cgraph"][DstIfKey.OD][0].typ.name]],
+                "U": [],
+            },
+            "num_codes": 3,
+            "num_codons": 2,
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+    # rshift_xor_gc signature:
+    rshift_xor_gc = inherit_members(
+        {
+            "ancestora": rshift_1_gc,
+            "ancestorb": xor_gc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": rshift_1_gc,
+            "gcb": xor_gc,
+            "cgraph": {
+                "A": [["I", 1, rshift_1_gc["cgraph"][SrcIfKey.IS][0].typ.name]],
+                "B": [
+                    ["I", 0, xor_gc["cgraph"][SrcIfKey.IS][0].typ.name],
+                    ["A", 0, rshift_1_gc["cgraph"][DstIfKey.OD][0].typ.name],
+                ],
+                "O": [["B", 0, xor_gc["cgraph"][DstIfKey.OD][0].typ.name]],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+
+    # one_to_two signature:
+    one_to_two = inherit_members(
+        {
+            "ancestora": random_long_gc,
+            "ancestorb": rshift_xor_gc,
+            "created": "2025-03-29 22:05:08.489847+00:00",
+            "gca": random_long_gc,
+            "gcb": rshift_xor_gc,
+            "cgraph": {
+                "A": [],
+                "B": [["I", 0, INT_T], ["A", 0, INT_T]],
+                "O": [["B", 0, INT_T], ["A", 0, INT_T]],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+        }
+    )
+    two_to_one = rshift_xor_gc
+
+    # Populate the primitive GC dictionary
+    primitive_gcs["random_long"] = random_long_gc
+    primitive_gcs["rshift_1"] = rshift_1_gc
+    primitive_gcs["rshift_xor"] = rshift_xor_gc
+    primitive_gcs["one_to_two"] = one_to_two
+    primitive_gcs["two_to_one"] = two_to_one
+
+
+def expand_gc_inputs(gc1: GCABC, gc2: GCABC, narrow_gc: GCABC) -> GCABC:
+    """Expand the GC.
+
+    Append gc2 to gc1 as per append_gcs then stack it on the narrow to
+    reduce the number of outputs back to the original number of outputs.
+
+    This asserts that the number of inputs to the narrow GC is
+    # gc1 outputs + # gc2 outputs and the number of outputs is
+    # gc1 outputs.
+    Connections on each interface are randomly assigned.
+    """
+    assert (
+        gc1["num_outputs"] + gc2["num_outputs"] == narrow_gc["num_inputs"]
+    ), "gc1 + gc2 outputs != narrow_gc # inputs."
+    assert gc1["num_outputs"] == narrow_gc["num_outputs"], "gc1 outputs != narrow_gc outputs."
+    gca: GCABC = append_gcs(gc1, gc2)
+    gcb: GCABC = narrow_gc
+    return stack_gcs(gca, gcb)
 
 
 def expand_gc_matrix(
@@ -607,6 +404,179 @@ def expand_gc_matrix(
                     ngc = stack_gcs(gca, gcb)
                 matrix[num_inputs][num_outputs].append(ngc)
     return matrix
+
+
+def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
+    """Expand the GC.
+
+    Create a new GC where GCA = gc1 and GCB = gc2.
+    The inputs to the new GC are the same as the inputs to gc and
+    are connected directly to the inputs of GCA & GCB. The outputs
+    of the new GC are the concatenation of the outputs of GCA & GCB.
+    """
+    gca: GCABC = gc1
+    gcb: GCABC = gc2
+    len_ai = gca["num_inputs"]
+    len_ao = gca["num_outputs"]
+    len_bi = gcb["num_inputs"]
+    len_bo = gcb["num_outputs"]
+    return inherit_members(
+        {
+            "ancestora": gca,
+            "ancestorb": gcb,
+            "gca": gca,
+            "gcb": gcb,
+            "cgraph": {
+                "A": [["I", i, INT_T] for i in randomrange(len_ai)],
+                "B": [["I", i, INT_T] for i in randomrange(len_ai, len_bi)],
+                "O": [["A", i, INT_T] for i in randomrange(len_ao)]
+                + [["B", i, INT_T] for i in randomrange(len_bo)],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+            "num_codons": gca["num_codons"] + gcb["num_codons"],
+        },
+        random() < CONSISTENCY_SAMPLE,
+    )
+
+
+# Shift right by one GC function. Note that this function needs to
+# be defined with the format and naming convention of the GC function
+# i.e. inputs are encapsulated in a tuple (even if there is only one)
+# and the output is a tuple (even if there is only one). The function
+# name must end in an 8 character unsigned hexadecimal value.
+def f_7fffffff(i: tuple[int]) -> int:
+    """Shift right by one."""
+    return i[0] >> 1
+
+
+def find_gc(signature: bytes) -> GCABC:
+    """Find a GC in the cache."""
+    retval = gpi[signature]
+    assert isinstance(retval, GCABC), f"GC with signature {signature.hex()} is not a GCABC object."
+    return retval
+
+
+def inherit_members(gc: dict[str, Any], check: bool = True) -> GGCDict:
+    """Create a EGC, inherit members from its sub-GCs and create a new GGC."""
+    egc = EGCDict(gc)
+    ggc = GGCDict(resolve_inherited_members(egc))
+    if check:
+        try:
+            ggc.verify()
+        except (ValueError, RuntimeError) as e:
+            raise ValueError(f"GC with signature {ggc['signature'].hex()} is not valid.") from e
+    gpi[ggc["signature"]] = ggc
+    return ggc
+
+
+def randomrange(a: int, num: int = 0) -> list[int]:
+    """Return a randomly ordered range between a and b."""
+    rr = list(range(a))
+    if num > 0 and num < a:
+        rr = rr[:num]
+    if num > 0 and num > a:
+        rr.extend(rr * (num // a) + rr[: num % a])
+    shuffle(rr)
+    assert len(rr) == num or num == 0, f"len(rr) = {len(rr)} != num = {num}"
+    return rr
+
+
+def resolve_inherited_members(egc: GCABC) -> GCABC:
+    """Resolve inherited members from ancestor GCs."""
+    assert isinstance(egc, GCABC), "GC must be a GCABC object."
+    gca = egc["gca"]
+    gcb = egc["gcb"]
+    if gca is None or gca is NULL_GC:
+        raise ValueError("Cannot resolve inherited members. GC is a codon.")
+    gca = find_gc(gca)
+
+    # Populate inherited members as if just GCA is set
+    egc["num_codons"] = gca["num_codons"]
+    egc["num_codes"] = gca["num_codes"] + 1
+    egc["generation"] = gca["generation"] + 1
+    egc["code_depth"] = gca["code_depth"] + 1
+
+    # Ad in this GC must be the same as Is in the GCA
+    # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+    for idx, (a, i) in enumerate(zip(egc["cgraph"][DstIfKey.AD], gca["cgraph"][SrcIfKey.IS])):
+        if a.typ not in types_def_store.ancestors(i.typ):
+            raise ValueError(
+                f"Input types do not match for GCA at position {idx}: "
+                f"self['cgraph']['Ad'][{idx}].typ={a.typ!r}, "
+                f"gca['cgraph']['Is'][{idx}].typ={i.typ!r}"
+            )
+
+    # As in this GC must be the same as Od in the GCA
+    for idx, (a, o) in enumerate(zip(egc["cgraph"][SrcIfKey.AS], gca["cgraph"][DstIfKey.OD])):
+        if a.typ not in types_def_store.ancestors(o.typ):
+            raise ValueError(
+                f"Output types do not match for GCA at position {idx}: "
+                f"self['cgraph']['As'][{idx}].typ={a.typ!r}, "
+                f"gca['cgraph']['Od'][{idx}].typ={o.typ!r}"
+            )
+
+    # If GCB exists modify
+    if gcb is not None and gcb is not NULL_GC:
+        gcb = find_gc(gcb)
+        egc["num_codons"] += gcb["num_codons"]
+        egc["num_codes"] += gcb["num_codes"]
+        egc["generation"] = max(egc["generation"], gcb["generation"] + 1)
+        egc["code_depth"] = max(egc["code_depth"], gcb["code_depth"] + 1)
+
+        # Bd in this GC must be the same as Is in the GCB
+        # NOTE: That the TypesDef ObjectSet should ensure they are the same object
+        if not all(
+            i.typ in types_def_store.ancestors(b.typ)
+            for b, i in zip(egc["cgraph"][DstIfKey.BD], gcb["cgraph"][SrcIfKey.IS])
+        ):
+            raise ValueError("Input types do not match for GCB")
+
+        # Bs in this GC must be the same as Od in the GCB
+        if not all(
+            o.typ in types_def_store.ancestors(b.typ)
+            for b, o in zip(egc["cgraph"][SrcIfKey.BS], gcb["cgraph"][DstIfKey.OD])
+        ):
+            raise ValueError("Output types do not match for GCB")
+
+    return egc
+
+
+def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
+    """Stack two GC's gc1 on top of gc2.
+
+    Create a new GC where GCA = gc1 and GCB = gc2.
+    The inputs to the new GC are those of GCA.
+    The outputs of the new GC are those of GCB.
+    It is assumed that GCA has the same number of outputs as GCB has inputs.
+    GCA's outputs are randomly connected to GCB's inputs.
+    """
+    len_1i = gc1["num_inputs"]
+    len_1o = gc1["num_outputs"]
+    len_2i = gc2["num_inputs"]
+    len_2o = gc2["num_outputs"]
+    assert len_1o == len_2i, "gc1 # outputs != gc2 # inputs"
+    return inherit_members(
+        {
+            "ancestora": gc1,
+            "ancestorb": gc2,
+            "gca": gc1,
+            "gcb": gc2,
+            "cgraph": {
+                "A": [["I", i, INT_T] for i in randomrange(len_1i)],
+                "B": [["A", i, INT_T] for i in randomrange(len_2i)],
+                "O": [["B", i, INT_T] for i in randomrange(len_2o)],
+                "U": [],
+            },
+            "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
+            "problem": ACYBERGENESIS_PROBLEM,
+            "properties": BASIC_ORDINARY_PROPERTIES,
+            "num_codons": gc1["num_codons"] + gc2["num_codons"],
+        },
+        random() < CONSISTENCY_SAMPLE,
+    )
 
 
 if __name__ == "__main__":
@@ -708,3 +678,4 @@ if __name__ == "__main__":
 
     # Deduplicator info
     print(f"GC markdown and JSON files created.\n\n{deduplicators_info()}")
+    print(f"{types_def_store.info()}")

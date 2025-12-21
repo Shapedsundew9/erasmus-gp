@@ -1,10 +1,12 @@
 """The runtime context for PGC's in a execution context."""
 
+from typing import Any
 from uuid import UUID
 
 from egpcommon.common import ANONYMOUS_CREATOR
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_dict import NULL_GC
 
 
 class RuntimeContext:
@@ -13,17 +15,27 @@ class RuntimeContext:
     context information for use by PGC's during execution.
     """
 
+    __slots__ = ("gpi", "root_gc", "creator", "debug_data")
+
     def __init__(
-        self, gpi: GenePoolInterface, parent_pgc: GCABC, creator: UUID = ANONYMOUS_CREATOR
+        self,
+        gpi: GenePoolInterface,
+        root_gc: GCABC = NULL_GC,
+        creator: UUID = ANONYMOUS_CREATOR,
+        debug_data: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the runtime context.
 
         Args
         ----
         gpi -- the gene pool interface
-        parent_pgc -- the parent (top level) PGC that is being executed
+        root_gc -- the root (top level) GC that is being executed
         creator -- the UUID of the creator of the execution context
+        debug_data -- a dictionary for storing debug information. Only used in
+                      development and testing to store intermediate results.
+                      None if not used.
         """
         self.gpi: GenePoolInterface = gpi
-        self.parent_pgc: GCABC = parent_pgc
+        self.root_gc: GCABC = root_gc
         self.creator: UUID = creator
+        self.debug_data: dict[str, Any] | None = debug_data

@@ -26,6 +26,7 @@ from tempfile import NamedTemporaryFile
 from isort import code as isort_imports
 
 from egpcommon.egp_logo import header_lines
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.worker.executor.execution_context import ExecutionContext
 from egppy.worker.executor.fw_config import FWConfig
 
@@ -53,38 +54,10 @@ class OutputFileType(StrEnum):
     MARKDOWN = "markdown"
 
 
-def write_context_to_file(
-    ec: ExecutionContext,
-    filepath: str = "",
-    fwconfig: FWConfig = FWC4FILE,
-    oft: OutputFileType = OutputFileType.PYTHON,
-) -> None:
-    """Write the execution context to a file.
-    The file is nicely formatted and contains everything needed to execute GC
-    functions. It also includes license information and a signature of authenticity.
-
-    Args
-    ----
-        ec: ExecutionContext: The execution context to write.
-        filepath: str: The file to write to. If empty, a temporary file is created.
-        fwconfig: FWConfig: The function writing configuration to use.
-        oft: OutputFileType: The output file type.
-    """
-    if oft == OutputFileType.PYTHON:
-        format_file_with_black(_py_context_writer(ec, filepath, fwconfig))
-    elif oft == OutputFileType.MARKDOWN:
-        _md_context_writer(ec, filepath, fwconfig)
-    else:
-        raise ValueError(f"Unsupported output file type: {oft}")
-
-
-def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> str:
+def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> Path:
     """Write the execution context as a markdown file."""
     _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
     with open(_filepath, mode="w", encoding="utf-8") as f:
-        # File name
-        filename = f.name
-
         # First write out the module header
         if not fwconfig.lean:
             f.write(f"# EGP Execution Context generated on {datetime.now().isoformat()}\n\n")
@@ -99,7 +72,7 @@ def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
 
         # Finally the function definitions
         f.write("## Functions\n\n")
-        nec = ExecutionContext(ec.gpi, ec.line_limit())
+        nec = ec.new_context()
         for func in ec.function_map.values():
             for node in nec.create_graphs(func.gc, False)[1]:
                 # TODO: License information
@@ -130,17 +103,14 @@ def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
         #     1. Markdown lint passing
         #     2. Check for license information
         #     3. Check for author information
-    return filename
+    return Path(_filepath)
 
 
-def _py_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> str:
+def _py_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWConfig) -> Path:
     """Write the execution context using a specified writer."""
 
     _filepath = filepath if filepath else NamedTemporaryFile(suffix=".py", delete=False).name
     with open(_filepath, mode="w", encoding="utf-8") as f:
-        # File name
-        filename = f.name
-
         # First write out the module header
         if not fwconfig.lean:
             f.write(f'"""EGP Execution Context generated on {datetime.now().isoformat()}"""\n')
@@ -155,7 +125,7 @@ def _py_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
         f.write("\n\n")
 
         # Finally the function definitions
-        nec = ExecutionContext(ec.gpi, ec.line_limit())
+        nec = ec.new_context()
         for func in ec.function_map.values():
             for node in nec.create_graphs(func.gc, False)[1]:
                 # Write the function definition
@@ -169,10 +139,10 @@ def _py_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
         #     1. Black formatting passing
         #     2. Check for license information
         #     3. Check for author information
-    return filename
+    return Path(_filepath)
 
 
-def format_file_with_black(filepath: str | Path) -> None:
+def format_file_with_black(filepath: str | Path) -> Path:
     """
     Formats a Python file using the 'black' formatter and saves the result safely.
 
@@ -244,3 +214,66 @@ def format_file_with_black(filepath: str | Path) -> None:
     except Exception as e:
         # Catch other potential subprocess errors
         raise RuntimeError(f"An unexpected error occurred while running black: {e}") from e
+
+    return input_path
+
+
+def write_context_to_file(
+    ec: ExecutionContext,
+    filepath: str = "",
+    fwconfig: FWConfig = FWC4FILE,
+    oft: OutputFileType = OutputFileType.PYTHON,
+) -> Path:
+    """Write the execution context to a file.
+    The file is nicely formatted and contains everything needed to execute GC
+    functions. It also includes license information and a signature of authenticity.
+
+    Args
+    ----
+        ec: ExecutionContext: The execution context to write.
+        filepath: str: The file to write to. If empty, a temporary file is created.
+        fwconfig: FWConfig: The function writing configuration to use.
+        oft: OutputFileType: The output file type.
+    """
+    if oft == OutputFileType.PYTHON:
+        return format_file_with_black(_py_context_writer(ec, filepath, fwconfig))
+    elif oft == OutputFileType.MARKDOWN:
+        return _md_context_writer(ec, filepath, fwconfig)
+    else:
+        raise ValueError(f"Unsupported output file type: {oft}")
+
+
+def write_function_to_file(
+    ec: ExecutionContext,
+    gcsig: bytes | GCABC,
+    filepath: str = "",
+    fwconfig: FWConfig = FWC4FILE,
+    oft: OutputFileType = OutputFileType.MARKDOWN,
+) -> Path:
+    """Write a single function from the execution context to a file.
+    The file is nicely formatted and contains everything needed to execute the GC
+    function. It also includes license information and a signature of authenticity.
+
+    Args
+    ----
+        ec: ExecutionContext: The execution context to write from.
+        gcsig: bytes | GCABC: The signature or GC object of the function to write.
+        filepath: str: The file to write to. If empty, a temporary file is created.
+        fwconfig: FWConfig: The function writing configuration to use.
+        oft: OutputFileType: The output file type.
+    """
+    if oft == OutputFileType.MARKDOWN:
+        _filepath = filepath if filepath else NamedTemporaryFile(suffix=".md", delete=False).name
+        with open(_filepath, mode="w", encoding="utf-8") as f:
+            nec = ec.new_context()
+            sig = gcsig if isinstance(gcsig, bytes) else gcsig["signature"]
+            func = ec.function_map[sig]
+            node = nec.create_graphs(func.gc, False)[0]
+            f.write(f"# Python Code for {sig.hex()}\n\n")
+            f.write("This code is generated for inspection purposes only.\n\n")
+            f.write("```python\n")
+            f.write(nec.function_def(node, fwconfig).replace("\t", "    "))
+            f.write("\n```\n")
+    else:
+        raise ValueError(f"Unsupported output file type: {oft}")
+    return Path(_filepath)

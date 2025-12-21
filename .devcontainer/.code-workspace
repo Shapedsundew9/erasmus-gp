@@ -16,9 +16,6 @@
             "path": "egppy"
         },
         {
-            "path": "egpseed"
-        },
-        {
             "path": "tests"
         } // Good to add your tests folder too
     ],
@@ -27,15 +24,6 @@
         // You can move them from devcontainer.json
         "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
         "python.terminal.activateEnvironment": true,
-        // "python.analysis.extraPaths": [
-        // 	"/usr/local/share/bitdict",
-        //	"/workspaces/erasmus-gp/egpcommon",
-        //	"/workspaces/erasmus-gp/egppkrapi",
-        //	"/workspaces/erasmus-gp/egppy",
-        //	"/workspaces/erasmus-gp/egpdb",
-        //	"/workspaces/erasmus-gp/egpdbmgr",
-        //	"/workspaces/erasmus-gp/egpseed"
-        //],
         "python.analysis.autoImportCompletions": true,
         "python.analysis.indexing": true,
         "[python]": {

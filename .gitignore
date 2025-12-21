@@ -210,6 +210,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# VSCode
+*.local.json
+
 # EGP
 codons.json
 meta_codons.json
@@ -218,4 +221,4 @@ meta_codons.json.sig
 types_def.json
 types_def.json.sig
 profile_analysis.txt
-primitive_gcs.md
+temp.*

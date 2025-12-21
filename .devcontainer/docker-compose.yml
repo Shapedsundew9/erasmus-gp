@@ -48,7 +48,13 @@ services:
     secrets:
       - db_password
       - private_key
-
+    entrypoint: >
+      /bin/sh -c "
+        echo 'postgres:5432:*:postgres:'$(cat /run/secrets/db_password) > /tmp/pgpass_generated;
+        chmod 600 /tmp/pgpass_generated;
+        chown 5050:5050 /tmp/pgpass_generated;
+        /entrypoint.sh;
+      "
 volumes:
   postgres_data:
 

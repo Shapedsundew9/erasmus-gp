@@ -1,223 +1,205 @@
-"""The insertion module.
-
-Defines how a insert GC (iGC) is inserted into a target GC (tGC).
+"""
+Docstring for egppy.physics.insertion
 """
 
-from datetime import UTC, datetime
+from copy import deepcopy
+from enum import IntEnum
 
-from egpcommon.egp_rnd_gen import EGPRndGen
-from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
-from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
-from egppy.genetic_code.egc_class_factory import EGCDict
-from egppy.genetic_code.ggc_class_factory import GCABC, GGCDict
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, IfKey, SrcIfKey, SrcRow
+from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.interface import Interface
-from egppy.genetic_code.interface_abc import InterfaceABC
-from egppy.physics.helpers import merge_properties
+from egppy.physics.helpers import direct_connect_interfaces, new_egc
+from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
 
 
-def insert_gc_case_0(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
-    """Insert case 0: stack.
-
-    IGC is stacked on top of TGC and stabilized.
-    The resultant GC is randomly connected (constrained by if_locked)
-
-    Args
-    ----
-    igc -- the insert GC
-    tgc -- the target GC
-    gp -- the gene pool
-
-
-    Returns
-    -------
-    GCABC -- the resultant stacked GC
+class InsertionCase(IntEnum):
+    """Enumeration of insertion cases.
+    See docs/insertion.md for details.
     """
-    igc_cgraph: CGraphABC = igc["cgraph"]
-    igc_is: InterfaceABC = igc_cgraph["Is"]
-    igc_od: InterfaceABC = igc_cgraph["Od"]
-    tgc_cgraph: CGraphABC = tgc["cgraph"]
-    tgc_is: InterfaceABC = tgc_cgraph["Is"]
-    tgc_od: InterfaceABC = tgc_cgraph["Od"]
-    graph = {
-        "Is": Interface(igc_is).clr_refs(),
-        "Ad": Interface(igc_is).set_row(DstRow.A).set_cls(EPCls.DST).clr_refs(),
-        "As": Interface(igc_od).set_row(SrcRow.A).set_cls(EPCls.SRC).clr_refs(),
-        "Bd": Interface(tgc_is).set_row(DstRow.B).set_cls(EPCls.DST).clr_refs(),
-        "Bs": Interface(tgc_od).set_row(SrcRow.B).set_cls(EPCls.SRC).clr_refs(),
-        "Od": Interface(tgc_od).clr_refs(),
-    }
-    rgc = EGCDict(
-        {
-            "gca": tgc,
-            "gcb": igc,
-            "ancestora": tgc,
-            "ancestorb": igc,
-            "pgc": rtctxt.parent_pgc,
-            "creator": rtctxt.creator,
-            "properties": merge_properties(gca=igc, gcb=tgc),
-            "cgraph": CGraph(graph),
-        }
-    )
-    return rgc
+
+    STACK = 0
+    ISTACK = 1
+    WRAP = 2
+    ABOVE_A = 3
+    ABOVE_B = 4
+    ABOVE_O = 5
 
 
-def insert_gc_case_1(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
-    """Insert case 1: inverse stack."""
-    return insert_gc_case_0(rtctxt, tgc, igc)  # pylint: disable=arguments-out-of-order
+def insert(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, case: InsertionCase | IfKey) -> None:
+    """Insert igc into tgc above the specified destination interface.
 
+    See docs/insertion.md for details.
+    tgc is modified in place (i.e. tgc is rgc after insertion).
+    All connections are preserved except the connections
 
-# Insertion case aliases
-stack = insert_gc_case_0
-inverse_stack = insert_gc_case_1
-
-
-def sca(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
-    """Implements the Spontaneous Codon Aggregation (SCA) algorithm.
-    SCA consists of the following steps:
-    1. Select insert case 0 (stack iGC on top of tGC).
-    2. Create a GC consistent with the stack case without constraining the interfaces.
-    3. Return the stable GC
-
-    Note that SCA is *always* unlocked, i.e., the resultant GC's interface can be
-    modified.
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
+        case: The insertion case or the interface in tgc where igc will be
+              inserted. If it is a destination interface key igc will be inserted
+              immediately above that interface, if it is a source interface key
+              it will be inserted immediately below that interface.
     """
-    return stack(rtctxt, igc, tgc)
+    assert isinstance(tgc, EGCode), "Target GC is not an EGCode - it cannot be modified in place."
+
+    match case:
+        case InsertionCase.STACK:
+            insert_case_0(rtctxt, igc, tgc)
+        case InsertionCase.ISTACK:
+            insert_case_1(rtctxt, igc, tgc)
+        case InsertionCase.WRAP:
+            insert_case_2(rtctxt, igc, tgc)
+        case SrcIfKey.IS | DstIfKey.AD | InsertionCase.ABOVE_A:
+            insert_case_3(rtctxt, igc, tgc)
+        case SrcIfKey.AS | DstIfKey.BD | InsertionCase.ABOVE_B:
+            insert_case_4(rtctxt, igc, tgc)
+        case SrcIfKey.BS | DstIfKey.OD | InsertionCase.ABOVE_O:
+            insert_case_5(rtctxt, igc, tgc)
+        case _:
+            raise ValueError(f"Invalid destination interface key for insertion: {case}")
 
 
-def perfect_stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC) -> GCABC:
-    """Creates a perfect stack of iGC on top of tGC.
+def insert_case_0(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> None:
+    """Insert igc into tgc as a stack (case 0).
 
-    A perfect stack is one where the interfaces of the iGC and tGC match perfectly
-    and are connected directly (same index to same index) without any stabilization
-    or randomization.
-    Args:
-        rtctxt: The runtime context.
-        igc: The insert genetic code.
-        tgc: The target genetic code.
-    Returns:
-        The resultant stacked genetic code.
+    A new EGCode, fgc, is created as an exact copy of tgc. tgc's GCA is set to fgc and tgc's GCB
+    is set to igc. Tgc's input interface remains the same and its output interface is set to the
+    same as igc's output interface. All connections in tgc are cleared.
+
+    tgc is modified in place.
+
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
     """
-    igc_cgraph: CGraphABC = igc["cgraph"]
-    igc_is: InterfaceABC = igc_cgraph["Is"]
-    igc_od: InterfaceABC = igc_cgraph["Od"]
-    tgc_cgraph: CGraphABC = tgc["cgraph"]
-    tgc_is: InterfaceABC = tgc_cgraph["Is"]
-    tgc_od: InterfaceABC = tgc_cgraph["Od"]
-
-    # Check that the interfaces match perfectly
-    # NB: This is a less strict check than equality but much faster for frozen interfaces
-    # Should a hash collision occur then whatever GC is produced is fine anyway.
-    if igc_od.to_td() != tgc_is.to_td():
-        raise ValueError(
-            "Insert GC output interface does not match target GC input interface"
-            f" got output={[str(t) for t in igc_od.to_td()]} and "
-            f"input={[str(t) for t in tgc_is.to_td()]}"
-        )
-    cgraph = CGraph(
-        {
-            "Is": Interface(igc_is, SrcRow.I, DstRow.A),
-            "Ad": Interface(igc_is, DstRow.A, SrcRow.I),
-            "As": Interface(igc_od, SrcRow.A, DstRow.B),
-            "Bd": Interface(tgc_is, DstRow.B, SrcRow.A),
-            "Bs": Interface(tgc_od, SrcRow.B, DstRow.O),
-            "Od": Interface(tgc_od, DstRow.O, SrcRow.B),
-        }
-    )
-
-    # Make the resultant GC
-    rgc = EGCDict(
-        {
-            "gca": igc,
-            "gcb": tgc,
-            "ancestora": igc,
-            "ancestorb": tgc,
-            "pgc": rtctxt.parent_pgc,
-            "creator": rtctxt.creator,
-            "properties": merge_properties(gca=igc, gcb=tgc),
-            "cgraph": cgraph,
-        }
-    )
-    return rgc
+    new_egc(rtctxt=rtctxt, gca=deepcopy(tgc), gcb=igc, rebuild=tgc)
+    tgc_cgraph = tgc["cgraph"]
+    assert isinstance(tgc_cgraph, CGraphABC), "tgc c_graph is not a CGraphABC"
+    tgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.AD], SrcRow.I)
+    tgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.BS], DstRow.O)
 
 
-def harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC) -> GCABC:
-    """Creates a harmony GC by placing gca and gcb in a GC but with inputs and outputs
-    directly passed through (no connection between gca and gcb).
+def insert_case_1(_: RuntimeContext, igc: GCABC, tgc: EGCode) -> None:
+    """Insert igc into tgc as an inverse stack (case 1).
+
+    A new EGCode, fgc, is created as an exact copy of tgc. tgc's GCB is set to fgc and tgc's GCA
+    is set to igc. Tgc's input interface is set to the same as igc's and its output interface
+    remains the same. All connections in tgc are cleared.
+
+    tgc is modified in place.
+
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
     """
-    gca_cgraph: CGraphABC = gca["cgraph"]
-    gcb_cgraph: CGraphABC = gcb["cgraph"]
-    gca_is_len = len(gca_cgraph["Is"])
-    gca_od_len = len(gca_cgraph["Od"])
-
-    cgraph = CGraph(
-        {
-            "Is": gca_cgraph["Is"] + Interface(gcb_cgraph["Is"], SrcRow.I, DstRow.B),
-            "Ad": Interface(gca_cgraph["Is"].to_td(), DstRow.A, SrcRow.I),
-            "As": Interface(gca_cgraph["Od"].to_td(), SrcRow.A, DstRow.O),
-            "Bd": Interface(gcb_cgraph["Is"].to_td(), DstRow.B, SrcRow.I, gca_is_len),
-            "Bs": Interface(gcb_cgraph["Od"].to_td(), SrcRow.B, DstRow.O, gca_od_len),
-            "Od": Interface(gca_cgraph["Od"].to_td(), DstRow.O, SrcRow.A).extend(
-                Interface(gcb_cgraph["Od"].to_td(), DstRow.O, SrcRow.B)
-            ),
-        }
-    )
-
-    rgc = EGCDict(
-        {
-            "gca": gca,
-            "gcb": gcb,
-            "ancestora": gca,
-            "ancestorb": gcb,
-            "pgc": rtctxt.parent_pgc,
-            "creator": rtctxt.creator,
-            "properties": merge_properties(gca=gca, gcb=gcb),
-            "cgraph": cgraph,
-        }
-    )
-    return rgc
+    new_egc(rtctxt=_, gca=igc, gcb=deepcopy(tgc), rebuild=tgc)
+    tgc_cgraph = tgc["cgraph"]
+    assert isinstance(tgc_cgraph, CGraphABC), "tgc c_graph is not a CGraphABC"
+    tgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.AD], SrcRow.I)
+    tgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.BS], DstRow.O)
 
 
-def stabilize_gc(
-    rtctxt: RuntimeContext, egc: GCABC, sse: bool = False, if_locked: bool = True
-) -> GCABC:
-    """Stabilize an EGCode to a GGCode raising an SSE as necessary."""
+def insert_case_2(_: RuntimeContext, igc: GCABC, tgc: EGCode) -> None:
+    """Insert igc into tgc by wrapping (case 2).
 
-    egc["created"] = datetime.now(UTC)
-    assert isinstance(egc["cgraph"], CGraph), "Resultant GC c_graph is not a CGraph"
-    egc["cgraph"].stabilize(if_locked, EGPRndGen(egc["created"]))
+    tgc GCA is set to igc GCA and tgc GCB to igc GCB. All previous connections in tgc are cleared.
+    igc's connections between GCA and GCB are preserved.
 
-    stable = egc["cgraph"].is_stable()
-    if not stable and sse:
-        raise NotImplementedError("Stabilization failed and SSE requested")
-    if not stable:
-        raise RuntimeError("Stabilization failed")
+    tgc is modified in place.
 
-    gpi: GenePoolInterface = rtctxt.gpi
-    gca: GCABC = gpi[egc["gca"]]
-    gcb: GCABC = gpi[egc["gcb"]]
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
+    """
+    new_egc(rtctxt=_, gca=igc["gca"], gcb=igc["gcb"], rebuild=tgc)
+    igc_cgraph = igc["cgraph"]
+    tgc_cgraph = tgc["cgraph"]
+    tgc_cgraph[SrcIfKey.AS] = Interface(igc_cgraph[SrcIfKey.AS], SrcRow.A).clr_refs()
+    tgc_cgraph[DstIfKey.BD] = Interface(igc_cgraph[DstIfKey.BD], DstRow.B).clr_refs()
 
-    # Populate inherited members
-    egc["num_codons"] = gca["num_codons"] + gcb["num_codons"]
-    egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
-    egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
-    egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
 
-    # Stable GC's are converted to GGCodes and added to the Gene Pool
-    ggc: GCABC = GGCDict(egc)
+def insert_case_3(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> None:
+    """Insert igc into tgc above GCA (case 3).
 
-    # A bit of sanity checking
-    if not gca["cgraph"]["Is"].to_td() == ggc["cgraph"]["Ad"].to_td():
-        raise ValueError("GCA row Is does not match GGCode row Ad")
-    if not gca["cgraph"]["Od"].to_td() == ggc["cgraph"]["As"].to_td():
-        raise ValueError("GCA row Od does not match GGCode row As")
-    if not gcb["cgraph"]["Is"].to_td() == ggc["cgraph"]["Bd"].to_td():
-        raise ValueError("GCB row Is does not match GGCode row Bd")
-    if not gcb["cgraph"]["Od"].to_td() == ggc["cgraph"]["Bs"].to_td():
-        raise ValueError("GCB row Od does not match GGCode row Bs")
+    A new EGCode, fgc, is created with igc as GCA and tgc's GCA as GCB. tgc's GCA
+    is set to fgc. The inputs of tgc are then connected to the inputs of fgc.
 
-    # Add to Gene Pool
-    gpi[ggc["signature"]] = ggc
-    return ggc
+    tgc is modified in place.
+
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
+    """
+    fgc = new_egc(rtctxt, gca=igc, gcb=tgc["gca"], ancestora=tgc)
+    fgc_cgraph = fgc["cgraph"]
+    tgc_cgraph = tgc["cgraph"]
+    fgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.AD], SrcRow.I).clr_refs()
+    fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.AS], DstRow.O).clr_refs()
+    tgc["gca"] = fgc
+
+    # We know FGC's input interface is the same as TGC's BD interface
+    # and FGC's output interface is the same as TGC's BS interface so no need
+    # to check those connections.
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.BD], check=False)
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.BS], fgc_cgraph[DstIfKey.OD], check=False)
+
+
+def insert_case_4(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> None:
+    """Insert igc into tgc above GCB (case 4).
+
+    A new EGCode, fgc, is created with tgc's GCB as GCB and igc as GCA. tgc's GCB
+    is set to fgc. The inputs of tgc are then connected to the inputs of fgc and fgc's
+    outputs.
+
+    tgc is modified in place.
+
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
+    """
+    fgc = new_egc(rtctxt, gca=igc, gcb=tgc["gcb"], ancestora=tgc)
+    fgc_cgraph = fgc["cgraph"]
+    tgc_cgraph = tgc["cgraph"]
+    fgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.BD], SrcRow.I).clr_refs()
+    fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.BS], DstRow.O).clr_refs()
+    tgc["gcb"] = fgc
+
+    # We know FGC's input interface is the same as TGC's BD interface
+    # and FGC's output interface is the same as TGC's BS interface so no need
+    # to check those connections.
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.BD], check=False)
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.BS], fgc_cgraph[DstIfKey.OD], check=False)
+
+
+def insert_case_5(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> None:
+    """Insert igc into tgc above Output (case 5).
+
+    A new EGCode, fgc, is created with tgc's GCB as GCA and igc as GCB. tgc's GCB
+    is set to fgc. The inputs of tgc are then connected to the inputs of fgc.
+    tgc is modified in place.
+
+    Arguments:
+        rtctxt: The runtime context containing the gene pool and other necessary information.
+        igc: The GC to be inserted.
+        tgc: The target GC where igc will be inserted.
+    """
+    fgc = new_egc(rtctxt, gca=igc, gcb=tgc["gcb"], ancestora=tgc)
+    fgc_cgraph = fgc["cgraph"]
+    tgc_cgraph = tgc["cgraph"]
+    fgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.OD], SrcRow.I).clr_refs()
+    fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.BS], DstRow.O).clr_refs()
+    tgc["gcb"] = fgc
+
+    # We know FGC's input interface is the same as TGC's BD interface
+    # and FGC's output interface is the same as TGC's BS interface so no need
+    # to check those connections.
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.AD], check=False)
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.AS], fgc_cgraph[DstIfKey.OD], check=False)

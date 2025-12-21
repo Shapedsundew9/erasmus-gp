@@ -28,6 +28,12 @@ class TestDictTypeAccessor(unittest.TestCase):
         self.assertIn("arbitary", self.accessor)  # type: ignore
         self.assertNotIn("baz", self.accessor)  # type: ignore
 
+    def test_copy(self):
+        """Test the copy method."""
+        copy_accessor = self.accessor.copy()
+        self.assertEqual(self.accessor, copy_accessor)
+        self.assertIsNot(self.accessor, copy_accessor)
+
     def test_eq(self):
         """Test the eq method."""
         other = Accessor()
@@ -38,28 +44,17 @@ class TestDictTypeAccessor(unittest.TestCase):
         other.num = 43
         self.assertNotEqual(self.accessor, other)
 
+    def test_get(self):
+        """Test the get method."""
+        self.assertEqual(self.accessor.get("arbitary"), "bar")
+        self.assertEqual(self.accessor.get("baz", "default"), "default")
+
     def test_getitem(self):
         """Test the getitem method."""
         self.assertEqual(self.accessor["arbitary"], "bar")
         self.assertEqual(self.accessor["num"], 42)
         with self.assertRaises(AttributeError):
             _ = self.accessor["baz"]
-
-    def test_setitem(self):
-        """Test the setitem method."""
-        self.accessor["arbitary"] = "qux"
-        self.assertEqual(self.accessor.arbitary, "qux")
-
-    def test_copy(self):
-        """Test the copy method."""
-        copy_accessor = self.accessor.copy()
-        self.assertEqual(self.accessor, copy_accessor)
-        self.assertIsNot(self.accessor, copy_accessor)
-
-    def test_get(self):
-        """Test the get method."""
-        self.assertEqual(self.accessor.get("arbitary"), "bar")
-        self.assertEqual(self.accessor.get("baz", "default"), "default")
 
     def test_setdefault(self):
         """Test the setdefault method."""
@@ -68,3 +63,8 @@ class TestDictTypeAccessor(unittest.TestCase):
         # pylint: disable=no-member
         # Member is created in the line above
         self.assertEqual(self.accessor.baz, "new_value")  # type: ignore
+
+    def test_setitem(self):
+        """Test the setitem method."""
+        self.accessor["arbitary"] = "qux"
+        self.assertEqual(self.accessor.arbitary, "qux")

@@ -2,7 +2,7 @@
 
 :warning: **EGP is under construction: Feel free to browse but don't hope to find organised documentation & a usable application (yet).** :warning:
 
-![EGP Logo: The tree of life with the milkyway shining through its branches](https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fdrive.google.com/uc?id=1LZw7Nx6I5xUcmb48fVw0Zq3L2H2k4Hia)
+![EGP Logo: The tree of life with the milkyway shining through its branches](https://github.com/user-attachments/assets/bc6f624e-8047-4667-bd75-3f57985ed5c1)
 
 Erasmus Meta Genetic Programming, Erasmsus GP or just EGP, emulates the principles of evolution through a synthetic framework, using functional primitives creating a dynamic and adaptive artificial ecosystem to solve problems.
 

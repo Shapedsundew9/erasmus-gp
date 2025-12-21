@@ -22,18 +22,10 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
     Providing all the automated function of a cache with a small overhead.
     """
 
-    def __init__(self, config: CacheConfig) -> None:
+    def __init__(self, config: CacheConfig, level_one: bool = True) -> None:
         """Initialize the cache."""
-        super().__init__(config=config)
+        super().__init__(config=config, level_one=level_one)
         self.data: dict[Hashable, CacheableObjABC] = {}
-
-    def __iter__(self) -> Iterator:
-        """Return an iterator over the cache."""
-        return iter(self.data)
-
-    def __len__(self) -> int:
-        """Return the number of items in the cache."""
-        return len(self.data)
 
     def __contains__(self, key: Hashable) -> bool:
         """Check if the cache contains a key."""
@@ -58,13 +50,23 @@ class DictCache(CacheBase, CacheMixin, CacheABC):
         item.touch()
         return item
 
+    def __iter__(self) -> Iterator:
+        """Return an iterator over the cache."""
+        return iter(self.data)
+
+    def __len__(self) -> int:
+        """Return the number of items in the cache."""
+        return len(self.data)
+
     def __setitem__(self, key: Any, value: CacheableObjABC) -> None:
         """Set an item in the cache. If the cache is full make space first."""
         if key not in self:
             self.purge_check()
+
         # The value must be flavored (cast) to the type stored here. At a minimum this is a shallow
-        # copy so the next layer dirty flag is not affected.
-        item = self.flavor(value)
+        # copy so the next layer cache dirty flag is not affected.
+        item = value if self.level_one and isinstance(value, self.flavor) else self.flavor(value)
+
         self.data[key] = item  # type: ignore
         item.dirty()  # type: ignore
 

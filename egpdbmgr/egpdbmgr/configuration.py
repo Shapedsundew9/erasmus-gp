@@ -69,23 +69,22 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
         setattr(self, "archive_db", archive_db)
 
     @property
-    def name(self) -> str:
-        """Get the name of the configuration."""
-        return self._name
+    def archive_db(self) -> str:
+        """Get the archive database."""
+        return self._archive_db
 
-    @name.setter
-    def name(self, value: str) -> None:
-        """The name of the configuration.
-        User defined and arbitary. Not used by EGP.
-        """
+    @archive_db.setter
+    def archive_db(self, value: str) -> None:
+        """The archive database name."""
         self.value_error(
-            self._is_simple_string("name", value), f"name must be a simple string, but is {value}"
+            self._is_simple_string("archive_db", value),
+            f"archive_db must be a simple string, but is {value}",
         )
         self.value_error(
-            self._is_length("name", value, 1, 64),
-            f"name length must be between 1 and 64, but is {len(value)}",
+            self._is_length("archive_db", value, 1, 64),
+            f"archive_db length must be between 1 and 64, but is {len(value)}",
         )
-        self._name = value
+        self._archive_db = value
 
     @property
     def databases(self) -> dict[str, DatabaseConfig]:
@@ -109,6 +108,23 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
                 isinstance(val, DatabaseConfig), "databases value must be a DatabaseConfig"
             )
         self._databases = cast(dict[str, DatabaseConfig], value)
+
+    def dump_config(self) -> None:
+        """Dump the configuration to disk."""
+        dump_signed_json(self.to_json(), "./config.json")
+        print("Configuration written to ./config.json")
+
+    def load_config(self, config_file: str) -> None:
+        """Load the configuration from disk."""
+        config = load_signed_json(config_file)
+        assert isinstance(config, dict), "Configuration must be a dictionary"
+        self.name = config["name"]
+        self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
+        self.managed_db = config["managed_db"]
+        self.managed_type = config["managed_type"]
+        self.upstream_dbs = config["upstream_dbs"]
+        self.upstream_type = config["upstream_type"]
+        self.archive_db = config["archive_db"]
 
     @property
     def managed_db(self) -> str:
@@ -141,6 +157,37 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
             f"managed_type must be one of {TableTypes}, but is {value}",
         )
         self._managed_type = value
+
+    @property
+    def name(self) -> str:
+        """Get the name of the configuration."""
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """The name of the configuration.
+        User defined and arbitary. Not used by EGP.
+        """
+        self.value_error(
+            self._is_simple_string("name", value), f"name must be a simple string, but is {value}"
+        )
+        self.value_error(
+            self._is_length("name", value, 1, 64),
+            f"name length must be between 1 and 64, but is {len(value)}",
+        )
+        self._name = value
+
+    def to_json(self) -> dict[str, Any]:
+        """Return the configuration as a JSON type."""
+        return {
+            "name": self.name,
+            "databases": {key: val.to_json() for key, val in self.databases.items()},
+            "managed_db": self.managed_db,
+            "managed_type": self.managed_type,
+            "upstream_dbs": self.upstream_dbs,
+            "upstream_type": self.upstream_type,
+            "archive_db": self.archive_db,
+        }
 
     @property
     def upstream_dbs(self) -> list[str]:
@@ -193,50 +240,3 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
                 f"upstream_url must be a valid URL, but is {value}",
             )
         self._upstream_url = value
-
-    @property
-    def archive_db(self) -> str:
-        """Get the archive database."""
-        return self._archive_db
-
-    @archive_db.setter
-    def archive_db(self, value: str) -> None:
-        """The archive database name."""
-        self.value_error(
-            self._is_simple_string("archive_db", value),
-            f"archive_db must be a simple string, but is {value}",
-        )
-        self.value_error(
-            self._is_length("archive_db", value, 1, 64),
-            f"archive_db length must be between 1 and 64, but is {len(value)}",
-        )
-        self._archive_db = value
-
-    def dump_config(self) -> None:
-        """Dump the configuration to disk."""
-        dump_signed_json(self.to_json(), "./config.json")
-        print("Configuration written to ./config.json")
-
-    def load_config(self, config_file: str) -> None:
-        """Load the configuration from disk."""
-        config = load_signed_json(config_file)
-        assert isinstance(config, dict), "Configuration must be a dictionary"
-        self.name = config["name"]
-        self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
-        self.managed_db = config["managed_db"]
-        self.managed_type = config["managed_type"]
-        self.upstream_dbs = config["upstream_dbs"]
-        self.upstream_type = config["upstream_type"]
-        self.archive_db = config["archive_db"]
-
-    def to_json(self) -> dict[str, Any]:
-        """Return the configuration as a JSON type."""
-        return {
-            "name": self.name,
-            "databases": {key: val.to_json() for key, val in self.databases.items()},
-            "managed_db": self.managed_db,
-            "managed_type": self.managed_type,
-            "upstream_dbs": self.upstream_dbs,
-            "upstream_type": self.upstream_type,
-            "archive_db": self.archive_db,
-        }

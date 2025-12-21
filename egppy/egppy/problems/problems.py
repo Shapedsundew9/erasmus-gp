@@ -19,6 +19,11 @@ from egppy.worker.configuration import WorkerConfig
 _logger: Logger = egp_logger(name=__name__)
 
 
+def load_problem(config: WorkerConfig, git_hash: bytes) -> ProblemConfig:
+    """Load a problem from the configuration."""
+    return load_problems(config)[git_hash]
+
+
 def load_problems(config: WorkerConfig) -> dict[bytes, ProblemConfig]:
     """Load the problems from the configuration."""
     # Check the problem data folder
@@ -70,8 +75,3 @@ def load_problems(config: WorkerConfig) -> dict[bytes, ProblemConfig]:
 
     chdir(cwd)
     return {p["git_hash"]: ProblemConfig(**p) for p in prob_defs_json}
-
-
-def load_problem(config: WorkerConfig, git_hash: bytes) -> ProblemConfig:
-    """Load a problem from the configuration."""
-    return load_problems(config)[git_hash]

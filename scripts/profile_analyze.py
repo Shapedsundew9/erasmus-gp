@@ -19,6 +19,71 @@ from pstats import Stats
 from sys import exit as sys_exit
 
 
+def analyze_profile(profile_path: Path, output_path: Path) -> None:
+    """Analyze profile data and write the report to the output file.
+
+    Args:
+        profile_path: Path to the input profile file.
+        output_path: Path to the output text file.
+
+    Raises:
+        Exception: If there's an error reading the profile or writing the output.
+    """
+    try:
+        with output_path.open("w", encoding="utf-8") as f:
+            # Create a Stats object, streaming output to our file
+            stats = Stats(str(profile_path), stream=f)
+
+            # 1. Strip directory names for cleaner output
+            stats.strip_dirs()
+
+            # 2. Sort by cumulative time: total time spent in function AND sub-functions
+            #    Other options: 'tottime' (time in function only), 'ncalls' (call count)
+            stats.sort_stats("cumulative")
+
+            # 3. Print comprehensive statistics (all functions)
+            stats.print_stats()
+
+        print(f"Comprehensive profile analysis saved to: {output_path}")
+    except Exception as e:
+        raise RuntimeError(f"Error analyzing profile: {e}") from e
+
+
+def main() -> None:
+    """Main entry point for the profile analysis script."""
+    args = parse_arguments()
+
+    profile_path = Path(args.profile).resolve()
+    output_path = Path(args.output).resolve()
+
+    try:
+        # Validate inputs
+        validate_input_file(profile_path)
+        validate_output_file(output_path)
+
+        # Perform analysis
+        analyze_profile(profile_path, output_path)
+
+    except (
+        FileNotFoundError,
+        PermissionError,
+        ValueError,
+        IsADirectoryError,
+        NotADirectoryError,
+    ) as e:
+        print(f"Error: {e}", file=__import__("sys").stderr)
+        sys_exit(1)
+    except RuntimeError as e:
+        print(f"Error: {e}", file=__import__("sys").stderr)
+        sys_exit(1)
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.", file=__import__("sys").stderr)
+        sys_exit(130)
+    except (OSError, IOError) as e:  # pylint: disable=broad-exception-caught
+        print(f"Unexpected I/O error: {e}", file=__import__("sys").stderr)
+        sys_exit(1)
+
+
 def parse_arguments() -> Namespace:
     """Parse command line arguments.
 
@@ -83,71 +148,6 @@ def validate_output_file(output_path: Path) -> None:
         raise FileNotFoundError(f"Output directory does not exist: {parent_dir}")
     if not parent_dir.is_dir():
         raise NotADirectoryError(f"Output parent path is not a directory: {parent_dir}")
-
-
-def analyze_profile(profile_path: Path, output_path: Path) -> None:
-    """Analyze profile data and write the report to the output file.
-
-    Args:
-        profile_path: Path to the input profile file.
-        output_path: Path to the output text file.
-
-    Raises:
-        Exception: If there's an error reading the profile or writing the output.
-    """
-    try:
-        with output_path.open("w", encoding="utf-8") as f:
-            # Create a Stats object, streaming output to our file
-            stats = Stats(str(profile_path), stream=f)
-
-            # 1. Strip directory names for cleaner output
-            stats.strip_dirs()
-
-            # 2. Sort by cumulative time: total time spent in function AND sub-functions
-            #    Other options: 'tottime' (time in function only), 'ncalls' (call count)
-            stats.sort_stats("cumulative")
-
-            # 3. Print comprehensive statistics (all functions)
-            stats.print_stats()
-
-        print(f"Comprehensive profile analysis saved to: {output_path}")
-    except Exception as e:
-        raise RuntimeError(f"Error analyzing profile: {e}") from e
-
-
-def main() -> None:
-    """Main entry point for the profile analysis script."""
-    args = parse_arguments()
-
-    profile_path = Path(args.profile).resolve()
-    output_path = Path(args.output).resolve()
-
-    try:
-        # Validate inputs
-        validate_input_file(profile_path)
-        validate_output_file(output_path)
-
-        # Perform analysis
-        analyze_profile(profile_path, output_path)
-
-    except (
-        FileNotFoundError,
-        PermissionError,
-        ValueError,
-        IsADirectoryError,
-        NotADirectoryError,
-    ) as e:
-        print(f"Error: {e}", file=__import__("sys").stderr)
-        sys_exit(1)
-    except RuntimeError as e:
-        print(f"Error: {e}", file=__import__("sys").stderr)
-        sys_exit(1)
-    except KeyboardInterrupt:
-        print("\nOperation cancelled by user.", file=__import__("sys").stderr)
-        sys_exit(130)
-    except (OSError, IOError) as e:  # pylint: disable=broad-exception-caught
-        print(f"Unexpected I/O error: {e}", file=__import__("sys").stderr)
-        sys_exit(1)
 
 
 if __name__ == "__main__":

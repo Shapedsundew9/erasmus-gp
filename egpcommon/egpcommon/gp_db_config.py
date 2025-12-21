@@ -4,8 +4,6 @@ This module contains the configuration for the Gene Pool database table.
 The GP schema is used in egppy & egpdbmgr.
 """
 
-from json import dump
-from os.path import dirname, join
 from typing import Any
 
 # GP GC Fields with Postgres definitions.
@@ -162,98 +160,3 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "psql_type": "PsqlTimestamp",
     },
 }
-
-
-GCABC_PSQL_COLUMN_TEMPLATE: dict[str, Any] = {
-    "description": "GCABC {name} PSQL column",
-    "inputs": [],
-    "outputs": "{psql_type}",
-    "inline": "{psql_type}('{name}', is_column=True)",
-    "properties": {"gctsp": {"python": False, "psql": True}},
-}
-GCABC_PY_GET_TEMPLATE: dict[str, Any] = {
-    "description": "GCABC {name} Python field extraction",
-    "inputs": ["GCABC"],
-    "outputs": "{phy_type}",
-    "inline": "{{i0}}['{name}']",
-}
-
-
-def generate_gcabc_py_json(write: bool = False):
-    """Generate the GCABC JSON schema for Python.
-    This is a convenience function to generate the GCABC JSON schema used in egpseed.
-    It is only used during development and testing.
-    """
-
-    codon_templates: dict[str, dict[str, Any]] = {}
-    for key, val in ((k, v) for k, v in GGC_KVT.items() if "phy_type" in v):
-        codon_templates[key] = {
-            "description": GCABC_PY_GET_TEMPLATE["description"].format(name=key),
-            "inputs": ["EGCode"] if key in EGC_KVT else ["GGCode"],
-            "outputs": [GCABC_PY_GET_TEMPLATE["outputs"].format(phy_type=val["phy_type"])],
-            "inline": GCABC_PY_GET_TEMPLATE["inline"].format(name=key),
-        }
-
-    if write:
-        filename = join(
-            dirname(__file__),
-            "..",
-            "..",
-            "egpseed",
-            "egpseed",
-            "data",
-            "languages",
-            "python",
-            "_GCABC.json",
-        )
-
-        with open(filename, "w", encoding="utf-8") as f:
-            dump(codon_templates, f, indent=4, sort_keys=True)
-
-
-def generate_gcabc_psql_json(write: bool = False):
-    """Generate the GCABC JSON schema for PSQL.
-    This is a convenience function to generate the GCABC JSON schema used in egpseed.
-    It is only used during development and testing.
-    """
-
-    codon_templates: dict[str, dict[str, Any]] = {}
-    for key, val in ((k, v) for k, v in GGC_KVT.items() if "psql_type" in v):
-        codon_templates[key] = {
-            "description": GCABC_PSQL_COLUMN_TEMPLATE["description"].format(name=key),
-            "inputs": GCABC_PSQL_COLUMN_TEMPLATE["inputs"],
-            "outputs": [GCABC_PSQL_COLUMN_TEMPLATE["outputs"].format(psql_type=val["psql_type"])],
-            "inline": GCABC_PSQL_COLUMN_TEMPLATE["inline"].format(
-                name=key, psql_type=val["psql_type"]
-            ),
-            "properties": GCABC_PSQL_COLUMN_TEMPLATE["properties"],
-        }
-
-    if write:
-        filename = join(
-            dirname(__file__),
-            "..",
-            "..",
-            "egpseed",
-            "egpseed",
-            "data",
-            "languages",
-            "psql",
-            "_GCABC.json",
-        )
-
-        with open(filename, "w", encoding="utf-8") as f:
-            dump(codon_templates, f, indent=4, sort_keys=True)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Generate _GCABC.json.")
-    parser.add_argument(
-        "--write", "-w", action="store_true", help="If set, write the codons to a JSON file."
-    )
-    args = parser.parse_args()
-    print("Generating GCABC JSON schemas...")
-    generate_gcabc_py_json(write=args.write)
-    generate_gcabc_psql_json(write=args.write)

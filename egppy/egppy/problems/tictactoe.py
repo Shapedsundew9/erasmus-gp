@@ -21,6 +21,11 @@ class TicTacToe:
         retval += "|".join(self.board[6:9])
         return retval
 
+    def from_str(self, state: str) -> None:
+        """Set the state of the game from a string."""
+        self.board = list(state[:-1])
+        self.last_player = state[-1]
+
     def move(self, player: str, position: int) -> bool:
         """Make a move and return True if the move wins the game."""
         assert player in ("X", "O"), f"Invalid player {player}"
@@ -47,11 +52,6 @@ class TicTacToe:
     def to_str(self) -> str:
         """Return the state of the game as a string."""
         return "".join(self.board) + self.last_player
-
-    def from_str(self, state: str) -> None:
-        """Set the state of the game from a string."""
-        self.board = list(state[:-1])
-        self.last_player = state[-1]
 
     def valid_state(self) -> bool:
         """Return True if the state is valid."""

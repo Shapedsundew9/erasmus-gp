@@ -225,85 +225,104 @@ class UnknownTypeForTesting:
 class TestFreezableObject(unittest.TestCase):
     """Unit tests for the FreezableObject class."""
 
-    def test_initialization_and_is_frozen(self):
-        """Test initialization and frozen status."""
-        obj_f = SimpleValueFO("val", frozen=True)
-        self.assertTrue(obj_f.is_frozen())
-        obj_m = SimpleValueFO("val", frozen=False)
-        self.assertFalse(obj_m.is_frozen())
-        empty_f = EmptySlotsOnlyFO(frozen=True)  # Test base __init__ via super()
-        self.assertTrue(empty_f.is_frozen())
+    def test_abstract_methods_notimplemented(self):
+        """Test abstract methods for FreezableObject."""
+        # pylint: disable=abstract-method
+        # pylint disable=abstract-class-instantiated
 
-    def test_setattr_delattr_frozen(self):
-        """Test setting and deleting attributes on frozen objects."""
-        obj = SimpleValueFO("data", frozen=True)
+        # Test for BrokenFO (missing both __eq__ and __hash__)
+        class BrokenFO(FreezableObject):
+            """Class that does not implement __eq__ or __hash__."""
+
+            __slots__ = ()
+
+        # This part is correct and should pass if FreezableObject is a proper ABC
         with self.assertRaisesRegex(
-            AttributeError, "object is frozen; cannot set attribute 'value'"
+            TypeError,
+            (
+                "Can't instantiate abstract class BrokenFO without an "
+                "implementation for abstract methods '__eq__', '__hash__'"
+            ),
         ):
-            obj.value = "new"
-        with self.assertRaisesRegex(
-            AttributeError, "object is frozen; cannot set attribute 'new_attr'"
-        ):
-            # pylint: disable=attribute-defined-outside-init
-            obj.new_attr = "fail"  # type: ignore
-        with self.assertRaisesRegex(
-            AttributeError, "object is frozen; cannot delete attribute 'value'"
-        ):
-            del obj.value
-        # Test internal _frozen setting bypass (done by freeze/init)
-        object.__setattr__(obj, "_frozen", False)
-        obj.value = "allowed"
-        self.assertEqual(obj.value, "allowed")
+            # pylint: disable=abstract-class-instantiated
+            BrokenFO()  # type: ignore
 
-    def test_setattr_delattr_mutable(self):
-        """Test setting and deleting attributes on mutable objects."""
-        obj = SimpleValueFO("data", frozen=False)
-        obj.value = "new"
-        self.assertEqual(obj.value, "new")
-        with self.assertRaises(AttributeError):  # Slotted objects cannot get new attributes easily
-            # pylint: disable=attribute-defined-outside-init
-            obj.new_attr = "fail"  # type: ignore
-        del obj.value
-        self.assertFalse(hasattr(obj, "value"))
+        # Test for PartiallyBrokenFO (implements __eq__, missing __hash__)
+        class PartiallyBrokenFO(FreezableObject):
+            """Class that implements __eq__ but not __hash__."""
 
-    def test_freeze_method_basic_and_idempotency(self):
-        """Test freeze method and idempotency."""
-        obj = SimpleValueFO("data", frozen=False)
-        obj.freeze()
-        self.assertTrue(obj.is_frozen())
-        obj.freeze()
-        self.assertTrue(obj.is_frozen())  # Idempotent
-        with self.assertRaises(AttributeError):
-            obj.value = "no"
+            __slots__ = ()
 
-    def test_get_all_data_slots(self):
-        """Test _get_all_data_slots method."""
-        # pylint: disable=protected-access
-        self.assertEqual(SimpleValueFO(None)._get_all_data_slots(), {"value"})
-        self.assertEqual(PointAnatomyFO(1, 2)._get_all_data_slots(), {"x", "y"})
-        self.assertEqual(
-            GrandchildWithSlotsFO(1, 2, 3)._get_all_data_slots(), {"x", "y", "z_coord"}
+            def __eq__(self, other: object) -> bool:
+                return True
+
+            # No __hash__ defined here; Python will set it to None
+
+        # 1. Verify that PartiallyBrokenFO can be instantiated
+        pb_instance = None
+        try:
+            # pylint: disable=abstract-class-instantiated
+            pb_instance = PartiallyBrokenFO()
+        except TypeError:  # pragma: no cover
+            self.fail("PartiallyBrokenFO should be instantiable; Python sets __hash__ = None.")
+
+        self.assertIsNotNone(pb_instance, "PartiallyBrokenFO instance should have been created.")
+
+        # 2. Verify that the class's __hash__ attribute is indeed None
+        self.assertIsNone(
+            PartiallyBrokenFO.__hash__,
+            "PartiallyBrokenFO.__hash__ should be implicitly set to None by Python.",
         )
-        self.assertEqual(EmptySlotsOnlyFO()._get_all_data_slots(), set())
-        # UnslottedChildGetsDictFO inherits only FreezableObject's slots, none are data slots
-        self.assertEqual(UnslottedChildGetsDictFO(1, 2)._get_all_data_slots(), set())
 
-    def test_freeze_recursive_fo_members(self):
-        """Test freeze on recursive FreezableObject members."""
-        inner = SimpleValueFO("in", frozen=False)
-        outer = CompositeFO(inner, "str", frozen=False)
-        outer.freeze()
-        self.assertTrue(outer.is_frozen() and inner.is_frozen())
+        # 3. Verify that attempting to hash an instance raises TypeError
+        with self.assertRaisesRegex(TypeError, "unhashable type: 'PartiallyBrokenFO'"):
+            hash(pb_instance)
 
-    def test_freeze_recursive_collections_with_fo(self):
-        """Test freeze on collections containing FreezableObjects."""
-        f_tuple = SimpleValueFO("ft", frozen=False)
-        f_fset = SimpleValueFO("ffs", frozen=False)
-        obj = CompositeFO((f_tuple, "el"), frozenset([f_fset, 1]), frozen=False)
+    def test_deepcopy_frozen_raises(self):
+        """Test __deepcopy__ raises TypeError on frozen FreezableObject."""
+        obj = CompositeFO(SimpleValueFO("abc"), PointAnatomyFO(1, 2))
         obj.freeze()
-        self.assertTrue(obj.is_frozen() and f_tuple.is_frozen() and f_fset.is_frozen())
-        # Ensure non-FOs in collections are not affected beyond being part of frozen parent
-        self.assertIsInstance(obj.item_a[1], str)  # type: ignore[attr-defined]
+        with self.assertRaisesRegex(TypeError, "object is frozen; cannot deepcopy"):
+            deepcopy(obj)
+
+    def test_deepcopy_handles_nested_freezable_objects(self):
+        """Test __deepcopy__ correctly copies nested FreezableObjects."""
+        inner = SimpleValueFO("inner")
+        outer = CompositeFO(inner, "outer")
+        outer_copy = deepcopy(outer)
+        self.assertIsInstance(outer_copy.item_a, SimpleValueFO)
+        self.assertIsNot(outer_copy.item_a, inner)
+        self.assertEqual(outer_copy.item_a.value, "inner")
+        self.assertEqual(outer_copy.item_b, "outer")
+
+    def test_deepcopy_mutable(self):
+        """Test __deepcopy__ on mutable (unfrozen) FreezableObject."""
+        obj = CompositeFO(SimpleValueFO([1, 2]), PointAnatomyFO(1, 2))
+        obj_copy = deepcopy(obj)
+        self.assertIsInstance(obj_copy, CompositeFO)
+        self.assertFalse(obj_copy.is_frozen())
+        self.assertIsNot(obj_copy, obj)
+        # Deepcopy should also copy members
+        self.assertIsNot(obj_copy.item_a, obj.item_a)
+        self.assertIsNot(obj_copy.item_b, obj.item_b)
+        self.assertEqual(obj_copy.item_a, obj.item_a)
+        self.assertEqual(obj_copy.item_b, obj.item_b)
+        # Changing copy does not affect original
+        obj_copy.item_a.value.append(3)
+        self.assertNotEqual(obj_copy.item_a.value, obj.item_a.value)
+
+    def test_deepcopy_preserves_slots(self):
+        """Test __deepcopy__ preserves slot attributes and does not copy unset slots."""
+        obj = UnsetAttributeFO("foo")
+        obj_copy = deepcopy(obj)
+        self.assertTrue(hasattr(obj_copy, "val_a"))
+        self.assertFalse(hasattr(obj_copy, "val_b"))
+        self.assertEqual(obj_copy.val_a, "foo")
+        # Set val_b and test again
+        obj.val_b = "bar"  # pylint: disable=attribute-defined-outside-init
+        obj_copy2 = deepcopy(obj)
+        self.assertEqual(obj_copy2.val_b, "bar")
+        self.assertEqual(obj_copy2.val_a, "foo")
 
     def test_freeze_cyclic_dependencies(self):
         """Test freeze on cyclic dependencies."""
@@ -318,6 +337,68 @@ class TestFreezableObject(unittest.TestCase):
         obj2.freeze()
         self.assertTrue(obj1.is_frozen() and obj2.is_frozen())
 
+    def test_freeze_method_basic_and_idempotency(self):
+        """Test freeze method and idempotency."""
+        obj = SimpleValueFO("data", frozen=False)
+        obj.freeze()
+        self.assertTrue(obj.is_frozen())
+        obj.freeze()
+        self.assertTrue(obj.is_frozen())  # Idempotent
+        with self.assertRaises(AttributeError):
+            obj.value = "no"
+
+    def test_freeze_recursive_collections_with_fo(self):
+        """Test freeze on collections containing FreezableObjects."""
+        f_tuple = SimpleValueFO("ft", frozen=False)
+        f_fset = SimpleValueFO("ffs", frozen=False)
+        obj = CompositeFO((f_tuple, "el"), frozenset([f_fset, 1]), frozen=False)
+        obj.freeze()
+        self.assertTrue(obj.is_frozen() and f_tuple.is_frozen() and f_fset.is_frozen())
+        # Ensure non-FOs in collections are not affected beyond being part of frozen parent
+        self.assertIsInstance(obj.item_a[1], str)  # type: ignore[attr-defined]
+
+    def test_freeze_recursive_fo_members(self):
+        """Test freeze on recursive FreezableObject members."""
+        inner = SimpleValueFO("in", frozen=False)
+        outer = CompositeFO(inner, "str", frozen=False)
+        outer.freeze()
+        self.assertTrue(outer.is_frozen() and inner.is_frozen())
+
+    def test_get_all_data_slots(self):
+        """Test _get_all_data_slots method."""
+        # pylint: disable=protected-access
+        self.assertEqual(SimpleValueFO(None)._get_all_data_slots(), {"value"})
+        self.assertEqual(PointAnatomyFO(1, 2)._get_all_data_slots(), {"x", "y"})
+        self.assertEqual(
+            GrandchildWithSlotsFO(1, 2, 3)._get_all_data_slots(), {"x", "y", "z_coord"}
+        )
+        self.assertEqual(EmptySlotsOnlyFO()._get_all_data_slots(), set())
+        # UnslottedChildGetsDictFO inherits only FreezableObject's slots, none are data slots
+        self.assertEqual(UnslottedChildGetsDictFO(1, 2)._get_all_data_slots(), set())
+
+    def test_initialization_and_is_frozen(self):
+        """Test initialization and frozen status."""
+        obj_f = SimpleValueFO("val", frozen=True)
+        self.assertTrue(obj_f.is_frozen())
+        obj_m = SimpleValueFO("val", frozen=False)
+        self.assertFalse(obj_m.is_frozen())
+        empty_f = EmptySlotsOnlyFO(frozen=True)  # Test base __init__ via super()
+        self.assertTrue(empty_f.is_frozen())
+
+    def test_interaction_freeze_then_is_immutable(self):
+        """Test interaction of freeze and is_immutable."""
+        inner = SimpleValueFO("d", frozen=False)
+        outer = CompositeFO((inner, "s"), None, frozen=False)
+        outer.freeze()  # Freezes outer and recursively inner
+        self.assertTrue(outer.is_immutable())
+
+        outer_list = CompositeFO([SimpleValueFO("d2", frozen=False)], "s2", frozen=False)
+        outer_list.freeze()  # Freezes outer_list, but its list member remains a list,
+        # and the FO inside the list is *not* frozen by this process.
+        self.assertTrue(outer_list.is_frozen())
+        self.assertFalse(outer_list.item_a[0].is_frozen())  # type: ignore[attr-defined]
+        self.assertFalse(outer_list.is_immutable())
+
     def test_is_immutable_basics_frozen_status_and_dict(self):
         """Test is_immutable method for frozen and unfrozen objects."""
         self.assertFalse(SimpleValueFO("v", frozen=False).is_immutable(), "Unfrozen not immutable")
@@ -330,6 +411,47 @@ class TestFreezableObject(unittest.TestCase):
         self.assertFalse(hasattr(no_dict_obj_f, "__dict__"))
         self.assertTrue(no_dict_obj_f.is_immutable())
 
+    def test_is_immutable_cycles(self):
+        """Test is_immutable method for cycles."""
+        obj_a = CompositeFO(None, "A", frozen=False)
+        obj_b = CompositeFO(None, "B", frozen=False)
+        obj_a.item_a = obj_b
+        obj_b.item_a = obj_a  # Cycle A <-> B
+        obj_a.freeze()  # Freezes both
+        self.assertTrue(obj_a.is_immutable() and obj_b.is_immutable())
+
+        obj_c = CompositeFO(None, [1, 2], frozen=False)  # C holds a list
+        obj_d = CompositeFO(obj_c, "D", frozen=False)  # D points to C
+        obj_c.item_a = obj_d  # Cycle C <-> D
+        obj_c.freeze()  # Freezes both C and D
+        self.assertFalse(obj_c.is_immutable(), "C has list, so not immutable")
+        self.assertFalse(obj_d.is_immutable(), "D contains C (which is not imm), so D not imm")
+
+        # Self-referential tuple/frozenset containing an immutable FO
+        _ = SimpleValueFO(None, frozen=True)
+        # Note: Python doesn't easily allow direct creation of t = (t,)
+        # We test cycles of FOs *within* tuples for is_immutable:
+        c_obj1 = SimpleValueFO(None, frozen=False)
+        c_obj2 = SimpleValueFO(None, frozen=False)
+        c_obj1.value = (c_obj2,)
+        c_obj2.value = (c_obj1,)  # (c_obj1 ( (c_obj2 ( (c_obj1 ... ) ) ) ) )
+        c_obj1.freeze()  # Freezes both
+        self.assertTrue(c_obj1.is_immutable())
+
+    def test_is_immutable_empty_and_unset_slots(self):
+        """Test is_immutable method for empty and unset slots."""
+        self.assertTrue(EmptySlotsOnlyFO(frozen=True).is_immutable())
+        # UnsetAttributeFO: val_a is primitive, val_b is unset
+        self.assertTrue(UnsetAttributeFO("a_val", frozen=True).is_immutable())
+        # UnsetAttributeFO: val_a is mutable list, val_b is unset
+        self.assertFalse(UnsetAttributeFO([1, 2], frozen=True).is_immutable())
+
+    def test_is_immutable_known_mutable_member(self):
+        """Test is_immutable method for known mutable members."""
+        self.assertFalse(SimpleValueFO([1, 2], frozen=True).is_immutable())
+        self.assertFalse(SimpleValueFO({"a": 1}, frozen=True).is_immutable())
+        self.assertFalse(SimpleValueFO({1}, frozen=True).is_immutable())
+
     def test_is_immutable_primitive_and_known_immutable_members(self):
         """Test is_immutable method for known immutable members."""
         self.assertTrue(PointAnatomyFO(1, 2, frozen=True).is_immutable())
@@ -337,12 +459,6 @@ class TestFreezableObject(unittest.TestCase):
         self.assertTrue(SimpleValueFO(None, frozen=True).is_immutable())
         self.assertTrue(SimpleValueFO((1, "t"), frozen=True).is_immutable())
         self.assertTrue(SimpleValueFO(frozenset(["a", 1]), frozen=True).is_immutable())
-
-    def test_is_immutable_known_mutable_member(self):
-        """Test is_immutable method for known mutable members."""
-        self.assertFalse(SimpleValueFO([1, 2], frozen=True).is_immutable())
-        self.assertFalse(SimpleValueFO({"a": 1}, frozen=True).is_immutable())
-        self.assertFalse(SimpleValueFO({1}, frozen=True).is_immutable())
 
     def test_is_immutable_recursive_fo_members(self):
         """Test is_immutable method for recursive FreezableObject members."""
@@ -402,153 +518,37 @@ class TestFreezableObject(unittest.TestCase):
         """Test is_immutable method for unknown custom types."""
         self.assertFalse(SimpleValueFO(UnknownTypeForTesting(), frozen=True).is_immutable())
 
-    def test_is_immutable_cycles(self):
-        """Test is_immutable method for cycles."""
-        obj_a = CompositeFO(None, "A", frozen=False)
-        obj_b = CompositeFO(None, "B", frozen=False)
-        obj_a.item_a = obj_b
-        obj_b.item_a = obj_a  # Cycle A <-> B
-        obj_a.freeze()  # Freezes both
-        self.assertTrue(obj_a.is_immutable() and obj_b.is_immutable())
-
-        obj_c = CompositeFO(None, [1, 2], frozen=False)  # C holds a list
-        obj_d = CompositeFO(obj_c, "D", frozen=False)  # D points to C
-        obj_c.item_a = obj_d  # Cycle C <-> D
-        obj_c.freeze()  # Freezes both C and D
-        self.assertFalse(obj_c.is_immutable(), "C has list, so not immutable")
-        self.assertFalse(obj_d.is_immutable(), "D contains C (which is not imm), so D not imm")
-
-        # Self-referential tuple/frozenset containing an immutable FO
-        _ = SimpleValueFO(None, frozen=True)
-        # Note: Python doesn't easily allow direct creation of t = (t,)
-        # We test cycles of FOs *within* tuples for is_immutable:
-        c_obj1 = SimpleValueFO(None, frozen=False)
-        c_obj2 = SimpleValueFO(None, frozen=False)
-        c_obj1.value = (c_obj2,)
-        c_obj2.value = (c_obj1,)  # (c_obj1 ( (c_obj2 ( (c_obj1 ... ) ) ) ) )
-        c_obj1.freeze()  # Freezes both
-        self.assertTrue(c_obj1.is_immutable())
-
-    def test_is_immutable_empty_and_unset_slots(self):
-        """Test is_immutable method for empty and unset slots."""
-        self.assertTrue(EmptySlotsOnlyFO(frozen=True).is_immutable())
-        # UnsetAttributeFO: val_a is primitive, val_b is unset
-        self.assertTrue(UnsetAttributeFO("a_val", frozen=True).is_immutable())
-        # UnsetAttributeFO: val_a is mutable list, val_b is unset
-        self.assertFalse(UnsetAttributeFO([1, 2], frozen=True).is_immutable())
-
-    def test_interaction_freeze_then_is_immutable(self):
-        """Test interaction of freeze and is_immutable."""
-        inner = SimpleValueFO("d", frozen=False)
-        outer = CompositeFO((inner, "s"), None, frozen=False)
-        outer.freeze()  # Freezes outer and recursively inner
-        self.assertTrue(outer.is_immutable())
-
-        outer_list = CompositeFO([SimpleValueFO("d2", frozen=False)], "s2", frozen=False)
-        outer_list.freeze()  # Freezes outer_list, but its list member remains a list,
-        # and the FO inside the list is *not* frozen by this process.
-        self.assertTrue(outer_list.is_frozen())
-        self.assertFalse(outer_list.item_a[0].is_frozen())  # type: ignore[attr-defined]
-        self.assertFalse(outer_list.is_immutable())
-
-    def test_abstract_methods_notimplemented(self):
-        """Test abstract methods for FreezableObject."""
-        # pylint: disable=abstract-method
-        # pylint disable=abstract-class-instantiated
-
-        # Test for BrokenFO (missing both __eq__ and __hash__)
-        class BrokenFO(FreezableObject):
-            """Class that does not implement __eq__ or __hash__."""
-
-            __slots__ = ()
-
-        # This part is correct and should pass if FreezableObject is a proper ABC
+    def test_setattr_delattr_frozen(self):
+        """Test setting and deleting attributes on frozen objects."""
+        obj = SimpleValueFO("data", frozen=True)
         with self.assertRaisesRegex(
-            TypeError,
-            (
-                "Can't instantiate abstract class BrokenFO without an "
-                "implementation for abstract methods '__eq__', '__hash__'"
-            ),
+            AttributeError, "object is frozen; cannot set attribute 'value'"
         ):
-            # pylint: disable=abstract-class-instantiated
-            BrokenFO()  # type: ignore
+            obj.value = "new"
+        with self.assertRaisesRegex(
+            AttributeError, "object is frozen; cannot set attribute 'new_attr'"
+        ):
+            # pylint: disable=attribute-defined-outside-init
+            obj.new_attr = "fail"  # type: ignore
+        with self.assertRaisesRegex(
+            AttributeError, "object is frozen; cannot delete attribute 'value'"
+        ):
+            del obj.value
+        # Test internal _frozen setting bypass (done by freeze/init)
+        object.__setattr__(obj, "_frozen", False)
+        obj.value = "allowed"
+        self.assertEqual(obj.value, "allowed")
 
-        # Test for PartiallyBrokenFO (implements __eq__, missing __hash__)
-        class PartiallyBrokenFO(FreezableObject):
-            """Class that implements __eq__ but not __hash__."""
-
-            __slots__ = ()
-
-            def __eq__(self, other: object) -> bool:
-                return True
-
-            # No __hash__ defined here; Python will set it to None
-
-        # 1. Verify that PartiallyBrokenFO can be instantiated
-        pb_instance = None
-        try:
-            # pylint: disable=abstract-class-instantiated
-            pb_instance = PartiallyBrokenFO()
-        except TypeError:  # pragma: no cover
-            self.fail("PartiallyBrokenFO should be instantiable; Python sets __hash__ = None.")
-
-        self.assertIsNotNone(pb_instance, "PartiallyBrokenFO instance should have been created.")
-
-        # 2. Verify that the class's __hash__ attribute is indeed None
-        self.assertIsNone(
-            PartiallyBrokenFO.__hash__,
-            "PartiallyBrokenFO.__hash__ should be implicitly set to None by Python.",
-        )
-
-        # 3. Verify that attempting to hash an instance raises TypeError
-        with self.assertRaisesRegex(TypeError, "unhashable type: 'PartiallyBrokenFO'"):
-            hash(pb_instance)
-
-    def test_deepcopy_mutable(self):
-        """Test __deepcopy__ on mutable (unfrozen) FreezableObject."""
-        obj = CompositeFO(SimpleValueFO([1, 2]), PointAnatomyFO(1, 2))
-        obj_copy = deepcopy(obj)
-        self.assertIsInstance(obj_copy, CompositeFO)
-        self.assertFalse(obj_copy.is_frozen())
-        self.assertIsNot(obj_copy, obj)
-        # Deepcopy should also copy members
-        self.assertIsNot(obj_copy.item_a, obj.item_a)
-        self.assertIsNot(obj_copy.item_b, obj.item_b)
-        self.assertEqual(obj_copy.item_a, obj.item_a)
-        self.assertEqual(obj_copy.item_b, obj.item_b)
-        # Changing copy does not affect original
-        obj_copy.item_a.value.append(3)
-        self.assertNotEqual(obj_copy.item_a.value, obj.item_a.value)
-
-    def test_deepcopy_frozen_raises(self):
-        """Test __deepcopy__ raises TypeError on frozen FreezableObject."""
-        obj = CompositeFO(SimpleValueFO("abc"), PointAnatomyFO(1, 2))
-        obj.freeze()
-        with self.assertRaisesRegex(TypeError, "object is frozen; cannot deepcopy"):
-            deepcopy(obj)
-
-    def test_deepcopy_preserves_slots(self):
-        """Test __deepcopy__ preserves slot attributes and does not copy unset slots."""
-        obj = UnsetAttributeFO("foo")
-        obj_copy = deepcopy(obj)
-        self.assertTrue(hasattr(obj_copy, "val_a"))
-        self.assertFalse(hasattr(obj_copy, "val_b"))
-        self.assertEqual(obj_copy.val_a, "foo")
-        # Set val_b and test again
-        obj.val_b = "bar"  # pylint: disable=attribute-defined-outside-init
-        obj_copy2 = deepcopy(obj)
-        self.assertEqual(obj_copy2.val_b, "bar")
-        self.assertEqual(obj_copy2.val_a, "foo")
-
-    def test_deepcopy_handles_nested_freezable_objects(self):
-        """Test __deepcopy__ correctly copies nested FreezableObjects."""
-        inner = SimpleValueFO("inner")
-        outer = CompositeFO(inner, "outer")
-        outer_copy = deepcopy(outer)
-        self.assertIsInstance(outer_copy.item_a, SimpleValueFO)
-        self.assertIsNot(outer_copy.item_a, inner)
-        self.assertEqual(outer_copy.item_a.value, "inner")
-        self.assertEqual(outer_copy.item_b, "outer")
+    def test_setattr_delattr_mutable(self):
+        """Test setting and deleting attributes on mutable objects."""
+        obj = SimpleValueFO("data", frozen=False)
+        obj.value = "new"
+        self.assertEqual(obj.value, "new")
+        with self.assertRaises(AttributeError):  # Slotted objects cannot get new attributes easily
+            # pylint: disable=attribute-defined-outside-init
+            obj.new_attr = "fail"  # type: ignore
+        del obj.value
+        self.assertFalse(hasattr(obj, "value"))
 
 
 if __name__ == "__main__":

@@ -112,6 +112,19 @@ def _load_codons_from_files(file_paths: Sequence[str]) -> None:
             _logger.debug("Loaded %d codons from %s", len(codons_list), file_path)
 
 
+def clear_cache() -> None:
+    """Clear the codon cache and loaded files tracking.
+
+    This function clears all cached codon data and resets the loaded files set.
+    Useful for testing or when codon files have been modified and need to be reloaded.
+    """
+    _codon_cache.clear()
+    _loaded_files.clear()
+
+    if _LOG_DEBUG:
+        _logger.debug("Codon cache cleared")
+
+
 def find_codon_signature(
     input_types: Sequence[str],
     output_types: Sequence[str],
@@ -167,16 +180,3 @@ def find_codon_signature(
 
     assert signature is not None  # For type checkers
     return signature
-
-
-def clear_cache() -> None:
-    """Clear the codon cache and loaded files tracking.
-
-    This function clears all cached codon data and resets the loaded files set.
-    Useful for testing or when codon files have been modified and need to be reloaded.
-    """
-    _codon_cache.clear()
-    _loaded_files.clear()
-
-    if _LOG_DEBUG:
-        _logger.debug("Codon cache cleared")

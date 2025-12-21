@@ -12,7 +12,7 @@ class GCType(IntEnum):
     CODON = 0
     ORDINARY = 1
     META = 2
-    RESERVED_3 = 3
+    ORDINARY_META = 3
 
 
 class CGraphType(IntEnum):
@@ -40,14 +40,14 @@ PROPERTIES_CONFIG = {
     "gc_type": {
         "type": "uint",
         "start": 0,
-        "width": 2,
+        "width": 3,
+        "valid": {"range": [(4,)]},
         "default": 0,
-        "valid": {"range": [(3,)]},
         "description": ("GC type."),
     },
     "graph_type": {
         "type": "uint",
-        "start": 2,
+        "start": 3,
         "width": 4,
         "default": 0,
         "valid": {"range": [(7,)]},
@@ -55,8 +55,8 @@ PROPERTIES_CONFIG = {
     },
     "reserved1": {
         "type": "uint",
-        "start": 6,
-        "width": 2,
+        "start": 7,
+        "width": 1,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
@@ -206,8 +206,8 @@ PROPERTIES_CONFIG = {
                     "width": 1,
                     "default": False,
                     "description": (
-                        "The meta codon is a type upcast e.g. Integral "
-                        "--> int which means it must be verified."
+                        "The meta codon is a type upcast e.g. int "
+                        "--> Integral which is always valid."
                     ),
                 },
                 "type_downcast": {
@@ -217,7 +217,37 @@ PROPERTIES_CONFIG = {
                     "default": True,
                     "description": (
                         "The meta codon is a type downcast e.g. "
-                        "int --> Integral which is always valid."
+                        "Integral --> int which means it must be verified."
+                    ),
+                },
+                "reserved8": {
+                    "type": "uint",
+                    "start": 2,
+                    "width": 6,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
+            },
+            {
+                "type_upcast": {
+                    "type": "bool",
+                    "start": 0,
+                    "width": 1,
+                    "default": False,
+                    "description": (
+                        "The meta codon is a type upcast e.g. int "
+                        "--> Integral which is always valid."
+                    ),
+                },
+                "type_downcast": {
+                    "type": "bool",
+                    "start": 1,
+                    "width": 1,
+                    "default": True,
+                    "description": (
+                        "The meta codon is a type downcast e.g. "
+                        "Integral --> int which means it must be verified."
                     ),
                 },
                 "reserved8": {
@@ -321,6 +351,7 @@ if __name__ == "__main__":
 
 
 # TODO: This mask should be generated programmatically by BitDict
-# If the propoerty is a codon or meta codon then it does not matter what any
+# If the propoerty is a codon then it does not matter what any
 # bit values are other that the LSb.
-CODON_META_MASK: int = 0x0000000000000001
+CODON_MASK: int = 0x0000000000000001
+GC_TYPE_MASK: int = 0x0000000000000007

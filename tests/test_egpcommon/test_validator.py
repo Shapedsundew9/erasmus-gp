@@ -55,10 +55,30 @@ class TestValidator(unittest.TestCase):
         self.assertTrue(self.validator._is_float("attr", 1.23))
         self.assertFalse(self.validator._is_float("attr", 123))
 
+    def test_is_hostname(self):
+        """Test the _is_hostname method."""
+        self.assertTrue(self.validator._is_hostname("attr", "example.com"))
+        self.assertTrue(self.validator._is_hostname("attr", "sub.example.co.uk"))
+        self.assertFalse(self.validator._is_hostname("attr", "-invalid.com"))
+        self.assertFalse(self.validator._is_hostname("attr", "invalid-.com"))
+        self.assertFalse(self.validator._is_hostname("attr", "a" * 64 + ".com"))
+
     def test_is_int(self):
         """Test the _is_int method."""
         self.assertTrue(self.validator._is_int("attr", 123))
         self.assertFalse(self.validator._is_int("attr", 1.23))
+
+    def test_is_ip(self):
+        """Test the _is_ip method."""
+        self.assertTrue(self.validator._is_ip("attr", "192.168.1.1"))
+        self.assertTrue(self.validator._is_ip("attr", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"))
+        self.assertFalse(self.validator._is_ip("attr", "not an ip"))
+
+    def test_is_ip_or_hostname(self):
+        """Test the _is_ip_or_hostname method."""
+        self.assertTrue(self.validator._is_ip_or_hostname("attr", "192.168.1.1"))
+        self.assertTrue(self.validator._is_ip_or_hostname("attr", "example.com"))
+        self.assertFalse(self.validator._is_ip_or_hostname("attr", "not valid"))
 
     def test_is_list(self):
         """Test the _is_list method."""
@@ -79,26 +99,6 @@ class TestValidator(unittest.TestCase):
         """Test the _is_uuid method."""
         self.assertTrue(self.validator._is_uuid("attr", uuid4()))
         self.assertFalse(self.validator._is_uuid("attr", "not a uuid"))
-
-    def test_is_hostname(self):
-        """Test the _is_hostname method."""
-        self.assertTrue(self.validator._is_hostname("attr", "example.com"))
-        self.assertTrue(self.validator._is_hostname("attr", "sub.example.co.uk"))
-        self.assertFalse(self.validator._is_hostname("attr", "-invalid.com"))
-        self.assertFalse(self.validator._is_hostname("attr", "invalid-.com"))
-        self.assertFalse(self.validator._is_hostname("attr", "a" * 64 + ".com"))
-
-    def test_is_ip(self):
-        """Test the _is_ip method."""
-        self.assertTrue(self.validator._is_ip("attr", "192.168.1.1"))
-        self.assertTrue(self.validator._is_ip("attr", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"))
-        self.assertFalse(self.validator._is_ip("attr", "not an ip"))
-
-    def test_is_ip_or_hostname(self):
-        """Test the _is_ip_or_hostname method."""
-        self.assertTrue(self.validator._is_ip_or_hostname("attr", "192.168.1.1"))
-        self.assertTrue(self.validator._is_ip_or_hostname("attr", "example.com"))
-        self.assertFalse(self.validator._is_ip_or_hostname("attr", "not valid"))
 
 
 if __name__ == "__main__":

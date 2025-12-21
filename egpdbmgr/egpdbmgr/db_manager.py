@@ -27,7 +27,6 @@ from egpcommon.conversions import (
     decompress_json,
     encode_properties,
     memoryview_to_signature,
-    signature_to_bytes,
 )
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
@@ -53,7 +52,7 @@ GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] =
     ("meta_data", compress_json, decompress_json),
     ("properties", encode_properties, None),
 ) + tuple(
-    (name, signature_to_bytes, memoryview_to_signature)
+    (name, None, memoryview_to_signature)
     for name, field in GGC_KVT.items()
     if field.get("signature", False)
 )
@@ -92,37 +91,6 @@ class DBManager:
                 )
             )
 
-    def prepare_schemas(self) -> dict[TableTypes, dict[str, Any]]:
-        """Prepare the schemas for the different table types.
-        The GenePool schema is defined by default in gp_db_config.py
-        and the other schemas are variants on that.
-        """
-        schema = {k: v for k, v in GGC_KVT.items() if v}
-        schemas = {k: deepcopy(schema) for k in TableTypes}
-        # TODO: Optimise other schemas
-        return schemas
-
-    def create_managed_table(self) -> Table:
-        """Create and return the managed Table object for the DB Manager."""
-        schemas = self.prepare_schemas()
-        schema = schemas[self.config.managed_type]
-        # Check if remote DB exists. If so download from there.
-        # If not download database file from remote URL: Check if it is signed.
-        table_config = TableConfig(
-            database=self.config.databases[self.config.managed_db],
-            table=self.config.managed_type + "_table",
-            schema={
-                # Filter out non-ColumnSchema parameters
-                k1: {k2: v2 for k2, v2 in v1.items() if k2 in ColumnSchema.parameters}
-                for k1, v1 in schema.items()
-            },
-            create_db=True,
-            create_table=True,
-            delete_table=self._delete,
-            conversions=GC_TABLE_CONVERSIONS,
-        )
-        return Table(table_config)
-
     def create_managed_meta_table(self) -> Table:
         """Create and return the managed meta Table object for the DB Manager."""
         # Check if remote DB exists. If so download from there.
@@ -151,6 +119,37 @@ class DBManager:
         )
         return Table(table_config)
 
+    def create_managed_table(self) -> Table:
+        """Create and return the managed Table object for the DB Manager."""
+        schemas = self.prepare_schemas()
+        schema = schemas[self.config.managed_type]
+        # Check if remote DB exists. If so download from there.
+        # If not download database file from remote URL: Check if it is signed.
+        table_config = TableConfig(
+            database=self.config.databases[self.config.managed_db],
+            table=self.config.managed_type + "_table",
+            schema={
+                # Filter out non-ColumnSchema parameters
+                k1: {k2: v2 for k2, v2 in v1.items() if k2 in ColumnSchema.parameters}
+                for k1, v1 in schema.items()
+            },
+            create_db=True,
+            create_table=True,
+            delete_table=self._delete,
+            conversions=GC_TABLE_CONVERSIONS,
+        )
+        return Table(table_config)
+
     def operations(self) -> None:
         """Operations for the DB Manager."""
         _logger.info("Operations for the DB Manager for config named '%s'.", self.config.name)
+
+    def prepare_schemas(self) -> dict[TableTypes, dict[str, Any]]:
+        """Prepare the schemas for the different table types.
+        The GenePool schema is defined by default in gp_db_config.py
+        and the other schemas are variants on that.
+        """
+        schema = {k: v for k, v in GGC_KVT.items() if v}
+        schemas = {k: deepcopy(schema) for k in TableTypes}
+        # TODO: Optimise other schemas
+        return schemas

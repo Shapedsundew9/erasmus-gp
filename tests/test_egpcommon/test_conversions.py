@@ -5,7 +5,6 @@ import unittest
 from numpy import array, uint8
 from numpy.testing import assert_array_equal
 
-from egpcommon.common import NULL_SHA256
 from egpcommon.conversions import (
     bytes_to_list_int,
     compress_json,
@@ -15,12 +14,19 @@ from egpcommon.conversions import (
     memoryview_to_ndarray,
     ndarray_to_bytes,
     ndarray_to_memoryview,
-    null_sha256_to_none,
 )
 
 
 class TestConversions(unittest.TestCase):
     """Test the conversions module."""
+
+    def test_bytes_to_list_int(self):
+        """Test the bytes_to_list_int function."""
+        data = b"\x01\x02\x03"
+        result = bytes_to_list_int(data)
+        self.assertEqual(result, [1, 2, 3])
+
+        self.assertIsNone(bytes_to_list_int(None))
 
     def test_compress_json(self):
         """Test the compress_json function."""
@@ -46,10 +52,19 @@ class TestConversions(unittest.TestCase):
         """Test the decompress_json function."""
         obj = {"key": "value"}
         compressed = compress_json(obj)
+        assert isinstance(compressed, bytes), "Compression did not return bytes."
         decompressed = decompress_json(compressed)
         self.assertEqual(decompressed, obj)
 
         self.assertIsNone(decompress_json(None))
+
+    def test_list_int_to_bytes(self):
+        """Test the list_int_to_bytes function."""
+        data = [1, 2, 3]
+        result = list_int_to_bytes(data)
+        self.assertEqual(result, b"\x01\x02\x03")
+
+        self.assertIsNone(list_int_to_bytes(None))
 
     def test_memoryview_to_bytes(self):
         """Test the memoryview_to_bytes function."""
@@ -68,6 +83,16 @@ class TestConversions(unittest.TestCase):
 
         self.assertIsNone(memoryview_to_ndarray(None))
 
+    def test_ndarray_to_bytes(self):
+        """Test the ndarray_to_bytes function."""
+        arr = array(list(b"test" * 8), dtype=uint8)
+        result = ndarray_to_bytes(arr)
+        self.assertEqual(result, b"test" * 8)
+
+        b = b"test"
+        result = ndarray_to_bytes(b)
+        self.assertEqual(result, b)
+
     def test_ndarray_to_memoryview(self):
         """Test the ndarray_to_memoryview function."""
         arr = array(list(b"test" * 8), dtype=uint8)
@@ -81,36 +106,3 @@ class TestConversions(unittest.TestCase):
         result = ndarray_to_memoryview(b)
         assert isinstance(result, memoryview)
         self.assertEqual(result.tobytes(), b)
-
-    def test_ndarray_to_bytes(self):
-        """Test the ndarray_to_bytes function."""
-        arr = array(list(b"test" * 8), dtype=uint8)
-        result = ndarray_to_bytes(arr)
-        self.assertEqual(result, b"test" * 8)
-
-        b = b"test"
-        result = ndarray_to_bytes(b)
-        self.assertEqual(result, b)
-
-    def test_list_int_to_bytes(self):
-        """Test the list_int_to_bytes function."""
-        data = [1, 2, 3]
-        result = list_int_to_bytes(data)
-        self.assertEqual(result, b"\x01\x02\x03")
-
-        self.assertIsNone(list_int_to_bytes(None))
-
-    def test_bytes_to_list_int(self):
-        """Test the bytes_to_list_int function."""
-        data = b"\x01\x02\x03"
-        result = bytes_to_list_int(data)
-        self.assertEqual(result, [1, 2, 3])
-
-        self.assertIsNone(bytes_to_list_int(None))
-
-    def test_null_sha256_to_none(self):
-        """Test the null_sha256_to_none function."""
-        self.assertIsNone(null_sha256_to_none(NULL_SHA256))
-        self.assertIsNone(null_sha256_to_none(NULL_SHA256))
-        self.assertEqual(null_sha256_to_none(b"test"), b"test")
-        self.assertIsNone(null_sha256_to_none(None))

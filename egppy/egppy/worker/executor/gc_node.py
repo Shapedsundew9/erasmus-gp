@@ -6,8 +6,9 @@ from collections.abc import Hashable, Iterable, Iterator
 from itertools import count
 from typing import TYPE_CHECKING
 
+from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
-from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, Row, SrcIfKey, SrcRow
 from egppy.genetic_code.genetic_code import (
     MERMAID_BLUE,
     MERMAID_FOOTER,
@@ -19,12 +20,57 @@ from egppy.genetic_code.genetic_code import (
     mc_hexagon_str,
     mc_rectangle_str,
 )
-from egppy.genetic_code.ggc_class_factory import GCABC, NULL_GC, NULL_SIGNATURE
+from egppy.genetic_code.ggc_dict import GCABC, NULL_GC
 from egppy.genetic_code.interface import Interface
+from egppy.genetic_code.json_cgraph import c_graph_type
 from egppy.worker.executor.function_info import NULL_FUNCTION_MAP, FunctionInfo
 
 if TYPE_CHECKING:
     from egppy.worker.executor.code_connection import CodeConnection
+
+
+# Mermaid Chart creation helper function
+def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str:
+    """Return a Mermaid Chart string representation of the connection between two nodes."""
+    src = connection.src
+    dst = connection.dst
+    arrow = f"-- {src.idx}:{dst.idx} -->"
+    namea = src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
+    nameb = dst.node.uid if dst.node is not root and dst.row is not DstRow.O else dst.node.uid + "O"
+    return mc_connect_str(namea, nameb, arrow)
+
+
+def mc_code_node_str(gcnode: GCNode) -> str:
+    """Return a Mermaid Chart string representation of the code (terminal GCNode)."""
+    if gcnode.exists or gcnode.write:
+        # Stub ivns for the call string to keep the length under control.
+        label = f"{gcnode.finfo.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        return mc_rectangle_str(gcnode.uid, label, MERMAID_GREEN)
+    assert (
+        gcnode.is_codon
+    ), "If the GC function does not exist and is not going to, it must be a codon."
+    if not gcnode.is_meta:
+        label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
+        return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
+    cgraph = gcnode.gc["cgraph"]
+    od_endpoints = cgraph.get(DstIfKey.OD)
+    od_typ_name = od_endpoints[0].typ.name if od_endpoints else "None"
+    label = f"is({od_typ_name})<br>{gcnode.gc['signature'].hex()[-8:]}"
+    return mc_hexagon_str(gcnode.uid, label, MERMAID_GREEN)
+
+
+# Mermaid Chart creation helper function
+def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_GREEN) -> str:
+    """Return a Mermaid Chart string representation of the codon structure
+    GCNode in the logical structure."""
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    return mc_circle_str(gcnode.uid, label, color)
+
+
+# Mermaid Chart creation helper function
+def mc_connection_node_str(gcnodea: GCNode, gcnodeb: GCNode) -> str:
+    """Return a Mermaid Chart string representation of the connection between two nodes."""
+    return mc_connect_str(gcnodea.uid, gcnodeb.uid)
 
 
 # Mermaid Chart creation helper function
@@ -44,22 +90,6 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
 
 
 # Mermaid Chart creation helper function
-def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_RED) -> str:
-    """Return a Mermaid Chart string representation of the unknown structure
-    GCNode in the logical structure."""
-    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
-    return mc_circle_str(gcnode.uid, label, color)
-
-
-# Mermaid Chart creation helper function
-def mc_codon_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_GREEN) -> str:
-    """Return a Mermaid Chart string representation of the codon structure
-    GCNode in the logical structure."""
-    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
-    return mc_circle_str(gcnode.uid, label, color)
-
-
-# Mermaid Chart creation helper function
 def mc_meta_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_GREEN) -> str:
     """Return a Mermaid Chart string representation of the meta-codon structure
     GCNode in the logical structure."""
@@ -67,37 +97,12 @@ def mc_meta_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_GREEN) -> st
     return mc_hexagon_str(gcnode.uid, label, color)
 
 
-def mc_code_node_str(gcnode: GCNode) -> str:
-    """Return a Mermaid Chart string representation of the code (terminal GCNode)."""
-    if gcnode.exists or gcnode.write:
-        # Stub ivns for the call string to keep the length under control.
-        label = f"{gcnode.finfo.call_str('')}<br>{gcnode.gc['signature'].hex()[-8:]}"
-        return mc_rectangle_str(gcnode.uid, label, MERMAID_GREEN)
-    assert (
-        gcnode.is_codon
-    ), "If the GC function does not exist and is not going to, it must be a codon."
-    if not gcnode.is_meta:
-        label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
-        return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
-    label = f"is({gcnode.gc['cgraph']['Od'][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
-    return mc_hexagon_str(gcnode.uid, label, MERMAID_GREEN)
-
-
 # Mermaid Chart creation helper function
-def mc_connection_node_str(gcnodea: GCNode, gcnodeb: GCNode) -> str:
-    """Return a Mermaid Chart string representation of the connection between two nodes."""
-    return mc_connect_str(gcnodea.uid, gcnodeb.uid)
-
-
-# Mermaid Chart creation helper function
-def mc_code_connection_node_str(connection: CodeConnection, root: GCNode) -> str:
-    """Return a Mermaid Chart string representation of the connection between two nodes."""
-    src = connection.src
-    dst = connection.dst
-    arrow = f"-- {src.idx}:{dst.idx} -->"
-    namea = src.node.uid if src.node is not root and src.row is not SrcRow.I else src.node.uid + "I"
-    nameb = dst.node.uid if dst.node is not root and dst.row is not DstRow.O else dst.node.uid + "O"
-    return mc_connect_str(namea, nameb, arrow)
+def mc_unknown_node_str(gcnode: GCNode, row: Row, color: str = MERMAID_RED) -> str:
+    """Return a Mermaid Chart string representation of the unknown structure
+    GCNode in the logical structure."""
+    label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
+    return mc_circle_str(gcnode.uid, label, color)
 
 
 class GCNodeIterator(Iterator):
@@ -137,7 +142,11 @@ class GCNodeIterator(Iterator):
 
     def _traverse(self, node: GCNode) -> None:
         """Traverse the GCNode graph to the limit of the GCA nodes."""
+        seen: set[GCNode] = set()
         while node.gca_node is not NULL_GC_NODE:
+            if node in seen:
+                raise AssertionError("GCNode graph contains a cycle.")
+            seen.add(node)
             node = node.gca_node
             self.stack.append(node)
 
@@ -233,6 +242,10 @@ class GCNode(Iterable, Hashable):
         "gcb",
         "terminal",
         "f_connection",
+        "graph_type",
+        "is_conditional",
+        "is_loop",
+        "condition_var_name",
         "gca_node",
         "gcb_node",
         "uid",
@@ -255,6 +268,8 @@ class GCNode(Iterable, Hashable):
         gpi: GenePoolInterface | None = None,
         wmc: bool = False,
     ) -> None:
+        # TODO: This keeps the GCABC hanging around. It should not. Should be pulled from
+        # the GPI everytime it is accessed to reduce memory usage.
         self.gc: GCABC = gc  # GCABC instance for this work dictionary
 
         # Defaults. These may be changed depending on the GC structure and what
@@ -266,10 +281,18 @@ class GCNode(Iterable, Hashable):
         self.finfo: FunctionInfo = finfo
         self.write: bool = False  # True if the node is to be written as a function
         self.assess: bool = True  # True if the number of lines has not been determined
-        self.gca: GCABC | bytes = gc["gca"]
-        self.gcb: GCABC | bytes = gc["gcb"]
+        self.gca: GCABC | bytes = gc["gca"] if gc["gca"] is not None else NULL_GC
+        self.gcb: GCABC | bytes = gc["gcb"] if gc["gcb"] is not None else NULL_GC
         self.terminal: bool = False  # A terminal node is where a connection ends
-        self.f_connection: bool = gc.is_conditional()
+        # Cache the graph type to avoid repeated lookups
+        self.graph_type: CGraphType = (
+            c_graph_type(gc["cgraph"]) if gc is not NULL_GC else CGraphType.UNKNOWN
+        )
+        # Set conditional flags based on graph type
+        self.is_conditional: bool = self.graph_type in (CGraphType.IF_THEN, CGraphType.IF_THEN_ELSE)
+        self.is_loop: bool = self.graph_type in (CGraphType.FOR_LOOP, CGraphType.WHILE_LOOP)
+        self.f_connection: bool = self.is_conditional
+        self.condition_var_name: str | None = None
         self.is_pgc: bool = gc.is_pgc()
         # If this node is a null GC node then it is a leaf node and we self
         # reference with GCA & GCB to terminate the recursion.
@@ -304,11 +327,11 @@ class GCNode(Iterable, Hashable):
 
         if self.is_codon:
             assert (
-                self.gca is NULL_GC or self.gca == NULL_SIGNATURE
-            ), "GCA must be NULL_GC for a codon"
+                self.gca is NULL_GC or self.gca is None
+            ), "GCA must be NULL_GC or None for a codon"
             assert (
-                self.gcb is NULL_GC or self.gcb == NULL_SIGNATURE
-            ), "GCB must be NULL_GC for a codon"
+                self.gcb is NULL_GC or self.gcb is None
+            ), "GCB must be NULL_GC or None for a codon"
 
             # Make sure we are not holding bytes for GCA or GCB
             self.gca = NULL_GC
@@ -368,6 +391,35 @@ class GCNode(Iterable, Hashable):
         str_list.append("\n")
         return "\n".join(str_list)
 
+    def _mermaid_body(self, gc_node: GCNode) -> list[str]:
+        """Return the Mermaid chart for the GC node graph."""
+        # If the GC executable exists then return a green node
+        if gc_node.exists:
+            return [mc_gc_node_str(gc_node, gc_node.iam, "green")]
+
+        # Build up the GC structure chart
+        work_queue: list[tuple[GCNode, GCNode, GCNode]] = [
+            (gc_node, gc_node.gca_node, gc_node.gcb_node)
+        ]
+        chart_txt: list[str] = [mc_gc_node_str(gc_node, gc_node.iam)]
+        while work_queue:
+            gc_node, gca_node, gcb_node = work_queue.pop(0)
+            for gcx_node, row in ((gca_node, SrcRow.A), (gcb_node, SrcRow.B)):
+                if gcx_node is not NULL_GC_NODE:
+                    if gcx_node.exists or gcx_node.write:
+                        chart_txt.append(f'    subgraph {gcx_node.uid}sd[" "]')
+                        chart_txt.extend(self._mermaid_body(gcx_node))
+                        chart_txt.append("    end")
+                        chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
+                    elif not gcb_node.unknown:
+                        work_queue.append((gcx_node, gcx_node.gca_node, gcx_node.gcb_node))
+                        chart_txt.append(mc_gc_node_str(gcx_node, row))
+                        chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
+                    else:
+                        chart_txt.append(mc_unknown_node_str(gcx_node, row))
+                        chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
+        return chart_txt
+
     def code_mermaid_chart(self) -> str:
         """Return the Mermaid chart for the GC code graph.
         In the event the node will not be written then return an empty string."""
@@ -379,9 +431,9 @@ class GCNode(Iterable, Hashable):
             "---",
         ]
         chart_txt: list[str] = []
-        if len(self.gc["inputs"]) > 0:
+        if self.gc["num_inputs"] > 0:
             chart_txt.append(f'    {self.uid}I["inputs"]')
-        if len(self.gc["outputs"]) > 0:
+        if self.gc["num_outputs"] > 0:
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
@@ -407,8 +459,8 @@ class GCNode(Iterable, Hashable):
             that are required for any type hints.
         """
         # Define the function input parameters
-        iface: Interface = self.gc["cgraph"]["Is"]
-        inum: int = len(self.gc["inputs"])
+        iface: Interface = self.gc["cgraph"][SrcIfKey.IS]
+        inum: int = len(iface)
         iparams = "i"
 
         if hints:
@@ -424,13 +476,13 @@ class GCNode(Iterable, Hashable):
 
         if hints:
             # Add type hints for output parameters
-            onum = len(self.gc["outputs"])
+            onum = self.gc["num_outputs"]
             if onum > 1:
-                oface = self.gc["cgraph"]["Od"]
+                oface = self.gc["cgraph"][DstIfKey.OD]
                 output_types = ", ".join(str(oface[i].typ) for i in range(onum))
                 ret_type = f"tuple[{output_types}]"
             elif onum == 1:
-                ret_type = str(self.gc["cgraph"]["Od"][0].typ)
+                ret_type = str(self.gc["cgraph"][DstIfKey.OD][0].typ)
             elif onum == 0:
                 ret_type = "None"
             else:
@@ -497,35 +549,6 @@ class GCNode(Iterable, Hashable):
     def mermaid_chart(self) -> str:
         """Return the Mermaid chart for the GC node graph."""
         return "\n".join(MERMAID_HEADER + self._mermaid_body(self) + MERMAID_FOOTER)
-
-    def _mermaid_body(self, gc_node: GCNode) -> list[str]:
-        """Return the Mermaid chart for the GC node graph."""
-        # If the GC executable exists then return a green node
-        if gc_node.exists:
-            return [mc_gc_node_str(gc_node, gc_node.iam, "green")]
-
-        # Build up the GC structure chart
-        work_queue: list[tuple[GCNode, GCNode, GCNode]] = [
-            (gc_node, gc_node.gca_node, gc_node.gcb_node)
-        ]
-        chart_txt: list[str] = [mc_gc_node_str(gc_node, gc_node.iam)]
-        while work_queue:
-            gc_node, gca_node, gcb_node = work_queue.pop(0)
-            for gcx_node, row in ((gca_node, SrcRow.A), (gcb_node, SrcRow.B)):
-                if gcx_node is not NULL_GC_NODE:
-                    if gcx_node.exists or gcx_node.write:
-                        chart_txt.append(f'    subgraph {gcx_node.uid}sd[" "]')
-                        chart_txt.extend(self._mermaid_body(gcx_node))
-                        chart_txt.append("    end")
-                        chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
-                    elif not gcb_node.unknown:
-                        work_queue.append((gcx_node, gcx_node.gca_node, gcx_node.gcb_node))
-                        chart_txt.append(mc_gc_node_str(gcx_node, row))
-                        chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
-                    else:
-                        chart_txt.append(mc_unknown_node_str(gcx_node, row))
-                        chart_txt.append(mc_connection_node_str(gc_node, gcx_node))
-        return chart_txt
 
 
 # The null GC node is used to indicate that a GC does not exist. It is therefore not a leaf node

@@ -2,16 +2,19 @@
 
 from collections.abc import Iterable
 from os.path import dirname, join
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.properties import GC_TYPE_MASK, GCType
 from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_class_factory import GGCDict
+from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
+from egppy.genetic_code.gpg_view import GPGCView
+from egppy.genetic_code.types_def import TypesDef
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.db_table_store import DBTableStore
@@ -45,7 +48,7 @@ class GenePoolInterface(GPIABC):
         if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
             self._dbm = DBManager(config, delete=True)
-        self._local_dbt = DBTableStore(self._dbm.managed_gc_table.raw.config, GGCDict)
+        self._local_dbt = DBTableStore(self._dbm.managed_gc_table.raw.config, GPGCView, GGCDict)
         self._ggc_cache = DictCache(
             {
                 "max_items": cache_size,
@@ -74,15 +77,23 @@ class GenePoolInterface(GPIABC):
             # Make sure all data is written to the database
             self._ggc_cache.copyback()
 
-    def __getitem__(self, signature: bytes) -> GGCDict:
-        """Get a Genetic Code by its signature."""
-        return self._ggc_cache[signature]
+    def __contains__(self, signature: bytes) -> bool:
+        """Check if a Genetic Code exists in the local cache using its signature."""
+        return signature in self._ggc_cache
 
-    def __setitem__(self, signature: bytes, value: GGCDict) -> None:
-        """Set a Genetic Code by its signature.
-        NOTE: This will be an UPSERT operation in the database.
+    def __getitem__(self, gc: bytes | GGCDict) -> GGCDict:
+        """Get a Genetic Code by its signature."""
+        # TODO: Need to handle the case where the GC is not found in the GP.
+        # In that case we fall back to the microbiome GPL (which will fallback
+        # to the biome GPL etc.) and we could receive a timeout or rate limit
+        # response.
+        return self._ggc_cache[gc if isinstance(gc, bytes) else gc["signature"]]
+
+    def __setitem__(self, signature: bytes, value: GCABC) -> None:
+        """Place a genetic code in the cache. NB: It is not persisted to the
+        database until the cache is flushed / purged.
         """
-        self._ggc_cache[signature] = value
+        self._ggc_cache[signature] = value if isinstance(value, GGCDict) else GGCDict(value)
 
     def _should_reload_sources(self) -> bool:
         """Determine if the Gene Pool sources should be reloaded.
@@ -139,7 +150,9 @@ class GenePoolInterface(GPIABC):
         )
         return tuple(row_iter)
 
-    def select_gc(self, where: str, order_by: str, literals: dict[str, Any] | None = None) -> GCABC:
+    def select_gc(
+        self, where: str, order_by: str, literals: dict[str, Any] | None = None
+    ) -> GGCDict:
         """Select a single Genetic Code based on PSQL fragments.
 
         Args:
@@ -155,6 +168,66 @@ class GenePoolInterface(GPIABC):
         for ggc in row_iter:
             return GGCDict(ggc)
         raise KeyError("No Genetic Code found matching the query.")
+
+    def select_meta(self, pts: Sequence[tuple[TypesDef, TypesDef]]) -> GCABC:
+        """Select a meta Genetic Code that has the exact matching input and output types.
+        Note that the order does not matter but the inputs and outputs must be aligned.
+
+        Example
+        -------
+        Suppose we have the following input-output type pairs:
+            pts: [(int, Integral), (int, Integral), (object, str)]
+        Then the selected meta Genetic Code can be any order of the input and output pairs:
+            (int -> Integral), (int -> Integral), (object -> str)
+
+        Args:
+            ipts: The input types definitions.
+            opts: The output types definitions.
+        Returns:
+            The selected meta Genetic Code or NULL_GC if none is found.
+        """
+        # Sanity on parameters
+        assert all(i != o for i, o in pts), "Input and output types must differ."
+
+        # Input types and indices
+        # Note that meta genetic codes input interfaces are always sorted in type order
+        # to make them easier to find.
+        itypes = sorted(set(t[0].uid for t in pts))
+        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(itypes)}
+        isort = sorted(pts, key=lambda pair: pair[0].uid)
+        iindices = bytes(lookup_indices[t[0].uid] for t in isort)
+
+        # Output types and indices
+        otypes = sorted(set(t[1].uid for t in pts))
+        lookup_indices = {uid: idx for idx, uid in enumerate(otypes)}
+        oindices = bytes(lookup_indices[t[1].uid] for t in isort)
+
+        query = (
+            " WHERE ({properties} & {mask} in ({meta}, {ordinary_meta}))"
+            " AND {input_types} = {itypes}"
+            " AND {inputs} = {iindices} AND {output_types} = {otypes}"
+            " AND {outputs} = {oindices}"
+        )
+        literals = {
+            "mask": GC_TYPE_MASK,
+            "meta": GCType.META,
+            "ordinary_meta": GCType.ORDINARY_META,
+            "itypes": itypes,
+            "iindices": iindices,
+            "otypes": otypes,
+            "oindices": oindices,
+        }
+        row_iter = self._dbm.managed_gc_table.select(
+            query,
+            literals=literals,
+            columns="*",
+            container="dict",
+        )
+
+        # Return the first matching genetic code or NULL_GC
+        for ggc in row_iter:
+            return GGCDict(ggc)
+        return NULL_GC
 
     def verify(self) -> None:
         """Verify the Gene Pool."""

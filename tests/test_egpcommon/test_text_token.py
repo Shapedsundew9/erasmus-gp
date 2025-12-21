@@ -12,15 +12,11 @@ class TestTextToken(unittest.TestCase):
         # Clear the token library before each test
         token_library.clear()
 
-    def test_register_token_valid(self):
-        """Test that a valid token can be registered."""
-        register_token_code("E00000", "A test token")
-        self.assertIn("E00000", token_library)
-
-    def test_register_token_invalid_prefix(self):
-        """Test that an invalid token prefix cannot be registered."""
+    def test_register_token_in_use(self):
+        """Test that a token cannot be registered twice."""
+        register_token_code("E00001", "A test token")
         with self.assertRaises(ValueError):
-            register_token_code("N00000", "A test token")
+            register_token_code("E00001", "A test token")
 
     def test_register_token_invalid_length(self):
         """Test that an invalid token length cannot be registered."""
@@ -32,11 +28,15 @@ class TestTextToken(unittest.TestCase):
         with self.assertRaises(ValueError):
             register_token_code("E-2354", "A test token")
 
-    def test_register_token_in_use(self):
-        """Test that a token cannot be registered twice."""
-        register_token_code("E00001", "A test token")
+    def test_register_token_invalid_prefix(self):
+        """Test that an invalid token prefix cannot be registered."""
         with self.assertRaises(ValueError):
-            register_token_code("E00001", "A test token")
+            register_token_code("N00000", "A test token")
+
+    def test_register_token_valid(self):
+        """Test that a valid token can be registered."""
+        register_token_code("E00000", "A test token")
+        self.assertIn("E00000", token_library)
 
     def test_text_token(self):
         """Test that a text_token can be created."""

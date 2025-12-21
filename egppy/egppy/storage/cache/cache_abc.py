@@ -28,13 +28,16 @@ class CacheABC(StoreABC):
     """
 
     @abstractmethod
-    def __init__(self, config: CacheConfig) -> None:
+    def __init__(self, config: CacheConfig, level_one: bool = True) -> None:
         """Initialize the cache configuration."""
         # These unused definitions prevent pylance from complaining about missing attributes
         self.max_items: int = config["max_items"]
         self.purge_count: int = config["purge_count"]
         self.next_level: StoreABC = config["next_level"]
         self.flavor: type[StorableObjABC] = config["flavor"]
+
+        # If the cache is the level one cache
+        self.level_one: bool = level_one
         raise NotImplementedError("CacheABC.__init__ must be overridden")
 
     @abstractmethod

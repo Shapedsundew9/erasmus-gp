@@ -12,6 +12,7 @@ from bitdict import BitDictABC, bitdict_factory
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.freezable_object import FreezableObject
+from egpcommon.object_deduplicator import format_deduplicator_info
 from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.validator import Validator
 from egpdb.configuration import ColumnSchema
@@ -137,17 +138,17 @@ class TypesDef(FreezableObject, Validator):
             return self.__uid == value.uid
         return False
 
-    def __gt__(self, other: object) -> bool:
-        """Return True if this object's UID is greater than the other object's UID."""
-        if not isinstance(other, TypesDef):
-            return NotImplemented
-        return self.__uid > other.uid
-
     def __ge__(self, other: object) -> bool:
         """Return True if this object's UID is greater than or equal to the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
         return self.__uid >= other.uid
+
+    def __gt__(self, other: object) -> bool:
+        """Return True if this object's UID is greater than the other object's UID."""
+        if not isinstance(other, TypesDef):
+            return NotImplemented
+        return self.__uid > other.uid
 
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
@@ -342,11 +343,6 @@ class TypesDef(FreezableObject, Validator):
         """Return the parents of the type definition."""
         return self.__parents
 
-    @property
-    def uid(self) -> int:
-        """Return the UID of the type definition."""
-        return self.bd.to_int()
-
     def to_json(self) -> dict:
         """Return Type Definition as a JSON serializable dictionary."""
         return {
@@ -366,6 +362,11 @@ class TypesDef(FreezableObject, Validator):
         retval = bd["tt"]
         assert isinstance(retval, int), "TT must be an integer."
         return retval
+
+    @property
+    def uid(self) -> int:
+        """Return the UID of the type definition."""
+        return self.bd.to_int()
 
     def xuid(self) -> int:
         """Return the XUID of the type definition."""
@@ -400,24 +401,17 @@ class TypesDefStore:
     _cache_hits: int = 0
     _cache_misses: int = 0
 
-    def _initialize_db_store(self) -> None:
-        """Initialize the database store if it has not been initialized yet.
-        This is done lazily to avoid import overheads when not used.
-        """
-        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
-        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
-        if DB_STORE_TABLE_CONFIG.delete_table:
-            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
-            for name in DB_STORE_TABLE_CONFIG.data_files:
-                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
-                if not verify_signed_file(filename):
-                    raise InvalidSignatureError(
-                        f"Signature verification failed for file: {filename}"
-                    )
-                sig_data = load_signature_data(filename + ".sig")
-                sig_data["source_path"] = filename
-                TypesDefStore._db_sources.insert((sig_data,))
-        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+    _ancestors_cache: dict[int, frozenset[TypesDef]] = {}
+    _ancestors_cache_order: list[int] = []
+    _ancestors_cache_maxsize: int = 128
+    _ancestors_cache_hits: int = 0
+    _ancestors_cache_misses: int = 0
+
+    _descendants_cache: dict[int, frozenset[TypesDef]] = {}
+    _descendants_cache_order: list[int] = []
+    _descendants_cache_maxsize: int = 128
+    _descendants_cache_hits: int = 0
+    _descendants_cache_misses: int = 0
 
     def __contains__(self, key: int | str) -> bool:
         """Check if the key is in the store."""
@@ -429,8 +423,25 @@ class TypesDefStore:
             return False
         return True
 
+    def __copy__(self):
+        """Called by copy.copy()"""
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy().
+        'memo' is a dictionary used to track recursion loops.
+        """
+        # Since we are returning self, we don't need to use memo,
+        # but the signature requires it.
+        return self
+
     def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
+
         # Check cache first
         if key in TypesDefStore._cache:
             TypesDefStore._cache_hits += 1
@@ -438,9 +449,6 @@ class TypesDefStore:
 
         TypesDefStore._cache_misses += 1
 
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        assert TypesDefStore._db_store is not None, "DB store must be initialized."
         if isinstance(key, int):
             td = TypesDefStore._db_store.get(key, {})
         elif isinstance(key, str):
@@ -468,6 +476,25 @@ class TypesDefStore:
 
         return ntd
 
+    def _initialize_db_store(self) -> None:
+        """Initialize the database store if it has not been initialized yet.
+        This is done lazily to avoid import overheads when not used.
+        """
+        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
+        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
+        if DB_STORE_TABLE_CONFIG.delete_table:
+            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+            for name in DB_STORE_TABLE_CONFIG.data_files:
+                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
+                if not verify_signed_file(filename):
+                    raise InvalidSignatureError(
+                        f"Signature verification failed for file: {filename}"
+                    )
+                sig_data = load_signature_data(filename + ".sig")
+                sig_data["source_path"] = filename
+                TypesDefStore._db_sources.insert((sig_data,))
+        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+
     def _should_reload_table(self) -> bool:
         """Determine if the types_def table should be reloaded."""
         db_sources = TypesDefStore._db_sources
@@ -488,37 +515,101 @@ class TypesDefStore:
         TypesDefStore._db_sources = db_sources
         return num_entries < num_files
 
-    def ancestors(self, key: str | int) -> tuple[TypesDef, ...]:
-        """Return the type definition and all ancestors by name or UID.
-        The ancestors are the parents, grandparents etc. in depth order (type "key" first).
+    def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
+        """Returns the specified type definition and all its ancestor type
+        definitions in depth order.
+
+        Ancestors are defined as the parents, grandparents, etc., of the given type,
+        including the type itself. The search starts from the provided key
+        (which can be a name, UID, or TypesDef instance) and traverses up the parent hierarchy.
+        Results are cached for performance.
+
+        Args:
+            key (str | int | TypesDef): The identifier (name, UID, or TypesDef instance)
+            of the type definition to start from.
+
+        Returns:
+            frozenset[TypesDef]: A frozenset containing the type definition and all its
+            ancestors, in depth order.
+
+        Raises:
+            KeyError: If the provided key does not correspond to a valid type definition.
         """
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
-        if not isinstance(key, (int, str)):
-            raise TypeError(f"Invalid key type: {type(key)}")
-        stack: set[TypesDef] = {self[key]}
+        td = self[key] if not isinstance(key, TypesDef) else key
+
+        if td.uid in TypesDefStore._ancestors_cache:
+            TypesDefStore._ancestors_cache_hits += 1
+            return TypesDefStore._ancestors_cache[td.uid]
+
+        TypesDefStore._ancestors_cache_misses += 1
+
+        stack: set[TypesDef] = {td}
         ancestors: set[TypesDef] = set()
         while stack:
             parent: TypesDef = stack.pop()
             if parent not in ancestors:
                 ancestors.add(parent)
                 stack.update(self[p] for p in parent.parents)
-        return tuple(sorted(ancestors, key=lambda td: td.depth, reverse=True))
 
-    def descendants(self, key: str | int) -> tuple[TypesDef, ...]:
-        """Return the type definition and all descendants by name or UID.
-        The descendants are the children, grandchildren etc. in depth order (type "key" first).
+        result = frozenset(ancestors)
+        TypesDefStore._ancestors_cache[td.uid] = result
+        TypesDefStore._ancestors_cache_order.append(td.uid)
+
+        if len(TypesDefStore._ancestors_cache_order) > TypesDefStore._ancestors_cache_maxsize:
+            evict_key = TypesDefStore._ancestors_cache_order.pop(0)
+            del TypesDefStore._ancestors_cache[evict_key]
+
+        return result
+
+    def descendants(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
+        """Returns the specified type definition and all its descendant type
+        definitions in depth order.
+
+        Descendants are defined as the children, grandchildren, etc., of the given type,
+        including the type itself. The search starts from the provided key
+        (which can be a name, UID, or TypesDef instance) and traverses down the child hierarchy.
+        Results are cached for performance.
+
+        Args:
+            key (str | int | TypesDef): The identifier (name, UID, or TypesDef instance)
+            of the type definition to start from.
+
+        Returns:
+            frozenset[TypesDef]: A frozenset containing the type definition and all its
+            descendants, in depth order.
+
+        Raises:
+            KeyError: If the provided key does not correspond to a valid type definition.
         """
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
-        stack: set[TypesDef] = {self[key]}
+        td = self[key] if not isinstance(key, TypesDef) else key
+
+        if td.uid in TypesDefStore._descendants_cache:
+            TypesDefStore._descendants_cache_hits += 1
+            return TypesDefStore._descendants_cache[td.uid]
+
+        TypesDefStore._descendants_cache_misses += 1
+
+        stack: set[TypesDef] = {td}
         descendants: set[TypesDef] = set()
         while stack:
             child: TypesDef = stack.pop()
             if child not in descendants:
                 descendants.add(child)
                 stack.update(self[c] for c in child.children)
-        return tuple(sorted(descendants, key=lambda td: td.depth, reverse=True))
+
+        result = frozenset(descendants)
+        TypesDefStore._descendants_cache[td.uid] = result
+        TypesDefStore._descendants_cache_order.append(td.uid)
+
+        if len(TypesDefStore._descendants_cache_order) > TypesDefStore._descendants_cache_maxsize:
+            evict_key = TypesDefStore._descendants_cache_order.pop(0)
+            del TypesDefStore._descendants_cache[evict_key]
+
+        return result
 
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
@@ -532,13 +623,33 @@ class TypesDefStore:
 
     def info(self) -> str:
         """Print cache hit and miss statistics."""
-        total = TypesDefStore._cache_hits + TypesDefStore._cache_misses
-        hit_rate = TypesDefStore._cache_hits / total if total > 0 else 0.0
-        info_str = (
-            f"TypesDefStore Cache hits: {TypesDefStore._cache_hits}\n"
-            f"TypesDefStore Cache misses: {TypesDefStore._cache_misses}\n"
-            f"TypesDefStore Cache hit rate: {hit_rate:.2%}\n"
-            f"TypesDefStore Cache size: {len(TypesDefStore._cache)}/{TypesDefStore._cache_maxsize}"
+        info_str = "\n".join(
+            (
+                format_deduplicator_info(
+                    "TypesDefStore",
+                    0.649,
+                    TypesDefStore._cache_hits,
+                    TypesDefStore._cache_misses,
+                    len(TypesDefStore._cache),
+                    TypesDefStore._cache_maxsize,
+                ),
+                format_deduplicator_info(
+                    "Ancestors",
+                    0.649,
+                    TypesDefStore._ancestors_cache_hits,
+                    TypesDefStore._ancestors_cache_misses,
+                    len(TypesDefStore._ancestors_cache),
+                    TypesDefStore._ancestors_cache_maxsize,
+                ),
+                format_deduplicator_info(
+                    "Descendants",
+                    0.649,
+                    TypesDefStore._descendants_cache_hits,
+                    TypesDefStore._descendants_cache_misses,
+                    len(TypesDefStore._descendants_cache),
+                    TypesDefStore._descendants_cache_maxsize,
+                ),
+            )
         )
         _logger.info(info_str)
         return info_str

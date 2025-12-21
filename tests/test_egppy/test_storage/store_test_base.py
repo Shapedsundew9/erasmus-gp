@@ -42,9 +42,19 @@ class StoreTestBase(unittest.TestCase):
     key2: Hashable = "key2"
 
     @classmethod
+    def get_store_cls(cls) -> type[StoreABC]:
+        """Get the Store class."""
+        return cls.store_type
+
+    @classmethod
     def get_test_cls(cls) -> type:
         """Get the TestCase class."""
         return cls
+
+    @classmethod
+    def get_value_cls(cls) -> type[StorableObjABC]:
+        """Get the Value class."""
+        return cls.value_type
 
     @classmethod
     def running_in_test_base_class(cls) -> bool:
@@ -52,16 +62,6 @@ class StoreTestBase(unittest.TestCase):
         # Alternative is to skip:
         # raise unittest.SkipTest('Base class test not run')
         return cls.get_test_cls().__name__.endswith("TestBase")
-
-    @classmethod
-    def get_store_cls(cls) -> type[StoreABC]:
-        """Get the Store class."""
-        return cls.store_type
-
-    @classmethod
-    def get_value_cls(cls) -> type[StorableObjABC]:
-        """Get the Value class."""
-        return cls.value_type
 
     def setUp(self) -> None:
         self.store_type: type[StoreABC] = self.get_store_cls()
@@ -76,64 +76,6 @@ class StoreTestBase(unittest.TestCase):
         self.key1: Hashable = self.test_type.key1
         self.key2: Hashable = self.test_type.key2
 
-    def test_set_item(self) -> None:
-        """
-        Test the set_item method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key] = self.value
-        self.assertEqual(first=self.store[self.key], second=self.value)
-
-    def test_get_item(self) -> None:
-        """
-        Test the get_item method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key] = self.value
-        self.assertEqual(first=self.store[self.key], second=self.value)
-
-    def test_del_item(self) -> None:
-        """
-        Test the del_item method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key] = self.value
-        del self.store[self.key]
-        self.assertNotIn(member=self.key, container=self.store)
-
-    def test_contains(self) -> None:
-        """
-        Test the contains method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key] = self.value
-        self.assertIn(member=self.key, container=self.store)
-
-    def test_len(self) -> None:
-        """
-        Test the len method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key1] = self.value1
-        self.store[self.key2] = self.value2
-        self.assertEqual(first=len(self.store), second=2)
-
-    def test_iter(self) -> None:
-        """
-        Test the iter method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key1] = self.value1
-        self.store[self.key2] = self.value2
-        keys = set(self.store.keys())
-        self.assertEqual(first=keys, second={self.key1, self.key2})
-
     def test_clear(self) -> None:
         """
         Test the clear method.
@@ -144,59 +86,24 @@ class StoreTestBase(unittest.TestCase):
         self.store.clear()
         self.assertEqual(first=len(self.store), second=0)
 
-    def test_pop(self) -> None:
+    def test_contains(self) -> None:
         """
-        Test the pop method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key] = self.value
-        self.store.pop(self.key)
-        self.assertNotIn(member=self.key, container=self.store)
-
-    def test_popitem(self) -> None:
-        """
-        Test the popitem method.
+        Test the contains method.
         """
         if self.running_in_test_base_class():
             return
         self.store[self.key] = self.value
-        self.store.popitem()
+        self.assertIn(member=self.key, container=self.store)
+
+    def test_del_item(self) -> None:
+        """
+        Test the del_item method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key] = self.value
+        del self.store[self.key]
         self.assertNotIn(member=self.key, container=self.store)
-
-    def test_keys(self) -> None:
-        """
-        Test the keys method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key1] = self.value1
-        self.store[self.key2] = self.value2
-        keys = self.store.keys()
-        self.assertEqual(first=list(keys), second=[self.key1, self.key2])
-
-    def test_items(self) -> None:
-        """
-        Test the items method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key1] = self.value1
-        self.store[self.key2] = self.value2
-        items = self.store.items()
-        second = [(self.key1, self.value1), (self.key2, self.value2)]
-        self.assertEqual(first=list(items), second=second)
-
-    def test_values(self) -> None:
-        """
-        Test the values method.
-        """
-        if self.running_in_test_base_class():
-            return
-        self.store[self.key1] = self.value1
-        self.store[self.key2] = self.value2
-        values = self.store.values()
-        self.assertEqual(first=list(values), second=[self.value1, self.value2])
 
     def test_eq(self) -> None:
         """
@@ -222,6 +129,88 @@ class StoreTestBase(unittest.TestCase):
         value = self.store.get(self.key)
         self.assertEqual(first=self.value, second=value)
 
+    def test_get_item(self) -> None:
+        """
+        Test the get_item method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key] = self.value
+        self.assertEqual(first=self.store[self.key], second=self.value)
+
+    def test_items(self) -> None:
+        """
+        Test the items method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
+        items = self.store.items()
+        second = [(self.key1, self.value1), (self.key2, self.value2)]
+        self.assertEqual(first=list(items), second=second)
+
+    def test_iter(self) -> None:
+        """
+        Test the iter method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
+        keys = set(self.store.keys())
+        self.assertEqual(first=keys, second={self.key1, self.key2})
+
+    def test_keys(self) -> None:
+        """
+        Test the keys method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
+        keys = self.store.keys()
+        self.assertEqual(first=list(keys), second=[self.key1, self.key2])
+
+    def test_len(self) -> None:
+        """
+        Test the len method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
+        self.assertEqual(first=len(self.store), second=2)
+
+    def test_pop(self) -> None:
+        """
+        Test the pop method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key] = self.value
+        self.store.pop(self.key)
+        self.assertNotIn(member=self.key, container=self.store)
+
+    def test_popitem(self) -> None:
+        """
+        Test the popitem method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key] = self.value
+        self.store.popitem()
+        self.assertNotIn(member=self.key, container=self.store)
+
+    def test_set_item(self) -> None:
+        """
+        Test the set_item method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key] = self.value
+        self.assertEqual(first=self.store[self.key], second=self.value)
+
     def test_setdefault(self) -> None:
         """
         Test the setdefault method.
@@ -245,3 +234,14 @@ class StoreTestBase(unittest.TestCase):
         self.store.update({self.key1: self.value1, self.key2: self.value2})
         self.assertEqual(first=self.store[self.key1], second=self.value1)
         self.assertEqual(first=self.store[self.key2], second=self.value2)
+
+    def test_values(self) -> None:
+        """
+        Test the values method.
+        """
+        if self.running_in_test_base_class():
+            return
+        self.store[self.key1] = self.value1
+        self.store[self.key2] = self.value2
+        values = self.store.values()
+        self.assertEqual(first=list(values), second=[self.value1, self.value2])

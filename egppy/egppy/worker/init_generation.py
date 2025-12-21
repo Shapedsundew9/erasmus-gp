@@ -36,42 +36,6 @@ def diverse_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list
     return igp
 
 
-def related_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
-    """Return a list of GC's meeting the RELATED criteria for the population."""
-    igp = []
-    _logger.debug(
-        "RELATED initial generation search returned %d results for '%s' population",
-        len(igp),
-        pconfig.name,
-    )
-    _logger.debug("D")
-    return igp
-
-
-def unrelated_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
-    """Return a list of GC's meeting the UNRELATED criteria for the population."""
-    igp = []
-    _logger.debug(
-        "UNRELATED initial generation search returned %d results for '%s' population",
-        len(igp),
-        pconfig.name,
-    )
-    _logger.debug("D")
-    return igp
-
-
-def spontaneous_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
-    """Return a list of GC's meeting the SPONTANEOUS criteria for the population."""
-    igp = []
-    _logger.debug(
-        "SPONTANEOUS initial generation search returned %d results for '%s' population",
-        len(igp),
-        pconfig.name,
-    )
-    _logger.debug("D")
-    return igp
-
-
 def init_generation(config: WorkerConfig) -> None:
     """Initialize the generation."""
 
@@ -115,3 +79,39 @@ def init_generation(config: WorkerConfig) -> None:
     #    igp.extend([new_gc(pconfig, gene_pool) for _ in range(pconfig.size - len(igp))])
     evolution_queue()
     fitness_queue()
+
+
+def related_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+    """Return a list of GC's meeting the RELATED criteria for the population."""
+    igp = []
+    _logger.debug(
+        "RELATED initial generation search returned %d results for '%s' population",
+        len(igp),
+        pconfig.name,
+    )
+    _logger.debug("D")
+    return igp
+
+
+def spontaneous_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+    """Return a list of GC's meeting the SPONTANEOUS criteria for the population."""
+    igp = []
+    _logger.debug(
+        "SPONTANEOUS initial generation search returned %d results for '%s' population",
+        len(igp),
+        pconfig.name,
+    )
+    _logger.debug("D")
+    return igp
+
+
+def unrelated_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+    """Return a list of GC's meeting the UNRELATED criteria for the population."""
+    igp = []
+    _logger.debug(
+        "UNRELATED initial generation search returned %d results for '%s' population",
+        len(igp),
+        pconfig.name,
+    )
+    _logger.debug("D")
+    return igp

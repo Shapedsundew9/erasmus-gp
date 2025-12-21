@@ -36,8 +36,9 @@ from numbers import Complex, Integral, Number, Rational, Real
 from uuid import UUID
 
 from egpcommon.common import NULL_UUID
-from egpcommon.properties import CODON_META_MASK, PropertiesBD
+from egpcommon.properties import CODON_MASK, PropertiesBD
 from egppy.genetic_code.c_graph import CGraph
+from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import (
     CPI,
     DstIfKey,
@@ -46,22 +47,13 @@ from egppy.genetic_code.c_graph_constants import (
     SrcIfKey,
     SrcRow,
 )
-from egppy.genetic_code.egc_class_factory import EGCDict as EGCode
+from egppy.genetic_code.egc_dict import EGCDict as EGCode
 from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
-from egppy.genetic_code.ggc_class_factory import GGCDict as GGCode
+from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_dict import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
+from egppy.genetic_code.interface_abc import InterfaceABC
 from egppy.genetic_code.types_def import TypesDef, types_def_store
-
-# PGC operations
-from egppy.physics.insertion import (
-    harmony,
-    insert_gc_case_0,
-    insert_gc_case_1,
-    inverse_stack,
-    perfect_stack,
-    sca,
-    stabilize_gc,
-)
 
 # PSQL operations
 from egppy.physics.psql import (
@@ -129,6 +121,9 @@ from egppy.physics.psql_types import (
     PsqlVarChar,
 )
 from egppy.physics.runtime_context import RuntimeContext
+
+# Stabilization
+from egppy.physics.stabilization import stabilize_gc
 
 # Public Physical Types and Aliases
 Pair = tuple

@@ -1,6 +1,6 @@
 # Mutation
 
-Mutation in the real world is random at the most fundamental level: Energy from somewhere; radiation, electricity, etc. excites an election on an atom which is part of a larger molocule, or nearby one, causing it to ionize and react with the nearest viable thing. A reaction has occured and something new is created. If that event occured in self replicating system then the new thing is a mutation. More often than not, in super sophisticated systems such as life, there are many mechanisms to repair, workaround or discard the mutated material. If there were not, replicating complex systems would not be possible because that stuff happens all the time, and most mutations break things, but this robustness is not inherant it is the product of evolution.
+Mutation in the real world is random at the most fundamental level: Energy from somewhere; radiation, electricity, etc. excites an electron on an atom which is part of a larger molecule, or nearby one, causing it to ionize and react with the nearest viable thing. A reaction has occurred and something new is created. If that event occurred in self replicating system then the new thing is a mutation. More often than not, in super sophisticated systems such as life, there are many mechanisms to repair, workaround or discard the mutated material. If there were not, replicating complex systems would not be possible because that stuff happens all the time, and most mutations break things, but this robustness is not inherent, it is the product of evolution.
 
 Erasmus tries to mimic the mechanism of mutation at this, the most fundamental level. Mutation of a GC is random. Any connection in a GC connection graph can be broken resulting in an unstable situation that its "physics" abhors and immediately stablizes with whatever is viable nearby. This is called a *steady state exception* or *SSE*.
 
@@ -15,11 +15,12 @@ The only steady state exception is a destination endpoint in a GC connection gra
 
 ### Choosing an Endpoint Source
 
-There are 3 types of internal endpoint sources from which an eligible source is randomly selected:
+There are 4 types of internal endpoint sources from which an eligible source can be selected:
 
 - Unused sources higher in the GC internal graph (if there is a viable one)
 - A new top level input interface source (if not a wrapping)
 - Reuse a source from higher in the graph (if there is a viable one)
+- All of the above for child types (if the destination type has child types) but 'downcast' by a meta-codon. NOTE: This may not succeed.
 
 The selection is uniformly random from the set of viable endpoints. If there are no viable source endpoints then an external source must be sought. The algorithm for this is as follows:
 
@@ -43,3 +44,36 @@ Note that ISA is *wrapping* constituant GC's with an empty GC interface and only
 ## Spontaneous Codon Aggregation
 
 Spontaneous Codon Aggregation, SCA, is the most fundamental GC creation mechanism in EGP. SCA is when two codons are *stacked* to form a 1st generation *standard* GC.
+
+## Stabilization
+
+```mermaid
+%% Paths to Stability
+flowchart TB
+    UM["Unstabilized Mutation"]
+
+    subgraph FSS["Static Full Stack Stabilization"]
+        LCA["Local Connect All"]
+        LUC["Local Downcast"]
+        GCA["Global Connect All"]
+        GUC["Global Downcast"]
+        SSE["Steady State Exception"]
+    end
+
+    GGC["GGCode"]
+
+    UM -- Stable --> GGC
+    UM -- Unstable --> LCA
+    LCA -- Stable --> GGC
+    LCA -- Unstable --> LUC
+    LUC -- Stable --> GGC
+    LUC -- Unstable --> GCA
+    GCA -- Stable --> GGC
+    GCA -- Unstable --> GUC
+    GUC -- Stable --> GGC
+    GUC -- Unstable --> SSE
+    SSE -- Stable --> GGC
+    SSE -- Unstable
+    Max 8 iterations
+    else FAIL --> LCA
+```

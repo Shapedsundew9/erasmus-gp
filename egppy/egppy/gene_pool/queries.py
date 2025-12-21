@@ -21,25 +21,9 @@ _IDX: LiteralString = "{inputs} = {iidx}"
 _ODX: LiteralString = "{outputs} = {oidx}"
 
 
-# Match functions
-def wrapper(t: str) -> str:
-    """Wrap the SQL query with column exclusions and a limit"""
-    return "WHERE " + t + " AND " + _LMT
-
-
-def types_match(t: str, ts: str) -> str:
-    """Match types exactly using the PostgreSQL array operator."""
-    return t + " = " + ts
-
-
 def exact_match(t: str, ts: str, dx: str) -> str:
     """Match types and positions exactly using the PostgreSQL array operator and exact match."""
     return types_match(t, ts) + " AND " + dx
-
-
-def subset_match(t: str, ts: str) -> str:
-    """Match types as a subset using the PostgreSQL array operator."""
-    return t + " <@ " + ts
 
 
 def overlap_match(t: str, ts: str) -> str:
@@ -47,9 +31,25 @@ def overlap_match(t: str, ts: str) -> str:
     return t + " && " + ts
 
 
+def subset_match(t: str, ts: str) -> str:
+    """Match types as a subset using the PostgreSQL array operator."""
+    return t + " <@ " + ts
+
+
 def superset_match(t: str, ts: str) -> str:
     """Match types as a superset using the PostgreSQL array operator."""
     return t + " @> " + ts
+
+
+def types_match(t: str, ts: str) -> str:
+    """Match types exactly using the PostgreSQL array operator."""
+    return t + " = " + ts
+
+
+# Match functions
+def wrapper(t: str) -> str:
+    """Wrap the SQL query with column exclusions and a limit"""
+    return "WHERE " + t + " AND " + _LMT
 
 
 # Match types
