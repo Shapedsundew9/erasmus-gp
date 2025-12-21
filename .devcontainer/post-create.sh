@@ -19,7 +19,6 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egppkrapi
 .venv/bin/pip install -e ./egppy
 .venv/bin/pip install -e ./egpdb
-.venv/bin/pip install -e ./egpseed
 .venv/bin/pip install -e ./egpdbmgr
 
 # Copy public keys to the devcontainer shared folder
@@ -29,16 +28,22 @@ sudo cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
 # Add aliases to .bashrc
 echo "Adding custom aliases to .bashrc..."
 echo "# My Custom Aliases" >> ~/.bashrc
-echo "alias profile='.venv/bin/python -m cProfile -o profile.prof -m unittest discover && .venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
-echo "alias generate='.venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write && .venv/bin/python ./egpseed/egpseed/generate_types.py --write && .venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write && .venv/bin/python ./egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o profile.prof -m unittest discover && /workspaces/erasmus-gp/.venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
 
 # Generate data files
 echo "Generating data files..."
 mkdir -p ./egpdbmgr/egpdbmgr/data
 .venv/bin/python ./egpcommon/egpcommon/gp_db_config.py --write
-.venv/bin/python ./egpseed/egpseed/generate_types.py --write
-.venv/bin/python ./egpseed/egpseed/generate_meta_codons.py --write
-.venv/bin/python ./egpseed/egpseed/generate_codons.py --write
+
+# Higher layer configuration tooling
+if [ -d "/workspaces/egpseed" ]; then
+    echo "Detected egpseed folder in /workspaces. Installing and generating data from there..."
+    .venv/bin/pip install -e /workspaces/egpseed
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
+    echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+fi
 
 # Done
 echo "--- Post-create script finished ---"

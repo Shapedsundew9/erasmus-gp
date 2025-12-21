@@ -32,10 +32,12 @@
 					"/workspaces/erasmus-gp/egppy",
 					"/workspaces/erasmus-gp/egpdb",
 					"/workspaces/erasmus-gp/egpdbmgr",
-					"/workspaces/erasmus-gp/egpseed"
+					"/workspaces/egpseed"
 				],
 				"python.analysis.autoImportCompletions": true,
 				"python.analysis.indexing": true,
+				"python.analysis.autoSearchPaths": true,
+				"python.analysis.useImportHeuristic": true,
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.black-formatter",
 					"editor.formatOnSave": true,

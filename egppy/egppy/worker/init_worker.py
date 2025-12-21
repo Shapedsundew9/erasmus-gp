@@ -109,7 +109,7 @@ def parse_cmdline_args(args: list[str]) -> Namespace:
     meg.add_argument(
         "-l",
         "--population_list",
-        help="Update the configuration file with the popluation definitions from the Gene Pool.",
+        help="Update the configuration file with the population definitions from the Gene Pool.",
         action="store_true",
     )
     parser.add_argument(
