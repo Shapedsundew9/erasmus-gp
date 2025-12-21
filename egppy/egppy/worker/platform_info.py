@@ -89,7 +89,7 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
 
     @egp_ops.setter
     def egp_ops(self, value: float) -> None:
-        """An Erasmus GP specific performance metric directly proportional to the prcoessing
+        """An Erasmus GP specific performance metric directly proportional to the processing
         power of the system for typical Erasmus GP tasks in units of notional operations
         per second. Bigger = faster.
         """

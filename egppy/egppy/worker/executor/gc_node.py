@@ -141,9 +141,12 @@ class GCNodeIterator(Iterator):
 
     def _traverse(self, node: GCNode) -> None:
         """Traverse the GCNode graph to the limit of the GCA nodes."""
+        seen: set[GCNode] = set()
         while node.gca_node is not NULL_GC_NODE:
+            if node in seen:
+                raise AssertionError("GCNode graph contains a cycle.")
+            seen.add(node)
             node = node.gca_node
-            assert node != node.gca_node, "GCNode graph contains a cycle."
             self.stack.append(node)
 
 
