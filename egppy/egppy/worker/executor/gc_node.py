@@ -52,9 +52,10 @@ def mc_code_node_str(gcnode: GCNode) -> str:
     if not gcnode.is_meta:
         label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
         return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
-    label = (
-        f"is({gcnode.gc['cgraph'][DstIfKey.OD][0].typ.name})<br>{gcnode.gc['signature'].hex()[-8:]}"
-    )
+    cgraph = gcnode.gc["cgraph"]
+    od_endpoints = cgraph.get(DstIfKey.OD)
+    od_typ_name = od_endpoints[0].typ.name if od_endpoints else "None"
+    label = f"is({od_typ_name})<br>{gcnode.gc['signature'].hex()[-8:]}"
     return mc_hexagon_str(gcnode.uid, label, MERMAID_GREEN)
 
 
@@ -351,7 +352,7 @@ class GCNode(Iterable, Hashable):
             if isinstance(self.gca, bytes):
                 self.gca = gpi[self.gca]
             if isinstance(self.gcb, bytes):
-                self.gcb = NULL_GC if self.gcb is None else gpi[self.gcb]
+                self.gcb = gpi[self.gcb]
 
         if self.exists and (isinstance(self.gca, bytes) or isinstance(self.gcb, bytes)):
             # This is a unknown executable (treated like a codon in many respects)
