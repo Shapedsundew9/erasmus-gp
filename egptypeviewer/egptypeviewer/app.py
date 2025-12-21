@@ -152,6 +152,18 @@ def get_initial_elements() -> list[dict]:
     return elements
 
 
+def get_root_selector() -> str:
+    """Get the CSS selector for root nodes in breadthfirst layout.
+
+    Returns:
+        CSS selector string for root nodes, or empty string if no roots.
+    """
+    roots = data_loader.get_root_nodes()
+    if roots:
+        return "#" + str(roots[0]["uid"])
+    return ""
+
+
 # Initialize the Dash app with Bootstrap CYBORG theme (dark mode)
 app = Dash(
     __name__,
@@ -185,14 +197,14 @@ app.layout = dbc.Container(
                             [
                                 html.H5("Controls", style={"color": "#9c27b0"}),
                                 dbc.Button(
-                                    [html.I(className="me-2"), "🔄 Refresh Data"],
+                                    "🔄 Refresh Data",
                                     id="refresh-btn",
                                     color="info",
                                     outline=True,
                                     className="w-100 mb-2",
                                 ),
                                 dbc.Button(
-                                    [html.I(className="me-2"), "🔙 Reset View"],
+                                    "🔙 Reset View",
                                     id="reset-btn",
                                     color="secondary",
                                     outline=True,
@@ -305,7 +317,7 @@ app.layout = dbc.Container(
                             layout={
                                 "name": "breadthfirst",
                                 "directed": True,
-                                "roots": "#" + str(data_loader.get_root_nodes()[0]["uid"]),
+                                "roots": get_root_selector(),
                                 "spacingFactor": 1.5,
                             },
                             style={"width": "100%", "height": "100vh"},

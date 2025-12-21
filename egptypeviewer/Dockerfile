@@ -23,7 +23,7 @@ COPY assets/ ./assets/
 # Expose the Dash default port
 EXPOSE 8050
 
-# Set the working directory to the app module
+# Set working directory to the package containing app.py
 WORKDIR /app/egptypeviewer
 
 # Run the application

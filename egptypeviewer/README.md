@@ -80,6 +80,15 @@ The application visualizes type definitions from `egppy/egppy/data/types_def.jso
 - Each type has `uid`, `children`, `parents`, and other metadata
 - The root node is `object` (uid: 106) which has no parents
 
+### Custom Data Path
+
+You can specify a custom path to the types_def.json file using the `TYPES_DEF_PATH` environment variable:
+
+```bash
+export TYPES_DEF_PATH=/path/to/your/types_def.json
+python egptypeviewer/app.py
+```
+
 ## License
 
 See the main repository LICENSE file.

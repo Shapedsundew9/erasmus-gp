@@ -5,6 +5,7 @@ indexing, and querying type definition data from a JSON file.
 """
 
 from json import load
+from os import environ
 from os.path import dirname, exists, join
 from typing import Any
 
@@ -26,8 +27,13 @@ class TypeGraphData:
 
         Args:
             filepath: Path to the types_def.json file. If None, uses
+                the TYPES_DEF_PATH environment variable or falls back to
                 the default path in egppy/egppy/data/types_def.json.
         """
+        if filepath is None:
+            # Check for environment variable first
+            filepath = environ.get("TYPES_DEF_PATH")
+
         if filepath is None:
             # Default path relative to this file's package location
             # From egptypeviewer/egptypeviewer/data_loader.py up 3 levels to repo root
