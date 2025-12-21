@@ -32,8 +32,8 @@ from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.ggc_dict import GCABC, GGCDict
 from egppy.physics.insertion import insert
 from egppy.physics.meta import meta_downcast
+from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
-from egpseed.primordial_python import EGCode
 
 # Constants
 MAX_ATTEMPTS = 8
