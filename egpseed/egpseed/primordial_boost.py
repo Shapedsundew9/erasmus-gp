@@ -181,7 +181,7 @@ def random_codon_selector_gc(ec: ExecutionContext) -> GCABC:
     #    (PSQL_PRP_COLUMN) codons and package them into a harmony GC (tmp1_ggc).
     # 2. Stack tmp1_ggc on top of the bitwise AND codon (PSQL_BITWISE_AND) to create tmp2_ggc.
     #    CONDON_MASK & "properties" is the output.
-    # 3. Stack tmp2_ggc on top of the integral to bigint upcast meta-codon (PSQL_IGRL_TO_64)
+    # 3. Stack tmp2_ggc on top of the integral to bigint downcast meta-codon (PSQL_IGRL_TO_64)
     #    to create tmp3_ggc. This ensures the result is a bigint.
     # 4. Create a harmony between tmp3_ggc and the bigint zero codon (PSQL_0_BIGINT)
     #    to create tmp4_ggc. These are the left and right hand side of the WHERE clause

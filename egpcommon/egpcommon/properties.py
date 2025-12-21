@@ -206,8 +206,8 @@ PROPERTIES_CONFIG = {
                     "width": 1,
                     "default": False,
                     "description": (
-                        "The meta codon is a type upcast e.g. Integral "
-                        "--> int which means it must be verified."
+                        "The meta codon is a type upcast e.g. int "
+                        "--> Integral which is always valid."
                     ),
                 },
                 "type_downcast": {
@@ -217,7 +217,7 @@ PROPERTIES_CONFIG = {
                     "default": True,
                     "description": (
                         "The meta codon is a type downcast e.g. "
-                        "int --> Integral which is always valid."
+                        "Integral --> int which means it must be verified."
                     ),
                 },
                 "reserved8": {
@@ -236,8 +236,8 @@ PROPERTIES_CONFIG = {
                     "width": 1,
                     "default": False,
                     "description": (
-                        "The meta codon is a type upcast e.g. Integral "
-                        "--> int which means it must be verified."
+                        "The meta codon is a type upcast e.g. int "
+                        "--> Integral which is always valid."
                     ),
                 },
                 "type_downcast": {
@@ -247,7 +247,7 @@ PROPERTIES_CONFIG = {
                     "default": True,
                     "description": (
                         "The meta codon is a type downcast e.g. "
-                        "int --> Integral which is always valid."
+                        "Integral --> int which means it must be verified."
                     ),
                 },
                 "reserved8": {

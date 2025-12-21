@@ -36,7 +36,7 @@ META_CODON_TEMPLATE: dict[str, Any] = {
         "deterministic": True,
         "side_effects": False,
         "static_creation": True,
-        "gctsp": {"type_upcast": True, "type_downcast": False},
+        "gctsp": {"type_upcast": False, "type_downcast": True},
     },
     "meta_data": {
         "function": {
@@ -68,8 +68,10 @@ MetaCodonValueError = MetaCodonExceptionModule.get_parallel_equivalent(ValueErro
 MetaCodonTypeError = MetaCodonExceptionModule.get_parallel_equivalent(TypeError)
 
 
-def meta_upcast(rtctxt: RuntimeContext, tsa: Sequence[TypesDef], tsb: Sequence[TypesDef]) -> GCABC:
-    """Find or create a meta-codon that upcasts ifa types to exactly match ifb types.
+def meta_downcast(
+    rtctxt: RuntimeContext, tsa: Sequence[TypesDef], tsb: Sequence[TypesDef]
+) -> GCABC:
+    """Find or create a meta-codon that downcasts ifa types to exactly match ifb types.
 
     ifb must have the same length as ifa and each type in ifb must a descendent of the
     corresponding type in ifa.
@@ -77,10 +79,10 @@ def meta_upcast(rtctxt: RuntimeContext, tsa: Sequence[TypesDef], tsb: Sequence[T
     Example
     -------
     Suppose we have two interfaces:
-        ifa: [int, float, object]
-        ifb: [Integral, float, str]
+        ifa: [Integral, float, str]
+        ifb: [int, float, object]
     Then the meta genetic code needed will be one that casts:
-        tsa = [object] -> tsb = [str]
+        tsa = [Integral] -> tsb = [int]
     as Integral is an ancestor of int and float is already the same type in both interfaces.
 
     Args:
@@ -95,9 +97,9 @@ def meta_upcast(rtctxt: RuntimeContext, tsa: Sequence[TypesDef], tsb: Sequence[T
     # The implementation tries to find existing meta genetic codes that perform the required casts.
     # If none exist, a new one is created.
     pts: tuple[tuple[TypesDef, TypesDef], ...] = tuple(zip(tsa, tsb))
-    assert [
-        pt for pt in pts if pt[1] not in types_def_store.ancestors(pt[0])
-    ], "Invalid type upcast requested."
+    assert not [
+        pt for pt in pts if pt[0] not in types_def_store.ancestors(pt[1])
+    ], "Invalid type downcast requested."
     mgc = rtctxt.gpi.select_meta(pts)
     if mgc is not NULL_GC:
         return mgc

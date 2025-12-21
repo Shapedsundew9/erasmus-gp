@@ -52,7 +52,7 @@ class TestCodonDevLoad(unittest.TestCase):
         )
 
         # Try with incorrect case
-        with self.assertRaises(AssertionError):
+        with self.assertRaises((ValueError, AssertionError)):
             find_codon_signature(
                 input_types=["PsqlBool"],
                 output_types=["PsqlBool"],
@@ -102,8 +102,8 @@ class TestCodonDevLoad(unittest.TestCase):
         self.assertIsInstance(signature, bytes)
 
     def test_find_codon_signature_not_found(self) -> None:
-        """Test that AssertionError is raised when a codon is not found."""
-        with self.assertRaises(AssertionError):
+        """Test that ValueError is raised when a codon is not found."""
+        with self.assertRaises((ValueError, AssertionError)):
             find_codon_signature(
                 input_types=["NonExistentType"],
                 output_types=["NonExistentType"],
@@ -128,7 +128,7 @@ class TestCodonDevLoad(unittest.TestCase):
 
     def test_find_meta_codon_signature(self) -> None:
         """Test finding a meta-codon signature (type cast)."""
-        # Meta-codons are type upcasts - find one
+        # Meta-codons are type downcasts - find one
         signature = find_codon_signature(
             input_types=["object"],
             output_types=["PsqlNumeric"],

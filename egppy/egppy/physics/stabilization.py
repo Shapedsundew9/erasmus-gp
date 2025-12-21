@@ -31,7 +31,7 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.ggc_dict import GCABC, GGCDict
 from egppy.physics.insertion import insert
-from egppy.physics.meta import meta_upcast
+from egppy.physics.meta import meta_downcast
 from egppy.physics.runtime_context import RuntimeContext
 from egpseed.primordial_python import EGCode
 
@@ -72,11 +72,11 @@ def direct_connect(_: RuntimeContext, egc: EGCode) -> bool:
     return cgraph.is_stable()
 
 
-def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
-    """Attempt upcast direct connections for any unconnected destination endpoints
+def downcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
+    """Attempt downcast direct connections for any unconnected destination endpoints
     in an EGCode's CGraph.
 
-    Upcast direct connections are only made Input -> GCA, GCA -> GCB and GCB -> Output
+    Downcast direct connections are only made Input -> GCA, GCA -> GCB and GCB -> Output
 
     Arguments:
         rtctxt: The runtime context containing the gene pool and other necessary information.
@@ -88,20 +88,20 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
     cgraph = egc["cgraph"]
     for src_if, dst_if in DC_SEQ:
 
-        # Build a list of direct connections that require upcasting
-        upcast_list: list[tuple[EndPointABC, EndPointABC]] = []
+        # Build a list of direct connections that require downcasting
+        downcast_list: list[tuple[EndPointABC, EndPointABC]] = []
         for src_ep, dst_ep in zip(cgraph[src_if], cgraph[dst_if]):
             assert isinstance(src_ep, EndPointABC), "Source endpoint is not an EndPointABC"
             assert isinstance(dst_ep, EndPointABC), "Destination endpoint is not an EndPointABC"
-            if dst_ep.can_upcast_connect(src_ep):
-                upcast_list.append((src_ep, dst_ep))
+            if dst_ep.can_downcast_connect(src_ep):
+                downcast_list.append((src_ep, dst_ep))
 
-        if upcast_list:
-            # Find or create the meta codon to do the upcasting
-            mgc = meta_upcast(
+        if downcast_list:
+            # Find or create the meta codon to do the downcasting
+            mgc = meta_downcast(
                 rtctxt,
-                [src_ep.typ for src_ep, _ in upcast_list],
-                [dst_ep.typ for _, dst_ep in upcast_list],
+                [src_ep.typ for src_ep, _ in downcast_list],
+                [dst_ep.typ for _, dst_ep in downcast_list],
             )
 
             # Insert the meta-codon below the source row/interface
@@ -110,14 +110,14 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
 
             # Now set the types.
             cgraph = egc["cgraph"]
-            for idx, (src_ep, dst_ep) in enumerate(upcast_list):
+            for idx, (src_ep, dst_ep) in enumerate(downcast_list):
                 # The insertion changed the cgraph so we need to re-get the endpoints
                 src_ep = cgraph[src_if][src_ep.idx]
                 dst_ep = cgraph[dst_if][dst_ep.idx]
                 assert isinstance(src_ep, EndPointABC), "Source endpoint is not an EndPointABC"
                 assert isinstance(dst_ep, EndPointABC), "Destination endpoint is not an EndPointABC"
 
-                # Match the types (this is the type to be upcast) then we can connect
+                # Match the types (this is the type to be downcast) then we can connect
                 # directly in the egc (rgc) cgraph
                 dst_ep.typ = src_ep.typ
                 src_ep.connect(dst_ep)
@@ -138,7 +138,7 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
                     else (DstIfKey.BD, SrcIfKey.BS, DstIfKey.AD)
                 )
 
-                # Connect the ep to upcast to the mgc input interface
+                # Connect the ep to downcast to the mgc input interface
                 mgc_dst_ep = fgc_cgraph[mdk][idx]
                 assert isinstance(
                     mgc_dst_ep, EndPointABC
@@ -150,8 +150,8 @@ def upcast_direct_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
                 mgc_dst_ep.connect(fgc_is_ep)
                 fgc_is_ep.connect(mgc_dst_ep)
 
-                # Now connect the mgc output ep (which has been upcast) to the tgc sub-GC
-                # ep that needed the upcast
+                # Now connect the mgc output ep (which has been downcast) to the tgc sub-GC
+                # ep that needed the downcast
                 mgc_src_ep = fgc_cgraph[msk][idx]
                 assert isinstance(
                     mgc_src_ep, EndPointABC
@@ -189,11 +189,11 @@ def random_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
     return cgraph.is_stable()
 
 
-def random_upcast_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
-    """Attempt random upcast connections for any unconnected destination endpoints
+def random_downcast_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
+    """Attempt random downcast connections for any unconnected destination endpoints
     in an EGCode's CGraph.
 
-    Random upcast connections are made from any eligible source. Upcasting
+    Random downcast connections are made from any eligible source. Downcasting
     will require a at least one meta codon to be inserted.
 
     Arguments:
@@ -209,9 +209,9 @@ def random_upcast_connect(rtctxt: RuntimeContext, egc: EGCode) -> bool:
 
 STABILIZATION_FUNCTIONS: tuple[Callable[[RuntimeContext, EGCode], bool], ...] = (
     direct_connect,
-    upcast_direct_connect,
+    downcast_direct_connect,
     random_connect,
-    random_upcast_connect,
+    random_downcast_connect,
 )
 
 

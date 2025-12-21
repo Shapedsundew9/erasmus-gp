@@ -20,7 +20,7 @@ There are 4 types of internal endpoint sources from which an eligible source can
 - Unused sources higher in the GC internal graph (if there is a viable one)
 - A new top level input interface source (if not a wrapping)
 - Reuse a source from higher in the graph (if there is a viable one)
-- All of the above for child types (if the destination type has child types) but 'upcast' by a meta-codon. NOTE: This may not succeed.
+- All of the above for child types (if the destination type has child types) but 'downcast' by a meta-codon. NOTE: This may not succeed.
 
 The selection is uniformly random from the set of viable endpoints. If there are no viable source endpoints then an external source must be sought. The algorithm for this is as follows:
 
@@ -54,9 +54,9 @@ flowchart TB
 
     subgraph FSS["Static Full Stack Stabilization"]
         LCA["Local Connect All"]
-        LUC["Local Upcast"]
+        LUC["Local Downcast"]
         GCA["Global Connect All"]
-        GUC["Global Upcast"]
+        GUC["Global Downcast"]
         SSE["Steady State Exception"]
     end
 

@@ -11,7 +11,7 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcRow
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.interface import Interface
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
-from egppy.physics.meta import MetaCodonTypeError, meta_upcast, raise_if_not_instance_of
+from egppy.physics.meta import MetaCodonTypeError, meta_downcast, raise_if_not_instance_of
 from egppy.physics.runtime_context import RuntimeContext
 
 
@@ -34,7 +34,7 @@ class TestMetaCodons(unittest.TestCase):
         rtctxt = RuntimeContext(self.gpi)
         ifa = Interface(["PsqlIntegral"] * 2, DstRow.O)
         ifb = Interface(["PsqlBigInt"] * 2, SrcRow.I)
-        gc = meta_upcast(rtctxt, ifa.to_td(), ifb.to_td())
+        gc = meta_downcast(rtctxt, ifa.to_td(), ifb.to_td())
         self.assertEqual(gc, existing_gc)
 
     def test_meta_type_cast_identical_interfaces(self):
@@ -44,7 +44,7 @@ class TestMetaCodons(unittest.TestCase):
         ifb = Interface(["int", "float"], DstRow.O)
 
         with self.assertRaises(AssertionError):
-            meta_upcast(rtctxt, ifa.to_td(), ifb.to_td())
+            meta_downcast(rtctxt, ifa.to_td(), ifb.to_td())
 
     def test_meta_type_cast_simple(self):
         """Test simple meta type cast."""
@@ -53,7 +53,7 @@ class TestMetaCodons(unittest.TestCase):
         ifa = Interface(["object"], SrcRow.I)
         ifb = Interface(["str"], DstRow.O)
 
-        gc = meta_upcast(rtctxt, ifa.to_td(), ifb.to_td())
+        gc = meta_downcast(rtctxt, ifa.to_td(), ifb.to_td())
         self.assertIsInstance(gc, GCABC)
 
         # Check Ad (Destination A)

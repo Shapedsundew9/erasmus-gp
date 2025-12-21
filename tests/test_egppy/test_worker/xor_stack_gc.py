@@ -118,7 +118,7 @@ def cast_interfaces_to_int(gc: GGCDict) -> GGCDict:
 
     to_int: dict[str, GGCDict] = {"EGPNumber": gpi[CODON_SIGS["TO_INT_SIG"]]}
 
-    # Upcast the outputs
+    # Downcast the outputs
     while oepl := [oep for oep in gc["cgraph"][DstIfKey.OD] if oep.typ != INT_TD]:
         # We will only process the first endpoint in the oepl list
         # Find the appropriate meta codon to cast the first endpoint to 'int'

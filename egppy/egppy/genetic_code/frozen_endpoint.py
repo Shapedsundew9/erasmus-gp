@@ -230,7 +230,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         Connection rules:
             - Source endpoints can connect to destination endpoints.
             - Destination endpoints can connect to source endpoints.
-            - Types must be compatible for connection (upcasts are not considered compatible).
+            - Types must be compatible for connection (downcasts are not considered compatible).
             - The row connection rules must be followed.
 
         Args:
@@ -261,13 +261,13 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             return False
         return True
 
-    def can_upcast_connect(self, other: FrozenEndPointABC) -> bool:
-        """Check if this endpoint can connect to another endpoint if it is upcast.
+    def can_downcast_connect(self, other: FrozenEndPointABC) -> bool:
+        """Check if this endpoint can connect to another endpoint if it is downcast.
 
         Connection rules:
             - The destination endpoint is not already connected
             - It is a source-destination connection (or vice-versa)
-            - Src type must be upcast-able to Dst type (downcasts & equal types return False).
+            - Src type must be downcast-able to Dst type (upcasts & equal types return False).
             - The row connection rules must be followed.
 
         Args:

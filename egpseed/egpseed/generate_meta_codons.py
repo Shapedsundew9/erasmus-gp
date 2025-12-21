@@ -59,10 +59,10 @@ def generate_meta_codons(write: bool = False) -> None:
     """
     _logger.log(DEBUG, "Generating meta codons...")
 
-    # Find the set of type "upcasts". Casts are used to convert outputs
+    # Find the set of type "downcasts". Casts are used to convert outputs
     # to a child type. This may not be successful at runtime if the object is not
     # actually of the child type. It is needed because there is a general
-    # pressure to downcast types e.g. arithmetic operations take Numbers and so the
+    # pressure to upcast types e.g. arithmetic operations take Numbers and so the
     # result is a Number but often it is really a "int" or "float" etc.
     # Casts use isinstance() to validate they are correct and so can only be applied
     # to types that have tt = 0
@@ -88,12 +88,12 @@ def generate_meta_codons(write: bool = False) -> None:
 
         # One and two parameter variants
         for codon_template in (CODON_ONE_PARAMETER, CODON_TWO_PARAMETER):
-            inpt, oupt, upcast = (ptd, ctd, True)
+            inpt, oupt, downcast = (ptd, ctd, True)
 
             # Create a copy of the codon template
             codon: dict[str, Any] = deepcopy(codon_template)
-            codon["properties"]["gctsp"]["type_upcast"] = upcast
-            codon["properties"]["gctsp"]["type_downcast"] = not upcast
+            codon["properties"]["gctsp"]["type_downcast"] = downcast
+            codon["properties"]["gctsp"]["type_upcast"] = not downcast
 
             # Set the type for the connections in the connection graph
             for ept in codon["cgraph"]["A"]:
