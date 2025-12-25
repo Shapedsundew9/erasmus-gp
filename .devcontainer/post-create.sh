@@ -20,6 +20,7 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egppy
 .venv/bin/pip install -e ./egpdb
 .venv/bin/pip install -e ./egpdbmgr
+.venv/bin/pip install -e ./egptypeviewer
 
 # Copy public keys to the devcontainer shared folder
 echo "Copying public keys to devcontainer shared folder..."
@@ -39,8 +40,8 @@ if [ -d "/workspaces/egpseed" ]; then
     .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
     echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 else
-    local DIR="/workspaces/erasmus-gp/egppy/egppy/data"
-    local URL="https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data"
+    DIR="/workspaces/erasmus-gp/egppy/egppy/data"
+    URL="https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data"
     
     # Use brace expansion to loop through all 4 file variations
     for f in {meta_,}codons.json{,.sig}; do

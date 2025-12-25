@@ -37,8 +37,8 @@ class TypeGraphData:
         if filepath is None:
             # Default path relative to this file's package location
             # From egptypeviewer/egptypeviewer/data_loader.py up 3 levels to repo root
-            base_dir = dirname(dirname(dirname(__file__)))
-            filepath = join(base_dir, "egppy", "egppy", "data", "types_def.json")
+            base_dir = dirname(__file__)
+            filepath = join(base_dir, "..", "..", "egppy", "egppy", "data", "types_def.json")
 
         self.filepath: str = filepath
         self.data: dict[str, dict[str, Any]] = {}
