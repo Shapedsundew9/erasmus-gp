@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "egptypeviewer"
+version = "1.0.0"
+readme = "README.md"
+authors = [{ name = "Shaped Sundew", email = "16618209+Shapedsundew9@users.noreply.github.com" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+keywords = ["genetic-programming", "type-graph", "visualization", "dash"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "dash>=3.3.0",
+    "dash-cytoscape>=1.0.2",
+    "dash-bootstrap-components>=2.0.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shapedsundew9/erasmus-gp"
+"Bug Tracker" = "https://github.com/Shapedsundew9/erasmus-gp/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["egptypeviewer*"]

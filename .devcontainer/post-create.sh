@@ -20,6 +20,7 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egppy
 .venv/bin/pip install -e ./egpdb
 .venv/bin/pip install -e ./egpdbmgr
+.venv/bin/pip install -e ./egptypeviewer
 
 # Copy public keys to the devcontainer shared folder
 echo "Copying public keys to devcontainer shared folder..."
