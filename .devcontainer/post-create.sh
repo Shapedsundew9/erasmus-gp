@@ -34,6 +34,7 @@ echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o prof
 if [ -d "/workspaces/egpseed" ]; then
     echo "Detected egpseed folder in /workspaces. Installing and generating data from there..."
     .venv/bin/pip install -e /workspaces/egpseed
+    .venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write

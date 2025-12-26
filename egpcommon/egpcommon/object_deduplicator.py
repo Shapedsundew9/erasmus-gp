@@ -84,6 +84,10 @@ class ObjectDeduplicator(CommonObj):
 
             # TODO: In MONITOR mode and below send stats to prometheus
 
+    def __contains__(self, obj: Hashable) -> bool:
+        """Test if an object is in the deduplicator."""
+        raise RuntimeError("ObjectDeduplicator does not support __contains__ operation.")
+
     def __getitem__(self, obj: Hashable) -> Any:
         """Get a object from the dict."""
         assert obj.is_frozen() if hasattr(obj, "is_frozen") else True, (  # type: ignore

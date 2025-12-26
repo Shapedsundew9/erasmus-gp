@@ -35,6 +35,10 @@ from egppy.storage.cache.cacheable_obj import CacheableDict
 _logger: Logger = egp_logger(name=__name__)
 
 
+# Universal UID generator
+UID_GENERATOR = count(start=-(2**63))
+
+
 class EGCDict(CacheableDict, GCABC):  # type: ignore
     """Embryonic Genetic Code Dictionary Class."""
 
@@ -42,7 +46,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
     GC_KEY_TYPES: dict[str, dict[str, str | bool]] = EGC_KVT
 
     # Keys that reference other GC's
-    REFERENCE_KEYS: set[str] = {"gca", "gcb", "ancestora", "ancestorb", "pgc"}
+    REFERENCE_KEYS: frozenset[str] = frozenset({"gca", "gcb", "ancestora", "ancestorb", "pgc"})
 
     def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
         """Initialize the EGCDict.
@@ -52,19 +56,32 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         # __init__ must do no more than this. All member setting must be
         # done in set_members() as it is used to rebuild the EGC.
         super().__init__()
+
+        # UID and reference tracking for the EGC.
+        # When an EGC is stabilized into a GGCode, all GC's that reference
+        # it must be updated to reference the new GGCode instead.
+        # These data members are not part of the GCABC interface (hence not set in
+        # set_members) but are essential for EGC operation.
+        if isinstance(self, EGCDict):
+            self["uid"] = next(UID_GENERATOR)
+            self["references"] = {}  # dict[(int, str=>field name), EGCDict]
+
         self.set_members(gcabc if gcabc is not None else {})
 
-    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
+    def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the attributes of the EGC.
 
         Args:
             gcabc: The genetic code object or dictionary to set the attributes.
+
+        Returns:
+            self
         """
         assert isinstance(self, GCABC), "EGC must be a GCABC object."
 
         # Connection Graph
         # It is intentional that the cgraph cannot be defaulted.
-        cgraph: FrozenCGraphABC | JSONCGraph = gcabc["cgraph"]
+        cgraph: FrozenCGraphABC | JSONCGraph = gcabc.get("cgraph", CGraph({}))
         if isinstance(cgraph, CGraphABC):
             self["cgraph"] = cgraph
         elif isinstance(cgraph, FrozenCGraphABC):
@@ -141,6 +158,8 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         creator = gcabc.get("creator", ANONYMOUS_CREATOR)
         creator = UUID(creator) if isinstance(creator, str) else creator
         self["creator"] = uuid_store[creator]
+
+        return self
 
     def consistency(self) -> None:
         """Check the genetic code object for consistency."""

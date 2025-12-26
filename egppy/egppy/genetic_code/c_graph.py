@@ -68,7 +68,7 @@ class CGraph(FrozenCGraph, CGraphABC):
         # _Fd, _Ad, etc.). The python object None is used to indicate that an interface
         # does not exist in this graph.
         assert (
-            any(key in graph for key in ROW_CLS_INDEXED_SET) and graph
+            any(key in graph for key in ROW_CLS_INDEXED_SET) or not graph
         ), "Input graph not empty but contains no valid interface keys."
         for key in ROW_CLS_INDEXED_ORDERED:
             row = IFKEY_ROW_MAP[key]

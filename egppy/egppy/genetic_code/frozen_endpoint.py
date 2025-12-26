@@ -7,6 +7,7 @@ from egppy.genetic_code.c_graph_constants import (
     SINGLE_ONLY_ROWS,
     SOURCE_ROW_SET,
     DstIfKey,
+    DstRow,
     EPCls,
     EPClsPostfix,
     IfKey,
@@ -15,7 +16,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
-from egppy.genetic_code.json_cgraph import UNKNOWN_VALID
+from egppy.genetic_code.json_cgraph import UNKNOWN_REVERSED, UNKNOWN_VALID
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 
@@ -254,8 +255,8 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         # Other is the source endpoint
         if other.cls != EPCls.SRC:
             return False
-        assert isinstance(other.row, SrcRow), "other.row is not a SrcRow"
-        if other.row not in UNKNOWN_VALID[other.row]:
+        assert isinstance(self.row, DstRow), "self.row is not a DstRow"
+        if other.row not in UNKNOWN_REVERSED[self.row]:
             return False
         if self.typ not in types_def_store.ancestors(other.typ):
             return False

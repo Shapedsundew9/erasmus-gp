@@ -191,7 +191,7 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.logical_mermaid_chart must be overridden")
 
     @abstractmethod
-    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
+    def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the data members of the GCABC."""
         raise NotImplementedError("GCABC.set_members must be overridden")
 

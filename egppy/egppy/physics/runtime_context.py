@@ -15,7 +15,7 @@ class RuntimeContext:
     context information for use by PGC's during execution.
     """
 
-    __slots__ = ("gpi", "root_gc", "creator", "debug_data")
+    __slots__ = ("gpi", "root_gc", "creator", "debug_data", "parent")
 
     def __init__(
         self,
@@ -39,3 +39,7 @@ class RuntimeContext:
         self.root_gc: GCABC = root_gc
         self.creator: UUID = creator
         self.debug_data: dict[str, Any] | None = debug_data
+
+        # The parent of the current GC being modified in the case of a PGC runtime context.
+        # None if the current GC has no parent (i.e is a top level GC).
+        self.parent: GCABC | None = None

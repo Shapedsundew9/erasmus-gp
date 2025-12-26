@@ -117,7 +117,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # References are stored as
         #   tuple[tuple[tuple[Row, idx], ...], ...]
         assert (
-            any(key in graph for key in ROW_CLS_INDEXED_ORDERED) and graph
+            any(key in graph for key in ROW_CLS_INDEXED_ORDERED) or not graph
         ), "Input graph not empty but contains no valid interface keys."
         for key in ROW_CLS_INDEXED_ORDERED:
             row = IFKEY_ROW_MAP[key]

@@ -31,11 +31,31 @@ class GGCDict(EGCDict):
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
 
+    def __eq__(self, other: object) -> bool:
+        """Equality operator for GGCDict.
+        Uses the signature for fast comparison.
+        Args:
+            other: The other GGCDict to compare to.
+        Returns:
+            True if the GGCDicts are equal, False otherwise.
+        """
+        if not isinstance(other, GGCDict):
+            return False
+        return self["signature"] is other["signature"]
+
+    def __hash__(self) -> int:
+        """Hash function for GGCDict.
+        Uses the signature for hashing.
+        Returns:
+            The hash of the GGCDict signature (int)
+        """
+        return hash(self["signature"])
+
     def as_gpc_view(self) -> GPGCView:
         """Return a GPGCView of the GGCDict."""
         return GPGCView(self)
 
-    def set_members(self, gcabc: GCABC | dict[str, Any]) -> None:
+    def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the attributes of the GGC.
 
         Note that no type checking of signatures is performed.
@@ -137,16 +157,19 @@ class GGCDict(EGCDict):
                 )
             ]
 
-        # tmp = gcabc.get("updated", datetime.now(UTC))
-        # self["updated"] = (
-        # If the datetime exists it is from the database and has no timezone info.
-        # tmp.replace(tzinfo=UTC)
-        # if isinstance(tmp, datetime)
-        # else datetime.fromisoformat(tmp)
-        # )
+        # If this is an EGCDict being converted to a GGCDict then
+        # we need to replace references with this object.
+        if isinstance(gcabc, EGCDict):
+            for (_, field), egc in gcabc["references"].items():
+                # Sanity checks
+                assert isinstance(egc, EGCDict), "Referenced GC must be an EGCDict"
+                assert field in egc, "Referenced field must exist in the EGCDict"
+                assert egc[field] is gcabc, "Referenced field must be gcabc"
+                egc[field] = self
 
         if _logger.isEnabledFor(DEBUG):
             self.verify()
+        return self
 
     def to_json(self) -> dict[str, int | str | float | list | dict]:
         """Return a JSON serializable dictionary."""

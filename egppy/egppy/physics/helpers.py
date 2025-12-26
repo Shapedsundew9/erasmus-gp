@@ -2,6 +2,7 @@
 
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import BitDictABC, CGraphType, GCType, PropertiesBD
+from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph, IfKey
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
 from egppy.genetic_code.genetic_code import GCABC
@@ -85,7 +86,7 @@ def new_egc(
     ancestora: GCABC | bytes | None = None,
     ancestorb: GCABC | bytes | None = None,
     rebuild: EGCode | None = None,
-) -> GCABC:
+) -> EGCode:
     """Create a new EGCode from GCA and GCB.
 
     Args:
@@ -98,8 +99,8 @@ def new_egc(
     Returns:
         The newly created/rebuilt EGCode. Note that only row A and B (if it is used) interfaces
         are populated with all references cleared.
-        The I and O rows are left as None for later assignment as well as any other rows for
-        the non-standard graph types.
+        The I and O rows as well as any other rows for the non-standard graph types are not
+        modified (remain 'None' in the case of a new EGCode).
     """
     assert gca is not None, "GCA cannot be None as this means the resultant GC is a codon!"
     _gca = gca if isinstance(gca, GCABC) else rtctxt.gpi[gca]
@@ -121,10 +122,16 @@ def new_egc(
         "creator": rtctxt.creator,
         "properties": merge_properties(rtctxt=rtctxt, gca=gca, gcb=gcb),
     }
-    if rebuild is None:
-        return EGCode(init_dict)
-    rebuild.set_members(init_dict)
-    return rebuild
+    retval = EGCode(init_dict) if rebuild is None else rebuild.set_members(init_dict)
+
+    # Update EGC references so that they can be traced back if and when
+    # the EGC becomes a GGC
+    assert isinstance(retval, EGCode), "new_egc must return a EGCode object."
+    for sig_field in retval.REFERENCE_KEYS:
+        egc = retval[sig_field]
+        if isinstance(egc, EGCode):
+            egc["references"][(retval["uid"], sig_field)] = retval
+    return retval
 
 
 def direct_connect_interfaces(
@@ -148,3 +155,20 @@ def direct_connect_interfaces(
     for src_ep, dst_ep in zip(src_iface, dst_iface):
         dst_ep.connect(src_ep)
         src_ep.connect(dst_ep)
+
+
+def inherit_members(gpi: GenePoolInterface, egc: EGCode) -> None:
+    """Inherit members."""
+    gca = egc["gca"]
+    gcb = egc["gcb"]
+
+    if isinstance(gca, bytes):
+        gca = gpi[gca]
+    if gcb is not None and isinstance(gcb, bytes):
+        gcb = gpi[gcb]
+
+    # Populate inherited members
+    egc["num_codons"] = gca["num_codons"] + gcb["num_codons"]
+    egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
+    egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
+    egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1

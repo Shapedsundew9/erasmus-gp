@@ -14,7 +14,6 @@ services:
 
   postgres:
     image: postgres:latest
-    container_name: egp-local-postgres-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
@@ -34,7 +33,6 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: egp-pgadmin
     environment:
       - PGADMIN_DEFAULT_EMAIL=nobody@nowhere.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/db_password

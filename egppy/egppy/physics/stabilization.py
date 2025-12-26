@@ -23,17 +23,21 @@ in non-deterministic behavior.
 
 from typing import Callable
 
-from egpcommon.egp_rnd_gen import EGPRndGen
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_abc import CGraphABC
 from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.endpoint_abc import EndPointABC
-from egppy.genetic_code.ggc_dict import GCABC, GGCDict
+from egppy.genetic_code.genetic_code import GCABC
+from egppy.physics.helpers import inherit_members
 from egppy.physics.insertion import insert
 from egppy.physics.meta import meta_downcast
-from egppy.physics.pgc_api import EGCode
+from egppy.physics.pgc_api import EGCode, GGCode
 from egppy.physics.runtime_context import RuntimeContext
+
+# Logging setup
+_logger: Logger = egp_logger(name=__name__)
 
 # Constants
 MAX_ATTEMPTS = 8
@@ -240,43 +244,60 @@ def sfss(rtctxt: RuntimeContext, egc: EGCode) -> EGCode:
     return egc
 
 
-def stabilize_gc(
-    rtctxt: RuntimeContext, egc: GCABC, sse: bool = False, if_locked: bool = True
-) -> GCABC:
+def stabilize_gc(rtctxt: RuntimeContext, egc: EGCode) -> GGCode:
     """Stabilize an EGCode to a GGCode raising an SSE as necessary."""
 
-    assert isinstance(egc["cgraph"], CGraph), "Resultant GC c_graph is not a CGraph"
-    egc["cgraph"].stabilize(if_locked, EGPRndGen(egc["created"]))
+    # Walk the GC structure to ensure all sub-GC's are stable
+    # GGCodes are guaranteed stable so only EGCodes need testing
+    parent = rtctxt.parent
+    discovery_queue: list[tuple[GCABC | None, EGCode]] = [(parent, egc)]
+    stabilization_stack: list[tuple[GCABC | None, EGCode]] = []
+    while discovery_queue:
+        current_parent, current_egc = discovery_queue.pop(0)
+        assert isinstance(current_egc["cgraph"], CGraph), "EGCode cgraph is not a CGraph"
+        gca = current_egc["gca"]
+        gcb = current_egc["gcb"]
+        if not isinstance(gca, GGCode):
+            discovery_queue.append((current_egc, gca))
+        if not isinstance(gcb, GGCode):
+            discovery_queue.append((current_egc, gcb))
+        if not current_egc["cgraph"].is_stable():
+            stabilization_stack.append((current_parent, current_egc))
 
-    stable = egc["cgraph"].is_stable()
-    if not stable and sse:
-        raise NotImplementedError("Stabilization failed and SSE requested")
-    if not stable:
-        raise RuntimeError("Stabilization failed")
-
+    # Now stabilize in reverse order (bottom-up)
+    # This ensures that leaves are stabilized before parents
+    # NOTE: This can raise a StabilizationError which we just let propagate up
     gpi: GenePoolInterface = rtctxt.gpi
-    gca: GCABC = gpi[egc["gca"]]
-    gcb: GCABC = gpi[egc["gcb"]]
+    for current_parent, current_egc in reversed(stabilization_stack):
+        # Sanity checks
+        assert isinstance(current_egc["cgraph"], CGraph), "EGCode cgraph is not a CGraph"
+        rtctxt.parent = current_parent
+        current_egc = sfss(rtctxt, current_egc)
 
-    # Populate inherited members
-    egc["num_codons"] = gca["num_codons"] + gcb["num_codons"]
-    egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
-    egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
-    egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
+    # Re-walk the GC structure (which may have changed during stabilization)
+    # looking for the, now stable, EGCodes to convert to GGCodes
+    item = (parent, egc)
+    discovery_queue = [item]
+    stable_queue = [item]
+    while discovery_queue:
+        current_parent, current_egc = discovery_queue.pop(0)
+        gca = current_egc["gca"]
+        gcb = current_egc["gcb"]
+        if not isinstance(gca, GGCode):
+            item = (current_egc, gca)
+            discovery_queue.append(item)
+            stable_queue.append(item)
+        if not isinstance(gcb, GGCode):
+            item = (current_egc, gcb)
+            discovery_queue.append(item)
+            stable_queue.append(item)
 
     # Stable GC's are converted to GGCodes and added to the Gene Pool
-    ggc: GCABC = GGCDict(egc)
+    for current_parent, current_egc in reversed(stable_queue):
+        inherit_members(gpi, current_egc)
+        ggc = GGCode(current_egc)
+        gpi[ggc["signature"]] = ggc
 
-    # A bit of sanity checking
-    if not gca["cgraph"][SrcIfKey.IS].to_td() == ggc["cgraph"][DstIfKey.AD].to_td():
-        raise ValueError("GCA row Is does not match GGCode row Ad")
-    if not gca["cgraph"][DstIfKey.OD].to_td() == ggc["cgraph"][SrcIfKey.AS].to_td():
-        raise ValueError("GCA row Od does not match GGCode row As")
-    if not gcb["cgraph"][SrcIfKey.IS].to_td() == ggc["cgraph"][DstIfKey.BD].to_td():
-        raise ValueError("GCB row Is does not match GGCode row Bd")
-    if not gcb["cgraph"][DstIfKey.OD].to_td() == ggc["cgraph"][SrcIfKey.BS].to_td():
-        raise ValueError("GCB row Od does not match GGCode row Bs")
-
-    # Add to Gene Pool
-    gpi[ggc["signature"]] = ggc
-    return ggc
+    # Restore the original parent
+    rtctxt.parent = parent
+    return ggc  # type: ignore [guarranteed to be bound]
