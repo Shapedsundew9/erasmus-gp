@@ -16,7 +16,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
-from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC, FrozenEPRefsABC
+from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.json_cgraph import UNKNOWN_REVERSED, UNKNOWN_VALID
 from egppy.genetic_code.types_def import TypesDef, types_def_store
@@ -515,7 +515,8 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                     or (isinstance(ref, tuple) and is_frozen),
                     "Reference must be a list if not frozen, or a tuple if frozen"
                     f", got {type(ref).__name__} at index {ref_idx} in endpoint "
-                    f"{self.row}{self.cls.name[0]}{self.idx}{' which is frozen.' if is_frozen else ''}",
+                    f"{self.row}{self.cls.name[0]}{self.idx}"
+                    f"{' which is frozen.' if is_frozen else ''}",
                 )
 
                 # Check reference has exactly 2 elements [row, idx]

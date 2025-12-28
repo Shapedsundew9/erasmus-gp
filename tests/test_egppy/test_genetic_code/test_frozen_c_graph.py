@@ -138,6 +138,7 @@ class TestFrozenEndPoint(unittest.TestCase):
 class TestFrozenInterface(unittest.TestCase):
     """Unit tests for the FrozenInterface class."""
 
+    # pylint: disable=protected-access
     def setUp(self) -> None:
         """Set up for the tests."""
         # Create mutable interface
