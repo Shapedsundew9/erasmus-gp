@@ -97,7 +97,7 @@ def _md_context_writer(ec: ExecutionContext, filepath: str | Path, fwconfig: FWC
                 f.write("\n```\n\n")
 
         # TODO: Add a signature of authenticity
-        f.write("## Signature of authenticity:\n\n[Your Signature Here]\n")
+        f.write("## Signature of authenticity\n\n[Your Signature Here]\n")
 
         # TODO: Units tests
         #     1. Markdown lint passing

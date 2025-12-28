@@ -298,7 +298,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         """Set the class of all endpoints in the interface.
 
         Args:
-            ep_cls: The EndPointClass to set (SRC or DST).
+            ep_cls: The EPCls to set (SRC or DST).
 
         Returns:
             Self with row class set.

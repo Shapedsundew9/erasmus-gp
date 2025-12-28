@@ -43,6 +43,7 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
+from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.frozen_interface import DESTINATION_ROW_SET, SOURCE_ROW_SET, FrozenInterface
 from egppy.genetic_code.interface import ROW_SET
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
@@ -127,15 +128,35 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 if isinstance(iface, InterfaceABC):
                     type_tuple = type_tuple_store[tuple(ep.typ for ep in iface)]
                     con_tuple = tuple(
-                        src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep.refs)]
-                        for ep in iface
+                        src_refs_store[
+                            tuple(
+                                refs_store[
+                                    (
+                                        ep.refs
+                                        if isinstance(ep.refs, FrozenEPRefs)
+                                        else FrozenEPRefs(
+                                            tuple(FrozenEPRef(r.row, r.idx) for r in ep.refs)
+                                        )
+                                    )
+                                ]
+                                for ep in iface
+                            )
+                        ]
                     )
                 else:
                     assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
                     type_tuple = type_tuple_store[tuple(ep[3] for ep in iface)]
                     con_tuple = tuple(
-                        src_refs_store[tuple(refs_store[tuple(ref)] for ref in ep[4])]
-                        for ep in iface
+                        src_refs_store[
+                            tuple(
+                                refs_store[
+                                    FrozenEPRefs(
+                                        tuple(FrozenEPRef(r[0], r[1]) for r in ep[4])  # type ignore
+                                    )
+                                ]
+                                for ep in iface
+                            )
+                        ]
                     )
                 fiface = (
                     iface
@@ -283,7 +304,8 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             for ep in dst_iface:
                 if ep.is_connected():
                     for ref in ep.refs:
-                        ref_row_str, ref_idx = ref
+                        ref_row_str = ref.row
+                        ref_idx = ref.idx
                         # Check that the source row is valid for this destination
                         self.value_error(
                             ref_row_str in valid_srcs,
@@ -303,7 +325,8 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             for ep in src_iface:
                 if ep.is_connected():
                     for ref in ep.refs:
-                        ref_row_str, ref_idx = ref
+                        ref_row_str = ref.row
+                        ref_idx = ref.idx
                         # Check that the destination row is valid for this source
                         self.value_error(
                             ref_row_str in valid_dsts,
@@ -374,7 +397,8 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             for dst_ep in dst_iface:
                 if dst_ep.is_connected():
                     for ref in dst_ep.refs:
-                        ref_row_str, ref_idx = ref
+                        ref_row_str = ref.row
+                        ref_idx = ref.idx
                         # Get the source endpoint
                         src_iface = getattr(self, _UNDER_SRC_KEY_DICT[ref_row_str])
                         self.value_error(
@@ -482,47 +506,47 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # Source endpoints reference destination endpoints
         for (row, idx), ep in src_ep_map.items():
             for ref in ep.refs:
-                ref_key = (str(ref[0]), int(ref[1]))
+                ref_key = (str(ref.row), int(ref.idx))
                 if ref_key not in dst_ep_map:
                     raise ValueError(
                         f"Source endpoint {row}[{idx}] references "
-                        f"{ref[0]}[{ref[1]}] which does not exist"
+                        f"{ref.row}[{ref.idx}] which does not exist"
                     )
                 ref_ep = dst_ep_map[ref_key]
                 # Check if the reference is bidirectional
                 back_ref = (row, idx)
                 found = False
                 for r in ref_ep.refs:
-                    if (str(r[0]), int(r[1])) == back_ref:
+                    if (str(r.row), int(r.idx)) == back_ref:
                         found = True
                         break
                 if not found:
                     raise ValueError(
-                        f"Source endpoint {row}[{idx}] references {ref[0]}[{ref[1]}] "
-                        f"but destination {ref[0]}[{ref[1]}] does not reference back"
+                        f"Source endpoint {row}[{idx}] references {ref.row}[{ref.idx}] "
+                        f"but destination {ref.row}[{ref.idx}] does not reference back"
                     )
 
         # Destination endpoints reference source endpoints
         for (row, idx), ep in dst_ep_map.items():
             for ref in ep.refs:
-                ref_key = (str(ref[0]), int(ref[1]))
+                ref_key = (str(ref.row), int(ref.idx))
                 if ref_key not in src_ep_map:
                     raise ValueError(
                         f"Destination endpoint {row}[{idx}] references"
-                        f" {ref[0]}[{ref[1]}] which does not exist"
+                        f" {ref.row}[{ref.idx}] which does not exist"
                     )
                 ref_ep = src_ep_map[ref_key]
                 # Check if the reference is bidirectional
                 back_ref = (row, idx)
                 found = False
                 for r in ref_ep.refs:
-                    if (str(r[0]), int(r[1])) == back_ref:
+                    if (str(r.row), int(r.idx)) == back_ref:
                         found = True
                         break
                 if not found:
                     raise ValueError(
-                        f"Destination endpoint {row}[{idx}] references {ref[0]}[{ref[1]}] "
-                        f"but source {ref[0]}[{ref[1]}] does not reference back"
+                        f"Destination endpoint {row}[{idx}] references {ref.row}[{ref.idx}] "
+                        f"but source {ref.row}[{ref.idx}] does not reference back"
                     )
 
         # Verify hash consistency

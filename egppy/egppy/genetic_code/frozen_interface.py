@@ -11,7 +11,9 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
+from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC, FrozenEPRefsABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
+from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.types_def import TypesDef
 
@@ -25,8 +27,7 @@ class FrozenInterface(FrozenInterfaceABC):
     Attributes:
         row: Row: The row of the interface. The correct row enum must be used (DstRow or SrcRow).
         type_tuple (tuple[TypesDef, ...]): Tuple of types for each endpoint.
-        refs_tuple (tuple[tuple[tuple[Row, int], ...], ...]): Tuple of
-                    reference tuples for each endpoint.
+        refs_tuple (tuple[FrozenEPRefs, ...]): Tuple of reference tuples for each endpoint.
     """
 
     __slots__ = ("_row", "_cls", "type_tuple", "refs_tuple", "_hash")
@@ -35,13 +36,21 @@ class FrozenInterface(FrozenInterfaceABC):
         self,
         row: Row,
         type_tuple: tuple[TypesDef, ...],
-        refs_tuple: tuple[tuple[tuple[Row, int], ...], ...],
+        refs_tuple: tuple[tuple[tuple[Row, int], ...], ...] | tuple[FrozenEPRefs, ...],
     ):
         super().__init__()
         self._row = row
         self._cls = EPCls.SRC if isinstance(row, SrcRow) else EPCls.DST
         self.type_tuple = type_tuple
-        self.refs_tuple = refs_tuple
+        # Convert refs_tuple to tuple of FrozenEPRefs
+        refs_list = []
+        for refs in refs_tuple:
+            if isinstance(refs, FrozenEPRefs):
+                refs_list.append(refs)
+            else:
+                # refs is tuple of (row, idx) tuples
+                refs_list.append(FrozenEPRefs(tuple(FrozenEPRef(r[0], r[1]) for r in refs)))
+        self.refs_tuple = tuple(refs_list)
         # Pre-compute hash for frozen interface
         self._hash = hash((self._row, self._cls, self.type_tuple, self.refs_tuple))
 
@@ -165,17 +174,17 @@ class FrozenInterface(FrozenInterfaceABC):
             # Source endpoints reference destination rows, and vice versa
             if self._cls == EPCls.SRC:
                 for ref in refs:
-                    if ref[0] not in DESTINATION_ROW_SET:
+                    if ref.row not in DESTINATION_ROW_SET:
                         raise ValueError(
                             f"Source endpoint {idx} can only reference "
-                            f"destination rows, got {ref[0]}"
+                            f"destination rows, got {ref.row}"
                         )
             else:  # DST
                 for ref in refs:
-                    if ref[0] not in SOURCE_ROW_SET:
+                    if ref.row not in SOURCE_ROW_SET:
                         raise ValueError(
                             f"Destination endpoint {idx} can only reference"
-                            f" source rows, got {ref[0]}"
+                            f" source rows, got {ref.row}"
                         )
 
     def ept_type_match(self, other: FrozenInterfaceABC) -> bool:
@@ -283,18 +292,14 @@ class FrozenInterface(FrozenInterfaceABC):
 
         # Verify all refs are properly structured
         for i, refs in enumerate(self.refs_tuple):
-            if not isinstance(refs, tuple):
-                raise TypeError(f"Endpoint {i} refs must be a tuple, got {type(refs)}")
+            if not isinstance(refs, FrozenEPRefsABC):
+                raise TypeError(f"Endpoint {i} refs must be FrozenEPRefsABC, got {type(refs)}")
             for j, ref in enumerate(refs):
-                if not isinstance(ref, tuple):
-                    raise TypeError(f"Endpoint {i} ref {j} must be a tuple, got {type(ref)}")
-                if len(ref) != 2:
-                    raise ValueError(
-                        f"Endpoint {i} ref {j} must have exactly 2 elements, got {len(ref)}"
-                    )
-                if ref[0] not in ROW_SET:
-                    raise ValueError(f"Endpoint {i} ref {j} has invalid row: {ref[0]}")
-                if not isinstance(ref[1], int):
-                    raise TypeError(f"Endpoint {i} ref {j} index must be int, got {type(ref[1])}")
-                if not 0 <= ref[1] <= 255:
-                    raise ValueError(f"Endpoint {i} ref {j} index must be 0-255, got {ref[1]}")
+                if not isinstance(ref, FrozenEPRefABC):
+                    raise TypeError(f"Endpoint {i} ref {j} must be FrozenEPRefABC, got {type(ref)}")
+                if ref.row not in ROW_SET:
+                    raise ValueError(f"Endpoint {i} ref {j} has invalid row: {ref.row}")
+                if not isinstance(ref.idx, int):
+                    raise TypeError(f"Endpoint {i} ref {j} index must be int, got {type(ref.idx)}")
+                if not 0 <= ref.idx <= 255:
+                    raise ValueError(f"Endpoint {i} ref {j} index must be 0-255, got {ref.idx}")

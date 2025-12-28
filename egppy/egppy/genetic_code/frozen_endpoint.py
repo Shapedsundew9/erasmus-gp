@@ -16,6 +16,8 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
+from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC, FrozenEPRefsABC
+from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.json_cgraph import UNKNOWN_REVERSED, UNKNOWN_VALID
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
@@ -30,10 +32,9 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         row (Row): The row identifier where this endpoint resides.
         idx (int): The index of this endpoint within its row (stored externally,
                    accessed via context).
-        cls (EndPointClass): The endpoint class - either SRC or DST (stored as epcls).
+        cls (EPCls): The endpoint class - either SRC or DST (stored as epcls).
         typ (TypesDef): The data type associated with this endpoint.
-        refs_tuple (tuple[tuple[Row, int], ...]): Immutable tuple of references
-                   to connected endpoints.
+        refs (FrozenEPRefs): Immutable tuple of references to connected endpoints.
     """
 
     __slots__ = ("typ", "refs", "row", "cls", "idx", "_hash")
@@ -71,10 +72,13 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 self.idx = other.idx
                 self.cls = other.cls
                 self.typ = other.typ
-                self.refs = tuple(tuple(ref) for ref in other.refs)
+                if isinstance(other.refs, FrozenEPRefs):
+                    self.refs = other.refs
+                else:
+                    self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
-                self.refs = tuple() if refs_arg is None else tuple(tuple(ref) for ref in refs_arg)
+                self.refs = self._convert_refs(refs_arg)
             else:
                 raise TypeError("Invalid argument for EndPoint constructor")
         elif len(args) == 4 or len(args) == 5:
@@ -83,11 +87,28 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             self.cls: EPCls = args[2]
             self.typ = args[3] if isinstance(args[3], TypesDef) else types_def_store[args[3]]
             refs_arg = args[4] if len(args) == 5 and args[4] is not None else []
-            self.refs = tuple(tuple(ref) for ref in refs_arg)
+            self.refs = self._convert_refs(refs_arg)
         else:
             raise TypeError("Invalid arguments for EndPoint constructor")
         # Pre-compute hash for frozen endpoint
         self._hash = hash((self.row, self.idx, self.cls, self.typ, self.refs))
+
+    @staticmethod
+    def _convert_refs(refs_arg) -> FrozenEPRefs:
+        if refs_arg is None:
+            return FrozenEPRefs(tuple())
+        if isinstance(refs_arg, FrozenEPRefs):
+            return refs_arg
+
+        refs_list = []
+        for ref in refs_arg:
+            if isinstance(ref, FrozenEPRefABC):
+                refs_list.append(FrozenEPRef(ref.row, ref.idx))
+            elif isinstance(ref, (list, tuple)) and len(ref) == 2:
+                refs_list.append(FrozenEPRef(ref[0], ref[1]))
+            else:
+                raise TypeError(f"Invalid ref format: {ref}")
+        return FrozenEPRefs(tuple(refs_list))
 
     def __copy__(self):
         """Called by copy.copy()"""
@@ -123,7 +144,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             and self.idx == value.idx
             and self.cls == value.cls
             and self.typ == value.typ
-            and all(s[0] == v[0] and s[1] == v[1] for s, v in zip(self.refs, value.refs))
+            and all(s.row == v.row and s.idx == v.idx for s, v in zip(self.refs, value.refs))
         )
 
     def __ge__(self, other: object) -> bool:
@@ -331,15 +352,15 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         # Source endpoints reference destination rows, and vice versa
         if self.cls == EPCls.SRC:
             for ref in self.refs:
-                if ref[0] not in DESTINATION_ROW_SET:
+                if ref.row not in DESTINATION_ROW_SET:
                     raise ValueError(
-                        f"Source endpoint can only reference destination rows, got {ref[0]}"
+                        f"Source endpoint can only reference destination rows, got {ref.row}"
                     )
         else:  # DST
             for ref in self.refs:
-                if ref[0] not in SOURCE_ROW_SET:
+                if ref.row not in SOURCE_ROW_SET:
                     raise ValueError(
-                        f"Destination endpoint can only reference source rows, got {ref[0]}"
+                        f"Destination endpoint can only reference source rows, got {ref.row}"
                     )
 
     def if_key(self) -> IfKey:
@@ -389,7 +410,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 raise ValueError(
                     "Destination endpoint has no references for JSON Connection Graph format."
                 )
-            return [str(self.refs[0][0]), self.refs[0][1], str(self.typ)]
+            return [str(self.refs[0].row), self.refs[0].idx, str(self.typ)]
         if json_c_graph and self.cls == EPCls.SRC:
             raise ValueError(
                 "Source endpoints cannot be converted to JSON Connection Graph format."
@@ -399,7 +420,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             "idx": self.idx,
             "cls": self.cls,
             "typ": str(self.typ),
-            "refs": [list(ref) for ref in self.refs],
+            "refs": [[str(ref.row), ref.idx] for ref in self.refs],
         }
 
     def verify(self) -> None:
@@ -472,7 +493,10 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         for ref_idx, ref in enumerate(self.refs):
 
             # Check for duplicate references
-            ref_tuple = tuple(ref)
+            if isinstance(ref, FrozenEPRefABC):
+                ref_tuple = (ref.row, ref.idx)
+            else:
+                ref_tuple = tuple(ref)
             self.value_error(
                 ref_tuple not in ref_set,
                 f"Duplicate reference {ref} found at index {ref_idx} "
@@ -481,23 +505,29 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             ref_set.add(ref_tuple)
 
             # Check reference is a list or a tuple as appropriate
-            self.type_error(
-                (isinstance(ref, list) and not is_frozen) or (isinstance(ref, tuple) and is_frozen),
-                "Reference must be a list if not frozen, or a tuple if frozen"
-                f", got {type(ref).__name__} at index {ref_idx} in endpoint "
-                f"{self.row}{self.cls.name[0]}{self.idx}{' which is frozen.' if is_frozen else ''}",
-            )
+            if isinstance(ref, FrozenEPRefABC):
+                # Extract and validate reference components
+                ref_row = ref.row
+                ref_ep_idx = ref.idx
+            else:
+                self.type_error(
+                    (isinstance(ref, list) and not is_frozen)
+                    or (isinstance(ref, tuple) and is_frozen),
+                    "Reference must be a list if not frozen, or a tuple if frozen"
+                    f", got {type(ref).__name__} at index {ref_idx} in endpoint "
+                    f"{self.row}{self.cls.name[0]}{self.idx}{' which is frozen.' if is_frozen else ''}",
+                )
 
-            # Check reference has exactly 2 elements [row, idx]
-            self.value_error(
-                len(ref) == 2,
-                f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
+                # Check reference has exactly 2 elements [row, idx]
+                self.value_error(
+                    len(ref) == 2,
+                    f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
+                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
+                )
 
-            # Extract and validate reference components
-            ref_row = ref[0]
-            ref_ep_idx = ref[1]
+                # Extract and validate reference components
+                ref_row = ref[0]
+                ref_ep_idx = ref[1]
 
             # Check reference row is valid
             self.type_error(
@@ -538,7 +568,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                     f"in endpoint {self.row}d{self.idx}. "
                     f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
                 )
-            else:  # self.cls == EndPointClass.SRC
+            else:  # self.cls == EPCls.SRC
                 self.value_error(
                     ref_row in DESTINATION_ROW_SET,
                     f"Source endpoint must reference a destination row. "

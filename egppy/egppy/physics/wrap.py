@@ -4,7 +4,7 @@ Docstring for egppy.physics.insertion
 
 from enum import IntEnum
 
-from egppy.genetic_code.c_graph_abc import CGraphABC
+from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.interface import Interface
@@ -116,8 +116,8 @@ def _harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC, rgc: EGCode | None)
         The modified rgc.
     """
     rgc = new_egc(rtctxt, gca=gca, gcb=gcb, ancestora=gca, ancestorb=gcb)
-    gca_cgraph: CGraphABC = gca["cgraph"]
-    gcb_cgraph: CGraphABC = gcb["cgraph"]
+    gca_cgraph: FrozenCGraphABC = gca["cgraph"]
+    gcb_cgraph: FrozenCGraphABC = gcb["cgraph"]
     gca_is_len = len(gca_cgraph[SrcIfKey.IS])
     gca_od_len = len(gca_cgraph[DstIfKey.OD])
 

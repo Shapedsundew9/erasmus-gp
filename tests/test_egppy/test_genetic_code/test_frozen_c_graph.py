@@ -40,7 +40,7 @@ class TestFrozenEndPoint(unittest.TestCase):
         self.assertEqual(self.frozen_ep_src.typ, self.ep_src.typ)
         self.assertTrue(
             all(
-                a[0] == b[0] and a[1] == b[1]
+                a.row == b.row and a.idx == b.idx
                 for a, b in zip(self.frozen_ep_src.refs, self.ep_src.refs)
             )
         )

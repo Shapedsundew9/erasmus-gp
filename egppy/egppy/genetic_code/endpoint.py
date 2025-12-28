@@ -36,6 +36,8 @@ from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
+from egppy.genetic_code.ep_ref import EPRef, EPRefs
+from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
@@ -57,9 +59,9 @@ class EndPoint(FrozenEndPoint, EndPointABC):
     Attributes:
         row (Row): The row identifier where this endpoint resides.
         idx (int): The index of this endpoint within its row (0-255).
-        cls (EndPointClass): The endpoint class - either SRC (source) or DST (destination).
+        cls (EPCls): The endpoint class - either SRC (source) or DST (destination).
         typ (TypesDef): The data type associated with this endpoint.
-        refs (list[list[str | int]]): Mutable list of references to connected endpoints.
+        refs (EPRefs): Mutable list of references to connected endpoints.
 
     See Also:
         - EndPointABC: Abstract base class defining the endpoint interface
@@ -105,10 +107,10 @@ class EndPoint(FrozenEndPoint, EndPointABC):
                 self.idx = other.idx
                 self.cls = other.cls
                 self.typ = other.typ
-                self.refs = [list(ref) for ref in other.refs]
+                self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
-                self.refs = [] if refs_arg is None else [list(ref) for ref in refs_arg]
+                self.refs = self._convert_refs(refs_arg)
             else:
                 raise TypeError("Invalid argument for EndPoint constructor")
         elif len(args) == 4 or len(args) == 5:
@@ -117,9 +119,27 @@ class EndPoint(FrozenEndPoint, EndPointABC):
             self.cls: EPCls = args[2]
             self.typ = args[3] if isinstance(args[3], TypesDef) else types_def_store[args[3]]
             refs_arg = args[4] if len(args) == 5 and args[4] is not None else []
-            self.refs = [list(ref) for ref in refs_arg]
+            self.refs = self._convert_refs(refs_arg)
         else:
             raise TypeError("Invalid arguments for EndPoint constructor")
+
+    @staticmethod
+    def _convert_refs(refs_arg) -> EPRefs:
+        if refs_arg is None:
+            return EPRefs()
+        if isinstance(refs_arg, EPRefs):
+            # Deep copy refs
+            return EPRefs([EPRef(ref.row, ref.idx) for ref in refs_arg])
+
+        refs_list = []
+        for ref in refs_arg:
+            if isinstance(ref, FrozenEPRefABC):
+                refs_list.append(EPRef(ref.row, ref.idx))
+            elif isinstance(ref, (list, tuple)) and len(ref) == 2:
+                refs_list.append(EPRef(ref[0], ref[1]))
+            else:
+                raise TypeError(f"Invalid ref format: {ref}")
+        return EPRefs(refs_list)
 
     def __hash__(self) -> int:
         """Return the hash of the endpoint.
@@ -131,8 +151,7 @@ class EndPoint(FrozenEndPoint, EndPointABC):
         Returns:
             int: Hash value computed from all endpoint attributes.
         """
-        tuple_refs = tuple(tuple(ref) for ref in self.refs)
-        return hash((self.row, self.idx, self.cls, self.typ, tuple_refs))
+        return hash((self.row, self.idx, self.cls, self.typ, self.refs))
 
     def clr_refs(self) -> EndPointABC:
         """Clear all references in the endpoint.
@@ -159,9 +178,9 @@ class EndPoint(FrozenEndPoint, EndPointABC):
         """
         assert isinstance(other, FrozenEndPointABC), "Can only connect to another EndPoint instance"
         if self.cls == EPCls.DST:
-            self.refs = [[other.row, other.idx]]
+            self.refs = EPRefs([EPRef(other.row, other.idx)])
         else:
-            self.refs.append([other.row, other.idx])
+            self.refs.append(EPRef(other.row, other.idx))
 
     def ref_shift(self, shift: int) -> EndPointABC:
         """Shift all references in the endpoint by a specified amount.
@@ -171,8 +190,8 @@ class EndPoint(FrozenEndPoint, EndPointABC):
             EndPointABC: Self with all references shifted.
         """
         for ref in self.refs:
-            assert isinstance(ref[1], int), "Reference index must be an integer"
-            ref[1] += shift
+            assert isinstance(ref.idx, int), "Reference index must be an integer"
+            ref.idx += shift
         return self
 
     def set_ref(self, row: Row, idx: int, append: bool = False) -> EndPointABC:
@@ -192,9 +211,9 @@ class EndPoint(FrozenEndPoint, EndPointABC):
             EndPointABC: Self with the reference set.
         """
         if self.cls == EPCls.SRC and append:
-            self.refs.append([row, idx])
+            self.refs.append(EPRef(row, idx))
         else:
-            self.refs = [[row, idx]]
+            self.refs = EPRefs([EPRef(row, idx)])
         return self
 
 

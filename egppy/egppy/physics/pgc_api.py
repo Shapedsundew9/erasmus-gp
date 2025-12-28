@@ -49,6 +49,8 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.egc_dict import EGCDict as EGCode
 from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
+from egppy.genetic_code.ep_ref import EPRef, EPRefs
+from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface

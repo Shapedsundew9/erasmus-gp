@@ -18,6 +18,7 @@ from egppy.genetic_code.c_graph_constants import (
 )
 from egppy.genetic_code.endpoint import EndPoint, TypesDef
 from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType, FrozenEndPointABC
+from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.interface_abc import MAX_EPS, FrozenInterfaceABC, InterfaceABC
 
@@ -25,12 +26,12 @@ from egppy.genetic_code.interface_abc import MAX_EPS, FrozenInterfaceABC, Interf
 _logger: Logger = egp_logger(name=__name__)
 
 
-def unpack_dst_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[DstRow, int]:
+def unpack_dst_ref(ref: list[int | Row] | tuple[Row, int] | FrozenEPRefABC) -> tuple[DstRow, int]:
     """Unpack a destination reference into its components.
 
     Args
     ----
-    ref: A reference to unpack, either as a list or tuple.
+    ref: A reference to unpack, either as a list, tuple, or EPRef.
 
     Returns
     -------
@@ -41,17 +42,19 @@ def unpack_dst_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[DstRow, int]
     return DstRow(row), idx
 
 
-def unpack_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[Row, int]:
+def unpack_ref(ref: list[int | Row] | tuple[Row, int] | FrozenEPRefABC) -> tuple[Row, int]:
     """Unpack a reference into its components.
 
     Args
     ----
-    ref: A reference to unpack, either as a list or tuple.
+    ref: A reference to unpack, either as a list, tuple, or EPRef.
 
     Returns
     -------
     A tuple containing the row and index.
     """
+    if isinstance(ref, FrozenEPRefABC):
+        return ref.row, ref.idx
     row = ref[0]
     idx = ref[1]
     assert isinstance(row, str), "Row must be a Row"
@@ -61,12 +64,12 @@ def unpack_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[Row, int]:
     return row, idx
 
 
-def unpack_src_ref(ref: list[int | Row] | tuple[Row, int]) -> tuple[SrcRow, int]:
+def unpack_src_ref(ref: list[int | Row] | tuple[Row, int] | FrozenEPRefABC) -> tuple[SrcRow, int]:
     """Unpack a source reference into its components.
 
     Args
     ----
-    ref: A reference to unpack, either as a list or tuple.
+    ref: A reference to unpack, either as a list, tuple, or EPRef.
 
     Returns
     -------

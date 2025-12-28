@@ -15,6 +15,7 @@ from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph import CGraph, c_graph_type
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
+from egppy.genetic_code.ep_ref import EPRef, EPRefs
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.genetic_code.types_def import types_def_store
 
@@ -54,7 +55,7 @@ class TestStabilizeLocked(unittest.TestCase):
         # Verify the connections didn't change
         ad_interface = cgraph[DstIfKey.AD]
         self.assertEqual(len(ad_interface), 1)
-        self.assertEqual(ad_interface[0].refs, [["I", 0]])
+        self.assertEqual(ad_interface[0].refs, EPRefs([EPRef("I", 0)]))
 
     def test_stabilize_locked_for_loop_graph(self) -> None:
         """Test stabilize with if_locked=True on a for-loop graph."""
@@ -97,7 +98,7 @@ class TestStabilizeLocked(unittest.TestCase):
 
         # Verify L only connects to I
         ld_interface = cgraph[DstIfKey.LD]
-        l_ref_row = ld_interface[0].refs[0][0]
+        l_ref_row = ld_interface[0].refs[0].row
         self.assertEqual(l_ref_row, "I")
 
     def test_stabilize_locked_if_then_graph(self) -> None:
@@ -141,17 +142,17 @@ class TestStabilizeLocked(unittest.TestCase):
 
         # Verify F only connects to I
         fd_interface = cgraph[DstIfKey.FD]
-        f_ref_row = fd_interface[0].refs[0][0]
+        f_ref_row = fd_interface[0].refs[0].row
         self.assertEqual(f_ref_row, "I")
 
         # Verify A only connects to I
         ad_interface = cgraph[DstIfKey.AD]
-        a_ref_row = ad_interface[0].refs[0][0]
+        a_ref_row = ad_interface[0].refs[0].row
         self.assertEqual(a_ref_row, "I")
 
         # Verify P only connects to I
         pd_interface = cgraph[DstIfKey.PD]
-        p_ref_row = pd_interface[0].refs[0][0]
+        p_ref_row = pd_interface[0].refs[0].row
         self.assertEqual(p_ref_row, "I")
 
     def test_stabilize_locked_standard_graph(self) -> None:
@@ -195,15 +196,15 @@ class TestStabilizeLocked(unittest.TestCase):
 
         # Verify connections respect standard graph rules
         ad_interface = cgraph[DstIfKey.AD]
-        a_ref_row = ad_interface[0].refs[0][0]
+        a_ref_row = ad_interface[0].refs[0].row
         self.assertEqual(a_ref_row, "I")  # A can only connect to I
 
         bd_interface = cgraph[DstIfKey.BD]
-        b_ref_row = bd_interface[0].refs[0][0]
+        b_ref_row = bd_interface[0].refs[0].row
         self.assertIn(b_ref_row, ["I", "A"])  # B can connect to I or A
 
         od_interface = cgraph[DstIfKey.OD]
-        o_ref_row = od_interface[0].refs[0][0]
+        o_ref_row = od_interface[0].refs[0].row
         self.assertIn(o_ref_row, ["I", "A", "B"])  # O can connect to I, A, or B
 
     def test_stabilize_locked_type_matching(self) -> None:
@@ -242,7 +243,7 @@ class TestStabilizeLocked(unittest.TestCase):
         a_ep = ad_interface[0]
         self.assertEqual(a_ep.typ, types_def_store["int"])
         # The reference should be to I0 (the only int source)
-        ref_row, _ = a_ep.refs[0]
+        ref_row = a_ep.refs[0].row
         self.assertEqual(ref_row, "I")
 
         od_interface = cgraph[DstIfKey.OD]
@@ -430,7 +431,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
 
         # L should connect to I
         ld_interface = cgraph[DstIfKey.LD]
-        self.assertEqual(ld_interface[0].refs[0][0], "I")
+        self.assertEqual(ld_interface[0].refs[0].row, "I")
 
     def test_stabilize_unlocked_if_then_else_graph(self) -> None:
         """Test stabilize unlocked on an if-then-else graph."""
@@ -476,7 +477,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
             iface = cgraph[row]
             for ep in iface:
                 self.assertTrue(ep.is_connected())
-                self.assertEqual(ep.refs[0][0], "I")
+                self.assertEqual(ep.refs[0].row, "I")
 
     def test_stabilize_unlocked_multiple_missing_types(self) -> None:
         """Test stabilize creates multiple new input endpoints for different types."""
@@ -639,7 +640,7 @@ class TestStabilizeUnlocked(unittest.TestCase):
         wd_interface = cgraph[DstIfKey.WD]
         self.assertTrue(wd_interface[0].is_connected())
         # Verify W connects to Is (the only valid source for W)
-        ref_row = wd_interface[0].refs[0][0]
+        ref_row = wd_interface[0].refs[0].row
         self.assertEqual(ref_row, "I")
 
 
@@ -729,7 +730,7 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         # Verify connections follow standard graph rules
         ad_interface = cgraph[DstIfKey.AD]
         # A can only connect to I in standard graphs
-        self.assertEqual(ad_interface[0].refs[0][0], "I")
+        self.assertEqual(ad_interface[0].refs[0].row, "I")
 
         # Verify the graph after stabilization
         cgraph.verify()
@@ -768,7 +769,7 @@ class TestStabilizeEdgeCases(unittest.TestCase):
         ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             self.assertTrue(ep.is_connected())
-            self.assertEqual(ep.refs[0][0], "I")
+            self.assertEqual(ep.refs[0].row, "I")
 
 
 class TestStabilizeWithConnectAll(unittest.TestCase):
@@ -852,7 +853,7 @@ class TestStabilizeWithConnectAll(unittest.TestCase):
 
             # Record which source A connected to
             ad_interface = cgraph[DstIfKey.AD]
-            results.append(ad_interface[0].refs[0][1])  # Store the index
+            results.append(ad_interface[0].refs[0].idx)  # Store the index
 
         # With randomization, we might see variation (though not guaranteed)
         # At minimum, verify all results are valid indices
@@ -1092,7 +1093,8 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         ad_interface = cgraph[DstIfKey.AD]
         for ep in ad_interface:
             # Get the source this connects to
-            ref_row, ref_idx = ep.refs[0]
+            ref = ep.refs[0]
+            ref_row, ref_idx = ref.row, ref.idx
             if ref_row == "I":
                 assert isinstance(ref_idx, int), "Reference index should be an integer"
                 is_interface = cgraph[SrcIfKey.IS]
@@ -1138,10 +1140,10 @@ class TestStabilizeComplexScenarios(unittest.TestCase):
         # Count how many destinations reference the single source I0
         i0_ref_count = 0
         for ep in ad_interface:
-            if ep.refs[0] == ["I", 0]:
+            if ep.refs[0].row == "I" and ep.refs[0].idx == 0:
                 i0_ref_count += 1
         for ep in od_interface:
-            if ep.refs[0] == ["I", 0]:
+            if ep.refs[0].row == "I" and ep.refs[0].idx == 0:
                 i0_ref_count += 1
 
         # At least one destination should reference I0

@@ -16,10 +16,11 @@ and implementations while maintaining the flexibility to optimize specific varia
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import Hashable, Sequence
+from collections.abc import Hashable
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egppy.genetic_code.c_graph_constants import EPCls, IfKey, Row
+from egppy.genetic_code.ep_ref_abc import EPRefsABC, FrozenEPRefsABC
 from egppy.genetic_code.types_def import TypesDef
 
 # Endpoint Member Types
@@ -35,9 +36,9 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     Attributes:
         row (Row): The row identifier where this endpoint resides.
         idx (int): The index of this endpoint within its row.
-        cls (EndPointClass): The endpoint class - either SRC or DST.
+        cls (EPCls): The endpoint class - either SRC or DST.
         typ (TypesDef): The data type associated with this endpoint.
-        refs (Sequence[Sequence[str | int]]): References to connected endpoints.
+        refs (FrozenEPRefsABC): References to connected endpoints.
     """
 
     __slots__ = ()
@@ -47,7 +48,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     idx: int
     cls: EPCls
     typ: TypesDef
-    refs: Sequence[Sequence[Row | int]]
+    refs: FrozenEPRefsABC
 
     # Abstract Comparison Methods
 
@@ -326,13 +327,13 @@ class EndPointABC(FrozenEndPointABC, metaclass=ABCMeta):
     It inherits from FrozenEndPointABC.
 
     Attributes:
-        refs (list[list[str | int]]): Mutable list of references to connected endpoints.
+        refs (EPRefsABC): Mutable list of references to connected endpoints.
     """
 
     __slots__ = ()
 
     # Abstract Attributes
-    refs: list[list[Row | int]]  # type: ignore
+    refs: EPRefsABC  # type: ignore[override]
 
     @abstractmethod
     def clr_refs(self) -> EndPointABC:

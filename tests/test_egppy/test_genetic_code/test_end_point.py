@@ -4,6 +4,7 @@ import unittest
 
 from egppy.genetic_code.c_graph_constants import SINGLE_ONLY_ROWS, DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
+from egppy.genetic_code.ep_ref import EPRef, EPRefs
 from egppy.genetic_code.types_def import TypesDef, types_def_store
 
 
@@ -44,20 +45,20 @@ class TestEndPoint(unittest.TestCase):
         ep_src1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
         ep_dst1 = EndPoint(DstRow.A, 0, EPCls.DST, "int")
         ep_src1.connect(ep_dst1)
-        self.assertEqual(ep_src1.refs, [[ep_dst1.row, ep_dst1.idx]])
+        self.assertEqual(ep_src1.refs, EPRefs([EPRef(ep_dst1.row, ep_dst1.idx)]))
 
         ep_src2 = EndPoint(SrcRow.L, 0, EPCls.SRC, "float")
         ep_dst1.connect(ep_src2)
-        self.assertEqual(ep_dst1.refs, [[ep_src2.row, ep_src2.idx]])
+        self.assertEqual(ep_dst1.refs, EPRefs([EPRef(ep_src2.row, ep_src2.idx)]))
 
         # Test connecting a destination to multiple sources (should replace)
         ep_src3 = EndPoint(SrcRow.B, 2, EPCls.SRC, "float")
         ep_dst1.connect(ep_src3)
-        self.assertEqual(ep_dst1.refs, [[ep_src3.row, ep_src3.idx]])
+        self.assertEqual(ep_dst1.refs, EPRefs([EPRef(ep_src3.row, ep_src3.idx)]))
 
         # Test single connection rows
         ep_f = EndPoint(DstRow.F, 0, EPCls.DST, "float")
-        ep_f.refs = [[SrcRow.I, 0], [SrcRow.I, 1]]
+        ep_f.refs = EPRefs([EPRef(SrcRow.I, 0), EPRef(SrcRow.I, 1)])
         with self.assertRaises(ValueError):
             ep_f.verify()
 
@@ -73,7 +74,7 @@ class TestEndPoint(unittest.TestCase):
     def test_hash(self) -> None:
         """Test hashing of endpoints."""
         h1 = hash(self.ep_src)
-        self.ep_src.refs = [[SrcRow.A, 1]]
+        self.ep_src.refs = EPRefs([EPRef(SrcRow.A, 1)])
         h2 = hash(self.ep_src)
         self.assertNotEqual(h1, h2)
         h3 = hash(self.ep_src)
@@ -86,13 +87,13 @@ class TestEndPoint(unittest.TestCase):
         self.assertEqual(self.ep_src.idx, 0)
         self.assertEqual(self.ep_src.cls, EPCls.SRC)
         self.assertEqual(str(self.ep_src.typ), "int")
-        self.assertEqual(self.ep_src.refs, [])
+        self.assertEqual(self.ep_src.refs, EPRefs([]))
 
         self.assertEqual(self.ep_dst.row, DstRow.F)
         self.assertEqual(self.ep_dst.idx, 0)
         self.assertEqual(self.ep_dst.cls, EPCls.DST)
         self.assertEqual(str(self.ep_dst.typ), "float")
-        self.assertEqual(self.ep_dst.refs, [])
+        self.assertEqual(self.ep_dst.refs, EPRefs([]))
 
         with self.assertRaises(ValueError):
             EndPoint(DstRow.F, 1, EPCls.DST, "float").verify()
@@ -112,8 +113,8 @@ class TestEndPoint(unittest.TestCase):
         self.assertIsNot(copy.refs, original.refs)
         self.assertIsNot(copy.refs[0], original.refs[0])
         # Modify copy should not affect original
-        copy.refs[0][1] = 99
-        self.assertEqual(original.refs[0][1], 1)
+        copy.refs[0].idx = 99
+        self.assertEqual(original.refs[0].idx, 1)
 
     def test_init_from_tuple(self) -> None:
         """Test initialization from a 5-tuple."""
@@ -123,12 +124,12 @@ class TestEndPoint(unittest.TestCase):
         self.assertEqual(ep.idx, 0)
         self.assertEqual(ep.cls, EPCls.SRC)
         self.assertEqual(str(ep.typ), "int")
-        self.assertEqual(ep.refs, [["A", 1]])
+        self.assertEqual(ep.refs, EPRefs([EPRef("A", 1)]))
 
         # Test with None refs
         tuple_data_no_refs = (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], None)
         ep2 = EndPoint(tuple_data_no_refs)
-        self.assertEqual(ep2.refs, [])
+        self.assertEqual(ep2.refs, EPRefs([]))
 
     def test_init_invalid_arguments(self) -> None:
         """Test initialization with invalid arguments."""
@@ -160,7 +161,7 @@ class TestEndPoint(unittest.TestCase):
     def test_is_connected(self) -> None:
         """Test is_connected method."""
         self.assertFalse(self.ep_src.is_connected())
-        self.ep_src.refs = [[DstRow.A, 1]]
+        self.ep_src.refs = EPRefs([EPRef(DstRow.A, 1)])
         self.assertTrue(self.ep_src.is_connected())
 
     def test_str_representation(self) -> None:
@@ -176,7 +177,7 @@ class TestEndPoint(unittest.TestCase):
 
     def test_to_json(self) -> None:
         """Test JSON conversion."""
-        self.ep_src.refs = [[DstRow.A, 1]]
+        self.ep_src.refs = EPRefs([EPRef(DstRow.A, 1)])
         json_obj = self.ep_src.to_json()
         expected_json = {
             "row": "I",
@@ -240,9 +241,9 @@ class TestEndPointEdgeCases(unittest.TestCase):
         src.connect(dst3)
         self.assertEqual(len(src.refs), 3)
 
-        self.assertEqual(src.refs[0], ["A", 0])
-        self.assertEqual(src.refs[1], ["A", 1])
-        self.assertEqual(src.refs[2], ["B", 0])
+        self.assertEqual(src.refs[0], EPRef("A", 0))
+        self.assertEqual(src.refs[1], EPRef("A", 1))
+        self.assertEqual(src.refs[2], EPRef("B", 0))
 
     def test_connect_preserves_existing_refs_for_src(self) -> None:
         """Test that connect() appends to existing refs for source endpoints."""
@@ -251,8 +252,8 @@ class TestEndPointEdgeCases(unittest.TestCase):
 
         src.connect(dst)
         self.assertEqual(len(src.refs), 2)
-        self.assertEqual(src.refs[0], ["A", 0])
-        self.assertEqual(src.refs[1], ["A", 1])
+        self.assertEqual(src.refs[0], EPRef("A", 0))
+        self.assertEqual(src.refs[1], EPRef("A", 1))
 
     def test_connect_replaces_refs_for_dst(self) -> None:
         """Test that connect() replaces refs for destination endpoints."""
@@ -261,7 +262,7 @@ class TestEndPointEdgeCases(unittest.TestCase):
 
         dst.connect(src)
         self.assertEqual(len(dst.refs), 1)
-        self.assertEqual(dst.refs[0], ["I", 1])
+        self.assertEqual(dst.refs[0], EPRef("I", 1))
 
     def test_different_row_same_idx_comparison(self) -> None:
         """Test comparison of endpoints with different rows but same idx."""
@@ -288,11 +289,11 @@ class TestEndPointEdgeCases(unittest.TestCase):
         ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
         h1 = hash(ep)
 
-        ep.refs = [[DstRow.A, 0]]
+        ep.refs = EPRefs([EPRef(DstRow.A, 0)])
         h2 = hash(ep)
         self.assertNotEqual(h1, h2)
 
-        ep.refs.append([DstRow.A, 1])
+        ep.refs.append(EPRef(DstRow.A, 1))
         h3 = hash(ep)
         self.assertNotEqual(h2, h3)
 
@@ -313,7 +314,7 @@ class TestEndPointEdgeCases(unittest.TestCase):
         original_refs.append(["B", 0])
 
         # Endpoint refs should be unchanged
-        self.assertEqual(ep.refs, [["A", 0], ["A", 1]])
+        self.assertEqual(ep.refs, EPRefs([EPRef("A", 0), EPRef("A", 1)]))
 
     def test_to_json_with_multiple_refs(self) -> None:
         """Test to_json() with multiple references."""
@@ -360,7 +361,7 @@ class TestEndPointSubclasses(unittest.TestCase):
         self.assertEqual(ep.idx, idx)
         self.assertEqual(ep.cls, EPCls.DST)
         self.assertEqual(str(ep.typ), "float")
-        self.assertEqual(ep.refs, refs)
+        self.assertEqual(ep.refs, EPRefs([EPRef("B", 2)]))
 
         with self.assertRaises(ValueError):
             DstEndPoint(DstRow.F, 1, "float").verify()
@@ -377,7 +378,7 @@ class TestEndPointSubclasses(unittest.TestCase):
         self.assertEqual(ep.idx, idx)
         self.assertEqual(ep.cls, EPCls.SRC)
         self.assertEqual(str(ep.typ), "int")
-        self.assertEqual(ep.refs, refs)
+        self.assertEqual(ep.refs, EPRefs([EPRef("A", 1)]))
 
 
 class TestEndPointVerify(unittest.TestCase):
@@ -386,7 +387,7 @@ class TestEndPointVerify(unittest.TestCase):
     def test_verify_dst_max_one_reference(self) -> None:
         """Test verify() enforces DST endpoints can have at most 1 reference."""
         ep = EndPoint(DstRow.A, 0, EPCls.DST, "int")
-        ep.refs = [[SrcRow.I, 0], [SrcRow.I, 1]]
+        ep.refs = EPRefs([EPRef(SrcRow.I, 0), EPRef(SrcRow.I, 1)])
         with self.assertRaises(ValueError) as cm:
             ep.verify()
         self.assertIn("can have at most 1 reference", str(cm.exception))

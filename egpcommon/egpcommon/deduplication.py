@@ -16,3 +16,9 @@ int_store = IntDeduplicator("Integer", 2**12)
 
 # 1024 strings
 string_store = ObjectDeduplicator("String", 2**10)
+
+# 2048 ref
+ref_store = ObjectDeduplicator("Ref", 2**11)
+
+# 2048 refs
+refs_store = ObjectDeduplicator("Refs", 2**11)
