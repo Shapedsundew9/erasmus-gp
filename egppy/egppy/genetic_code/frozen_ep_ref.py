@@ -4,6 +4,8 @@ Frozen EndPoint Reference implementation.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import ref_store, refs_store
 from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
@@ -61,7 +63,7 @@ class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
 
     __slots__ = ("_refs", "_hash")
 
-    def __init__(self, refs: tuple[FrozenEPRefABC, ...]):
+    def __init__(self, refs: Iterable[FrozenEPRefABC]):
         self._refs = refs_store[
             tuple(
                 ref_store[t if isinstance(t, FrozenEPRef) else FrozenEPRef(t.row, t.idx)]
