@@ -3,6 +3,7 @@ Docstring for egppy.genetic_code.types_def_store
 """
 
 from json import dumps, loads
+from logging import root
 from os.path import dirname, join
 from typing import Iterator
 
@@ -10,6 +11,7 @@ from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_deduplicator import format_deduplicator_info
 from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
+from egpcommon.type_string_parser import TypeNode, TypeStringParser
 from egpdb.configuration import ColumnSchema
 from egpdb.table import RowIter, Table, TableConfig
 from egppy.genetic_code.types_def import TypesDef
@@ -21,6 +23,7 @@ _logger: Logger = egp_logger(name=__name__)
 
 # SQL
 _MAX_UID_SQL = "WHERE uid >= ({tt} << 16) AND uid < (({tt} + 1) << 16)"
+_TYPE_SELECT_SQL = "WHERE name = {id} or alias = {id}"
 
 # Initialize the database connection
 DB_STORE_TABLE_CONFIG = TableConfig(
@@ -29,12 +32,14 @@ DB_STORE_TABLE_CONFIG = TableConfig(
     schema={
         "uid": ColumnSchema(db_type="int4", primary_key=True),
         "name": ColumnSchema(db_type="VARCHAR", index="btree"),
+        "alias": ColumnSchema(db_type="VARCHAR", index="btree", nullable=True),
         "default": ColumnSchema(db_type="VARCHAR", nullable=True),
         "depth": ColumnSchema(db_type="int4"),
         "abstract": ColumnSchema(db_type="bool"),
         "imports": ColumnSchema(db_type="VARCHAR"),
         "parents": ColumnSchema(db_type="INT4[]"),
         "children": ColumnSchema(db_type="INT4[]"),
+        "template": ColumnSchema(db_type="VARCHAR", nullable=True),
     },
     data_file_folder=join(dirname(__file__), "..", "data"),
     data_files=["types_def.json"],
@@ -139,15 +144,41 @@ class TypesDefStore:
 
         if isinstance(key, int):
             td = TypesDefStore._db_store.get(key, {})
+            if not td:
+                raise KeyError(f"Type not found with UID: {key}")
         elif isinstance(key, str):
-            tds = tuple(TypesDefStore._db_store.select("WHERE name = {id}", literals={"id": key}))
+            tds = tuple(TypesDefStore._db_store.select(_TYPE_SELECT_SQL, literals={"id": key}))
             td = tds[0] if len(tds) == 1 else {}
+            key = td["name"]  # Use the canonical name as the cache key
         else:
             raise TypeError(f"Invalid key type: {type(key)}")
         if not td:
             # TODO: Go to an external service to find or create the type definition.
-            # NOTE: "Any" and potentially other types will be affected by any new type.
-            raise KeyError(f"Object not found with key: {key}")
+            # NOTE: Other types will be affected by any new type through parents/children.
+            # For now if it is a new compund container type then we can create it locally.
+            assert isinstance(key, str), "Key must be a string to create new type."
+            root_tn: TypeNode = TypeStringParser.parse(key)
+            if not root_tn.args:
+                # It is not a container and we do not know what it is.
+                raise KeyError(f"Type not found with name: {key}")
+            # Recursively unpack the contained type definitions
+            ctds = [self[(str(arg))] for arg in root_tn.args]
+            # Now we have a parent container in root_tn and known contained types
+            # to make a new type definition.
+            base_type = self[root_tn.name]  # This is the alias e.g. list, dict, tuple, etc.
+
+            new_td = {
+                "name": str(root_tn),  # Ensure consistent formatting
+                "alias": None,  # Never will be a base template by definition
+                "uid": self.next_xuid(base_type.tt()),
+                "default": base_type.default,
+                "depth": base_type.depth,
+                "abstract": False,
+                "imports": [],
+                "parents": [],
+                "children": [ctd.uid for ctd in ctds],
+                "template": None,
+            }
 
         # Create a frozen TypesDef object but do not put it in the object_store as
         # we will cache it here.

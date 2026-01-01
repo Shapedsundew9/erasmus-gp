@@ -36,6 +36,7 @@ class TypesDef(FreezableObject, Validator):
 
     __slots__: tuple[str, ...] = (
         "__name",
+        "__alias",
         "__default",
         "__depth",
         "__abstract",
@@ -43,18 +44,21 @@ class TypesDef(FreezableObject, Validator):
         "__parents",
         "__children",
         "__uid",
+        "__template",
     )
 
     def __init__(
         self,
         name: str,
         uid: int | dict[str, Any],
+        alias: str | None = None,
         abstract: bool = False,
         default: str | None = None,
         depth: int | None = None,
         imports: Iterable[ImportDef] | dict = NULL_TUPLE,
         parents: Iterable[int | TypesDef] = NULL_TUPLE,
         children: Iterable[int | TypesDef] = NULL_TUPLE,
+        template: dict[str, Any] | None = None,
     ) -> None:
         """Initialize Type Definition.
 
@@ -79,6 +83,24 @@ class TypesDef(FreezableObject, Validator):
         self.__parents: Final[array[int]] = self._parents(parents)
         self.__children: Final[array[int]] = self._children(children)
         self.__uid: Final[int] = self._uid(uid)
+        self.__alias: Final[str | None] = self._alias(alias)
+        self.__template: Final[dict[str, Any] | None] = self._template(template)
+
+    def _alias(self, alias: str | None) -> str | None:
+        """Validate the alias of the type definition."""
+        if alias is None:
+            return None
+        self._is_string("alias", alias)
+        self._is_length("alias", alias, 1, 64)
+        self._is_printable_string("alias", alias)
+        return alias
+
+    def _template(self, template: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Validate the template of the type definition."""
+        if template is None:
+            return None
+        self._is_dict("template", template)
+        return template
 
     def __eq__(self, value: object) -> bool:
         """Return True if the value is equal to this object."""
@@ -109,15 +131,7 @@ class TypesDef(FreezableObject, Validator):
         Allows iteration over the *values* of public instance variables.
         This is define by the to_json() method.
         """
-        for value in (
-            self.__name,
-            self.uid,
-            self.__default,
-            self.__depth,
-            self.__imports,
-            self.__parents,
-            self.__children,
-        ):
+        for value in self.to_json().values():
             yield value
 
     def __le__(self, other: object) -> bool:
@@ -256,6 +270,11 @@ class TypesDef(FreezableObject, Validator):
         return self.__abstract
 
     @property
+    def alias(self) -> str | None:
+        """Return the alias of the type definition."""
+        return self.__alias
+
+    @property
     def bd(self) -> BitDictABC:
         """Return the BitDict object."""
         return TypesDefBD(self.__uid)
@@ -295,14 +314,21 @@ class TypesDef(FreezableObject, Validator):
         """Return Type Definition as a JSON serializable dictionary."""
         return {
             "abstract": self.__abstract,
+            "alias": self.__alias,
             "children": list(self.__children),
             "default": self.__default,
             "depth": self.__depth,
             "imports": [idef.to_json() for idef in self.__imports],
             "name": self.__name,
             "parents": list(self.__parents),
+            "template": self.__template,
             "uid": self.uid,
         }
+
+    @property
+    def template(self) -> dict[str, Any] | None:
+        """Return the template of the type definition."""
+        return self.__template
 
     def tt(self) -> int:
         """Return the Template Type number."""
