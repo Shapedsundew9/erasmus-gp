@@ -1,6 +1,7 @@
 """Frozen Endpoint implementation for immutable graphs."""
 
 from egpcommon.common_obj import CommonObj
+from egpcommon.deduplication import refs_store
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -19,7 +20,11 @@ from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.json_cgraph import UNKNOWN_REVERSED, UNKNOWN_VALID
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import TypesDef
+from egppy.genetic_code.types_def_store import types_def_store
+
+# Constants
+EMPTY_FROZEN_EP_REFS = refs_store[FrozenEPRefs(tuple())]
 
 
 class FrozenEndPoint(CommonObj, FrozenEndPointABC):
@@ -72,10 +77,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 self.idx = other.idx
                 self.cls = other.cls
                 self.typ = other.typ
-                if isinstance(other.refs, FrozenEPRefs):
-                    self.refs = other.refs
-                else:
-                    self.refs = self._convert_refs(other.refs)
+                self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
                 self.refs = self._convert_refs(refs_arg)
@@ -96,19 +98,22 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
     @staticmethod
     def _convert_refs(refs_arg) -> FrozenEPRefs:
         if refs_arg is None:
-            return FrozenEPRefs(tuple())
-        if isinstance(refs_arg, FrozenEPRefs):
+            return EMPTY_FROZEN_EP_REFS
+        # pylint: disable=unidiomatic-typecheck
+        # Cannot be an EPRefs
+        if type(refs_arg) is FrozenEPRefs:
             return refs_arg
 
         refs_list = []
         for ref in refs_arg:
-            if isinstance(ref, FrozenEPRefABC):
+            # NB: FrozenEPRefs init will put all the FrozenEPRef into ref_store
+            if type(ref) is FrozenEPRef:
                 refs_list.append(FrozenEPRef(ref.row, ref.idx))
             elif isinstance(ref, (list, tuple)) and len(ref) == 2:
                 refs_list.append(FrozenEPRef(ref[0], ref[1]))
             else:
                 raise TypeError(f"Invalid ref format: {ref}")
-        return FrozenEPRefs(tuple(refs_list))
+        return refs_store[FrozenEPRefs(refs_list)]
 
     def __copy__(self):
         """Called by copy.copy()"""

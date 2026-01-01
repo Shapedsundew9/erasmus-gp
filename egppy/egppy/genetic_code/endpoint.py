@@ -39,7 +39,8 @@ from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.ep_ref import EPRef, EPRefs
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import TypesDef
+from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.deduplication import ref_store, refs_store
+from egpcommon.deduplication import ref_store
 from egppy.genetic_code.c_graph_constants import DstRow, Row, SrcRow
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC, FrozenEPRefsABC
 
@@ -64,12 +64,11 @@ class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
     __slots__ = ("_refs", "_hash")
 
     def __init__(self, refs: Iterable[FrozenEPRefABC]):
-        self._refs = refs_store[
-            tuple(
-                ref_store[t if isinstance(t, FrozenEPRef) else FrozenEPRef(t.row, t.idx)]
-                for t in refs
-            )
-        ]
+        self._refs = tuple(
+            # pylint: disable=unidiomatic-typecheck
+            ref_store[t if type(t) is FrozenEPRef else FrozenEPRef(t.row, t.idx)]
+            for t in refs
+        )
         self._hash = hash(self._refs)
 
     def consistency(self) -> None:

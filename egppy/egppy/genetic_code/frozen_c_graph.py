@@ -20,6 +20,7 @@ from pprint import pformat
 from typing import Any
 
 from egpcommon.common_obj import CommonObj
+from egpcommon.deduplication import refs_store
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_deduplicator import ObjectDeduplicator
 from egpcommon.properties import CGraphType
@@ -53,7 +54,7 @@ from egppy.genetic_code.json_cgraph import (
     CGT_VALID_SRC_ROWS,
     c_graph_type,
 )
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -61,8 +62,6 @@ _logger: Logger = egp_logger(name=__name__)
 
 # Deduplication stores
 type_tuple_store: ObjectDeduplicator = ObjectDeduplicator("Type Tuple", 2**14)
-src_refs_store: ObjectDeduplicator = ObjectDeduplicator("Source Reference Tuple", 2**14)
-refs_store: ObjectDeduplicator = ObjectDeduplicator("Reference Tuple", 2**11)
 frozen_cgraph_store: ObjectDeduplicator = ObjectDeduplicator("Frozen CGraph", 2**12)
 
 
@@ -128,35 +127,24 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 if isinstance(iface, InterfaceABC):
                     type_tuple = type_tuple_store[tuple(ep.typ for ep in iface)]
                     con_tuple = tuple(
-                        src_refs_store[
-                            tuple(
-                                refs_store[
-                                    (
-                                        ep.refs
-                                        if isinstance(ep.refs, FrozenEPRefs)
-                                        else FrozenEPRefs(
-                                            tuple(FrozenEPRef(r.row, r.idx) for r in ep.refs)
-                                        )
-                                    )
-                                ]
-                                for ep in iface
+                        # pylint: disable=unidiomatic-typecheck
+                        refs_store[
+                            (
+                                ep.refs
+                                if type(ep.refs) is FrozenEPRefs
+                                else FrozenEPRefs(FrozenEPRef(r.row, r.idx) for r in ep.refs)
                             )
                         ]
+                        for ep in iface
                     )
                 else:
                     assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
                     type_tuple = type_tuple_store[tuple(ep[3] for ep in iface)]
                     con_tuple = tuple(
-                        src_refs_store[
-                            tuple(
-                                refs_store[
-                                    FrozenEPRefs(
-                                        tuple(FrozenEPRef(r[0], r[1]) for r in ep[4])  # type ignore
-                                    )
-                                ]
-                                for ep in iface
-                            )
+                        refs_store[
+                            FrozenEPRefs(FrozenEPRef(r[0], r[1]) for r in ep[4])  # type: ignore
                         ]
+                        for ep in iface
                     )
                 fiface = (
                     iface

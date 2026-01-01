@@ -31,7 +31,7 @@ from egppy.genetic_code.frozen_c_graph import FrozenCGraph
 from egppy.genetic_code.interface import Interface, InterfaceABC
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.json_cgraph import c_graph_type, valid_src_rows
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)

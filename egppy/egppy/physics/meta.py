@@ -14,7 +14,8 @@ from egpcommon.parallel_exceptions import create_parallel_exceptions
 from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import TypesDef
+from egppy.genetic_code.types_def_store import types_def_store
 from egppy.physics.runtime_context import RuntimeContext
 
 META_CODON_TEMPLATE: dict[str, Any] = {

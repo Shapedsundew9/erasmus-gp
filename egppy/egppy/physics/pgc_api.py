@@ -55,7 +55,8 @@ from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import GGCDict as GGCode
 from egppy.genetic_code.interface import DstInterface, Interface, SrcInterface
 from egppy.genetic_code.interface_abc import InterfaceABC
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import TypesDef
+from egppy.genetic_code.types_def_store import types_def_store
 
 # PSQL operations
 from egppy.physics.psql import (

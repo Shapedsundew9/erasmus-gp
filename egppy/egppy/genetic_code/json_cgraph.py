@@ -22,7 +22,7 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 # This pattern involves creating a logger instance using the egp_logger function,

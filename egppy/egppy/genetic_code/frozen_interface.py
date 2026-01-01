@@ -2,6 +2,7 @@
 
 from typing import Iterator
 
+from egpcommon.deduplication import refs_store
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -45,11 +46,13 @@ class FrozenInterface(FrozenInterfaceABC):
         # Convert refs_tuple to tuple of FrozenEPRefs
         refs_list = []
         for refs in refs_tuple:
-            if isinstance(refs, FrozenEPRefs):
+            # pylint: disable=unidiomatic-typecheck
+            # (cannot be an EPRefs)
+            if type(refs) is FrozenEPRefs:
                 refs_list.append(refs)
             else:
                 # refs is tuple of (row, idx) tuples
-                refs_list.append(FrozenEPRefs(tuple(FrozenEPRef(r[0], r[1]) for r in refs)))
+                refs_list.append(refs_store[FrozenEPRefs(FrozenEPRef(r[0], r[1]) for r in refs)])
         self.refs_tuple = tuple(refs_list)
         # Pre-compute hash for frozen interface
         self._hash = hash((self._row, self._cls, self.type_tuple, self.refs_tuple))

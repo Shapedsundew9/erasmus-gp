@@ -33,7 +33,7 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
 

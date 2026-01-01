@@ -13,7 +13,7 @@ from egppy.genetic_code.interface import (
     unpack_ref,
     unpack_src_ref,
 )
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 
 class TestInterface(unittest.TestCase):

@@ -13,7 +13,7 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfK
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, FrozenEndPoint, FrozenInterface
 from egppy.genetic_code.interface import Interface
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 
 class TestFrozenEndPoint(unittest.TestCase):

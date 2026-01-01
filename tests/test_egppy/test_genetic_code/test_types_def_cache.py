@@ -4,7 +4,7 @@ Docstring for tests.test_egppy.test_genetic_code.test_types_def_cache
 
 import unittest
 
-from egppy.genetic_code.types_def import TypesDefStore, types_def_store
+from egppy.genetic_code.types_def_store import TypesDefStore, types_def_store
 
 
 # pylint: disable=protected-access
