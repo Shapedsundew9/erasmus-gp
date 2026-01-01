@@ -18,6 +18,7 @@
 				"ms-python.pylint",
 				"GitHub.vscode-pull-request-github",
 				"ms-ossdata.vscode-pgsql",
+				"ms-azuretools.vscode-docker",
 				"ms-vscode.vscode-speech"
 			],
 			"settings": {
@@ -78,12 +79,24 @@
 	},
 	// 1. Ensure Node.js is available (Copilot CLI requires it)
 	"features": {
-		"ghcr.io/devcontainers/features/node:1": {}
+		"ghcr.io/devcontainers/features/node:1": {},
+		// 1. Installs Docker CLI and binds the host socket
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"version": "latest",
+			"enableNonRootDocker": "true",
+			"moby": "true"
+		},
+		// 2. Useful for managing common CLI tools easily
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": "true",
+			"configureZshAsDefaultShell": "true"
+		}
 	},
 	"postCreateCommand": "npm install -g @github/copilot && bash .devcontainer/post-create.sh",
 	"forwardPorts": [
 		8080,
-		5432
+		5432,
+		8050
 	],
 	"runServices": [
 		"app",

@@ -1,0 +1,158 @@
+/* TypeGraph Explorer - Cyberpunk/Dark Mode Styles */
+
+/* Global dark background */
+body {
+    background-color: #1e1e1e !important;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+/* Remove default margins and padding */
+.container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Neon text effect */
+.neon-text {
+    color: #00bcd4;
+    text-shadow: 0 0 10px #00bcd4, 0 0 20px #00bcd4, 0 0 30px #00bcd4;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #00bcd4;
+}
+
+/* Sidebar glassmorphism effect */
+.sidebar {
+    background: rgba(30, 30, 46, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Button hover effects */
+.btn-outline-info:hover {
+    box-shadow: 0 0 10px #00bcd4, 0 0 20px #00bcd4;
+}
+
+.btn-outline-secondary:hover {
+    box-shadow: 0 0 10px #6c757d;
+}
+
+/* Node details panel styling */
+#node-details {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    transition: all 0.3s ease;
+}
+
+#node-details:hover {
+    border-color: #00bcd4 !important;
+}
+
+/* Cytoscape container */
+#cytoscape-graph {
+    background-color: #1e1e1e !important;
+}
+
+/* Code block styling in markdown */
+pre {
+    background-color: #0a0a0f !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+}
+
+code {
+    color: #00bcd4 !important;
+}
+
+/* Horizontal rule styling */
+hr {
+    border-color: #333 !important;
+    opacity: 0.5;
+}
+
+/* Legend item styling */
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* Animated glow effect for selected elements */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px #00bcd4;
+    }
+    50% {
+        box-shadow: 0 0 20px #00bcd4, 0 0 30px #9c27b0;
+    }
+    100% {
+        box-shadow: 0 0 5px #00bcd4;
+    }
+}
+
+.glow-effect {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* Purple accent text */
+.purple-accent {
+    color: #9c27b0;
+}
+
+/* Cyan accent text */
+.cyan-accent {
+    color: #00bcd4;
+}
+
+/* Card styling for dark mode */
+.dark-card {
+    background-color: #1a1a2e;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+/* Loading spinner */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 188, 212, 0.3);
+    border-radius: 50%;
+    border-top-color: #00bcd4;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Tooltip styling */
+.tooltip-inner {
+    background-color: #1a1a2e;
+    border: 1px solid #00bcd4;
+    color: #fff;
+}
+
+.tooltip.bs-tooltip-auto[x-placement^="top"] .arrow::before,
+.tooltip.bs-tooltip-top .arrow::before {
+    border-top-color: #00bcd4;
+}
