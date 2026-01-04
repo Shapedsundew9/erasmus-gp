@@ -26,7 +26,7 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 # Default paths to codon JSON files
 DEFAULT_CODON_PATHS: tuple[str, ...] = (
     join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "codons.json"),
-    join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "meta_codons.json"),
+    # join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "meta_codons.json"),
 )
 
 # Cache for loaded codons indexed by (input_types, output_types, name)

@@ -6,7 +6,6 @@ from random import choice, getrandbits, randint, seed
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
 from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
 from egpcommon.properties import CGraphType, GCType
-from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.ggc_dict import GCABC
 from egppy.worker.executor.context_writer import (
     FWC4FILE,
@@ -458,11 +457,11 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_1(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 00a05165454f54ca9bf8dc8e9d656bf7b8e952cf8040fe76f39be61b4c5c0e00\n'
+            '\t"""Signature: 7606da9718c787631c4877f430b36760c227643b086faee66e75a97f0b6cad25\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\tGeneration: 5\n"
+            "\tGeneration: 4\n"
             '\t"""\n'
             "\to1 = f_0()\n"
             "\tt0 = f_7fffffff((o1,))\n"
@@ -480,17 +479,16 @@ class TestExecutor(unittest.TestCase):
         self.assertIsInstance(ftext, str)
         expected = (
             "def f_0(i: tuple[int]) -> tuple[int, int]:\n"
-            '\t"""Signature: 00a05165454f54ca9bf8dc8e9d656bf7b8e952cf8040fe76f39be61b4c5c0e00\n'
+            '\t"""Signature: 7606da9718c787631c4877f430b36760c227643b086faee66e75a97f0b6cad25\n'
             "\tCreated: 2025-03-29 22:05:08.489847+00:00\n"
             "\tLicense: MIT\n"
             "\tCreator: 1f8f45ca-0ce8-11f0-a067-73ab69491a6f\n"
-            "\tGeneration: 5\n"
+            "\tGeneration: 4\n"
             '\t"""\n'
             "\tt0 = 64\n"
             "\to1 = getrandbits(t0)\n"
-            "\tt2 = f_7fffffff((o1,))\n"
-            "\tt1 = i[0] ^ t2\n"
-            "\to0 = raise_if_not_instance_of(t1, int)\n"
+            "\tt1 = f_7fffffff((o1,))\n"
+            "\to0 = i[0] ^ t1\n"
             "\treturn o0, o1"
         )
         self.assertEqual(ftext, expected)

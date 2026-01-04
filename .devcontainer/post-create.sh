@@ -36,9 +36,9 @@ if [ -d "/workspaces/egpseed" ]; then
     .venv/bin/pip install -e /workspaces/egpseed
     .venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
-    .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
+    # .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
-    echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+    echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 else
     DIR="/workspaces/erasmus-gp/egppy/egppy/data"
     URL="https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data"

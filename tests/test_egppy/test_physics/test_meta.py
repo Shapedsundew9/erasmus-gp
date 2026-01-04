@@ -23,20 +23,6 @@ class TestMetaCodons(unittest.TestCase):
         """Setup class method for test setup."""
         cls.gpi = GenePoolInterface(LOCAL_DB_MANAGER_CONFIG)
 
-    def test_meta_type_cast_existing_gc(self):
-        """Test meta type cast when an existing GC is found."""
-        sig = find_codon_signature(
-            ["PsqlIntegral"],
-            ["PsqlBigInt"],
-            "raise_if_not_instance_of(ix, tx)",
-        )
-        existing_gc = self.gpi[sig]
-        rtctxt = RuntimeContext(self.gpi)
-        ifa = Interface(["PsqlIntegral"] * 2, DstRow.O)
-        ifb = Interface(["PsqlBigInt"] * 2, SrcRow.I)
-        gc = meta_downcast(rtctxt, ifa.to_td(), ifb.to_td())
-        self.assertEqual(gc, existing_gc)
-
     def test_meta_type_cast_identical_interfaces(self):
         """Test meta type cast with identical interfaces."""
         rtctxt = RuntimeContext(self.gpi)

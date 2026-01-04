@@ -147,6 +147,33 @@
     "tt": 2,
     "uid": 6
   },
+  "Collection[Bytes]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "Collection[Bytes]",
+    "parents": [
+      147,
+      182,
+      184
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 185
+  },
   "Collection[EPRefABC]": {
     "abstract": true,
     "alias": null,
@@ -227,6 +254,33 @@
     "template": null,
     "tt": 1,
     "uid": 9
+  },
+  "Collection[FrozenEPRef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEPRef"
+      }
+    ],
+    "name": "Collection[FrozenEPRef]",
+    "parents": [
+      147,
+      210,
+      212
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 213
   },
   "Collection[FrozenEndPointABC]": {
     "abstract": true,
@@ -420,10 +474,28 @@
     "tt": 1,
     "uid": 16
   },
+  "Collection[type]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [],
+    "name": "Collection[type]",
+    "parents": [
+      147,
+      176,
+      178
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 179
+  },
   "Complex": {
     "abstract": true,
     "alias": null,
     "children": [
+      33,
       125,
       159
     ],
@@ -439,12 +511,36 @@
     ],
     "name": "Complex",
     "parents": [
-      33,
       89
     ],
     "template": null,
     "tt": 0,
     "uid": 17
+  },
+  "Container[Bytes]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "Container[Bytes]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 184
   },
   "Container[EPRefABC]": {
     "abstract": true,
@@ -520,6 +616,31 @@
     "template": null,
     "tt": 1,
     "uid": 20
+  },
+  "Container[FrozenEPRef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEPRef"
+      }
+    ],
+    "name": "Container[FrozenEPRef]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 212
   },
   "Container[FrozenEndPointABC]": {
     "abstract": true,
@@ -696,6 +817,21 @@
     "tt": 1,
     "uid": 27
   },
+  "Container[type]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [],
+    "name": "Container[type]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 178
+  },
   "DstEndPoint": {
     "abstract": false,
     "alias": null,
@@ -820,105 +956,29 @@
     "tt": 0,
     "uid": 32
   },
-  "EGPComplex": {
-    "abstract": true,
-    "alias": null,
-    "children": [
-      17
-    ],
-    "default": null,
-    "depth": 1,
-    "imports": [],
-    "name": "EGPComplex",
-    "parents": [
-      0
-    ],
-    "template": null,
-    "tt": 0,
-    "uid": 33
-  },
-  "EGPIntegral": {
-    "abstract": true,
-    "alias": null,
-    "children": [
-      61
-    ],
-    "default": null,
-    "depth": 1,
-    "imports": [],
-    "name": "EGPIntegral",
-    "parents": [
-      0
-    ],
-    "template": null,
-    "tt": 0,
-    "uid": 34
-  },
   "EGPInvalid": {
     "abstract": true,
     "alias": null,
     "children": [],
     "default": null,
-    "depth": 1,
-    "imports": [],
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "EGPInvalid"
+      }
+    ],
     "name": "EGPInvalid",
     "parents": [
-      0
+      17
     ],
     "template": null,
     "tt": 0,
-    "uid": 35
-  },
-  "EGPNumber": {
-    "abstract": true,
-    "alias": null,
-    "children": [
-      89
-    ],
-    "default": null,
-    "depth": 1,
-    "imports": [],
-    "name": "EGPNumber",
-    "parents": [
-      0
-    ],
-    "template": null,
-    "tt": 0,
-    "uid": 36
-  },
-  "EGPRational": {
-    "abstract": true,
-    "alias": null,
-    "children": [
-      124
-    ],
-    "default": null,
-    "depth": 1,
-    "imports": [],
-    "name": "EGPRational",
-    "parents": [
-      0
-    ],
-    "template": null,
-    "tt": 0,
-    "uid": 37
-  },
-  "EGPReal": {
-    "abstract": true,
-    "alias": null,
-    "children": [
-      125
-    ],
-    "default": null,
-    "depth": 1,
-    "imports": [],
-    "name": "EGPReal",
-    "parents": [
-      0
-    ],
-    "template": null,
-    "tt": 0,
-    "uid": 38
+    "uid": 33
   },
   "EPCls": {
     "abstract": false,
@@ -1502,7 +1562,6 @@
     ],
     "name": "Integral",
     "parents": [
-      34,
       124
     ],
     "template": null,
@@ -1588,6 +1647,31 @@
     "tt": 2,
     "uid": 64
   },
+  "Iterable[Bytes]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "Iterable[Bytes]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 182
+  },
   "Iterable[EPRefABC]": {
     "abstract": true,
     "alias": null,
@@ -1666,6 +1750,31 @@
     "tt": 1,
     "uid": 67
   },
+  "Iterable[FrozenEPRef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEPRef"
+      }
+    ],
+    "name": "Iterable[FrozenEPRef]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 210
+  },
   "Iterable[FrozenEndPointABC]": {
     "abstract": true,
     "alias": null,
@@ -1743,6 +1852,52 @@
     "tt": 1,
     "uid": 70
   },
+  "Iterable[Integral]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "as_name": "",
+        "name": "Integral"
+      }
+    ],
+    "name": "Iterable[Integral]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 218
+  },
+  "Iterable[Number]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "as_name": "",
+        "name": "Number"
+      }
+    ],
+    "name": "Iterable[Number]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 194
+  },
   "Iterable[Pair[Hashable, object]]": {
     "abstract": true,
     "alias": null,
@@ -1768,6 +1923,210 @@
     "template": null,
     "tt": 1,
     "uid": 71
+  },
+  "Iterable[Pair[int, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [],
+    "name": "Iterable[Pair[int, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 192
+  },
+  "Iterable[Pair[object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Pair"
+      }
+    ],
+    "name": "Iterable[Pair[object, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 196
+  },
+  "Iterable[Quadruplet[object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Quadruplet"
+      }
+    ],
+    "name": "Iterable[Quadruplet[object, object, object, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 200
+  },
+  "Iterable[Quintuplet[object, object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Quintuplet"
+      }
+    ],
+    "name": "Iterable[Quintuplet[object, object, object, object, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 202
+  },
+  "Iterable[Septuplet[object, object, object, object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Septuplet"
+      }
+    ],
+    "name": "Iterable[Septuplet[object, object, object, object, object, object, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 206
+  },
+  "Iterable[Sextuplet[object, object, object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Sextuplet"
+      }
+    ],
+    "name": "Iterable[Sextuplet[object, object, object, object, object, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 204
+  },
+  "Iterable[Sized]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "as_name": "",
+        "name": "Sized"
+      }
+    ],
+    "name": "Iterable[Sized]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 195
+  },
+  "Iterable[Triplet[object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Triplet"
+      }
+    ],
+    "name": "Iterable[Triplet[object, object, object]]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 198
+  },
+  "Iterable[float]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [],
+    "name": "Iterable[float]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 175
   },
   "Iterable[int]": {
     "abstract": true,
@@ -1847,6 +2206,235 @@
     "template": null,
     "tt": 1,
     "uid": 74
+  },
+  "Iterable[type]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 1,
+    "imports": [],
+    "name": "Iterable[type]",
+    "parents": [
+      0
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 176
+  },
+  "Iterator[Hashable]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "collections",
+          "abc"
+        ],
+        "as_name": "",
+        "name": "Hashable"
+      }
+    ],
+    "name": "Iterator[Hashable]",
+    "parents": [
+      69
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 208
+  },
+  "Iterator[Pair[Hashable, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Pair"
+      }
+    ],
+    "name": "Iterator[Pair[Hashable, object]]",
+    "parents": [
+      71
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 209
+  },
+  "Iterator[Pair[int, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [],
+    "name": "Iterator[Pair[int, object]]",
+    "parents": [
+      192
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 193
+  },
+  "Iterator[Pair[object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Pair"
+      }
+    ],
+    "name": "Iterator[Pair[object, object]]",
+    "parents": [
+      196
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 197
+  },
+  "Iterator[Quadruplet[object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Quadruplet"
+      }
+    ],
+    "name": "Iterator[Quadruplet[object, object, object, object]]",
+    "parents": [
+      200
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 201
+  },
+  "Iterator[Quintuplet[object, object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Quintuplet"
+      }
+    ],
+    "name": "Iterator[Quintuplet[object, object, object, object, object]]",
+    "parents": [
+      202
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 203
+  },
+  "Iterator[Septuplet[object, object, object, object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Septuplet"
+      }
+    ],
+    "name": "Iterator[Septuplet[object, object, object, object, object, object, object]]",
+    "parents": [
+      206
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 207
+  },
+  "Iterator[Sextuplet[object, object, object, object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Sextuplet"
+      }
+    ],
+    "name": "Iterator[Sextuplet[object, object, object, object, object, object]]",
+    "parents": [
+      204
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 205
+  },
+  "Iterator[Triplet[object, object, object]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Triplet"
+      }
+    ],
+    "name": "Iterator[Triplet[object, object, object]]",
+    "parents": [
+      198
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 199
   },
   "Iterator[object]": {
     "abstract": true,
@@ -2049,6 +2637,31 @@
     "tt": 2,
     "uid": 82
   },
+  "MutableSequence[Bytes]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "MutableSequence[Bytes]",
+    "parents": [
+      186
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 189
+  },
   "MutableSequence[EPRefABC]": {
     "abstract": true,
     "alias": null,
@@ -2149,6 +2762,21 @@
     "tt": 1,
     "uid": 86
   },
+  "MutableSequence[str]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 4,
+    "imports": [],
+    "name": "MutableSequence[str]",
+    "parents": [
+      143
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 216
+  },
   "MutableSet[Hashable]": {
     "abstract": true,
     "alias": "MutableSet",
@@ -2207,7 +2835,6 @@
     ],
     "name": "Number",
     "parents": [
-      36,
       59
     ],
     "template": null,
@@ -2237,6 +2864,59 @@
     "template": null,
     "tt": 2,
     "uid": 90
+  },
+  "Pair[Real, Real]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "numbers"
+        ],
+        "as_name": "",
+        "name": "Real"
+      }
+    ],
+    "name": "Pair[Real, Real]",
+    "parents": [
+      171
+    ],
+    "template": null,
+    "tt": 2,
+    "uid": 219
+  },
+  "Pair[int, int]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 5,
+    "imports": [],
+    "name": "Pair[int, int]",
+    "parents": [
+      171
+    ],
+    "template": null,
+    "tt": 2,
+    "uid": 174
+  },
+  "Pair[int, object]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 5,
+    "imports": [],
+    "name": "Pair[int, object]",
+    "parents": [
+      171
+    ],
+    "template": null,
+    "tt": 2,
+    "uid": 191
   },
   "Pair[object, object]": {
     "abstract": false,
@@ -3107,7 +3787,6 @@
     ],
     "name": "Rational",
     "parents": [
-      37,
       125
     ],
     "template": null,
@@ -3133,12 +3812,36 @@
     ],
     "name": "Real",
     "parents": [
-      17,
-      38
+      17
     ],
     "template": null,
     "tt": 0,
     "uid": 125
+  },
+  "Reversible[Bytes]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "Reversible[Bytes]",
+    "parents": [
+      182
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 183
   },
   "Reversible[EPRefABC]": {
     "abstract": true,
@@ -3214,6 +3917,31 @@
     "template": null,
     "tt": 1,
     "uid": 128
+  },
+  "Reversible[FrozenEPRef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEPRef"
+      }
+    ],
+    "name": "Reversible[FrozenEPRef]",
+    "parents": [
+      210
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 211
   },
   "Reversible[FrozenEndPointABC]": {
     "abstract": true,
@@ -3366,6 +4094,21 @@
     "tt": 1,
     "uid": 134
   },
+  "Reversible[type]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 2,
+    "imports": [],
+    "name": "Reversible[type]",
+    "parents": [
+      176
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 177
+  },
   "Row": {
     "abstract": false,
     "alias": null,
@@ -3414,6 +4157,32 @@
     "template": "[\"Septuplet[-object0, -object1, -object2, -object3, -object4, -object5, -object6]\", \"tuple[object, ...]\"]",
     "tt": 7,
     "uid": 136
+  },
+  "Sequence[Bytes]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "Sequence[Bytes]",
+    "parents": [
+      183,
+      185
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 186
   },
   "Sequence[EPRefABC]": {
     "abstract": true,
@@ -3492,6 +4261,32 @@
     "template": null,
     "tt": 1,
     "uid": 139
+  },
+  "Sequence[FrozenEPRef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEPRef"
+      }
+    ],
+    "name": "Sequence[FrozenEPRef]",
+    "parents": [
+      211,
+      213
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 214
   },
   "Sequence[FrozenEndPointABC]": {
     "abstract": true,
@@ -3599,6 +4394,22 @@
     "template": null,
     "tt": 1,
     "uid": 143
+  },
+  "Sequence[type]": {
+    "abstract": true,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 3,
+    "imports": [],
+    "name": "Sequence[type]",
+    "parents": [
+      177,
+      179
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 180
   },
   "Set[Hashable]": {
     "abstract": true,
@@ -3809,6 +4620,31 @@
     "tt": 0,
     "uid": 151
   },
+  "Triplet[Bytes, Bytes, Bytes]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "Triplet[Bytes, Bytes, Bytes]",
+    "parents": [
+      171
+    ],
+    "template": null,
+    "tt": 3,
+    "uid": 188
+  },
   "Triplet[object, object, object]": {
     "abstract": false,
     "alias": "Triplet",
@@ -3832,6 +4668,21 @@
     "template": "[\"Triplet[-object0, -object1, -object2]\", \"tuple[object, ...]\"]",
     "tt": 3,
     "uid": 152
+  },
+  "Triplet[str, str, str]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": null,
+    "depth": 5,
+    "imports": [],
+    "name": "Triplet[str, str, str]",
+    "parents": [
+      171
+    ],
+    "template": null,
+    "tt": 3,
+    "uid": 215
   },
   "TypesDef": {
     "abstract": false,
@@ -4082,6 +4933,46 @@
     "tt": 0,
     "uid": 165
   },
+  "list[Bytes]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "list[Bytes]",
+    "parents": [
+      189
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 190
+  },
+  "list[int]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [],
+    "name": "list[int]",
+    "parents": [
+      85
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 173
+  },
   "list[object]": {
     "abstract": false,
     "alias": "list",
@@ -4096,6 +4987,21 @@
     "template": "[\"list[-object0]\", \"MutableSequence[-object0]\"]",
     "tt": 1,
     "uid": 166
+  },
+  "list[str]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [],
+    "name": "list[str]",
+    "parents": [
+      216
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 217
   },
   "object": {
     "abstract": true,
@@ -4117,12 +5023,6 @@
       27,
       29,
       32,
-      33,
-      34,
-      35,
-      36,
-      37,
-      38,
       39,
       50,
       58,
@@ -4230,6 +5130,32 @@
     "tt": 0,
     "uid": 170
   },
+  "tuple[Bytes, ...]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "Bytes"
+      }
+    ],
+    "name": "tuple[Bytes, ...]",
+    "parents": [
+      186,
+      59
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 187
+  },
   "tuple[object, ...]": {
     "abstract": false,
     "alias": "tuple",
@@ -4253,6 +5179,22 @@
     "template": "[\"tuple[-object0, ...]\", \"Sequence[-object0]\", \"Hashable\"]",
     "tt": 1,
     "uid": 171
+  },
+  "tuple[type, ...]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [],
+    "name": "tuple[type, ...]",
+    "parents": [
+      180,
+      59
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 181
   },
   "type": {
     "abstract": false,

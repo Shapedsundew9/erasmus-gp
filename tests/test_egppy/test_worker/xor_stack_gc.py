@@ -63,13 +63,13 @@ CODON_SIGS: dict[str, bytes] = {}
 
 # Define all codon signatures
 _codon_specs = {
-    "RSHIFT_SIG": (["Integral"], ["EGPNumber"], ">>"),
-    "XOR_SIG": (["Integral"], ["EGPNumber"], "^"),
+    "RSHIFT_SIG": (["Integral"], ["Integral"], ">>"),
+    "XOR_SIG": (["Integral"], ["Integral"], "^"),
     "GETRANDBITS_SIG": (["int"], ["int"], "getrandbits"),
     "LITERAL_1_SIG": ([], ["int"], "1"),
     "SIXTYFOUR_SIG": ([], ["int"], "64"),
     "CUSTOM_PGC_SIG": ([], [], "custom"),
-    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
+    #    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
 }
 
 
@@ -239,8 +239,8 @@ def create_primitive_gcs() -> None:
         CODON_SIGS[cname] = csig
 
     # Right shift and xor need interfaces casting
-    rshift_gc = cast_interfaces_to_int(gpi[CODON_SIGS["RSHIFT_SIG"]])
-    xor_gc = cast_interfaces_to_int(gpi[CODON_SIGS["XOR_SIG"]])
+    rshift_gc = gpi[CODON_SIGS["RSHIFT_SIG"]]
+    xor_gc = gpi[CODON_SIGS["XOR_SIG"]]
 
     # random_long_gc signature:
     random_long_gc = inherit_members(

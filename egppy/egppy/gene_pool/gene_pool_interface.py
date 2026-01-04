@@ -25,8 +25,7 @@ _logger: Logger = egp_logger(name=__name__)
 
 # Source files
 SOURCE_FILES = tuple(
-    join(dirname(__file__), "..", "data", filename)
-    for filename in ("codons.json", "meta_codons.json")
+    join(dirname(__file__), "..", "data", filename) for filename in ("codons.json",)
 )
 
 
@@ -87,7 +86,8 @@ class GenePoolInterface(GPIABC):
         # In that case we fall back to the microbiome GPL (which will fallback
         # to the biome GPL etc.) and we could receive a timeout or rate limit
         # response.
-        return self._ggc_cache[gc if isinstance(gc, bytes) else gc["signature"]]
+        assert isinstance(gc, (bytes, GGCDict)), "gc must be bytes or GGCDict"
+        return self._ggc_cache[gc["signature"] if isinstance(gc, GGCDict) else gc]
 
     def __setitem__(self, signature: bytes, value: GCABC) -> None:
         """Place a genetic code in the cache. NB: It is not persisted to the
