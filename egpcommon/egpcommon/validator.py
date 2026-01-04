@@ -235,7 +235,7 @@ class Validator:
 
     def _is_ip_or_hostname(self, attr: str, value: str) -> bool:
         """Validate an IP address or hostname."""
-        result = self._is_ip(attr, value) or self._is_hostname(attr, value)
+        result = self._is_hostname(attr, value) or self._is_ip(attr, value)
         if not result:
             _logger.log(
                 VERIFY,

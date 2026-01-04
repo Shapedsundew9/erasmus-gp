@@ -336,6 +336,7 @@ class RawTable:
         format_dict: dict[str, sql.Identifier | sql.Literal] = {
             k: sql.Identifier(k) for k in self.columns
         }
+        format_dict[self.config["table"]] = self._table
         if literals is not None:
             dupes: set[str] = set(literals.keys()).intersection(self.columns)
             if dupes:

@@ -87,6 +87,16 @@ class TypeStringParser:
                 # single arg: list[int]
                 args = [TypeStringParser._visit(node.slice)]
 
+            # Sanity for ellipsis
+            ellipsis_present = False
+            for arg in args:
+                if arg.name == "...":
+                    if ellipsis_present:
+                        raise ValueError("Multiple ellipses '...' are not allowed in type hints.")
+                    ellipsis_present = True
+            if ellipsis_present and origin.name != "tuple":
+                raise ValueError("Ellipsis '...' is only allowed in 'tuple' type hints.")
+
             return TypeNode(origin.name, args)
 
         # --- Case 3: Attributes (e.g., 'collections.abc.Iterable') ---
@@ -100,6 +110,8 @@ class TypeStringParser:
         elif isinstance(node, Constant):
             if node.value is None:
                 return TypeNode("None")
+            if node.value is Ellipsis:
+                return TypeNode("...")
             raise ValueError(f"Literals like '{node.value}' are not valid types.")
 
         # --- Case 5: Binary Operators (The '|' Union operator) ---

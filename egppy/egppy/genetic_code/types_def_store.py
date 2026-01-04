@@ -2,10 +2,11 @@
 Docstring for egppy.genetic_code.types_def_store
 """
 
+from functools import reduce
 from json import dumps, loads
-from logging import root
 from os.path import dirname, join
-from typing import Iterator
+from re import findall
+from typing import Any, Iterator
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
@@ -22,13 +23,17 @@ _logger: Logger = egp_logger(name=__name__)
 
 
 # SQL
-_MAX_UID_SQL = "WHERE uid >= ({tt} << 16) AND uid < (({tt} + 1) << 16)"
+_TABLE_NAME = "types_def"
+_MAX_UID_SQL = "SELECT MAX({uid}) FROM {" + _TABLE_NAME + "}"
 _TYPE_SELECT_SQL = "WHERE name = {id} or alias = {id}"
+_TEMPLATE_TYPE_PATTERN = r"-\S*\d"
+_TYPES_DEF_FILE_FOLDER = join(dirname(__file__), "..", "data")
+_TYPES_DEF_FILE = "types_def.json"
 
 # Initialize the database connection
 DB_STORE_TABLE_CONFIG = TableConfig(
     database=LOCAL_DB_CONFIG,
-    table="types_def",
+    table=_TABLE_NAME,
     schema={
         "uid": ColumnSchema(db_type="int4", primary_key=True),
         "name": ColumnSchema(db_type="VARCHAR", index="btree"),
@@ -40,9 +45,10 @@ DB_STORE_TABLE_CONFIG = TableConfig(
         "parents": ColumnSchema(db_type="INT4[]"),
         "children": ColumnSchema(db_type="INT4[]"),
         "template": ColumnSchema(db_type="VARCHAR", nullable=True),
+        "tt": ColumnSchema(db_type="int4"),
     },
-    data_file_folder=join(dirname(__file__), "..", "data"),
-    data_files=["types_def.json"],
+    data_file_folder=_TYPES_DEF_FILE_FOLDER,
+    data_files=[_TYPES_DEF_FILE],
     delete_table=False,
     create_db=True,
     create_table=True,
@@ -65,8 +71,8 @@ DB_SOURCES_TABLE_CONFIG = TableConfig(
 )
 
 
-# The generic tuple type UID
-_TUPLE_UID: int = 0
+# The object type UID
+OBJECT_UID: int = 0
 
 
 class TypesDefStore:
@@ -88,6 +94,7 @@ class TypesDefStore:
 
     _db_store: Table | None = None
     _db_sources: Table | None = None
+    _db_lock_id: int = hash("TypesDefStoreLock")
     _cache: dict[int | str, TypesDef] = {}
     _cache_order: list[int | str] = []
     _cache_maxsize: int = 1024
@@ -149,7 +156,6 @@ class TypesDefStore:
         elif isinstance(key, str):
             tds = tuple(TypesDefStore._db_store.select(_TYPE_SELECT_SQL, literals={"id": key}))
             td = tds[0] if len(tds) == 1 else {}
-            key = td["name"]  # Use the canonical name as the cache key
         else:
             raise TypeError(f"Invalid key type: {type(key)}")
         if not td:
@@ -161,28 +167,66 @@ class TypesDefStore:
             if not root_tn.args:
                 # It is not a container and we do not know what it is.
                 raise KeyError(f"Type not found with name: {key}")
-            # Recursively unpack the contained type definitions
-            ctds = [self[(str(arg))] for arg in root_tn.args]
+            # Recursively unpack the contained type definitions (ignoring ellipsis)
+            arg_strs = [str(arg) for arg in root_tn.args if arg.name != "..."]
+            ctds = [self[arg_str] for arg_str in arg_strs]
             # Now we have a parent container in root_tn and known contained types
             # to make a new type definition.
             base_type = self[root_tn.name]  # This is the alias e.g. list, dict, tuple, etc.
 
-            new_td = {
+            # Imports are deduplicated when the TypesDef is created.
+            imports = [i for ctd in ctds for i in ctd.imports]
+
+            # Parent types are likely needed to be created too. However, they are templated
+            # where r'-.*[0-9]' is used to indicate a template parameter for a specific type.
+            assert (
+                base_type.template is not None
+            ), f"Base type {base_type.name} must be a template type."
+
+            # Must have 1 parent otherwise why do we have a template?
+            assert (
+                len(base_type.template) > 1
+            ), f"Base type {base_type.name} must have at least 1 parent."
+            type_templates = findall(_TEMPLATE_TYPE_PATTERN, base_type.template[0])
+
+            # For types the number of templates
+            assert len(type_templates) <= len(ctds), (
+                f"Template parameters ({type_templates}) is greater than the "
+                f"number of contained types ({ctds}) for type {key}."
+            )
+
+            # Create a mapping of template to contained type definition
+            # and use that to update the templated parent types to make a list of parents.
+            trans_table = dict(zip(type_templates, arg_strs))
+            parents = [
+                reduce(lambda acc, tpl: acc.replace(*tpl), trans_table.items(), parent)
+                for parent in base_type.template[1:]
+            ]
+
+            # Get the parent TypesDef objects - this will create them if they do not exist.
+            # TypeDefs need the parent UIDs
+            ptds = [self[parent] for parent in parents]
+            td = {
                 "name": str(root_tn),  # Ensure consistent formatting
                 "alias": None,  # Never will be a base template by definition
-                "uid": self.next_xuid(base_type.tt()),
+                "uid": self.next_xuid(),
                 "default": base_type.default,
                 "depth": base_type.depth,
-                "abstract": False,
-                "imports": [],
-                "parents": [],
-                "children": [ctd.uid for ctd in ctds],
+                "abstract": base_type.abstract,
+                "imports": imports,
+                "parents": [p.uid for p in ptds],
+                "children": [],  # Children may be possible but not created by default.
                 "template": None,
+                "tt": base_type.tt,
             }
+
+            # Add to the database & read it back out again to ensure consistency
+            TypesDefStore._db_store.insert((TypesDef(**td).to_json(),))
+            td = next(TypesDefStore._db_store.select(_TYPE_SELECT_SQL, literals={"id": key}))
 
         # Create a frozen TypesDef object but do not put it in the object_store as
         # we will cache it here.
-        ntd = TypesDef(**td).freeze(store=False)
+        ntd = TypesDef(**td)
 
         # Cache the result with LRU eviction
         TypesDefStore._cache[key] = ntd
@@ -199,10 +243,14 @@ class TypesDefStore:
         """Initialize the database store if it has not been initialized yet.
         This is done lazily to avoid import overheads when not used.
         """
+        # TODO: There is a race condition here for multi-threaded use.
+        # This should be protected by a lock in the database.
         TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
         DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
         if DB_STORE_TABLE_CONFIG.delete_table:
-            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
+            # Delete sources and recreate them with the latest data files.
+            DB_SOURCES_TABLE_CONFIG.delete_table = True
+            TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
             for name in DB_STORE_TABLE_CONFIG.data_files:
                 filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
                 if not verify_signed_file(filename):
@@ -212,6 +260,8 @@ class TypesDefStore:
                 sig_data = load_signature_data(filename + ".sig")
                 sig_data["source_path"] = filename
                 TypesDefStore._db_sources.insert((sig_data,))
+        # The table configuration will either create & populate with the latest data
+        # or load the existing table.
         TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
 
     def _should_reload_table(self) -> bool:
@@ -330,6 +380,13 @@ class TypesDefStore:
 
         return result
 
+    def export(self) -> dict[str, Any]:
+        """Export the types definition store to the data files."""
+        if TypesDefStore._db_store is None:
+            raise RuntimeError("DB store must be initialized before it can be exported.")
+        rows: RowIter = TypesDefStore._db_store.select()
+        return {td["name"]: td for td in rows}
+
     def get(self, base_key: str) -> tuple[TypesDef, ...]:
         """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
         if TypesDefStore._db_store is None:
@@ -373,16 +430,19 @@ class TypesDefStore:
         _logger.info(info_str)
         return info_str
 
-    def next_xuid(self, tt: int = 0) -> int:
+    def next_xuid(self) -> int:
         """Get the next X unique ID for a type."""
+        # TODO: This is temporary until we have a cloud service to allocate UIDs.
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
-        max_uid = tuple(TypesDefStore._db_store.select(_MAX_UID_SQL, literals={"tt": tt}))
-        assert max_uid, "No UIDs available for this Template Type."
-        if max_uid[0] & 0xFFFF == 0xFFFF:
+        retval = next(TypesDefStore._db_store.raw.arbitrary_sql(_MAX_UID_SQL))
+        assert retval, "No UIDs available for this Template Type."
+        max_uid = retval[0]
+        assert isinstance(max_uid, int), "Max UID must be an integer."
+        if max_uid & 0xFFFF == 0xFFFF:
             raise OverflowError("No more UIDs available for this Template Type.")
-        return max_uid[0] & 0xFFFF + 1
+        return (max_uid & 0xFFFF) + 1
 
     def values(self) -> Iterator[TypesDef]:
         """Iterate through all the types in the store."""
@@ -395,7 +455,3 @@ class TypesDefStore:
 
 # Create the TypesDefStore object
 types_def_store = TypesDefStore()
-
-
-# Important check
-assert types_def_store["tuple"].uid == _TUPLE_UID, "Tuple UID is used as a constant."

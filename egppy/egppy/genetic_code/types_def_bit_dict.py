@@ -17,18 +17,10 @@ TYPESDEF_CONFIG: dict[str, dict[str, Any]] = {
         "description": "Reserved for future use.",
         "valid": {"value": {0}},
     },
-    "tt": {
-        "type": "uint",
-        "start": 28,
-        "width": 3,
-        "default": 0,
-        "description": "Template Type.",
-        "valid": {"range": [(8,)]},
-    },
-    "reserved_27_16": {
+    "reserved_30_16": {
         "type": "int",
         "start": 16,
-        "width": 12,
+        "width": 15,
         "default": 0,
         "description": "Reserved for future use.",
         "valid": {"value": {0}},

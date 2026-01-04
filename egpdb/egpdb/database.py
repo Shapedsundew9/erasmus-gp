@@ -504,8 +504,7 @@ def db_transaction(dbname, config, sql_str, read=True, recons=_DB_RECONNECTIONS,
                     _logger.error("Backoff generator exhausted.")
                     raise
                 break
-            if not read:
-                connection.commit()
+            connection.commit()
             return cursor
         token3["reconnection"] = reconnection
         _logger.warning(TextToken({"W04003": token3}))

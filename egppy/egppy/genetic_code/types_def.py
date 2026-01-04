@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from array import array
+from json import loads
 from typing import Any, Final, Generator, Iterable
 
 from bitdict import BitDictABC, bitdict_factory
 
 from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.validator import Validator
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
@@ -26,7 +26,7 @@ TypesDefBD: type[BitDictABC] = bitdict_factory(
 )
 
 
-class TypesDef(FreezableObject, Validator):
+class TypesDef(Validator):
     """The Type Definition class stores all the information in order
     to define a type in the EGP system.
 
@@ -35,16 +35,17 @@ class TypesDef(FreezableObject, Validator):
     """
 
     __slots__: tuple[str, ...] = (
-        "__name",
-        "__alias",
-        "__default",
-        "__depth",
-        "__abstract",
-        "__imports",
-        "__parents",
-        "__children",
-        "__uid",
-        "__template",
+        "name",
+        "alias",
+        "default",
+        "depth",
+        "abstract",
+        "imports",
+        "parents",
+        "children",
+        "uid",
+        "template",
+        "tt",
     )
 
     def __init__(
@@ -58,7 +59,8 @@ class TypesDef(FreezableObject, Validator):
         imports: Iterable[ImportDef] | dict = NULL_TUPLE,
         parents: Iterable[int | TypesDef] = NULL_TUPLE,
         children: Iterable[int | TypesDef] = NULL_TUPLE,
-        template: dict[str, Any] | None = None,
+        template: Iterable[str] | str | None = None,
+        tt: int = 0,
     ) -> None:
         """Initialize Type Definition.
 
@@ -71,20 +73,22 @@ class TypesDef(FreezableObject, Validator):
             imports: List of import definitions need to instantiate the type.
             parents: List of type uids or definitions that the type inherits from.
             children: List of type uids or definitions that the type has as children.
+            alias: Alias name of the type definition (only for container types).
+            template: Template mapping for templated (container) types.
         """
         # Always set frozen to False
         # because we want to be able to set the attributes during initialization.
-        super().__init__(frozen=False)
-        self.__name: Final[str] = self._name(name)
-        self.__default: Final[str | None] = self._default(default)
-        self.__depth: Final[int] = self._depth(depth if depth is not None else 0)
-        self.__abstract: Final[bool] = self._abstract(abstract)
-        self.__imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
-        self.__parents: Final[array[int]] = self._parents(parents)
-        self.__children: Final[array[int]] = self._children(children)
-        self.__uid: Final[int] = self._uid(uid)
-        self.__alias: Final[str | None] = self._alias(alias)
-        self.__template: Final[dict[str, Any] | None] = self._template(template)
+        self.name: Final[str] = self._name(name)
+        self.default: Final[str | None] = self._default(default)
+        self.depth: Final[int] = self._depth(depth if depth is not None else 0)
+        self.abstract: Final[bool] = self._abstract(abstract)
+        self.imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
+        self.parents: Final[array[int]] = self._parents(parents)
+        self.children: Final[array[int]] = self._children(children)
+        self.uid: Final[int] = self._uid(uid)
+        self.alias: Final[str | None] = self._alias(alias)
+        self.template: Final[list[str] | None] = self._template(template)
+        self.tt: Final[int] = self._tt(tt)
 
     def _alias(self, alias: str | None) -> str | None:
         """Validate the alias of the type definition."""
@@ -95,36 +99,43 @@ class TypesDef(FreezableObject, Validator):
         self._is_printable_string("alias", alias)
         return alias
 
-    def _template(self, template: dict[str, Any] | None) -> dict[str, Any] | None:
+    def _template(self, template: Iterable[str] | None) -> list[str] | None:
         """Validate the template of the type definition."""
         if template is None:
             return None
-        self._is_dict("template", template)
-        return template
+        if isinstance(template, str):
+            template = loads(template)
+        return template if isinstance(template, (list, type(None))) else list(template)
+
+    def _tt(self, tt: int) -> int:
+        """Validate the Template Type number of the type definition."""
+        self._is_int("tt", tt)
+        self._in_range("tt", tt, 0, 7)
+        return tt
 
     def __eq__(self, value: object) -> bool:
         """Return True if the value is equal to this object."""
         if isinstance(value, TypesDef):
-            return self.__uid == value.uid
+            return self.uid == value.uid
         return False
 
     def __ge__(self, other: object) -> bool:
         """Return True if this object's UID is greater than or equal to the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid >= other.uid
+        return self.uid >= other.uid
 
     def __gt__(self, other: object) -> bool:
         """Return True if this object's UID is greater than the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid > other.uid
+        return self.uid > other.uid
 
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
         TypeDefs are unique by design and should not be duplicated.
         """
-        return self.__uid
+        return self.uid
 
     def __iter__(self) -> Generator[Any, Any, None]:
         """
@@ -138,7 +149,7 @@ class TypesDef(FreezableObject, Validator):
         """Return True if this object's UID is less than or equal to the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid <= other.uid
+        return self.uid <= other.uid
 
     def __len__(self) -> int:
         """Return the number of publicly exposed variables."""
@@ -148,21 +159,21 @@ class TypesDef(FreezableObject, Validator):
         """Return True if this object's UID is less than the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid < other.uid
+        return self.uid < other.uid
 
     def __ne__(self, value: object) -> bool:
         """Return True if the value is not equal to this object."""
         if not isinstance(value, TypesDef):
             return NotImplemented
-        return self.__uid != value.uid
+        return self.uid != value.uid
 
     def __repr__(self) -> str:
         """Return the string representation of the type definition."""
         return (
-            f"TypesDef(name={self.__name!r}, uid={self.uid}, "
-            f"abstract={self.__abstract}, default={self.__default!r}, "
-            f"imports={self.__imports!r}, parents={self.__parents!r}, "
-            f"children={self.__children!r})"
+            f"TypesDef(name={self.name!r}, uid={self.uid}, "
+            f"abstract={self.abstract}, default={self.default!r}, "
+            f"imports={self.imports!r}, parents={self.parents!r}, "
+            f"children={self.children!r})"
         )
 
     def __str__(self) -> str:
@@ -171,9 +182,7 @@ class TypesDef(FreezableObject, Validator):
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
-        self.value_error(
-            self._is_bool("abstract", abstract), f"abstract must be a bool, but is {type(abstract)}"
-        )
+        self._is_bool("abstract", abstract)
         return abstract
 
     def _children(self, children: Iterable[int | TypesDef]) -> array[int]:
@@ -193,7 +202,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(child, TypesDef):
                 child_list.append(child.uid)
             else:
-                self.value_error(False, "Invalid children definition.")
+                raise ValueError("Invalid children definition.")
         return array("i", child_list)
 
     def _default(self, default: str | None) -> str | None:
@@ -214,15 +223,15 @@ class TypesDef(FreezableObject, Validator):
     def _imports(self, imports: Iterable[ImportDef] | dict) -> tuple[ImportDef, ...]:
         """Mash the import definitions into a tuple of ImportDef objects
         and ensure they are in the ImportDef store."""
-        import_list: list[ImportDef] = []
+        import_list: set[ImportDef] = set()
         for import_def in imports:
             if isinstance(import_def, dict):
                 # The import store will ensure that the same import is not duplicated.
-                import_list.append(ImportDef(**import_def).freeze())
+                import_list.add(ImportDef(**import_def).freeze())
             elif isinstance(import_def, ImportDef):
-                import_list.append(import_def)
+                import_list.add(import_def)
             else:
-                self.value_error(False, "Invalid imports definition.")
+                raise ValueError("Invalid imports definition.")
         return tuple(import_list)
 
     def _name(self, name: str) -> str:
@@ -248,7 +257,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(parent, TypesDef):
                 parent_list.append(parent.uid)
             else:
-                self.value_error(False, "Invalid parents definition.")
+                raise ValueError("Invalid parents definition.")
         return array("i", parent_list)
 
     def _uid(self, uid: int | dict[str, Any]) -> int:
@@ -262,89 +271,31 @@ class TypesDef(FreezableObject, Validator):
             # The BitDict will handle the validation.
             return TypesDefBD(uid).to_int()
         else:
-            self.value_error(False, "Invalid UID definition.")
+            raise ValueError("Invalid UID definition.")
 
-    @property
-    def abstract(self) -> bool:
-        """Return True if the type is abstract."""
-        return self.__abstract
-
-    @property
-    def alias(self) -> str | None:
-        """Return the alias of the type definition."""
-        return self.__alias
-
-    @property
     def bd(self) -> BitDictABC:
         """Return the BitDict object."""
-        return TypesDefBD(self.__uid)
-
-    @property
-    def children(self) -> array[int]:
-        """Return the children of the type definition."""
-        # TODO: Special case this for Any and tuple types
-        return self.__children
-
-    @property
-    def default(self) -> str | None:
-        """Return the default instantiation of the type."""
-        return self.__default
-
-    @property
-    def depth(self) -> int:
-        """Return the depth of the type definition."""
-        return self.__depth
-
-    @property
-    def imports(self) -> tuple[ImportDef, ...]:
-        """Return the imports of the type definition."""
-        return self.__imports
-
-    @property
-    def name(self) -> str:
-        """Return the name of the type definition."""
-        return self.__name
-
-    @property
-    def parents(self) -> array[int]:
-        """Return the parents of the type definition."""
-        return self.__parents
+        return TypesDefBD(self.uid)
 
     def to_json(self) -> dict:
         """Return Type Definition as a JSON serializable dictionary."""
         return {
-            "abstract": self.__abstract,
-            "alias": self.__alias,
-            "children": list(self.__children),
-            "default": self.__default,
-            "depth": self.__depth,
-            "imports": [idef.to_json() for idef in self.__imports],
-            "name": self.__name,
-            "parents": list(self.__parents),
-            "template": self.__template,
+            "abstract": self.abstract,
+            "alias": self.alias,
+            "children": list(self.children),
+            "default": self.default,
+            "depth": self.depth,
+            "imports": [idef.to_json() for idef in self.imports],
+            "name": self.name,
+            "parents": list(self.parents),
+            "template": self.template,
+            "tt": self.tt,
             "uid": self.uid,
         }
 
-    @property
-    def template(self) -> dict[str, Any] | None:
-        """Return the template of the type definition."""
-        return self.__template
-
-    def tt(self) -> int:
-        """Return the Template Type number."""
-        bd = self.bd
-        retval = bd["tt"]
-        assert isinstance(retval, int), "TT must be an integer."
-        return retval
-
-    @property
-    def uid(self) -> int:
-        """Return the UID of the type definition."""
-        return self.bd.to_int()
-
     def xuid(self) -> int:
         """Return the XUID of the type definition."""
-        bd = self.bd
+        bd = self.bd()
         retval = bd["xuid"]
         assert isinstance(retval, int), "XUID must be an integer."
         return retval

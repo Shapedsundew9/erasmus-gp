@@ -86,6 +86,11 @@ class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
     def __getitem__(self, index: int) -> FrozenEPRefABC:
         return self._refs[index]
 
+    def __iter__(self):
+        """Efficient iterator over the references."""
+        for item in self._refs:
+            yield item
+
     def __len__(self) -> int:
         return len(self._refs)
 

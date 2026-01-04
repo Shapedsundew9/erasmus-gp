@@ -489,6 +489,9 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
+            def commit(self) -> None:
+                """Commit the transaction."""
+
         mock_connect.return_value = MockConnection()
         mock_as_string.return_value = "SQL string"
         self.assertTrue(db_exists(_MOCK_DBNAME, _MOCK_CONFIG))
@@ -538,6 +541,9 @@ class TestDatabase(TestCase):
             def close(self):
                 """Close the connection."""
                 self.value = None
+
+            def commit(self) -> None:
+                """Commit the transaction."""
 
         mock_connect.return_value = MockConnection()
         mock_as_string.return_value = "SQL string"
@@ -886,6 +892,9 @@ class TestDatabase(TestCase):
             def close(self):
                 """Close the connection."""
                 self.value = None
+
+            def commit(self) -> None:
+                """Commit the transaction."""
 
         mock_connect.return_value = MockConnection()
         dbcur = db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, ("SQL0",))
