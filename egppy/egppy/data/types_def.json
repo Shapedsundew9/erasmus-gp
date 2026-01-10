@@ -3370,6 +3370,30 @@
     "tt": 0,
     "uid": 108
   },
+  "PsqlJsonb": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "PsqlJsonb({})",
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "name": "PsqlJsonb"
+      }
+    ],
+    "name": "PsqlJsonb",
+    "parents": [
+      119
+    ],
+    "template": null,
+    "tt": 0,
+    "uid": 34
+  },
   "PsqlNumber": {
     "abstract": true,
     "alias": null,
@@ -3634,6 +3658,7 @@
     "abstract": true,
     "alias": null,
     "children": [
+      34,
       93,
       96,
       98,

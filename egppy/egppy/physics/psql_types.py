@@ -80,7 +80,8 @@ class PsqlType(ABC):
             raise PsqlTypeError(
                 "PsqlType expression value requires at least one sub-expression or literal "
                 "(param_a) for expression construction. "
-                "param_a should be a PsqlType instance, e.g., param_a=PsqlType('column_name', is_column=True)."
+                "param_a should be a PsqlType instance, e.g., "
+                "param_a=PsqlType('column_name', is_column=True)."
             )
         self.value = self._validate(value) if is_literal else value
         self.is_literal: bool = is_literal
@@ -162,6 +163,30 @@ class PsqlNumeric(PsqlNumber):
 
 
 # --- Concrete PSQL Types ---
+
+
+class PsqlJsonb(PsqlType):
+    """JSONB type."""
+
+    sql_type_name = "JSONB"
+
+    def _validate(self, value):
+        """Validate the Python value for a PSQL JSONB.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated boolean value.
+
+        Raises:
+            PsqlValueError: If the value is not a dict.
+        """
+        if not isinstance(value, dict):
+            raise PsqlValueError(f"Invalid value for JSONB: {value!r}. Must be a dict.")
+        return value
+
+
 class PsqlBool(PsqlType):
     """Boolean type."""
 

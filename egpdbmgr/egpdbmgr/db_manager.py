@@ -22,12 +22,7 @@ from datetime import UTC, datetime
 from typing import Any, Callable
 
 from egpcommon.common import SHAPEDSUNDEW9_UUID
-from egpcommon.conversions import (
-    compress_json,
-    decompress_json,
-    encode_properties,
-    memoryview_to_signature,
-)
+from egpcommon.conversions import encode_properties, memoryview_to_signature
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpdb.raw_table import ColumnSchema
@@ -44,12 +39,7 @@ _logger: Logger = egp_logger(name=__name__)
 # value.
 # {name, encode (output to DB), decode (output to application)}
 GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
-    (
-        "cgraph",
-        lambda x: compress_json(x.to_json(True)),
-        decompress_json,
-    ),
-    ("meta_data", compress_json, decompress_json),
+    ("cgraph", lambda x: x.to_json(True), None),
     ("properties", encode_properties, None),
 ) + tuple(
     (name, None, memoryview_to_signature)

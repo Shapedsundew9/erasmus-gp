@@ -27,10 +27,10 @@ META_DATA_KEYS = {"inline", "code", "imports", "io_map", "name", "description"}
 # }
 EGC_KVT: dict[str, dict[str, Any]] = {
     "cgraph": {
-        "db_type": "BYTEA",
+        "db_type": "JSONB",
         "nullable": False,
-        "phy_type": "bytes",
-        "psql_type": "PsqlBytea",
+        "phy_type": "dict",
+        "psql_type": "PsqlJsonb",
     },
     "creator": {"db_type": "UUID", "nullable": False, "phy_type": "UUID", "psql_type": "PsqlUUID"},
     "gca": {
@@ -137,10 +137,10 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "psql_type": "PsqlBigInt",
     },
     "meta_data": {
-        "db_type": "BYTEA",
+        "db_type": "JSONB",
         "nullable": True,
-        "phy_type": "bytes",
-        "psql_type": "PsqlBytea",
+        "phy_type": "dict",
+        "psql_type": "PsqlJsonb",
     },
     "num_codes": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
     "num_codons": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},

@@ -111,6 +111,7 @@ from egppy.physics.psql_types import (
     PsqlInt,
     PsqlIntArray,
     PsqlIntegral,
+    PsqlJsonb,
     PsqlNumber,
     PsqlNumeric,
     PsqlReal,
