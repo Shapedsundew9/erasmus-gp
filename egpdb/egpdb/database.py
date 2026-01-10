@@ -18,7 +18,8 @@ from typing import Any, Generator
 
 from psycopg2 import InterfaceError, OperationalError, ProgrammingError, connect, errors, sql
 from psycopg2.extensions import cursor as TupleCursor
-from psycopg2.extras import DictCursor, NamedTupleCursor, register_uuid
+from psycopg2.extensions import register_adapter
+from psycopg2.extras import DictCursor, Json, NamedTupleCursor, register_default_json, register_uuid
 
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.text_token import TextToken, register_token_code
@@ -30,6 +31,8 @@ _logger: Logger = egp_logger(name=__name__)
 
 # psycopg2 registrations
 register_uuid()
+register_default_json()
+register_adapter(dict, Json)
 
 
 # Global connection tracking

@@ -8,6 +8,7 @@ from time import sleep
 from typing import Any, Generator, Iterable, Literal
 
 from psycopg2 import ProgrammingError, errors, sql
+from psycopg2.extras import Json
 
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.text_token import TextToken, register_token_code
@@ -97,6 +98,8 @@ _TYPE_ALIGNMENTS: dict[str, int] = {
     "TIME": 8,
     "TIMESTAMP": 8,
     "UUID": 8,
+    "JSON": 0,
+    "JSONB": 0,
 }
 TYPES = tuple(_TYPE_ALIGNMENTS.keys())
 _TABLE_LEN_SQL = sql.SQL("SELECT COUNT(*) FROM {0}")
@@ -345,6 +348,15 @@ class RawTable:
                 )
             format_dict.update({k: sql.Literal(v) for k, v in literals.items()})
         return format_dict
+
+    def _get_literal(self, value, col_name):
+        """Get a SQL literal for the value, wrapping in Json if needed."""
+        if value is None:
+            return sql.Literal(None)
+        db_type = self.config["schema"][col_name]["db_type"].upper()
+        if "JSON" in db_type:
+            return sql.Literal(Json(value))
+        return sql.Literal(value)
 
     def _get_primary_key(self) -> str | None:
         """Identify the primary key.
@@ -905,7 +917,11 @@ class RawTable:
         columns_sql = sql.SQL(",").join([sql.Identifier(k) for k in columns])
         values_sql = sql.SQL(",").join(
             (
-                sql.SQL("({0})").format(sql.SQL(",").join((sql.Literal(value) for value in row)))
+                sql.SQL("({0})").format(
+                    sql.SQL(",").join(
+                        (self._get_literal(value, col) for value, col in zip(row, columns))
+                    )
+                )
                 for row in values
             )
         )
