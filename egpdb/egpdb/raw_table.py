@@ -180,6 +180,10 @@ class RawTable:
         create_table: bool = (
             not self._table_exists(self.config["wait_for_table"]) and self.config["create_table"]
         )
+        # Find the JSON columns so we can quickly determine if we need to wrap literals
+        self._json_columns = {
+            c for c, d in self.config["schema"].items() if d["db_type"].upper() in ("JSON", "JSONB")
+        }
         self.columns = self._create_table() if create_table else self._table_definition()
         if not create_table and not self.columns:
             raise ValueError(
@@ -348,15 +352,6 @@ class RawTable:
                 )
             format_dict.update({k: sql.Literal(v) for k, v in literals.items()})
         return format_dict
-
-    def _get_literal(self, value, col_name):
-        """Get a SQL literal for the value, wrapping in Json if needed."""
-        if value is None:
-            return sql.Literal(None)
-        db_type = self.config["schema"][col_name]["db_type"].upper()
-        if "JSON" in db_type:
-            return sql.Literal(Json(value))
-        return sql.Literal(value)
 
     def _get_primary_key(self) -> str | None:
         """Identify the primary key.
@@ -916,14 +911,13 @@ class RawTable:
             )
         columns_sql = sql.SQL(",").join([sql.Identifier(k) for k in columns])
         values_sql = sql.SQL(",").join(
-            (
-                sql.SQL("({0})").format(
-                    sql.SQL(",").join(
-                        (self._get_literal(value, col) for value, col in zip(row, columns))
-                    )
+            sql.SQL("({0})").format(
+                sql.SQL(",").join(
+                    (sql.Literal(Json(value)) if col in self._json_columns else sql.Literal(value))
+                    for value, col in zip(row, columns)
                 )
-                for row in values
             )
+            for row in values
         )
         if not values_sql.seq:
             return iter(tuple())
