@@ -18,12 +18,12 @@ The Need for a Third Type: Gene Pool Genetic Code (GPG Code)
 """
 
 from collections.abc import Mapping
-from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
+from egpcommon.gp_db_config import META_DATA_KEYS
 from egpcommon.properties import PropertiesBD
 from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
@@ -62,6 +62,12 @@ class GPGCView(Mapping):
         self._drvd["input_types"], self._drvd["inputs"] = cgrph[SrcIfKey.IS].types_and_indices()
         self._drvd["output_types"], self._drvd["outputs"] = cgrph[DstIfKey.OD].types_and_indices()
         self._drvd["updated"] = datetime.now(UTC)
+        self._drvd["meta_data"] = {key: ggcode[key] for key in META_DATA_KEYS if key in ggcode}
+        if "imports" in self._drvd["meta_data"]:
+            self._drvd["meta_data"]["imports"] = [
+                i.to_json() for i in self._drvd["meta_data"]["imports"]
+            ]
+
         assert not any(
             key in self._src for key in self._drvd
         ), "Derived keys overlap with source keys in GPGCView."
@@ -97,20 +103,7 @@ class GPGCView(Mapping):
             if not self._src.GC_KEY_TYPES[key]:
                 continue  # Skip non-persistent keys
             value = self.get(key)
-            if key == "meta_data":
-                assert isinstance(value, dict), "Meta data must be a dict."
-                md = deepcopy(value)
-                if (
-                    "function" in md
-                    and "python3" in md["function"]
-                    and "0" in md["function"]["python3"]
-                    and "imports" in md["function"]["python3"]["0"]
-                ):
-                    md["function"]["python3"]["0"]["imports"] = [
-                        imp.to_json() for imp in self["imports"]
-                    ]
-                retval[key] = md
-            elif key == "properties":
+            if key == "properties":
                 # Make properties humman readable.
                 assert isinstance(value, int), "Properties must be an int."
                 retval[key] = PropertiesBD(value).to_json()

@@ -6,6 +6,15 @@ The GP schema is used in egppy & egpdbmgr.
 
 from typing import Any
 
+# Metadata has a dictionary structure with the following keys. The values
+# are of type:
+# - inline: str
+# - imports: list[dict[str, str]]
+# - code: str
+# - io_map: dict[int, int]
+META_DATA_KEYS = {"inline", "code", "imports", "io_map", "name", "description"}
+
+
 # GP GC Fields with Postgres definitions.
 # {
 #   column_name: {
@@ -128,7 +137,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "psql_type": "PsqlBigInt",
     },
     "meta_data": {
-        "db_type": "JSONB",
+        "db_type": "BYTEA",
         "nullable": True,
         "phy_type": "bytes",
         "psql_type": "PsqlBytea",

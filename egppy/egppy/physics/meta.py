@@ -40,21 +40,15 @@ META_CODON_TEMPLATE: dict[str, Any] = {
         "gctsp": {"type_upcast": False, "type_downcast": True},
     },
     "meta_data": {
-        "function": {
-            "python3": {
-                "0": {
-                    "inline": "tuple(raise_if_not_instance_of(ix, tx) for ix, tx in zip({i}, {t}))",
-                    "description": "Raise if ix is not an instance or child of tx.",
-                    "name": "raise_if_not_instance_of(ix, tx)",
-                    "imports": [
-                        {
-                            "aip": ["egppy", "physics", "meta"],
-                            "name": "raise_if_not_instance_of",
-                        }
-                    ],
-                }
+        "inline": "tuple(raise_if_not_instance_of(ix, tx) for ix, tx in zip({i}, {t}))",
+        "description": "Raise if ix is not an instance or child of tx.",
+        "name": "raise_if_not_instance_of(ix, tx)",
+        "imports": [
+            {
+                "aip": ["egppy", "physics", "meta"],
+                "name": "raise_if_not_instance_of",
             }
-        }
+        ],
     },
 }
 

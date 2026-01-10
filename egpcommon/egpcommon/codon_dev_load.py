@@ -69,10 +69,7 @@ def _load_codons_from_files(file_paths: Sequence[str]) -> None:
             # Extract the name from metadata
             # Structure: meta_data -> function -> python3 -> "0" -> name
             meta_data = codon.get("meta_data", {})
-            function_data = meta_data.get("function", {})
-            python3_data = function_data.get("python3", {})
-            variant_0 = python3_data.get("0", {})
-            name = variant_0.get("name", "")
+            name = meta_data.get("name", "")
 
             if not name:
                 if _LOG_DEBUG:

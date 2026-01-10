@@ -127,9 +127,11 @@ class GGCDict(EGCDict):
         if meta_data:
             self["inline"] = meta_data["inline"]
             self["code"] = meta_data.get("code", NULL_STR)
+            self["io_map"] = meta_data["io_map"] if "io_map" in meta_data else {}
+            self["name"] = meta_data.get("name", NULL_STR)
+            self["description"] = meta_data.get("description", NULL_STR)
             if "imports" in meta_data:
                 self["imports"] = tuple(ImportDef(**md).freeze() for md in meta_data["imports"])
-                self["io_map"] = meta_data["io_map"] if "io_map" in meta_data else {}
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]
