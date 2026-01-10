@@ -9,11 +9,11 @@ echo "--- Running post-create script ---"
 # Activating the virtual environment
 echo "Creating virtual environment..."
 python3 -m venv .venv
+.venv/bin/pip install --upgrade pip
 ./.venv/bin/pip install -r requirements-dev.txt
 
 # Install Python dependencies from requirements.txt
 echo "Installing requirements..."
-.venv/bin/pip install --upgrade pip
 find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egpcommon
 .venv/bin/pip install -e ./egppkrapi
