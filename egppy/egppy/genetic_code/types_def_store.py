@@ -2,11 +2,12 @@
 Docstring for egppy.genetic_code.types_def_store
 """
 
+from collections.abc import Iterable, Iterator
 from functools import reduce
 from json import dumps, loads
 from os.path import dirname, join
 from re import findall
-from typing import Any, Iterator
+from typing import Any
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
@@ -73,6 +74,23 @@ DB_SOURCES_TABLE_CONFIG = TableConfig(
 
 # The object type UID
 OBJECT_UID: int = 0
+
+
+# Helper function to get the highest type
+def highest_type(types_iter: Iterable[str]) -> str:
+    """Get the highest input type from a list of input types.
+
+    The highest type is determined by the type depth in the types definition store.
+    The type with the greatest depth (furthest from object) is considered the highest type.
+
+    Arguments:
+        types_iter: Iterable of input type names.
+    Returns:
+        The highest input type name.
+    """
+    tds = [td for td in (types_def_store[typ] for typ in types_iter)]
+    tds.sort(key=lambda td: td.depth, reverse=True)
+    return tds[0].name
 
 
 class TypesDefStore:

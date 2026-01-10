@@ -39,6 +39,7 @@ _logger: Logger = egp_logger(name=__name__)
 UID_GENERATOR = count(start=-(2**63))
 
 
+# TODO: Once stable this should become a slotted class for performance.
 class EGCDict(CacheableDict, GCABC):  # type: ignore
     """Embryonic Genetic Code Dictionary Class."""
 

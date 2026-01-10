@@ -26,6 +26,7 @@ from egppy.genetic_code.import_def import ImportDef
 _logger: Logger = egp_logger(name=__name__)
 
 
+# TODO: Once stable this should become a slotted class for performance.
 class GGCDict(EGCDict):
     """Dirty Dictionary Embryonic Genetic Code Class."""
 
@@ -122,17 +123,13 @@ class GGCDict(EGCDict):
 
         # TODO: Need to resolve the meta_data references. Too deep.
         # Need to pull relevant data in and then destroy the meta data dictionary.
-        self["meta_data"] = gcabc.get("meta_data", {})
-        if (
-            "function" in self["meta_data"]
-            and "python3" in self["meta_data"]["function"]
-            and "0" in self["meta_data"]["function"]["python3"]
-        ):
-            base = self["meta_data"]["function"]["python3"]["0"]
-            self["inline"] = base["inline"]
-            self["code"] = base.get("code", NULL_STR)
-            if "imports" in base:
-                self["imports"] = tuple(ImportDef(**md).freeze() for md in base["imports"])
+        meta_data = gcabc.get("meta_data", {})
+        if meta_data:
+            self["inline"] = meta_data["inline"]
+            self["code"] = meta_data.get("code", NULL_STR)
+            if "imports" in meta_data:
+                self["imports"] = tuple(ImportDef(**md).freeze() for md in meta_data["imports"])
+                self["io_map"] = meta_data["io_map"] if "io_map" in meta_data else {}
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]

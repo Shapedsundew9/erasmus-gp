@@ -33,6 +33,8 @@ from egppy.genetic_code.types_def_store import types_def_store
 _logger: Logger = egp_logger(name=__name__)
 
 
+# TODO: Once stable this should become a slotted class for performance.
+# Noting that it is a lower priority as it is a transient type.
 class GPGCView(Mapping):
     """The Gene Pool Genetic Code dictionary view class.
 

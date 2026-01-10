@@ -20,6 +20,7 @@ _logger: Logger = egp_logger(name=__name__)
 EMPTY_STRING = ""
 
 
+# TODO: FreezableObject is overly complex. Consider simplifying or replacing.
 class ImportDef(FreezableObject, Validator, DictTypeAccessor, size=256):
     """Class to define an import."""
 

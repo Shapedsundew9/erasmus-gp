@@ -128,7 +128,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "psql_type": "PsqlBigInt",
     },
     "meta_data": {
-        "db_type": "BYTEA",
+        "db_type": "JSONB",
         "nullable": True,
         "phy_type": "bytes",
         "psql_type": "PsqlBytea",
