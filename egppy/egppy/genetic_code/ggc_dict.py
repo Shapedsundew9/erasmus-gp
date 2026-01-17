@@ -9,7 +9,14 @@ by considered to be a dict[str, Any] object with the additional constraints of t
 from datetime import UTC, datetime
 from typing import Any
 
-from egpcommon.common import EGP_EPOCH, NULL_STR, NULL_TUPLE, SHAPEDSUNDEW9_UUID, sha256_signature
+from egpcommon.common import (
+    EGP_EPOCH,
+    NULL_STR,
+    NULL_TUPLE,
+    SHAPEDSUNDEW9_UUID,
+    debug_exceptions,
+    sha256_signature,
+)
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import int_store, signature_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
@@ -180,159 +187,121 @@ class GGCDict(EGCDict):
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
 
         # The number of descendants when the genetic code was copied from the higher layer.
-        self.value_error(
-            self["_lost_descendants"] >= 0,
-            "_lost_descendants must be greater than or equal to zero.",
-        )
-        self.value_error(
-            self["_lost_descendants"] <= 2**63 - 1,
-            "_lost_descendants must be less than or equal to 2**63-1.",
-        )
+        if not (self["_lost_descendants"] >= 0):
+            raise ValueError("_lost_descendants must be greater than or equal to zero.")
+        if not (self["_lost_descendants"] <= 2**63 - 1):
+            raise ValueError("_lost_descendants must be less than or equal to 2**63-1.")
 
         # The reference count when the genetic code was copied from the higher layer.
-        self.value_error(
-            self["_reference_count"] >= 0,
-            "_reference_count must be greater than or equal to zero.",
-        )
-        self.value_error(
-            self["_reference_count"] <= 2**63 - 1,
-            "_reference_count must be less than or equal to 2**63-1.",
-        )
+        if not (self["_reference_count"] >= 0):
+            raise ValueError("_reference_count must be greater than or equal to zero.")
+        if not (self["_reference_count"] <= 2**63 - 1):
+            raise ValueError("_reference_count must be less than or equal to 2**63-1.")
 
         # The depth of the genetic code in genetic codes. If this is a codon then the depth is 1.
-        self.value_error(
-            self["code_depth"] >= 1, "code_depth must be greater than or equal to one."
-        )
-        self.value_error(
-            self["code_depth"] <= 2**31 - 1, "code_depth must be less than or equal to 2**31-1."
-        )
+        if not (self["code_depth"] >= 1):
+            raise ValueError("code_depth must be greater than or equal to one.")
+        if not (self["code_depth"] <= 2**31 - 1):
+            raise ValueError("code_depth must be less than or equal to 2**31-1.")
 
         # The date and time the genetic code was created. Created time zone must be UTC.
-        self.value_error(
-            self["created"] <= datetime.now(UTC),
-            "created must be less than or equal to the current date and time.",
-        )
-        self.value_error(
-            self["created"] >= EGP_EPOCH, "Created must be greater than or equal to EGP_EPOCH."
-        )
-        self.value_error(self["created"].tzinfo == UTC, "Created must be in the UTC time zone.")
+        if not (self["created"] <= datetime.now(UTC)):
+            raise ValueError("created must be less than or equal to the current date and time.")
+        if not (self["created"] >= EGP_EPOCH):
+            raise ValueError("Created must be greater than or equal to EGP_EPOCH.")
+        if not (self["created"].tzinfo == UTC):
+            raise ValueError("Created must be in the UTC time zone.")
 
         # The number of generations of genetic code evolved to create this code. A codon is always
         # generation 1.
-        self.value_error(
-            self["generation"] >= 0, "generation must be greater than or equal to zero."
-        )
-        self.value_error(
-            self["generation"] <= 2**63 - 1, "generation must be less than or equal to 2**63-1."
-        )
+        if not (self["generation"] >= 0):
+            raise ValueError("generation must be greater than or equal to zero.")
+        if not (self["generation"] <= 2**63 - 1):
+            raise ValueError("generation must be less than or equal to 2**63-1.")
 
         # The number of descendants.
-        self.value_error(
-            self["descendants"] >= 0, "Descendants must be greater than or equal to 0."
-        )
-        self.value_error(self["descendants"] <= 2**31 - 1, "Descendants must be less than 2**31-1.")
+        if not (self["descendants"] >= 0):
+            raise ValueError("Descendants must be greater than or equal to 0.")
+        if not (self["descendants"] <= 2**31 - 1):
+            raise ValueError("Descendants must be less than 2**31-1.")
 
         # The number of descendants that have been lost in the evolution of the genetic code.
-        self.value_error(
-            self["lost_descendants"] >= 0,
-            "lost_descendants must be greater than or equal to zero.",
-        )
-        self.value_error(
-            self["lost_descendants"] <= 2**63 - 1,
-            "lost_descendants must be less than or equal to 2**63-1.",
-        )
+        if not (self["lost_descendants"] >= 0):
+            raise ValueError("lost_descendants must be greater than or equal to zero.")
+        if not (self["lost_descendants"] <= 2**63 - 1):
+            raise ValueError("lost_descendants must be less than or equal to 2**63-1.")
 
         # The meta data associated with the genetic code.
         # No verification is performed on the meta data.
 
         # The number of vertices in the GC code vertex graph.
-        self.value_error(self["num_codes"] >= 1, "num_codes must be greater than or equal to one.")
-        self.value_error(
-            self["num_codes"] <= 2**31 - 1, "num_codes must be less than or equal to 2**31-1."
-        )
+        if not (self["num_codes"] >= 1):
+            raise ValueError("num_codes must be greater than or equal to one.")
+        if not (self["num_codes"] <= 2**31 - 1):
+            raise ValueError("num_codes must be less than or equal to 2**31-1.")
 
         # The number of codons in the GC code codon graph.
-        self.value_error(
-            self["num_codons"] >= 0, "num_codons must be greater than or equal to one."
-        )
-        self.value_error(
-            self["num_codons"] <= 2**31 - 1, "num_codons must be less than or equal to 2**31-1."
-        )
+        if not (self["num_codons"] >= 0):
+            raise ValueError("num_codons must be greater than or equal to one.")
+        if not (self["num_codons"] <= 2**31 - 1):
+            raise ValueError("num_codons must be less than or equal to 2**31-1.")
 
         # The properties of the genetic code.
-        self.value_error(isinstance(self["properties"], int), "properties must be an integer.")
+        if not isinstance(self["properties"], int):
+            raise ValueError("properties must be an integer.")
         properties = PropertiesBD(self["properties"])
-        self.value_error(properties.valid(), "properties must be valid.")
-        self.value_error(properties.verify(), "properties must verify.")
+        if not properties.valid():
+            raise ValueError("properties must be valid.")
+        if not properties.verify():
+            raise ValueError("properties must verify.")
 
         # Are the properties consistent with the genetic code?
         graph_type = self["cgraph"].graph_type()
         gc_type = properties["gc_type"]
-        self.value_error(
-            properties["graph_type"] == graph_type,
-            "The cgraph and properties graph types must be consistent.",
-        )
+        if not (properties["graph_type"] == graph_type):
+            raise ValueError("The cgraph and properties graph types must be consistent.")
 
         # Is the GC type consistent with the graph type?
         if gc_type == GCType.CODON:
-            self.value_error(
-                graph_type == CGraphType.PRIMITIVE,
-                "If the genetic code is a codon, the code_depth must be 1.",
-            )
+            if not (graph_type == CGraphType.PRIMITIVE):
+                raise ValueError("If the genetic code is a codon, the code_depth must be 1.")
 
         # The reference count of the genetic code.
-        self.value_error(
-            self["reference_count"] >= 0,
-            "reference_count must be greater than or equal to zero.",
-        )
-        self.value_error(
-            self["reference_count"] <= 2**63 - 1,
-            "reference_count must be less than or equal to 2**63-1.",
-        )
+        if not (self["reference_count"] >= 0):
+            raise ValueError("reference_count must be greater than or equal to zero.")
+        if not (self["reference_count"] <= 2**63 - 1):
+            raise ValueError("reference_count must be less than or equal to 2**63-1.")
 
-        self.runtime_error(
-            self["_lost_descendants"] <= self["lost_descendants"],
-            "_lost_descendants must be less than or equal to lost_descendants.",
-        )
-        self.runtime_error(
-            self["_reference_count"] <= self["reference_count"],
-            "_reference_count must be less than or equal to reference_count.",
-        )
+        if not (self["_lost_descendants"] <= self["lost_descendants"]):
+            raise RuntimeError("_lost_descendants must be less than or equal to lost_descendants.")
+        if not (self["_reference_count"] <= self["reference_count"]):
+            raise RuntimeError("_reference_count must be less than or equal to reference_count.")
 
-        self.runtime_error(
-            self["code_depth"] >= 0, "code_depth must be greater than or equal to zero."
-        )
+        if not (self["code_depth"] >= 0):
+            raise RuntimeError("code_depth must be greater than or equal to zero.")
         if self["code_depth"] == 1:
-            self.runtime_error(
-                self["gca"] is None,
-                "A code depth of 1 is a codon or empty GC and must have a None GCA.",
-            )
+            if not (self["gca"] is None):
+                raise RuntimeError(
+                    "A code depth of 1 is a codon or empty GC and must have a None GCA."
+                )
 
         if self["code_depth"] > 1:
-            self.runtime_error(
-                self["gca"] is not None,
-                "A code depth greater than 1 must have a non-None GCA.",
-            )
+            if not (self["gca"] is not None):
+                raise RuntimeError("A code depth greater than 1 must have a non-None GCA.")
 
         if self["generation"] == 1:
-            self.runtime_error(
-                self["gca"] is None,
-                "A generation of 1 is a codon and can only have a None GCA.",
-            )
+            if not (self["gca"] is None):
+                raise RuntimeError("A generation of 1 is a codon and can only have a None GCA.")
 
-        self.runtime_error(
-            self["lost_descendants"] <= self["reference_count"],
-            "lost_descendants must be less than or equal to reference_count.",
-        )
-        self.runtime_error(
-            self["num_codes"] >= self["code_depth"],
-            "num_codes must be greater than or equal to code_depth.",
-        )
+        if not (self["lost_descendants"] <= self["reference_count"]):
+            raise RuntimeError("lost_descendants must be less than or equal to reference_count.")
+        if not (self["num_codes"] >= self["code_depth"]):
+            raise RuntimeError("num_codes must be greater than or equal to code_depth.")
 
-        self.debug_type_error(
-            isinstance(self["signature"], bytes), "signature must be a bytes object"
-        )
-        self.debug_value_error(len(self["signature"]) == 32, "signature must be 32 bytes")
+        if not isinstance(self["signature"], bytes):
+            raise debug_exceptions.DebugTypeError("signature must be a bytes object")
+        if not (len(self["signature"]) == 32):
+            raise debug_exceptions.DebugValueError("signature must be 32 bytes")
 
         # Call base class verify at the end
         super().verify()

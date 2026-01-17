@@ -54,19 +54,15 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
     @databases.setter
     def databases(self, value: dict[str, DatabaseConfig | dict[str, Any]]) -> None:
         """The databases for the workers."""
-        self.value_error(
-            self._is_dict("databases", value), f"databases must be a dict, but is {type(value)}"
-        )
+        if not self._is_dict("databases", value):
+            raise ValueError(f"databases must be a dict, but is {type(value)}")
         for key, val in value.items():
-            self.value_error(
-                self._is_simple_string("databases key", key),
-                f"databases key must be a simple string, but is {key}",
-            )
+            if not self._is_simple_string("databases key", key):
+                raise ValueError(f"databases key must be a simple string, but is {key}")
             if isinstance(val, dict):
                 value[key] = DatabaseConfig(**val)
-            self.value_error(
-                isinstance(val, DatabaseConfig), "databases value must be a DatabaseConfig"
-            )
+            if not isinstance(val, DatabaseConfig):
+                raise ValueError("databases value must be a DatabaseConfig")
         self._databases = cast(dict[str, DatabaseConfig], value)
 
     def dump_config(self) -> None:
@@ -82,15 +78,12 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
     @gene_pool.setter
     def gene_pool(self, value: str) -> None:
         """The name of the gene pool."""
-        self.value_error(
-            self._is_simple_string("gene_pool", value),
-            f"gene_pool must be a simple string, but is {value}",
-        )
-        self.value_error(
-            self._is_length("gene_pool", value, 1, 64),
-            f"gene_pool length must be between 1 and 64, but is {len(value)}",
-        )
-        self.value_error(value in self.databases, "gene_pool must be a database")
+        if not self._is_simple_string("gene_pool", value):
+            raise ValueError(f"gene_pool must be a simple string, but is {value}")
+        if not self._is_length("gene_pool", value, 1, 64):
+            raise ValueError(f"gene_pool length must be between 1 and 64, but is {len(value)}")
+        if value not in self.databases:
+            raise ValueError("gene_pool must be a database")
         self._gene_pool = value
 
     def load_config(self, config_file: str) -> None:
@@ -112,15 +105,12 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
     @microbiome.setter
     def microbiome(self, value: str) -> None:
         """The name of the microbiome."""
-        self.value_error(
-            self._is_simple_string("microbiome", value),
-            f"microbiome must be a simple string, but is {value}",
-        )
-        self.value_error(
-            self._is_length("microbiome", value, 1, 64),
-            f"microbiome length must be between 1 and 64, but is {len(value)}",
-        )
-        self.value_error(value in self.databases, "microbiome must be a database")
+        if not self._is_simple_string("microbiome", value):
+            raise ValueError(f"microbiome must be a simple string, but is {value}")
+        if not self._is_length("microbiome", value, 1, 64):
+            raise ValueError(f"microbiome length must be between 1 and 64, but is {len(value)}")
+        if value not in self.databases:
+            raise ValueError("microbiome must be a database")
         self._microbiome = value
 
     @property
@@ -133,9 +123,8 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
         """The name of the populations."""
         if isinstance(value, dict):
             value = PopulationsConfig(**value)
-        self.value_error(
-            isinstance(value, PopulationsConfig), "populations must be a PopulationsConfig"
-        )
+        if not isinstance(value, PopulationsConfig):
+            raise ValueError("populations must be a PopulationsConfig")
         self._populations = value
 
     @property
@@ -146,14 +135,12 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
     @problem_definitions.setter
     def problem_definitions(self, value: str) -> None:
         """The URL to the problem definitions."""
-        self.value_error(
-            self._is_length("problem_definitions", value, 8, 2048),
-            f"problem_definitions length must be between 8 and 2048, but is {len(value)}",
-        )
-        self.value_error(
-            self._is_url("problem_definitions", value),
-            f"problem_definitions must be a valid URL, but is {value}",
-        )
+        if not self._is_length("problem_definitions", value, 8, 2048):
+            raise ValueError(
+                f"problem_definitions length must be between 8 and 2048, but is {len(value)}"
+            )
+        if not self._is_url("problem_definitions", value):
+            raise ValueError(f"problem_definitions must be a valid URL, but is {value}")
         self._problem_definitions = value
 
     @property
@@ -164,14 +151,12 @@ class WorkerConfig(Validator, DictTypeAccessor, CommonObj):
     @problem_folder.setter
     def problem_folder(self, value: str) -> None:
         """The folder for the problem definitions."""
-        self.value_error(
-            self._is_length("problem_folder", value, 1, 256),
-            f"problem_folder length must be between 1 and 256, but is {len(value)}",
-        )
-        self.value_error(
-            self._is_path("problem_folder", value),
-            f"problem_folder must be a valid path, but is {value}",
-        )
+        if not self._is_length("problem_folder", value, 1, 256):
+            raise ValueError(
+                f"problem_folder length must be between 1 and 256, but is {len(value)}"
+            )
+        if not self._is_path("problem_folder", value):
+            raise ValueError(f"problem_folder must be a valid path, but is {value}")
         self._problem_folder = value
 
     def to_json(self) -> dict[str, Any]:

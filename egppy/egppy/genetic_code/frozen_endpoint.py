@@ -481,59 +481,59 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             TypeError: If types are incorrect.
         """
         # Verify index range
-        self.value_error(
-            0 <= self.idx < 256,
-            f"Endpoint index must be between 0 and 255, got {self.idx} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
+        if not (0 <= self.idx < 256):
+            raise ValueError(
+                f"Endpoint index must be between 0 and 255, got {self.idx} "
+                f"for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+            )
 
         # Verify that row is not U (special case)
-        self.value_error(
-            self.row != "U",
-            f"Endpoint row cannot be 'U', got {self.row} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
+        if not (self.row != "U"):
+            raise ValueError(
+                f"Endpoint row cannot be 'U', got {self.row} "
+                f"for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+            )
 
         # Verify that typ is a TypesDef instance
-        self.type_error(
-            isinstance(self.typ, TypesDef),
-            f"Endpoint type must be a TypesDef instance, got {type(self.typ).__name__} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
+        if not isinstance(self.typ, TypesDef):
+            raise TypeError(
+                f"Endpoint type must be a TypesDef instance, got {type(self.typ).__name__} "
+                f"for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+            )
 
         # Verify row and class compatibility for destination endpoints
         if self.cls == EPCls.DST:
-            self.value_error(
-                self.row in DESTINATION_ROW_SET,
-                f"Destination endpoint must use a destination row. "
-                f"Got row={self.row} with cls=DST for endpoint {self.row}d{self.idx}. "
-                f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}",
-            )
+            if not (self.row in DESTINATION_ROW_SET):
+                raise ValueError(
+                    f"Destination endpoint must use a destination row. "
+                    f"Got row={self.row} with cls=DST for endpoint {self.row}d{self.idx}. "
+                    f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}"
+                )
 
         # Verify row and class compatibility for source endpoints
         if self.cls == EPCls.SRC:
-            self.value_error(
-                self.row in SOURCE_ROW_SET,
-                f"Source endpoint must use a source row. "
-                f"Got row={self.row} with cls=SRC for endpoint {self.row}s{self.idx}. "
-                f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
-            )
+            if not (self.row in SOURCE_ROW_SET):
+                raise ValueError(
+                    f"Source endpoint must use a source row. "
+                    f"Got row={self.row} with cls=SRC for endpoint {self.row}s{self.idx}. "
+                    f"Valid source rows: {sorted(SOURCE_ROW_SET)}"
+                )
 
         # Verify single-only row constraint (F, W, L rows can only have index 0)
         if self.row in SINGLE_ONLY_ROWS:
-            self.value_error(
-                self.idx == 0,
-                f"Row {self.row} can only have a single endpoint (index 0). "
-                f"Got index {self.idx} for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
+            if not (self.idx == 0):
+                raise ValueError(
+                    f"Row {self.row} can only have a single endpoint (index 0). "
+                    f"Got index {self.idx} for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+                )
 
         # Verify destination endpoints have at most one reference
         if self.cls == EPCls.DST:
-            self.value_error(
-                len(self.refs) <= 1,
-                f"Destination endpoint can have at most 1 reference. "
-                f"Got {len(self.refs)} references for endpoint {self.row}d{self.idx}: {self.refs}",
-            )
+            if not (len(self.refs) <= 1):
+                raise ValueError(
+                    f"Destination endpoint can have at most 1 reference. "
+                    f"Got {len(self.refs)} references for endpoint {self.row}d{self.idx}: {self.refs}"
+                )
 
         # Verify reference structure and validity
         ref_set = set()
@@ -545,11 +545,11 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 ref_tuple = (ref.row, ref.idx)
             else:
                 ref_tuple = tuple(ref)
-            self.value_error(
-                ref_tuple not in ref_set,
-                f"Duplicate reference {ref} found at index {ref_idx} "
-                f"in endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
+            if not (ref_tuple not in ref_set):
+                raise ValueError(
+                    f"Duplicate reference {ref} found at index {ref_idx} "
+                    f"in endpoint {self.row}{self.cls.name[0]}{self.idx}"
+                )
             ref_set.add(ref_tuple)
 
             # Check reference is a list or a tuple as appropriate
@@ -558,70 +558,70 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 ref_row = ref.row
                 ref_ep_idx = ref.idx
             else:
-                self.type_error(
+                if not (
                     (isinstance(ref, list) and not is_frozen)
-                    or (isinstance(ref, tuple) and is_frozen),
-                    "Reference must be a list if not frozen, or a tuple if frozen"
-                    f", got {type(ref).__name__} at index {ref_idx} in endpoint "
-                    f"{self.row}{self.cls.name[0]}{self.idx}"
-                    f"{' which is frozen.' if is_frozen else ''}",
-                )
+                    or (isinstance(ref, tuple) and is_frozen)
+                ):
+                    raise TypeError(
+                        "Reference must be a list if not frozen, or a tuple if frozen"
+                        f", got {type(ref).__name__} at index {ref_idx} in endpoint "
+                        f"{self.row}{self.cls.name[0]}{self.idx}"
+                        f"{' which is frozen.' if is_frozen else ''}"
+                    )
 
                 # Check reference has exactly 2 elements [row, idx]
-                self.value_error(
-                    len(ref) == 2,
-                    f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
-                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-                )
+                if not (len(ref) == 2):
+                    raise ValueError(
+                        f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
+                        f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}"
+                    )
 
                 # Extract and validate reference components
                 ref_row = ref[0]
                 ref_ep_idx = ref[1]
 
             # Check reference row is valid
-            self.type_error(
-                isinstance(ref_row, str),
-                f"Reference row must be a string, got {type(ref_row).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
+            if not isinstance(ref_row, str):
+                raise TypeError(
+                    f"Reference row must be a string, got {type(ref_row).__name__} "
+                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}"
+                )
 
             # Verify reference row is in valid ROW_SET
-            self.value_error(
-                ref_row in ROW_SET,
-                f"Reference row must be a valid row. "
-                f"Got '{ref_row}' at index {ref_idx} in endpoint"
-                f"{self.row}{self.cls.name[0]}{self.idx}. "
-                f"Valid rows: {ROW_SET}",
-            )
+            if not (ref_row in ROW_SET):
+                raise ValueError(
+                    f"Reference row must be a valid row. "
+                    f"Got '{ref_row}' at index {ref_idx} in endpoint"
+                    f"{self.row}{self.cls.name[0]}{self.idx}. "
+                    f"Valid rows: {ROW_SET}"
+                )
 
             # Check reference index is valid
-            self.type_error(
-                isinstance(ref_ep_idx, int),
-                f"Reference index must be an integer, got {type(ref_ep_idx).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
+            if not isinstance(ref_ep_idx, int):
+                raise TypeError(
+                    f"Reference index must be an integer, got {type(ref_ep_idx).__name__} "
+                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}"
+                )
 
             # Verify reference index is within valid range (0-255)
             assert isinstance(ref_ep_idx, int), "Reference index must be an integer"
-            self.value_error(
-                0 <= ref_ep_idx < 256,
-                f"Reference index must be between 0 and 255, got {ref_ep_idx}",
-            )
+            if not (0 <= ref_ep_idx < 256):
+                raise ValueError(f"Reference index must be between 0 and 255, got {ref_ep_idx}")
 
             # Verify row/class pairing: DST endpoints should reference SRC rows, and vice versa
             if self.cls == EPCls.DST:
-                self.value_error(
-                    ref_row in SOURCE_ROW_SET,
-                    f"Destination endpoint must reference a source row. "
-                    f"Got reference to row '{ref_row}' at index {ref_idx} "
-                    f"in endpoint {self.row}d{self.idx}. "
-                    f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
-                )
+                if not (ref_row in SOURCE_ROW_SET):
+                    raise ValueError(
+                        f"Destination endpoint must reference a source row. "
+                        f"Got reference to row '{ref_row}' at index {ref_idx} "
+                        f"in endpoint {self.row}d{self.idx}. "
+                        f"Valid source rows: {sorted(SOURCE_ROW_SET)}"
+                    )
             else:  # self.cls == EPCls.SRC
-                self.value_error(
-                    ref_row in DESTINATION_ROW_SET,
-                    f"Source endpoint must reference a destination row. "
-                    f"Got reference to row '{ref_row}' at index {ref_idx} "
-                    f"in endpoint {self.row}s{self.idx}. "
-                    f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}",
-                )
+                if not (ref_row in DESTINATION_ROW_SET):
+                    raise ValueError(
+                        f"Source endpoint must reference a destination row. "
+                        f"Got reference to row '{ref_row}' at index {ref_idx} "
+                        f"in endpoint {self.row}s{self.idx}. "
+                        f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}"
+                    )

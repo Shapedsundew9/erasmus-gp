@@ -93,9 +93,8 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         power of the system for typical Erasmus GP tasks in units of notional operations
         per second. Bigger = faster.
         """
-        self.value_error(
-            self._is_float("EGPOps", value), f"EGPOps must be a float, but is {type(value)}"
-        )
+        if not self._is_float("EGPOps", value):
+            raise ValueError(f"EGPOps must be a float, but is {type(value)}")
         self._egp_ops = value
 
     @property
@@ -106,13 +105,10 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
     @machine.setter
     def machine(self, value: str) -> None:
         """The machine  type, e.g. 'i386'. An empty string if the value cannot be determined."""
-        self.value_error(
-            self._is_string("machine", value), f"machine must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("machine", value, 0, 128),
-            f"machine length must be between 0 and 128, but is {len(value)}",
-        )
+        if not self._is_string("machine", value):
+            raise ValueError(f"machine must be a string, but is {type(value)}")
+        if not self._is_length("machine", value, 0, 128):
+            raise ValueError(f"machine length must be between 0 and 128, but is {len(value)}")
         self._machine = value
 
     @property
@@ -125,13 +121,10 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         """The underlying platform with as much useful information as possible.
         The output is intended to be human readable rather than machine parseable.
         """
-        self.value_error(
-            self._is_string("platform", value), f"platform must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("platform", value, 0, 1024),
-            f"platform length must be between 0 and 1024, but is {len(value)}",
-        )
+        if not self._is_string("platform", value):
+            raise ValueError(f"platform must be a string, but is {type(value)}")
+        if not self._is_length("platform", value, 0, 1024):
+            raise ValueError(f"platform length must be between 0 and 1024, but is {len(value)}")
         self._platform = value
 
     @property
@@ -144,13 +137,10 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         """The (real) processor name, e.g. 'amdk6'.
         An empty string if the value cannot be determined.
         """
-        self.value_error(
-            self._is_string("processor", value), f"processor must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("processor", value, 0, 128),
-            f"processor length must be between 0 and 128, but is {len(value)}",
-        )
+        if not self._is_string("processor", value):
+            raise ValueError(f"processor must be a string, but is {type(value)}")
+        if not self._is_length("processor", value, 0, 128):
+            raise ValueError(f"processor length must be between 0 and 128, but is {len(value)}")
         self._processor = value
 
     @property
@@ -161,14 +151,10 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
     @python_version.setter
     def python_version(self, value: str) -> None:
         """The Python version as string 'major.minor.patchlevel'."""
-        self.value_error(
-            self._is_string("python_version", value),
-            f"python_version must be a string, but is {type(value)}",
-        )
-        self.value_error(
-            self._is_length("python_version", value, 0, 64),
-            f"python_version length must be between 0 and 64, but is {len(value)}",
-        )
+        if not self._is_string("python_version", value):
+            raise ValueError(f"python_version must be a string, but is {type(value)}")
+        if not self._is_length("python_version", value, 0, 64):
+            raise ValueError(f"python_version length must be between 0 and 64, but is {len(value)}")
         self._python_version = value
 
     @property
@@ -181,13 +167,10 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         """The system’s release, e.g. '2.2.0' or 'NT'.
         An empty string if the value cannot be determined.
         """
-        self.value_error(
-            self._is_string("release", value), f"release must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("release", value, 0, 64),
-            f"release length must be between 0 and 64, but is {len(value)}",
-        )
+        if not self._is_string("release", value):
+            raise ValueError(f"release must be a string, but is {type(value)}")
+        if not self._is_length("release", value, 0, 64):
+            raise ValueError(f"release length must be between 0 and 64, but is {len(value)}")
         self._release = value
 
     @property
@@ -200,12 +183,10 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         """The SHA256 signature of the platform data."""
         if isinstance(value, str):
             value = bytes.fromhex(value)
-        self.value_error(
-            self._is_sha256("signature", value), "signature must be a valid SHA256 digest"
-        )
-        self.value_error(
-            self._generate_signature() == value, "Signature does not match the platform."
-        )
+        if not self._is_sha256("signature", value):
+            raise ValueError("signature must be a valid SHA256 digest")
+        if self._generate_signature() != value:
+            raise ValueError("Signature does not match the platform.")
         self._signature = value
 
     @property
@@ -218,11 +199,8 @@ class PlatformInfo(Validator, DictTypeAccessor, CommonObj):
         """The system/OS name, such as 'Linux', 'Darwin', 'Java', 'Windows'.
         An empty string if the value cannot be determined.
         """
-        self.value_error(
-            self._is_string("system", value), f"system must be a string, but is {type(value)}"
-        )
-        self.value_error(
-            self._is_length("system", value, 0, 64),
-            f"system length must be between 0 and 64, but is {len(value)}",
-        )
+        if not self._is_string("system", value):
+            raise ValueError(f"system must be a string, but is {type(value)}")
+        if not self._is_length("system", value, 0, 64):
+            raise ValueError(f"system length must be between 0 and 64, but is {len(value)}")
         self._system = value
