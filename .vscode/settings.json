@@ -1,0 +1,13 @@
+{
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.testing.unittestArgs": [
+        "-v", // Verbose output
+        "-s",
+        "./tests",
+        "-t",
+        ".",
+        "-p",
+        "test_*.py" // Pattern to match test files
+    ]
+}

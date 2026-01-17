@@ -140,8 +140,7 @@ def sfss(rtctxt: RuntimeContext, egc: EGCode) -> EGCode:
         StabilizationError: If stabilization fails after the maximum number of attempts.
     """
     attempts = 0
-    if _logger.isEnabledFor(GC_DEBUG):
-        _logger.log(GC_DEBUG, "Starting SFSS on EGCode with signature %s", egc["signature"])
+    _logger.log(GC_DEBUG, "Starting SFSS.")
     while not any(f(rtctxt, egc) for f in STABILIZATION_FUNCTIONS) and attempts < MAX_ATTEMPTS:
         attempts += 1
         _logger.log(GC_DEBUG, "SFSS attempt %d failed, retrying...", attempts)

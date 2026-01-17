@@ -1,0 +1,50 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Tests (Standard)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "purpose": [
+                "debug-test"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "ERASMUS_INTEGRITY_LEVEL": "0",
+                "ERASMUS_LOG_LEVEL": "10"
+            }
+        },
+        {
+            "name": "Debug Tests (Paranoid Mode)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "purpose": [
+                "debug-test"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "ERASMUS_INTEGRITY_LEVEL": "1",
+                "ERASMUS_LOG_LEVEL": "1"
+            }
+        },
+        {
+            "name": "Debug Tests (Flow Only)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "purpose": [
+                "debug-test"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "ERASMUS_INTEGRITY_LEVEL": "0",
+                "ERASMUS_LOG_LEVEL": "15"
+            }
+        }
+    ]
+}

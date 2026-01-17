@@ -27,9 +27,14 @@ from logging import (
     basicConfig,
     getLogger,
 )
-from tkinter import OFF
+from os import getenv
 
-from numpy import add
+basicConfig(
+    level=int(getenv("ERASMUS_LOG_LEVEL", "0")),
+    format="%(asctime)s %(levelname)s %(filename)s %(lineno)d %(message)s",
+    # filename="egp.log",
+    # filemode="w",
+)
 
 # Custom log levels
 
@@ -72,7 +77,7 @@ class Integrity:
     VERIFY: int = 20
     CONSISTENCY: int = 10
     DISABLED: int = 0
-    _level: int = DISABLED
+    _level: int = int(getenv("ERASMUS_VERIFICATION_LEVEL", "0"))
 
     @classmethod
     def set_level(cls, level: int):
