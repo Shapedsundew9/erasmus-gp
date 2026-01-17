@@ -89,7 +89,7 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 The GC Type constrains which connection graph types can be used:
 
 | GC Type | Allowed CGraph Types |
-|---------|---------------------|
+| --------- | --------------------- |
 | **CODON** | `PRIMITIVE` only |
 | **ORDINARY** | `STANDARD`, `IF_THEN`, `IF_THEN_ELSE`, `FOR_LOOP`, `WHILE_LOOP`, `EMPTY` |
 | **META** | `PRIMITIVE` only |

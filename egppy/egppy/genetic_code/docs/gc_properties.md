@@ -1,7 +1,7 @@
 # Genetic Code Properties
 
 | Name | Type | Bitfield | Default | Description |
-|---|:-:|:-:|:-:|---|
+| --- | :-: | :-: | :-: | --- |
 | gc_type | uint | 1:0 | 0 | Valid ranges: [(3,)]. GC type. |
 | graph_type | uint | 5:2 | 0 | Valid ranges: [(7,)]. Graph type. |
 | reserved1 | uint | 7:6 | 0 | Valid values: {0}. Reserved for future use. |
@@ -22,7 +22,7 @@
 ## gctsp: gc_type = 0
 
 | Name | Type | Bitfield | Default | Description |
-|---|:-:|:-:|:-:|---|
+| --- | :-: | :-: | :-: | --- |
 | simplification | bool | 0 | False | The genetic code is eligible to be simplified by symbolic regression. |
 | reserved7 | uint | 5:1 | 0 | Valid values: {0}. Reserved for future use. |
 | python | bool | 6 | True | Codon code is Python. |
@@ -31,7 +31,7 @@
 ## gctsp: gc_type = 1
 
 | Name | Type | Bitfield | Default | Description |
-|---|:-:|:-:|:-:|---|
+| --- | :-: | :-: | :-: | --- |
 | literal | bool | 0 | False | The codon output type is a literal (which requires special handling in some cases). |
 | reserved6 | uint | 5:1 | 0 | Valid values: {0}. Reserved for future use. |
 | python | bool | 6 | True | Codon code is Python. |

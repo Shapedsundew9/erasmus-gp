@@ -2,19 +2,17 @@
 
 from collections.abc import Iterable
 from os.path import dirname, join
-from typing import Any, Literal, Sequence
+from typing import Any, Literal
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
-from egpcommon.properties import GC_TYPE_MASK, GCType
 from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
+from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.genetic_code.gpg_view import GPGCView
-from egppy.genetic_code.types_def import TypesDef
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.db_table_store import DBTableStore
