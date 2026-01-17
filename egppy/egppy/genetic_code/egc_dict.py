@@ -186,7 +186,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         """Return True if the genetic code is a codon or meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         codon = PropertiesBD.fast_fetch("gc_type", self["properties"])
-        retval = codon == GCType.CODON or codon == GCType.META
+        retval = codon == GCType.CODON
         assert (
             retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
         ) or not retval, "If gc_type is a codon or meta-codon then cgraph must be primitive."
@@ -200,18 +200,6 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         cgt: CGraphType = c_graph_type(self["cgraph"])
         return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
-
-    def is_meta(self) -> bool:
-        """Return True if the genetic code is a meta-codon."""
-        assert isinstance(self, GCABC), "GC must be a GCABC object."
-        meta = PropertiesBD.fast_fetch("gc_type", self["properties"]) == GCType.META
-        assert (
-            meta and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
-        ) or not meta, "If gc_type is a meta-codon then cgraph must be primitive."
-        assert (
-            meta and self["ancestora"] is None and self["ancestorb"] is None
-        ) or not meta, "Meta-codons must not have ancestors."
-        return meta
 
     def is_pgc(self) -> bool:
         """Return True if the genetic code is a physical genetic code (PGC)."""
@@ -311,10 +299,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             # Reference: egppy/egppy/genetic_code/docs/gc_types.md
 
             if graph_type == CGraphType.PRIMITIVE:
-                # PRIMITIVE graphs can only be used with CODON or META types
+                # PRIMITIVE graphs can only be used with CODON types
                 self.debug_value_error(
-                    gc_type in (GCType.CODON, GCType.META),
-                    f"PRIMITIVE connection graph requires gc_type to be CODON or META, "
+                    gc_type == GCType.CODON,
+                    f"PRIMITIVE connection graph requires gc_type to be CODON, "
                     f"but got {GCType(gc_type).name}",
                 )
             elif gc_type == GCType.CODON:
@@ -322,13 +310,6 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
                 self.debug_value_error(
                     graph_type == CGraphType.PRIMITIVE,
                     f"CODON gc_type requires PRIMITIVE connection graph, "
-                    f"but got {CGraphType(graph_type).name}",
-                )
-            elif gc_type == GCType.META:
-                # META type must use PRIMITIVE or STANDARD graph
-                self.debug_value_error(
-                    graph_type == CGraphType.PRIMITIVE,
-                    f"META gc_type requires a PRIMITIVE connection graph, "
                     f"but got {CGraphType(graph_type).name}",
                 )
             elif gc_type == GCType.ORDINARY:
@@ -406,28 +387,6 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             )
             self.value_error(self["pgc"] is None, "CODON gc_type requires pgc to be None")
 
-        # META type validation (meta-codons have no ancestors)
-        if gc_type == GCType.META:
-            self.value_error(
-                graph_type == CGraphType.PRIMITIVE,
-                "META gc_type requires PRIMITIVE connection graph",
-            )
-            self.value_error(self["gca"] is None, "META codon requires gca to be None")
-            self.value_error(self["gcb"] is None, "META codon requires gcb to be None")
-            self.value_error(
-                self["ancestora"] is None,
-                "META codon requires ancestora to be None",
-            )
-            self.value_error(
-                self["ancestorb"] is None,
-                "META codon requires ancestorb to be None",
-            )
-            self.value_error(self["pgc"] is None, "META codon requires pgc to be None")
-            self.value_error(
-                not (properties["gctsp"]["type_upcast"] and properties["gctsp"]["type_downcast"]),
-                "META codon cannot be both type upcast and type downcast",
-            )
-
         # ORDINARY type validation (ordinary codes have ancestors and pgc)
         if gc_type == GCType.ORDINARY:
             # At least one of gca or gcb must be present for ordinary codes
@@ -439,7 +398,6 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         # Extra coverage is asserted in DEBUG mode
         if _logger.isEnabledFor(level=DEBUG):
             self.is_codon()
-            self.is_meta()
             self.is_conditional()
 
         # Call base class verify at the end

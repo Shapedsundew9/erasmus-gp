@@ -4,7 +4,7 @@ import unittest
 from random import choice, getrandbits, randint, seed
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM, random_int_tuple_generator
-from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.properties import CGraphType, GCType
 from egppy.genetic_code.ggc_dict import GCABC
 from egppy.worker.executor.context_writer import (
@@ -29,7 +29,6 @@ from .xor_stack_gc import (
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-enable_debug_logging()
 
 
 # Constants
@@ -43,7 +42,7 @@ class TestExecutor(unittest.TestCase):
         super().setUp()
         # 2 different execution contexts
         self.ec1 = ExecutionContext(self.gpi, 3)
-        self.ec2 = ExecutionContext(self.gpi, 50, wmc=True)  # Write the meta-codons
+        self.ec2 = ExecutionContext(self.gpi, 50)
         # Hack in pre-defined function
         self.ec1.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
             f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]

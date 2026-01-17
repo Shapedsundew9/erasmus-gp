@@ -10,7 +10,7 @@ from itertools import chain, count
 from typing import Any
 
 from egpcommon.common import NULL_STR
-from egpcommon.egp_log import DEBUG, Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import DEBUG, Logger, egp_logger
 from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
@@ -29,7 +29,6 @@ from egppy.worker.executor.gc_node import NULL_GC_NODE, GCNode, GCNodeCodeIterab
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-enable_debug_logging()
 
 
 # Constants
@@ -102,17 +101,16 @@ class ExecutionContext:
         "imports",
         "_line_limit",
         "_global_index",
-        "wmc",
         "_codon_register",
         "gpi",
     )
 
-    def __init__(self, gpi: GenePoolInterface, line_limit: int = 64, wmc: bool = False) -> None:
+    def __init__(self, gpi: GenePoolInterface, line_limit: int = 64) -> None:
         """Create a new execution context.
         Args:
             gpi (GenePoolInterface): The gene pool interface used to look up GC's.
             line_limit (int): The maximum number of lines in a function.
-            wmc (bool): Write meta-codons when True."""
+        """
         # The globals passed to exec() when defining objects in the context
         # The GenePoolInterface instance is stored in the namespace as "GPI"
         # is explicitly used in the selector codons.
@@ -126,8 +124,6 @@ class ExecutionContext:
         self._line_limit: int = line_limit
         # Existing Imports
         self.imports: set[ImportDef] = set()
-        # Write Meta-Codons (these are usually used for debugging).
-        self.wmc: bool = wmc
         # Codon register - codons that have been processed in this context
         # Used to save trying to re-process the same codon e.g. imports.
         self._codon_register: set[bytes] = set()
@@ -666,16 +662,6 @@ class ExecutionContext:
                 if not src.terminal:
                     assert iface is not None, "Interface cannot be None."
                     src.row, src.idx = unpack_src_ref(iface[src.idx].refs[0])
-                elif src.node.is_meta and not self.wmc:
-                    # Meta-codons are not being written so a bypass has to be engineered.
-                    # A requirement of meta codons is that they are "straight through" i.e.
-                    # inputs map directly to outputs so we can fake it.
-                    src.row = SrcRow.I
-                    src.terminal = False
-                    assert src.node.gc["num_inputs"] == len(
-                        src.node.gc["cgraph"][DstIfKey.OD]
-                    ), "Meta-codons must have matching input/output interfaces."
-                    # src.idx stays the same.
                 else:
                     # If the source is terminal then add its destination interface within the node
                     # to the connection stack if it has not already been added (visited).
@@ -746,7 +732,6 @@ class ExecutionContext:
             return code + self._generate_loop_function_code(root, fwconfig, ovns)
 
         # Write a line for each terminal node that has lines to write in the graph
-        # Meta codons have 0 lines when self.wmc (write meta-codons) is false
         # Special case: If the root is a codon, it needs to be written as it IS the function body
         for node in (
             tn
@@ -922,12 +907,6 @@ class ExecutionContext:
                     self.define(str(impt))
                     self.imports.add(impt)
             ivns_map: dict[str, str] = {f"i{i}": ivn for i, ivn in enumerate(ivns)}
-            if node.is_meta:
-                # Meta codons require type information for their inline code
-                oface = node.gc["cgraph"][DstIfKey.OD]
-                ivns_map["i"] = "(" + ", ".join(ivn for ivn in ivns) + ")"
-                ivns_map.update({f"t{i}": t.typ.name for i, t in enumerate(oface)})
-                ivns_map["t"] = "(" + ", ".join(t.typ.name for t in oface) + ")"
             if node.is_pgc:
                 ivns_map["pgc"] = "rtctxt, "
             return assignment + ngc["inline"].format_map(ivns_map)
@@ -996,7 +975,7 @@ class ExecutionContext:
 
     def new_context(self) -> ExecutionContext:
         """Create a new empty execution context with the same parameters as this one."""
-        new_ec = ExecutionContext(self.gpi, self._line_limit, self.wmc)
+        new_ec = ExecutionContext(self.gpi, self._line_limit)
         return new_ec
 
     def new_function(self, node: GCNode) -> FunctionInfo:
@@ -1048,7 +1027,7 @@ class ExecutionContext:
         half_limit: int = self._line_limit // 2
         finfo = self.function_map.get(gc["signature"], NULL_FUNCTION_MAP)
         node_stack: list[GCNode] = [
-            gc_node_graph := GCNode(gc, None, SrcRow.I, finfo, gpi=self.gpi, wmc=self.wmc)
+            gc_node_graph := GCNode(gc, None, SrcRow.I, finfo, gpi=self.gpi)
         ]
 
         # Define the GCNode data
@@ -1063,9 +1042,7 @@ class ExecutionContext:
             for row, xgc in (x for x in child_nodes if x[1] is not NULL_GC):
                 assert isinstance(xgc, GCABC), "GCA or GCB must be a GCABC instance"
                 fmap = self.function_map.get(xgc["signature"], NULL_FUNCTION_MAP)
-                gc_node_graph_entry: GCNode = GCNode(
-                    xgc, node, row, fmap, gpi=self.gpi, wmc=self.wmc
-                )
+                gc_node_graph_entry: GCNode = GCNode(xgc, node, row, fmap, gpi=self.gpi)
                 if row == DstRow.A:
                     node.gca_node = gc_node_graph_entry
                 else:

@@ -242,8 +242,8 @@ class TypesDefStore:
             TypesDefStore._db_store.insert((TypesDef(**td).to_json(),))
             td = next(TypesDefStore._db_store.select(_TYPE_SELECT_SQL, literals={"id": key}))
 
-        # Create a frozen TypesDef object but do not put it in the object_store as
-        # we will cache it here.
+        # Create an immutable TypesDef object
+        # Typesdefs do not have a deduplication store as they are cached here.
         ntd = TypesDef(**td)
 
         # Cache the result with LRU eviction

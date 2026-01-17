@@ -1,35 +1,93 @@
-"""Common logging tools & configurations for EGP."""
+"""Common logging & integrity verification tools for EGP.
+
+The logging levels defined here are used throughout EGP modules. Please
+import them from this module rather than from `logging` directly to ensure
+consistency. Make a note of the intended use of the custom logging levels
+defined here in the comments below.
+
+This module additionally defines integrity levels for use in data verification.
+Note that the integrity levels do not allow security to be turned off. The integrity
+of data outside of the trusted domain must always be verified. Integrity levels
+only control the depth and extent of verification performed with the aim of catching
+bugs in EGP itself early in the runtime to make issues easier to find and fix.
+"""
 
 # pylint: disable=unused-import
 # Logging levels are imported from this module in other EGP modules
-from logging import INFO  # type: ignore
 from logging import (
     CRITICAL,
     DEBUG,
     ERROR,
     FATAL,
+    INFO,
     WARNING,
     Logger,
     NullHandler,
+    addLevelName,
     basicConfig,
     getLogger,
 )
+from tkinter import OFF
+
+from numpy import add
 
 # Custom log levels
-# These custom logging levels shall only be used within blocks that are wrapped with
-# `if _logger.isEnabledFor(level=DEBUG)`. They are developer debug deep verification and
-# validation options. The DEBUG level should be light and quick to enable unit tests to
-# execute in a few 10s of seconds. Verify should not extend that time by more than a
-# factor of three and consistency may take 10 or 20 times as long to execute, but perform
-# much deeper debugging and consistency checking. These levels should only raise
-# `egpcommon.common.debug_exceptions`.
 
-# Verify the correctness of values and types of data. e.g. right type, range, length etc.
-# Slows down execution possibly significantly where large volumes of data are involved.
-VERIFY: int = 7
-# Consistency checks. e.g. check that the data is consistent with itself. Significantly
-# slows down execution.
-CONSISTENCY: int = 5
+# Flow-level logging.
+# e.g. DB lifecycling, Gene Pool lifecycling, overall simulation progress etc.
+FLOW: int = 15
+addLevelName(FLOW, "FLOW")
+
+# Genetic code load/store, selection logging.
+GC_DEBUG: int = DEBUG
+addLevelName(GC_DEBUG, "GC_DEBUG")
+
+# Object's below GC level (that make up GC's) level logging.
+OBJECT: int = 7
+addLevelName(OBJECT, "OBJECT")
+
+# Very detailed tracing, e.g. entry and exit of functions/methods with parameters and return values.
+TRACE: int = 4
+addLevelName(TRACE, "TRACE")
+
+
+# Integrity verification
+
+
+class Integrity:
+    """Integrity verification levels for EGP data.
+    Verify the correctness of values and types of data. e.g. right type, range, length etc.
+    Slows down execution possibly significantly where large volumes of data are involved.
+
+    VERIFY: int = 20
+        Verify the correctness of values and types of data. e.g. right type, range, length etc.
+        Slows down execution moderately.
+    CONSISTENCY: int = 10
+        Verify the structural consistency of data. e.g. cross references, graph integrity etc.
+        Slows down execution possibly significantly where large volumes of data are involved.
+    DISABLED: int = 0
+        Disable integrity verification.
+    """
+
+    VERIFY: int = 20
+    CONSISTENCY: int = 10
+    DISABLED: int = 0
+    _level: int = DISABLED
+
+    @classmethod
+    def set_level(cls, level: int):
+        """Set the integrity verification level."""
+        cls._level = level
+
+    @classmethod
+    def get_level(cls) -> int:
+        """Get the integrity verification level."""
+        return cls._level
+
+    @classmethod
+    def is_enabled_for(cls, level: int) -> bool:
+        """Check if the given integrity level is enabled."""
+        return cls._level >= level
 
 
 # Standard EGP logging pattern
@@ -38,26 +96,3 @@ def egp_logger(name: str) -> Logger:
     _logger: Logger = getLogger(name=name)
     _logger.addHandler(hdlr=NullHandler())
     return _logger
-
-
-def enable_debug_logging():
-    """Enable debug logging."""
-    basicConfig(
-        level=CONSISTENCY,
-        filename="egp.log",
-        filemode="w",
-        format="%(asctime)s:%(filename)s:%(lineno)d:%(levelname)s:%(message)s",
-    )
-
-
-_logger: Logger = egp_logger(name=__name__)
-if _logger.isEnabledFor(level=CONSISTENCY):
-    _logger.debug("EGP logger created and set for CONSISTENCY level logging.")
-elif _logger.isEnabledFor(level=VERIFY):
-    _logger.debug("EGP logger created and set for VERIFY level logging.")
-_logger.debug("EGP logger created and set for DEBUG level logging.")
-_logger.info("EGP logger created and set for INFO level logging.")
-_logger.warning("EGP logger created and set for WARNING level logging.")
-_logger.error("EGP logger created and set for ERROR level logging.")
-_logger.critical("EGP logger created and set for CRITICAL level logging.")
-_logger.fatal("EGP logger created and set for FATAL level logging.")

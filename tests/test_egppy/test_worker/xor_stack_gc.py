@@ -25,7 +25,7 @@ from typing import Any
 
 from egpcommon.codon_dev_load import find_codon_signature
 from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
-from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
@@ -39,7 +39,6 @@ from egppy.worker.executor.execution_context import ExecutionContext, FunctionIn
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-enable_debug_logging()
 
 
 # Set the seed for reproducibility
@@ -591,7 +590,7 @@ if __name__ == "__main__":
 
     # 2 different execution contexts
     ec1 = ExecutionContext(gpi, 3)
-    ec2 = ExecutionContext(gpi, 50, wmc=True)  # Write the meta codons
+    ec2 = ExecutionContext(gpi, 50)
     # Hack in pre-defined function
     ec1.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
         f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]

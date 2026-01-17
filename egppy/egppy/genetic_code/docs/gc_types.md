@@ -84,10 +84,6 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 - Performance monitoring: Instrumentation for profiling
 - Debugging: Assertions and invariant checking
 
-**Properties (gctsp when gc_type=2):**
-
-- `type_cast` (bool): The meta codon is a type cast, meaning it is a functional no-op that transforms types (default: True)
-
 ## GC Type and Connection Graph Constraints
 
 The GC Type constrains which connection graph types can be used:

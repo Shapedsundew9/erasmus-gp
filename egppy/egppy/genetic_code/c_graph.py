@@ -6,7 +6,7 @@ from collections.abc import Generator, Mapping
 from itertools import chain
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Integrity, Logger, egp_logger
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import (
@@ -246,5 +246,5 @@ class CGraph(FrozenCGraph, CGraphABC):
         were successfully connected.
         """
         self.connect_all(if_locked, rng)
-        if _logger.isEnabledFor(level=VERIFY):
+        if Integrity.is_enabled_for(level=Integrity.VERIFY):
             self.verify()

@@ -36,9 +36,3 @@
 | reserved6 | uint | 5:1 | 0 | Valid values: {0}. Reserved for future use. |
 | python | bool | 6 | True | Codon code is Python. |
 | psql | bool | 7 | False | Codon code is Postgres flavoured SQL. |
-
-## gctsp: gc_type = 2
-
-| Name | Type | Bitfield | Default | Description |
-|---|:-:|:-:|:-:|---|
-| type_cast | bool | 0 | True | The meta codon is a type cast, meaning it is a functional no-op that transforms types. |

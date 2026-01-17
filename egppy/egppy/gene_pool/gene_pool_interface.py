@@ -169,66 +169,6 @@ class GenePoolInterface(GPIABC):
             return GGCDict(ggc)
         raise KeyError("No Genetic Code found matching the query.")
 
-    def select_meta(self, pts: Sequence[tuple[TypesDef, TypesDef]]) -> GCABC:
-        """Select a meta Genetic Code that has the exact matching input and output types.
-        Note that the order does not matter but the inputs and outputs must be aligned.
-
-        Example
-        -------
-        Suppose we have the following input-output type pairs:
-            pts: [(int, Integral), (int, Integral), (object, str)]
-        Then the selected meta Genetic Code can be any order of the input and output pairs:
-            (int -> Integral), (int -> Integral), (object -> str)
-
-        Args:
-            ipts: The input types definitions.
-            opts: The output types definitions.
-        Returns:
-            The selected meta Genetic Code or NULL_GC if none is found.
-        """
-        # Sanity on parameters
-        assert all(i != o for i, o in pts), "Input and output types must differ."
-
-        # Input types and indices
-        # Note that meta genetic codes input interfaces are always sorted in type order
-        # to make them easier to find.
-        itypes = sorted(set(t[0].uid for t in pts))
-        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(itypes)}
-        isort = sorted(pts, key=lambda pair: pair[0].uid)
-        iindices = bytes(lookup_indices[t[0].uid] for t in isort)
-
-        # Output types and indices
-        otypes = sorted(set(t[1].uid for t in pts))
-        lookup_indices = {uid: idx for idx, uid in enumerate(otypes)}
-        oindices = bytes(lookup_indices[t[1].uid] for t in isort)
-
-        query = (
-            " WHERE ({properties} & {mask} in ({meta}, {ordinary_meta}))"
-            " AND {input_types} = {itypes}"
-            " AND {inputs} = {iindices} AND {output_types} = {otypes}"
-            " AND {outputs} = {oindices}"
-        )
-        literals = {
-            "mask": GC_TYPE_MASK,
-            "meta": GCType.META,
-            "ordinary_meta": GCType.ORDINARY_META,
-            "itypes": itypes,
-            "iindices": iindices,
-            "otypes": otypes,
-            "oindices": oindices,
-        }
-        row_iter = self._dbm.managed_gc_table.select(
-            query,
-            literals=literals,
-            columns="*",
-            container="dict",
-        )
-
-        # Return the first matching genetic code or NULL_GC
-        for ggc in row_iter:
-            return GGCDict(ggc)
-        return NULL_GC
-
     def verify(self) -> None:
         """Verify the Gene Pool."""
         pass

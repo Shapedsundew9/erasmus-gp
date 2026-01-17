@@ -156,7 +156,7 @@ class FrozenInterface(FrozenInterfaceABC):
         """Check the consistency of the FrozenInterface.
 
         Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
+        by verify() when CONSISTENCY integrity is enabled.
 
         Validates:
             - All endpoints would pass their own consistency checks

@@ -23,7 +23,7 @@ class TestConditionalCodeGeneration(unittest.TestCase):
         """Set up test fixtures."""
         # Mock the gene pool interface
         self.mock_gpi = MagicMock()
-        self.ec = ExecutionContext(self.mock_gpi, line_limit=64, wmc=False)
+        self.ec = ExecutionContext(self.mock_gpi, line_limit=64)
 
     def test_code_lines_detects_conditional(self):
         """Test that code_lines() detects conditional GCs."""
@@ -69,7 +69,6 @@ class TestConditionalCodeGeneration(unittest.TestCase):
             "outputs": [{"typ": {"name": "int"}}],
         }.get
         mock_gc.is_codon.return_value = True  # Set as codon
-        mock_gc.is_meta.return_value = False
         mock_gc.is_pgc.return_value = False
 
         # Mock c_graph_type to return IF_THEN
@@ -78,7 +77,7 @@ class TestConditionalCodeGeneration(unittest.TestCase):
 
             # Create GCNode (no GPI needed for codons)
 
-            node = GCNode(mock_gc, None, SrcRow.I, NULL_FUNCTION_MAP, wmc=False)
+            node = GCNode(mock_gc, None, SrcRow.I, NULL_FUNCTION_MAP)
 
             # Verify graph type is cached
             self.assertEqual(node.graph_type, CGraphType.IF_THEN)
@@ -108,13 +107,12 @@ class TestConditionalCodeGeneration(unittest.TestCase):
             "outputs": [{"typ": {"name": "int"}}, {"typ": {"name": "str"}}],
         }.get
         mock_gc.is_codon.return_value = True  # Set as codon
-        mock_gc.is_meta.return_value = False
         mock_gc.is_pgc.return_value = False
 
         with patch("egppy.worker.executor.gc_node.c_graph_type") as mock_c_graph_type:
             mock_c_graph_type.return_value = CGraphType.IF_THEN_ELSE
 
-            node = GCNode(mock_gc, None, SrcRow.I, NULL_FUNCTION_MAP, wmc=False)
+            node = GCNode(mock_gc, None, SrcRow.I, NULL_FUNCTION_MAP)
 
             self.assertEqual(node.graph_type, CGraphType.IF_THEN_ELSE)
             self.assertTrue(node.is_conditional)
@@ -134,13 +132,12 @@ class TestConditionalCodeGeneration(unittest.TestCase):
             "outputs": [{"typ": {"name": "int"}}],
         }.get
         mock_gc.is_codon.return_value = True  # Set as codon
-        mock_gc.is_meta.return_value = False
         mock_gc.is_pgc.return_value = False
 
         with patch("egppy.worker.executor.gc_node.c_graph_type") as mock_c_graph_type:
             mock_c_graph_type.return_value = CGraphType.PRIMITIVE
 
-            node = GCNode(mock_gc, None, SrcRow.I, NULL_FUNCTION_MAP, wmc=False)
+            node = GCNode(mock_gc, None, SrcRow.I, NULL_FUNCTION_MAP)
 
             self.assertEqual(node.graph_type, CGraphType.PRIMITIVE)
             self.assertFalse(node.is_conditional)
@@ -153,7 +150,7 @@ class TestConditionalFunctionCodeGenerator(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.mock_gpi = MagicMock()
-        self.ec = ExecutionContext(self.mock_gpi, line_limit=64, wmc=False)
+        self.ec = ExecutionContext(self.mock_gpi, line_limit=64)
 
     def test_missing_f_connection_raises_error(self):
         """Test that missing Row F connection raises ValueError."""

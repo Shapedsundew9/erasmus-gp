@@ -11,8 +11,8 @@ class GCType(IntEnum):
 
     CODON = 0
     ORDINARY = 1
-    META = 2
-    ORDINARY_META = 3
+    RESERVED_2 = 2
+    RESERVED_3 = 3
 
 
 class CGraphType(IntEnum):
@@ -133,6 +133,53 @@ PROPERTIES_CONFIG = {
         "description": "GC type specific properties.",
         "subtype": [
             {
+                "literal": {
+                    "type": "bool",
+                    "start": 0,
+                    "width": 1,
+                    "default": False,
+                    "description": (
+                        "The codon output type is a literal (which "
+                        "requires special handling in some cases)."
+                    ),
+                },
+                "template": {
+                    "type": "bool",
+                    "start": 1,
+                    "width": 1,
+                    "default": False,
+                    "description": (
+                        "The codon a template from which other codons are generated "
+                        "at runtime. At least one input is a template type (tt>0)"
+                        " e.g. list[object], "
+                        "which is made concrete e.g. list[str], list[int], list[Sequence] etc. "
+                        "Mapping of input types to output types is stored in the meta_data."
+                    ),
+                },
+                "reserved6": {
+                    "type": "uint",
+                    "start": 2,
+                    "width": 4,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
+                "python": {
+                    "type": "bool",
+                    "start": 6,
+                    "width": 1,
+                    "default": True,
+                    "description": "Codon code is Python.",
+                },
+                "psql": {
+                    "type": "bool",
+                    "start": 7,
+                    "width": 1,
+                    "default": False,
+                    "description": "Codon code is Postgres flavoured SQL.",
+                },
+            },
+            {
                 "simplification": {
                     "type": "bool",
                     "start": 0,
@@ -166,94 +213,20 @@ PROPERTIES_CONFIG = {
                 },
             },
             {
-                "literal": {
-                    "type": "bool",
-                    "start": 0,
-                    "width": 1,
-                    "default": False,
-                    "description": (
-                        "The codon output type is a literal (which "
-                        "requires special handling in some cases)."
-                    ),
-                },
-                "reserved6": {
-                    "type": "uint",
-                    "start": 1,
-                    "width": 5,
-                    "default": 0,
-                    "description": "Reserved for future use.",
-                    "valid": {"value": {0}},
-                },
-                "python": {
-                    "type": "bool",
-                    "start": 6,
-                    "width": 1,
-                    "default": True,
-                    "description": "Codon code is Python.",
-                },
-                "psql": {
-                    "type": "bool",
-                    "start": 7,
-                    "width": 1,
-                    "default": False,
-                    "description": "Codon code is Postgres flavoured SQL.",
-                },
-            },
-            {
-                "type_upcast": {
-                    "type": "bool",
-                    "start": 0,
-                    "width": 1,
-                    "default": False,
-                    "description": (
-                        "The meta codon is a type upcast e.g. int "
-                        "--> Integral which is always valid."
-                    ),
-                },
-                "type_downcast": {
-                    "type": "bool",
-                    "start": 1,
-                    "width": 1,
-                    "default": True,
-                    "description": (
-                        "The meta codon is a type downcast e.g. "
-                        "Integral --> int which means it must be verified."
-                    ),
-                },
                 "reserved8": {
                     "type": "uint",
-                    "start": 2,
-                    "width": 6,
+                    "start": 0,
+                    "width": 8,
                     "default": 0,
                     "description": "Reserved for future use.",
                     "valid": {"value": {0}},
                 },
             },
             {
-                "type_upcast": {
-                    "type": "bool",
-                    "start": 0,
-                    "width": 1,
-                    "default": False,
-                    "description": (
-                        "The meta codon is a type upcast e.g. int "
-                        "--> Integral which is always valid."
-                    ),
-                },
-                "type_downcast": {
-                    "type": "bool",
-                    "start": 1,
-                    "width": 1,
-                    "default": True,
-                    "description": (
-                        "The meta codon is a type downcast e.g. "
-                        "Integral --> int which means it must be verified."
-                    ),
-                },
                 "reserved8": {
                     "type": "uint",
-                    "start": 2,
-                    "width": 6,
+                    "start": 0,
+                    "width": 8,
                     "default": 0,
                     "description": "Reserved for future use.",
                     "valid": {"value": {0}},

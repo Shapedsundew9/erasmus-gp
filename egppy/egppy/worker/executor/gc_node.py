@@ -49,14 +49,8 @@ def mc_code_node_str(gcnode: GCNode) -> str:
     assert (
         gcnode.is_codon
     ), "If the GC function does not exist and is not going to, it must be a codon."
-    if not gcnode.is_meta:
-        label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
-        return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
-    cgraph = gcnode.gc["cgraph"]
-    od_endpoints = cgraph.get(DstIfKey.OD)
-    od_typ_name = od_endpoints[0].typ.name if od_endpoints else "None"
-    label = f"is({od_typ_name})<br>{gcnode.gc['signature'].hex()[-8:]}"
-    return mc_hexagon_str(gcnode.uid, label, MERMAID_GREEN)
+    label = f"{gcnode.gc['inline']}<br>{gcnode.gc['signature'].hex()[-8:]}"
+    return mc_circle_str(gcnode.uid, label, MERMAID_GREEN)
 
 
 # Mermaid Chart creation helper function
@@ -82,8 +76,6 @@ def mc_gc_node_str(gcnode: GCNode, row: Row, color: str = "") -> str:
     if color == "":
         color = MERMAID_BLUE
         if gcnode.is_codon:
-            if gcnode.is_meta:
-                return mc_meta_node_str(gcnode, row)
             return mc_codon_node_str(gcnode, row)
     label = f'"{gcnode.gc["signature"].hex()[-8:]}<br>{row}: {gcnode.num_lines} lines"'
     return mc_rectangle_str(gcnode.uid, label, color)
@@ -231,7 +223,6 @@ class GCNode(Iterable, Hashable):
     __slots__ = (
         "gc",
         "is_codon",
-        "is_meta",
         "is_pgc",
         "unknown",
         "exists",
@@ -266,7 +257,6 @@ class GCNode(Iterable, Hashable):
         row: Row,
         finfo: FunctionInfo,
         gpi: GenePoolInterface | None = None,
-        wmc: bool = False,
     ) -> None:
         # TODO: This keeps the GCABC hanging around. It should not. Should be pulled from
         # the GPI everytime it is accessed to reduce memory usage.
@@ -275,7 +265,6 @@ class GCNode(Iterable, Hashable):
         # Defaults. These may be changed depending on the GC structure and what
         # is found in the cache.
         self.is_codon: bool = gc.is_codon()  # Is this node for a codon?
-        self.is_meta: bool = gc.is_meta()  # Is this node for a meta-codon?
         self.unknown: bool = False  # Is this node for an unknown executable?
         self.exists: bool = finfo is not NULL_FUNCTION_MAP
         self.finfo: FunctionInfo = finfo
@@ -341,7 +330,7 @@ class GCNode(Iterable, Hashable):
             self.terminal = True  # A codon is a terminal node
             # A codon is a single line of code (unless we are supressing meta-codons
             # in which case they will not be written and are thus contribute 0 lines)
-            self.num_lines = int(wmc or not self.is_meta)
+            self.num_lines = 1
 
         if not self.exists and not self.is_codon:
             # The GC may have an unknown structure but there is no existing executable
@@ -437,9 +426,6 @@ class GCNode(Iterable, Hashable):
             chart_txt.append(f'    {self.uid}O["outputs"]')
 
         # Iterate through the node graph in depth-first order (A then B)
-        # The only way to know if writing meta-codons has been enabled is to check
-        # the number of lines - this is a proxy rather than a direct test of the
-        # execution contexts wmc flag.
         for node in (
             tn for tn in GCNodeCodeIterable(self) if tn.terminal and tn.num_lines and tn is not self
         ):

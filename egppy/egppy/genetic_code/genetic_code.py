@@ -71,8 +71,6 @@ def mc_gc_str(gcabc: GCABC, prefix: str, row: Row, color: str = "") -> str:
     if color == "":
         color = MERMAID_BLUE
         if gcabc.is_codon():
-            if gcabc.is_meta():
-                return mc_meta_str(gcabc, prefix, row)
             return mc_codon_str(gcabc, prefix, row)
     label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
     return mc_rectangle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
@@ -174,11 +172,6 @@ class GCABC(CacheableObjABC):
     def is_conditional(self) -> bool:
         """Return True if the GCABC is conditional."""
         raise NotImplementedError("GCABC.is_conditional must be overridden")
-
-    @abstractmethod
-    def is_meta(self) -> bool:
-        """Return True if the genetic code is a meta-codon."""
-        raise NotImplementedError("GCABC.is_meta must be overridden")
 
     @abstractmethod
     def is_pgc(self) -> bool:

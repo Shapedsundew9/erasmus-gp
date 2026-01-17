@@ -26,7 +26,7 @@ from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 # This pattern involves creating a logger instance using the egp_logger function,
-# and setting up boolean flags to check if certain logging levels (DEBUG, VERIFY, CONSISTENCY)
+# and setting up boolean flags to check if certain logging levels
 # are enabled. This allows for conditional logging based on the configured log level.
 _logger: Logger = egp_logger(name=__name__)
 

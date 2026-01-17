@@ -280,12 +280,6 @@ class GGCDict(EGCDict):
                 "If the genetic code is a codon, the code_depth must be 1.",
             )
 
-        if gc_type == GCType.META or gc_type == GCType.ORDINARY_META:
-            self.value_error(
-                graph_type == CGraphType.STANDARD or graph_type == CGraphType.PRIMITIVE,
-                "If the genetic code is meta, the graph must be STANDARD or PRIMITIVE.",
-            )
-
         # The reference count of the genetic code.
         self.value_error(
             self["reference_count"] >= 0,

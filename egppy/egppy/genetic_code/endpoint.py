@@ -33,7 +33,7 @@ See Also:
 from __future__ import annotations
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import TRACE, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.ep_ref import EPRef, EPRefs
@@ -103,6 +103,7 @@ class EndPoint(FrozenEndPoint, EndPointABC):
         CommonObj.__init__(self)  # pylint: disable=non-parent-init-called
         if len(args) == 1:
             if isinstance(args[0], FrozenEndPointABC):
+                _logger.log(TRACE, "Creating EndPoint from a FrozenEndPointABC")
                 other: FrozenEndPointABC = args[0]
                 self.row = other.row
                 self.idx = other.idx
@@ -110,11 +111,13 @@ class EndPoint(FrozenEndPoint, EndPointABC):
                 self.typ = other.typ
                 self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
+                _logger.log(TRACE, "Creating EndPoint from a 5-tuple")
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
                 self.refs = self._convert_refs(refs_arg)
             else:
                 raise TypeError("Invalid argument for EndPoint constructor")
         elif len(args) == 4 or len(args) == 5:
+            _logger.log(TRACE, "Creating EndPoint from explicit arguments")
             self.row: Row = args[0]
             self.idx: int = args[1]
             self.cls: EPCls = args[2]

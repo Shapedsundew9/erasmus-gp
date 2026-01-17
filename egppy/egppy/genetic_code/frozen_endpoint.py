@@ -2,6 +2,7 @@
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import refs_store
+from egpcommon.egp_log import TRACE, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -22,6 +23,9 @@ from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.json_cgraph import UNKNOWN_REVERSED, UNKNOWN_VALID
 from egppy.genetic_code.types_def import TypesDef
 from egppy.genetic_code.types_def_store import types_def_store
+
+# Standard EGP logging setup
+_logger: Logger = egp_logger(name=__name__)
 
 # Constants
 EMPTY_FROZEN_EP_REFS = refs_store[FrozenEPRefs(tuple())]
@@ -72,6 +76,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         super().__init__()
         if len(args) == 1:
             if isinstance(args[0], FrozenEndPointABC):
+                _logger.log(TRACE, "Creating FrozenEndPoint from a FrozenEndPointABC")
                 other: FrozenEndPointABC = args[0]
                 self.row = other.row
                 self.idx = other.idx
@@ -79,11 +84,13 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 self.typ = other.typ
                 self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
+                _logger.log(TRACE, "Creating FrozenEndPoint from a 5-tuple")
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
                 self.refs = self._convert_refs(refs_arg)
             else:
                 raise TypeError("Invalid argument for EndPoint constructor")
         elif len(args) == 4 or len(args) == 5:
+            _logger.log(TRACE, "Creating FrozenEndPoint from explicit arguments")
             self.row: Row = args[0]
             self.idx: int = args[1]
             self.cls: EPCls = args[2]
@@ -266,25 +273,41 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             bool: True if connection is possible, False otherwise.
         """
         assert isinstance(other, FrozenEndPointABC), "Other endpoint is not a FrozenEndPointABC"
-        # Self id the source endpoint
+        # Self is the source endpoint
         if self.cls == EPCls.SRC:
+            # Most common reason not to connect first
+            if other.is_connected():
+                _logger.log(TRACE, "Other endpoint is already connected")
+                return False
             if other.cls != EPCls.DST:
+                _logger.log(TRACE, "Other endpoint is not DST")
                 return False
             assert isinstance(self.row, SrcRow), "self.row is not a SrcRow"
-            if other.row not in UNKNOWN_VALID[self.row]:
+            if other.row not in (valid_rows := UNKNOWN_VALID[self.row]):
+                _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
                 return False
             if other.typ not in types_def_store.ancestors(self.typ):
+                _logger.log(
+                    TRACE, "Other endpoint type %s not in ancestors of %s", other.typ, self.typ
+                )
                 return False
 
             return True
 
         # Other is the source endpoint
+        # Most common reason not to connect first
+        if self.is_connected():
+            _logger.log(TRACE, "Self endpoint is already connected")
+            return False
         if other.cls != EPCls.SRC:
+            _logger.log(TRACE, "Other endpoint is not SRC")
             return False
         assert isinstance(self.row, DstRow), "self.row is not a DstRow"
-        if other.row not in UNKNOWN_REVERSED[self.row]:
+        if other.row not in (valid_rows := UNKNOWN_REVERSED[self.row]):
+            _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
             return False
         if self.typ not in types_def_store.ancestors(other.typ):
+            _logger.log(TRACE, "Self endpoint type %s not in ancestors of %s", self.typ, other.typ)
             return False
         return True
 
@@ -308,32 +331,52 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         if self.cls == EPCls.SRC:
             # Most common reason not to connect first
             if other.is_connected():
+                _logger.log(TRACE, "Other endpoint is already connected")
                 return False
             if other.cls != EPCls.DST:
+                _logger.log(TRACE, "Other endpoint is not DST")
                 return False
             assert isinstance(self.row, SrcRow), "self.row is not a SrcRow"
-            if other.row not in UNKNOWN_VALID[self.row]:
+            if other.row not in (valid_rows := UNKNOWN_VALID[self.row]):
+                _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
                 return False
             if other.typ == self.typ:
+                _logger.log(TRACE, "Other endpoint type is equal to self type (not a downcast)")
                 return False
             # Descendants includes self.typ, so we need to exclude that case (above)
             if other.typ not in types_def_store.descendants(self.typ):
+                _logger.log(
+                    TRACE,
+                    "Other endpoint type %s not in descendants of %s",
+                    other.typ,
+                    self.typ,
+                )
                 return False
             return True
 
         # Other is the source endpoint
         # Most common reason not to connect first
         if self.is_connected():
+            _logger.log(TRACE, "Self endpoint is already connected")
             return False
         if other.cls != EPCls.SRC:
+            _logger.log(TRACE, "Other endpoint is not SRC")
             return False
         assert isinstance(other.row, SrcRow), "other.row is not a SrcRow"
-        if other.row not in UNKNOWN_VALID[other.row]:
+        if other.row not in (valid_rows := UNKNOWN_VALID[other.row]):
+            _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
             return False
         if self.typ == other.typ:
+            _logger.log(TRACE, "Self endpoint type is equal to other type (not a downcast)")
             return False
         # Descendants includes other.typ, so we need to exclude that case (above)
         if self.typ not in types_def_store.descendants(other.typ):
+            _logger.log(
+                TRACE,
+                "Self endpoint type %s not in descendants of %s",
+                self.typ,
+                other.typ,
+            )
             return False
         return True
 
@@ -341,7 +384,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         """Check the consistency of the FrozenEndPoint.
 
         Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
+        by verify() when CONSISTENCY integrity is enabled.
 
         Validates:
             - Reference structure matches endpoint class rules

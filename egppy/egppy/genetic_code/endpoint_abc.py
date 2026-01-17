@@ -221,7 +221,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
         """Check the consistency of the endpoint.
 
         Performs semantic validation that may be computationally expensive. This method
-        is called automatically by verify() when CONSISTENCY logging is enabled, following
+        is called automatically by verify() when CONSISTENCY integrity is enabled, following
         the CommonObj validation pattern.
 
         Validates:
@@ -235,7 +235,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
             and is performed at the Interface or CGraph level, not here.
 
         Raises:
-            AssertionError: If consistency checks fail (in debug mode with CONSISTENCY logging).
+            AssertionError: If consistency checks fail (in debug mode with CONSISTENCY integrity).
         """
         raise NotImplementedError("FrozenEndPointABC.consistency must be overridden")
 
@@ -311,7 +311,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
                 * SRC endpoints reference DST rows
 
         Note:
-            Calls consistency() automatically when CONSISTENCY logging is enabled.
+            Calls consistency() automatically when CONSISTENCY integrity is enabled.
 
         Raises:
             ValueError: If the endpoint structure is invalid.

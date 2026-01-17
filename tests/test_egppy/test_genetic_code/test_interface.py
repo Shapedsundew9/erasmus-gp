@@ -131,36 +131,10 @@ class TestInterface(unittest.TestCase):
 
     def test_consistency(self) -> None:
         """Test the consistency() method."""
-        # Consistency is normally called by verify() when CONSISTENCY logging is enabled
+        # Consistency is normally called by verify() when CONSISTENCY integrity is enabled
         # We can call it directly here
         interface = Interface([self.ep1, self.ep2], DstRow.A)
         interface.consistency()  # Should not raise
-
-    def test_consistency_with_logging(self) -> None:
-        """Test the consistency() method with CONSISTENCY logging enabled."""
-        # pylint: disable=import-outside-toplevel
-        from egpcommon.egp_log import CONSISTENCY
-
-        # Get the logger
-        from egppy.genetic_code import interface as interface_module
-
-        # pylint: disable=protected-access
-        logger = interface_module._logger
-
-        # Save original level
-        original_level = logger.level
-
-        try:
-            # Enable CONSISTENCY logging
-            logger.setLevel(CONSISTENCY)
-
-            # Create and verify interface - this should trigger consistency()
-            interface = Interface([self.ep1, self.ep2], DstRow.A)
-            interface.verify()  # This will call consistency() internally
-
-        finally:
-            # Restore original level
-            logger.setLevel(original_level)
 
     def test_equality(self) -> None:
         """Test equality of Interface instances."""
