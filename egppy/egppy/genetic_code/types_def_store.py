@@ -2,12 +2,14 @@
 Docstring for egppy.genetic_code.types_def_store
 """
 
+import array
+from array import array
 from collections.abc import Iterable, Iterator
 from functools import reduce
 from json import dumps, loads
 from os.path import dirname, join
 from re import findall
-from typing import Any
+from typing import Any, Container
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
@@ -94,7 +96,7 @@ def highest_type(types_iter: Iterable[str]) -> str:
     return tds[0].name
 
 
-class TypesDefStore:
+class TypesDefStore(Container):
     """Types Definition Database.
 
     The TDDB is a double dictionary that maps type names to TypesDef objects
@@ -132,8 +134,10 @@ class TypesDefStore:
     _descendants_cache_hits: int = 0
     _descendants_cache_misses: int = 0
 
-    def __contains__(self, key: int | str) -> bool:
+    def __contains__(self, key: object) -> bool:
         """Check if the key is in the store."""
+        if not isinstance(key, (int, str)):
+            return False
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         try:
@@ -160,6 +164,10 @@ class TypesDefStore:
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
+
+        # If the key is a string make sure it is correctly formatted
+        if isinstance(key, str):
+            key = str(TypeStringParser.parse(key))
 
         # Check cache first
         if key in TypesDefStore._cache:
@@ -238,9 +246,14 @@ class TypesDefStore:
                 "imports": imports,
                 "parents": [p.uid for p in ptds],
                 "children": [],  # Children may be possible but not created by default.
+                "subtypes": [ctd.uid for ctd in ctds],
                 "template": None,
                 "tt": base_type.tt,
             }
+
+            # Parents need to reference the new type as a child too.
+            for parent in ptds:
+                self.amend_children(parent.uid, list(parent.children) + [td["uid"]])
 
             # Add to the database & read it back out again to ensure consistency
             TypesDefStore._db_store.insert((TypesDef(**td).to_json(),))
@@ -305,6 +318,30 @@ class TypesDefStore:
             return bool(hashes)
         TypesDefStore._db_sources = db_sources
         return num_entries < num_files
+
+    def amend_children(self, uid, children: list[int]) -> None:
+        """Amend the children of a type definition in the store and database.
+
+        Args:
+            uid (int): The UID of the type definition to amend.
+            children (list[int]): The new list of children UIDs.
+        """
+        if TypesDefStore._db_store is None:
+            self._initialize_db_store()
+        assert TypesDefStore._db_store is not None, "DB store must be initialized."
+        TypesDefStore._db_store.update(
+            "children = {tdchildren}",
+            "uid = {tduid}",
+            literals={"tduid": uid, "tdchildren": children},
+        )
+        # Invalidate the cache entry for this type definition
+        if uid in TypesDefStore._cache:
+            del TypesDefStore._cache[uid]
+        # Also invalidate ancestors and descendants caches as they may be affected
+        if uid in TypesDefStore._ancestors_cache:
+            del TypesDefStore._ancestors_cache[uid]
+        if uid in TypesDefStore._descendants_cache:
+            del TypesDefStore._descendants_cache[uid]
 
     def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Returns the specified type definition and all its ancestor type

@@ -1,16 +1,19 @@
 """
-Docstring for tests.test_egppy.test_genetic_code.test_types_def_cache
+Docstring for tests.test_egppy.test_genetic_code.test_types_def_store
 """
 
 import unittest
 
+from annotated_types import T
+
+from egpcommon.type_string_parser import TypeStringParser
 from egppy.genetic_code.types_def_store import TypesDefStore, types_def_store
 
 
 # pylint: disable=protected-access
-class TestTypesDefCache(unittest.TestCase):
+class TestTypesDefStore(unittest.TestCase):
     """
-    Docstring for TestTypesDefCache
+    Docstring for TestTypesDefStore
     """
 
     def setUp(self):
@@ -72,6 +75,40 @@ class TestTypesDefCache(unittest.TestCase):
         info = types_def_store.info()
         self.assertIn("Ancestors Cache hits:", info)
         self.assertIn("Descendants Cache hits:", info)
+
+    def test_new_type(self):
+        """Test adding a new type."""
+        # Compound new type
+        new_type_name = "dict[set[int],dict[str,list[float]]]"
+
+        # Getting the type creates it if it does not exist.
+        # This is a recursive process, so all subtypes should be created too.
+        new_type = types_def_store[new_type_name]
+
+        self.assertEqual(new_type.name, str(TypeStringParser.parse(new_type_name)))
+        self.assertIn("dict[set[int],dict[str,list[float]]]", types_def_store)
+
+        # Check that all subtypes were created
+        self.assertIn("set[int]", types_def_store)
+        self.assertIn("dict[str,list[float]]", types_def_store)
+        self.assertIn("list[float]", types_def_store)
+
+        # Check that parents have the new type as children
+        self.assertIn(
+            new_type.uid,
+            types_def_store["MutableMapping[set[int],dict[str,list[float]]]"].children.tolist(),
+        )
+        self.assertIn(
+            types_def_store["set[int]"].uid, types_def_store["MutableSet[int]"].children.tolist()
+        )
+        self.assertIn(
+            types_def_store["dict[str,list[float]]"].uid,
+            types_def_store["MutableMapping[str,list[float]]"].children.tolist(),
+        )
+        self.assertIn(
+            types_def_store["list[float]"].uid,
+            types_def_store["MutableSequence[float]"].children.tolist(),
+        )
 
 
 if __name__ == "__main__":
