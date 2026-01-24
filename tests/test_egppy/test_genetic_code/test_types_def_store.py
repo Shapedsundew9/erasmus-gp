@@ -4,8 +4,6 @@ Docstring for tests.test_egppy.test_genetic_code.test_types_def_store
 
 import unittest
 
-from annotated_types import T
-
 from egpcommon.type_string_parser import TypeStringParser
 from egppy.genetic_code.types_def_store import TypesDefStore, types_def_store
 

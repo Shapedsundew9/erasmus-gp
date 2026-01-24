@@ -2,17 +2,16 @@
 Docstring for egppy.genetic_code.types_def_store
 """
 
-import array
-from array import array
 from collections.abc import Iterable, Iterator
 from functools import reduce
+from itertools import product
 from json import dumps, loads
 from os.path import dirname, join
 from re import findall
 from typing import Any, Container
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import TRACE, Logger, egp_logger
 from egpcommon.object_deduplicator import format_deduplicator_info
 from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.type_string_parser import TypeNode, TypeStringParser
@@ -141,7 +140,9 @@ class TypesDefStore(Container):
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         try:
-            self[key]  # This will populate the cache if the key exists.
+            # This will populate the cache if the key exists.
+            # but it will not create it.
+            self._get_item_internal(key, create=False)
         except KeyError:
             return False
         return True
@@ -161,6 +162,10 @@ class TypesDefStore(Container):
 
     def __getitem__(self, key: int | str) -> TypesDef:
         """Get a object from the dict."""
+        return self._get_item_internal(key, True)
+
+    def _get_item_internal(self, key: int | str, create: bool = False) -> TypesDef:
+        """Get a object from the dict."""
         if TypesDefStore._db_store is None:
             self._initialize_db_store()
         assert TypesDefStore._db_store is not None, "DB store must be initialized."
@@ -172,8 +177,10 @@ class TypesDefStore(Container):
         # Check cache first
         if key in TypesDefStore._cache:
             TypesDefStore._cache_hits += 1
+            _logger.log(TRACE, "TypesDefStore cache hit for key: %s", key)
             return TypesDefStore._cache[key]
 
+        _logger.log(TRACE, "TypesDefStore cache miss for key: %s", key)
         TypesDefStore._cache_misses += 1
 
         if isinstance(key, int):
@@ -186,9 +193,12 @@ class TypesDefStore(Container):
         else:
             raise TypeError(f"Invalid key type: {type(key)}")
         if not td:
+            if not create:
+                raise KeyError(f"Type not found with name: {key}")
             # TODO: Go to an external service to find or create the type definition.
             # NOTE: Other types will be affected by any new type through parents/children.
             # For now if it is a new compund container type then we can create it locally.
+            _logger.info("Creating new TypesDef for key: %s", key)
             assert isinstance(key, str), "Key must be a string to create new type."
             root_tn: TypeNode = TypeStringParser.parse(key)
             if not root_tn.args:
@@ -199,13 +209,13 @@ class TypesDefStore(Container):
             # that everything is treated and represented consistently. e.g. "list[list]"
             # must be recognized as list[list[object]] etc.
             arg_strs = [str(arg) for arg in root_tn.args if arg.name != "..."]
-            ctds = [self[arg_str] for arg_str in arg_strs]
-            # Now we have a parent container in root_tn and known contained types
+            stds = [self[arg_str] for arg_str in arg_strs]
+            # Now we have a parent container in root_tn and known subtypes
             # to make a new type definition.
             base_type = self[root_tn.name]  # This is the alias e.g. list, dict, tuple, etc.
 
             # Imports are deduplicated when the TypesDef is created.
-            imports = [i for ctd in ctds for i in ctd.imports]
+            imports = [i for ctd in stds for i in ctd.imports]
 
             # Parent types are likely needed to be created too. However, they are templated
             # where r'-.*[0-9]' is used to indicate a template parameter for a specific type.
@@ -220,9 +230,9 @@ class TypesDefStore(Container):
             type_templates = findall(_TEMPLATE_TYPE_PATTERN, base_type.template[0])
 
             # For types the number of templates
-            assert len(type_templates) <= len(ctds), (
+            assert len(type_templates) <= len(stds), (
                 f"Template parameters ({type_templates}) is greater than the "
-                f"number of contained types ({ctds}) for type {key}."
+                f"number of contained types ({stds}) for type {key}."
             )
 
             # Create a mapping of template to contained type definition
@@ -233,9 +243,23 @@ class TypesDefStore(Container):
                 for parent in base_type.template[1:]
             ]
 
-            # Get the parent TypesDef objects - this will create them if they do not exist.
+            # Get the root_tn parent TypesDef objects - this will create them if they do not exist.
             # TypeDefs need the parent UIDs
-            ptds = [self[parent] for parent in parents]
+            ptds = {self[parent] for parent in parents}
+
+            # Now add the subtype parents too but only if they already exist. We do not
+            # want to create new subtype parents as the number of combinations could be large.
+            stdps = [[self[p].name for p in std.parents] for std in stds]
+            combinations = [list(comb) for comb in product(*stdps)]
+            for comb in combinations:
+                pname = f"{root_tn.name}[{','.join(comb)}]"
+                if pname in self:
+                    _logger.debug("Adding existing subtype parent: %s", pname)
+                    ptds.add(self[pname])
+            _logger.debug(
+                "Skipped %d parent combinations that do not exist.",
+                len(combinations) - len(ptds) + len(parents),
+            )
             td = {
                 "name": str(root_tn),  # Ensure consistent formatting
                 "alias": None,  # Never will be a base template by definition
@@ -246,13 +270,14 @@ class TypesDefStore(Container):
                 "imports": imports,
                 "parents": [p.uid for p in ptds],
                 "children": [],  # Children may be possible but not created by default.
-                "subtypes": [ctd.uid for ctd in ctds],
+                "subtypes": [std.uid for std in stds],
                 "template": None,
                 "tt": base_type.tt,
             }
 
             # Parents need to reference the new type as a child too.
             for parent in ptds:
+                _logger.debug("Amending parent %s to add new child %s", parent.name, td["name"])
                 self.amend_children(parent.uid, list(parent.children) + [td["uid"]])
 
             # Add to the database & read it back out again to ensure consistency
@@ -264,12 +289,18 @@ class TypesDefStore(Container):
         ntd = TypesDef(**td)
 
         # Cache the result with LRU eviction
-        TypesDefStore._cache[key] = ntd
-        TypesDefStore._cache_order.append(key)
+        TypesDefStore._cache[ntd.uid] = ntd
+        TypesDefStore._cache_order.append(ntd.uid)
+        TypesDefStore._cache[ntd.name] = ntd
+        TypesDefStore._cache_order.append(ntd.name)
 
         # LRU eviction if cache is full
         if len(TypesDefStore._cache_order) > TypesDefStore._cache_maxsize:
             evict_key = TypesDefStore._cache_order.pop(0)
+            assert isinstance(evict_key, str), "1st evict key must be a string (name)."
+            del TypesDefStore._cache[evict_key]
+            evict_key = TypesDefStore._cache_order.pop(0)
+            assert isinstance(evict_key, int), "2nd evict key must be an int (uid)."
             del TypesDefStore._cache[evict_key]
 
         return ntd
@@ -335,13 +366,23 @@ class TypesDefStore(Container):
             literals={"tduid": uid, "tdchildren": children},
         )
         # Invalidate the cache entry for this type definition
+        # pylint: disable=pointless-statement
         if uid in TypesDefStore._cache:
             del TypesDefStore._cache[uid]
+            TypesDefStore._cache_order.remove(uid)
+            p = self[uid]  # Reload the cache entry
+            assert all(
+                child in p.children for child in children
+            ), "Children not updated correctly in cache."
         # Also invalidate ancestors and descendants caches as they may be affected
         if uid in TypesDefStore._ancestors_cache:
             del TypesDefStore._ancestors_cache[uid]
+            TypesDefStore._ancestors_cache_order.remove(uid)
+            self.ancestors(uid)
         if uid in TypesDefStore._descendants_cache:
             del TypesDefStore._descendants_cache[uid]
+            TypesDefStore._descendants_cache_order.remove(uid)
+            self.descendants(uid)
 
     def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Returns the specified type definition and all its ancestor type
