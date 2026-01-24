@@ -44,6 +44,7 @@ class TypesDef(Validator):
         "parents",
         "children",
         "uid",
+        "subtypes",
         "template",
         "tt",
     )
@@ -59,6 +60,7 @@ class TypesDef(Validator):
         imports: Iterable[ImportDef] | dict = NULL_TUPLE,
         parents: Iterable[int | TypesDef] = NULL_TUPLE,
         children: Iterable[int | TypesDef] = NULL_TUPLE,
+        subtypes: Iterable[int | TypesDef] = NULL_TUPLE,
         template: Iterable[str] | str | None = None,
         tt: int = 0,
     ) -> None:
@@ -73,6 +75,7 @@ class TypesDef(Validator):
             imports: List of import definitions need to instantiate the type.
             parents: List of type uids or definitions that the type inherits from.
             children: List of type uids or definitions that the type has as children.
+            subtypes: List of type uids or definitions that are subtypes of the type.
             alias: Alias name of the type definition (only for container types).
             template: Template mapping for templated (container) types.
         """
@@ -87,6 +90,7 @@ class TypesDef(Validator):
         self.children: Final[array[int]] = self._children(children)
         self.uid: Final[int] = self._uid(uid)
         self.alias: Final[str | None] = self._alias(alias)
+        self.subtypes: Final[array[int]] = self._subtypes(subtypes)
         self.template: Final[list[str] | None] = self._template(template)
         self.tt: Final[int] = self._tt(tt)
 
@@ -98,6 +102,24 @@ class TypesDef(Validator):
         self._is_length("alias", alias, 1, 64)
         self._is_printable_string("alias", alias)
         return alias
+
+    def _subtypes(self, subtypes: Iterable[int | TypesDef]) -> array[int]:
+        """Mash the sub-type definitions into an array of type uids.
+        Names are used to look up the type in the types database on an as needed basis.
+        This allows TypesDef objects to be independently cached.
+        """
+        # If it is already an array no need to copy it. Saves memory.
+        if isinstance(subtypes, array) and subtypes.typecode == "i":
+            return subtypes
+        subtype_list: list[int] = []
+        for subtype in subtypes:
+            if isinstance(subtype, int):
+                subtype_list.append(subtype)
+            elif isinstance(subtype, TypesDef):
+                subtype_list.append(subtype.uid)
+            else:
+                raise ValueError("Invalid subtypes definition.")
+        return array("i", subtype_list)
 
     def _template(self, template: Iterable[str] | None) -> list[str] | None:
         """Validate the template of the type definition."""
@@ -173,7 +195,7 @@ class TypesDef(Validator):
             f"TypesDef(name={self.name!r}, uid={self.uid}, "
             f"abstract={self.abstract}, default={self.default!r}, "
             f"imports={self.imports!r}, parents={self.parents!r}, "
-            f"children={self.children!r})"
+            f"children={self.children!r}, subtypes={self.subtypes!r})"
         )
 
     def __str__(self) -> str:
@@ -288,6 +310,7 @@ class TypesDef(Validator):
             "imports": [idef.to_json() for idef in self.imports],
             "name": self.name,
             "parents": list(self.parents),
+            "subtypes": list(self.subtypes),
             "template": self.template,
             "tt": self.tt,
             "uid": self.uid,

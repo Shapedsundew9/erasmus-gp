@@ -45,6 +45,7 @@ DB_STORE_TABLE_CONFIG = TableConfig(
         "imports": ColumnSchema(db_type="VARCHAR"),
         "parents": ColumnSchema(db_type="INT4[]"),
         "children": ColumnSchema(db_type="INT4[]"),
+        "subtypes": ColumnSchema(db_type="INT4[]"),
         "template": ColumnSchema(db_type="VARCHAR", nullable=True),
         "tt": ColumnSchema(db_type="int4"),
     },
@@ -186,6 +187,9 @@ class TypesDefStore:
                 # It is not a container and we do not know what it is.
                 raise KeyError(f"Type not found with name: {key}")
             # Recursively unpack the contained type definitions (ignoring ellipsis)
+            # NOTE: It is important to convert everything to Typesdef objects to ensure
+            # that everything is treated and represented consistently. e.g. "list[list]"
+            # must be recognized as list[list[object]] etc.
             arg_strs = [str(arg) for arg in root_tn.args if arg.name != "..."]
             ctds = [self[arg_str] for arg_str in arg_strs]
             # Now we have a parent container in root_tn and known contained types
