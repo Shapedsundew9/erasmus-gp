@@ -115,18 +115,23 @@ class TypesDefStore(Container):
     _db_store: Table | None = None
     _db_sources: Table | None = None
     _db_lock_id: int = hash("TypesDefStoreLock")
+
+    # NOTE: Both the name & UID of each TypesDef are used as keys i.e.
+    # there are two entries per TypesDef in the cache.
     _cache: dict[int | str, TypesDef] = {}
     _cache_order: list[int | str] = []
     _cache_maxsize: int = 1024
     _cache_hits: int = 0
     _cache_misses: int = 0
 
+    # Always cached by UID
     _ancestors_cache: dict[int, frozenset[TypesDef]] = {}
     _ancestors_cache_order: list[int] = []
     _ancestors_cache_maxsize: int = 128
     _ancestors_cache_hits: int = 0
     _ancestors_cache_misses: int = 0
 
+    # Always cached by UID
     _descendants_cache: dict[int, frozenset[TypesDef]] = {}
     _descendants_cache_order: list[int] = []
     _descendants_cache_maxsize: int = 128
