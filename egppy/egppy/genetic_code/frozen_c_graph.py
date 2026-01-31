@@ -267,7 +267,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 if not ep.is_connected():
                     unconnected.append(f"{dst_row}{ep.idx}")
 
-        if not (len(unconnected) == 0):
+        if len(unconnected) != 0:
             raise ValueError(
                 f"Stable/frozen graph has unconnected destination endpoints: {unconnected}"
             )
@@ -295,9 +295,10 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                         ref_row_str = ref.row
                         ref_idx = ref.idx
                         # Check that the source row is valid for this destination
-                        if not (ref_row_str in valid_srcs):
+                        if not ref_row_str in valid_srcs:
                             raise ValueError(
-                                f"Destination {dst_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                                f"Destination {dst_row}{ep.idx} connects "
+                                f"to {ref_row_str}{ref_idx}, "
                                 f"but {ref_row_str} is not a valid source for"
                                 f" {dst_row} in {graph_type} graphs. "
                                 f"Valid sources: {valid_srcs}"
@@ -316,9 +317,10 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                         ref_row_str = ref.row
                         ref_idx = ref.idx
                         # Check that the destination row is valid for this source
-                        if not (ref_row_str in valid_dsts):
+                        if not ref_row_str in valid_dsts:
                             raise ValueError(
-                                f"Source {src_row}{ep.idx} connects to {ref_row_str}{ref_idx}, "
+                                f"Source {src_row}{ep.idx} connects "
+                                f"to {ref_row_str}{ref_idx}, "
                                 f"but {ref_row_str} is not a valid destination for "
                                 f"{src_row} in {graph_type.name} graphs. "
                                 f"Valid destinations: {valid_dsts}"
@@ -336,7 +338,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             if iface is not None:
                 # Extract the row from the key (first character)
                 row_str = key[0]
-                if not (row_str in valid_rows_set):
+                if not row_str in valid_rows_set:
                     raise ValueError(
                         f"Interface {key} is not valid for graph type {graph_type}. "
                         f"Valid rows: {valid_rows_set}"
@@ -350,7 +352,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         for row in [DstRow.F, DstRow.L, DstRow.W]:
             iface = getattr(self, _UNDER_DST_KEY_DICT[row])
             if iface is not None:
-                if not (len(iface) <= 1):
+                if not len(iface) <= 1:
                     raise ValueError(
                         f"Interface {row}d must have at most 1 endpoint, found {len(iface)}"
                     )
@@ -358,7 +360,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # L source interface must also have at most 1 endpoint
         ls_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.L])
         if ls_iface is not None:
-            if not (len(ls_iface) <= 1):
+            if not len(ls_iface) <= 1:
                 raise ValueError(
                     f"Interface Ls must have at most 1 endpoint, found {len(ls_iface)}"
                 )
@@ -366,7 +368,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # W source interface must also have at most 1 endpoint
         ws_iface = getattr(self, _UNDER_SRC_KEY_DICT[SrcRow.W])
         if ws_iface is not None:
-            if not (len(ws_iface) <= 1):
+            if not len(ws_iface) <= 1:
                 raise ValueError(
                     f"Interface Ws must have at most 1 endpoint, found {len(ws_iface)}"
                 )
@@ -389,19 +391,20 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                         ref_idx = ref.idx
                         # Get the source endpoint
                         src_iface = getattr(self, _UNDER_SRC_KEY_DICT[ref_row_str])
-                        if not (src_iface is not None):
+                        if not src_iface is not None:
                             raise ValueError(
                                 f"Destination {dst_row}{dst_ep.idx} references non-existent"
                                 f" source interface {ref_row_str}s"
                             )
-                        if not (ref_idx < len(src_iface)):
+                        if not ref_idx < len(src_iface):
                             raise ValueError(
-                                f"Destination {dst_row}{dst_ep.idx} references {ref_row_str}{ref_idx}, "
+                                f"Destination {dst_row}{dst_ep.idx} "
+                                f"references {ref_row_str}{ref_idx}, "
                                 f"but {ref_row_str}s only has {len(src_iface)} endpoints"
                             )
                         src_ep = src_iface[ref_idx]
                         # Verify type consistency
-                        if not (dst_ep.typ in types_def_store.ancestors(src_ep.typ)):
+                        if not dst_ep.typ in types_def_store.ancestors(src_ep.typ):
                             raise ValueError(
                                 f"Type mismatch: destination endpoint {dst_row}{dst_ep.idx} "
                                 f"type '{dst_ep.typ.name}' is not compatible with source "
@@ -591,7 +594,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 if not isinstance(iface, FrozenInterfaceABC):
                     raise TypeError(f"Interface {key} must be an Interface, got {type(iface)}")
                 if len(iface) > 0:
-                    if not (iface[0].row == key[1]):
+                    if not iface[0].row == key[1]:
                         raise ValueError(
                             f"Interface {key} first endpoint row must match key row "
                             f" {key[1]}, got {iface[0].row}"

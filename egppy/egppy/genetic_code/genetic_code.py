@@ -174,6 +174,16 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_conditional must be overridden")
 
     @abstractmethod
+    def is_empty(self) -> bool:
+        """Return True if the GCABC is empty."""
+        raise NotImplementedError("GCABC.is_empty must be overridden")
+
+    @abstractmethod
+    def is_standard(self) -> bool:
+        """Return True if the GCABC is standard."""
+        raise NotImplementedError("GCABC.is_standard must be overridden")
+
+    @abstractmethod
     def is_pgc(self) -> bool:
         """Return True if the genetic code is a physical genetic code (PGC)."""
         raise NotImplementedError("GCABC.is_pgc must be overridden")

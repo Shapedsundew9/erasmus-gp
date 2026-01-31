@@ -90,7 +90,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
     def __init__(  # pylint: disable=super-init-not-called
         self,
         endpoints: (
-            Sequence[EndPoint]
+            Sequence[FrozenEndPointABC]
             | Sequence[EndpointMemberType]
             | Sequence[list | tuple]
             | Sequence[str | int | TypesDef]
@@ -131,7 +131,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             return
 
         # Handle case where endpoints is an FrozenInterfaceABC or contains EndPointABC instances
-        if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], EndPointABC):
+        if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], FrozenEndPointABC):
             assert all(
                 isinstance(ep, FrozenEndPointABC) for ep in endpoints
             ), "All endpoints must be FrozenEndPointABC instances"

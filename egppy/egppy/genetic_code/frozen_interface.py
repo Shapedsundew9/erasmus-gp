@@ -52,7 +52,9 @@ class FrozenInterface(FrozenInterfaceABC):
                 refs_list.append(refs)
             else:
                 # refs is tuple of (row, idx) tuples
-                refs_list.append(refs_store[FrozenEPRefs(FrozenEPRef(r[0], r[1]) for r in refs)])
+                refs_list.append(
+                    refs_store[FrozenEPRefs(FrozenEPRef(r[0], r[1]) for r in refs)]  # type: ignore
+                )
         self.refs_tuple = tuple(refs_list)
         # Pre-compute hash for frozen interface
         self._hash = hash((self._row, self._cls, self.type_tuple, self.refs_tuple))

@@ -29,7 +29,7 @@ EGC_KVT: dict[str, dict[str, Any]] = {
     "cgraph": {
         "db_type": "JSONB",
         "nullable": False,
-        "phy_type": "dict",
+        "phy_type": "CGraphABC",
         "psql_type": "PsqlJsonb",
     },
     "creator": {"db_type": "UUID", "nullable": False, "phy_type": "UUID", "psql_type": "PsqlUUID"},
@@ -139,7 +139,7 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
     "meta_data": {
         "db_type": "JSONB",
         "nullable": True,
-        "phy_type": "dict",
+        "phy_type": "dict[str, object]",
         "psql_type": "PsqlJsonb",
     },
     "num_codes": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},

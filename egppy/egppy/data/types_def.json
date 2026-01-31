@@ -160,7 +160,7 @@
     "abstract": true,
     "alias": null,
     "children": [
-      189
+      213
     ],
     "default": null,
     "depth": 2,
@@ -177,16 +177,17 @@
     ],
     "name": "Collection[Bytes]",
     "parents": [
+      209,
       147,
-      185,
-      187
+      211,
+      15
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 188
+    "uid": 212
   },
   "Collection[EPRefABC]": {
     "abstract": true,
@@ -278,11 +279,11 @@
     "tt": 1,
     "uid": 9
   },
-  "Collection[FrozenEPRef]": {
+  "Collection[FrozenEPRefsABC]": {
     "abstract": true,
     "alias": null,
     "children": [
-      217
+      197
     ],
     "default": null,
     "depth": 2,
@@ -294,21 +295,22 @@
           "pgc_api"
         ],
         "as_name": "",
-        "name": "FrozenEPRef"
+        "name": "FrozenEPRefsABC"
       }
     ],
-    "name": "Collection[FrozenEPRef]",
+    "name": "Collection[FrozenEPRefsABC]",
     "parents": [
+      11,
+      193,
       147,
-      213,
-      215
+      195
     ],
     "subtypes": [
-      49
+      52
     ],
     "template": null,
     "tt": 1,
-    "uid": 216
+    "uid": 196
   },
   "Collection[FrozenEndPointABC]": {
     "abstract": true,
@@ -345,7 +347,8 @@
     "alias": null,
     "children": [
       78,
-      144
+      144,
+      196
     ],
     "default": null,
     "depth": 2,
@@ -432,6 +435,48 @@
     "tt": 1,
     "uid": 13
   },
+  "Collection[TypesDef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      191
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "types_def_store"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "TypesDef"
+      }
+    ],
+    "name": "Collection[TypesDef]",
+    "parents": [
+      147,
+      15,
+      187,
+      189
+    ],
+    "subtypes": [
+      153
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 190
+  },
   "Collection[int]": {
     "abstract": true,
     "alias": null,
@@ -462,12 +507,36 @@
     "tt": 1,
     "uid": 14
   },
+  "Collection[list[int]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      203
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [],
+    "name": "Collection[list[int]]",
+    "parents": [
+      201,
+      147,
+      199
+    ],
+    "subtypes": [
+      181
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 202
+  },
   "Collection[object]": {
     "abstract": true,
     "alias": "Collection",
     "children": [
       142,
-      155
+      155,
+      190,
+      212
     ],
     "default": null,
     "depth": 2,
@@ -497,7 +566,8 @@
     "abstract": true,
     "alias": null,
     "children": [
-      143
+      143,
+      182
     ],
     "default": null,
     "depth": 2,
@@ -584,7 +654,7 @@
     "abstract": true,
     "alias": null,
     "children": [
-      188
+      212
     ],
     "default": null,
     "depth": 1,
@@ -601,14 +671,15 @@
     ],
     "name": "Container[Bytes]",
     "parents": [
-      0
+      0,
+      26
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 187
+    "uid": 211
   },
   "Container[EPRefABC]": {
     "abstract": true,
@@ -694,11 +765,11 @@
     "tt": 1,
     "uid": 20
   },
-  "Container[FrozenEPRef]": {
+  "Container[FrozenEPRefsABC]": {
     "abstract": true,
     "alias": null,
     "children": [
-      216
+      196
     ],
     "default": null,
     "depth": 1,
@@ -710,19 +781,20 @@
           "pgc_api"
         ],
         "as_name": "",
-        "name": "FrozenEPRef"
+        "name": "FrozenEPRefsABC"
       }
     ],
-    "name": "Container[FrozenEPRef]",
+    "name": "Container[FrozenEPRefsABC]",
     "parents": [
-      0
+      0,
+      22
     ],
     "subtypes": [
-      49
+      52
     ],
     "template": null,
     "tt": 1,
-    "uid": 215
+    "uid": 195
   },
   "Container[FrozenEndPointABC]": {
     "abstract": true,
@@ -756,7 +828,8 @@
     "abstract": true,
     "alias": null,
     "children": [
-      11
+      11,
+      195
     ],
     "default": null,
     "depth": 1,
@@ -836,6 +909,46 @@
     "tt": 1,
     "uid": 24
   },
+  "Container[TypesDef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      190
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "types_def_store"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "TypesDef"
+      }
+    ],
+    "name": "Container[TypesDef]",
+    "parents": [
+      0,
+      26
+    ],
+    "subtypes": [
+      153
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 189
+  },
   "Container[int]": {
     "abstract": true,
     "alias": null,
@@ -864,11 +977,33 @@
     "tt": 1,
     "uid": 25
   },
+  "Container[list[int]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      202
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [],
+    "name": "Container[list[int]]",
+    "parents": [
+      0
+    ],
+    "subtypes": [
+      181
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 201
+  },
   "Container[object]": {
     "abstract": true,
     "alias": "Container",
     "children": [
-      15
+      15,
+      189,
+      211
     ],
     "default": null,
     "depth": 1,
@@ -1646,7 +1781,11 @@
       167,
       169,
       171,
-      190
+      192,
+      198,
+      204,
+      207,
+      214
     ],
     "default": null,
     "depth": 1,
@@ -1807,7 +1946,8 @@
     "abstract": true,
     "alias": null,
     "children": [
-      188
+      210,
+      212
     ],
     "default": null,
     "depth": 1,
@@ -1824,14 +1964,15 @@
     ],
     "name": "Iterable[Bytes]",
     "parents": [
-      0
+      0,
+      73
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 185
+    "uid": 209
   },
   "Iterable[EPRefABC]": {
     "abstract": true,
@@ -1920,11 +2061,12 @@
     "tt": 1,
     "uid": 67
   },
-  "Iterable[FrozenEPRef]": {
+  "Iterable[FrozenEPRefsABC]": {
     "abstract": true,
     "alias": null,
     "children": [
-      216
+      194,
+      196
     ],
     "default": null,
     "depth": 1,
@@ -1936,19 +2078,20 @@
           "pgc_api"
         ],
         "as_name": "",
-        "name": "FrozenEPRef"
+        "name": "FrozenEPRefsABC"
       }
     ],
-    "name": "Iterable[FrozenEPRef]",
+    "name": "Iterable[FrozenEPRefsABC]",
     "parents": [
-      0
+      0,
+      69
     ],
     "subtypes": [
-      49
+      52
     ],
     "template": null,
     "tt": 1,
-    "uid": 213
+    "uid": 193
   },
   "Iterable[FrozenEndPointABC]": {
     "abstract": true,
@@ -1985,7 +2128,9 @@
     "children": [
       11,
       130,
-      211
+      193,
+      221,
+      235
     ],
     "default": null,
     "depth": 1,
@@ -2061,7 +2206,7 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 221
+    "uid": 240
   },
   "Iterable[Number]": {
     "abstract": true,
@@ -2080,14 +2225,15 @@
     ],
     "name": "Iterable[Number]",
     "parents": [
-      0
+      0,
+      69
     ],
     "subtypes": [
       89
     ],
     "template": null,
     "tt": 1,
-    "uid": 197
+    "uid": 221
   },
   "Iterable[Pair[Hashable, object]]": {
     "abstract": true,
@@ -2095,7 +2241,7 @@
     "children": [
       13,
       131,
-      212
+      236
     ],
     "default": null,
     "depth": 1,
@@ -2123,7 +2269,7 @@
     "abstract": true,
     "alias": null,
     "children": [
-      196
+      220
     ],
     "default": null,
     "depth": 1,
@@ -2133,17 +2279,17 @@
       0
     ],
     "subtypes": [
-      194
+      218
     ],
     "template": null,
     "tt": 1,
-    "uid": 195
+    "uid": 219
   },
   "Iterable[Pair[object, object]]": {
     "abstract": true,
     "alias": null,
     "children": [
-      200
+      224
     ],
     "default": null,
     "depth": 1,
@@ -2167,13 +2313,13 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 199
+    "uid": 223
   },
   "Iterable[Quadruplet[object, object, object, object]]": {
     "abstract": true,
     "alias": null,
     "children": [
-      204
+      228
     ],
     "default": null,
     "depth": 1,
@@ -2197,13 +2343,13 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 203
+    "uid": 227
   },
   "Iterable[Quintuplet[object, object, object, object, object]]": {
     "abstract": true,
     "alias": null,
     "children": [
-      206
+      230
     ],
     "default": null,
     "depth": 1,
@@ -2227,13 +2373,13 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 205
+    "uid": 229
   },
   "Iterable[Septuplet[object, object, object, object, object, object, object]]": {
     "abstract": true,
     "alias": null,
     "children": [
-      210
+      234
     ],
     "default": null,
     "depth": 1,
@@ -2257,13 +2403,13 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 209
+    "uid": 233
   },
   "Iterable[Sextuplet[object, object, object, object, object, object]]": {
     "abstract": true,
     "alias": null,
     "children": [
-      208
+      232
     ],
     "default": null,
     "depth": 1,
@@ -2287,7 +2433,7 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 207
+    "uid": 231
   },
   "Iterable[Sized]": {
     "abstract": true,
@@ -2307,20 +2453,21 @@
     ],
     "name": "Iterable[Sized]",
     "parents": [
-      0
+      0,
+      73
     ],
     "subtypes": [
       147
     ],
     "template": null,
     "tt": 1,
-    "uid": 198
+    "uid": 222
   },
   "Iterable[Triplet[object, object, object]]": {
     "abstract": true,
     "alias": null,
     "children": [
-      202
+      226
     ],
     "default": null,
     "depth": 1,
@@ -2344,7 +2491,48 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 201
+    "uid": 225
+  },
+  "Iterable[TypesDef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      188,
+      190
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "types_def_store"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "TypesDef"
+      }
+    ],
+    "name": "Iterable[TypesDef]",
+    "parents": [
+      0,
+      73
+    ],
+    "subtypes": [
+      153
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 187
   },
   "Iterable[float]": {
     "abstract": true,
@@ -2362,7 +2550,7 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 183
+    "uid": 186
   },
   "Iterable[int]": {
     "abstract": true,
@@ -2393,13 +2581,37 @@
     "tt": 1,
     "uid": 72
   },
+  "Iterable[list[int]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      200,
+      202
+    ],
+    "default": null,
+    "depth": 1,
+    "imports": [],
+    "name": "Iterable[list[int]]",
+    "parents": [
+      0
+    ],
+    "subtypes": [
+      181
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 199
+  },
   "Iterable[object]": {
     "abstract": true,
     "alias": "Iterable",
     "children": [
       15,
       75,
-      133
+      133,
+      187,
+      209,
+      222
     ],
     "default": null,
     "depth": 1,
@@ -2499,6 +2711,7 @@
     ],
     "name": "Iterator[Hashable]",
     "parents": [
+      75,
       69
     ],
     "subtypes": [
@@ -2506,7 +2719,7 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 211
+    "uid": 235
   },
   "Iterator[Pair[Hashable, object]]": {
     "abstract": true,
@@ -2534,7 +2747,7 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 212
+    "uid": 236
   },
   "Iterator[Pair[int, object]]": {
     "abstract": true,
@@ -2545,14 +2758,14 @@
     "imports": [],
     "name": "Iterator[Pair[int, object]]",
     "parents": [
-      195
+      219
     ],
     "subtypes": [
-      194
+      218
     ],
     "template": null,
     "tt": 1,
-    "uid": 196
+    "uid": 220
   },
   "Iterator[Pair[object, object]]": {
     "abstract": true,
@@ -2573,14 +2786,14 @@
     ],
     "name": "Iterator[Pair[object, object]]",
     "parents": [
-      199
+      223
     ],
     "subtypes": [
       91
     ],
     "template": null,
     "tt": 1,
-    "uid": 200
+    "uid": 224
   },
   "Iterator[Quadruplet[object, object, object, object]]": {
     "abstract": true,
@@ -2601,14 +2814,14 @@
     ],
     "name": "Iterator[Quadruplet[object, object, object, object]]",
     "parents": [
-      203
+      227
     ],
     "subtypes": [
       122
     ],
     "template": null,
     "tt": 1,
-    "uid": 204
+    "uid": 228
   },
   "Iterator[Quintuplet[object, object, object, object, object]]": {
     "abstract": true,
@@ -2629,14 +2842,14 @@
     ],
     "name": "Iterator[Quintuplet[object, object, object, object, object]]",
     "parents": [
-      205
+      229
     ],
     "subtypes": [
       123
     ],
     "template": null,
     "tt": 1,
-    "uid": 206
+    "uid": 230
   },
   "Iterator[Septuplet[object, object, object, object, object, object, object]]": {
     "abstract": true,
@@ -2657,14 +2870,14 @@
     ],
     "name": "Iterator[Septuplet[object, object, object, object, object, object, object]]",
     "parents": [
-      209
+      233
     ],
     "subtypes": [
       136
     ],
     "template": null,
     "tt": 1,
-    "uid": 210
+    "uid": 234
   },
   "Iterator[Sextuplet[object, object, object, object, object, object]]": {
     "abstract": true,
@@ -2685,14 +2898,14 @@
     ],
     "name": "Iterator[Sextuplet[object, object, object, object, object, object]]",
     "parents": [
-      207
+      231
     ],
     "subtypes": [
       146
     ],
     "template": null,
     "tt": 1,
-    "uid": 208
+    "uid": 232
   },
   "Iterator[Triplet[object, object, object]]": {
     "abstract": true,
@@ -2713,19 +2926,21 @@
     ],
     "name": "Iterator[Triplet[object, object, object]]",
     "parents": [
-      201
+      225
     ],
     "subtypes": [
       152
     ],
     "template": null,
     "tt": 1,
-    "uid": 202
+    "uid": 226
   },
   "Iterator[object]": {
     "abstract": true,
     "alias": "Iterator",
-    "children": [],
+    "children": [
+      235
+    ],
     "default": null,
     "depth": 2,
     "imports": [
@@ -2891,6 +3106,27 @@
     "tt": 2,
     "uid": 80
   },
+  "Mapping[str, object]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      183
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [],
+    "name": "Mapping[str, object]",
+    "parents": [
+      16
+    ],
+    "subtypes": [
+      169,
+      0
+    ],
+    "template": null,
+    "tt": 2,
+    "uid": 182
+  },
   "MutableMapping[Hashable, object]": {
     "abstract": true,
     "alias": "MutableMapping",
@@ -2950,11 +3186,32 @@
     "tt": 2,
     "uid": 82
   },
+  "MutableMapping[str, object]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      184
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [],
+    "name": "MutableMapping[str, object]",
+    "parents": [
+      182
+    ],
+    "subtypes": [
+      169,
+      0
+    ],
+    "template": null,
+    "tt": 2,
+    "uid": 183
+  },
   "MutableSequence[Bytes]": {
     "abstract": true,
     "alias": null,
     "children": [
-      193
+      217
     ],
     "default": null,
     "depth": 4,
@@ -2971,14 +3228,15 @@
     ],
     "name": "MutableSequence[Bytes]",
     "parents": [
-      189
+      213,
+      86
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 192
+    "uid": 216
   },
   "MutableSequence[EPRefABC]": {
     "abstract": true,
@@ -3012,7 +3270,8 @@
     "abstract": true,
     "alias": null,
     "children": [
-      63
+      63,
+      208
     ],
     "default": null,
     "depth": 4,
@@ -3035,6 +3294,36 @@
     "template": null,
     "tt": 1,
     "uid": 84
+  },
+  "MutableSequence[FrozenEndPointABC]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      206
+    ],
+    "default": null,
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEndPointABC"
+      }
+    ],
+    "name": "MutableSequence[FrozenEndPointABC]",
+    "parents": [
+      140
+    ],
+    "subtypes": [
+      54
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 205
   },
   "MutableSequence[int]": {
     "abstract": true,
@@ -3069,7 +3358,8 @@
     "abstract": true,
     "alias": "MutableSequence",
     "children": [
-      166
+      166,
+      216
     ],
     "default": null,
     "depth": 4,
@@ -3097,7 +3387,7 @@
     "abstract": true,
     "alias": null,
     "children": [
-      220
+      239
     ],
     "default": null,
     "depth": 4,
@@ -3111,7 +3401,7 @@
     ],
     "template": null,
     "tt": 1,
-    "uid": 219
+    "uid": 238
   },
   "MutableSequence[type]": {
     "abstract": true,
@@ -3263,7 +3553,7 @@
     ],
     "template": null,
     "tt": 2,
-    "uid": 222
+    "uid": 241
   },
   "Pair[int, int]": {
     "abstract": false,
@@ -3282,7 +3572,7 @@
     ],
     "template": null,
     "tt": 2,
-    "uid": 182
+    "uid": 185
   },
   "Pair[int, object]": {
     "abstract": false,
@@ -3301,7 +3591,7 @@
     ],
     "template": null,
     "tt": 2,
-    "uid": 194
+    "uid": 218
   },
   "Pair[object, object]": {
     "abstract": false,
@@ -4282,7 +4572,7 @@
     "abstract": true,
     "alias": null,
     "children": [
-      189
+      213
     ],
     "default": null,
     "depth": 2,
@@ -4299,14 +4589,15 @@
     ],
     "name": "Reversible[Bytes]",
     "parents": [
-      185
+      209,
+      133
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 186
+    "uid": 210
   },
   "Reversible[EPRefABC]": {
     "abstract": true,
@@ -4392,11 +4683,11 @@
     "tt": 1,
     "uid": 128
   },
-  "Reversible[FrozenEPRef]": {
+  "Reversible[FrozenEPRefsABC]": {
     "abstract": true,
     "alias": null,
     "children": [
-      217
+      197
     ],
     "default": null,
     "depth": 2,
@@ -4408,19 +4699,20 @@
           "pgc_api"
         ],
         "as_name": "",
-        "name": "FrozenEPRef"
+        "name": "FrozenEPRefsABC"
       }
     ],
-    "name": "Reversible[FrozenEPRef]",
+    "name": "Reversible[FrozenEPRefsABC]",
     "parents": [
-      213
+      193,
+      130
     ],
     "subtypes": [
-      49
+      52
     ],
     "template": null,
     "tt": 1,
-    "uid": 214
+    "uid": 194
   },
   "Reversible[FrozenEndPointABC]": {
     "abstract": true,
@@ -4454,7 +4746,8 @@
     "abstract": true,
     "alias": null,
     "children": [
-      76
+      76,
+      194
     ],
     "default": null,
     "depth": 2,
@@ -4506,6 +4799,46 @@
     "tt": 1,
     "uid": 131
   },
+  "Reversible[TypesDef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      191
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "types_def_store"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "TypesDef"
+      }
+    ],
+    "name": "Reversible[TypesDef]",
+    "parents": [
+      187,
+      133
+    ],
+    "subtypes": [
+      153
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 188
+  },
   "Reversible[int]": {
     "abstract": true,
     "alias": null,
@@ -4534,12 +4867,34 @@
     "tt": 1,
     "uid": 132
   },
+  "Reversible[list[int]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      203
+    ],
+    "default": null,
+    "depth": 2,
+    "imports": [],
+    "name": "Reversible[list[int]]",
+    "parents": [
+      199
+    ],
+    "subtypes": [
+      181
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 200
+  },
   "Reversible[object]": {
     "abstract": true,
     "alias": "Reversible",
     "children": [
       142,
-      155
+      155,
+      188,
+      210
     ],
     "default": null,
     "depth": 2,
@@ -4682,7 +5037,8 @@
     "abstract": true,
     "alias": null,
     "children": [
-      192
+      214,
+      216
     ],
     "default": null,
     "depth": 3,
@@ -4699,15 +5055,16 @@
     ],
     "name": "Sequence[Bytes]",
     "parents": [
-      186,
-      188
+      210,
+      212,
+      142
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 189
+    "uid": 213
   },
   "Sequence[EPRefABC]": {
     "abstract": true,
@@ -4796,10 +5153,12 @@
     "tt": 1,
     "uid": 139
   },
-  "Sequence[FrozenEPRef]": {
+  "Sequence[FrozenEPRefsABC]": {
     "abstract": true,
     "alias": null,
-    "children": [],
+    "children": [
+      198
+    ],
     "default": null,
     "depth": 3,
     "imports": [
@@ -4810,26 +5169,27 @@
           "pgc_api"
         ],
         "as_name": "",
-        "name": "FrozenEPRef"
+        "name": "FrozenEPRefsABC"
       }
     ],
-    "name": "Sequence[FrozenEPRef]",
+    "name": "Sequence[FrozenEPRefsABC]",
     "parents": [
-      214,
-      216
+      194,
+      196
     ],
     "subtypes": [
-      49
+      52
     ],
     "template": null,
     "tt": 1,
-    "uid": 217
+    "uid": 197
   },
   "Sequence[FrozenEndPointABC]": {
     "abstract": true,
     "alias": null,
     "children": [
-      56
+      56,
+      205
     ],
     "default": null,
     "depth": 3,
@@ -4853,6 +5213,47 @@
     "template": null,
     "tt": 1,
     "uid": 140
+  },
+  "Sequence[TypesDef]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      192
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "types_def_store"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "TypesDef"
+      }
+    ],
+    "name": "Sequence[TypesDef]",
+    "parents": [
+      142,
+      188,
+      190
+    ],
+    "subtypes": [
+      153
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 191
   },
   "Sequence[int]": {
     "abstract": true,
@@ -4885,12 +5286,35 @@
     "tt": 1,
     "uid": 141
   },
+  "Sequence[list[int]]": {
+    "abstract": true,
+    "alias": null,
+    "children": [
+      204
+    ],
+    "default": null,
+    "depth": 3,
+    "imports": [],
+    "name": "Sequence[list[int]]",
+    "parents": [
+      200,
+      202
+    ],
+    "subtypes": [
+      181
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 203
+  },
   "Sequence[object]": {
     "abstract": true,
     "alias": "Sequence",
     "children": [
       86,
-      171
+      171,
+      191,
+      213
     ],
     "default": null,
     "depth": 3,
@@ -4920,7 +5344,7 @@
     "alias": null,
     "children": [
       169,
-      219
+      238
     ],
     "default": null,
     "depth": 3,
@@ -4950,7 +5374,7 @@
     "alias": null,
     "children": [
       35,
-      184
+      207
     ],
     "default": null,
     "depth": 3,
@@ -5081,7 +5505,10 @@
       16,
       77,
       179,
-      216
+      190,
+      196,
+      202,
+      212
     ],
     "default": null,
     "depth": 1,
@@ -5224,6 +5651,7 @@
     ],
     "name": "Triplet[Bytes, Bytes, Bytes]",
     "parents": [
+      152,
       171
     ],
     "subtypes": [
@@ -5233,12 +5661,14 @@
     ],
     "template": null,
     "tt": 3,
-    "uid": 191
+    "uid": 215
   },
   "Triplet[object, object, object]": {
     "abstract": false,
     "alias": "Triplet",
-    "children": [],
+    "children": [
+      215
+    ],
     "default": null,
     "depth": 5,
     "imports": [
@@ -5282,7 +5712,7 @@
     ],
     "template": null,
     "tt": 3,
-    "uid": 218
+    "uid": 237
   },
   "TypesDef": {
     "abstract": false,
@@ -5500,6 +5930,25 @@
     "tt": 2,
     "uid": 162
   },
+  "dict[str, object]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "{}",
+    "depth": 5,
+    "imports": [],
+    "name": "dict[str, object]",
+    "parents": [
+      183
+    ],
+    "subtypes": [
+      169,
+      0
+    ],
+    "template": null,
+    "tt": 2,
+    "uid": 184
+  },
   "float": {
     "abstract": false,
     "alias": null,
@@ -5572,14 +6021,74 @@
     ],
     "name": "list[Bytes]",
     "parents": [
-      192
+      216,
+      166
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 193
+    "uid": 217
+  },
+  "list[EndPointABC]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "EndPointABC"
+      }
+    ],
+    "name": "list[EndPointABC]",
+    "parents": [
+      84,
+      206
+    ],
+    "subtypes": [
+      46
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 208
+  },
+  "list[FrozenEndPointABC]": {
+    "abstract": false,
+    "alias": null,
+    "children": [
+      208
+    ],
+    "default": "[]",
+    "depth": 5,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEndPointABC"
+      }
+    ],
+    "name": "list[FrozenEndPointABC]",
+    "parents": [
+      205
+    ],
+    "subtypes": [
+      54
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 206
   },
   "list[int]": {
     "abstract": false,
@@ -5602,7 +6111,9 @@
   "list[object]": {
     "abstract": false,
     "alias": "list",
-    "children": [],
+    "children": [
+      217
+    ],
     "default": "[]",
     "depth": 5,
     "imports": [],
@@ -5626,14 +6137,14 @@
     "imports": [],
     "name": "list[str]",
     "parents": [
-      219
+      238
     ],
     "subtypes": [
       169
     ],
     "template": null,
     "tt": 1,
-    "uid": 220
+    "uid": 239
   },
   "list[type]": {
     "abstract": false,
@@ -5703,7 +6214,25 @@
       172,
       176,
       178,
-      221
+      186,
+      187,
+      189,
+      193,
+      195,
+      199,
+      201,
+      209,
+      211,
+      219,
+      221,
+      222,
+      223,
+      225,
+      227,
+      229,
+      231,
+      233,
+      240
     ],
     "default": "object()",
     "depth": 0,
@@ -5809,15 +6338,102 @@
     ],
     "name": "tuple[Bytes, ...]",
     "parents": [
-      189,
-      59
+      59,
+      213
     ],
     "subtypes": [
       1
     ],
     "template": null,
     "tt": 1,
-    "uid": 190
+    "uid": 214
+  },
+  "tuple[FrozenEPRefsABC, ...]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "FrozenEPRefsABC"
+      }
+    ],
+    "name": "tuple[FrozenEPRefsABC, ...]",
+    "parents": [
+      59,
+      197
+    ],
+    "subtypes": [
+      52
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 198
+  },
+  "tuple[TypesDef, ...]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "types_def_store"
+      },
+      {
+        "aip": [
+          "egppy",
+          "physics",
+          "pgc_api"
+        ],
+        "as_name": "",
+        "name": "TypesDef"
+      }
+    ],
+    "name": "tuple[TypesDef, ...]",
+    "parents": [
+      59,
+      191
+    ],
+    "subtypes": [
+      153
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 192
+  },
+  "tuple[list[int], bytes]": {
+    "abstract": false,
+    "alias": null,
+    "children": [],
+    "default": "tuple()",
+    "depth": 4,
+    "imports": [],
+    "name": "tuple[list[int], bytes]",
+    "parents": [
+      59,
+      203
+    ],
+    "subtypes": [
+      181,
+      158
+    ],
+    "template": null,
+    "tt": 1,
+    "uid": 204
   },
   "tuple[object, ...]": {
     "abstract": false,
@@ -5830,7 +6446,11 @@
       136,
       146,
       152,
-      222
+      185,
+      215,
+      218,
+      237,
+      241
     ],
     "default": "tuple()",
     "depth": 4,
@@ -5856,15 +6476,15 @@
     "imports": [],
     "name": "tuple[type, ...]",
     "parents": [
-      180,
-      59
+      59,
+      180
     ],
     "subtypes": [
       172
     ],
     "template": null,
     "tt": 1,
-    "uid": 184
+    "uid": 207
   },
   "type": {
     "abstract": false,

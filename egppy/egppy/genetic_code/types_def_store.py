@@ -391,7 +391,7 @@ class TypesDefStore(Container):
 
     def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Returns the specified type definition and all its ancestor type
-        definitions in depth order.
+        definitions.
 
         Ancestors are defined as the parents, grandparents, etc., of the given type,
         including the type itself. The search starts from the provided key
@@ -404,7 +404,7 @@ class TypesDefStore(Container):
 
         Returns:
             frozenset[TypesDef]: A frozenset containing the type definition and all its
-            ancestors, in depth order.
+            ancestors.
 
         Raises:
             KeyError: If the provided key does not correspond to a valid type definition.
@@ -437,9 +437,17 @@ class TypesDefStore(Container):
 
         return result
 
+    def create(self, key: int | str) -> None:
+        """Create a TypesDef in the store if it does not exist.
+
+        NOTE: This is the same operation as __getitem__ but is explicit
+        about creation. Typically only used in development or testing.
+        """
+        self._get_item_internal(key, True)
+
     def descendants(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Returns the specified type definition and all its descendant type
-        definitions in depth order.
+        definitions.
 
         Descendants are defined as the children, grandchildren, etc., of the given type,
         including the type itself. The search starts from the provided key
@@ -452,7 +460,7 @@ class TypesDefStore(Container):
 
         Returns:
             frozenset[TypesDef]: A frozenset containing the type definition and all its
-            descendants, in depth order.
+            descendants.
 
         Raises:
             KeyError: If the provided key does not correspond to a valid type definition.

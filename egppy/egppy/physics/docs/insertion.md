@@ -13,8 +13,9 @@ There are limitations as to which GC's may be stacked, wrapped or restructured. 
 | Graph Type | Stack | Wrap | Restructure |
 | ------------ | :-----: | :----: | :-----------: |
 | Standard | X | X | X |
-| Conditional | X | - | - |
-| Codon | X | - | - |
+| Conditional | X | X | X |
+| Loop | X | X | X |
+| Codon | X | X | - |
 | Empty | - | - | - |
 
 - **X** = allowed

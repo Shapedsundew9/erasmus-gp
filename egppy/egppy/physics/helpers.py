@@ -128,6 +128,9 @@ def direct_connect_interfaces(
     src_iface: InterfaceABC, dst_iface: InterfaceABC, check: bool = False
 ) -> None:
     """Directly connect two interfaces together index-to-index.
+    NB: This does not perform any type checking or conversion. It is a helper function
+    for fundamental physics not a mutation operator. See local_direct_connect() in
+    stabilization.py for a higher-level function that performs type checking.
 
     Args:
         src_iface: The source interface to connect from.
