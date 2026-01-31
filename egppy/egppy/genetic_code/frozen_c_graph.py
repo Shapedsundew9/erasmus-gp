@@ -21,7 +21,7 @@ from typing import Any
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import refs_store
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import OBJECT, Logger, egp_logger
 from egpcommon.object_deduplicator import ObjectDeduplicator
 from egpcommon.properties import CGraphType
 from egppy.genetic_code.c_graph_abc import FrozenCGraphABC
@@ -167,6 +167,9 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # Pre-compute the hash for the frozen graphs
         # For consistency, we use the same hash calculation as unfrozen graphs
         self._hash = hash(tuple(hash(iface) for iface in self.values()))
+        if _logger.isEnabledFor(OBJECT):
+            self.verify()
+            self.consistency()
 
     def __contains__(self, key: object) -> bool:
         """Check if the interface exists in the Connection Graph.
@@ -250,6 +253,16 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         return sum(1 for key in _UNDER_ROW_CLS_INDEXED if getattr(self, key) is not None)
 
     def __repr__(self) -> str:
+        """Return a string representation of the python instanciation
+        of the Connection Graph such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
+
+        Returns:
+            String representation suitable for python instanciation.
+        """
+        return f"{self.__class__.__name__}({self.to_json()!r})"
+
+    def __str__(self) -> str:
         """Return a string representation of the Connection Graph."""
         return pformat(self.to_json(), indent=4, width=120)
 

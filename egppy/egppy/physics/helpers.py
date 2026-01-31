@@ -5,14 +5,22 @@ from egpcommon.properties import BitDictABC, CGraphType, GCType, PropertiesBD
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph, IfKey
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
+from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.types_def import TypesDef
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
 
 # Logging setup
 _logger: Logger = egp_logger(name=__name__)
+
+
+# Constants
+_ROW_O_REF_0 = (((DstRow.O, 0),),)
+_ROW_A_REF_0 = (((SrcRow.A, 0),),)
 
 
 def merge_properties(
@@ -165,3 +173,50 @@ def inherit_members(gpi: GenePoolInterface, egc: EGCode) -> None:
     egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
     egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
     egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
+
+
+def literal_codon(rtctxt: RuntimeContext, obj: object, td: TypesDef) -> GGCDict:
+    """Create python literal codon representation of an object.
+    A type definition is required to correctly identify obj as it could be
+    a templated type.
+
+    Args:
+        obj: The object to represent as a literal codon.
+        td: The TypesDef of the object.
+
+    Returns:
+        A GGCode representing the literal codon.
+    """
+    return GGCDict(
+        {
+            "gca": None,
+            "gcb": None,
+            "cgraph": CGraph(
+                {
+                    SrcIfKey.AS: FrozenInterface(SrcRow.A, (td,), _ROW_O_REF_0),
+                    DstIfKey.OD: FrozenInterface(DstRow.O, (td,), _ROW_A_REF_0),
+                }
+            ),
+            "ancestora": None,
+            "ancestorb": None,
+            "pgc": rtctxt.root_gc,
+            "creator": rtctxt.creator,
+            "generation": 1,
+            "num_codes": 1,
+            "num_codons": 1,
+            "code_depth": 1,
+            "properties": PropertiesBD(
+                {
+                    "gc_type": GCType.CODON,
+                    "graph_type": CGraphType.PRIMITIVE,
+                    "gctsp": {"literal": True},
+                }
+            ),
+            "meta_data": {
+                "inline": repr(obj),
+                "description": "Custom literal or predefined object.",
+                "name": "LiteralCodon",
+                "imports": td.imports,
+            },
+        }
+    )

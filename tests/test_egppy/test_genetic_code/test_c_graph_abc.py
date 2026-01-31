@@ -44,6 +44,7 @@ class TestCGraphABC(unittest.TestCase):
             "stabilize",
             "__eq__",
             "__hash__",
+            "__str__",
             "__repr__",
             "consistency",
             "verify",

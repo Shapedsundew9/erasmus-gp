@@ -169,14 +169,22 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     # Abstract String Representation
 
     @abstractmethod
-    def __str__(self) -> str:
-        """Return the string representation of the endpoint.
-
-        Provides a human-readable representation including all endpoint attributes
-        for debugging and logging purposes.
+    def __repr__(self) -> str:
+        """Return the official string representation of the endpoint.
 
         Returns:
-            str: String representation of the endpoint showing row, idx, cls, typ, and refs.
+            str: String in format "FrozenEndPoint(row=X, idx=N, cls=CLS, typ=TYPE, refs=[...])"
+        """
+        raise NotImplementedError("FrozenEndPointABC.__repr__ must be overridden")
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a string representation of the python instanciation
+        of the Endpoint such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
+
+        Returns:
+            String representation suitable for python instanciation.
         """
         raise NotImplementedError("FrozenEndPointABC.__str__ must be overridden")
 

@@ -53,7 +53,10 @@ class FrozenEPRef(CommonObj, FrozenEPRefABC):
         return self._hash
 
     def __repr__(self) -> str:
-        return f"FrozenEPRef(row={self.row!r}, idx={self.idx})"
+        return f"{self.__class__.__name__}(row={self.row!r}, idx={self.idx!r})"
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(row={self.row}, idx={self.idx})"
 
 
 class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
@@ -106,4 +109,7 @@ class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
         return all(s == o for s, o in zip(self._refs, other._refs))
 
     def __repr__(self) -> str:
-        return f"FrozenEPRefs({self._refs!r})"
+        return f"{self.__class__.__name__}({self._refs!r})"
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}({self._refs})"

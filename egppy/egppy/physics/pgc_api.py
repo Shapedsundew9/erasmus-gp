@@ -126,9 +126,6 @@ from egppy.physics.psql_types import (
 )
 from egppy.physics.runtime_context import RuntimeContext
 
-# Stabilization
-from egppy.physics.stabilization import stabilize_gc
-
 # Public Physical Types and Aliases
 Pair = tuple
 Triplet = tuple

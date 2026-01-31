@@ -76,7 +76,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         super().__init__()
         if len(args) == 1:
             if isinstance(args[0], FrozenEndPointABC):
-                _logger.log(TRACE, "Creating FrozenEndPoint from a FrozenEndPointABC")
+                _logger.log(TRACE, "Creating FrozenEndPoint from a FrozenEndPointABC %s", args[0])
                 other: FrozenEndPointABC = args[0]
                 self.row = other.row
                 self.idx = other.idx
@@ -84,13 +84,13 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 self.typ = other.typ
                 self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
-                _logger.log(TRACE, "Creating FrozenEndPoint from a 5-tuple")
+                _logger.log(TRACE, "Creating FrozenEndPoint from a 5-tuple %s", args[0])
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
                 self.refs = self._convert_refs(refs_arg)
             else:
                 raise TypeError("Invalid argument for EndPoint constructor")
         elif len(args) == 4 or len(args) == 5:
-            _logger.log(TRACE, "Creating FrozenEndPoint from explicit arguments")
+            _logger.log(TRACE, "Creating FrozenEndPoint from explicit arguments %s", args)
             self.row: Row = args[0]
             self.idx: int = args[1]
             self.cls: EPCls = args[2]
@@ -244,18 +244,24 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         """
         return not self.__eq__(value)
 
-    def __str__(self) -> str:
-        """Return the string representation of the endpoint.
+    def __repr__(self) -> str:
+        """Return the official string representation of the endpoint."""
+        return (
+            f"{self.__class__.__name__}({self.row!r}, {self.idx!r}, {self.cls!r}, "
+            f"{self.typ!r}, {self.refs!r})"
+        )
 
-        Provides a detailed string showing all endpoint attributes for debugging
-        and logging purposes.
+    def __str__(self) -> str:
+        """Return a string representation of the python instanciation
+        of the Endpoint such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
 
         Returns:
-            str: String in format "FrozenEndPoint(row=X, idx=N, cls=CLS, typ=TYPE, refs=[...])"
+            String representation suitable for python instanciation.
         """
         return (
-            f"FrozenEndPoint(row={self.row}, idx={self.idx}, cls={self.cls}"
-            f", typ={self.typ}, refs={list(self.refs)})"
+            f"{self.__class__.__name__}(row={self.row}, idx={self.idx}, cls={self.cls}"
+            f", typ={self.typ}, refs={self.refs})"
         )
 
     def can_connect(self, other: FrozenEndPointABC) -> bool:

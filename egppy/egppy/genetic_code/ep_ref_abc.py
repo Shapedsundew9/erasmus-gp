@@ -24,6 +24,17 @@ class FrozenEPRefABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     @abstractmethod
     def __lt__(self, other: object) -> bool: ...
 
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a string representation of the python instanciation
+        of the EndPoint Reference such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
+
+        Returns:
+            String representation suitable for python instanciation.
+        """
+        raise NotImplementedError("FrozenEPRefABC.__str__ must be overridden")
+
 
 class EPRefABC(FrozenEPRefABC, metaclass=ABCMeta):
     """Abstract Base Class for Mutable EndPoint Reference."""
@@ -44,6 +55,17 @@ class FrozenEPRefsABC(CommonObjABC, Hashable, Sequence, metaclass=ABCMeta):
 
     @abstractmethod
     def __len__(self) -> int: ...
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a string representation of the python instanciation
+        of the EndPoint References such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
+
+        Returns:
+            String representation suitable for python instanciation.
+        """
+        raise NotImplementedError("FrozenEPRefsABC.__str__ must be overridden")
 
 
 class EPRefsABC(FrozenEPRefsABC, MutableSequence, metaclass=ABCMeta):

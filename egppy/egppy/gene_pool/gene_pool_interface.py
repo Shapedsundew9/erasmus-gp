@@ -115,6 +115,17 @@ class GenePoolInterface(GPIABC):
             return bool(hashes)
         return num_entries < len(SOURCE_FILES)
 
+    def add(self, value: GCABC) -> GGCDict:
+        """Place a genetic code in the cache. NB: It is not persisted to the
+        database until the cache is flushed / purged.
+
+        The same behaviour as __setitem__ only there is no need to extract the signature
+        and the value is returned from the cache.
+        """
+        signature = value["signature"]
+        self._ggc_cache[signature] = value if isinstance(value, GGCDict) else GGCDict(value)
+        return self._ggc_cache[signature]
+
     def consistency(self) -> None:
         """Check the consistency of the Gene Pool."""
         pass

@@ -304,12 +304,19 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
 
     @abstractmethod
     def __repr__(self) -> str:
-        """Return a string representation of the Connection Graph.
+        """Return a string representation of the python instanciation
+        of the Connection Graph such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
 
         Returns:
-            String representation suitable for debugging and logging.
+            String representation suitable for python instanciation.
         """
         raise NotImplementedError("FrozenCGraphABC.__repr__ must be overridden")
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a human-readable string representation of the Connection Graph."""
+        raise NotImplementedError("FrozenCGraphABC.__str__ must be overridden")
 
     # Abstract Graph State Methods
 

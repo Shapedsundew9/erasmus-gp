@@ -362,8 +362,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
                 raise ValueError("PRIMITIVE connection graph requires ancestora to be None")
             if not self["ancestorb"] is None:
                 raise ValueError("PRIMITIVE connection graph requires ancestorb to be None")
-            if not self["pgc"] is None:
-                raise ValueError("PRIMITIVE connection graph requires pgc to be None")
+
+            # Not true for a generated literal codon
+            # if not self["pgc"] is None:
+            #     raise ValueError("PRIMITIVE connection graph requires pgc to be None")
 
         # CODON type validation (codons have no ancestors)
         if gc_type == GCType.CODON:
@@ -375,8 +377,9 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
                 raise ValueError("CODON gc_type requires ancestora to be None")
             if not self["ancestorb"] is None:
                 raise ValueError("CODON gc_type requires ancestorb to be None")
-            if not self["pgc"] is None:
-                raise ValueError("CODON gc_type requires pgc to be None")
+            # Not true for a generated literal codon
+            # if not self["pgc"] is None:
+            #     raise ValueError("CODON gc_type requires pgc to be None")
 
         # ORDINARY type validation (ordinary codes have ancestors and pgc)
         if gc_type == GCType.ORDINARY:
