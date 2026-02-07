@@ -7,8 +7,11 @@ from random import getrandbits, seed
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM
 from egpcommon.egp_log import Logger, egp_logger
-from egppy.physics.helpers import literal_codon
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
+from egppy.physics.helpers import empty_egc, literal_codon
 from egppy.physics.runtime_context import RuntimeContext
+from egppy.physics.stabilization import stabilize_gc
+from egppy.physics.wrap import WrapCase, wrap
 from egppy.worker.executor.execution_context import ExecutionContext
 from tests.test_egppy.test_worker.xor_stack_gc import (
     BASIC_ORDINARY_PROPERTIES,
@@ -39,10 +42,10 @@ class TestExecutor(unittest.TestCase):
         seed(42)
         cls.c64 = tuple(getrandbits(64) for _ in range(10))
         cls.funcs = [partial(lambda x, c: (x >> 1) ^ c, c=i) for i in cls.c64]
-        rtctxt = RuntimeContext(gpi)
+        cls.rtctxt = RuntimeContext(gpi)
         primitive_gcs.update(
             {
-                f"constant_{i}": gpi.add(literal_codon(rtctxt, c, INT_TD))
+                f"constant_{i}": gpi.add(literal_codon(cls.rtctxt, c, INT_TD))
                 for i, c in enumerate(cls.c64)
             }
         )
@@ -114,6 +117,62 @@ class TestExecutor(unittest.TestCase):
                 f"Genetic code result {gc_result} does not match "
                 f"golden reference {golden_result} for input {0xFFFFFFFFFFFFFFFF}",
             )
+
+    def test_wrap(self):
+        """Test the set of wrapping functions with direct connections."""
+        for fnum in range(len(self.funcs) >> 1):
+            f1num = fnum * 2
+            f2num = fnum * 2 + 1
+            igc = primitive_gcs[f"rsx_{f1num}"]
+            tgc = primitive_gcs[f"rsx_{f2num}"]
+            ifunc = self.funcs[f1num]
+            tfunc = self.funcs[f2num]
+            ival = getrandbits(64)
+
+            # Add empty egc as wrapper
+            rgc = empty_egc(self.rtctxt, igc["cgraph"][SrcIfKey.IS], tgc["cgraph"][DstIfKey.OD])
+
+            for wc in WrapCase:
+                match wc:
+                    case WrapCase.STACK:
+                        rgc = wrap(self.rtctxt, igc, tgc, wc)
+                        stabilized_rgc = stabilize_gc(self.rtctxt, rgc)
+                        # Execute the wrapped genetic code
+                        rgc_result = self.ec.execute(stabilized_rgc, (ival,))
+                        # Compute the golden reference result
+                        golden_result = ifunc(tfunc(ival))
+                    case WrapCase.ISTACK:
+                        rgc = wrap(self.rtctxt, igc, tgc, wc)
+                        stabilized_rgc = stabilize_gc(self.rtctxt, rgc)
+                        # Execute the wrapped genetic code
+                        rgc_result = self.ec.execute(stabilized_rgc, (ival,))
+                        # Compute the golden reference result
+                        golden_result = tfunc(ifunc(ival))
+                    case WrapCase.WRAP:
+                        rgc = wrap(self.rtctxt, igc, tgc, wc, rgc)
+                        stabilized_rgc = stabilize_gc(self.rtctxt, rgc)
+                        # Execute the wrapped genetic code
+                        rgc_result = self.ec.execute(stabilized_rgc, (ival,))
+                        # Compute the golden reference result
+                        golden_result = ifunc(tfunc(ival))
+                    case WrapCase.IWRAP:
+                        rgc = wrap(self.rtctxt, igc, tgc, wc, rgc)
+                        stabilized_rgc = stabilize_gc(self.rtctxt, rgc)
+                        # Execute the wrapped genetic code
+                        rgc_result = self.ec.execute(stabilized_rgc, (ival,))
+                        # Compute the golden reference result
+                        golden_result = tfunc(ifunc(ival))
+                    case _:
+                        rgc_result = golden_result = 0
+
+                # Assert equivalence
+                self.assertEqual(
+                    rgc_result,
+                    golden_result,
+                    f"Wrapped genetic code result {rgc_result} does not match "
+                    f"golden reference {golden_result} for input {ival} "
+                    f"with wrap case {wc.name}",
+                )
 
 
 if __name__ == "__main__":

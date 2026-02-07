@@ -132,7 +132,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         else:
             self["ancestorb"] = tab
 
-        # Parent Genetic Code
+        # Physical Genetic Code
         tpgc: str | bytes | GCABC | None = gcabc.get("pgc")
         if isinstance(tpgc, str):
             tpgc = bytes.fromhex(tpgc)

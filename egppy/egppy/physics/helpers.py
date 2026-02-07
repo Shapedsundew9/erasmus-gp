@@ -9,7 +9,7 @@ from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.genetic_code.interface import Interface
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
 from egppy.genetic_code.types_def import TypesDef
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
@@ -77,6 +77,37 @@ def merge_properties_base(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
     return merged_properties
 
 
+def empty_egc(
+    rtctxt: RuntimeContext, iface: FrozenInterfaceABC, oface: FrozenInterfaceABC
+) -> EGCode:
+    """Create an empty EGCode with specified input and output interfaces.
+
+    Args:
+        rtctxt: The runtime context.
+        iface: The input interface. Copied with references cleared.
+        oface: The output interface. Copied with references cleared.
+    Returns:
+        An empty EGCode with the specified interfaces.
+    """
+    cgraph_dict: dict[IfKey, InterfaceABC] = {
+        SrcIfKey.IS: Interface(iface, SrcRow.I).clr_refs(),
+        DstIfKey.OD: Interface(oface, DstRow.O).clr_refs(),
+    }
+    cgraph = CGraph(cgraph_dict)
+    init_dict = {
+        "cgraph": cgraph,
+        "pgc": rtctxt.root_gc,
+        "creator": rtctxt.creator,
+        "properties": PropertiesBD(
+            {
+                "gc_type": GCType.ORDINARY,
+                "graph_type": CGraphType.EMPTY,
+            }
+        ),
+    }
+    return EGCode(init_dict)
+
+
 def new_egc(
     rtctxt: RuntimeContext,
     gca: GCABC | bytes,
@@ -99,6 +130,7 @@ def new_egc(
         are populated with all references cleared.
         The I and O rows as well as any other rows for the non-standard graph types are not
         modified (remain 'None' in the case of a new EGCode).
+        All other members are reset e.g. properties, creator etc.
     """
     assert gca is not None, "GCA cannot be None as this means the resultant GC is a codon!"
     _gca = gca if isinstance(gca, GCABC) else rtctxt.gpi[gca]
@@ -110,10 +142,16 @@ def new_egc(
         _gcb = gcb if isinstance(gcb, GCABC) else rtctxt.gpi[gcb]
         _cgraph[DstIfKey.BD] = Interface(_gcb["cgraph"][SrcIfKey.IS], DstRow.B).clr_refs()
         _cgraph[SrcIfKey.BS] = Interface(_gcb["cgraph"][DstIfKey.OD], SrcRow.B).clr_refs()
+
+    # If we are building merge the updated cgraph into the rebuild
+    if rebuild is not None:
+        assert isinstance(rebuild["cgraph"], CGraph), "Rebuild must have a mutable cgraph."
+        rebuild["cgraph"].update(_cgraph)
+
     init_dict = {
         "gca": gca,
         "gcb": gcb,
-        "cgraph": CGraph(_cgraph),
+        "cgraph": CGraph(_cgraph) if rebuild is None else rebuild["cgraph"],
         "ancestora": ancestora,
         "ancestorb": ancestorb,
         "pgc": rtctxt.root_gc,

@@ -41,7 +41,8 @@ def insert(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, case: InsertionCase 
         The modified tgc (rgc).
     """
     assert isinstance(tgc, EGCode), "Target GC is not an EGCode - it cannot be modified in place."
-    assert tgc.is_empty() is False, "Target GC is empty - cannot insert into an empty GC."
+    assert not tgc.is_empty(), "Target GC is empty - cannot insert into an empty GC."
+    assert not igc.is_empty(), "IGC cannot be an empty GC!"
 
     match case:
         case SrcIfKey.IS | DstIfKey.AD | InsertionCase.ABOVE_A:

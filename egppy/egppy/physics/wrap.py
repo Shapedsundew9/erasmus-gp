@@ -43,6 +43,8 @@ def wrap(
         The modified rgc.
     """
     # pylint: disable=arguments-out-of-order
+    assert not igc.is_empty(), "IGC cannot be an empty GC!"
+    assert not tgc.is_empty(), "TGC cannot be an empty GC!"
     match case:
         case WrapCase.STACK:
             return _stack(rtctxt, igc, tgc, rgc)
