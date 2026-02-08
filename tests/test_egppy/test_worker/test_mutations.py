@@ -248,6 +248,14 @@ class TestExecutor(unittest.TestCase):
                     case _:
                         self.fail(f"Invalid insertion case: {ic}")
 
+                _logger.debug(
+                    "Insertion case %s: rgc result %s, golden reference %s for input %s",
+                    ic.name,
+                    rgc_result,
+                    golden_result,
+                    ival,
+                )
+
                 # Assert equivalence
                 self.assertEqual(
                     rgc_result,

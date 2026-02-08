@@ -10,7 +10,7 @@ from itertools import chain, count
 from typing import Any
 
 from egpcommon.common import NULL_STR
-from egpcommon.egp_log import DEBUG, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, TRACE, Logger, egp_logger
 from egpcommon.properties import CGraphType
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
@@ -577,7 +577,7 @@ class ExecutionContext:
         node: GCNode = root  # This is the root of the graph for the GC function to be written
 
         # Debugging
-        _logger.debug("Creating code graph for: %s", node)
+        _logger.log(TRACE, "Creating code graph for: %s", node)
 
         # Create initial connections for Row O (always present)
         connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)

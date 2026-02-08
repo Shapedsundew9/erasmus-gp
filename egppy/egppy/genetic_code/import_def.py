@@ -68,7 +68,7 @@ class ImportDef(FreezableObject, Validator, DictTypeAccessor, size=256):
         """Set the Absolute Import Path."""
         if not self._is_sequence("aip", value):
             raise ValueError(f"aip must be a sequence, but is {type(value)}")
-        if not (len(value) > 0):
+        if not len(value) > 0:
             raise ValueError("The aip must have at least one element.")
         if not all(isinstance(x, str) for x in value):
             raise ValueError("All elements of aip must be strings.")

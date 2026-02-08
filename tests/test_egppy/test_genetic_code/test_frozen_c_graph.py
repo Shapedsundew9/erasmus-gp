@@ -402,7 +402,13 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
             {
                 SrcIfKey.IS: [
                     (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [[DstRow.F, 0]]),
-                    (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]]),
+                    (
+                        SrcRow.I,
+                        1,
+                        EPCls.SRC,
+                        types_def_store["int"],
+                        [[DstRow.A, 0], [DstRow.P, 0]],
+                    ),
                 ],
                 DstIfKey.FD: [(DstRow.F, 0, EPCls.DST, types_def_store["bool"], [[SrcRow.I, 0]])],
                 DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],
