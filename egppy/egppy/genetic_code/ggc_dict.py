@@ -160,7 +160,7 @@ class GGCDict(EGCDict):
             self["name"] = meta_data.get("name", NULL_STR)
             self["description"] = meta_data.get("description", NULL_STR)
             if "imports" in meta_data:
-                self["imports"] = tuple(ImportDef(**md).freeze() for md in meta_data["imports"])
+                self["imports"] = tuple(ImportDef(**md) for md in meta_data["imports"])
 
         # TODO: What do we need these for internally. Need to write them to the DB
         # but internally we can use the graph interface e.g. self["cgraph"]["O"]

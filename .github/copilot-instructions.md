@@ -28,7 +28,7 @@ This is a Python-based Genetic Programming framework named "Erasmus GP". It is s
 *   **Validator Pattern:** The `egpcommon.validator` module implements a Validator class that encapsulates validation logic for various data types and formats.
 *   **Defensive Programming:** Functions and methods must validate their inputs and raise appropriate standard exceptions as early as possible to prevent propagation of invalid data and reduce additional wasted time & resources when used by runtime evolved code through the `egppy.physics.pgc_api` defined API. Runtime type validation shall use assert statements when not enclosed in a `_logger.isEnabledFor(level=DEBUG)` block.
 *   **Debug Pattern:** When `_logger.isEnabledFor(level=DEBUG)` is true aggressive verification of the internal data structures, types and object self consistency shall be performed to catch EGP application errors (raising `egpcommon.common.debug_exceptions`).
-*   **Immutable object de-duplication:** Standard python immutable objects (e.g., tuples, frozensets) and freeable objects, once frozen, shall use `egpcommon.object_deduplicator` ObjectDeduplicator to ensure de-duplication and memory efficiency.
+*   **Immutable object de-duplication:** Standard python immutable objects (e.g., tuples, frozensets) shall use `egpcommon.object_deduplicator` ObjectDeduplicator to ensure de-duplication and memory efficiency.
 
 ## Coding
 

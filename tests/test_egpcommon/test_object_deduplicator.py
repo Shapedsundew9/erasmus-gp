@@ -3,7 +3,6 @@
 import unittest
 from typing import Any
 
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_deduplicator import ObjectDeduplicator
 
 
@@ -30,36 +29,6 @@ class SimpleHashable:
     def __repr__(self) -> str:
         """Return string representation."""
         return f"SimpleHashable({self.value!r})"
-
-
-class SimpleFO(FreezableObject):
-    """Simple FreezableObject for testing deduplication."""
-
-    __slots__ = ("value",)
-
-    def __init__(self, value: Any, frozen: bool = False):
-        """Initialize a SimpleFO object."""
-        super().__init__(frozen=False)
-        self.value = value
-        if frozen:
-            self.freeze()
-
-    def __eq__(self, other: object) -> bool:
-        """Check equality based on value."""
-        if not isinstance(other, SimpleFO):
-            return NotImplemented
-        return self.value == other.value
-
-    def __hash__(self) -> int:
-        """Return hash based on value."""
-        try:
-            return hash(self.value)
-        except TypeError:
-            return id(self.value)
-
-    def __repr__(self) -> str:
-        """Return string representation."""
-        return f"SimpleFO({self.value!r}, frozen={self.is_frozen()})"
 
 
 class TestObjectDeduplicator(unittest.TestCase):
@@ -174,19 +143,6 @@ class TestObjectDeduplicator(unittest.TestCase):
         # The first object inserted should be the one returned
         self.assertIs(result1, obj1, "Should return the first inserted object")
 
-    def test_deduplication_freezable_object(self):
-        """Test deduplication with FreezableObject instances."""
-        dedup = ObjectDeduplicator(name="fo_test", size=32)
-
-        fo1 = SimpleFO("value1", frozen=True)
-        fo2 = SimpleFO("value1", frozen=True)
-
-        result1 = dedup[fo1]
-        result2 = dedup[fo2]
-
-        self.assertEqual(fo1, fo2, "FreezableObjects should be equal")
-        self.assertIs(result1, result2, "Equal FreezableObjects should be deduplicated")
-
     def test_deduplication_immutable_objects(self):
         """Test deduplication with immutable Python objects."""
         dedup = ObjectDeduplicator(name="immutable_test", size=8)
@@ -236,35 +192,6 @@ class TestObjectDeduplicator(unittest.TestCase):
         self.assertIn("Cache misses: 0", info_str)
         # Hit rate should handle division by zero
         self.assertIn("0.00%", info_str)
-
-    def test_freezable_object_with_complex_value(self):
-        """Test deduplication of FreezableObjects with complex values."""
-        dedup = ObjectDeduplicator(name="complex_fo_test", size=32)
-
-        fo1 = SimpleFO((1, 2, frozenset([3, 4])), frozen=True)
-        fo2 = SimpleFO((1, 2, frozenset([3, 4])), frozen=True)
-
-        result1 = dedup[fo1]
-        result2 = dedup[fo2]
-
-        self.assertEqual(fo1, fo2)
-        self.assertIs(result1, result2)
-
-    def test_frozen_freezable_object_assertion(self):
-        """Test that unfrozen FreezableObjects raise assertion error."""
-        dedup = ObjectDeduplicator(name="frozen_test", size=16)
-
-        unfrozen_fo = SimpleFO("value", frozen=False)
-
-        # Should raise AssertionError for unfrozen FreezableObject
-        with self.assertRaises(AssertionError) as context:
-            _ = dedup[unfrozen_fo]
-
-        self.assertIn(
-            "FreezableObjects must be frozen",
-            str(context.exception),
-            "Should require frozen FreezableObjects",
-        )
 
     def test_inheritance_from_common_obj(self):
         """Test that ObjectDeduplicator inherits from CommonObj."""

@@ -18,11 +18,9 @@ Connection Graphs represent the internal connectivity structure of genetic code 
 ```mermaid
 flowchart TB
     CGraphABC["CGraphABC"]
-    Freezable["FreezableObject\nProvides immutability when frozen"]
     Collection["Collection\nStandard Python collection interface"]
     CommonObj["CommonObjABC\nEGP validation pattern (verify/consistency methods)"]
 
-    CGraphABC --> Freezable
     CGraphABC --> Collection
     CGraphABC --> CommonObj
 ```
@@ -111,5 +109,4 @@ When implementing a concrete Connection Graph class:
 
 - `CGraph`: The main concrete implementation of the abstract base class
 - `Interface`: Represents endpoints within the graph
-- `FreezableObject`: Provides immutability support
 - `CommonObjABC`: Provides validation method contracts

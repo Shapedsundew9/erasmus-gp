@@ -2,41 +2,9 @@
 
 import sys
 import unittest
-from typing import Any
 
 from egpcommon.deduplication import int_store, properties_store, signature_store, uuid_store
-from egpcommon.freezable_object import FreezableObject
 from egpcommon.object_deduplicator import IntDeduplicator, ObjectDeduplicator, deduplicators_info
-
-
-class SimpleFO(FreezableObject):
-    """Simple FreezableObject for testing deduplication stores."""
-
-    __slots__ = ("value",)
-
-    def __init__(self, value: Any, frozen: bool = False):
-        """Initialize a SimpleFO object."""
-        super().__init__(frozen=False)
-        self.value = value
-        if frozen:
-            self.freeze()
-
-    def __eq__(self, other: object) -> bool:
-        """Check equality based on value."""
-        if not isinstance(other, SimpleFO):
-            return NotImplemented
-        return self.value == other.value
-
-    def __hash__(self) -> int:
-        """Return hash based on value."""
-        try:
-            return hash(self.value)
-        except TypeError:
-            return id(self.value)
-
-    def __repr__(self) -> str:
-        """Return string representation."""
-        return f"SimpleFO({self.value!r}, frozen={self.is_frozen()})"
 
 
 class TestIntDeduplicator(unittest.TestCase):
@@ -109,6 +77,7 @@ class TestIntDeduplicator(unittest.TestCase):
 
         self.assertIs(result1, result2, "Integers within range should be deduplicated")
         self.assertEqual(result1, 42)
+
     def test_inheritance_from_object_deduplicator(self):
         """Test that IntDeduplicator inherits from ObjectDeduplicator."""
         dedup = IntDeduplicator(name="inheritance_test")
@@ -311,17 +280,6 @@ class TestModuleLevelDeduplicators(unittest.TestCase):
         self.assertEqual(properties_store.name, "Properties")
         info = properties_store.info()
         self.assertIn("Cache max size: 4096", info)
-
-    def test_properties_store_with_freezable_objects(self):
-        """Test properties_store with FreezableObject instances."""
-        fo1 = SimpleFO("property_value", frozen=True)
-        fo2 = SimpleFO("property_value", frozen=True)
-
-        result1 = properties_store[fo1]
-        result2 = properties_store[fo2]
-
-        self.assertEqual(fo1, fo2, "FreezableObjects should be equal")
-        self.assertIs(result1, result2, "Properties store should deduplicate FreezableObjects")
 
     def test_signature_store_deduplication(self):
         """Test that signature_store actually deduplicates objects."""

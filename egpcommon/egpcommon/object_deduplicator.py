@@ -90,9 +90,6 @@ class ObjectDeduplicator(CommonObj):
 
     def __getitem__(self, obj: Hashable) -> Any:
         """Get a object from the dict."""
-        assert obj.is_frozen() if hasattr(obj, "is_frozen") else True, (  # type: ignore
-            "FreezableObjects must be frozen to be placed in an ObjectDeduplicator."
-        )
         return self._objects(obj)
 
     def __new__(cls, *args, **kwargs):

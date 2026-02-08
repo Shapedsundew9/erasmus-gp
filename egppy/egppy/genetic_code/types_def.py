@@ -249,7 +249,7 @@ class TypesDef(Validator):
         for import_def in imports:
             if isinstance(import_def, dict):
                 # The import store will ensure that the same import is not duplicated.
-                import_list.add(ImportDef(**import_def).freeze())
+                import_list.add(ImportDef(**import_def))
             elif isinstance(import_def, ImportDef):
                 import_list.add(import_def)
             else:
