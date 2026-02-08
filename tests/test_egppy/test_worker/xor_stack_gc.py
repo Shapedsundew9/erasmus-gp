@@ -97,7 +97,6 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -159,7 +158,6 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                     ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
                     for ep in gc["cgraph"][DstIfKey.OD]
                 ],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -253,7 +251,6 @@ def create_primitive_gcs() -> None:
                 "A": [],
                 "B": [["A", 0, INT_T]],
                 "O": [["B", 0, INT_T]],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -268,9 +265,7 @@ def create_primitive_gcs() -> None:
             "ancestorb": rshift_gc,
             "created": "2025-03-29 22:05:08.489847+00:00",
             "code_depth": 2,
-            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]][
-                "signature"
-            ],  # Makes the structure of this GC unknown
+            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]],  # Makes the structure of this GC unknown
             "gcb": rshift_gc,
             "generation": 2,
             "cgraph": {
@@ -280,7 +275,6 @@ def create_primitive_gcs() -> None:
                     ["A", 0, rshift_gc["cgraph"][SrcIfKey.IS][1].typ.name],
                 ],
                 "O": [["B", 0, rshift_gc["cgraph"][DstIfKey.OD][0].typ.name]],
-                "U": [],
             },
             "num_codes": 3,
             "num_codons": 2,
@@ -305,7 +299,6 @@ def create_primitive_gcs() -> None:
                     ["A", 0, rshift_1_gc["cgraph"][DstIfKey.OD][0].typ.name],
                 ],
                 "O": [["B", 0, xor_gc["cgraph"][DstIfKey.OD][0].typ.name]],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -325,7 +318,6 @@ def create_primitive_gcs() -> None:
                 "A": [],
                 "B": [["I", 0, INT_T], ["A", 0, INT_T]],
                 "O": [["B", 0, INT_T], ["A", 0, INT_T]],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -430,7 +422,6 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "B": [["I", i, INT_T] for i in randomrange(len_ai, len_bi)],
                 "O": [["A", i, INT_T] for i in randomrange(len_ao)]
                 + [["B", i, INT_T] for i in randomrange(len_bo)],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -567,7 +558,6 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "A": [["I", i, INT_T] for i in randomrange(len_1i)],
                 "B": [["A", i, INT_T] for i in randomrange(len_2i)],
                 "O": [["B", i, INT_T] for i in randomrange(len_2o)],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,

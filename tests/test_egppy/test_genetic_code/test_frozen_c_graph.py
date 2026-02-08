@@ -348,12 +348,23 @@ class TestFrozenCGraph(unittest.TestCase):
         for val in values:
             self.assertIsInstance(val, FrozenInterface)
 
-    def test_to_json(self) -> None:
-        """Test JSON conversion."""
+    def test_to_json_false(self) -> None:
+        """Test JSON conversion json_c_graph=False."""
         json_obj = self.frozen_graph.to_json()
+        self.assertIsInstance(json_obj, dict)
+        self.assertIn(DstIfKey.AD, json_obj)
+        self.assertIn(DstIfKey.OD, json_obj)
+        self.assertIn(SrcIfKey.AS, json_obj)
+        self.assertIn(SrcIfKey.IS, json_obj)
+        self.assertEqual(len(json_obj), 4)
+
+    def test_to_json_true(self) -> None:
+        """Test JSON conversion json_c_graph=True."""
+        json_obj = self.frozen_graph.to_json(json_c_graph=True)
         self.assertIsInstance(json_obj, dict)
         self.assertIn(DstRow.A, json_obj)
         self.assertIn(DstRow.O, json_obj)
+        self.assertEqual(len(json_obj), 2)
 
     def test_verify(self) -> None:
         """Test verify method."""

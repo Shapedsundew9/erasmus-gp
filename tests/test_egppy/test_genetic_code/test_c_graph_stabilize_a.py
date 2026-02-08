@@ -38,7 +38,6 @@ class TestStabilizeLocked(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -657,7 +656,6 @@ class TestStabilizeEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)

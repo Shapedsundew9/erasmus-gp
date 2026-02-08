@@ -19,6 +19,7 @@ from collections.abc import ItemsView, Iterator, KeysView, Mapping, ValuesView
 from pprint import pformat
 from typing import Any
 
+from egpcommon.common import NULL_TUPLE
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import refs_store
 from egpcommon.egp_log import OBJECT, Logger, egp_logger
@@ -30,10 +31,12 @@ from egppy.genetic_code.c_graph_constants import (
     _UNDER_KEY_DICT,
     _UNDER_ROW_CLS_INDEXED,
     _UNDER_SRC_KEY_DICT,
+    DST_KEY_DICT,
     IFKEY_ROW_MAP,
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
     ROW_CLS_INDEXED_SET,
+    SRC_KEY_DICT,
     DstIfKey,
     DstRow,
     IfKey,
@@ -154,7 +157,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 setattr(self, _key, fiface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):
                 # Is and Od must exist even if empty
-                setattr(self, _key, [])  # Empty interface
+                setattr(self, _key, FrozenInterface(row, NULL_TUPLE, NULL_TUPLE))  # Empty interface
             else:
                 setattr(self, _key, None)
 
@@ -162,7 +165,11 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         # Ensure PD exists if LD, WD, or FD exist and OD is empty
         need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
-            setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
+            setattr(
+                self,
+                _UNDER_KEY_DICT[DstIfKey.PD],
+                FrozenInterface(IFKEY_ROW_MAP[DstIfKey.PD], NULL_TUPLE, NULL_TUPLE),
+            )
 
         # Pre-compute the hash for the frozen graphs
         # For consistency, we use the same hash calculation as unfrozen graphs
@@ -348,13 +355,19 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         """
         for key in ROW_CLS_INDEXED_ORDERED:
             iface = getattr(self, _UNDER_KEY_DICT[key])
-            if iface is not None:
+            if isinstance(iface, FrozenInterfaceABC):
                 # Extract the row from the key (first character)
                 row_str = key[0]
                 if not row_str in valid_rows_set:
                     raise ValueError(
                         f"Interface {key} is not valid for graph type {graph_type}. "
                         f"Valid rows: {valid_rows_set}"
+                    )
+            else:
+                if iface is not None:
+                    raise ValueError(
+                        f"Interface {key} should be None or a "
+                        f"FrozenInterfaceABC instance, got {type(iface)}"
                     )
 
     def _verify_single_endpoint_interfaces(self) -> None:
@@ -458,13 +471,18 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         row_u = []
         for key in DstRow:  # This order is important for consistent JSON output
             iface: FrozenInterfaceABC = getattr(self, _UNDER_DST_KEY_DICT[key])
-            if iface is not None:
-                jcg[str(key) if json_c_graph else key] = iface.to_json(json_c_graph=json_c_graph)
+            if iface is not None and (len(iface) or key != DstRow.U):
+                jcg[str(key) if json_c_graph else DST_KEY_DICT[key]] = iface.to_json(
+                    json_c_graph=json_c_graph
+                )
         for key in SrcRow:  # This order is important for consistent JSON output
             iface: FrozenInterfaceABC = getattr(self, _UNDER_SRC_KEY_DICT[key])
-            if iface is not None and len(iface) > 0:
-                unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
-                row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
+            if iface is not None:
+                if json_c_graph:
+                    unconnected_srcs = [ep for ep in iface if not ep.is_connected()]
+                    row_u.extend([str(ep.row), ep.idx, ep.typ.name] for ep in unconnected_srcs)
+                else:
+                    jcg[SRC_KEY_DICT[key]] = iface.to_json()
         if json_c_graph and row_u:
             jcg["U"] = row_u
         return jcg
@@ -613,6 +631,10 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                             f" {key[1]}, got {iface[0].row}"
                         )
                 iface.verify()
+
+        # Ud shall always be None
+        if getattr(self, _UNDER_KEY_DICT[DstIfKey.UD]) is not None:
+            raise ValueError("Interface UD must be None in FrozenCGraph")
 
         # Identify the graph type
         graph_type = c_graph_type(self)

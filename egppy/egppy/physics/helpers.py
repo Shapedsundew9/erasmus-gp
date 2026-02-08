@@ -159,14 +159,7 @@ def new_egc(
         "properties": merge_properties(rtctxt=rtctxt, gca=gca, gcb=gcb),
     }
     retval = EGCode(init_dict) if rebuild is None else rebuild.set_members(init_dict)
-
-    # Update EGC references so that they can be traced back if and when
-    # the EGC becomes a GGC
-    assert isinstance(retval, EGCode), "new_egc must return a EGCode object."
-    for sig_field in retval.REFERENCE_KEYS:
-        egc = retval[sig_field]
-        if isinstance(egc, EGCode):
-            egc["references"][(retval["uid"], sig_field)] = retval
+    assert isinstance(retval, EGCode), "New EGCode creation failed - result is not an EGCode."
     return retval
 
 

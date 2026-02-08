@@ -1,8 +1,9 @@
 """The Gene Pool Interface."""
 
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 from os.path import dirname, join
 from typing import Any, Literal
+from uuid import uuid4
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
@@ -27,7 +28,7 @@ SOURCE_FILES = tuple(
 )
 
 
-class GenePoolInterface(GPIABC):
+class GenePoolInterface(GPIABC, Hashable):
     """Gene Pool Interface.
 
     A Gene Pool Interface is used to interact with the Gene Pool.
@@ -36,12 +37,9 @@ class GenePoolInterface(GPIABC):
     """
 
     def __init__(self, config: DBManagerConfig, cache_size: int = 2**16) -> None:
-        """Initialize the Gene Pool Interface.
-
-        The database manager is only configured once. All subsequent initializations
-        will use the already configured instances.
-        """
+        """Initialize the Gene Pool Interface."""
         self._dbm = DBManager(config)
+        self.uuid = uuid4()
         if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
             self._dbm = DBManager(config, delete=True)
@@ -77,6 +75,15 @@ class GenePoolInterface(GPIABC):
     def __contains__(self, signature: bytes) -> bool:
         """Check if a Genetic Code exists in the local cache using its signature."""
         return signature in self._ggc_cache
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two Gene Pool Interfaces are equal based on their hash."""
+        if not isinstance(other, GenePoolInterface):
+            return NotImplemented
+        return self.uuid == other.uuid
+
+    def __hash__(self) -> int:
+        return hash(self.uuid)
 
     def __getitem__(self, gc: bytes | GGCDict) -> GGCDict:
         """Get a Genetic Code by its signature."""

@@ -40,7 +40,8 @@ def insert(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, case: InsertionCase 
     Returns:
         The modified tgc (rgc).
     """
-    assert isinstance(tgc, EGCode), "Target GC is not an EGCode - it cannot be modified in place."
+    # pylint: disable=unidiomatic-typecheck
+    assert type(tgc) is EGCode, "Target GC is not an EGCode - it cannot be modified in place."
     assert not tgc.is_empty(), "Target GC is empty - cannot insert into an empty GC."
     assert not igc.is_empty(), "IGC cannot be an empty GC!"
 

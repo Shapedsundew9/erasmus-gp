@@ -19,7 +19,7 @@ from egpcommon.common import (
 )
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import int_store, signature_store
-from egpcommon.egp_log import DEBUG, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, OBJECT, Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
 from egpcommon.properties import BASIC_CODON_PROPERTIES, CGraphType, GCType, PropertiesBD
 from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
@@ -28,6 +28,7 @@ from egppy.genetic_code.frozen_c_graph import FrozenCGraph, frozen_cgraph_store
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.gpg_view import GPGCView
 from egppy.genetic_code.import_def import ImportDef
+from egppy.storage.cache.cacheable_obj import CacheableDict
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -59,6 +60,14 @@ class GGCDict(EGCDict):
         """
         return hash(self["signature"])
 
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Set an item in the GGCDict. This is overridden to prevent modification
+        of immutable fields."""
+        if self.get("immutable", False):
+            raise RuntimeError(f"GGCDict is immutable for field {key} and cannot be modified.")
+        # Skip the EGCDict __setitem__ to avoid unnecessary checks on GCA & GCB
+        return CacheableDict.__setitem__(self, key, value)
+
     def as_gpc_view(self) -> GPGCView:
         """Return a GPGCView of the GGCDict."""
         return GPGCView(self)
@@ -83,25 +92,38 @@ class GGCDict(EGCDict):
             # Make sure it is deduplicated
             self["cgraph"] = frozen_cgraph_store[self["cgraph"]]
 
-        if isinstance(self["gca"], GCABC):
-            # TODO: If GCA is an EGCDict we need to resolve it to a GGCDict
-            # That requires walking the tree of genetic codes as GCA may itself
-            # depend on EGCDict objects. That needs to be implemented as a separate
-            # method (using a stack). It is a fundamental assumption that all
-            # EGCDicts are stable and can be resolved to GGCDicts.
-            self["gca"] = self["gca"]["signature"]
-        if isinstance(self["gcb"], GCABC):
-            # TODO: If GCB is an EGCDict we need to resolve it to a GGCDict (see GCA)
-            self["gcb"] = self["gcb"]["signature"]
-        if isinstance(self["ancestora"], GCABC):
-            # TODO: If Ancestor A is an EGCDict we need to resolve it to a GGCDict (see GCA)
-            self["ancestora"] = self["ancestora"]["signature"]
-        if isinstance(self["ancestorb"], GCABC):
-            # TODO: If Ancestor B is an EGCDict we need to resolve it to a GGCDict (see GCA)
-            self["ancestorb"] = self["ancestorb"]["signature"]
-        if isinstance(self["pgc"], GCABC):
-            # TODO: If PGC is an EGCDict we need to resolve it to a GGCDict (see GCA)
-            self["pgc"] = self["pgc"]["signature"]
+        # A GGCdict cannot be created if the GCA, GCB, Ancestor A, Ancestor B or PGC are not
+        # None, bytes or a GGCDict object. This is because the GGCdict needs to be able to resolve
+        # the signatures of these objects. i.e. they must be constant.
+        gca = self["gca"]
+        if isinstance(gca, GGCDict):
+            self["gca"] = gca["signature"]
+        elif not isinstance(gca, bytes) and gca is not None:
+            raise ValueError("GCA must be a GGCDict, bytes (signature) or None.")
+
+        gcb = self["gcb"]
+        if isinstance(gcb, GGCDict):
+            self["gcb"] = gcb["signature"]
+        elif not isinstance(gcb, bytes) and gcb is not None:
+            raise ValueError("GCB must be a GGCDict, bytes (signature) or None.")
+
+        ancestora = self["ancestora"]
+        if isinstance(ancestora, GGCDict):
+            self["ancestora"] = ancestora["signature"]
+        elif not isinstance(ancestora, bytes) and ancestora is not None:
+            raise ValueError("Ancestor A must be a GGCDict, bytes (signature) or None.")
+
+        ancestorb = self["ancestorb"]
+        if isinstance(ancestorb, GGCDict):
+            self["ancestorb"] = ancestorb["signature"]
+        elif not isinstance(ancestorb, bytes) and ancestorb is not None:
+            raise ValueError("Ancestor B must be a GGCDict, bytes (signature) or None.")
+
+        pgc = self["pgc"]
+        if isinstance(pgc, GGCDict):
+            self["pgc"] = pgc["signature"]
+        elif not isinstance(pgc, bytes) and pgc is not None:
+            raise ValueError("PGC must be a GGCDict, bytes (signature) or None.")
 
         self["code_depth"] = int_store[gcabc["code_depth"]]
         self["generation"] = int_store[gcabc["generation"]]
@@ -158,23 +180,34 @@ class GGCDict(EGCDict):
                     self["imports"],
                     self["inline"],
                     self["code"],
-                    int(self["created"].timestamp()),
                     self["creator"].bytes,
                 )
             ]
 
         # If this is an EGCDict being converted to a GGCDict then
-        # we need to replace references with this object.
+        # we need to replace all references to that EGCDict with this object.
         if isinstance(gcabc, EGCDict):
-            for (_, field), egc in gcabc["references"].items():
+            for (_, field), egc in tuple(gcabc["references"].items()):
                 # Sanity checks
                 assert isinstance(egc, EGCDict), "Referenced GC must be an EGCDict"
                 assert field in egc, "Referenced field must exist in the EGCDict"
                 assert egc[field] is gcabc, "Referenced field must be gcabc"
                 egc[field] = self
+                if _logger.isEnabledFor(DEBUG):
+                    _logger.debug(
+                        "Replaced reference to EGCDict with GGCDict %s in field %s",
+                        self["signature"].hex(),
+                        field,
+                    )
+
+        # Now certain fields are immutable.
+        self["immutable"] = True
 
         if _logger.isEnabledFor(DEBUG):
             self.verify()
+            if _logger.isEnabledFor(OBJECT):
+                self.consistency()
+
         return self
 
     def to_json(self) -> dict[str, int | str | float | list | dict]:
@@ -186,64 +219,68 @@ class GGCDict(EGCDict):
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
 
+        # GGCDict shall be immutable after initialization.
+        if not self.get("immutable", False):
+            raise ValueError("GGCDict must be immutable after initialization.")
+
         # The number of descendants when the genetic code was copied from the higher layer.
-        if not (self["_lost_descendants"] >= 0):
+        if not self["_lost_descendants"] >= 0:
             raise ValueError("_lost_descendants must be greater than or equal to zero.")
-        if not (self["_lost_descendants"] <= 2**63 - 1):
+        if not self["_lost_descendants"] <= 2**63 - 1:
             raise ValueError("_lost_descendants must be less than or equal to 2**63-1.")
 
         # The reference count when the genetic code was copied from the higher layer.
-        if not (self["_reference_count"] >= 0):
+        if not self["_reference_count"] >= 0:
             raise ValueError("_reference_count must be greater than or equal to zero.")
-        if not (self["_reference_count"] <= 2**63 - 1):
+        if not self["_reference_count"] <= 2**63 - 1:
             raise ValueError("_reference_count must be less than or equal to 2**63-1.")
 
         # The depth of the genetic code in genetic codes. If this is a codon then the depth is 1.
-        if not (self["code_depth"] >= 1):
+        if not self["code_depth"] >= 1:
             raise ValueError("code_depth must be greater than or equal to one.")
-        if not (self["code_depth"] <= 2**31 - 1):
+        if not self["code_depth"] <= 2**31 - 1:
             raise ValueError("code_depth must be less than or equal to 2**31-1.")
 
         # The date and time the genetic code was created. Created time zone must be UTC.
-        if not (self["created"] <= datetime.now(UTC)):
+        if not self["created"] <= datetime.now(UTC):
             raise ValueError("created must be less than or equal to the current date and time.")
-        if not (self["created"] >= EGP_EPOCH):
+        if not self["created"] >= EGP_EPOCH:
             raise ValueError("Created must be greater than or equal to EGP_EPOCH.")
-        if not (self["created"].tzinfo == UTC):
+        if not self["created"].tzinfo == UTC:
             raise ValueError("Created must be in the UTC time zone.")
 
         # The number of generations of genetic code evolved to create this code. A codon is always
         # generation 1.
-        if not (self["generation"] >= 0):
+        if not self["generation"] >= 0:
             raise ValueError("generation must be greater than or equal to zero.")
-        if not (self["generation"] <= 2**63 - 1):
+        if not self["generation"] <= 2**63 - 1:
             raise ValueError("generation must be less than or equal to 2**63-1.")
 
         # The number of descendants.
-        if not (self["descendants"] >= 0):
+        if not self["descendants"] >= 0:
             raise ValueError("Descendants must be greater than or equal to 0.")
-        if not (self["descendants"] <= 2**31 - 1):
+        if not self["descendants"] <= 2**31 - 1:
             raise ValueError("Descendants must be less than 2**31-1.")
 
         # The number of descendants that have been lost in the evolution of the genetic code.
-        if not (self["lost_descendants"] >= 0):
+        if not self["lost_descendants"] >= 0:
             raise ValueError("lost_descendants must be greater than or equal to zero.")
-        if not (self["lost_descendants"] <= 2**63 - 1):
+        if not self["lost_descendants"] <= 2**63 - 1:
             raise ValueError("lost_descendants must be less than or equal to 2**63-1.")
 
         # The meta data associated with the genetic code.
         # No verification is performed on the meta data.
 
         # The number of vertices in the GC code vertex graph.
-        if not (self["num_codes"] >= 1):
+        if not self["num_codes"] >= 1:
             raise ValueError("num_codes must be greater than or equal to one.")
-        if not (self["num_codes"] <= 2**31 - 1):
+        if not self["num_codes"] <= 2**31 - 1:
             raise ValueError("num_codes must be less than or equal to 2**31-1.")
 
         # The number of codons in the GC code codon graph.
-        if not (self["num_codons"] >= 0):
+        if not self["num_codons"] >= 0:
             raise ValueError("num_codons must be greater than or equal to one.")
-        if not (self["num_codons"] <= 2**31 - 1):
+        if not self["num_codons"] <= 2**31 - 1:
             raise ValueError("num_codons must be less than or equal to 2**31-1.")
 
         # The properties of the genetic code.
@@ -258,49 +295,49 @@ class GGCDict(EGCDict):
         # Are the properties consistent with the genetic code?
         graph_type = self["cgraph"].graph_type()
         gc_type = properties["gc_type"]
-        if not (properties["graph_type"] == graph_type):
+        if not properties["graph_type"] == graph_type:
             raise ValueError("The cgraph and properties graph types must be consistent.")
 
         # Is the GC type consistent with the graph type?
         if gc_type == GCType.CODON:
-            if not (graph_type == CGraphType.PRIMITIVE):
+            if not graph_type == CGraphType.PRIMITIVE:
                 raise ValueError("If the genetic code is a codon, the code_depth must be 1.")
 
         # The reference count of the genetic code.
-        if not (self["reference_count"] >= 0):
+        if not self["reference_count"] >= 0:
             raise ValueError("reference_count must be greater than or equal to zero.")
-        if not (self["reference_count"] <= 2**63 - 1):
+        if not self["reference_count"] <= 2**63 - 1:
             raise ValueError("reference_count must be less than or equal to 2**63-1.")
 
-        if not (self["_lost_descendants"] <= self["lost_descendants"]):
+        if not self["_lost_descendants"] <= self["lost_descendants"]:
             raise RuntimeError("_lost_descendants must be less than or equal to lost_descendants.")
-        if not (self["_reference_count"] <= self["reference_count"]):
+        if not self["_reference_count"] <= self["reference_count"]:
             raise RuntimeError("_reference_count must be less than or equal to reference_count.")
 
-        if not (self["code_depth"] >= 0):
+        if not self["code_depth"] >= 0:
             raise RuntimeError("code_depth must be greater than or equal to zero.")
         if self["code_depth"] == 1:
-            if not (self["gca"] is None):
+            if not self["gca"] is None:
                 raise RuntimeError(
                     "A code depth of 1 is a codon or empty GC and must have a None GCA."
                 )
 
         if self["code_depth"] > 1:
-            if not (self["gca"] is not None):
+            if self["gca"] is None:
                 raise RuntimeError("A code depth greater than 1 must have a non-None GCA.")
 
         if self["generation"] == 1:
-            if not (self["gca"] is None):
+            if not self["gca"] is None:
                 raise RuntimeError("A generation of 1 is a codon and can only have a None GCA.")
 
-        if not (self["lost_descendants"] <= self["reference_count"]):
+        if not self["lost_descendants"] <= self["reference_count"]:
             raise RuntimeError("lost_descendants must be less than or equal to reference_count.")
-        if not (self["num_codes"] >= self["code_depth"]):
+        if not self["num_codes"] >= self["code_depth"]:
             raise RuntimeError("num_codes must be greater than or equal to code_depth.")
 
         if not isinstance(self["signature"], bytes):
             raise debug_exceptions.DebugTypeError("signature must be a bytes object")
-        if not (len(self["signature"]) == 32):
+        if not len(self["signature"]) == 32:
             raise debug_exceptions.DebugValueError("signature must be 32 bytes")
 
         # Call base class verify at the end
@@ -310,7 +347,7 @@ class GGCDict(EGCDict):
 # The NULL GC is a placeholder for a genetic code object that does not exist.
 NULL_GC: GCABC = GGCDict(
     {
-        "cgraph": {"A": [["I", 0, "EGPInvalid"]], "O": [["A", 0, "EGPInvalid"]], "U": []},
+        "cgraph": {"A": [["I", 0, "EGPInvalid"]], "O": [["A", 0, "EGPInvalid"]]},
         "code_depth": 1,
         "generation": 0,
         "num_codes": 1,

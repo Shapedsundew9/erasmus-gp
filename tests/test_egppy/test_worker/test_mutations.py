@@ -6,12 +6,15 @@ from itertools import product
 from random import getrandbits, seed
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import DEBUG, TRACE, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.physics.helpers import empty_egc, literal_codon
+from egppy.physics.insertion import InsertionCase, insert
+from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
 from egppy.physics.stabilization import stabilize_gc
 from egppy.physics.wrap import WrapCase, wrap
+from egppy.worker.executor.ec_logger import gc_mermaid_cg
 from egppy.worker.executor.execution_context import ExecutionContext
 from tests.test_egppy.test_worker.xor_stack_gc import (
     BASIC_ORDINARY_PROPERTIES,
@@ -27,6 +30,11 @@ from tests.test_egppy.test_worker.xor_stack_gc import (
 _logger: Logger = egp_logger(name=__name__)
 
 
+# Constants
+NUM_TEST_FUNCS = 10
+assert NUM_TEST_FUNCS > 4, "Need at least 4 test functions to test all wrap and insert cases."
+
+
 class TestExecutor(unittest.TestCase):
     """Unit tests for the executor function."""
 
@@ -40,7 +48,7 @@ class TestExecutor(unittest.TestCase):
         # Create a set of random 64-bit integers for testing and
         # add them as literal codons to the primitive GCs
         seed(42)
-        cls.c64 = tuple(getrandbits(64) for _ in range(10))
+        cls.c64 = tuple(getrandbits(64) for _ in range(NUM_TEST_FUNCS))
         cls.funcs = [partial(lambda x, c: (x >> 1) ^ c, c=i) for i in cls.c64]
         cls.rtctxt = RuntimeContext(gpi)
         primitive_gcs.update(
@@ -66,7 +74,6 @@ class TestExecutor(unittest.TestCase):
                             ["I", 0, INT_TD.name],
                         ],
                         "O": [["B", 0, INT_TD.name]],
-                        "U": [],
                     },
                     "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
                     "problem": ACYBERGENESIS_PROBLEM,
@@ -162,8 +169,10 @@ class TestExecutor(unittest.TestCase):
                         rgc_result = self.ec.execute(stabilized_rgc, (ival,))
                         # Compute the golden reference result
                         golden_result = tfunc(ifunc(ival))
-                    case _:
+                    case WrapCase.HARMONY:
                         rgc_result = golden_result = 0
+                    case _:
+                        self.fail(f"Unknown wrap case: {wc}")
 
                 # Assert equivalence
                 self.assertEqual(
@@ -172,6 +181,80 @@ class TestExecutor(unittest.TestCase):
                     f"Wrapped genetic code result {rgc_result} does not match "
                     f"golden reference {golden_result} for input {ival} "
                     f"with wrap case {wc.name}",
+                )
+
+    def test_insert(self):
+        """Test the set of insert functions with direct connections."""
+        # Create a parent EGCode to insert into.
+        # This will become the tgc (target genetic code) for the insertions.
+        tgc1 = primitive_gcs["rsx_0"]
+        igc1 = primitive_gcs["rsx_1"]
+        rgc = wrap(self.rtctxt, igc1, tgc1, WrapCase.STACK)
+        tgc = stabilize_gc(self.rtctxt, rgc)
+        if _logger.isEnabledFor(TRACE):
+            # Mermaid graph creation is expensive so we only do it if trace logging is enabled.
+            _logger.log(
+                TRACE, "Initial tgc created for insertion tests:\n%s", gc_mermaid_cg(self.gpi, tgc)
+            )
+
+        # Golden reference is a sequence of calls to the functions in the correct order.
+        tfunc = (self.funcs[0], self.funcs[1])
+
+        # Make sure the result of the tgc matches the golden reference before insertion
+        tgc_result = self.ec.execute(tgc, (0xFFFFFFFFFFFFFFFF,))
+        golden_result = tfunc[1](tfunc[0](0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(
+            tgc_result,
+            golden_result,
+            f"Pre-insertion tgc result {tgc_result} does not match "
+            f"golden reference {golden_result} for input {0xFFFFFFFFFFFFFFFF}",
+        )
+
+        for fnum in range(2, len(self.funcs)):
+            igc = primitive_gcs[f"rsx_{fnum}"]
+            ifunc = self.funcs[fnum]
+            ival = getrandbits(64)
+
+            for ic in InsertionCase:
+                rgc = insert(self.rtctxt, igc, EGCode(tgc), ic)
+                stabilized_rgc = stabilize_gc(self.rtctxt, rgc)
+                if _logger.isEnabledFor(DEBUG):
+                    # Display the Connection Graph of the resultant genetic code.
+                    _logger.debug(
+                        "rgc created for insertion tests (case %s):\n%s",
+                        ic.name,
+                        stabilized_rgc["cgraph"],
+                    )
+                    stabilized_rgc["cgraph"].consistency()
+                if _logger.isEnabledFor(TRACE):
+                    # Mermaid graph creation is expensive so we
+                    # only do it if trace logging is enabled.
+                    _logger.log(
+                        TRACE,
+                        "rgc created for insertion tests:\n%s",
+                        gc_mermaid_cg(self.gpi, stabilized_rgc),
+                    )
+
+                # Execute the resultant genetic code
+                rgc_result = self.ec.execute(stabilized_rgc, (ival,))
+                # Compute the golden reference result
+                match ic:
+                    case InsertionCase.ABOVE_A:
+                        golden_result = tfunc[1](tfunc[0](ifunc(ival)))
+                    case InsertionCase.ABOVE_B:
+                        golden_result = tfunc[1](ifunc(tfunc[0](ival)))
+                    case InsertionCase.ABOVE_O:
+                        golden_result = ifunc(tfunc[1](tfunc[0](ival)))
+                    case _:
+                        self.fail(f"Invalid insertion case: {ic}")
+
+                # Assert equivalence
+                self.assertEqual(
+                    rgc_result,
+                    golden_result,
+                    f"Wrapped genetic code result {rgc_result} does not match "
+                    f"golden reference {golden_result} for input {ival} "
+                    f"with insertion case {ic.name}",
                 )
 
 

@@ -295,7 +295,6 @@ def sha256_signature(
     imports: tuple,  # tuple[ImportDef, ...] but would be a circular reference
     inline: str,
     code: str,
-    created: int,
     creator: bytes,
 ) -> bytes:
     """Return the SHA256 signature of the data.
@@ -309,13 +308,6 @@ def sha256_signature(
     number generator used to create the GC. All this combined means it is possible to
     deterministically recreate the GC from the ancestors and know if the GC can be trusted.
     If the meta_data is provided then the function code is also included in the signature.
-
-    If created > 0 then the created time is encoded in the signature. Note that
-    this is used to indicate that the created time should be part of the signature.
-    It is a convenience when developing with primitives that get re-generated regularly
-    where the changing signature is overhead.
-
-    NOTE: Created is the creation time of the GC in seconds from epoch when > 0
 
     THIS FUNCTION MUST NOT CHANGE!
     MAKE SURE THE UNIT TESTS PASS!
@@ -340,6 +332,4 @@ def sha256_signature(
         hash_obj.update(code.encode())
         for import_def in imports:
             hash_obj.update(dumps(import_def.to_json()).encode())
-    if created > 0:
-        hash_obj.update(created.to_bytes(8, "big"))
     return hash_obj.digest()

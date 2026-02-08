@@ -372,7 +372,8 @@ class GCNode(Iterable, Hashable):
     def __str__(self) -> str:
         """Return the representation of the GCNode instance."""
         str_list: list[str] = [f"GCNode: {self.gc['signature'].hex()}"]
-        for k, v in vars(self).items():
+        for k in GCNode.__slots__:
+            v = getattr(self, k)
             if not isinstance(v, GCNode):
                 str_list.append(f"\t{k}: {v}")
             else:

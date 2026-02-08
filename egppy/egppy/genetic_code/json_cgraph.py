@@ -200,6 +200,10 @@ def valid_jcg(jcg: JSONCGraph) -> bool:
         if not isinstance(epts, list):
             raise TypeError(f"Invalid value in JSON connection graph: {epts}")
 
+    # If row U exists it must have a non-zero length
+    if DstRow.U in jcg and len(jcg[DstRow.U]) == 0:
+        raise ValueError("Row U must have a non-zero length if it exists")
+
     # Check that connectivity is valid
     for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():
         for src in jcg.get(dst, []):

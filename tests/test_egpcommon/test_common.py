@@ -1,6 +1,6 @@
 """Unit tests for the common module."""
 
-from json import dump, load
+from json import JSONDecodeError, dump, load
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Any
@@ -136,17 +136,16 @@ class TestCommon(TestCase):
         imports: tuple = ()
         inline: str = "def f(x): return x+1"
         code: str = ""
-        created: int = 0
         creator: bytes = uuid4().bytes
         signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, imports, inline, code, created, creator
+            ancestora, ancestorb, gca, gcb, graph, pgc, imports, inline, code, creator
         )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
 
         # Test with None meta_data
         signature: bytes = sha256_signature(
-            ancestora, ancestorb, gca, gcb, graph, pgc, imports, "", code, created, creator
+            ancestora, ancestorb, gca, gcb, graph, pgc, imports, "", code, creator
         )
         self.assertEqual(len(signature), 32)
         self.assertNotEqual(signature, NULL_SHA256)
@@ -244,8 +243,6 @@ class TestEnsureSortedJsonKeys(TestCase):
             temp_file_path = temp_file.name
 
         try:
-            from json import JSONDecodeError
-
             with self.assertRaises(JSONDecodeError):
                 ensure_sorted_json_keys(temp_file_path)
         finally:

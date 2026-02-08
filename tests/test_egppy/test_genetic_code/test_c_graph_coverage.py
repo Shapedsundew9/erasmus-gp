@@ -24,7 +24,6 @@ class TestCGraphContainsErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -66,7 +65,6 @@ class TestCGraphDelItemErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -87,7 +85,6 @@ class TestCGraphGetItemErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -117,7 +114,6 @@ class TestCGraphSetItemErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -146,7 +142,6 @@ class TestCGraphGetMethod(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -603,7 +598,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
 
@@ -619,7 +613,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -642,7 +635,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -659,7 +651,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -711,15 +702,14 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
 
         values_list = list(cgraph.values())
 
-        # Should have 5 interfaces: Is, As, Ad, Od, Ud (U is created in JSONCGraph)
-        self.assertEqual(len(values_list), 5)
+        # Should have 5 interfaces: Is, As, Ad, Od
+        self.assertEqual(len(values_list), 4)
 
         # All should be Interface instances
         for value in values_list:

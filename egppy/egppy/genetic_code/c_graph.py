@@ -81,7 +81,7 @@ class CGraph(FrozenCGraph, CGraphABC):
                 setattr(self, _key, iface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):
                 # Is and Od must exist even if empty
-                setattr(self, _key, [])  # Empty interface
+                setattr(self, _key, Interface([], row))  # Empty interface
             else:
                 setattr(self, _key, None)
 
@@ -89,7 +89,15 @@ class CGraph(FrozenCGraph, CGraphABC):
         # Ensure PD exists if LD, WD, or FD exist and OD is empty
         need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
-            setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
+            setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], Interface([], DstRow.P))
+
+        # Sanity check that all interfaces are valid Interface instances
+        # or None (i.e. non-existent)
+        assert all(
+            getattr(self, _UNDER_KEY_DICT[key]) is None
+            or isinstance(getattr(self, _UNDER_KEY_DICT[key]), InterfaceABC)
+            for key in ROW_CLS_INDEXED_ORDERED
+        ), "Invalid interface types in graph initialization."
 
     def __delitem__(self, key: IfKey) -> None:
         """Delete the interface with the given key."""

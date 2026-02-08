@@ -223,7 +223,7 @@ class TestValidJCG(unittest.TestCase):
 
     def test_valid_jcg_empty(self) -> None:
         """Test validation of an empty JSON connection graph."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = {DstRow.O: []}
         self.assertTrue(valid_jcg(jcg))
 
     def test_valid_jcg_index_out_of_range_negative(self) -> None:
@@ -232,7 +232,6 @@ class TestValidJCG(unittest.TestCase):
         jcg = {
             DstRow.A: [["I", 0, "int"]],
             DstRow.O: [["A", -1, "int"]],  # Negative index on valid row
-            DstRow.U: [],
         }
         with self.assertRaises(ValueError) as context:
             valid_jcg(jcg)
@@ -245,7 +244,6 @@ class TestValidJCG(unittest.TestCase):
         jcg = {
             DstRow.A: [["I", 0, "int"]],  # Only 1 element (index 0)
             DstRow.O: [["A", 256, "int"]],  # Index 256 is out of range
-            DstRow.U: [],
         }
         with self.assertRaises(ValueError) as context:
             valid_jcg(jcg)
@@ -265,7 +263,6 @@ class TestValidJCG(unittest.TestCase):
         jcg = {
             DstRow.A: [["I", 0, "int"]],
             DstRow.O: [["A", 0, "invalid_type"]],  # Invalid type string
-            DstRow.U: [],
         }
         with self.assertRaises(ValueError) as context:
             valid_jcg(jcg)
@@ -281,7 +278,7 @@ class TestValidJCG(unittest.TestCase):
 
     def test_valid_jcg_invalid_key(self) -> None:
         """Test that invalid keys raise ValueError."""
-        jcg = {"InvalidKey": [], DstRow.O: [], DstRow.U: []}
+        jcg = {"InvalidKey": [], DstRow.O: []}
         with self.assertRaises(ValueError) as context:
             valid_jcg(jcg)
         self.assertIn("Invalid key", str(context.exception))
@@ -289,7 +286,7 @@ class TestValidJCG(unittest.TestCase):
     def test_valid_jcg_invalid_source_for_destination(self) -> None:
         """Test that invalid source->destination connections raise ValueError."""
         # In PRIMITIVE graphs, only I can connect to A
-        jcg = {DstRow.A: [["B", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["B", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         with self.assertRaises(ValueError) as context:
             valid_jcg(jcg)
         self.assertIn("Invalid source row", str(context.exception))
@@ -317,14 +314,14 @@ class TestValidJCG(unittest.TestCase):
 
     def test_valid_jcg_invalid_value_type(self) -> None:
         """Test that invalid value types raise TypeError."""
-        jcg = {DstRow.O: "not a list", DstRow.U: []}
+        jcg = {DstRow.O: "not a list"}
         with self.assertRaises(TypeError) as context:
-            valid_jcg(jcg)
+            valid_jcg(jcg)  # type: ignore
         self.assertIn("Invalid value", str(context.exception))
 
     def test_valid_jcg_primitive(self) -> None:
         """Test validation of a primitive JSON connection graph."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         self.assertTrue(valid_jcg(jcg))
 
 
@@ -334,7 +331,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
     def test_json_cgraph_to_interfaces_creates_as_when_ad_exists(self) -> None:
         """Test that As is created when Ad exists but As doesn't."""
         # This tests line 320 - creating As when Ad exists
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         interfaces = json_cgraph_to_interfaces(jcg)
         # Both As and Ad should exist
         self.assertIn(SrcIfKey.AS, interfaces)
@@ -347,7 +344,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
         }
         interfaces = json_cgraph_to_interfaces(jcg)
         # Both Bs and Bd should exist
@@ -356,7 +352,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
 
     def test_json_cgraph_to_interfaces_creates_missing_interfaces(self) -> None:
         """Test that missing complementary interfaces are created."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         interfaces = json_cgraph_to_interfaces(jcg)
 
         # Should create both Ad and As
@@ -370,7 +366,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],  # P is required for conditional graphs
-            DstRow.U: [],
         }
         interfaces = json_cgraph_to_interfaces(jcg)
 
@@ -384,7 +379,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["L", 0, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],  # P is required for loop graphs
-            DstRow.U: [],
         }
         interfaces = json_cgraph_to_interfaces(jcg)
 
@@ -393,7 +387,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
 
     def test_json_cgraph_to_interfaces_empty(self) -> None:
         """Test conversion of empty graph."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = {DstRow.O: []}
         interfaces = json_cgraph_to_interfaces(jcg)
 
         self.assertIn(SrcIfKey.IS, interfaces)
@@ -405,7 +399,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         jcg = {
             DstRow.A: [["I", 2, "int"], ["I", 0, "str"], ["I", 1, "bool"]],
             DstRow.O: [["A", 0, "str"]],
-            DstRow.U: [],
         }
         interfaces = json_cgraph_to_interfaces(jcg)
 
@@ -420,7 +413,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["I", 0, "str"]],  # Same source, different type
             DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
         }
 
         with self.assertRaises(ValueError) as context:
@@ -429,7 +421,7 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
 
     def test_json_cgraph_to_interfaces_with_debug_logging(self) -> None:
         """Test that validation is called when DEBUG logging is enabled."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
 
         with patch.object(_logger, "isEnabledFor", return_value=True):
             # Should not raise - valid graph
@@ -442,7 +434,7 @@ class TestCGraphType(unittest.TestCase):
 
     def test_c_graph_type_debug_conditional_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for conditional without A (DEBUG mode)."""
-        jcg = {DstRow.F: [["I", 0, "bool"]], DstRow.O: [], DstRow.P: [], DstRow.U: []}
+        jcg = {DstRow.F: [["I", 0, "bool"]], DstRow.O: [], DstRow.P: []}
 
         with patch.object(_logger, "isEnabledFor", return_value=True):
             with self.assertRaises(ValueError) as context:
@@ -451,7 +443,7 @@ class TestCGraphType(unittest.TestCase):
 
     def test_c_graph_type_debug_loop_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for loop without A (DEBUG mode)."""
-        jcg = {DstRow.L: [["I", 0, "list"]], DstRow.O: [], DstRow.P: [], DstRow.U: []}
+        jcg = {DstRow.L: [["I", 0, "list"]], DstRow.O: [], DstRow.P: []}
 
         with patch.object(_logger, "isEnabledFor", return_value=True):
             with self.assertRaises(ValueError) as context:
@@ -460,7 +452,7 @@ class TestCGraphType(unittest.TestCase):
 
     def test_c_graph_type_debug_standard_missing_a(self) -> None:
         """Test c_graph_type raises ValueError for standard without A (DEBUG mode)."""
-        jcg = {DstRow.B: [["I", 0, "int"]], DstRow.O: [], DstRow.U: []}
+        jcg = {DstRow.B: [["I", 0, "int"]], DstRow.O: []}
 
         with patch.object(_logger, "isEnabledFor", return_value=True):
             with self.assertRaises(ValueError) as context:
@@ -469,7 +461,7 @@ class TestCGraphType(unittest.TestCase):
 
     def test_c_graph_type_empty(self) -> None:
         """Test identification of EMPTY graph type."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = {DstRow.O: []}
         self.assertEqual(c_graph_type(jcg), CGraphType.EMPTY)
 
     def test_c_graph_type_for_loop(self) -> None:
@@ -479,7 +471,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["L", 0, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.FOR_LOOP)
 
@@ -490,7 +481,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
 
@@ -502,7 +492,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.B: [["I", 2, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["B", 0, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN_ELSE)
 
@@ -513,7 +502,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["L", 0, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
         with patch.object(_logger, "isEnabledFor", return_value=False):
             self.assertEqual(c_graph_type(jcg), CGraphType.FOR_LOOP)
@@ -525,7 +513,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
         with patch.object(_logger, "isEnabledFor", return_value=False):
             self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
@@ -536,14 +523,13 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
         }
         with patch.object(_logger, "isEnabledFor", return_value=False):
             self.assertEqual(c_graph_type(jcg), CGraphType.STANDARD)
 
     def test_c_graph_type_primitive(self) -> None:
         """Test identification of PRIMITIVE graph type."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         self.assertEqual(c_graph_type(jcg), CGraphType.PRIMITIVE)
 
     def test_c_graph_type_standard(self) -> None:
@@ -552,7 +538,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["A", 0, "int"]],
             DstRow.O: [["B", 0, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.STANDARD)
 
@@ -562,13 +547,12 @@ class TestCGraphType(unittest.TestCase):
             DstRow.W: [["A", 0, "bool"]],
             DstRow.O: [["A", 1, "int"]],
             DstRow.P: [["I", 0, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.WHILE_LOOP)
 
     def test_c_graph_type_with_cgraph_abc(self) -> None:
         """Test c_graph_type with CGraphABC instance."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         interfaces = json_cgraph_to_interfaces(jcg)
         cgraph = CGraph(interfaces)
 

@@ -158,7 +158,7 @@ def sfss(rtctxt: RuntimeContext, egc: EGCode) -> EGCode:
 
 def stabilize_gc(rtctxt: RuntimeContext, egc: EGCode) -> GGCode:
     """Stabilize an EGCode to a GGCode raising an SSE as necessary."""
-
+    # pylint: disable=unidiomatic-typecheck
     # Walk the GC structure to ensure all sub-GC's are stable
     # GGCodes are guaranteed stable so only EGCodes need testing
     parent = rtctxt.parent
@@ -169,9 +169,9 @@ def stabilize_gc(rtctxt: RuntimeContext, egc: EGCode) -> GGCode:
         assert isinstance(current_egc["cgraph"], CGraph), "EGCode cgraph is not a CGraph"
         gca = current_egc["gca"]
         gcb = current_egc["gcb"]
-        if not isinstance(gca, GGCode):
+        if type(gca) is EGCode:
             discovery_queue.append((current_egc, gca))
-        if not isinstance(gcb, GGCode):
+        if type(gcb) is EGCode:
             discovery_queue.append((current_egc, gcb))
         if not current_egc["cgraph"].is_stable():
             stabilization_stack.append((current_parent, current_egc))
@@ -202,11 +202,11 @@ def stabilize_gc(rtctxt: RuntimeContext, egc: EGCode) -> GGCode:
         current_parent, current_egc = discovery_queue.pop(0)
         gca = current_egc["gca"]
         gcb = current_egc["gcb"]
-        if not isinstance(gca, GGCode):
+        if type(gca) is EGCode:
             item = (current_egc, gca)
             discovery_queue.append(item)
             stable_queue.append(item)
-        if not isinstance(gcb, GGCode):
+        if type(gcb) is EGCode:
             item = (current_egc, gcb)
             discovery_queue.append(item)
             stable_queue.append(item)

@@ -128,6 +128,28 @@ class ExecutionContext:
         # Used to save trying to re-process the same codon e.g. imports.
         self._codon_register: set[bytes] = set()
 
+    def get_dependent_nodes(
+        self, connections: list[CodeConnection], rtc: list[CodeConnection], root: GCNode
+    ) -> set[GCNode]:
+        """Get all nodes that are dependencies for the given connections."""
+        nodes = set()
+        work_list = [c.src.node for c in connections if c.src.node is not root]
+        visited = set()
+
+        while work_list:
+            node = work_list.pop()
+            if node in visited or node is root:
+                continue
+            visited.add(node)
+            nodes.add(node)
+
+            # Add this node's dependencies
+            for conn in rtc:
+                if conn.dst.node is node and conn.src.node is not root:
+                    work_list.append(conn.src.node)
+
+        return nodes
+
     def _generate_conditional_function_code(
         self, root: GCNode, fwconfig: FWConfig, ovns: list[str]
     ) -> list[str]:
@@ -171,32 +193,15 @@ class ExecutionContext:
         # - SHARED path (nodes used by both or for condition)
 
         # Build dependency graph: which nodes feed into Row O and Row P
-        def get_dependent_nodes(connections: list[CodeConnection]) -> set[GCNode]:
-            """Get all nodes that are dependencies for the given connections."""
-            nodes = set()
-            work_list = [c.src.node for c in connections if c.src.node is not root]
-            visited = set()
 
-            while work_list:
-                node = work_list.pop()
-                if node in visited or node is root:
-                    continue
-                visited.add(node)
-                nodes.add(node)
-
-                # Add this node's dependencies
-                for conn in rtc:
-                    if conn.dst.node is node and conn.src.node is not root:
-                        work_list.append(conn.src.node)
-
-            return nodes
-
-        o_path_nodes = get_dependent_nodes(o_connections)
-        p_path_nodes = get_dependent_nodes(p_connections)
+        o_path_nodes = self.get_dependent_nodes(o_connections, rtc, root)
+        p_path_nodes = self.get_dependent_nodes(p_connections, rtc, root)
 
         # Condition node dependencies should execute before the if
         condition_deps = (
-            get_dependent_nodes([condition_conn]) if condition_conn.src.node is not root else set()
+            self.get_dependent_nodes([condition_conn], rtc, root)
+            if condition_conn.src.node is not root
+            else set()
         )
 
         # Step 4: Generate code before the conditional
@@ -572,7 +577,7 @@ class ExecutionContext:
         node: GCNode = root  # This is the root of the graph for the GC function to be written
 
         # Debugging
-        # _logger.debug("Creating code graph for: %s", node)
+        _logger.debug("Creating code graph for: %s", node)
 
         # Create initial connections for Row O (always present)
         connection_stack: list[CodeConnection] = code_connection_from_iface(node, DstRow.O)
@@ -592,6 +597,8 @@ class ExecutionContext:
                 connection_stack.extend(code_connection_from_iface(node, DstRow.S))
                 connection_stack.extend(code_connection_from_iface(node, DstRow.T))
                 connection_stack.extend(code_connection_from_iface(node, DstRow.X))
+            else:
+                raise ValueError(f"Invalid loop graph type: {node.graph_type}")
 
         terminal_connections: list[CodeConnection] = node.terminal_connections
 
@@ -891,6 +898,7 @@ class ExecutionContext:
         else:
             for ivn, idx in ((c.var_name, c.dst.idx) for c in rtc if c.dst.node is node):
                 ivns[idx] = ivn
+            assert all(ivn != NULL_STR for ivn in ivns), "All input variable names must be defined."
 
         # Is this node a codon?
         assignment = ", ".join(ovns) + " = "

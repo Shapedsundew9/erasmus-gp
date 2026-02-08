@@ -69,6 +69,18 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
 
         self.set_members(gcabc if gcabc is not None else {})
 
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Intercept updates to GCA and GCB to maintain reference integrity."""
+        if key in ("gca", "gcb"):
+            old_gc = self.get(key)
+            if isinstance(old_gc, GCABC) and not old_gc.get("immutable", False):
+                # Remove old reference if it exists
+                del old_gc["references"][(self["uid"], key)]
+            if isinstance(value, GCABC) and not value.get("immutable", False):
+                # Set new reference if the new value is a GCABC
+                value["references"][(self["uid"], key)] = self
+        super().__setitem__(key, value)
+
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the attributes of the EGC.
 
@@ -88,12 +100,16 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         elif isinstance(cgraph, FrozenCGraphABC):
             # EGDict must be mutable, so convert FrozenCGraph to CGraph
             self["cgraph"] = CGraph(cgraph)
-        else:
+        elif isinstance(cgraph, dict):
             # json_cgraph_to_interfaces may return a type not statically recognized
             # as valid input for CGraph,
             # but runtime checks ensure correctness; type ignore is required
             # for pyright/mypy compatibility.
             self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))
+        else:
+            raise ValueError(
+                "Invalid type for cgraph: must be CGraphABC, FrozenCGraphABC, or JSONCGraph"
+            )
 
         # GCA
         # NULL signatures are now represented as None for storage and computation efficiency.
@@ -102,8 +118,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tgca = bytes.fromhex(tgca)
         if isinstance(tgca, bytes):
             self["gca"] = signature_store[tgca]
-        else:
+        elif tgca is None or isinstance(tgca, GCABC):
             self["gca"] = tgca
+        else:
+            raise ValueError("Invalid type for gca: must be str, bytes, GCABC, or None")
 
         # GCB
         tgcb: str | bytes | GCABC | None = gcabc.get("gcb")
@@ -111,8 +129,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tgcb = bytes.fromhex(tgcb)
         if isinstance(tgcb, bytes):
             self["gcb"] = signature_store[tgcb]
-        else:
+        elif tgcb is None or isinstance(tgcb, GCABC):
             self["gcb"] = tgcb
+        else:
+            raise ValueError("Invalid type for gcb: must be str, bytes, GCABC, or None")
 
         # Ancestor A
         taa: str | bytes | GCABC | None = gcabc.get("ancestora")
@@ -120,8 +140,14 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             taa = bytes.fromhex(taa)
         if isinstance(taa, bytes):
             self["ancestora"] = signature_store[taa]
-        else:
+        elif taa is None or (isinstance(taa, GCABC) and taa.get("immutable", False)):
+            # None or a GGCode
             self["ancestora"] = taa
+        elif isinstance(taa, GCABC) and not taa.get("immutable", False):
+            # Ancestor A is transient. We want the last persisted ancestor.
+            self["ancestora"] = taa["ancestora"]
+        else:
+            raise ValueError("Invalid type for ancestora: must be str, bytes, GCABC, or None")
 
         # Ancestor B
         tab: str | bytes | GCABC | None = gcabc.get("ancestorb")
@@ -129,8 +155,14 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tab = bytes.fromhex(tab)
         if isinstance(tab, bytes):
             self["ancestorb"] = signature_store[tab]
-        else:
+        elif tab is None or (isinstance(tab, GCABC) and tab.get("immutable", False)):
+            # None or a GGCode
             self["ancestorb"] = tab
+        elif isinstance(tab, GCABC) and not tab.get("immutable", False):
+            # Ancestor B is transient. We want the last persisted ancestor.
+            self["ancestorb"] = tab["ancestorb"]
+        else:
+            raise ValueError("Invalid type for ancestorb: must be str, bytes, GCABC, or None")
 
         # Physical Genetic Code
         tpgc: str | bytes | GCABC | None = gcabc.get("pgc")
@@ -138,8 +170,12 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tpgc = bytes.fromhex(tpgc)
         if isinstance(tpgc, bytes):
             self["pgc"] = signature_store[tpgc]
-        else:
+        elif tpgc is None or (isinstance(tpgc, GCABC) and tpgc.get("immutable", False)):
+            # None or a GGCode
             self["pgc"] = tpgc
+        else:
+            # Note that the PGC cannot be an EGCode as it is not executable
+            raise ValueError("Invalid type for pgc: must be str, bytes, GGCode, or None")
 
         # Created Timestamp
         tmp = gcabc.get("created", datetime.now(UTC))
@@ -165,6 +201,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
     def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         # Need to call consistency down both MRO paths.
+        self["cgraph"].consistency()
         CacheableDict.consistency(self)
 
     def __eq__(self, other: object) -> bool:
