@@ -27,7 +27,9 @@ def insert(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, case: InsertionCase 
 
     See docs/insertion.md for details.
     tgc is modified in place (i.e. tgc is rgc after insertion).
-    All connections are preserved except the connections
+    rgc (modified tgc) is functionally identical to tgc including identical inputs and outputs
+    but with igc inserted above the specified destination interface. NOTE: rgc is not necessarily
+    stable.
 
     Arguments:
         rtctxt: The runtime context containing the gene pool and other necessary information.

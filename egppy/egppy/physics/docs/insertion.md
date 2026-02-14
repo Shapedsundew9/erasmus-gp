@@ -126,6 +126,8 @@ class GCB modified
 
 ## Restructuring
 
+Restructuring GC's produces a resultant GC that is functionally identical to the target GC, including identical interfaces. However it does not guarantee a stable GC.
+
 ### Case 3
 
 Insert IGC above A
