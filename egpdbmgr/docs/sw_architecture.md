@@ -14,189 +14,161 @@ flowchart TD
     dbm1["EGP DB Manager"]
     bu1[/"Archive Files"/]
 
-    db1 <--> dbm1
-    dbm1 <--> db2
-    dbm1 <--> bu1
+    db1 <-->|Implemented| dbm1
+    dbm1 <-.->|Planned| db2
+    dbm1 <-.->|Planned| bu1
 ```
 
-The EGP DB Manager is an independent process (container) that manages a postgres database for a storage role in EGP. The storage role (Local, Gene Pool, Genomic Library, Archive) is defined by the DBM configuration upon creation. The DBM manages its database as a cache to the upstream databases but also takes care of low value data archiving to reduce noise and data volume at the higer layers (upstream).
+The EGP DB Manager is an independent process (container) that manages a PostgreSQL database for a storage role in EGP. The storage role (Local, Gene Pool, Genomic Library, Archive) is defined by the `DBManagerConfig` upon creation via the `TableTypes` enum.
 
-The database being managed by the DBM is called the 'Managed' database. It is initially populated with data from one or more upstream databases or from local static file storage in the event that the upstream storage is unavailible or not configured. Low value data, based on configuration rules, is periodically purged to the archive.
+### Current Implementation
 
-The Postgres DB should be more performant that the archive DB and is typically configured with more indexes & other parameters for speed. The Postgres Archive DB is used as a slower store of less frequently used GC's when the main DB reaches its size limit. When the Archive DB reaches its size limit unused GC's (the entire gene line of a poorly performing GC) are placed in to encrypted compressed database back up files.
+The DB Manager currently supports:
+
+- **Configuration** — `DBManagerConfig` with validated properties for databases, managed table type, upstream references, and archive database name. Configurations are loaded from signed JSON files.
+- **Table Creation** — Three tables are created during initialization:
+  - **Genetic Code Table** — Schema derived from `GGC_KVT` with encode/decode conversions for `cgraph`, `properties`, and signature fields.
+  - **Meta Table** — Stores `created` (timestamp) and `creator` (UUID) records.
+  - **Sources Table** — Tracks source file provenance: `source_path`, `creator_uuid`, `timestamp`, `file_hash`, `signature`, `algorithm`.
+- **CLI Entry Point** — `main.py` with argument parsing for config file, default config, gallery display.
+
+### Planned Features (Not Yet Implemented)
+
+The following are design goals, not yet reflected in code:
+
+- Syncing the DB back to higher layer databases (micro-biome → biome etc.).
+- Pulling data from higher layer databases (biome → micro-biome etc.).
+- DB backup and restore.
+- DB migration (e.g. from one version to another).
+- Archive process (purging low-value GC data to archive DB / files).
+- REST API, analytics, and health monitoring.
+- Universal Archive file management.
 
 ## Configuration
 
-The Database Manager is configured.
+The `DBManagerConfig` class (`configuration.py`) provides validated configuration with the following properties:
 
-## Initialisation
+| Property | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `str` | `"DBManagerConfig"` | User-defined name (1–64 chars). |
+| `databases` | `dict[str, DatabaseConfig]` | `{"erasmus_db": DatabaseConfig()}` | Database server definitions. |
+| `managed_db` | `str` | `"erasmus_db"` | Key into `databases` for the managed DB. |
+| `managed_type` | `TableTypes` | `POOL` | Table type: LOCAL, POOL, LIBRARY, or ARCHIVE. |
+| `upstream_dbs` | `list[str]` | `[]` | Keys into `databases` for upstream DBs. |
+| `upstream_type` | `TableTypes` | `LIBRARY` | Table type for upstream databases. |
+| `upstream_url` | `str \| None` | `None` | Optional URL for remote DB file download. |
+| `archive_db` | `str` | `"erasmus_archive_db"` | Archive database name. |
 
-When the DBM intializes it will create or migrate the DB's as required and then respawn. This is to ensure any potential additional memory claim by these one-off processes are freed to the system before long term operation commences.
+Cross-field validation in `verify()` ensures `managed_db` and all `upstream_dbs` entries exist as keys in `databases`.
+
+## Initialization
+
+The current initialization flow:
 
 ```mermaid
 ---
-title: EGP DBM Initialisation
+title: EGP DBM Initialization (Implemented)
 ---
 flowchart TD
-    init1[Parse Configuration]
-    init2[DB Discovery]
-    init3{DB Exists}
-    crt1[Create DB's]
-    crt2{Higher Layer
-        DB Exists?}
-    crt3[Populate from
-        Higher Layer]
-    crt4{Remote DB file exists?}
-    crt5[Pull remote DB file]
-    crt6[Validate file signature]
-    crt7[Populate from file]
-    crt8[Validate installation signature]
-    crt9[Populate from
-        Installation]
-    init4{Migration
-        required?}
-    init5[Run Archive
-        Process once]
-    init6[Lock DBs]
-    init7[Backup DBs]
-    init8[Migrate
-        1 version]
-    init9{Migration
-        required ?}
-    init10[Start
-        operation]
-    end1[Shutdown &
-        respawn]
-    st1[Sync to HL
-        Process]
-    st2[Archive
-        Process]
-    st3[REST API
-        Process]
-    st4[Analytics
-        Process]
+    init1[Parse CLI Arguments]
+    init2{Config file
+        provided?}
+    init3[Load signed JSON config]
+    init4[Use default config]
+    init5[Create DBManager]
+    init6[Create GC Table]
+    init7[Create Meta Table]
+    init8[Create Sources Table]
+    init9[Insert initial
+        meta record]
+    init10[Log completion]
 
     init1 --> init2
-    init2 --> init3
-    init3 --> |Yes|init4
-    init3 --> |No|crt1
-    init4 --> |No|init5
-    init5 --> init10
-    init4 --> |Yes|init6
-    init6 --> init7
-    init7 --> init8
-    init8 --> init9
-    init9 --> |Yes|init8
-    init9 --> |No|end1
-    init10 --> st1
-    init10 --> st2
-    init10 --> st3
-    init10 --> st4
-
-    crt1 --> crt2
-    crt2 --> |Yes|crt3
-    crt2 --> |No|crt4
-    crt3 --> end1
-    crt4 --> |Yes|crt5
-    crt4 --> |No|crt8
-    crt5 --> crt6
-    crt6 --> crt7
-    crt7 --> end1
-    crt8 --> crt9
-    crt9 --> end1
-
+    init2 -->|Yes| init3
+    init2 -->|No| init4
+    init3 --> init5
+    init4 --> init5
+    init5 --> init6
+    init5 --> init7
+    init5 --> init8
+    init7 --> init9
+    init9 --> init10
 ```
 
-## Operation
-
-### Archive Process
+## Module Structure
 
 ```mermaid
 ---
-title: EGP DBM Archive Process
+title: egpdbmgr Module Dependencies
 ---
-flowchart TD
-    arc1{DB Size over
-        limit?}
-    arc2[Wait N
-        seconds]
-    arc3[Identify
-        Candidates]
-    arc4[Sync to HL
-        on policy]
-    arc5[Move to
-        archive]
-    arc6{Archive over
-        limit?}
-    arc7[Sync to HL
-        on policy]
-    arc8[Move to
-        file]
-        
-    arc1 --> |No|arc2
-    arc2 --> arc1
-    arc1 --> |Yes|arc3
-    arc3 --> arc4
-    arc4 --> arc5
-    arc5 --> arc6
-    arc6 --> |No|arc1
-    arc6 --> |Yes|arc7
-    arc7 --> arc8
-    arc8 --> arc1
+classDiagram
+    class DBManagerConfig {
+        +name: str
+        +databases: dict
+        +managed_db: str
+        +managed_type: TableTypes
+        +upstream_dbs: list
+        +upstream_type: TableTypes
+        +upstream_url: str | None
+        +archive_db: str
+        +dump_config()
+        +load_config(config_file)
+        +to_json()
+        +verify()
+    }
+
+    class DBManager {
+        +config: DBManagerConfig
+        +managed_gc_table: Table
+        +managed_gc_meta_table: Table
+        +managed_sources_table: Table
+        +create_managed_table()
+        +create_managed_meta_table()
+        +create_managed_sources_table()
+        +operations()
+        +prepare_schemas()
+    }
+
+    class TableTypes {
+        <<enumeration>>
+        LOCAL
+        POOL
+        LIBRARY
+        ARCHIVE
+    }
+
+    DBManager --> DBManagerConfig
+    DBManagerConfig --> TableTypes
+    DBManagerConfig --|> Validator
+    DBManagerConfig --|> DictTypeAccessor
+    DBManagerConfig --|> CommonObj
 ```
 
-### Sync to Higher Layer Process
+## Database Auxiliary Tables
 
-### REST API Process
+Besides the GC's in the main database table, the DBM creates and manages auxiliary data tables.
 
-### Analytics Process
+### Meta Table (Implemented)
 
-### File Archive
+| Column | DB Type | Description |
+| --- | --- | --- |
+| `created` | `TIMESTAMP` | When the database was created. |
+| `creator` | `UUID` | UUID of the creator. |
 
-The file archive created from the EGP DBM is an unordered, size limited, encrypted, signed, binary, compressed file that is
-background transfered to the Universal Archive Queue (a remote process that queues archive files for indexed storage).
+### Sources Table (Implemented)
 
-## The Universal Archive
+| Column | DB Type | Description |
+| --- | --- | --- |
+| `source_path` | `VARCHAR` | Path to the source file. |
+| `creator_uuid` | `VARCHAR` | UUID of the source creator. |
+| `timestamp` | `VARCHAR` | Timestamp of the source. |
+| `file_hash` | `VARCHAR` | Hash of the source file. |
+| `signature` | `VARCHAR` | Cryptographic signature. |
+| `algorithm` | `VARCHAR` | Signing algorithm used. |
 
-The Universal Archive, UA, is a centralized archive of GC's stored in files. The archive files are binary, in order, fixed size
-records keyed by the GC signature. Archive files are required to be limited to 2**24 entries. When an archive file reaches its
-entry limit it splits into two files one covering the lower signature range and the other the upper signature range. This means
-the two files are unlikely to have the same number of entries but should be similar. e.g. The first archive files contains
-signatures in the range 0x000...000 to 0xFFF...FFF. When it reaches its size limit it splits into two archives one holding
-signatures in the range 0x000...000 to 0x7FF...FFF and the other 0x800...000 to 0xFFF...FFF. By convention archive files are named
-with the lower bound significant hexadecimal characters followed by a hyphen and the upper bound significant hexadecimal characters
-with the .bin extension e.g.
+### Planned Auxiliary Tables
 
-- 0-F.bin for the 1st archive file covering all signatures (0x000...000 to 0xFFF...FFF).
-- 0-7.bin and 8-F.bin when the 1st archive file exceeds 2**24 entries and is split into two.
-- 107-10F.bin for the signature range 0x10700...000 to 0x10FFF...FFF
+The following are design goals for future implementation:
 
-All files are signed but not encrypted to enable storage based direct record access.
-
-## Database Auxillary Tables
-
-Besides the GC's in the main database table the DBM creates and manages some auxillary data tables to performance and analytics.
-
-### DB Metadata
-
-- UUID
-- Version
-- Created time
-- Migration list (to version and timestamp)
-- Host list (more than one if the DB moved hosts)
-- Creator UUID
-- Archive information
-- HL Sync information
-- Worker Session information
-
-### Timeseries Analytics
-
-- DB Size in GC's
-- Number GC's archived
-- Number GC's updated
-- Number GC's sync'd
-- Number problems
-- Number populations
-- Fitness distributions
-
-etc.
+- **DB Metadata** — UUID, version, migration history, host list, archive/sync info.
+- **Timeseries Analytics** — DB size, archived/updated/synced GC counts, fitness distributions.

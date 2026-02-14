@@ -1,9 +1,10 @@
-"""Load the configuration and validate it."""
+"""Load the DB Manager configuration and validate it."""
 
 from enum import StrEnum
+from logging import DEBUG
 from typing import Any, cast
 
-from egpcommon.common import DictTypeAccessor
+from egpcommon.common import DictTypeAccessor, debug_exceptions
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.security import dump_signed_json, load_signed_json
@@ -35,6 +36,17 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
     The to_json() method returns the JSON types.
     """
 
+    __slots__ = (
+        "_archive_db",
+        "_databases",
+        "_managed_db",
+        "_managed_type",
+        "_name",
+        "_upstream_dbs",
+        "_upstream_type",
+        "_upstream_url",
+    )
+
     def __init__(
         self,
         name: str = "DBManagerConfig",
@@ -59,7 +71,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
         upstream_url: The remote database URL.
         archive_db: The archive database name.
         """
-        setattr(self, "_name", name)
+        setattr(self, "name", name)
         setattr(self, "databases", databases if databases is not None else _DEFAULT_DBS)
         setattr(self, "managed_db", managed_db)
         setattr(self, "managed_type", managed_type)
@@ -67,6 +79,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
         setattr(self, "upstream_type", upstream_type)
         setattr(self, "upstream_url", upstream_url)
         setattr(self, "archive_db", archive_db)
+        self.verify()
 
     @property
     def archive_db(self) -> str:
@@ -97,7 +110,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
                 raise ValueError(f"databases key must be a simple string, but is {key}")
             if isinstance(val, dict):
                 value[key] = DatabaseConfig(**val)
-            if not isinstance(val, DatabaseConfig):
+            elif not isinstance(val, DatabaseConfig):
                 raise ValueError("databases value must be a DatabaseConfig")
         self._databases = cast(dict[str, DatabaseConfig], value)
 
@@ -107,9 +120,21 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
         print("Configuration written to ./config.json")
 
     def load_config(self, config_file: str) -> None:
-        """Load the configuration from disk."""
+        """Load the configuration from disk.
+
+        Args
+        ----
+        config_file: Path to a signed JSON configuration file.
+
+        Raises
+        ------
+        TypeError: If the loaded configuration is not a dictionary.
+        KeyError: If a required configuration key is missing.
+        ValueError: If a configuration value fails validation.
+        """
         config = load_signed_json(config_file)
-        assert isinstance(config, dict), "Configuration must be a dictionary"
+        if not isinstance(config, dict):
+            raise TypeError(f"Configuration must be a dictionary, got {type(config)}")
         self.name = config["name"]
         self.databases = {k: DatabaseConfig(**v) for k, v in config["databases"].items()}
         self.managed_db = config["managed_db"]
@@ -117,6 +142,7 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
         self.upstream_dbs = config["upstream_dbs"]
         self.upstream_type = config["upstream_type"]
         self.archive_db = config["archive_db"]
+        self.verify()
 
     @property
     def managed_db(self) -> str:
@@ -215,3 +241,44 @@ class DBManagerConfig(Validator, DictTypeAccessor, CommonObj):
             if not self._is_url("upstream_url", value):
                 raise ValueError(f"upstream_url must be a valid URL, but is {value}")
         self._upstream_url = value
+
+    def verify(self) -> None:
+        """Verify cross-field constraints of the configuration.
+
+        Checks that managed_db references an existing database key and
+        that all upstream_dbs reference existing database keys.
+
+        Raises
+        ------
+        ValueError: If managed_db is not a key in databases.
+        ValueError: If any upstream_dbs entry is not a key in databases.
+        """
+        if self._managed_db not in self._databases:
+            raise ValueError(
+                f"managed_db '{self._managed_db}' must be a key in databases "
+                f"{list(self._databases.keys())}"
+            )
+        for db_name in self._upstream_dbs:
+            if db_name not in self._databases:
+                raise ValueError(
+                    f"upstream_dbs entry '{db_name}' must be a key in databases "
+                    f"{list(self._databases.keys())}"
+                )
+        if _logger.isEnabledFor(level=DEBUG):
+            assert isinstance(self._name, str), debug_exceptions.DebugTypeError(
+                f"_name must be str, got {type(self._name)}"
+            )
+            assert isinstance(self._databases, dict), debug_exceptions.DebugTypeError(
+                f"_databases must be dict, got {type(self._databases)}"
+            )
+            for key, val in self._databases.items():
+                assert isinstance(key, str), debug_exceptions.DebugTypeError(
+                    f"databases key must be str, got {type(key)}"
+                )
+                assert isinstance(val, DatabaseConfig), debug_exceptions.DebugTypeError(
+                    f"databases value must be DatabaseConfig, got {type(val)}"
+                )
+            assert isinstance(self._upstream_dbs, list), debug_exceptions.DebugTypeError(
+                f"_upstream_dbs must be list, got {type(self._upstream_dbs)}"
+            )
+        super().verify()
