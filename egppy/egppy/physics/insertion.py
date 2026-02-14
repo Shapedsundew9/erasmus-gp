@@ -78,10 +78,10 @@ def insert_above_a(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> EGCode:
     fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.AS], DstRow.O).clr_refs()
     tgc["gca"] = fgc
 
-    # FGC's GCB output interface (BS) has the same types as FGC's output (OD)
-    # since both come from tgc's old GCA output. This is a guaranteed type match
-    # in the correct topology (GCB output → FGC output).
-    # IS → AD and AS → BD are left for stabilization as igc's types may differ.
+    # We know FGC's input interface is the same as TGC's BD interface
+    # and FGC's output interface is the same as TGC's BS interface so no need
+    # to check those connections.
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.BD], check=False)
     direct_connect_interfaces(fgc_cgraph[SrcIfKey.BS], fgc_cgraph[DstIfKey.OD], check=False)
     return tgc
 
@@ -109,10 +109,10 @@ def insert_above_b(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> EGCode:
     fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.BS], DstRow.O).clr_refs()
     tgc["gcb"] = fgc
 
-    # FGC's GCB output interface (BS) has the same types as FGC's output (OD)
-    # since both come from tgc's old GCB output. This is a guaranteed type match
-    # in the correct topology (GCB output → FGC output).
-    # IS → AD and AS → BD are left for stabilization as igc's types may differ.
+    # We know FGC's input interface is the same as TGC's BD interface
+    # and FGC's output interface is the same as TGC's BS interface so no need
+    # to check those connections.
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.BD], check=False)
     direct_connect_interfaces(fgc_cgraph[SrcIfKey.BS], fgc_cgraph[DstIfKey.OD], check=False)
     return tgc
 
@@ -131,16 +131,16 @@ def insert_above_o(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> EGCode:
     Returns:
         The modified tgc (rgc).
     """
-    fgc = new_egc(rtctxt, gca=tgc["gcb"], gcb=igc, ancestora=tgc)
+    fgc = new_egc(rtctxt, gca=igc, gcb=tgc["gcb"], ancestora=tgc)
     fgc_cgraph = fgc["cgraph"]
     tgc_cgraph = tgc["cgraph"]
-    fgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.BD], SrcRow.I).clr_refs()
+    fgc_cgraph[SrcIfKey.IS] = Interface(tgc_cgraph[DstIfKey.OD], SrcRow.I).clr_refs()
     fgc_cgraph[DstIfKey.OD] = Interface(tgc_cgraph[SrcIfKey.BS], DstRow.O).clr_refs()
     tgc["gcb"] = fgc
 
-    # FGC's input interface (IS) has the same types as GCA's input (AD)
-    # since both describe tgc's old GCB input. This is a guaranteed type match
-    # in the correct topology (FGC input → GCA input).
-    # AS → BD and BS → OD are left for stabilization as igc's types may differ.
+    # We know FGC's input interface is the same as TGC's BD interface
+    # and FGC's output interface is the same as TGC's BS interface so no need
+    # to check those connections.
     direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.AD], check=False)
+    direct_connect_interfaces(fgc_cgraph[SrcIfKey.AS], fgc_cgraph[DstIfKey.OD], check=False)
     return tgc
