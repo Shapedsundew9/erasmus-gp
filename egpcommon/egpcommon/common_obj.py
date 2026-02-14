@@ -1,9 +1,4 @@
-"""Common Object  Class."""
-
-from egpcommon.egp_log import Logger, egp_logger
-
-# Standard EGP logging pattern
-_logger: Logger = egp_logger(name=__name__)
+"""Common Object Class."""
 
 
 class CommonObj:
@@ -20,7 +15,7 @@ class CommonObj:
 
     __slots__ = tuple()
 
-    def consistency(self):
+    def consistency(self) -> None:
         """Check the consistency of the CommonObj.
 
         The consistency() method is used to check the semantic of the CommonObj
@@ -42,7 +37,7 @@ class CommonObj:
         Note that the consistency() method is likely to significantly slow down the code.
         """
 
-    def verify(self):
+    def verify(self) -> None:
         """Verify the CommonObj object.
 
         The verify() method is used to check the CommonObj objects data for validity.

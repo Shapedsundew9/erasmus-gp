@@ -8,13 +8,13 @@ import time
 class Spinner:
     """A simple console spinner to indicate processing status."""
 
-    def __init__(self, message="Processing...") -> None:
-        self.spinner_chars = ["|", "/", "-", "\\"]
-        self.message = message
-        self.running = False
-        self.spinner_thread = None
+    def __init__(self, message: str = "Processing...") -> None:
+        self.spinner_chars: list[str] = ["|", "/", "-", "\\"]
+        self.message: str = message
+        self.running: bool = False
+        self.spinner_thread: threading.Thread | None = None
 
-    def _spin(self):
+    def _spin(self) -> None:
         """Internal method to run the spinner animation."""
         ii = 0
         while self.running:
@@ -24,7 +24,7 @@ class Spinner:
             ii += 1
             time.sleep(0.1)  # Control the speed of the spin
 
-    def start(self):
+    def start(self) -> None:
         """Starts the spinner animation in a separate thread."""
         self.running = True
         self.spinner_thread = threading.Thread(target=self._spin)

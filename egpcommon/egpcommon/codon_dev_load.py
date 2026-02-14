@@ -151,8 +151,7 @@ def find_codon_signature(
 
     Example:
         >>> sig = find_codon_signature(["int", "int"], ["int"], "add")
-        >>> if sig:
-        ...     print(f"Found signature: {sig.hex()}")
+        >>> print(f"Found signature: {sig.hex()}")
     """
     # Use default paths if none provided
     if file_paths is None:
@@ -167,13 +166,13 @@ def find_codon_signature(
     # Look up in cache
     signature = _codon_cache.get(cache_key)
 
-    if signature is None and _LOG_DEBUG:
-        _logger.debug(
-            "Codon not found: name=%s, inputs=%s, outputs=%s", name, input_types, output_types
-        )
+    if signature is None:
+        if _LOG_DEBUG:
+            _logger.debug(
+                "Codon not found: name=%s, inputs=%s, outputs=%s", name, input_types, output_types
+            )
         raise ValueError(
             f"Codon not found: name={name}, inputs={input_types}, outputs={output_types}"
         )
 
-    assert signature is not None  # For type checkers
     return signature

@@ -1,8 +1,9 @@
 """ObjectDeduplicator class.
 
-An object dict is a weak value dictionary of unique objects that
-may be referenced in many places. The intent is to reduce memory consumption when a
-lot of duplicate objects are used in a program that require access by a unique obj.
+Uses functools.lru_cache to deduplicate immutable objects that may be
+referenced in many places. The intent is to reduce memory consumption when
+many duplicate objects are used in a program. See
+``egpcommon/docs/object_deduplicator.md`` for the break-even analysis.
 """
 
 from collections.abc import Hashable
@@ -45,10 +46,10 @@ def format_deduplicator_info(
 class ObjectDeduplicator(CommonObj):
     """ObjectDeduplicator class.
 
-    There is no __setitem__ method. This is because addition to the dictionary must not overwrite
-    existing objects. The __setitem__ method would overwrite the existing object with the new
-    object. This is not the desired behavior. The add method must be used to add objects to the
-    dictionary returning the existing object if it already exists.
+    There is no ``__setitem__`` method. This is because addition to the dictionary
+    must not overwrite existing objects. Use ``__getitem__`` (i.e. ``dedup[obj]``)
+    to obtain the canonical instance: if the object already exists in the cache,
+    the cached instance is returned; otherwise the new object is stored and returned.
     """
 
     __slots__ = ("_objects", "name", "target_rate")
@@ -88,11 +89,11 @@ class ObjectDeduplicator(CommonObj):
         """Test if an object is in the deduplicator."""
         raise RuntimeError("ObjectDeduplicator does not support __contains__ operation.")
 
-    def __getitem__(self, obj: Hashable) -> Any:
-        """Get a object from the dict."""
+    def __getitem__(self, obj: Hashable) -> Hashable:
+        """Get a deduplicated object from the cache."""
         return self._objects(obj)
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> "ObjectDeduplicator":
         """Prevent duplicate deduplicators with the same name."""
         name = args[0] if args else kwargs.get("name")
         if name in deduplicators_registry:
@@ -104,7 +105,11 @@ class ObjectDeduplicator(CommonObj):
         self._objects.cache_clear()
 
     def info(self) -> str:
-        """Print cache hit and miss statistics."""
+        """Log and return cache hit and miss statistics.
+
+        Returns:
+            Formatted string containing cache statistics.
+        """
         info = self._objects.cache_info()
         info_str = format_deduplicator_info(
             self.name,

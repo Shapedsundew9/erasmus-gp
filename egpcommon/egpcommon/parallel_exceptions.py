@@ -5,10 +5,14 @@ while ensuring that previously created hierarchies are ignored during discovery.
 
 import sys
 import time
+import types
 from collections import deque
+from typing import Any
 
 
-def create_parallel_exceptions(prefix="Mutation", module_name=None, verbose=False):
+def create_parallel_exceptions(
+    prefix: str = "Mutation", module_name: str | None = None, verbose: bool = False
+) -> types.ModuleType:
     """
     Dynamically creates a parallel exception hierarchy with a configurable prefix.
 
@@ -61,18 +65,19 @@ def create_parallel_exceptions(prefix="Mutation", module_name=None, verbose=Fals
     base_exc_name = f"{prefix}Exception"
 
     class ParallelBaseException(Exception):
-        """
-        Base class for dynamically generated parallel exceptions.
-        """
+        """Base class for dynamically generated parallel exceptions."""
 
         # This "tag" is used to identify our custom hierarchies.
         _is_parallel_hierarchy = True
 
-        """Base class for dynamically generated parallel exceptions."""
-
-        def __init__(self, *args, original_exception=None, **kwargs):
+        def __init__(
+            self,
+            *args: Any,
+            original_exception: BaseException | None = None,
+            **kwargs: Any,
+        ) -> None:
             self.original_exception = original_exception
-            self.metadata = kwargs.pop("metadata", {})
+            self.metadata: dict[str, Any] = kwargs.pop("metadata", {})
             super().__init__(*args)
 
     ParallelBaseException.__name__ = base_exc_name

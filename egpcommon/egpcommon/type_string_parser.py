@@ -11,7 +11,7 @@ class TypeNode:
     It holds the type name conceptually, without requiring the actual Python class.
     """
 
-    def __init__(self, name: str, args: list[TypeNode] | None = None):
+    def __init__(self, name: str, args: list[TypeNode] | None = None) -> None:
         self.name = name
         self.args = args or []
 
@@ -33,7 +33,7 @@ class TypeNode:
         args_str = ", ".join(str(arg) for arg in self.args)
         return f"{self.name}[{args_str}]"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<TypeNode: {self.__str__()}>"
 
 

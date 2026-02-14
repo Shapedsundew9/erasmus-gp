@@ -1,4 +1,4 @@
-""" "This module defines the Genetic Code properties."""
+"""This module defines the Genetic Code properties."""
 
 from enum import IntEnum
 
@@ -241,7 +241,7 @@ PROPERTIES_CONFIG = {
         "default": False,
         "description": (
             "Runtime property. "
-            "The genetic code is eligible for result caching. e.g. with the functool `lru_cache`."
+            "The genetic code is eligible for result caching. e.g. with the functool `lru_cache`. "
             "Runtime profiling and resource availability will determine if it is actually cached."
         ),
     },
@@ -291,7 +291,8 @@ PropertiesBD.__doc__ = "BitDict for Genetic Code properties."
 
 def _verify(properties: BitDictABC) -> bool:
     """Verify the properties for consistency."""
-    assert isinstance(properties, BitDictABC)
+    if not isinstance(properties, BitDictABC):
+        raise TypeError(f"Expected BitDictABC, got {type(properties).__name__}")
 
     # Make sure the properties are valid first.
     if not properties.valid():

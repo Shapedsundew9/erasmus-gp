@@ -1,15 +1,16 @@
 """Common logging & integrity verification tools for EGP.
 
 The logging levels defined here are used throughout EGP modules. Please
-import them from this module rather than from `logging` directly to ensure
+import them from this module rather than from ``logging`` directly to ensure
 consistency. Make a note of the intended use of the custom logging levels
 defined here in the comments below.
 
 This module additionally defines integrity levels for use in data verification.
-Note that the integrity levels do not allow security to be turned off. The integrity
-of data outside of the trusted domain must always be verified. Integrity levels
-only control the depth and extent of verification performed with the aim of catching
-bugs in EGP itself early in the runtime to make issues easier to find and fix.
+Integrity levels control the depth and extent of verification performed with
+the aim of catching bugs in EGP itself early in the runtime to make issues
+easier to find and fix. Setting the level to ``DISABLED`` turns off all
+internal integrity checks but does *not* affect external-input validation,
+which is always performed.
 """
 
 # pylint: disable=unused-import
@@ -44,7 +45,7 @@ FLOW: int = 15
 addLevelName(FLOW, "FLOW")
 
 # Genetic code load/store, selection logging.
-GC_DEBUG: int = DEBUG
+GC_DEBUG: int = 9
 addLevelName(GC_DEBUG, "GC_DEBUG")
 
 # Object's below GC level (that make up GC's) level logging.
@@ -80,7 +81,7 @@ class Integrity:
     _level: int = int(getenv("ERASMUS_VERIFICATION_LEVEL", "0"))
 
     @classmethod
-    def set_level(cls, level: int):
+    def set_level(cls, level: int) -> None:
         """Set the integrity verification level."""
         cls._level = level
 

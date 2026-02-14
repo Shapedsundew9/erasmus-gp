@@ -29,10 +29,9 @@ class Validator:
     - value: The value of the attribute being validated.
 
     If a check fails a log message will be produced at level TRACE and include the attribute
-    name, the expected condition and the actual value. This log message shall be wrapped in an
-    if _logger.isEnabledFor(level) check to avoid the overhead of string formatting if
-    it is required. This allows the validation functions to be used in performance critical
-    code.
+    name, the expected condition and the actual value. The ``_logger.log(TRACE, ...)`` call
+    short-circuits string formatting when TRACE is not enabled.
+
     Validator is usually inherited with DictTypeAccessor to provide a simple get/set dictionary
     like access to an object's members with validation.
     """
@@ -71,7 +70,7 @@ class Validator:
 
     def _in_range(self, attr: str, value: int | float, minm: float, maxm: float) -> bool:
         """Check if the value is in a range."""
-        result = value >= minm and value <= maxm
+        result = minm <= value <= maxm
         if not result:
             _logger.log(TRACE, "%s must be between %s and %s but is %s", attr, minm, maxm, value)
         return result
@@ -152,11 +151,11 @@ class Validator:
             )
             return False
         if value.upper() in _RESERVED_FILE_NAMES:
-            name, ext = splitext(value)
-            if not ((name.upper() in _RESERVED_FILE_NAMES) and len(ext) > 0):
+            name, _ = splitext(value)
+            if name.upper() in _RESERVED_FILE_NAMES:
                 _logger.log(
                     TRACE,
-                    "%s not include a reserved name (%s): %s is not valid.",
+                    "%s must not include a reserved name (%s): %s is not valid.",
                     attr,
                     _RESERVED_FILE_NAMES,
                     value,
@@ -171,7 +170,7 @@ class Validator:
             _logger.log(TRACE, "%s must be a float but is %s", attr, type(value))
         return result
 
-    def _is_hash8(self, attr: str, value: Any, _assert: bool = True) -> bool:
+    def _is_hash8(self, attr: str, value: Any) -> bool:
         """Check if the value is a hash8."""
         result = self._is_bytes(attr, value) and len(value) == 8
         if not result:
@@ -332,10 +331,8 @@ class Validator:
         return result
 
     def _is_url(self, attr: str, value: str) -> bool:
-        """Validate a URL."""
+        """Validate a URL (HTTPS only)."""
         if not self._is_string(attr, value):
-            return False
-        if not self._is_regex(attr, value, self._url_regex):
             return False
         presult = urlparse(value)
         # Ensure the scheme is HTTPS and the network location is present
