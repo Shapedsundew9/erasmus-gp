@@ -1,6 +1,6 @@
 """Common functions for the egpcommon package."""
 
-from collections.abc import Sequence
+from collections.abc import Container, Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -181,13 +181,15 @@ def ensure_sorted_json_keys(file_path: Path | str) -> None:
         _logger.debug("Keys in %s are already sorted", path)
 
 
-class DictTypeAccessor:
+class DictTypeAccessor(Container):
     """Provide very simple get/set dictionary like access to an objects members."""
 
     __slots__ = tuple()
 
-    def __contains__(self, key: str) -> bool:
+    def __contains__(self, key: object) -> bool:
         """Check if the attribute exists."""
+        if not isinstance(key, str):
+            return False
         return hasattr(self, key)
 
     def __eq__(self, value: object) -> bool:

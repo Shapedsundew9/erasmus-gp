@@ -1,4 +1,8 @@
-"""Store typing definitions."""
+"""Database configuration classes for EGP.
+
+Defines the configuration schema for database connections (`DatabaseConfig`),
+table column definitions (`ColumnSchema`), and table-level settings (`TableConfig`).
+"""
 
 from os.path import expanduser, normpath
 from re import Pattern
@@ -21,6 +25,16 @@ class DatabaseConfig(Validator, DictTypeAccessor, CommonObj):
     Getting the values returns the internal types.
     The to_json() method returns the JSON types.
     """
+
+    __slots__ = (
+        "_dbname",
+        "_host",
+        "_maintenance_db",
+        "_password",
+        "_port",
+        "_retries",
+        "_user",
+    )
 
     # pylint: disable=fixme
     # TODO: Split dbname from postgres host
@@ -137,8 +151,14 @@ class DatabaseConfig(Validator, DictTypeAccessor, CommonObj):
             raise ValueError(f"retries must be between 1 and 10, but is {value}")
         self._retries = value
 
-    def to_json(self) -> dict:
-        """Get the configuration as a JSON object."""
+    def to_json(self) -> dict[str, str | int]:
+        """Get the configuration as a JSON-serializable dictionary.
+
+        Returns
+        -------
+        A dictionary of configuration values. Note: 'password' returns the
+        file path, not the actual password content.
+        """
         return {
             "dbname": self.dbname,
             "host": self.host,
@@ -334,8 +354,13 @@ class ColumnSchema(Validator, DictTypeAccessor, CommonObj):
             raise ValueError(f"primary_key must be a bool, but is {type(value)}")
         self._primary_key = value
 
-    def to_json(self) -> dict:
-        """Get the configuration as a JSON object."""
+    def to_json(self) -> dict[str, str | bool | None]:
+        """Get the column schema as a JSON-serializable dictionary.
+
+        Returns
+        -------
+        A dictionary of column schema values.
+        """
         return {
             "db_type": self.db_type,
             "volatile": self.volatile,
@@ -395,7 +420,27 @@ TableSchema = dict[str, ColumnSchema]
 
 
 class TableConfig(Validator, DictTypeAccessor, CommonObj):
-    """Table configuration."""
+    """Table configuration.
+
+    Defines the complete configuration for a database table including connection
+    details, schema definition, data population, and lifecycle management.
+    """
+
+    __slots__ = (
+        "_conversions",
+        "_create_db",
+        "_create_table",
+        "_data_file_folder",
+        "_data_files",
+        "_database",
+        "_delete_db",
+        "_delete_table",
+        "_ptr_map",
+        "_schema",
+        "_table",
+        "_wait_for_db",
+        "_wait_for_table",
+    )
 
     def __init__(
         self,
@@ -636,8 +681,13 @@ class TableConfig(Validator, DictTypeAccessor, CommonObj):
             raise ValueError(f"table length must be between 1 and 64, but is {len(value)}")
         self._table = value
 
-    def to_json(self) -> dict:
-        """Get the configuration as a JSON object."""
+    def to_json(self) -> dict[str, Any]:
+        """Get the table configuration as a JSON-serializable dictionary.
+
+        Returns
+        -------
+        A dictionary of table configuration values.
+        """
         return {
             "database": self.database.to_json(),
             "table": self.table,

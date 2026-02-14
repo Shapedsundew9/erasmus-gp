@@ -1,13 +1,14 @@
-"""Row iterators."""
+"""Row iterators for decoding database cursor results into Python containers."""
 
 from collections import namedtuple
-from logging import Logger, NullHandler, getLogger
 from typing import Any, Callable, Iterable, Literal, Self
 
 from psycopg2.extensions import cursor
 
-_logger: Logger = getLogger(__name__)
-_logger.addHandler(NullHandler())
+from egpcommon.egp_log import Logger, egp_logger
+
+# Standard EGP logging pattern
+_logger: Logger = egp_logger(name=__name__)
 
 
 class BaseIter:
