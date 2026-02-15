@@ -1,5 +1,8 @@
-"""
-Docstring for egppy.physics.insertion
+"""The wrap module provides wrapping operations for genetic codes.
+
+Wrapping transforms a genetic code by encapsulating it within another genetic
+code structure, supporting various wrapping strategies defined by WrapCase.
+See docs/insertion.md for details on wrapping cases.
 """
 
 from enum import IntEnum

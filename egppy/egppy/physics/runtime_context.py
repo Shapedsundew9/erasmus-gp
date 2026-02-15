@@ -26,14 +26,13 @@ class RuntimeContext:
     ) -> None:
         """Initialize the runtime context.
 
-        Args
-        ----
-        gpi -- the gene pool interface
-        root_gc -- the root (top level) GC that is being executed
-        creator -- the UUID of the creator of the execution context
-        debug_data -- a dictionary for storing debug information. Only used in
-                      development and testing to store intermediate results.
-                      None if not used.
+        Args:
+            gpi (GenePoolInterface): The gene pool interface.
+            root_gc (GCABC): The root (top level) GC that is being executed.
+            creator (UUID): The UUID of the creator of the execution context.
+            debug_data (dict[str, Any] | None): A dictionary for storing debug
+                information. Only used in development and testing to store
+                intermediate results. None if not used.
         """
         self.gpi: GenePoolInterface = gpi
         self.root_gc: GCABC = root_gc

@@ -1,5 +1,8 @@
-"""
-Docstring for egppy.physics.insertion
+"""The insertion module provides insertion operations for genetic codes.
+
+Insertion transforms a genetic code by inserting one genetic code into another,
+supporting various insertion strategies defined by InsertionCase.
+See docs/insertion.md for details on insertion cases.
 """
 
 from enum import IntEnum

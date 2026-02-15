@@ -1,14 +1,17 @@
 """The genotype module.
 
-An genotype is a single species in the population of species. It is a solution to the problem that
+A genotype is a single species in the population of species. It is a solution to the problem that
 the genetic programming algorithm is trying to solve. The genotype module contains the
 classes and functions that define the genotype and its properties to the problem. The problem
-is defined by the user and the user instanciates the genotype class (to create phenotypes).
+is defined by the user and the user instantiates the genotype class (to create phenotypes).
 """
-from typing import Callable, Any
-from abc import ABC, abstractmethod
-from numpy import double, int64
 
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Any, Callable
+
+from numpy import double, int64
 
 # Constants
 DOUBLE_ZERO = double(0.0)
@@ -18,7 +21,7 @@ INT64_65536 = int64(2**16)
 
 class StateABC(ABC):
     """The StateABC class.
-    
+
     The state class defines the interface to the state of an instance of a genotype.
     i.e. the state of a phenotype. The state object is list-like in its basic
     indexed access.
@@ -65,13 +68,26 @@ class State(list[Any], StateABC):  # type: ignore
 class Genotype:
     """The Genotype class."""
 
+    __slots__ = (
+        "energy",
+        "energy_cb",
+        "fitness",
+        "func",
+        "memory",
+        "problem_meta_data",
+        "puid",
+        "signature",
+        "state",
+        "survivability",
+    )
+
     def __init__(self, signature: bytes, func: Callable, puid: int) -> None:
         """Initialize a phenotype (an instance of a genotype).
 
         Args:
             signature (bytes): The signature of the Genetic Code.
             func (Callable): The executable function for the Genetic Code.
-            puid (int): The genotype population UID.        
+            puid (int): The genotype population UID.
         """
         self.signature = signature  # The signature of GC
         self.func = func  # The executable function for the GC
@@ -81,9 +97,11 @@ class Genotype:
         self.energy = INT64_65536  # The energy of the individual
         self.fitness = DOUBLE_ZERO  # The fitness of the individual
         self.survivability = DOUBLE_ZERO  # The survivability of the individual
+
         def _energy(x: int64) -> int64:
             self.energy += x
             return self.energy
+
         self.energy_cb: Callable[[int64], int64] = _energy
         self.problem_meta_data: Any = None  # The problem meta data. This is set by the user.
 

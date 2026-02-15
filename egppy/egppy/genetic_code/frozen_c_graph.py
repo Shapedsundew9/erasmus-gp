@@ -441,7 +441,16 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
         self, key: IfKey, default: FrozenInterfaceABC | None = None
     ) -> FrozenInterfaceABC | None:
         """Get the interface with the given key, or return default if not found.
-        NOTE: This method does not raise KeyError if key is not a valid interface key.
+
+        Args:
+            key: The interface key to look up.
+            default: The value to return if the key is not found. Defaults to None.
+
+        Returns:
+            The interface associated with the key, or default if not found.
+
+        Raises:
+            KeyError: If key is not a valid interface key.
         """
         return getattr(self, _UNDER_KEY_DICT[key], default)
 

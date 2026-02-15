@@ -164,7 +164,8 @@ class CGraph(FrozenCGraph, CGraphABC):
             if_locked (bool): If True, prevents the creation of new input interface endpoints.
                 If False, allows extending the input interface ('I') with new endpoints when needed
                 and when 'I' is a valid source row for the destination. Defaults to True.
-            seed (int | None): Seed for the random number generator to ensure reproducibility.
+            rng (EGPRndGen): Random number generator instance for reproducible shuffling.
+                Defaults to the global ``egp_rng``.
 
         Returns:
             None: Modifies the graph in-place by establishing connections between endpoints.
