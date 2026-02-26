@@ -4,10 +4,36 @@ See docs/tic-tac-toe.md for more information.
 
 
 class TicTacToe:
-    """Tic-Tac-Toe game."""
+    """Tic-Tac-Toe game.
+
+    The board state is stored internally as a ``list[str]`` (``self.board``) to
+    allow O(1) in-place mutation when a player makes a move.  Strings are
+    immutable in Python, so updating a single cell of a string would require
+    creating an entirely new string on every move, which is unnecessarily
+    wasteful during gameplay.
+
+    The compact string representation (see :meth:`to_str`) is used **externally**
+    whenever an immutable, hashable key is needed – for example as a node
+    identifier in the state graph produced by :func:`generate_state_graph`.
+    Converting to a string on demand keeps the hot path (``move()``) fast while
+    still providing an efficient format for storage and hashing.
+    """
 
     def __init__(self, state: str = "         O") -> None:
-        """Initialize the game."""
+        """Initialize the game from a state string.
+
+        Args:
+            state: A 10-character string encoding the board and the last player.
+                The first 9 characters represent the 9 cells of the board
+                (``' '``, ``'X'``, or ``'O'``), and the 10th character is the
+                last player to move (``'X'`` or ``'O'``).  Defaults to an empty
+                board where ``'O'`` moved last (so ``'X'`` moves first).
+
+        Note:
+            ``self.board`` is stored as a ``list[str]`` rather than a string so
+            that individual cell updates during :meth:`move` are O(1) mutations
+            rather than O(n) string reconstructions.
+        """
         self.board: list[str] = [] * 9
         self.last_player: str = ""
         self.from_str(state)
@@ -50,7 +76,18 @@ class TicTacToe:
         self.last_player = "O"
 
     def to_str(self) -> str:
-        """Return the state of the game as a string."""
+        """Return the state of the game as a compact, hashable string.
+
+        The returned 10-character string encodes the full game state: the first
+        9 characters are the board cells (``' '``, ``'X'``, or ``'O'``) and the
+        10th character is the last player to move.  This format is used for
+        external storage and as node keys in the state graph (see
+        :func:`generate_state_graph`) where an immutable, hashable representation
+        is required.
+
+        Returns:
+            A 10-character string representing the current game state.
+        """
         return "".join(self.board) + self.last_player
 
     def valid_state(self) -> bool:
