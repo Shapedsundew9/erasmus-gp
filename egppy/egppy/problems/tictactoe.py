@@ -31,7 +31,7 @@ class TicTacToe:
 
         Note:
             ``self.board`` is stored as a ``list[str]`` rather than a string so
-            that individual cell updates during :meth:`move` are O(1) mutations
+            that individual cell updates during ``move()`` are O(1) mutations
             rather than O(n) string reconstructions.
         """
         self.board: list[str] = [] * 9
