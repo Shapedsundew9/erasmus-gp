@@ -136,6 +136,74 @@ def generate_state_graph(
     return _graph
 
 
+_VALID_CHARS: frozenset[str] = frozenset(("X", "O", " "))
+
+
+def calculate_fitness(input_state: str, output_state: str) -> float:
+    """Calculate a fitness score for how close ``output_state`` is to a valid move.
+
+    The score measures how well ``output_state`` represents a valid next game
+    state reachable from ``input_state`` in a single move.
+
+    Scoring metric:
+        For each valid next state reachable from ``input_state``, a weighted
+        distance to ``output_state`` is computed by summing per-character costs:
+
+        - **0**: Character at this index matches the target (valid next state).
+        - **1**: Valid character (``'X'``, ``'O'``, ``' '``) at this index but
+          different from the target character (mismatch, indices 0–9).
+        - **2**: Extra character (index >= 10) in ``output_state`` that is a
+          valid character.
+        - **3**: Invalid character (not ``'X'``, ``'O'``, or ``' '``) at any
+          index 0–9.
+        - **4**: Extra character (index >= 10) in ``output_state`` that is
+          invalid, **or** a missing character (index < 10 present in the target
+          but absent from ``output_state``).
+
+        The minimum distance across all valid next states is then converted to a
+        fitness score via ``1 / (1 + min_distance)``.
+
+    Args:
+        input_state: A 10-character string encoding the current board and last
+            player (see ``TicTacToe.to_str()``).
+        output_state: The candidate next-state string produced by an evolved
+            function.
+
+    Returns:
+        A float in the range ``(0.0, 1.0]`` representing the fitness of
+        ``output_state``, or ``0.0`` when ``output_state == input_state`` or
+        when no valid moves are available from ``input_state``.
+    """
+    if output_state == input_state:
+        return 0.0
+
+    game = TicTacToe(input_state)
+    next_player = game.next_player()
+
+    valid_next_states: list[str] = []
+    for position in game.next_move_options():
+        candidate = TicTacToe(input_state)
+        candidate.move(next_player, position)
+        valid_next_states.append(candidate.to_str())
+
+    if not valid_next_states:
+        return 0.0
+
+    def _distance(target: str) -> int:
+        distance = 0
+        output_len = len(output_state)
+        for i in range(min(10, output_len)):
+            if output_state[i] != target[i]:
+                distance += 1 if output_state[i] in _VALID_CHARS else 3
+        distance += (10 - output_len) * 4 if output_len < 10 else 0
+        for i in range(10, output_len):
+            distance += 2 if output_state[i] in _VALID_CHARS else 4
+        return distance
+
+    min_distance = min(_distance(target) for target in valid_next_states)
+    return 1.0 / (1.0 + min_distance)
+
+
 if __name__ == "__main__":
     ttt_graph = generate_state_graph()
     print("Number of states:", len(ttt_graph))
