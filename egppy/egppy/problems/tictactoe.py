@@ -12,9 +12,9 @@ class TicTacToe:
     creating an entirely new string on every move, which is unnecessarily
     wasteful during gameplay.
 
-    The compact string representation (see :meth:`to_str`) is used **externally**
+    The compact string representation (see ``to_str()``) is used **externally**
     whenever an immutable, hashable key is needed – for example as a node
-    identifier in the state graph produced by :func:`generate_state_graph`.
+    identifier in the state graph produced by ``generate_state_graph()``.
     Converting to a string on demand keeps the hot path (``move()``) fast while
     still providing an efficient format for storage and hashing.
     """
@@ -82,7 +82,7 @@ class TicTacToe:
         9 characters are the board cells (``' '``, ``'X'``, or ``'O'``) and the
         10th character is the last player to move.  This format is used for
         external storage and as node keys in the state graph (see
-        :func:`generate_state_graph`) where an immutable, hashable representation
+        ``generate_state_graph()``) where an immutable, hashable representation
         is required.
 
         Returns:
