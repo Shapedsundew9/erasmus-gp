@@ -175,6 +175,14 @@ def calculate_fitness(input_state: str, output_state: str) -> float:
         ``output_state == input_state`` or when no valid moves are available
         from ``input_state``.
     """
+    # Defensive validation of inputs to avoid propagating invalid state into TicTacToe.
+    assert isinstance(input_state, str), "input_state must be a string"
+    assert len(input_state) == 10, "input_state must be exactly 10 characters long"
+    assert all(ch in _VALID_CHARS for ch in input_state[:9]), (
+        "input_state board cells must be 'X', 'O' or ' '"
+    )
+    assert input_state[-1] in ("X", "O"), "input_state last character must be 'X' or 'O'"
+    assert isinstance(output_state, str), "output_state must be a string"
     if output_state == input_state:
         return 0.0
 
