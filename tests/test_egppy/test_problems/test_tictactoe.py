@@ -68,7 +68,7 @@ class TestCalculateFitness(TestCase):
         input_state = "         O"
         # Example of a valid next move: place X at position 0 → "X        X"
         valid_next = "X        X"
-        # A clearly wrong output with multiple invalid differences
+        # Intentionally invalid: fills all empty cells with 'O' and appends an extra 'X' (11 chars)
         bad_output = "OOOOOOOOO X"
         score_valid = calculate_fitness(input_state, valid_next)
         score_bad = calculate_fitness(input_state, bad_output)
