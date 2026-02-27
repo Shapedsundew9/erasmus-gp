@@ -66,7 +66,7 @@ class TestCalculateFitness(TestCase):
     def test_closer_state_scores_higher(self) -> None:
         """A state closer to a valid next state scores higher than a random one."""
         input_state = "         O"
-        # One valid move: place X at position 0 → "X        X"
+        # Example of a valid next move: place X at position 0 → "X        X"
         valid_next = "X        X"
         # A clearly wrong output with multiple invalid differences
         bad_output = "OOOOOOOOO X"
