@@ -170,9 +170,10 @@ def calculate_fitness(input_state: str, output_state: str) -> float:
             function.
 
     Returns:
-        A float in the range ``(0.0, 1.0]`` representing the fitness of
-        ``output_state``, or ``0.0`` when ``output_state == input_state`` or
-        when no valid moves are available from ``input_state``.
+        A float in the range ``[0.0, 1.0]`` representing the fitness of
+        ``output_state``. A value of ``0.0`` is returned when
+        ``output_state == input_state`` or when no valid moves are available
+        from ``input_state``.
     """
     if output_state == input_state:
         return 0.0
