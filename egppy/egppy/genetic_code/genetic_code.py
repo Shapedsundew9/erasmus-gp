@@ -22,17 +22,28 @@ NULL_PROBLEM_SET: None = None
 
 
 # Mermaid Chart header and footer
-MERMAID_BLUE = "blue"
-MERMAID_GREEN = "green"
-MERMAID_RED = "red"
-MERMAID_BLACK = "black"
-MERMAID_HEADER: list[str] = ["flowchart TD"]
+MERMAID_BLUE = "dataBlue"
+MERMAID_GREEN = "dataPurple"
+MERMAID_RED = "dataRed"
+MERMAID_BLACK = "default"
+MERMAID_HEADER: list[str] = [
+    "%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%",
+    "flowchart TD",
+]
 MERMAID_FOOTER: list[str] = [
-    "classDef grey fill:#444444,stroke:#333333,stroke-width:2px",
-    "classDef red fill:#A74747,stroke:#996666,stroke-width:2px",
-    "classDef blue fill:#336699,stroke:#556688,stroke-width:2px",
-    "classDef green fill:#576457,stroke:#667766,stroke-width:2px",
-    "linkStyle default stroke:#AAAAAA,stroke-width:2px",
+    "classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4",
+    "classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff",
+    "classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff",
+    "classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff",
+    "classDef dataRed fill:#6e4646,stroke:#8f6060,stroke-width:2px,color:#ffffff",
+    "classDef dataPurple fill:#594a5c,stroke:#7b687f,stroke-width:2px,color:#ffffff",
+    "classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff",
+    "classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff",
+    "classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff",
+    "classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff",
+    "classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5",
+    "classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5",
+    "linkStyle default stroke:#6c7a89,stroke-width:2px",
 ]
 
 

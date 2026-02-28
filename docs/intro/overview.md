@@ -9,18 +9,20 @@ A genetic code $g$ has an input interface ($i$), an output interface ($o$), and 
 The genetic code agents interact with a problem environment, within which their fitness is measured over time ($t$).
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart LR
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef noborder fill:none,stroke:none;
 
-    p["<b>Problem Environment, p</b><br>pₜ ⇨ pₜ₊₁"]
-
-    gc["<b>Genetic Code, g</b><br>sₜ₋₁ ⇨ sₜ"]
-
+    p["<b>Problem Environment, p</b><br>pₜ ⇨ pₜ₊₁"]:::dataOlive
+    gc["<b>Genetic Code, g</b><br>sₜ₋₁ ⇨ sₜ"]:::dataBlue
     time["t = t + 1"]:::noborder
     
     p -- "iₜ₊₁" --> time -- "iₜ" --> gc 
     gc -- "oₜ" --> p
-
-    classDef noborder fill:none,stroke:none;
 ```
 
 Where:

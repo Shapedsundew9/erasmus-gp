@@ -3,26 +3,35 @@
 The evolution process needs to be fast and scalable. Erasmus GP generates huge numbers of GCs and the balance between accessibility, speed of access and genetic mixing must be considered.
 
 ```mermaid
----
-title: GC Storage
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+    classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5
+
     subgraph LOCAL["Local Python Process"]
-        L["Logic"]
-        A["fast_cache(CacheABC)"]
+        direction TB
+        L["Logic"]:::dataNavy
+        A["fast_cache(CacheABC)"]:::dataTeal
         subgraph CACHE["genetic_code_cache(CacheABC)"]
-            B["compact_cache(CacheABC)"]
-            C["remote_cache_client(CacheABC)"]
+            B["compact_cache(CacheABC)"]:::dataTeal
+            C["remote_cache_client(CacheABC)"]:::dataTeal
         end
     end
     subgraph REMOTE["GC Cache Chart"]
-        D[Remote Cache]
-        E[DB REST Client]
+        direction TB
+        D[Remote Cache]:::dataPlum
+        E[DB REST Client]:::dataTeal
     end
     subgraph DB["Database Chart"]
-        F[DB REST API]
-        G[Postgresql]
-        H[DB REST Client]
+        direction TB
+        F[DB REST API]:::dataTeal
+        G[Postgresql]:::dataPlum
+        H[DB REST Client]:::dataTeal
     end
     L <--> A
     L <--> B
@@ -33,6 +42,11 @@ flowchart TB
     E <--> F
     F <--> G
     G <--> H
+
+    class LOCAL zonePrimary
+    class CACHE zonePrimary
+    class REMOTE zoneExternal
+    class DB zoneExternal
 ```
 
 ## Stores
@@ -60,23 +74,30 @@ Caches cache *CacheableObjABC* types. Because the object cached is a container t
 ## Class Hierarchy
 
 ```mermaid
----
-title: Storage & Cache Class Diagram
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 classDiagram
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
     MutableMapping <|-- StoreABC
     StoreABC <|-- NullStore
     StoreABC <|-- JSONFileStore
     StoreABC <|-- CacheABC
     CacheABC <|-- DictCache
     CacheABC <|-- UserDictCache
+
+    class StoreABC dataNavy
+    class CacheABC dataNavy
 ```
 
 ```mermaid
----
-title: Storable & Cacheable Object Class Diagram
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 classDiagram
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
     ABC <|-- StorableObjABC
     StorableObjABC <|-- CacheableObjABC
     dict <|-- CacheableDirtyDict
@@ -85,13 +106,18 @@ classDiagram
     list <|-- CacheableDirtyList
     CacheableDirtyDict <|-- CacheableDict
     CacheableDirtyList <|-- CacheableList
+
+    class StorableObjABC dataNavy
+    class CacheableObjABC dataNavy
 ```
 
 ```mermaid
----
-title: Storable & Cacheable Object Class Diagram
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 classDiagram
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
     ABC <|-- StorableObjABC
     StorableObjABC <|-- CacheableObjABC
     MutableSequence <|-- InterfaceABC
@@ -107,13 +133,20 @@ classDiagram
     DictBaseGC <|-- DictUGC
     DirtyDictBaseGC <|-- DirtyDictEGC
     DictBaseGC <|-- DictEGC
+
+    class StorableObjABC dataNavy
+    class CacheableObjABC dataNavy
+    class GCABC dataNavy
+    class InterfaceABC dataNavy
 ```
 
 ```mermaid
----
-title: Cache Class Diagram
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 classDiagram
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
     MutableMapping <|-- StoreABC
     StoreIllegal <|-- CacheABC
     StoreABC <|-- CacheABC
@@ -121,4 +154,7 @@ classDiagram
     dict_like <|-- dict_likeCache
     CacheABC <|-- dict_likeCache
     CacheBase <|-- dict_likeCache
+
+    class StoreABC dataNavy
+    class CacheABC dataNavy
 ```

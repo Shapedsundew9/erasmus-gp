@@ -3,16 +3,20 @@
 ## Top Level
 
 ```mermaid
----
-title: EGP DBM Architecture
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TD
-    db1[(Postgres
-        GP/GL DB)]
-    db2[(Postgres
-        Archive DB)]
-    dbm1["EGP DB Manager"]
-    bu1[/"Archive Files"/]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    db1[(Postgres GP/GL DB)]:::dataPlum
+    db2[(Postgres Archive DB)]:::dataPlum
+    dbm1["EGP DB Manager"]:::dataNavy
+    bu1[/"Archive Files"/]:::dataOlive
 
     db1 <-->|Implemented| dbm1
     dbm1 <-.->|Planned| db2
@@ -66,22 +70,24 @@ Cross-field validation in `verify()` ensures `managed_db` and all `upstream_dbs`
 The current initialization flow:
 
 ```mermaid
----
-title: EGP DBM Initialization (Implemented)
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TD
-    init1[Parse CLI Arguments]
-    init2{Config file
-        provided?}
-    init3[Load signed JSON config]
-    init4[Use default config]
-    init5[Create DBManager]
-    init6[Create GC Table]
-    init7[Create Meta Table]
-    init8[Create Sources Table]
-    init9[Insert initial
-        meta record]
-    init10[Log completion]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+
+    init1[Parse CLI Arguments]:::dataTeal
+    init2{Config file provided?}:::dataGold
+    init3[Load signed JSON config]:::dataTeal
+    init4[Use default config]:::dataTeal
+    init5[Create DBManager]:::dataNavy
+    init6[Create GC Table]:::dataNavy
+    init7[Create Meta Table]:::dataNavy
+    init8[Create Sources Table]:::dataNavy
+    init9[Insert initial meta record]:::dataTeal
+    init10[Log completion]:::dataTeal
 
     init1 --> init2
     init2 -->|Yes| init3
@@ -98,10 +104,13 @@ flowchart TD
 ## Module Structure
 
 ```mermaid
----
-title: egpdbmgr Module Dependencies
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 classDiagram
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+
     class DBManagerConfig {
         +name: str
         +databases: dict
@@ -142,6 +151,10 @@ classDiagram
     DBManagerConfig --|> Validator
     DBManagerConfig --|> DictTypeAccessor
     DBManagerConfig --|> CommonObj
+
+    class DBManagerConfig dataNavy
+    class DBManager dataNavy
+    class TableTypes dataPlum
 ```
 
 ## Database Auxiliary Tables

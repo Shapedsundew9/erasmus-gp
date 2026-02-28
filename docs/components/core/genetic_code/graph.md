@@ -88,29 +88,24 @@ Flow charts of the allowed connectivity for each graph type are below.
 ### If-Then Connectivity Graph
 
 ```mermaid
-%% If-Then GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["[I]nputs"]
-    F["i[F] condition"]
-    A["GC[A]"]
-    O["[O]utputs"]
-    P["Out[P]uts (false path)"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    I["[I]nputs"]:::dataOlive
+    F["i[F] condition"]:::dataGold
+    A["GC[A]"]:::dataNavy
+    O["[O]utputs"]:::dataTeal
+    P["Out[P]uts (false path)"]:::dataTeal
     I --> F
     I --> A --> O
     I --> O
     I --> P
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Fcd fill:#aa6622,stroke:#333,stroke-width:1px
-classDef Acd fill:#882222,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
-classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
-
-class I Icd
-class F Fcd
-class A Acd
-class O Ocd
-class P Pcd
 ```
 
 #### If-Then Execution Flow
@@ -133,33 +128,26 @@ else:
 ### If-Then-Else Connectivity Graph
 
 ```mermaid
-%% If-Then-Else GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["[I]nputs"]
-    F["i[F] condition"]
-    A["GC[A] (true)"]
-    B["GC[B] (false)"]
-    O["[O]utputs"]
-    P["Out[P]uts (false path)"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    I["[I]nputs"]:::dataOlive
+    F["i[F] condition"]:::dataGold
+    A["GC[A] (true)"]:::dataNavy
+    B["GC[B] (false)"]:::dataNavy
+    O["[O]utputs"]:::dataTeal
+    P["Out[P]uts (false path)"]:::dataTeal
     I --> F
     I --> A --> O
     I --> B --> P
     I --> O
     I --> P
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Fcd fill:#aa6622,stroke:#333,stroke-width:1px
-classDef Acd fill:#882222,stroke:#333,stroke-width:1px
-classDef Bcd fill:#222288,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
-classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
-
-class I Icd
-class F Fcd
-class A Acd
-class B Bcd
-class O Ocd
-class P Pcd
 ```
 
 #### If-Then-Else Execution Flow
@@ -182,15 +170,23 @@ else:
 ### For-Loop Connectivity Graph
 
 ```mermaid
-%% For-Loop GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["[I]nputs"]
-    L["[L]oop iterable (dst) / object (src)"]
-    S["[S]tate (dst) / [S]tate (src)"]
-    T["[T] next-state (dst)"]
-    A["GC[A] loop body"]
-    O["[O]utputs"]
-    P["Out[P]uts (zero iteration)"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+
+    I["[I]nputs"]:::dataOlive
+    L["[L]oop iterable (dst) / object (src)"]:::dataPlum
+    S["[S]tate (dst) / [S]tate (src)"]:::dataPlum
+    T["[T] next-state (dst)"]:::dataPlum
+    A["GC[A] loop body"]:::dataNavy
+    O["[O]utputs"]:::dataTeal
+    P["Out[P]uts (zero iteration)"]:::dataTeal
     I --> L
     I --> S
     L --> A
@@ -201,22 +197,6 @@ flowchart TB
     T -.->|implicit feedback| S
     I --> O
     I --> P
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Lcd fill:#228822,stroke:#333,stroke-width:1px
-classDef Scd fill:#882288,stroke:#333,stroke-width:1px
-classDef Tcd fill:#884488,stroke:#333,stroke-width:1px
-classDef Acd fill:#882222,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
-classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
-
-class I Icd
-class L Lcd
-class S Scd
-class T Tcd
-class A Acd
-class O Ocd
-class P Pcd
 ```
 
 #### For-Loop Execution Flow
@@ -256,16 +236,24 @@ Is → Pd          # pass-through to output
 ### While-Loop Connectivity Graph
 
 ```mermaid
-%% While-Loop GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["[I]nputs"]
-    W["[W]hile condition (dst) / condition (src)"]
-    X["[X] next-condition (dst)"]
-    S["[S]tate (dst) / [S]tate (src)"]
-    T["[T] next-state (dst)"]
-    A["GC[A] loop body"]
-    O["[O]utputs"]
-    P["Out[P]uts (zero iteration)"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+
+    I["[I]nputs"]:::dataOlive
+    W["[W]hile condition (dst) / condition (src)"]:::dataGold
+    X["[X] next-condition (dst)"]:::dataGold
+    S["[S]tate (dst) / [S]tate (src)"]:::dataPlum
+    T["[T] next-state (dst)"]:::dataPlum
+    A["GC[A] loop body"]:::dataNavy
+    O["[O]utputs"]:::dataTeal
+    P["Out[P]uts (zero iteration)"]:::dataTeal
     I --> W
     I --> S
     W --> A
@@ -279,24 +267,6 @@ flowchart TB
     T -.->|implicit feedback| S
     I --> O
     I --> P
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Wcd fill:#888822,stroke:#333,stroke-width:1px
-classDef Xcd fill:#888844,stroke:#333,stroke-width:1px
-classDef Scd fill:#882288,stroke:#333,stroke-width:1px
-classDef Tcd fill:#884488,stroke:#333,stroke-width:1px
-classDef Acd fill:#882222,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
-classDef Pcd fill:#228888,stroke:#333,stroke-width:1px
-
-class I Icd
-class W Wcd
-class X Xcd
-class S Scd
-class T Tcd
-class A Acd
-class O Ocd
-class P Pcd
 ```
 
 #### While-Loop Execution Flow
@@ -351,25 +321,21 @@ Is → Pd          # pass-through to output
 ### Standard Connectivity Graph
 
 ```mermaid
-%% Standard GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["[I]nputs"]
-    A["GC[A]"]
-    B["GC[B]"]
-    O["[O]utputs"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    I["[I]nputs"]:::dataOlive
+    A["GC[A]"]:::dataNavy
+    B["GC[B]"]:::dataNavy
+    O["[O]utputs"]:::dataTeal
     A --> O
     I --> A --> B --> O
     I --> B
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Acd fill:#882222,stroke:#333,stroke-width:1px
-classDef Bcd fill:#222288,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
-
-class I Icd
-class A Acd
-class B Bcd
-class O Ocd
 ```
 
 #### Standard Execution Flow
@@ -401,20 +367,18 @@ Bs → Od          # GCB result (25) to output
 ### Primitive Connectivity Graph
 
 ```mermaid
-%% Primitive GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["[I]nputs"]
-    A["GC[A] primitive operation"]
-    O["[O]utputs"]
-    I --> A --> O
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Acd fill:#882222,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
 
-class I Icd
-class A Acd
-class O Ocd
+    I["[I]nputs"]:::dataOlive
+    A["GC[A] primitive operation"]:::dataNavy
+    O["[O]utputs"]:::dataTeal
+    I --> A --> O
 ```
 
 #### Primitive Execution Flow
@@ -443,16 +407,15 @@ As → Od          # result (10) to output
 ### Empty Connectivity Graph
 
 ```mermaid
-%% Empty GC
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart LR
-    I["[I]nputs"]
-    O["[O]utputs"]
-    
-classDef Icd fill:#888888,stroke:#333,stroke-width:1px
-classDef Ocd fill:#222222,stroke:#333,stroke-width:1px
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
 
-class I Icd
-class O Ocd
+    I["[I]nputs"]:::dataOlive
+    O["[O]utputs"]:::dataTeal
 ```
 
 #### Empty Execution Flow

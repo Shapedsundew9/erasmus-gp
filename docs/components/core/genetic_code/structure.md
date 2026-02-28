@@ -3,36 +3,67 @@
 A genetic code, GC, is a recursively embedded structure. A GC has an input interface, I, and an output interface, O as well as none or two embedded sub-GCs that are connected together as a graph. The Connection Graph is described in [graph.md](graph.md). A GC with no sub-GCs is called a codon or an empty GC. Codons represent functional primitives.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    subgraph Codon GC
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataPurple fill:#594a5c,stroke:#7b687f,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    subgraph Codon_GC [Codon GC]
+        direction TB
+        C1[Codon]:::dataPurple
     end
+    class Codon_GC zonePrimary
 ```
 
 Any Empty GC is just an interface definition and represents no function.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    subgraph Empty GC
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    subgraph Empty_GC [Empty GC]
+        direction TB
     end
+    class Empty_GC zonePrimary
 ```
 
 Most GC's are Standard or Conditional which have the same logical structure of 2 sub-GCs identified as A and B. The diagram below shows a GC with GC A and GC B both of which are codons in this case but may be a mixture of any type of GC except an Empty GC.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    subgraph GC
-        subgraph Codon A
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    subgraph GC_Node [GC]
+        direction TB
+        subgraph Codon_A [Codon A]
         end
-        subgraph Codon B
+        subgraph Codon_B [Codon B]
         end
     end
+    class GC_Node zonePrimary
+    class Codon_A zonePrimary
+    class Codon_B zonePrimary
 ```
 
 GCs can be infinitely embedded. The diagram below shows a GC with a depth of 5 with the maximum possible number of codons (leaves) which is 32.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    subgraph Top Level GC
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    subgraph Top_Level_GC [Top Level GC]
         direction TB
         subgraph A
             direction TB
@@ -125,71 +156,76 @@ flowchart TB
             end
         end
     end
+    class Top_Level_GC zonePrimary
 ```
 
 The next chart shows a GC of depth 4 with the minimum possible number of codons = 5.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    GC:::grey
-    GC --> A:::red
-    GC --> B:::blue
-    A --> AA:::red
-    A --> AB:::blue
-    AA --> AAA:::red
-    AA --> AAB:::blue
-    AAA --> AAAA:::red
-    AAA --> AAAB:::blue
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef dataPurple fill:#594a5c,stroke:#7b687f,stroke-width:2px,color:#ffffff
 
-classDef grey fill:#444444,stroke:#333,stroke-width:1px
-classDef red fill:#FF0000,stroke:#333,stroke-width:1px
-classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+    GC(("GC")):::dataNavy
+    GC --> A(("A")):::dataNavy
+    GC --> B(("B")):::dataPurple
+    A --> AA(("AA")):::dataNavy
+    A --> AB(("AB")):::dataPurple
+    AA --> AAA(("AAA")):::dataNavy
+    AA --> AAB(("AAB")):::dataPurple
+    AAA --> AAAA(("AAAA")):::dataPurple
+    AAA --> AAAB(("AAAB")):::dataPurple
 ```
 
 Since codons are the minimum functional unit, which is typically a single operation or line of code, we can state that a GC of depth _n_ has - _n_ < lines of code <= 2ⁿ
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TD
-    GC:::grey
-    GC --> A:::red
-    GC --> B:::blue
-    A --> AA:::red
-    A --> AB:::blue
-    AA --> AAA:::red
-    AA --> AAB:::blue
-    AAA --> AAAA:::red
-    AAA --> AAAB:::blue
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef dataPurple fill:#594a5c,stroke:#7b687f,stroke-width:2px,color:#ffffff
 
-    AAB --> AABA:::red
-    AAB --> AABB:::blue
+    GC(("GC")):::dataNavy
+    GC --> A:::dataNavy
+    GC --> B:::dataNavy
+    A --> AA:::dataNavy
+    A --> AB:::dataNavy
+    AA --> AAA:::dataNavy
+    AA --> AAB:::dataNavy
+    AAA --> AAAA:::dataPurple
+    AAA --> AAAB:::dataPurple
 
-    AB --> ABA:::red
-    AB --> ABB:::blue
-    ABA --> ABAA:::red
-    ABA --> ABAB:::blue
+    AAB --> AABA:::dataPurple
+    AAB --> AABB:::dataPurple
 
-    ABB --> ABBA:::red
-    ABB --> ABBB:::blue
+    AB --> ABA:::dataNavy
+    AB --> ABB:::dataNavy
+    ABA --> ABAA:::dataPurple
+    ABA --> ABAB:::dataPurple
 
-    B --> BA:::red
-    B --> BB:::blue
-    BA --> BAA:::red
-    BA --> BAB:::blue
-    BAA --> BAAA:::red
-    BAA --> BAAB:::blue
+    ABB --> ABBA:::dataPurple
+    ABB --> ABBB:::dataPurple
 
-    BAB --> BABA:::red
-    BAB --> BABB:::blue
+    B --> BA:::dataNavy
+    B --> BB:::dataNavy
+    BA --> BAA:::dataNavy
+    BA --> BAB:::dataNavy
+    BAA --> BAAA:::dataPurple
+    BAA --> BAAB:::dataPurple
 
-    BB --> BBA:::red
-    BB --> BBB:::blue
-    BBA --> BBAA:::red
-    BBA --> BBAB:::blue
+    BAB --> BABA:::dataPurple
+    BAB --> BABB:::dataPurple
 
-    BBB --> BBBA:::red
-    BBB --> BBBB:::blue
+    BB --> BBA:::dataNavy
+    BB --> BBB:::dataNavy
+    BBA --> BBAA:::dataPurple
+    BBA --> BBAB:::dataPurple
 
-classDef grey fill:#444444,stroke:#333,stroke-width:1px
-classDef red fill:#FF0000,stroke:#333,stroke-width:1px
-classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+    BBB --> BBBA:::dataPurple
+    BBB --> BBBB:::dataPurple
 ```

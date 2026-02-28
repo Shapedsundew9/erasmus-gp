@@ -385,7 +385,7 @@ class GCNode(Iterable, Hashable):
         """Return the Mermaid chart for the GC node graph."""
         # If the GC executable exists then return a green node
         if gc_node.exists:
-            return [mc_gc_node_str(gc_node, gc_node.iam, "green")]
+            return [mc_gc_node_str(gc_node, gc_node.iam, MERMAID_GREEN)]
 
         # Build up the GC structure chart
         work_queue: list[tuple[GCNode, GCNode, GCNode]] = [

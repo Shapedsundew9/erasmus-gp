@@ -5,24 +5,20 @@ A problem in Erasmus is defined by input parameters, expected output parameters 
 ## Problem Data Flow
 
 ```mermaid
----
-title: Problem Data Flow
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart LR
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef noborder fill:none,stroke:none;
 
-    p[**Problem**
-    Pₜ ⇨ Pₜ₊₁]
-
-    gc[**GC**
-    Sₜ₋₁ ⇨ Sₜ]
-
+    p[**Problem**<br/>Pₜ ⇨ Pₜ₊₁]:::dataOlive
+    gc[**GC**<br/>Sₜ₋₁ ⇨ Sₜ]:::dataBlue
     t[t=t+1]:::noborder
     
     p --"Iₜ₊₁"--> t --"Iₜ"--> gc 
     gc --Oₜ--> p
-
-
-    classDef noborder fill:none,stroke:none;
 ```
 
 where:
@@ -43,16 +39,18 @@ The loop is initiated in the _Problem_ stage at **Pₜ₊₁₌₀** which gener
 and **...** represents other problem environmental inputs e.g. other agents impacting the problem environment in that time interval. It is not required that the GC output has any impact on the problem environment nor that the GC maintain an internal state. The simplest problems, in this regard, can be represented with the data flow, e.g. classification problems:
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart LR
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef noborder fill:none,stroke:none;
 
-    p[**Problem**
-    Pₜ]
-
-    gc[**GC**]
+    p[**Problem**<br/>Pₜ]:::dataOlive
+    gc[**GC**]:::dataBlue
 
     p  --"Iₜ"--> gc --"Oₜ"--> o[" "]:::noborder
-
-    classDef noborder fill:none,stroke:none;
 ```
 
 ## Problem Properties

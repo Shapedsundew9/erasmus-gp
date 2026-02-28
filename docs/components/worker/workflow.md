@@ -5,25 +5,25 @@ A Worker is a generic evolution pipeline. The pipeline may be used to evolve Sol
 ## Basic Flow
 
 ```mermaid
----
-title: Worker
----
-
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    IP["Initialize Worker"] --> IG["Initial Generation"]
-    IG -- No Fitness Score --> FQ["Fitness Queue"]
-    IG -- Fitness Score --> EQ["Evolution Queue"]
-    FQ --> FE["Fitness Executor"]
-    FE --> MU["Mutation Update"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    IP["Initialize Worker"]:::dataTeal --> IG["Initial Generation"]:::dataTeal
+    IG -- No Fitness Score --> FQ["Fitness Queue"]:::dataGold
+    IG -- Fitness Score --> EQ["Evolution Queue"]:::dataGold
+    FQ --> FE["Fitness Executor"]:::dataNavy
+    FE --> MU["Mutation Update"]:::dataTeal
     MU -- PGC --> EQ
     FE -- GGC --> EQ
-    EQ --> MS["Mutation Selector"]
-    MS --> MQ["Mutation Queue"]
-    MQ --> ME["Mutation Executor"]
+    EQ --> MS["Mutation Selector"]:::dataGold
+    MS --> MQ["Mutation Queue"]:::dataGold
+    MQ --> ME["Mutation Executor"]:::dataNavy
     ME --> FQ
-    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
-    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
-    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
 ```
 
 ### Initialize Worker
@@ -31,22 +31,23 @@ flowchart TB
 The initialization of the Worker is done from a JSON config file that defines where the genetic code stores are and the populations to work on. The populations specify the problem to solve the details of which can be found in the problem definitions file (also JSON). With this information the worker initalization is complete and the inital generation of the eveolution work can be pulled and/or created.
 
 ```mermaid
----
-title: Initialize Worker
----
-
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    CL["Parse command line"] --> HE["Help & Config options"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    CL["Parse command line"]:::dataTeal --> HE["Help & Config options"]:::dataTeal
     subgraph WC["Load worker configuration"]
-        PP["Pull Problems"]
-        PC["Load Populations Config"] --> PP
-        PD["Pull Problem Definitions"] --> PP
+        direction TB
+        PP["Pull Problems"]:::dataTeal
+        PC["Load Populations Config"]:::dataTeal --> PP
+        PD["Pull Problem Definitions"]:::dataTeal --> PP
     end 
     CL --> WC
-    WC --> IG["Initial Generation"]
-    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
-    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
-    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+    WC --> IG["Initial Generation"]:::dataTeal
+    class WC zonePrimary
 ```
 
 ### Initial Generation
@@ -54,18 +55,19 @@ flowchart TB
 The initial generation is the list of signatures of the phenotype GC's for all of the populations defined in the worker config.
 
 ```mermaid
----
-title: Initial Generation
----
-
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
     subgraph PP["For each population:"]
-        PB["Get signatures of best/diverse GC's from GP as per config"]
-        PB --> |If not enough|CE["Create empty GC's"]
+        direction TB
+        PB["Get signatures of best/diverse GC's from GP as per config"]:::dataTeal
+        PB --> |If not enough|CE["Create empty GC's"]:::dataTeal
     end 
-    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
-    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
-    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
+    class PP zonePrimary
 ```
 
 The initial generation for a given population configuration can come from multiple sources:
@@ -152,12 +154,15 @@ The Evolution Queue is a priority queue rather than a FIFO. Every GC entering th
 The Mutuation Selector, Queue and Executor make up the block of functions called the Evolution Pipe.
 
 ```mermaid
----
-title: Evolution Pipe
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    MS[Mutation Selector] --> MQ[Mutation Queue]
-    MQ --> ME[Mutation Executor]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    MS[Mutation Selector]:::dataGold --> MQ[Mutation Queue]:::dataGold
+    MQ --> ME[Mutation Executor]:::dataNavy
 ```
 
 #### Mutation Selector
@@ -181,22 +186,21 @@ Mutations are not bound to levels, as solution GC's are not bound to a single pr
 ## Worker Configuration Flow
 
 ```mermaid
----
-title: Worker Configuration Flow
----
-
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    U["User"] --> DC["Generate default config"]
-    DC --> EC["Edit Config"]
-    EC --> LC["Load config"]
-    LC --> IC["Configure infrastructure (e.g. databases)"]
-    LC --> PC["Configure Populations"]
-    LC --> FP["Where to find Problems"]
-    PC --> WEC["Worker Execution Config"]
-    FP --> PP["Pull Probelms"]
-    PP --> PEE["Problem Execution Environment"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+
+    U["User"]:::dataOlive --> DC["Generate default config"]:::dataTeal
+    DC --> EC["Edit Config"]:::dataTeal
+    EC --> LC["Load config"]:::dataTeal
+    LC --> IC["Configure infrastructure"]:::dataTeal
+    LC --> PC["Configure Populations"]:::dataTeal
+    LC --> FP["Where to find Problems"]:::dataTeal
+    PC --> WEC["Worker Execution Config"]:::dataTeal
+    FP --> PP["Pull Problems"]:::dataTeal
+    PP --> PEE["Problem Execution Environment"]:::dataTeal
     PEE --> WEC
-    classDef lightgrey fill:#888888,stroke:#333,stroke-width:3px
-    classDef red fill:#FF0000,stroke:#333,stroke-width:1px
-    classDef blue fill:#0000FF,stroke:#333,stroke-width:1px
 ```

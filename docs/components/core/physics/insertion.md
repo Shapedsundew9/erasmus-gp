@@ -50,49 +50,55 @@ There are 2 stacking cases: Stack and Inverse Stack. Stacking cases are symmetri
 ### Case 0: Stack
 
 ```mermaid
-%% Insertion Case 0: Stack
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["I: IGC[Is]"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    I["I: IGC[Is]"]:::dataOlive
     subgraph RGC
         direction RL
-        GCA["A: IGC"]
-        GCB["B: TGC"]
+        GCA["A: IGC"]:::dataNavy
+        GCB["B: TGC"]:::dataNavy
     end
-    O["O: TGC[Od]"]
+    O["O: TGC[Od]"]:::dataOlive
     I --> RGC --> O
 
-classDef newGC fill:#010,stroke:#333,stroke-width:4px
-classDef newRow fill:#010,stroke:#333,stroke-width:1px
-classDef modified fill:#640,stroke:#333,stroke-width:1px
-classDef unchanged fill:#000,stroke:#333,stroke-width:1px
-
-class RGC newGC
-class GCA modified
-class GCB modified
+    class RGC zonePrimary
 ```
 
 ### Case 1: Inverse Stack
 
 ```mermaid
-%% Insertion Case 1: Inverse Stack
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["I: TGC[Is]"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    I["I: TGC[Is]"]:::dataOlive
     subgraph RGC
         direction LR
-        GCA["A: TGC"]
-        GCB["B: IGC"]
+        GCA["A: TGC"]:::dataNavy
+        GCB["B: IGC"]:::dataNavy
     end
-    O["O: IGC[Od]"]
+    O["O: IGC[Od]"]:::dataOlive
     I --> RGC --> O
 
-classDef newGC fill:#010,stroke:#333,stroke-width:4px
-classDef newRow fill:#010,stroke:#333,stroke-width:1px
-classDef modified fill:#640,stroke:#333,stroke-width:1px
-classDef unchanged fill:#000,stroke:#333,stroke-width:1px
-
-class RGC newGC
-class GCA modified
-class GCB modified
+    class RGC zonePrimary
 ```
 
 ## Wrapping
@@ -102,26 +108,29 @@ There is only one wrapping case. An Empty TGC can wrap the graph of a Standard I
 ### Case 2
 
 ```mermaid
-%% Insertion Case 2: Wrap
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I["I: TGC[Is]"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+
+    I["I: TGC[Is]"]:::dataOlive
     subgraph RGC
         direction TB
-        GCA["A: IGC[A]"]
-        GCB["B: IGC[B]"]
+        GCA["A: IGC[A]"]:::dataNavy
+        GCB["B: IGC[B]"]:::dataNavy
     end
-    O["O: TGC[Od]"]
+    O["O: TGC[Od]"]:::dataOlive
     I --> RGC --> O
     GCA --Preserved--> GCB
 
-classDef newGC fill:#010,stroke:#333,stroke-width:4px
-classDef newRow fill:#010,stroke:#333,stroke-width:1px
-classDef modified fill:#640,stroke:#333,stroke-width:1px
-classDef unchanged fill:#000,stroke:#333,stroke-width:1px
-
-class RGC newGC
-class GCA modified
-class GCB modified
+    class RGC zonePrimary
 ```
 
 ## Restructuring
@@ -133,45 +142,43 @@ Restructuring GC's produces a resultant GC that is functionally identical to the
 Insert IGC above A
 
 ```mermaid
-%% Insertion Case 3
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I1["I: TGC[Is]"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+    classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5
+
+    I1["I: TGC[Is]"]:::dataOlive
     subgraph RGC
         direction RL
-        GCA1["A: FGC"]
-        GCB1["B: TGC[B]"]
+        GCA1["A: FGC"]:::dataNavy
+        GCB1["B: TGC[B]"]:::dataNavy
     end
-    O1["O: TGC[Od]"]
+    O1["O: TGC[Od]"]:::dataOlive
     I1 --Preserved-->GCA1
     I1 --Preserved-->GCB1
     GCA1 --Preserved-->GCB1
     GCB1 --Preserved--> O1
 
-    I2["I: TGC[Ad]"]
+    I2["I: TGC[Ad]"]:::dataOlive
     subgraph FGC
         direction RL
-        GCA2["A: IGC"]
-        GCB2["B: TGC[A]"]
+        GCA2["A: IGC"]:::dataGold
+        GCB2["B: TGC[A]"]:::dataGold
     end
-    O2["O: TGC[As]"]
+    O2["O: TGC[As]"]:::dataOlive
     I2 --Preserved--> GCB2
     GCB2 --Preserved--> O2
 
-classDef newGC fill:#010,stroke:#333,stroke-width:4px
-classDef newRow fill:#300,stroke:#333,stroke-width:1px
-classDef modified fill:#640,stroke:#333,stroke-width:1px
-classDef unchanged fill:#000,stroke:#333,stroke-width:1px
-
-class RGC newGC
-class GCB1 unchanged
-class GCA1 newRow
-class FGC newGC
-class GCA2 modified
-class GCB2 modified
-class I1 unchanged
-class I2 newRow
-class O1 unchanged
-class O2 newRow
+    class RGC zonePrimary
+    class FGC zoneExternal
 ```
 
 ### Case 4
@@ -179,45 +186,43 @@ class O2 newRow
 Insert IGC above B
 
 ```mermaid
-%% Insertion Case 4
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I1["I: TGC[I]"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+    classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5
+
+    I1["I: TGC[I]"]:::dataOlive
     subgraph RGC
         direction RL
-        GCA1["A: TGC[A]"]
-        GCB1["B: FGC"]
+        GCA1["A: TGC[A]"]:::dataNavy
+        GCB1["B: FGC"]:::dataNavy
     end
-    O1["O: TGC[O]"]
+    O1["O: TGC[O]"]:::dataOlive
     I1 --Preserved-->GCA1
     I1 --Preserved-->GCB1
     GCA1 --Preserved-->GCB1
     GCB1 --Preserved--> O1
 
-    I2["I: TGC[Bd]"]
+    I2["I: TGC[Bd]"]:::dataOlive
     subgraph FGC
         direction RL
-        GCA2["A: IGC"]
-        GCB2["B: TGC[B]"]
+        GCA2["A: IGC"]:::dataGold
+        GCB2["B: TGC[B]"]:::dataGold
     end
-    O2["O: TGC[Bs]"]
+    O2["O: TGC[Bs]"]:::dataOlive
     I2 --Preserved--> GCB2
     GCB2 --Preserved--> O2
 
-classDef newGC fill:#010,stroke:#333,stroke-width:4px
-classDef newRow fill:#300,stroke:#333,stroke-width:1px
-classDef modified fill:#640,stroke:#333,stroke-width:1px
-classDef unchanged fill:#000,stroke:#333,stroke-width:1px
-
-class RGC newGC
-class GCB1 newRow
-class GCA1 unchanged
-class FGC newGC
-class GCA2 modified
-class GCB2 modified
-class I1 unchanged
-class I2 newRow
-class O1 unchanged
-class O2 newRow
+    class RGC zonePrimary
+    class FGC zoneExternal
 ```
 
 ### Case 5
@@ -225,43 +230,41 @@ class O2 newRow
 Insert IGC above O
 
 ```mermaid
-%% Insertion Case 5
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    I1["I: TGC[I]"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
+    classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5
+
+    I1["I: TGC[I]"]:::dataOlive
     subgraph RGC
         direction RL
-        GCA1["A: TGC[A]"]
-        GCB1["B: FGC"]
+        GCA1["A: TGC[A]"]:::dataNavy
+        GCB1["B: FGC"]:::dataNavy
     end
-    O1["O: TGC[O]"]
+    O1["O: TGC[O]"]:::dataOlive
     I1 --Preserved-->GCA1
     I1 --Preserved-->GCB1
     GCA1 --Preserved-->GCB1
     GCB1 --Preserved--> O1
 
-    I2["I: TGC[Bd]"]
+    I2["I: TGC[Bd]"]:::dataOlive
     subgraph FGC
         direction RL
-        GCA2["A: TGC[B]"]
-        GCB2["B: IGC"]
+        GCA2["A: TGC[B]"]:::dataGold
+        GCB2["B: IGC"]:::dataGold
     end
-    O2["O: TGC[Bs]"]
+    O2["O: TGC[Bs]"]:::dataOlive
     I2 --Preserved--> GCA2
     GCA2 --Preserved--> O2
 
-classDef newGC fill:#010,stroke:#333,stroke-width:4px
-classDef newRow fill:#300,stroke:#333,stroke-width:1px
-classDef modified fill:#640,stroke:#333,stroke-width:1px
-classDef unchanged fill:#000,stroke:#333,stroke-width:1px
-
-class RGC newGC
-class GCA1 unchanged
-class GCB1 newRow
-class FGC newGC
-class GCA2 modified
-class GCB2 modified
-class I1 unchanged
-class I2 newRow
-class O1 unchanged
-class O2 newRow
+    class RGC zonePrimary
+    class FGC zoneExternal
 ```

@@ -45,22 +45,30 @@ Note that ISA is *wrapping* constituant GC's with an empty GC interface and only
 
 Spontaneous Codon Aggregation, SCA, is the most fundamental GC creation mechanism in EGP. SCA is when two codons are *stacked* to form a 1st generation *standard* GC.
 
-## Stabilization
+## Stabilization Flow
 
 ```mermaid
-%% Paths to Stability
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    UM["Unstabilized Mutation"]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff
+    classDef dataRed fill:#6e4646,stroke:#8f6060,stroke-width:2px,color:#ffffff
+    classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
 
-    subgraph FSS["Static Full Stack Stabilization"]
-        LCA["Local Connect All"]
-        LUC["Local Downcast"]
-        GCA["Global Connect All"]
-        GUC["Global Downcast"]
-        SSE["Steady State Exception"]
+    UM["Unstabilized Mutation"]:::dataRed
+
+    subgraph FSS [Static Full Stack Stabilization]
+        direction TB
+        LCA["Local Connect All"]:::dataTeal
+        LUC["Local Downcast"]:::dataTeal
+        GCA["Global Connect All"]:::dataTeal
+        GUC["Global Downcast"]:::dataTeal
+        SSE["Steady State Exception"]:::dataTeal
     end
 
-    GGC["GGCode"]
+    GGC["GGCode"]:::dataGreen
 
     UM -- Stable --> GGC
     UM -- Unstable --> LCA
@@ -73,7 +81,6 @@ flowchart TB
     GUC -- Stable --> GGC
     GUC -- Unstable --> SSE
     SSE -- Stable --> GGC
-    SSE -- Unstable
-    Max 8 iterations
-    else FAIL --> LCA
+
+    class FSS zonePrimary
 ```

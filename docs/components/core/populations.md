@@ -7,23 +7,27 @@ A population in Erasmus refers to a fixed number of active GC's (individuals) ev
 ## Implementation Design
 
 ```mermaid
----
-title: Configure Populations
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TB
-    s[START]
-    b1[*Create population table]
-    b2[*Create metrics table]
-    b3{Name exists in DB?}
-    b4[Validate config]
-    b5[Pull config from DB]
-    b6[Pull & validate assets]
-    b7{Name exists in DB?}
-    b8[Create config in DB]
-    b9[Import fitness & survivability]
-    e[EXIT]
-    s:::ses -.-> b1 --> b2 --> b3 -- Yes --> b5 --> b6 --> b7 -- Yes --> b9 -.->e:::ses
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+
+    s[START]:::dataOlive
+    b1[*Create population table]:::dataTeal
+    b2[*Create metrics table]:::dataTeal
+    b3{Name exists in DB?}:::dataGold
+    b4[Validate config]:::dataTeal
+    b5[Pull config from DB]:::dataTeal
+    b6[Pull & validate assets]:::dataTeal
+    b7{Name exists in DB?}:::dataGold
+    b8[Create config in DB]:::dataTeal
+    b9[Import fitness & survivability]:::dataTeal
+    e[EXIT]:::dataOlive
+
+    s -.-> b1 --> b2 --> b3 -- Yes --> b5 --> b6 --> b7 -- Yes --> b9 -.-> e
     b3 -- No --> b4 --> b5
     b7 -- No --> b8 --> b9
-classDef ses stroke:#0f0
 ```

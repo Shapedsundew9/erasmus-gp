@@ -7,14 +7,23 @@ The `egpdb` package provides a layered PostgreSQL database interface for the Era
 ## Architecture
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 graph TD
-    A[Table] --> B[RawTable]
-    B --> C[database.py]
-    C --> D[psycopg2]
-    D --> E[(PostgreSQL)]
-    A --> F[row_iterators]
-    B --> G[configuration.py]
-    G --> H[common.py]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+    classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+
+    A[Table]:::dataTeal --> B[RawTable]:::dataTeal
+    B --> C[database.py]:::dataNavy
+    C --> D[psycopg2]:::dataOlive
+    D --> E[(PostgreSQL)]:::dataPlum
+    A --> F[row_iterators]:::dataNavy
+    B --> G[configuration.py]:::dataNavy
+    G --> H[common.py]:::dataNavy
 ```
 
 ### Module Responsibilities

@@ -5,28 +5,36 @@
 TBD: K8s, Namespaces?
 
 ```mermaid
----
-title: EGP SW Architercture
----
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 flowchart TD
-    wkr1[[Worker Pool]]
-    dbm1[("Gene Pool
-        (DBM)")]
-    fe1[[Fitness Executor Pool]]
-    dbm2[["Microbiome
-        Genomic Library
-        (DBM)"]]
-    dbm2[["Biome
-        Genomic Library
-        (DBM)"]]
-    dbm3[["Biosphere
-        Genomic Library
-        (DBM)"]]
+    %% Base/Default (Dark Slate)
+    classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
+    classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff
+    classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff
+    classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff
+    classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
+    classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5
+
+    subgraph Cluster [System Infrastructure]
+        direction TB
+        wkr1[[Worker Pool]]:::dataNavy
+        dbm1[("Gene Pool (DBM)")]:::dataPlum
+        fe1[[Fitness Executor Pool]]:::dataTeal
+    end
+
+    subgraph Storage [Global Storage]
+        direction TB
+        dbm2[("Microbiome Genomic Library")]:::dataPlum
+        dbm3[("Biosphere Genomic Library")]:::dataPlum
+    end
 
     wkr1 <--> dbm1
     fe1 <-.-> wkr1
     dbm1 <--> dbm2
     dbm2 <--> dbm3
+
+    class Cluster zonePrimary
+    class Storage zoneExternal
 ```
 
 The entry point to the system is a worker. Workers are independent containers, gathered in a pool and maintain no state. Workers *may* use an independent fitness executor to evaluate genetic codes but can also be configured to work on predefined problems locally. Typically local evaluation is only done when the overhead of using a remote fitness executor significantly slows down the system. Fitness executors are also arranged in a pool, are independent containers and also maintain no state.

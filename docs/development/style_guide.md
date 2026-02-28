@@ -14,24 +14,29 @@ Why this works:
 * **Desaturated Core:** Even the "Gold" and "Purple" have a high amount of gray mixed into them, making them suitable for long periods of viewing.
 Warm/Cool Balance: You have cool blues and greens alongside warmer mauves and golds, giving you plenty of logical classification pairs (e.g., using green for success paths and gold for exceptions).
 
-Here is a comprehensive master template for the Matte Slate & Muted Jewels theme. It includes a wide spectrum of desaturated colors so you can categorize complex data flows without the diagram becoming visually overwhelming. The classDef statements are organized into a copy-pasteable dictionary at the top of the code block.
+### Erasmus Semantic Mapping
+
+To maintain visual consistency across the documentation, use the following mapping of theme colors to Erasmus-specific objects:
+
+| Object Type | Class | Description |
+| :--- | :--- | :--- |
+| **TGC** (Target GC) | `dataBlue` | The existing genetic code being modified or evaluated. |
+| **IGC** (Insertion GC) | `dataGreen` | The new genetic code being inserted or added. |
+| **RGC** (Resultant GC) | `dataTeal` | The final product of an evolutionary operation. |
+| **FGC** (Fetal GC) | `dataGold` | A secondary or temporary GC created during a process. |
+| **Codon** | `dataPurple` | Functional primitives (terminal nodes in the GC tree). |
+| **GCA / GCB** | `dataNavy` | Sub-genetic codes (Left/Right children) within a composite. |
+| **AGC** (Abstract GC) | `dataPlum` | Abstract templates used for evolutionary tracking. |
+| **Interface (I/O)** | `dataOlive` | Input/Output interfaces and connectivity nodes. |
+| **Warning / Error** | `dataRed` | Exceptions, invalid states, or pruned branches. |
+
+#### Standard Template
+
+Copy and paste this header into every new Mermaid chart to ensure the theme is applied correctly:
 
 ```mermaid
-%%{init: {
-  'theme': 'dark',
-  'themeVariables': {
-    'lineColor': '#6c7a89',
-    'textColor': '#edf2f4',
-    'fontFamily': 'sans-serif',
-    'primaryBorderColor': '#4a4e69',
-    'clusterTextColor': '#edf2f4'
-  }
-}}%%
+%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%
 graph TD
-    %% ==========================================
-    %% MASTER COLOR DICTIONARY: MATTE & JEWELS
-    %% ==========================================
-    
     %% Base/Default (Dark Slate)
     classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4
     
@@ -48,69 +53,11 @@ graph TD
     classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff
     classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff
 
-    %% SUBGRAPH / ZONE CLASSIFICATIONS
-    %% Very dark slate with a dashed border for primary system areas
+    %% ZONES
     classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5
-    %% Very dark plum with a dashed border for external/storage areas
     classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5
 
-    %% ==========================================
-    %% VISUAL REFERENCE GUIDE
-    %% ==========================================
-    
-    %% --- Level 1: Categories ---
-    Base[Default Node Style<br/>Dark Slate Base] --> Core{Core Colors}
-    Base --> Extended{Extended Colors}
-    Base --> Links{Link Styles}
-    
-    %% --- Subgraph 1: Primary Zone ---
-    subgraph SG_Core [Primary Processing Zone]
-        Core --> BlueNode[class: dataBlue<br/>Standard Processing]
-        Core --> GreenNode[class: dataGreen<br/>Success / Validated]
-        Core --> GoldNode[class: dataGold<br/>Warning / Evaluation]
-        Core --> RedNode[class: dataRed<br/>Error / Critical]
-    end
-    
-    %% --- Subgraph 2: External Zone ---
-    subgraph SG_Extended [External & Storage Zone]
-        Extended --> PurpleNode[class: dataPurple<br/>Specialized Logic]
-        Extended --> TealNode[class: dataTeal<br/>I/O & External]
-        Extended --> PlumNode[(class: dataPlum<br/>Storage / DBs)]
-        Extended --> OliveNode[class: dataOlive<br/>Background Tasks]
-        Extended --> NavyNode[class: dataNavy<br/>Infrastructure]
-    end
-
-    %% --- Level 2: Link Styles ---
-    Links -->|Standard / Sync Flow| L_Sync[syntax: -->]
-    Links ==>|Primary / Heavy Data| L_Heavy[syntax: ==>]
-    Links -.->|Async / Event / Optional| L_Async[syntax: -.->]
-    Links --o|Read Only / Fetch| L_Read[syntax: --o]
-    Links --x|Blocked / Terminated| L_Block[syntax: --x]
-
-    %% ==========================================
-    %% APPLY NODE & SUBGRAPH CLASSES
-    %% ==========================================
-    
-    class BlueNode dataBlue
-    class GreenNode dataGreen
-    class GoldNode dataGold
-    class RedNode dataRed
-    
-    class PurpleNode dataPurple
-    class TealNode dataTeal
-    class PlumNode dataPlum
-    class OliveNode dataOlive
-    class NavyNode dataNavy
-
-    %% Apply classes to the subgraphs
-    class SG_Core zonePrimary
-    class SG_Extended zoneExternal
-
-    %% ==========================================
-    %% APPLY LINK STYLES
-    %% Indices: 0-2 (Base to categories), 3-6 (Core), 7-11 (Extended), 12-16 (Links)
-    %% ==========================================
-    
-    linkStyle 13 stroke:#5c6b73,stroke-width:3px;
-    linkStyle 16 stroke:#8f6060,stroke-width:2px;
+    %% Example usage:
+    %% NodeA[TGC: Target]:::dataBlue
+    %% NodeB[IGC: Insert]:::dataGreen
 ```
