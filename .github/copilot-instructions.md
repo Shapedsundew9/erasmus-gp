@@ -49,6 +49,7 @@ for definitions of specific levels.
 *   Ensure that all tests pass before submitting code.
 *   Make use of test and class setup fixtures to avoid code duplication. In particular for expensive setup operations.
 *   `coverage` is used to measure test coverage. Aim for high coverage, especially for critical components.
+*   All PR's must pass all unit tests and summarise the test results in the PR description.
 
 ## Documentation
 
