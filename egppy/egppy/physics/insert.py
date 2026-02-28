@@ -52,13 +52,14 @@ def insert(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode, case: InsertionCase 
 
     match case:
         case SrcIfKey.IS | DstIfKey.AD | InsertionCase.ABOVE_A:
-            return insert_above_a(rtctxt, igc, tgc)
+            _rgc = insert_above_a(rtctxt, igc, tgc)
         case SrcIfKey.AS | DstIfKey.BD | InsertionCase.ABOVE_B:
-            return insert_above_b(rtctxt, igc, tgc)
+            _rgc = insert_above_b(rtctxt, igc, tgc)
         case SrcIfKey.BS | DstIfKey.OD | InsertionCase.ABOVE_O:
-            return insert_above_o(rtctxt, igc, tgc)
+            _rgc = insert_above_o(rtctxt, igc, tgc)
         case _:
             raise ValueError(f"Invalid destination interface key for insertion: {case}")
+    return _insert_connection_process(_rgc)
 
 
 def insert_above_a(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> EGCode:
@@ -149,3 +150,8 @@ def insert_above_o(rtctxt: RuntimeContext, igc: GCABC, tgc: EGCode) -> EGCode:
     direct_connect_interfaces(fgc_cgraph[SrcIfKey.IS], fgc_cgraph[DstIfKey.AD], check=False)
     direct_connect_interfaces(fgc_cgraph[SrcIfKey.AS], fgc_cgraph[DstIfKey.OD], check=False)
     return tgc
+
+
+def _insert_connection_process(rgc: EGCode) -> EGCode:
+    """TODO: Implement connection processing for insertion cases."""
+    return rgc

@@ -74,7 +74,8 @@
 	},
 	"containerEnv": {
 		// Environment variables to set in the container.
-		"EGP_PROFILE": "DEV"
+		"EGP_PROFILE": "DEV",
+		"RELEASE_DATA_MANAGER_TOKEN": "${localEnv:RELEASE_DATA_MANAGER_TOKEN}"
 	},
 	// 1. Ensure Node.js is available (Copilot CLI requires it)
 	"features": {

@@ -215,9 +215,7 @@ __marimo__/
 
 # EGP
 codons.json
-meta_codons.json
 codons.json.sig
-meta_codons.json.sig
 types_def.json
 types_def.json.sig
 profile_analysis.txt

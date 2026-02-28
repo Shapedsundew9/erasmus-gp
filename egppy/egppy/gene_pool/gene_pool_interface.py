@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.manage_github_data import download_data
 from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
@@ -38,6 +39,8 @@ class GenePoolInterface(GPIABC, Hashable):
 
     def __init__(self, config: DBManagerConfig, cache_size: int = 2**16) -> None:
         """Initialize the Gene Pool Interface."""
+        # Ensure latest data files are available before loading sources
+        download_data()
         self._dbm = DBManager(config)
         self.uuid = uuid4()
         if self._should_reload_sources():

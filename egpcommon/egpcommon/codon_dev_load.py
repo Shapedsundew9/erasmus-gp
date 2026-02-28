@@ -1,10 +1,10 @@
 """Codon development loader.
 
 This module assists codon development when codon signatures change frequently.
-It loads codon and meta-codon definitions from JSON files and finds codons that
-match a given list of input types, output types, and the codon name stored in
-the codon's metadata. When a match is found, the codon's signature is returned
-as a bytes object.
+It loads codon definitions from JSON files and finds codons that match a given
+list of input types, output types, and the codon name stored in the codon's
+metadata. When a match is found, the codon's signature is returned as a bytes
+object.
 
 Note: JSON files should be loaded with the security module's helper (e.g.
 load_json_file_list) or an equivalent routine to ensure the expected structure and
@@ -26,7 +26,6 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 # Default paths to codon JSON files
 DEFAULT_CODON_PATHS: tuple[str, ...] = (
     join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "codons.json"),
-    # join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "meta_codons.json"),
 )
 
 # Cache for loaded codons indexed by (input_types, output_types, name)

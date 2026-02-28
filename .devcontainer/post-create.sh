@@ -36,18 +36,8 @@ if [ -d "/workspaces/egpseed" ]; then
     .venv/bin/pip install -e /workspaces/egpseed
     .venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
-    # .venv/bin/python /workspaces/egpseed/egpseed/generate_meta_codons.py --write
     .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
     echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
-else
-    DIR="/workspaces/erasmus-gp/egppy/egppy/data"
-    URL="https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data"
-    
-    # Use brace expansion to loop through all 4 file variations
-    for f in {meta_,}codons.json{,.sig}; do
-        curl -z "$DIR/$f" -L -o "$DIR/$f" "$URL/$f"
-    done
-    echo "alias pull='for f in {meta_,}codons.json{,.sig}; do p="/workspaces/erasmus-gp/egppy/egppy/data/$f"; curl -z "$p" -L -o "$p" "https://github.com/Shapedsundew9/erasmus-gp/releases/download/latest-data/$f"; done'" >> ~/.bashrc
 fi
 
 # Done

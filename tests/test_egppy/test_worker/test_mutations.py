@@ -6,11 +6,10 @@ from itertools import product
 from random import getrandbits, seed
 
 from egpcommon.common import ACYBERGENESIS_PROBLEM
-from egpcommon.egp_log import DEBUG, TRACE, Logger, egp_logger
+from egpcommon.egp_log import TRACE, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.physics.helpers import empty_egc, literal_codon
-from egppy.physics.insertion import InsertionCase, insert
-from egppy.physics.pgc_api import EGCode
+from egppy.physics.insert import InsertionCase
 from egppy.physics.runtime_context import RuntimeContext
 from egppy.physics.stabilization import stabilize_gc
 from egppy.physics.wrap import WrapCase, wrap

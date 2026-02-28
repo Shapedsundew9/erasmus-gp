@@ -15,12 +15,13 @@ class RuntimeContext:
     context information for use by PGC's during execution.
     """
 
-    __slots__ = ("gpi", "root_gc", "creator", "debug_data", "parent")
+    __slots__ = ("gpi", "root_gc", "other_gc", "creator", "debug_data", "parent")
 
     def __init__(
         self,
         gpi: GenePoolInterface,
         root_gc: GCABC = NULL_GC,
+        other_gc: GCABC = NULL_GC,
         creator: UUID = ANONYMOUS_CREATOR,
         debug_data: dict[str, Any] | None = None,
     ) -> None:
@@ -29,6 +30,11 @@ class RuntimeContext:
         Args:
             gpi (GenePoolInterface): The gene pool interface.
             root_gc (GCABC): The root (top level) GC that is being executed.
+            other_gc (GCABC): Another GC that may be relevant to the execution context.
+                For example, in crossover this may be the other parent GC. This is not used
+                in all cases and is not guaranteed to be set in all cases. It is provided
+                as a convenience for PGC's that may need access to another GC in the execution
+                context.
             creator (UUID): The UUID of the creator of the execution context.
             debug_data (dict[str, Any] | None): A dictionary for storing debug
                 information. Only used in development and testing to store
@@ -36,6 +42,7 @@ class RuntimeContext:
         """
         self.gpi: GenePoolInterface = gpi
         self.root_gc: GCABC = root_gc
+        self.other_gc: GCABC = other_gc
         self.creator: UUID = creator
         self.debug_data: dict[str, Any] | None = debug_data
 
