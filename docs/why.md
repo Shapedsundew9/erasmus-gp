@@ -9,4 +9,4 @@ Rather than have an FAQ that rehashes the detailed documentation this section ha
 5. **What inspired the EGP logo?** [Explanation coming]
 6. **What inspired you to build Erasmus?** [Explanation coming]
 7. **The terms "codon" and "genetic code" are used a lot but they are not used in they way you would find in the literature?**  [Explanation coming]
-8. **Its been 7+ years dude, where is it?** Erasmus is the product of my evenings and weekends that I have spare...and I do not have a lot of those as a husband, father and a full-time employee.
+8. **Its been 7+ years dude, where is it?** Erasmus is the product of my evenings and weekends that I have spare...and I do not have a lot of those as a husband, father and a full-time employee (it's also a hard nut to crack).
