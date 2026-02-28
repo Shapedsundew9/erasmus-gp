@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Release data management functions for GitHub.
 
 These functions manage the data files in a GitHub release for the Erasmus GP project.

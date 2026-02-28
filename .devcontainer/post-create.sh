@@ -32,8 +32,7 @@ echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o prof
 
 # Sync the codon and types def data
 echo "Syncing GitHub data..."
-chmod +x ./egpcommon/egpcommon/manage_github_data.py
-./egpcommon/egpcommon/manage_github_data.py sync
+./.venv/bin/python3 ./egpcommon/egpcommon/manage_github_data.py sync
 
 # If egp seed is installed, add an alias for the generate script
 if [ -d "/workspaces/egpseed" ]; then
