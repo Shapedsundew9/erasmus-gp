@@ -478,47 +478,6 @@ class O Ocd
 
 Types are represented by signed 32 bit integer unique identifiers and a unique name string of no more than 128 characters, for example 0x1, "bool" for the builtin python type bool (NB: 0x1 may not actually be the integer UID of the bool type). The integer UIDs are for efficient storage and look up and the strings for import names and generating code. Other data is associated with each type such as the bi-directional inheritence tree. An EGP type may be abstract in the programming sense that it is not completely defined and so cannot be instanciated.
 
-### EGP Defined Types
-
-There are several EGP defined types that can be considered pure abstract types and only exist as a root or low level node in the inheritance tree in order to support future type expansion or error conditions:
-
-- **Any**: The standard 'typing' package 'Any' used to represent that an object may have any type.
-- **EGPInvalid**: The invalid type. Used for error conditions and testing.
-- **EGPNumber**: A base type that defines the numeric operators which can be inherited by all builtin python and custom numeric types.
-- **EGPComplex**: Similar to number but for complex types.
-- **EGPRational**: Similar to number but for rational types.
-- **EGPReal**: Similar to number but for rational types.
-- **EGPIntegral**: Similar to number but for rational types.
-
-### Integer UID Format
-
-The EP Type integer UID value Has the following format:
-
-|    31    | 30:28 |  27:16   | 15:0 |
-|:--------:|:-----:|:--------:|:----:|
-| Reserved |  TT   | Reserved | XUID |
-
-The Template Types bits, TT, define the number of templated types that need to be defined for the 65536 possible XUID types. TT has a value in the range 0 to 7. A 0 template types object is a scalar object like an _int_ or a _str_ that requires no other type to define it. Template types of 1 or more define various dimensions of containers e.g. a _list_ or _set_ only requires the definition of one template type (TT = 1) for a _list[str]_ or _set[object]_ (**NOTE:** The template type is the type of **all** of the elements hence a list or set etc. only can define one template type. A hetrogeneous container of elements is defined using a type such as _object_ or _Number_ which constrain the type). A dict is an example of a container that requires two template types to be defined e.g. _dict[str, float]_. The UID does not encode the template types directly, a global database maintains the UID to typed container mapping.
-
-### UID Allocation
-
-EGP permits an [infinite number of types](https://g.co/gemini/share/36d4f3b94521) i.e. a Septuple may be typed with Septuples that are not the same type as itself (inifinte recursion is not permitted) and so UID's are allocated on a globally atomic "first come first served" basis. By default all scalar (TT = 0) types plus base typed containers (e.g. "list[Any]", "dict[Hashable, Any]") permutation UIDs are defined for all containers with TT <= 2 and further types UID definitions for TT >= 1 e.g "list[int]" or "Triplet[list[Any], str, Complex]" are defined on demand from the problem definition.
-
-### End Point Types
-
-End Point Types, EPTs, are complete types defined by a sequence (usually a tuple) of types with the format. They are the full definition of a container type (TT > 0) type:
-
-(type[0], \*template_type[1], ..., \*template_type[n])
-
-where _n_ is the value of TT in the type[0] type UID. For scalar types type[0] == scalar_type UID_ and _n == 0_ i.e. _(scalar_type,)_ is the EPT for a scalar type. For container types the template types are EPTs defined in the order of the container definition which permits nested containers of almost arbitary depth to be supported (limited by the number of types that may be defined in an interface). For example:
-
-- list[str]: (list_type, str_type, )
-- dict[str, float]: (dict_type, str_type, float_type)
-- dict[str, list[int]]: (dict_type, str_type, list_type, int_type)
-- dict[tuple[int, ...], list[list[Any]]]: (dict_type, tuple_type, int_type, list_type, list_type, any_type)
-
-NOTE: EPT's are an internal concept. The database storage (e.g. Gene Pool, Genomic Library) define types for ease of look up (SQL expression efficiency).
-
 ### End Points
 
 End Points are parameters in a connection graph definition. They have a position, EGP type, row and 0, 1 or more references (connections to other endpoints) depending on their class: Source or destination. Destination endpoints must have 1 and only one reference (source that defines them) as they are input parameters to a GC function. Source endpoints may have 0 or more references as they are output parameters from a GC function. The function result may not be used or may be used in 1 or more places.

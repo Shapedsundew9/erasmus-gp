@@ -5,6 +5,7 @@ A population of individuals work to solve a problem. An individual may be a memb
 A population in Erasmus refers to a fixed number of active GC's (individuals) evaluated by a fitness function of a problem. A population is identified  by an unsigned integer >1 and a problem definition hash (git hash).
 
 ## Implementation Design
+
 ```mermaid
 ---
 title: Configure Populations
@@ -26,4 +27,3 @@ flowchart TB
     b7 -- No --> b8 --> b9
 classDef ses stroke:#0f0
 ```
-

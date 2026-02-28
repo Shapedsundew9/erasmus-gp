@@ -65,25 +65,6 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 - `python` (bool): Codon code is Python (default: True)
 - `psql` (bool): Codon code is PostgreSQL-flavored SQL
 
-### 3. Meta (GCType.META = 2)
-
-**Meta** genetic codes are special-purpose primitives for type operations and monitoring that have no functional impact on evolved solutions. Meta genetic codes are also codons and meet all constraints on codon structure and usage.
-
-**Key Characteristics:**
-
-- **Type System Operations**: Primarily used for type casting, type checking, and validation
-- **Functional No-Op**: Do not alter the logical behavior of evolved genetic codes; they are transparent to fitness evaluation
-- **Primitive Structure**: Must use `CGraphType.PRIMITIVE` connection graphs (same as codons)
-- **No Ancestors**: Like codons, have no parent genetic codes (all ancestor fields are NULL signatures)
-- **System Infrastructure**: Support validation, debugging, and performance monitoring
-
-**Example Use Cases:**
-
-- Type casting: Converting between compatible types (functional no-op with type transformation)
-- Type checking: Runtime type validation
-- Performance monitoring: Instrumentation for profiling
-- Debugging: Assertions and invariant checking
-
 ## GC Type and Connection Graph Constraints
 
 The GC Type constrains which connection graph types can be used:
@@ -92,16 +73,15 @@ The GC Type constrains which connection graph types can be used:
 | --------- | --------------------- |
 | **CODON** | `PRIMITIVE` only |
 | **ORDINARY** | `STANDARD`, `IF_THEN`, `IF_THEN_ELSE`, `FOR_LOOP`, `WHILE_LOOP`, `EMPTY` |
-| **META** | `PRIMITIVE` only |
 
 **Validation Rules:**
 
-- If the connection graph is `PRIMITIVE` `gc_type` **must** be `CODON` or `META` and vice-versa.
-- If the connection graph does not have a Row A defined, then `gca` **must** be NULL signature
-- If the connection graph does not have a Row B defined, then `gcb` **must** be NULL signature
-- If the connection graph has a Row A defined, then `gca` **must not** be NULL signature
-- If the connection graph has a Row B defined, then `gcb` **must not** be NULL signature
-- If the connection graph is `PRIMITIVE`: `ancestora`, `ancestorb`, and `pgc` **must** all be NULL signatures
+- If the connection graph is `PRIMITIVE` `gc_type` **must** be `CODON` and vice-versa.
+- If the connection graph does not have a Row A defined, then `gca` **must** be NULL
+- If the connection graph does not have a Row B defined, then `gcb` **must** be NULL
+- If the connection graph has a Row A defined, then `gca` **must not** be NULL
+- If the connection graph has a Row B defined, then `gcb` **must not** be NULL
+- If the connection graph is `PRIMITIVE`: `ancestora`, `ancestorb`, and `pgc` **must** all be NULL
 
 ## Reserved Type
 

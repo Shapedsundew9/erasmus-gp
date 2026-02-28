@@ -51,7 +51,7 @@ The implicit empty grid interface only specifies the occupied positions of the g
 position:states can be implemented:
 
 - str:bool where str is a letter A to I specifying the position and bool is the player.
-- int:bool where int is an index 0 to 8 where (column, row) = divmod(index, 3) 
+- int:bool where int is an index 0 to 8 where (column, row) = divmod(index, 3)
 - tuple[int, int]:bool where the key is (column, row) and the value the player.
 
 The special case is a 0 to 9 length string with the characters A to I in uppercase for one player and lower case for the other. The order of the letters does not matter (and randomising the order should be part of the fitness function.)
