@@ -30,13 +30,13 @@ echo "Adding custom aliases to .bashrc..."
 echo "# My Custom Aliases" >> ~/.bashrc
 echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o profile.prof -m unittest discover && /workspaces/erasmus-gp/.venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
 
-# Higher layer configuration tooling
+# Sync the codon and types def data
+echo "Syncing GitHub data..."
+chmod +x ./egpcommon/egpcommon/manage_github_data.py
+./egpcommon/egpcommon/manage_github_data.py sync
+
+# If egp seed is installed, add an alias for the generate script
 if [ -d "/workspaces/egpseed" ]; then
-    echo "Detected egpseed folder in /workspaces. Installing and generating data from there..."
-    .venv/bin/pip install -e /workspaces/egpseed
-    .venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write
-    .venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write
-    .venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write
     echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 fi
 
