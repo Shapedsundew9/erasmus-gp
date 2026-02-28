@@ -54,6 +54,7 @@ for definitions of specific levels.
 ## Documentation
 
 *   Update the Markdown documentation in the `docs` folder of the relevant package.
+*   Formula and mathematical variables shall use embedded LaTeX syntax for consistency and clarity.
 *   Use Mermaid diagrams to illustrate architectural changes where appropriate.
 *   Follow the styles and conventions described in egpcommon/docs/style_guide.md for consistency across documentation. 
 

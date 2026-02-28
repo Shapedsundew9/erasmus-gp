@@ -1,96 +1,121 @@
-# Overview of How EGP Works
+# Overview of How Erasmus Works
 
-This section assumes a basic grip of evolutionary algorithms.
+This section assumes a basic understanding of Evolutionary Algorithms and Genetic Programming (GP).
 
-For the purposes of this overview a [genetic code](../egppy/egppy/gc_types/docs/gc_logical_structure.md), _g_, is a python program that runs as an agent (solution) acting in a problem environment. In EGP the programs 'genetic code' is a recursively embedded structure. A genetic code has an input interface, _i_, and an output interface, _o_, as well as none or two embedded sub-sub-genetic codes that are connected together as a graph. If a genetic code has no embedded genetic codes it is call a codon which represents a functional primitive like '+' or 'str.replace(x, y)'. The genetic code agent/solutions interact with a problem environment within which thier fitness is measured
+For the purposes of this overview, a **Genetic Code** ($g$) is a Python program that acts as an agent (or solution) within a problem environment. In Erasmus Genetic Programming (EGP), the program's structure is a recursively embedded graph—specifically, a binary tree structure.
+
+A genetic code $g$ has an input interface ($i$), an output interface ($o$), and contains either exactly zero, one or two embedded sub-genetic codes. If a genetic code has zero embedded sub-codes, it is called a **Codon**. A Codon represents a functional primitive, such as an arithmetic operator (e.g., `+`) or a string method (e.g., `str.replace(x, y)`).
+
+The genetic code agents interact with a problem environment, within which their fitness is measured over time ($t$).
 
 ```mermaid
 flowchart LR
 
-    p[**Problem, _p_,
-    Environment**
-    _pₜ ⇨ pₜ₊₁_]
+    p["<b>Problem Environment, p</b><br>pₜ ⇨ pₜ₊₁"]
 
-    gc[**Genetic
-    Code, _g_**
-    _sₜ₋₁ ⇨ sₜ_]
+    gc["<b>Genetic Code, g</b><br>sₜ₋₁ ⇨ sₜ"]
 
-    t[_t=t+1_]:::noborder
+    time["t = t + 1"]:::noborder
     
-    p --"_iₜ₊₁_"--> t --"_iₜ_"--> gc 
-    gc --"_oₜ_"--> p
+    p -- "iₜ₊₁" --> time -- "iₜ" --> gc 
+    gc -- "oₜ" --> p
 
     classDef noborder fill:none,stroke:none;
 ```
 
-where:
+Where:
 
-- **_g_** = the genetic code (python program)
-- **_i_** = Input data to _g_
-- **_o_** = Output data from _g_
-- **_s_** = _g_ internal state
-- **_p_** = Problem internal state (_g_'s external environment)
-- **_t_** = time in arbitary units
+* $g$ = The genetic code (Python program)
+* $i$ = Input data provided to $g$
+* $o$ = Output data produced by $g$
+* $s$ = Internal state of $g$
+* $p$ = Internal state of the Problem (i.e., $g$'s external environment)
+* $t$ = Time (in arbitrary discrete units)
 
-The loop is initiated in the _Problem_ stage at _pₜ₊₁₌₀_ which generates the initial input data set into the genetic code. Note that:
+The interaction loop is initiated by the Problem environment at $t=0$, which generates the initial input data $i_0$ for the genetic code. The state updates follow these functions:
 
-- _pₜ₊₁(pₜ, oₜ, ...)_
-- _iₜ(pₜ)_
-- _sₜ₊₁(sₜ, iₜ)_
-- _oₜ(sₜ, iₜ)_
+* $p_{t+1} = f(p_t, o_t, \dots)$
+* $i_t = f(p_t)$
+* $s_t = f(s_{t-1}, i_t)$
+* $o_t = f(s_t, i_t)$
 
-and _..._ represents other problem environmental inputs e.g. other agents impacting the problem environment in that time interval. EGP evolves each individual genetic code, _gᵢ_, in the population, _G_, in the problem environment, _p_, with a mutation genetic code, _mⱼ_, from the population of mutations, _M_, to create the next generation _gᵢ'_ i.e. _gᵢ' = mⱼ(gᵢ)_. The suitability of _gᵢ'_ to solve _p_ can then be evaluated and natural selection occur for the next iteration.
+*(Note: The $\dots$ in the $p_{t+1}$ function represents other environmental factors, such as competing agents acting in the same time interval).*
 
-Phrased like this _mⱼ_ can be considered a genetic code agent acting in the mutation problem environment, _pₘ_, taking in _gᵢ_ as its input and producing _gᵢ'_ as it output and the same process may be applied recursively. As the next generation of _M_ concentrates fitter mutations the generations of _G_ improve more quickly.
+## The Meta-Evolutionary Architecture
 
-However, _mⱼ_ is unlikely to be universally suitable and so random selection in this environment does not scale well. A mutation that increases a value (in _gᵢ_) when the value needs to decrease, or acts on floating point types when the problem is regarding strings is not useful, and likely detrimental, which means the fitness of _mⱼ_ is problem environment and agent dependent. To mitigate this EGP employs a third type of genetic code called a selector, _zₖ_, with a population, _Z_. Selectors choose mutations, or choose another selector to delegate mutation selection too, based on the fitness of the mutation/selector and the relationship it has to the problem and the genetic code that is to be mutated. There is a special selector called the Master Selector, _z₀_, which is a codon (i.e. functional primitive genetic code). The Master Selector is the first step in the selection process and can only choose other selectors. Selectors are also evolved through the same process.
+Standard GP evolves a population of solutions using fixed mutation and crossover operators. EGP is a **Meta-Genetic Programming** system: it simultaneously evolves the solutions *and* the evolutionary operators themselves.
 
-Relationships are defined by the genomic library. EGP maintains all (notionally useful) genetic codes in a hierarchical database system linking each one to its ancestory, descendants, problem environments, mutation & selector. This graph can be traversed to select from genetic codes that are fittest (or likely to be fittest) in a problem environment.
+EGP maintains three distinct populations:
 
-Selector and mutation genetic codes and collectively termed 'physical' genetic codes.
+1. **$G$ (Agents/Solutions):** The population of genetic codes attempting to solve the user-defined problem environments.
+2. **$M$ (Mutators):** A population of genetic codes whose "problem environment" ($p_m$) is the task of mutating codes in $G$ to produce fitter offspring.
+3. **$Z$ (Selectors):** A population of genetic codes whose "problem environment" ($p_z$) is the task of optimally pairing mutations from $M$ with targets in $G$.
 
-## Pseudo Code
+Phrased this way, a mutation $m_j \in M$ is an agent acting in environment $p_m$, taking $g_i$ as input and producing a mutated offspring $g_i'$ as output. As the population $M$ evolves and concentrates fitter mutations, the evolution of $G$ accelerates.
 
-Note that this code describes the function of the entire EGP system not just the core algorithm.
+### Recursive Evolution: Mutators Mutating Mutators
+
+Because $M$ and $Z$ are constructed exactly like the solution programs in $G$, they are subject to the exact same evolutionary rules. Once a Mutator has been used enough times to establish its fitness, it becomes a *target* for evolution itself. The system will use a Selector to choose *another* Mutator to mutate the original Mutator, creating a new generation of evolutionary operators. This recursive "turtles all the way down" approach allows the system to continuously refine how it evolves.
+
+However, a single mutator $m_j$ is rarely universally suitable (e.g., a mutation excellent at tuning floats is destructive to string-manipulation code). To mitigate this, **Selectors ($Z$)** choose mutations based on the context of the target genetic code. The process starts with the **Master Selector ($z_0$)**, a primitive Codon that serves as the root of the selection process.
+
+### The Genetic Library
+
+EGP maintains all physically and historically useful genetic codes in a hierarchical database. This library links every code to its ancestry, descendants, associated problem environments, and the specific mutators/selectors that created it. This graph can be traversed to inform future selections, allowing the system to learn which evolutionary pathways yield the best results for specific problem classes.
+
+## System Algorithm (Pseudo-Code)
+
+The following describes the core execution loop of the EGP system.
 
 ### Initialization
 
-```text
-For the initial problem, p₀, randomly generate population G meeting the interface (inputs and outputs) specification.
-Population M comprises of only mutation codons i.e. mutation primitives.
-Population Z comprises of the random selector codon i.e. is a population of 1.
-```
+1. For the initial problem $p_0$, randomly generate a population $G$ that meets the required input/output interface specifications.
+2. Initialize population $M$ consisting strictly of **Mutation Codons** (functional mutation primitives).
+3. Initialize population $Z$ consisting of a single **Random Selector Codon** (acting as $z_0$).
 
-### Main Loop
+### Main Evolutionary Loop
 
 ```text
-for p in P if p not in (pz, pₘ):
-  for X in (G, Z, M):
-    for xᵢ in X if pₓ is complete:
-      z₀ selects zᵢ from Z
-      zᵢ = zᵢ if zᵢ selects a mutation else zᵢ = zᵢ's choice from Z and goto 2.
-      zᵢ selects mᵢ from M
-      mᵢ mutates xᵢ to create xᵢ'
-      xᵢ' is evaluated for fitness in pₓ, break if fitness goal achieved
-    The next generation of X is selected (empty if fitness goal achieved)
+For each user problem p in the universal problem set P:
+    // Iterate over ALL populations, enabling recursive evolution
+    For each population X in {G, M, Z}:
+        For each target genetic code x_i in the active population X:
+            
+            // Only evolve if its fitness in its environment (p, p_m, p_z) is established
+            If x_i is ready for evolution (e.g., evaluated N times):
+            
+                // 1. Selector Resolution Loop
+                Let z_active = z_0 (Master Selector)
+                While z_active chooses to delegate:
+                    z_active = z_active's selection from population Z
+                    
+                // 2. Mutation Selection
+                Let m_i = z_active's selection from population M
+                
+                // 3. Execution of Mutation
+                Let x_i' = m_i(x_i)  // m_i mutates the target (which could be another mutator!)
+                
+                // 4. Fitness Evaluation of Offspring
+                Evaluate fitness of x_i' in its respective environment (p for G, p_m for M, p_z for Z)
+                If fitness goal achieved for user problem p:
+                    Halt and return x_i'
+                    
+                // 5. Meta-Fitness Evaluation
+                // (The operators that just created this offspring gain/lose reputation)
+                Update relative fitness of m_i and z_active
+                
+    // 6. Pruning and Selection
+    For each population X in {G, M, Z}:
+        Apply survivability criteria to X to select the next generation
 ```
 
-The following is a line by line discission of the system algorithm:
+### Line-by-Line Discussion
 
-**for p in P if p not in (pz, pₘ):** EGP is a distributed system with a database of validated problem definitions centrally served to the workers at the edge. i.e. there are always problems in the universal problem set that are not the intrinsic problems of selection or mutation (those require a third problem so thier fitness can be defined). It is important to note that whilst the problem set can theoretically be arbitary in practicality problems must start simply and increase in complexity by adding related problems. The parallel can be drawn to biological evolution: humans did not just self assemble one fine day, physics does not prevent it, but the probability is not worth seriously discussing. Things started simple (even if we do not know exactly how) and built from there: Abiogenesis, RNA world, DNA world, Prokaryotes, Eukaryotes, Multicellular organisms and so on. Once a certain level of complexity is achieved across a broad range of problems EGP will approximate to a general problem solver.
-
-**for X in (G, Z, M):** for each problem EGP attempts to find a solution for, 3 populations evolve, the agent/solution population, _G_, the selector population, _Z_ and the mutation population, _M_. The mechanism of evolution is identical for all three.
-
-**for xᵢ in X if pₓ is complete:** for every genetic code in the population _X_, evolve it if the problem environment is sufficiently defined for fitness to be evaluated (complete). The 'is complete' condition is present because for physical genetic codes and probably some complex agent genetic codes the fitness function will not necessarily be able to be evaluated every iteration. For example, most physical genetic codes will not be used in the evolution of an agent/solution and thus have no fitness. It is also not wise to evaluate the fate of a genetic code on a single data point, by default physical genetic codes must be executed at least 8 times to assess thier fitness. Note that each iteration of the inner loop is independent of the other allowing an extremely high degree of parallelization at scale.
-
-**z₀ selects zᵢ from Z** this line is the Master Selector choosing the selector. The Master Selector makes its weighted random selection based on the fitness and evolvability of the the selectors in _Z_. This drives the system to evolve a hierarchy of more specialised selectors (in theory).
-
-**zᵢ = zᵢ if zᵢ selects a mutation else zᵢ = zᵢ's choice from Z and goto 2.** a selector can select a mutation or delegate to another more specialised selector based on _pₓ_ and _xᵢ_. Since selectors evolve, exactly how it makes the selection is not defined, however the random selector is always an option. This line only moves to the next when a mutation is selected. Note that the fitness function for selectors puts pressure on the time it takes to make a decision so excessive delegation is penalized.
-
-**zᵢ selects mᵢ from M** the selection of the mutation for _xᵢ_.
-
-**mᵢ mutates xᵢ to create xᵢ'** the mutation of _xᵢ_ to _xᵢ_'. Note that _xᵢ_ still remains in the population for now.
-
-**xᵢ' is evaluated for fitness in pₓ, break if fitness goal achieved** For physical genetic codes the fitness function is very simple and fast; over the last _N_ (8 by default) executions did this genetic code do better than the population average. _NOTE: this is very experimental_. For agent/solution genetic codes it is the fitness function defined in the problem. As problems become harder or fitness more refined the execution time/resources of this line dominates the entire process. _NOTE: Evolvability is also evaluated at this point. Evolvability is the characteristic of a genetic code to produce better descendants which is is an advantage to the population (ignoring diversity). This is also very experimental._
-
-**The next generation of X is selected (empty if fitness goal achieved)** The active populations of _G_, _Z_ and _M_ are pruned by a survivability criteria based mostly on fitness, evolvability and diversity for the next iteration. Those genetic codes not eligible to be part of the population are not deleted but remain stored in the genomic library. Ideally EGP would never discard a genetic code so that the entire ancestory of all genetic codes could be studied. This is not practically possible but the bar is set very high (low?) to permanently delete a genetic code.
+* **For each user problem $p$ in $P$:** EGP is a distributed system with a centralized database of validated problem definitions served to edge workers. Problems must scale in complexity. Parallel to biological evolution (Abiogenesis $\rightarrow$ Eukaryotes $\rightarrow$ Multicellular life), EGP starts with trivial tasks and builds complexity. Once a threshold of complexity is mastered across a broad range of problems, EGP approximates a general problem solver.
+* **For each population $X$ in $\{G, M, Z\}$:** This is the core of EGP's meta-evolution. By iterating over all three populations, the system applies the exact same evolutionary mechanics to the agents ($G$), the mutators ($M$), and the selectors ($Z$). A mutator is mutated by another mutator, allowing the evolutionary mechanisms themselves to adapt over time.
+* **If $x_i$ is ready for evolution:** The 'is complete' condition is necessary because physical genetic codes (and complex agent codes) cannot have their fitness evaluated on a single data point. By default, physical genetic codes must be executed at least $N=8$ times to reliably assess their relative fitness before they are allowed to reproduce.
+* **Selector Resolution (`While z_active chooses to delegate`):** The Master Selector ($z_0$) makes a weighted selection from $Z$. A selected $z$ can either pick a mutator from $M$, or delegate to a more specialized selector in $Z$. Because selectors are evolved programs, their exact decision logic is emergent. However, fitness functions for selectors penalize excessive execution time, naturally suppressing infinite delegation loops.
+* **Let $x_i' = m_i(x_i)$:** The chosen mutation is applied. Note that the parent $x_i$ remains in the population until the generation pruning phase.
+* **Evaluate fitness of $x_i'$:** The new agent is evaluated against its respective environment ($p$ if it's a solution, $p_m$ if it's a new mutator, $p_z$ if it's a new selector). Evolvability (the probability of a lineage producing superior descendants) is also tracked and updated retroactively here.
+* **Update relative fitness of $m_i$ and $z_{active}$:** The "parents" (the mutator and selector) of the newly created offspring have their own fitness updated based on how successful the offspring was compared to the population average.
+* **Pruning and Selection:** The active populations of $G$, $Z$, and $M$ are pruned based on their Survivability score ($s$), which aggregates fitness, evolvability, and diversity (via the Crowding Penalty). Codes that fail to survive are not deleted; they are retired to the Genetic Library. The bar for permanent deletion from the database is set exceptionally low, ideally preserving the entire phylogenetic tree of all executed code.
