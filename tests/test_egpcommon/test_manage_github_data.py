@@ -5,6 +5,7 @@ All HTTP interactions are mocked to avoid real network calls.
 """
 
 from json import dumps
+from os import path
 from os.path import join
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -225,6 +226,41 @@ class TestDownloadData(TestCase):
                 result = download_data()
 
         self.assertTrue(result)
+
+    @patch("egpcommon.manage_github_data.get")
+    @patch("egpcommon.manage_github_data._local_sig_data")
+    def test_download_creates_missing_destination_folder(
+        self, mock_local_data: MagicMock, mock_get: MagicMock
+    ) -> None:
+        """Creates FILES_FOLDER when it does not already exist."""
+        mock_local_data.return_value = None
+
+        def side_effect(url: str, **_: object) -> MagicMock:
+            resp = MagicMock()
+            resp.raise_for_status = MagicMock()
+            if url.endswith(".sig"):
+                sig_body = dumps(_make_sig(timestamp=_TS_NEW))
+                resp.text = sig_body
+                resp.content = sig_body.encode("utf-8")
+            else:
+                resp.content = b'[{"test": "data"}]'
+            return resp
+
+        mock_get.side_effect = side_effect
+
+        with TemporaryDirectory() as tmpdir:
+            missing_folder = join(tmpdir, "missing", "data")
+            self.assertFalse(path.exists(missing_folder))
+
+            with patch("egpcommon.manage_github_data.FILES_FOLDER", missing_folder):
+                result = download_data()
+
+            self.assertTrue(result)
+            self.assertTrue(path.isdir(missing_folder))
+            self.assertTrue(path.exists(join(missing_folder, "codons.json")))
+            self.assertTrue(path.exists(join(missing_folder, "codons.json.sig")))
+            self.assertTrue(path.exists(join(missing_folder, "types_def.json")))
+            self.assertTrue(path.exists(join(missing_folder, "types_def.json.sig")))
 
 
 class TestUploadData(TestCase):

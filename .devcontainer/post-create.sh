@@ -41,7 +41,6 @@ fi
 
 # Install CLI's
 echo "Installing CLI tools..."
-npm install -g @github/copilot
 npm install -g @google/gemini-cli
 
 # Done

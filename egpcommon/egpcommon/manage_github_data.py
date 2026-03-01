@@ -21,7 +21,7 @@ to ensure the latest data is always available.
 from datetime import datetime
 from json import loads
 from logging import INFO
-from os import getenv
+from os import getenv, makedirs
 from os.path import dirname, exists, join
 from typing import Any
 
@@ -311,6 +311,9 @@ def download_data() -> bool:
     if not files_to_download:
         _logger.info("All local files are up to date. Nothing to download.")
         return False
+
+    # Ensure destination folder exists (important for fresh environments)
+    makedirs(FILES_FOLDER, exist_ok=True)
 
     # Download the files
     downloaded = False
