@@ -1,6 +1,6 @@
-# Default Copilot Instructions
+# Default Instructions
 
-This file contains instructions for GitHub Copilot.
+This file contains instructions for contributors, human & AI.
 
 ## General
 

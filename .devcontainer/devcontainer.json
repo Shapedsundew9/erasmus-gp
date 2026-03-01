@@ -31,8 +31,7 @@
 					"/workspaces/erasmus-gp/egppkrapi",
 					"/workspaces/erasmus-gp/egppy",
 					"/workspaces/erasmus-gp/egpdb",
-					"/workspaces/erasmus-gp/egpdbmgr",
-					"/workspaces/egpseed"
+					"/workspaces/erasmus-gp/egpdbmgr"
 				],
 				"python.analysis.autoImportCompletions": true,
 				"python.analysis.indexing": true,
@@ -74,8 +73,7 @@
 	},
 	"containerEnv": {
 		// Environment variables to set in the container.
-		"EGP_PROFILE": "DEV",
-		"RELEASE_DATA_MANAGER_TOKEN": "${localEnv:RELEASE_DATA_MANAGER_TOKEN}"
+		"EGP_PROFILE": "DEV"
 	},
 	// 1. Ensure Node.js is available (Copilot CLI requires it)
 	"features": {

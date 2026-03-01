@@ -8,6 +8,9 @@ cross-field verify() constraints, and TableTypes enum.
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
+
+from cryptography.hazmat.primitives.asymmetric import ed25519
 
 from egpcommon.security import dump_signed_json
 from egpdb.configuration import DatabaseConfig
@@ -36,6 +39,9 @@ class TestDBManagerConfig(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test fixtures."""
+        self.test_private_key = ed25519.Ed25519PrivateKey.generate()
+        self.test_public_key = self.test_private_key.public_key()
+
         self.default_config = {
             "name": "DBManagerConfig",
             "databases": {"erasmus_db": DatabaseConfig()},
@@ -217,8 +223,10 @@ class TestDBManagerConfig(unittest.TestCase):
                 "upstream_type": "library",
                 "archive_db": "erasmus_archive_db",
             }
-            dump_signed_json(test_data, tmpfile_path)
-            config.load_config(tmpfile_path)
+            with patch("egpcommon.security.load_private_key", return_value=self.test_private_key):
+                with patch("egpcommon.security.load_public_key", return_value=self.test_public_key):
+                    dump_signed_json(test_data, tmpfile_path)
+                    config.load_config(tmpfile_path)
 
             self.assertEqual(config.name, self.default_config["name"])
             self.assertEqual(config.databases, self.default_config["databases"])

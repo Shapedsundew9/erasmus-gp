@@ -5,20 +5,27 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       -  ..:/workspaces:cached
-    command: sleep infinity
+    environment:
+      EGP_PRIVATE_KEY_FILE: /run/secrets/private_key
+      PRIVATE_KEY_PEM_B64: ${PRIVATE_KEY_PEM_B64:-}
+    command: >
+      /bin/sh -c "
+        if [ -n \"$PRIVATE_KEY_PEM_B64\" ]; then
+          mkdir -p /run/secrets;
+          printf '%s' \"$PRIVATE_KEY_PEM_B64\" | base64 -d > /run/secrets/private_key;
+          chmod 600 /run/secrets/private_key;
+          unset PRIVATE_KEY_PEM_B64;
+        fi;
+        sleep infinity
+      "
     depends_on:
       - postgres
-    secrets:
-      - db_password
-      - private_key
 
   postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
-    secrets:
-      - db_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
@@ -35,7 +42,7 @@ services:
     image: dpage/pgadmin4:latest
     environment:
       - PGADMIN_DEFAULT_EMAIL=nobody@nowhere.com
-      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/db_password
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-postgres}
       - PGADMIN_DISABLE_POSTFIX=true
     ports:
       - "8080:80"
@@ -43,21 +50,12 @@ services:
       - postgres
     networks:
       - default
-    secrets:
-      - db_password
-      - private_key
     entrypoint: >
       /bin/sh -c "
-        echo 'postgres:5432:*:postgres:'$(cat /run/secrets/db_password) > /tmp/pgpass_generated;
+        echo 'postgres:5432:*:postgres:'${POSTGRES_PASSWORD:-postgres} > /tmp/pgpass_generated;
         chmod 600 /tmp/pgpass_generated;
         chown 5050:5050 /tmp/pgpass_generated;
         /entrypoint.sh;
       "
 volumes:
   postgres_data:
-
-secrets:
-  db_password:
-    file: ${HOME}/.egppy/db_password
-  private_key:
-    file: ${HOME}/.egppy/private_key.pem

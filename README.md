@@ -6,6 +6,11 @@
 
 Erasmus Meta Genetic Programming, Erasmsus GP or just EGP, emulates the principles of evolution through a synthetic framework, using functional primitives creating a dynamic and adaptive artificial ecosystem to solve problems.
 
+## Devcontainer Secrets
+
+For Codespaces/local environment variable and secret handling, see
+[docs/development/setup.md](docs/development/setup.md#devcontainer-environment-variables--secrets).
+
 ## Documentation Index
 
 ### 🏁 Introduction
