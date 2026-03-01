@@ -21,6 +21,16 @@ find . -name "requirements.txt" -exec ./.venv/bin/pip install -r {} \;
 .venv/bin/pip install -e ./egpdb
 .venv/bin/pip install -e ./egpdbmgr
 
+# Install bitdict in editable mode
+if [ ! -d "/workspaces/bitdict" ]; then
+    echo "Cloning bitdict repository..."
+    git clone --depth 1 --branch devel https://github.com/Shapedsundew9/bitdict.git /workspaces/bitdict
+else
+    echo "bitdict repository already exists, updating..."
+    git -C /workspaces/bitdict pull
+fi
+.venv/bin/pip install -e /workspaces/bitdict
+
 # Copy public keys to the devcontainer shared folder
 echo "Copying public keys to devcontainer shared folder..."
 sudo cp ./egpcommon/data/public_keys/* /usr/local/share/egp/public_keys/
