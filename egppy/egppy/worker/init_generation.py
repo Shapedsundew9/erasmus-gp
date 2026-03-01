@@ -3,6 +3,7 @@
 from typing import Any
 
 from egpcommon.egp_log import Logger, egp_logger
+from egpdbmgr.configuration import DBManagerConfig, TableTypes
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.populations.configuration import PopulationConfig
 from egppy.worker.configuration import WorkerConfig
@@ -13,7 +14,26 @@ from egppy.worker.fitness_queue import fitness_queue
 _logger: Logger = egp_logger(name=__name__)
 
 
-def best_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+def _gene_pool_db_manager_config(config: WorkerConfig) -> DBManagerConfig:
+    """Derive a minimal DB Manager configuration for Gene Pool access.
+
+    Args:
+        config: Worker configuration with database aliases and gene pool selection.
+
+    Returns:
+        A DBManagerConfig targeting the configured gene pool database.
+    """
+    databases: dict[str, Any] = config.databases.copy()
+    return DBManagerConfig(
+        name="WorkerGenePool",
+        databases=databases,
+        managed_db=config.gene_pool,
+        managed_type=TableTypes.POOL,
+        upstream_dbs=[config.microbiome] if config.microbiome != config.gene_pool else [],
+    )
+
+
+def best_igp(pconfig: PopulationConfig, gpi: GenePoolInterface) -> list[Any]:
     """Return a list of GC's meeting the BEST criteria for the population."""
     igp = []
     _logger.debug(
@@ -24,7 +44,7 @@ def best_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[An
     return igp
 
 
-def diverse_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+def diverse_igp(pconfig: PopulationConfig, gpi: GenePoolInterface) -> list[Any]:
     """Return a list of GC's meeting the DIVERSE criteria for the population."""
     igp = []
     _logger.debug(
@@ -40,7 +60,7 @@ def init_generation(config: WorkerConfig) -> None:
     """Initialize the generation."""
 
     # Connect to the Gene Pool and find the best phenotypes
-    gene_pool = GenePoolInterface(config.databases[config.gene_pool])
+    gpi = GenePoolInterface(_gene_pool_db_manager_config(config))
 
     # Initial Generation Population list
     # List per population.
@@ -60,11 +80,11 @@ def init_generation(config: WorkerConfig) -> None:
         # TODO: Make the number of times we do this configurable in the population configuration
         for _ in range(2):
             # Add GC's for each type of initial generation
-            igp.extend(best_igp(pconfig, gene_pool))
-            igp.extend(diverse_igp(pconfig, gene_pool))
-            igp.extend(related_igp(pconfig, gene_pool))
-            igp.extend(unrelated_igp(pconfig, gene_pool))
-            igp.extend(spontaneous_igp(pconfig, gene_pool))
+            igp.extend(best_igp(pconfig, gpi))
+            igp.extend(diverse_igp(pconfig, gpi))
+            igp.extend(related_igp(pconfig, gpi))
+            igp.extend(unrelated_igp(pconfig, gpi))
+            igp.extend(spontaneous_igp(pconfig, gpi))
             if len(igp) >= size:
                 assert len(igp) <= size, "Initial generation size exceeded limit!"
                 _logger.info(
@@ -81,7 +101,7 @@ def init_generation(config: WorkerConfig) -> None:
     fitness_queue()
 
 
-def related_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+def related_igp(pconfig: PopulationConfig, gpi: GenePoolInterface) -> list[Any]:
     """Return a list of GC's meeting the RELATED criteria for the population."""
     igp = []
     _logger.debug(
@@ -93,7 +113,7 @@ def related_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list
     return igp
 
 
-def spontaneous_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+def spontaneous_igp(pconfig: PopulationConfig, gpi: GenePoolInterface) -> list[Any]:
     """Return a list of GC's meeting the SPONTANEOUS criteria for the population."""
     igp = []
     _logger.debug(
@@ -105,7 +125,7 @@ def spontaneous_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> 
     return igp
 
 
-def unrelated_igp(pconfig: PopulationConfig, gene_pool: GenePoolInterface) -> list[Any]:
+def unrelated_igp(pconfig: PopulationConfig, gpi: GenePoolInterface) -> list[Any]:
     """Return a list of GC's meeting the UNRELATED criteria for the population."""
     igp = []
     _logger.debug(
