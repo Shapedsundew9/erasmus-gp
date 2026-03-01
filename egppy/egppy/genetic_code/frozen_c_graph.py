@@ -430,7 +430,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                             )
                         src_ep = src_iface[ref_idx]
                         # Verify type consistency
-                        if not dst_ep.typ in types_def_store.ancestors(src_ep.typ):
+                        if not types_def_store.is_compatible(src_ep.typ, dst_ep.typ):
                             raise ValueError(
                                 f"Type mismatch: destination endpoint {dst_row}{dst_ep.idx} "
                                 f"type '{dst_ep.typ.name}' is not compatible with source "
