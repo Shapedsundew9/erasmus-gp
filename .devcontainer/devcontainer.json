@@ -81,7 +81,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {}
 	},
-	"postCreateCommand": "npm install -g @github/copilot && bash .devcontainer/post-create.sh",
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
 	"forwardPorts": [
 		8080,
 		5432

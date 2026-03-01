@@ -39,5 +39,10 @@ if [ -d "/workspaces/egpseed" ]; then
     echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
 fi
 
+# Install CLI's
+echo "Installing CLI tools..."
+npm install -g @github/copilot
+npm install -g @google/gemini-cli
+
 # Done
 echo "--- Post-create script finished ---"
