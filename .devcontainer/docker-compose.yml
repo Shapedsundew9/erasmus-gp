@@ -7,27 +7,8 @@ services:
       -  ..:/workspaces:cached
     environment:
       EGP_PRIVATE_KEY_FILE: /run/secrets/private_key
-      PRIVATE_KEY_PEM_B64: ${PRIVATE_KEY_PEM_B64:-}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qlkjidfkoqwfbg}
-    command: >
-      /bin/sh -c "
-        umask 022;
-        if [ -n \"$PRIVATE_KEY_PEM_B64\" ]; then
-          mkdir -p /run/secrets;
-          chmod 755 /run/secrets;
-          printf '%s' \"$PRIVATE_KEY_PEM_B64\" | base64 -d > /run/secrets/private_key;
-          chmod 600 /run/secrets/private_key;
-          unset PRIVATE_KEY_PEM_B64;
-        fi;
-        if [ -n \"$POSTGRES_PASSWORD\" ]; then
-          mkdir -p /run/secrets;
-          chmod 755 /run/secrets;
-          printf '%s' \"$POSTGRES_PASSWORD\" > /run/secrets/db_password;
-          chmod 644 /run/secrets/db_password;
-          unset POSTGRES_PASSWORD;
-        fi;
-        sleep infinity
-      "
+    command: sleep infinity
     depends_on:
       - postgres
 
