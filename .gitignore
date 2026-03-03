@@ -221,3 +221,6 @@ types_def.json.sig
 profile_analysis.txt
 temp.*
 types_graph.html
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
