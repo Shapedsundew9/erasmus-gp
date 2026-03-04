@@ -49,6 +49,7 @@ flowchart TB
         class Genetic_Code_Package zonePrimary
 
         subgraph Core_Dicts [Core Representations]
+
             EGC[EGCDict<br/>Evolved GC]:::dataBlue
             GGC[GGCDict<br/>Gene Pool GC]:::dataBlue
             GPG[GPGView<br/>Gene Pool View]:::dataBlue

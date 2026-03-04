@@ -36,7 +36,7 @@ _logger: Logger = egp_logger(name=__name__)
 
 # TODO: Once stable this should become a slotted class for performance.
 class GGCDict(EGCDict):
-    """Dirty Dictionary Embryonic Genetic Code Class."""
+    """General Genetic Code Dictionary Class."""
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
 

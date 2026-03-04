@@ -14,17 +14,20 @@ Types are python objects such as *int*, *str* and *float*, compound containers l
 
 Codons operate on instances of types to produce instances of types (the produced instances may be the same instances, different instances of the same types or instances of different types altogether). In reality they are python functions that (may) take parameter objects, perform some sort of operation with them or on them and (may) return objects. Codons are atomic and immutable and can be connected together into Genetic Codes, GC's, which are just more complex python functions. As with functions, GC's can call other GC's in a tree structure until a codon (terminal/leaf node) is called. Codons and Genetic Codes are both of the variants of the base GC type so there are codons that operate on codons, to stick them together in various ways, and GC's that operate on GC's, to extend, mutate or trim them. Genetic Codes is where all the action is at in EGP.
 
+### GC Classes: EGCode vs GGCode
+
+Throughout the physics and mutation processes, a Genetic Code exists as one of two distinct classes (often abbreviated to EGC or GGC):
+- **EGCode (Embryonic Genetic Code)**: A mutable, active evolution subset of a genetic code. When a GC is actively undergoing mutation, structural changes, or stabilization, it is represented as an EGCode. It cannot be executed directly because its internal connection graph may have broken or unconnected endpoints (Steady State Exceptions). `EGCDict` is the analogous underlying dictionary representation.
+- **GGCode (General Genetic Code)**: A stable, immutable, and executable genetic code. Once an EGCode has been successfully stabilized and all its endpoints are connected, it is converted into a GGCode and deposited into the Gene Pool for execution or future selection. `GGCDict` is the underlying immutable dictionary containing cryptographic signatures.
+
 ## Selectors
 
 Whilst the Erasmus universe can be intuitive it can also be very alien; there is no direct analogy to space, entropy, gravity etc. In our universe chemicals react when they are bought together by physical processes into close enough proximity with the right energetic conditions. Inside an information universe there is no concept of space, there is related information and unrelated information but none of it is near or far from each other in any other fundamentally meaningful way. Its a bit like how you are viewing this document, it is meaningless how far away you physically are from where this file is physically stored. There are no natural forces, like gravity, pulling matter together in a well where it may react, or processes of decay that determine what chemicals are likely to be locally in abundance. Defining arbitary laws for how information comes together is likely not to work and combining everything with a single random law will be slow. It is the role of selectors in EGP to define with what probability types and operations come together to 'react' and make something new.
 
-Selectors are a type of GC too.
-Much to think out here.
-Most simple is a random selector.
-What is the selector interface?
+Selectors are a specialized type of GC that implement the logic for pairing and evolving codes.
 
 ## Behaviors
 
 - [Insertion](insertion.md)
-- [Steady State Exceptions](sse.md)
+- [Steady State Exceptions](stabilization.md#steady-state-execptions-sses)
 - [Mutation](mutation.md)
