@@ -108,14 +108,12 @@ class TestTypesDefStore(unittest.TestCase):
             types_def_store["MutableSequence[float]"].children.tolist(),
         )
 
-
-
     def test_is_compatible_inheritance(self):
         """Test is_compatible logic for standard inheritance."""
-        int_td = types_def_store['int']
-        number_td = types_def_store['Number']
-        float_td = types_def_store['float']
-        
+        int_td = types_def_store["int"]
+        number_td = types_def_store["Number"]
+        float_td = types_def_store["float"]
+
         # int is a Number
         self.assertTrue(types_def_store.is_compatible(int_td, number_td))
         # Number is not an int
@@ -128,28 +126,49 @@ class TestTypesDefStore(unittest.TestCase):
     def test_is_compatible_covariance(self):
         """Test is_compatible logic for generic covariance."""
         # Get base concrete and abstract types
-        dict_str_int = types_def_store['dict[str, int]']
-        dict_str_num = types_def_store['dict[str, Number]']
-        dict_int_num = types_def_store['dict[int, Number]']
-        
+        dict_str_int = types_def_store["dict[str, int]"]
+        dict_str_num = types_def_store["dict[str, Number]"]
+        dict_int_num = types_def_store["dict[int, Number]"]
+
         # Exact match
         self.assertTrue(types_def_store.is_compatible(dict_str_int, dict_str_int))
-        
+
         # Subtype Covariance (int -> Number)
         self.assertTrue(types_def_store.is_compatible(dict_str_int, dict_str_num))
-        
+
         # Covariance failure (str -> int)
         self.assertFalse(types_def_store.is_compatible(dict_str_int, dict_int_num))
-        
+
         # Reverse Covariance failure (Number is not an int)
         self.assertFalse(types_def_store.is_compatible(dict_str_num, dict_str_int))
 
-        return
-        list_dict_str_int = types_def_store['list[dict[str, int]]']
-        list_dict_str_num = types_def_store['list[dict[str, Number]]']
-        
+        # Nested container covariance
+        list_dict_str_int = types_def_store["list[dict[str, int]]"]
+        list_dict_str_num = types_def_store["list[dict[str, Number]]"]
+
         self.assertTrue(types_def_store.is_compatible(list_dict_str_int, list_dict_str_num))
         self.assertFalse(types_def_store.is_compatible(list_dict_str_num, list_dict_str_int))
+
+        # Deeply nested
+        src_deep = types_def_store["list[list[list[int]]]"]
+        dst_deep = types_def_store["list[list[list[Number]]]"]
+        self.assertTrue(types_def_store.is_compatible(src_deep, dst_deep))
+
+        # Base type compatibility covariance
+        # dict[str, int] -> MutableMapping[str, Number]
+        dst_mapping = types_def_store["MutableMapping[str, Number]"]
+        self.assertTrue(types_def_store.is_compatible(dict_str_int, dst_mapping))
+
+        # Mismatched subtype counts
+        list_int = types_def_store["list[int]"]
+        self.assertFalse(types_def_store.is_compatible(list_int, dict_str_int))
+
+        # 3-subtype covariance (Triplet)
+        triplet_bytes = types_def_store["Triplet[Bytes, Bytes, Bytes]"]
+        triplet_obj = types_def_store["Triplet[object, object, object]"]
+        self.assertTrue(types_def_store.is_compatible(triplet_bytes, triplet_obj))
+        self.assertFalse(types_def_store.is_compatible(triplet_obj, triplet_bytes))
+
 
 if __name__ == "__main__":
     unittest.main()

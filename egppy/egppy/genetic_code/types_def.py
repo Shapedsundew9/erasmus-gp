@@ -75,9 +75,14 @@ class TypesDef(Validator):
             imports: List of import definitions need to instantiate the type.
             parents: List of type uids or definitions that the type inherits from.
             children: List of type uids or definitions that the type has as children.
-            subtypes: List of type uids or definitions that are subtypes of the type.
+            subtypes: list of type uids or definitions that are subtypes of the type.
+                For generic/templated types (e.g., dict[str, int]), this stores the 
+                ordered list of concrete subtype UIDs (e.g., [uid(str), uid(int)]) 
+                used for covariance checks in `is_compatible`.
             alias: Alias name of the type definition (only for container types).
             template: Template mapping for templated (container) types.
+                A list of template strings (e.g., ["dict[-Hashable0, -object0]"])
+                used to define the structure of the generic type.
         """
         # Always set frozen to False
         # because we want to be able to set the attributes during initialization.

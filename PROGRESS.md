@@ -72,3 +72,12 @@
   - Formatted Mermaid graphs adhering strictly to the `style_guide.md` conventions, illustrating the relationship between the Cache, Database, and Dynamic Type Generator.
   - Documented the new `is_compatible` Generic Duck-Typing algorithm that facilitates Covariance.
 
+
+### Cache Bug Fix
+- Fixed a silent bug in `TypesDefStore.amend_children`. When dynamically generating types and linking them back as children to their parents, the code was invalidating the *ancestors* cache of the parent instead of the *descendants* cache of the parent's ancestors.
+
+
+- **Added Unit Tests**:
+  - Implemented `test_is_compatible_inheritance` and `test_is_compatible_covariance` to strictly ensure covariance functions correctly during mutations.
+  - Implemented `test_descendants_cache_invalidation_on_new_type` to ensure that adding new compound children forces invalidations up the ancestor chain properly.
+
