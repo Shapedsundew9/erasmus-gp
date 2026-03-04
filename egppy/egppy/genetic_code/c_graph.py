@@ -204,7 +204,7 @@ class CGraph(FrozenCGraph, CGraphABC):
             vifs = (vif for vif in _vifs if vif is not None)
             # Gather all the source endpoints that are compatible with the destination endpoint.
             vsrcs = [
-                sep for vif in vifs for sep in vif if dep.typ in types_def_store.ancestors(sep.typ)
+                sep for vif in vifs for sep in vif if types_def_store.is_compatible(sep.typ, dep.typ)
             ]
             # If the interface of the GC is not fixed (i.e. it is not an empty GC) then
             # a new input interface endpoint is an option, BUT only if I is a valid source

@@ -143,23 +143,10 @@ PROPERTIES_CONFIG = {
                         "requires special handling in some cases)."
                     ),
                 },
-                "template": {
-                    "type": "bool",
-                    "start": 1,
-                    "width": 1,
-                    "default": False,
-                    "description": (
-                        "The codon a template from which other codons are generated "
-                        "at runtime. At least one input is a template type (tt>0)"
-                        " e.g. list[object], "
-                        "which is made concrete e.g. list[str], list[int], list[Sequence] etc. "
-                        "Mapping of input types to output types is stored in the meta_data."
-                    ),
-                },
                 "reserved6": {
                     "type": "uint",
-                    "start": 2,
-                    "width": 4,
+                    "start": 1,
+                    "width": 5,
                     "default": 0,
                     "description": "Reserved for future use.",
                     "valid": {"value": {0}},

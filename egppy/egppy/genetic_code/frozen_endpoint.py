@@ -292,9 +292,9 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             if other.row not in (valid_rows := UNKNOWN_VALID[self.row]):
                 _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
                 return False
-            if other.typ not in types_def_store.ancestors(self.typ):
+            if not types_def_store.is_compatible(self.typ, other.typ):
                 _logger.log(
-                    TRACE, "Other endpoint type %s not in ancestors of %s", other.typ, self.typ
+                    TRACE, "Other endpoint type %s is not compatible with %s", other.typ, self.typ
                 )
                 return False
 
@@ -312,8 +312,8 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         if other.row not in (valid_rows := UNKNOWN_REVERSED[self.row]):
             _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
             return False
-        if self.typ not in types_def_store.ancestors(other.typ):
-            _logger.log(TRACE, "Self endpoint type %s not in ancestors of %s", self.typ, other.typ)
+        if not types_def_store.is_compatible(other.typ, self.typ):
+            _logger.log(TRACE, "Self endpoint type %s is not compatible with %s", self.typ, other.typ)
             return False
         return True
 

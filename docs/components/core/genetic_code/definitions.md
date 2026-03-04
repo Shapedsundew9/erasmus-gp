@@ -1,7 +1,9 @@
 # Genetic Codes
 
-- [GC Logical Structure](gc_logical_structure.md)
-- [GC Internal Graphs](../../c_graph/docs/graph.md)
-- [GC Properties](gc_properties.md)
-- [GC Relationships](gc_relationships.md)
-- [GC Types](gc_types.md)
+- [Overview](overview.md)
+- [Logical Structure](structure.md)
+- [Connection Graphs](c_graph.md)
+- [Properties](properties.md)
+- [Relationships](relationships.md)
+- [Types](gc_types.md)
+- [Type System](types/types_system.md)

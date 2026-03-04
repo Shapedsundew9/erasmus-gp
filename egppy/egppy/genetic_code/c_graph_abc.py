@@ -143,7 +143,6 @@ Additional to the Common Rules For-Loop graphs have the following rules
     - Ls can only connect to Ad
     - Ss can only connect to Ad or Ud
     - As can only connect to Td or Od
-    - Td can only connect to Od or Ud
     - Ld must be an iterable compatible endpoint type.
     - Ls must be the object type returned by iterating Ld.
     - Is can connect to Od or Ud
@@ -156,8 +155,6 @@ Additional to the Common Rules While-Loop graphs have the following rules
     - Ws can only connect to Ad or Ud
     - Ss can only connect to Ad or Ud
     - As can only connect to Xd, Td, or Od
-    - Xd can only connect to Od or Ud
-    - Td can only connect to Od or Ud
     - Wd and Ws must be boolean type
     - Xd must be boolean type
     - Is can connect to Od or Ud
@@ -165,11 +162,15 @@ Additional to the Common Rules While-Loop graphs have the following rules
 
 Additional to the Common Rules Standard graphs have the following rules
     - Must not have an Fd, Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, or Pd interface
+    - Is can connect to Ad or Bd
+    - As can connect to Bd or Od or Ud
     - Bs can only connect to Od or Ud
     - Is cannot connect to Od
 
 Additional to the Common Rules Primitive connection graphs have the following rules
     - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
+    - Is can connect to Ad
+    - As can connect to Od or Ud
     - All sources must be connected to destinations
     - Is cannot connect to Od
 """

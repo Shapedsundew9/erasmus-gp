@@ -57,7 +57,7 @@ for definitions of specific levels.
 *   Formula and mathematical variables shall use embedded LaTeX syntax for consistency and clarity.
 *   Tables shall be written in `compact` style for readability.
 *   Use Mermaid diagrams to illustrate architectural changes where appropriate.
-*   Follow the styles and conventions described in egpcommon/docs/style_guide.md for consistency across documentation. 
+*   Follow the styles and conventions described `docs/development/style_guide.md` for consistency across documentation. 
 
 ## Commits
 

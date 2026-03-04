@@ -79,6 +79,7 @@ Empty and Primitive graphs have limited connections. If-Then, If-Then-Else, For-
 - **WL** = While-Loop graph
 - **S** = Standard graph
 - **P** = Primitive graph
+- **All** = All graph types except Primitive
 - **-** = Not allowed
 
 Note that required connections are a consequence of the rule that some interfaces must have at least 1 endpoint and all destination endpoints must be connected to a source. In all of these cases only one row is capable of connecting to the other and so the connection must exist. Note that these rules do allow for a standard graph to have an A and B row that do not connect to each other. The GC is then functionaly equivilent to its sub-GC's. This arrangement is called a _harmony_.
@@ -451,8 +452,27 @@ An interface is a list or tuple like container of 0 or more End Points but with 
 
 ## JSON Format
 
-TO DO: Explain more
-In row U the connections are stored in alphabetical order, then index order. This is specified for reproducablility.
+The JSON representation of a connection graph is a dictionary mapping destination rows to lists of endpoint definitions. The format is as follows:
+
+```json
+{
+    "DstRow1": [ ["src_row", src_idx, "endpoint_type"], ... ],
+    "DstRow2": [ ["src_row", src_idx, "endpoint_type"], ... ]
+}
+```
+
+**Rules and Constraints:**
+
+- **Keys (Destination Rows):** Must be valid string representations of destination rows (e.g., `"A"`, `"O"`, `"F"`, etc.).
+- **Key Order:** Keys must appear in the strict order defined by the `DstRow` enumeration to ensure signature compatibility and reproducibility.
+- **Empty Interfaces (`[]`):** A destination row key may be present as an empty list `[]` if the interface logically exists but has no endpoints. This is critical for declaring graph types when there are no connections (e.g., `{"O": []}` is an EMPTY graph, `{"A": [], "O": []}` is a PRIMITIVE graph).
+  - _Exception:_ Row `U` (unconnected source endpoints) **must not** be present if it is empty.
+- **Endpoints:** Each destination endpoint is defined as a list containing exactly three elements:
+  1. `src_row` (str): The valid source row providing the input (e.g., `"I"`, `"A"`).
+  2. `src_idx` (int): The integer index (0-255) of the endpoint within the source row's interface.
+  3. `endpoint_type` (str): The unique string identifier of the EGP type (e.g., `"int"`, `"bool"`).
+- **Row U (Unconnected):** For row `U`, the connections are stored in alphabetical order by source row, then by index order. This is specified for reproducibility.
+- **Normalization for Signatures:** Signatures are generated deterministically. A parsed Connection Graph will automatically infer required missing interfaces (e.g., if you only define `{"B": [["A", 0, "int"]], "O": []}`, the `A` interface is implicitly inferred). When output back to JSON (`to_json(True)`), it will always normalize to include the explicit empty interfaces (e.g., `{"A": [], "B": [["A", 0, "int"]], "O": []}`), ensuring signatures perfectly match regardless of whether empty arrays were specified or inferred.
 
 ## Rows, Interfaces & Connections
 

@@ -9,7 +9,7 @@ A **Genetic Code Type** (GC Type) is a fundamental classification that determine
 - The **properties** that apply to the genetic code
 - The **ancestral relationships** and creation mechanisms
 
-The GC Type is stored as a 2-bit unsigned integer in the genetic code's [properties](gc_properties.md) bitfield (bits 1:0) and is defined by the `GCType` enumeration in `egpcommon.properties`.
+The GC Type is stored as a 3-bit unsigned integer in the genetic code's [properties](properties.md) bitfield (bits 2:0) and is defined by the `GCType` enumeration in `egpcommon.properties`.
 
 ## The Three GC Types
 
@@ -21,7 +21,7 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 
 - **Functional Primitives**: Represent a single operation or line of code (e.g., addition, comparison, function call)
 - **Cannot Be Created at Runtime**: Codons are pre-defined and loaded from the genetic library; they are not evolved
-- **No Ancestors**: Codons have no parent genetic codes (`gca`, `gcb`, `ancestora`, `ancestorb`, and `pgc` are all NULL signatures)
+- **No Ancestors**: Codons have no parent genetic codes (`gca`, `gcb`, `ancestora`, and `ancestorb` must be `None`). However, generated literal codons may have a physical genetic code (`pgc`) that created them.
 - **Primitive Connection Graphs**: Must use `CGraphType.PRIMITIVE` connection graphs with no sub-GCs
 - **Implicit Sub-GCs**: GCA and GCB are implicit (not present) in codon connection graphs
 - **Language Implementation**: Can be implemented in Python (default) or PostgreSQL (via `gctsp` properties)
@@ -35,7 +35,7 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 
 **Properties (gctsp when gc_type=0):**
 
-- `simplification` (bool): Eligible for symbolic regression simplification
+- `literal` (bool): The codon output type is a literal (which requires special handling in some cases)
 - `python` (bool): Codon code is Python (default: True)
 - `psql` (bool): Codon code is PostgreSQL-flavored SQL
 
@@ -61,7 +61,7 @@ The GC Type is stored as a 2-bit unsigned integer in the genetic code's [propert
 
 **Properties (gctsp when gc_type=1):**
 
-- `literal` (bool): The codon output type is a literal (requires special handling)
+- `simplification` (bool): The genetic code is eligible to be simplified by symbolic regression
 - `python` (bool): Codon code is Python (default: True)
 - `psql` (bool): Codon code is PostgreSQL-flavored SQL
 
@@ -81,7 +81,7 @@ The GC Type constrains which connection graph types can be used:
 - If the connection graph does not have a Row B defined, then `gcb` **must** be NULL
 - If the connection graph has a Row A defined, then `gca` **must not** be NULL
 - If the connection graph has a Row B defined, then `gcb` **must not** be NULL
-- If the connection graph is `PRIMITIVE`: `ancestora`, `ancestorb`, and `pgc` **must** all be NULL
+- If the connection graph is `PRIMITIVE`: `ancestora` and `ancestorb` **must** be `None`
 
 ## Reserved Type
 
@@ -89,7 +89,7 @@ The GC Type constrains which connection graph types can be used:
 
 ## See Also
 
-- [GC Properties](gc_properties.md) - Complete properties bitfield specification
+- [GC Properties](properties.md) - Complete properties bitfield specification
 - [GC Logical Structure](gc_logical_structure.md) - Hierarchical structure of genetic codes
-- [Connection Graphs](graph.md) - Connection graph types and rules
+- [Connection Graphs](c_graph.md) - Connection graph types and rules
 - [GC Relationships](gc_relationships.md) - Ancestral and network relationships
