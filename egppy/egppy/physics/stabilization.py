@@ -21,17 +21,16 @@ In contrast, a Dynamic Stabilizer randomly selects a stabilization method to sta
 in non-deterministic behavior.
 """
 
-from enum import IntEnum
 from functools import partial
 from typing import Callable
 
 from egpcommon.egp_log import GC_DEBUG, INFO, TRACE, Logger, egp_logger
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
+from egppy.genetic_code.c_graph_constants import ConnectionType, DstIfKey, SrcIfKey
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.physics.helpers import inherit_members
+from egppy.physics.helpers import LDC_SEQ, inherit_members
 from egppy.physics.pgc_api import EGCode, GGCode
 from egppy.physics.runtime_context import RuntimeContext
 
@@ -40,25 +39,6 @@ _logger: Logger = egp_logger(name=__name__)
 
 # Constants
 MAX_ATTEMPTS = 8
-
-# The priority sequence for local direct connections
-LDC_SEQ = (
-    (SrcIfKey.IS, DstIfKey.AD),
-    (SrcIfKey.AS, DstIfKey.BD),
-    (SrcIfKey.BS, DstIfKey.OD),
-)
-
-
-# Direct Connection Types
-class ConnectionType(IntEnum):
-    """Types of connections.
-
-    MATCHING: Connection where source and destination types match or are upcastable.
-    DOWNCAST: Connection requiring downcasting of source type.
-    """
-
-    MATCHING = 0
-    DOWNCAST = 1
 
 
 class StabilizationError(Exception):
@@ -74,7 +54,7 @@ def local_direct_connect(_: RuntimeContext, egc: EGCode, ct: ConnectionType) -> 
     Arguments:
         rtctxt: The runtime context containing the gene pool and other necessary information.
         egc: The EGCode to be stabilized. egc is modified in place.
-        ct: The type of direct connection to attempt (MATCHING or DOWNCAST).
+        ct: The type of direct connection to attempt (COMPATIBLE or DOWNCAST).
     Returns:
         True if the resulting EGCode is stable, False otherwise.
     """
@@ -85,7 +65,7 @@ def local_direct_connect(_: RuntimeContext, egc: EGCode, ct: ConnectionType) -> 
         for src_ep, dst_ep in zip(cgraph[src_if], cgraph[dst_if]):
             assert isinstance(src_ep, EndPointABC), "Source endpoint is not an EndPointABC"
             assert isinstance(dst_ep, EndPointABC), "Destination endpoint is not an EndPointABC"
-            if ct == ConnectionType.MATCHING and dst_ep.can_connect(src_ep):
+            if ct == ConnectionType.COMPATIBLE and dst_ep.can_connect(src_ep):
                 _logger.log(TRACE, "Direct connecting %s to %s", src_ep, dst_ep)
                 dst_ep.connect(src_ep)
                 src_ep.connect(dst_ep)
@@ -98,7 +78,7 @@ def local_direct_connect(_: RuntimeContext, egc: EGCode, ct: ConnectionType) -> 
     return cgraph.is_stable()
 
 
-def local_random_connect(_: RuntimeContext, egc: EGCode, ct: ConnectionType) -> bool:
+def local_random_connect(rtctxt: RuntimeContext, egc: EGCode, ct: ConnectionType) -> bool:
     """Attempt random connections for any unconnected destination endpoints
     in an EGCode's CGraph.
 
@@ -107,20 +87,21 @@ def local_random_connect(_: RuntimeContext, egc: EGCode, ct: ConnectionType) -> 
     Arguments:
         rtctxt: The runtime context containing the gene pool and other necessary information.
         egc: The EGCode to be stabilized. egc is modified in place.
-        ct: The type of connection to attempt (MATCHING or DOWNCAST).
+        ct: The type of connection to attempt (COMPATIBLE or DOWNCAST).
     Returns:
         True if the resulting EGCode is stable, False otherwise.
     """
     _logger.log(TRACE, "Attempting local random connect with ct=%s", ct.name)
     cgraph = egc["cgraph"]
     assert isinstance(cgraph, CGraph), "EGCode cgraph is not a CGraph"
+    cgraph.stabilize(if_locked=True, rng=rtctxt.rng, ct=ct)
     return cgraph.is_stable()
 
 
 STABILIZATION_FUNCTIONS: tuple[Callable[[RuntimeContext, EGCode], bool], ...] = (
-    partial(local_direct_connect, ct=ConnectionType.MATCHING),
+    partial(local_direct_connect, ct=ConnectionType.COMPATIBLE),
     partial(local_direct_connect, ct=ConnectionType.DOWNCAST),
-    partial(local_random_connect, ct=ConnectionType.MATCHING),
+    partial(local_random_connect, ct=ConnectionType.COMPATIBLE),
     partial(local_random_connect, ct=ConnectionType.DOWNCAST),
 )
 

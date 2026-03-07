@@ -2,15 +2,36 @@
 
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_dict import GGCDict
+
+# pylint: disable=unused-import
+# We want to have all mutation types available from this module as a one stop shop
+# for mutation functions
 from egppy.physics.insert import insert
+from egppy.physics.runtime_context import RuntimeContext
 from egppy.physics.wrap import wrap
 
-# Structural Change
-# There are several types of structural change that can occur and each is directly associated with
-# the specific details of the establishment of required connectivity. For example a "wrap"
-# mutation
-# does not require a connection to be made between GCA & GCB but an "insert" mutation does. The
-# connection requirements for each mutation type come from the use case of the mutation.
+
+def mutate(rtctxt: RuntimeContext, tgc: GCABC) -> GGCDict:
+    """Mutate a GCABC into an EGCDict. The mutation process is as follows:
+
+    1. Choose a mutation
+      a. For now randomly choose from the available mutations.
+         In the future this will be a more complex selector process.
+    2. Apply the mutation to the GCABC to produce a new EGCDict.
+    3. Stabilize the new EGCDict to a GGCDict.
+      a. The stabilization process will likely produce a stable EGCDict.
+    4. Replace tgc or the sub-genetic code of tgc with the new GGCDict.
+      a. If replacing a sub-genetic code then iterate up the parent GCABCs.
+    5. Return the new GGCDict.
+
+        Args
+      rtctxt: The runtime context containing the gene pool and other necessary information.
+      tgc: The GCABC to be mutated.
+
+    Returns
+      GGCDict: The new (likely unstable) GGCDict resulting from the mutation.
+    """
 
 
 # Create
@@ -44,7 +65,7 @@ def create(empty: EGCDict, gca: GCABC, gcb: GCABC) -> EGCDict:
     # TODO: Set GCA & GCB to gca and gcb respectively
     # TODO: Add the row A & row interfaces
     # TODO: Establish the required connections
-    # return new standard CGraph GC
+    # return new unstabilized standard CGraph GC
 
 
 # Wrap

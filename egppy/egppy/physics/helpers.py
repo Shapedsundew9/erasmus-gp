@@ -22,6 +22,13 @@ _logger: Logger = egp_logger(name=__name__)
 _ROW_O_REF_0 = (((DstRow.O, 0),),)
 _ROW_A_REF_0 = (((SrcRow.A, 0),),)
 
+# The priority sequence for local direct connections
+LDC_SEQ = (
+    (SrcIfKey.IS, DstIfKey.AD),
+    (SrcIfKey.AS, DstIfKey.BD),
+    (SrcIfKey.BS, DstIfKey.OD),
+)
+
 
 def merge_properties(
     rtctxt: RuntimeContext, gca: GCABC | bytes, gcb: GCABC | bytes | None

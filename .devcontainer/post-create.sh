@@ -56,6 +56,7 @@ npm install -g @google/gemini-cli
 # Install spec-kit
 echo "Installing spec-kit..."
 ./.venv/bin/pip install uv
+. ./.venv/bin/activate
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
 # Done

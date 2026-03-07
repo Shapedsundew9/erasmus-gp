@@ -4,6 +4,7 @@ from typing import Any
 from uuid import UUID
 
 from egpcommon.common import ANONYMOUS_CREATOR
+from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.genetic_code.ggc_dict import NULL_GC
@@ -15,7 +16,7 @@ class RuntimeContext:
     context information for use by PGC's during execution.
     """
 
-    __slots__ = ("gpi", "root_gc", "other_gc", "creator", "debug_data", "parent")
+    __slots__ = ("gpi", "root_gc", "other_gc", "creator", "debug_data", "parent", "rng")
 
     def __init__(
         self,
@@ -24,6 +25,7 @@ class RuntimeContext:
         other_gc: GCABC = NULL_GC,
         creator: UUID = ANONYMOUS_CREATOR,
         debug_data: dict[str, Any] | None = None,
+        rng: EGPRndGen = egp_rng,
     ) -> None:
         """Initialize the runtime context.
 
@@ -39,12 +41,14 @@ class RuntimeContext:
             debug_data (dict[str, Any] | None): A dictionary for storing debug
                 information. Only used in development and testing to store
                 intermediate results. None if not used.
+            rng (EGPRndGen): Random number generator for any GC that needs it.
         """
         self.gpi: GenePoolInterface = gpi
         self.root_gc: GCABC = root_gc
         self.other_gc: GCABC = other_gc
         self.creator: UUID = creator
         self.debug_data: dict[str, Any] | None = debug_data
+        self.rng: EGPRndGen = rng
 
         # The parent of the current GC being modified in the case of a PGC runtime context.
         # None if the current GC has no parent (i.e is a top level GC).

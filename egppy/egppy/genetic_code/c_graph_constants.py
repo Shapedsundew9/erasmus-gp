@@ -86,6 +86,18 @@ assert len(SrcIfKey) == len(SrcRow), "Mismatch between SrcIfKey and SrcRow lengt
 assert len(DstIfKey) == len(DstRow), "Mismatch between DstIfKey and DstRow lengths"
 
 
+# Connection Types
+class ConnectionType(IntEnum):
+    """Types of connections.
+
+    COMPATIBLE: Connection where source and destination types match or are upcastable.
+    DOWNCAST: Connection requiring downcasting of source type.
+    """
+
+    COMPATIBLE = 0
+    DOWNCAST = 1
+
+
 class EPCls(IntEnum):
     """End Point Class."""
 

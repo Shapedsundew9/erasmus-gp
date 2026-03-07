@@ -445,6 +445,26 @@ class TypesDefStore(Container):
 
         return True
 
+    def is_downcast_compatible(self, src: str | int | TypesDef, dst: str | int | TypesDef) -> bool:
+        """Check if a source type is downcast compatible with a destination type.
+
+        A source type is downcast compatible with a destination type if the destination
+        is a descendant of the source. This allows for downcasting where a more general
+        source type can be passed to an endpoint expecting a more specific destination type.
+        NOTE: This is not a standard type compatibility and should be used with caution as
+        it can lead to runtime errors if the actual type of the object does not match the
+        expected type. e.g. Integral --> int, list --> list[int], etc.
+
+        Args:
+            src: The source type definition.
+            dst: The destination type definition.
+        Returns:
+            True if src can be passed to an endpoint expecting dst via downcasting, False otherwise.
+        """
+        src_td = self[src] if not isinstance(src, TypesDef) else src
+        dst_td = self[dst] if not isinstance(dst, TypesDef) else dst
+        return dst_td.uid != src_td.uid and dst_td in self.descendants(src_td)
+
     def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
         """Returns the specified type definition and all its ancestor type
         definitions.

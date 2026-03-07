@@ -184,7 +184,7 @@ from typing import Any
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_constants import DstRow, IfKey, JSONCGraph, SrcRow
+from egppy.genetic_code.c_graph_constants import ConnectionType, DstRow, IfKey, JSONCGraph, SrcRow
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
@@ -441,7 +441,12 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         raise NotImplementedError("CGraphABC.connect must be overridden")
 
     @abstractmethod
-    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+    def connect_all(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """Connect all unconnected destination endpoints to valid source endpoints.
 
         This method establishes connections between unconnected destination endpoints
@@ -450,6 +455,8 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         Args:
             if_locked: If True, prevents creation of new input interface endpoints.
                       If False, allows extending input interface when needed.
+            rng: Random number generator for connection selection.
+            ct: The type of connection to attempt (COMPATIBLE or DOWNCAST).
         """
         raise NotImplementedError("CGraphABC.connect_all must be overridden")
 
@@ -463,7 +470,12 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         raise NotImplementedError("CGraphABC.disconnect_all must be overridden")
 
     @abstractmethod
-    def stabilize(self, if_locked: bool = True) -> None:
+    def stabilize(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """Stabilize the graph by connecting all unconnected destinations.
 
         Stabilization ensures all mandatory connections are made and attempts
@@ -472,5 +484,7 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         Args:
             if_locked: If True, prevents creation of new input interface endpoints.
                       If False, allows extending input interface as needed.
+            rng: Random number generator for selecting source endpoints.
+            ct: The type of connection to attempt (COMPATIBLE or DOWNCAST).
         """
         raise NotImplementedError("CGraphABC.stabilize must be overridden")

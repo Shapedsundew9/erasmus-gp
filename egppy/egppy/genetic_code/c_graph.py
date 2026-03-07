@@ -18,6 +18,7 @@ from egppy.genetic_code.c_graph_constants import (
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
     ROW_CLS_INDEXED_SET,
+    ConnectionType,
     DstIfKey,
     DstRow,
     EPCls,
@@ -151,7 +152,12 @@ class CGraph(FrozenCGraph, CGraphABC):
         dst_ep.connect(src_ep)
         src_ep.connect(dst_ep)
 
-    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+    def connect_all(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """
         Connect all unconnected destination endpoints in the Connection Graph to randomly
         selected valid source endpoints.
@@ -166,6 +172,8 @@ class CGraph(FrozenCGraph, CGraphABC):
                 and when 'I' is a valid source row for the destination. Defaults to True.
             rng (EGPRndGen): Random number generator instance for reproducible shuffling.
                 Defaults to the global ``egp_rng``.
+            ct (ConnectionType): The type of connection to attempt (COMPATIBLE or DOWNCAST).
+                Defaults to COMPATIBLE.
 
         Returns:
             None: Modifies the graph in-place by establishing connections between endpoints.
@@ -202,10 +210,25 @@ class CGraph(FrozenCGraph, CGraphABC):
             valid_src_rows_for_dst = vsrc_rows[DstRow(dep.row)]
             _vifs = (getattr(self, _UNDER_SRC_KEY_DICT[row]) for row in valid_src_rows_for_dst)
             vifs = (vif for vif in _vifs if vif is not None)
-            # Gather all the source endpoints that are compatible with the destination endpoint.
-            vsrcs = [
-                sep for vif in vifs for sep in vif if types_def_store.is_compatible(sep.typ, dep.typ)
-            ]
+            if ct == ConnectionType.COMPATIBLE:
+                # Gather all the source endpoints that are compatible with the destination endpoint.
+                vsrcs = [
+                    sep
+                    for vif in vifs
+                    for sep in vif
+                    if types_def_store.is_compatible(sep.typ, dep.typ)
+                ]
+            elif ct == ConnectionType.DOWNCAST:
+                # Gather all the source endpoints that are downcast compatible with the
+                # destination endpoint.
+                vsrcs = [
+                    sep
+                    for vif in vifs
+                    for sep in vif
+                    if types_def_store.is_downcast_compatible(sep.typ, dep.typ)
+                ]
+            else:
+                raise ValueError(f"Invalid ConnectionType: {ct}")
             # If the interface of the GC is not fixed (i.e. it is not an empty GC) then
             # a new input interface endpoint is an option, BUT only if I is a valid source
             # for this destination row according to the graph type rules.
@@ -243,7 +266,12 @@ class CGraph(FrozenCGraph, CGraphABC):
         difs: Generator[InterfaceABC] = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         return all(not iface.unconnected_eps() for iface in difs if iface is not None)
 
-    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+    def stabilize(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """Stablization involves making all the mandatory connections and
         connecting all the remaining unconnected destination endpoints.
         Destinations are connected to sources in a random order.
@@ -253,7 +281,14 @@ class CGraph(FrozenCGraph, CGraphABC):
 
         After stabilization, check is_stable() to determine if all destinations
         were successfully connected.
+
+        Args:
+            if_locked (bool): If True, prevents the creation of new input interface endpoints.
+                If False, allows extending the input interface ('I') with new endpoints when needed
+            rng (EGPRndGen): Random number generator for selecting source endpoints.
+            ct (ConnectionType): The type of connection to attempt (COMPATIBLE or DOWNCAST).
+                Defaults to COMPATIBLE.
         """
-        self.connect_all(if_locked, rng)
+        self.connect_all(if_locked, rng, ct)
         if Integrity.is_enabled_for(level=Integrity.VERIFY):
             self.verify()

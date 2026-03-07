@@ -26,7 +26,7 @@
 				"python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
 				"python.terminal.activateEnvironment": true,
 				"python.analysis.extraPaths": [
-					"/usr/local/share/bitdict",
+					"/workspaces/bitdict",
 					"/workspaces/erasmus-gp/egpcommon",
 					"/workspaces/erasmus-gp/egppkrapi",
 					"/workspaces/erasmus-gp/egppy",
