@@ -16,7 +16,16 @@ class RuntimeContext:
     context information for use by PGC's during execution.
     """
 
-    __slots__ = ("gpi", "root_gc", "other_gc", "creator", "debug_data", "parent", "rng")
+    __slots__ = (
+        "gpi",
+        "root_gc",
+        "other_gc",
+        "creator",
+        "debug_data",
+        "parent",
+        "rng",
+        "pgc",
+    )
 
     def __init__(
         self,
@@ -53,3 +62,5 @@ class RuntimeContext:
         # The parent of the current GC being modified in the case of a PGC runtime context.
         # None if the current GC has no parent (i.e is a top level GC).
         self.parent: GCABC | None = None
+        # The current PGC being executed in this runtime context.
+        self.pgc: GCABC | None = None

@@ -93,6 +93,30 @@ def random_pgc_selector(rtctxt: RuntimeContext) -> GGCDict:
     return GGCDict(ggc) if not isinstance(ggc, GGCDict) else ggc
 
 
+def random_simple_pgc_selector(rtctxt: RuntimeContext) -> GGCDict:
+    """Select a random PGC (mutation) from the gene pool that takes a single GCABC input
+    and produces a single EGCode output.
+
+    This function uses the runtime context to access the gene pool interface
+    and select a random PGC (mutation) genetic code.
+
+    Args:
+        rtctxt: The runtime context.
+    Returns:
+        GGCDict: A random PGC (mutation) genetic code.
+    """
+    # Any GC returning an EGCode output type is a valid mutation candidate.
+    ggc = rtctxt.gpi.select_gc(
+        "{input_types} = {gcabc_uid} AND {output_types} @> ARRAY[{eg_code_uid}]::INT[]",
+        literals={
+            "gcabc_uid": types_def_store["GCABC"].uid,
+            "eg_code_uid": types_def_store["EGCode"].uid,
+        },
+        order_by="ORDER BY RANDOM()",
+    )
+    return GGCDict(ggc) if not isinstance(ggc, GGCDict) else ggc
+
+
 # --- Exact Type Match (= operator) ---
 # GC types must exactly equal the requested types (same types, order, and length).
 

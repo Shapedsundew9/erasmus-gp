@@ -136,6 +136,29 @@ Septuplet = tuple
 Bytes = bytes | bytearray
 
 
+from egppy.physics.selectors import (
+    random_codon_selector,
+    random_compatible_input_selector,
+    random_compatible_io_selector,
+    random_compatible_output_selector,
+    random_downcast_input_selector,
+    random_downcast_io_selector,
+    random_downcast_output_selector,
+    random_exact_input_selector,
+    random_exact_io_selector,
+    random_exact_output_selector,
+    random_overlap_io_selector,
+    random_pgc_selector,
+    random_simple_pgc_selector,
+    random_subset_input_selector,
+    random_subset_io_selector,
+    random_subset_output_selector,
+    random_superset_input_selector,
+    random_superset_io_selector,
+    random_superset_output_selector,
+)
+
+
 # The custom PGC function placeholder
 def custom_pgc(_: RuntimeContext) -> None:
     """Custom PGC mutation function placeholder.
