@@ -322,6 +322,11 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
     def can_downcast_connect(self, other: FrozenEndPointABC) -> bool:
         """Check if this endpoint can connect to another endpoint if it is downcast.
 
+        NOTE: A downcast is risky e.g. connecting an Integral to an int
+        because the logic may rely on the 'int' specific behavior. However it could is still
+        result in a valid runtime in some cases, if there are no other alternatives.
+        This method checks
+
         Connection rules:
             - The destination endpoint is not already connected
             - It is a source-destination connection (or vice-versa)

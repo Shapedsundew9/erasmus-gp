@@ -508,6 +508,7 @@ class TypesDefStore(Container):
         Descendants are defined as the children, grandchildren, etc., of the given type,
         including the type itself. The search starts from the provided key
         (which can be a name, UID, or TypesDef instance) and traverses down the child hierarchy.
+        i.e. int is a descendant of Integral, list[int] is a descendant of list, etc.
         Results are cached for performance.
 
         Args:
