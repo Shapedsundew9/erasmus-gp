@@ -8,7 +8,7 @@ many duplicate objects are used in a program. See
 
 from collections.abc import Hashable
 from functools import lru_cache
-from typing import Any
+from typing import Any, TypeVar
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
@@ -16,6 +16,8 @@ from egpcommon.egp_log import Logger, egp_logger
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
+# TypeVar for preserving input types through deduplication
+_T = TypeVar("_T", bound=Hashable)
 
 # Deduplicator register
 # This is a global registry of all deduplicators for monitoring purposes.
@@ -89,9 +91,9 @@ class ObjectDeduplicator(CommonObj):
         """Test if an object is in the deduplicator."""
         raise RuntimeError("ObjectDeduplicator does not support __contains__ operation.")
 
-    def __getitem__(self, obj: Hashable) -> Hashable:
+    def __getitem__(self, obj: _T) -> _T:
         """Get a deduplicated object from the cache."""
-        return self._objects(obj)
+        return self._objects(obj)  # type: ignore[return-value]
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "ObjectDeduplicator":
         """Prevent duplicate deduplicators with the same name."""

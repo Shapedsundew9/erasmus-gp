@@ -313,7 +313,9 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
             return False
         if not types_def_store.is_compatible(other.typ, self.typ):
-            _logger.log(TRACE, "Self endpoint type %s is not compatible with %s", self.typ, other.typ)
+            _logger.log(
+                TRACE, "Self endpoint type %s is not compatible with %s", self.typ, other.typ
+            )
             return False
         return True
 
