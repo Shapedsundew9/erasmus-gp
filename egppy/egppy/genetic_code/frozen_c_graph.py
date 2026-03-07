@@ -129,6 +129,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 iface = graph[key]
                 if isinstance(iface, InterfaceABC):
                     type_tuple = type_tuple_store[tuple(ep.typ for ep in iface)]
+                    assert isinstance(type_tuple, tuple), "Type tuple store did not return a tuple"
                     con_tuple = tuple(
                         # pylint: disable=unidiomatic-typecheck
                         refs_store[
@@ -143,6 +144,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 else:
                     assert isinstance(iface, list), "Interface must be a list of EndpointMemberType"
                     type_tuple = type_tuple_store[tuple(ep[3] for ep in iface)]
+                    assert isinstance(type_tuple, tuple), "Type tuple store did not return a tuple"
                     con_tuple = tuple(
                         refs_store[
                             FrozenEPRefs(FrozenEPRef(r[0], r[1]) for r in ep[4])  # type: ignore
@@ -152,7 +154,7 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                 fiface = (
                     iface
                     if type(iface) is FrozenInterface  # pylint: disable=unidiomatic-typecheck
-                    else FrozenInterface(row, type_tuple, con_tuple)
+                    else FrozenInterface(row, type_tuple, con_tuple)  # type: ignore
                 )
                 setattr(self, _key, fiface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):

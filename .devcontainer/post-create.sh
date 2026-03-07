@@ -53,5 +53,10 @@ fi
 echo "Installing CLI tools..."
 npm install -g @google/gemini-cli
 
+# Install spec-kit
+echo "Installing spec-kit..."
+./.venv/bin/pip install uv
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+
 # Done
 echo "--- Post-create script finished ---"
