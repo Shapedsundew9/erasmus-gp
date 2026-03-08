@@ -21,7 +21,7 @@ from psycopg2.extensions import cursor as TupleCursor
 from psycopg2.extensions import register_adapter
 from psycopg2.extras import DictCursor, Json, NamedTupleCursor, register_default_json, register_uuid
 
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import DEBUG, FLOW, Logger, egp_logger
 from egpcommon.text_token import TextToken, register_token_code
 from egpdb.common import backoff_generator
 
@@ -181,7 +181,7 @@ def _connect_core(dbname: str, config: dict[str, Any]) -> tuple[Any | None, Exce
         )
     else:
         err = None
-        _logger.info(TextToken({"I04000": {"dbname": dbname, "config": config}}))
+        _logger.log(FLOW, TextToken({"I04000": {"dbname": dbname, "config": config}}))
     return connection, err
 
 
@@ -237,7 +237,7 @@ def db_create(dbname: str, config: dict[str, Any]) -> None:
     sql_str = _DB_CREATE_SQL.format(sql.Identifier(dbname))
     connection = db_connect(config["maintenance_db"], config)
     connection.autocommit = True
-    _logger.info(sql_str.as_string(connection))
+    _logger.log(DEBUG, sql_str.as_string(connection))
     db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
     _logger.info(TextToken({"I04002": {"dbname": config["maintenance_db"], "config": config}}))
     db_disconnect(config["maintenance_db"], config)
@@ -263,7 +263,7 @@ def db_delete(dbname: str, config: dict[str, Any]) -> None:
     db_disconnect(dbname, config)
     connection = db_connect(config["maintenance_db"], config)
     connection.autocommit = True
-    _logger.info(sql_str.as_string(connection))
+    _logger.log(DEBUG, sql_str.as_string(connection))
     db_transaction(config["maintenance_db"], config, sql_str, read=False, recons=1)
     _logger.info(TextToken({"I04003": {"dbname": dbname, "config": config}}))
     db_disconnect(config["maintenance_db"], config)
@@ -352,9 +352,10 @@ def db_exists(dbname: str, config: dict[str, Any]) -> bool:
             )
             return True
         raise exc
-    _logger.info(_DB_EXISTS_SQL.as_string(connection))
+    _logger.log(DEBUG, _DB_EXISTS_SQL.as_string(connection))
     retval = (dbname,) in db_transaction(config["maintenance_db"], config, _DB_EXISTS_SQL)
-    _logger.info(
+    _logger.log(
+        FLOW,
         TextToken(
             {
                 "I04001": {
@@ -363,7 +364,7 @@ def db_exists(dbname: str, config: dict[str, Any]) -> bool:
                     "exists": ("DOES NOT", "DOES")[retval],
                 }
             }
-        )
+        ),
     )
     db_disconnect(config["maintenance_db"], config)
     return retval
