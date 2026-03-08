@@ -31,7 +31,7 @@ from logging import (
 from os import getenv
 
 basicConfig(
-    level=int(getenv("ERASMUS_LOG_LEVEL", "0")),
+    level=int(getenv("ERASMUS_LOG_LEVEL", str(INFO))),
     format="%(asctime)s %(levelname)s %(filename)s %(lineno)d %(message)s",
     # filename="egp.log",
     # filemode="w",
@@ -78,7 +78,7 @@ class Integrity:
     VERIFY: int = 20
     CONSISTENCY: int = 10
     DISABLED: int = 0
-    _level: int = int(getenv("ERASMUS_VERIFICATION_LEVEL", "0"))
+    _level: int = int(getenv("ERASMUS_VERIFICATION_LEVEL", str(DISABLED)))
 
     @classmethod
     def set_level(cls, level: int) -> None:

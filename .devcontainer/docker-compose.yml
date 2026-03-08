@@ -8,6 +8,7 @@ services:
     environment:
       EGP_PRIVATE_KEY_FILE: /run/secrets/private_key
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qlkjidfkoqwfbg}
+      PRIVATE_KEY_PEM_B64: ${PRIVATE_KEY_PEM_B64:-}
     command: sleep infinity
     depends_on:
       - postgres
