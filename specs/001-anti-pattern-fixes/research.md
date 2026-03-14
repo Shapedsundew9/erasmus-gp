@@ -11,6 +11,10 @@
   - Keep direct `CommonObj.__init__` calls in mutables: rejected because it preserves brittle
     duplication and bypassed MRO behavior.
   - Duplicate frozen setup logic in each mutable class: rejected due to maintenance risk.
+- **Implementation delta**: Used Template Method pattern rather than `_init_attrs()` helper.
+  Frozen classes expose `_cache_hash()` (endpoint/interface/ep_ref) and `_init_graph()`
+  (c_graph) that mutable subclasses override. Frozen `__init__` args made optional with early
+  returns for MRO safety when called by mutable subclasses via `super().__init__()`.
 
 ## Decision 2: Mutable objects must be non-hashable (WP5)
 
@@ -22,6 +26,10 @@
   - Snapshot/freeze hashing on mutable objects: rejected as an anti-pattern accommodation and
     source of lifecycle complexity.
   - Keep current mutable `__hash__`: rejected as correctness risk.
+- **Implementation delta**: `__hash__ = None` required on both ABCs AND concrete mutable
+  classes due to MRO ordering — frozen parent's `__hash__` appears earlier in MRO than the
+  ABC's `None`. No `compute_hash()` methods were needed; codebase audit found zero legitimate
+  mutable-hash call sites in `egppy`, `egpdb`, or `egpdbmgr`.
 
 ## Decision 3: Mandatory mutable-hash usage audit (WP5)
 
@@ -32,6 +40,9 @@
 - Alternatives considered:
   - Best-effort audit only in `egppy`: rejected due to cross-package consumers (`egpdb`,
     `egpdbmgr`, potential external usage).
+- **Implementation delta**: Audit completed across all packages. No mutable-hash call sites
+  found in `egpdb` or `egpdbmgr`. Eight existing tests that hashed mutable objects were
+  updated to assert `TypeError` instead.
 
 ## Decision 4: Builder-based immutable GGCDict construction (WP6)
 
@@ -42,6 +53,14 @@
 - Alternatives considered:
   - `_frozen` attribute hardening: rejected as transitional complexity that still models
     mutability lifecycle within the same object.
+- **Implementation delta**: Used `_frozen` attribute hardening (Option B from
+  remaining_work_packages.md) rather than full builder removal. `GGCDict.__init__` calls
+  `super().__init__(gcabc)` (which runs `set_members()` internally for data setup) then sets
+  `object.__setattr__(self, "_frozen", True)`. The `"immutable"` dict key is removed.
+  `__setitem__` checks `getattr(self, "_frozen", False)` and raises `TypeError`. This was
+  simpler than restructuring the entire `set_members()` pipeline and achieved the same
+  immutability guarantee. `EGCDict` references were updated to use
+  `getattr(gc, "_frozen", False)` instead of `gc.get("immutable", False)`.
 
 ## Decision 5: Defer WP7 hierarchy simplification
 

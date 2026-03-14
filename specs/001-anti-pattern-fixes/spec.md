@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-anti-pattern-fixes`  
 **Created**: 2026-03-14  
-**Status**: Draft  
+**Status**: Implemented  
 **Reference**: `docs/design/remaining_work_packages.md` (WP4-WP6 in scope, WP7 deferred)
 
 ## Clarifications
@@ -212,6 +212,8 @@ a stable value from the first call.
   `CGraph`, `Interface`, `EndPoint`, and `EPRefs` class families is a maintainability concern
   only — Python's MRO resolves it correctly at runtime. It is deferred to a dedicated
   follow-up branch to avoid compounding risk with WP4–WP6 changes.
+  See `docs/design/remaining_work_packages.md` § WP7 for full design notes and implementation
+  options.
 
 ## Assumptions
 

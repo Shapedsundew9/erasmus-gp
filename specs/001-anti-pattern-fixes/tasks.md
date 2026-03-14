@@ -11,9 +11,9 @@
 
 **Purpose**: Ensure local baseline and deterministic test environment before refactors
 
-- [ ] T001 Verify baseline test environment and required data artifacts using `.venv/bin/python egpcommon/egpcommon/manage_github_data.py download` in `egpcommon/egpcommon/manage_github_data.py`
-- [ ] T002 Run baseline suite `python -m unittest discover -s tests` and record failures to compare regressions in `tests/`
-- [ ] T003 [P] Capture current mutable-hash and GGCDict call-site inventory using search over `egppy/**/*.py`, `egpdb/**/*.py`, `egpdbmgr/**/*.py`, and `tests/**/*.py`
+- [X] T001 Verify baseline test environment and required data artifacts using `.venv/bin/python egpcommon/egpcommon/manage_github_data.py download` in `egpcommon/egpcommon/manage_github_data.py`
+- [X] T002 Run baseline suite `python -m unittest discover -s tests` and record failures to compare regressions in `tests/`
+- [X] T003 [P] Capture current mutable-hash and GGCDict call-site inventory using search over `egppy/**/*.py`, `egpdb/**/*.py`, `egpdbmgr/**/*.py`, and `tests/**/*.py`
 
 ---
 
@@ -23,10 +23,10 @@
 
 **CRITICAL**: No user-story implementation begins until these tasks complete.
 
-- [ ] T004 Add shared constructor/hash behavior regression tests scaffold in `tests/test_egppy/test_genetic_code/test_mutability_contract.py`
-- [ ] T005 [P] Add shared GGCDict construction/mutation regression tests scaffold in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
-- [ ] T006 Define helper fixtures/builders for mutable/frozen sample objects in `tests/test_egppy/test_genetic_code/__init__.py`
-- [ ] T007 [P] Add targeted test-discovery pattern command notes for this feature in `specs/001-anti-pattern-fixes/quickstart.md` (FR-015 governance documentation compliance)
+- [X] T004 Add shared constructor/hash behavior regression tests scaffold in `tests/test_egppy/test_genetic_code/test_mutability_contract.py`
+- [X] T005 [P] Add shared GGCDict construction/mutation regression tests scaffold in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
+- [X] T006 Define helper fixtures/builders for mutable/frozen sample objects in `tests/test_egppy/test_genetic_code/__init__.py`
+- [X] T007 [P] Add targeted test-discovery pattern command notes for this feature in `specs/001-anti-pattern-fixes/quickstart.md` (FR-015 governance documentation compliance)
 
 **Checkpoint**: Foundation ready. User story implementation can proceed.
 
@@ -40,25 +40,25 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Add constructor chain behavior tests for `CGraph` and `FrozenCGraph` in `tests/test_egppy/test_genetic_code/test_c_graph.py`
-- [ ] T009 [P] [US1] Add constructor chain behavior tests for `Interface` and `FrozenInterface` in `tests/test_egppy/test_genetic_code/test_interface.py`
-- [ ] T010 [P] [US1] Add constructor chain behavior tests for `EndPoint` and `FrozenEndPoint` in `tests/test_egppy/test_genetic_code/test_endpoint.py`
-- [ ] T011 [P] [US1] Add constructor chain behavior tests for `EPRef`/`EPRefs` and frozen counterparts in `tests/test_egppy/test_genetic_code/test_ep_ref.py`
+- [X] T008 [P] [US1] Add constructor chain behavior tests for `CGraph` and `FrozenCGraph` in `tests/test_egppy/test_genetic_code/test_c_graph.py`
+- [X] T009 [P] [US1] Add constructor chain behavior tests for `Interface` and `FrozenInterface` in `tests/test_egppy/test_genetic_code/test_interface.py`
+- [X] T010 [P] [US1] Add constructor chain behavior tests for `EndPoint` and `FrozenEndPoint` in `tests/test_egppy/test_genetic_code/test_endpoint.py`
+- [X] T011 [P] [US1] Add constructor chain behavior tests for `EPRef`/`EPRefs` and frozen counterparts in `tests/test_egppy/test_genetic_code/test_ep_ref.py`
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Refactor frozen c-graph initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_c_graph.py`
-- [ ] T013 [US1] Update mutable c-graph to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/c_graph.py`
-- [ ] T014 [US1] Refactor frozen interface initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_interface.py`
-- [ ] T015 [US1] Update mutable interface to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/interface.py`
-- [ ] T016 [US1] Refactor frozen endpoint initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_endpoint.py`
-- [ ] T017 [US1] Update mutable endpoint to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/endpoint.py`
-- [ ] T018 [US1] Refactor frozen ep-ref initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_ep_ref.py`
-- [ ] T019 [US1] Update mutable ep-ref and ep-refs to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/ep_ref.py`
+- [X] T012 [US1] Refactor frozen c-graph initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_c_graph.py`
+- [X] T013 [US1] Update mutable c-graph to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/c_graph.py`
+- [X] T014 [US1] Refactor frozen interface initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_interface.py`
+- [X] T015 [US1] Update mutable interface to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/interface.py`
+- [X] T016 [US1] Refactor frozen endpoint initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_endpoint.py`
+- [X] T017 [US1] Update mutable endpoint to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/endpoint.py`
+- [X] T018 [US1] Refactor frozen ep-ref initialization to split attribute setup from hash caching in `egppy/egppy/genetic_code/frozen_ep_ref.py`
+- [X] T019 [US1] Update mutable ep-ref and ep-refs to call `super().__init__()` and remove init-bypass disables in `egppy/egppy/genetic_code/ep_ref.py`
 
 **Checkpoint**: User Story 1 is independently testable and passes its targeted tests.
 
-- [ ] T043 [US1] Run full regression suite `python -m unittest discover -s tests` immediately after WP4 completion to satisfy per-work-package regression gating (FR-011)
+- [X] T043 [US1] Run full regression suite `python -m unittest discover -s tests` immediately after WP4 completion to satisfy per-work-package regression gating (FR-011)
 
 ---
 
@@ -70,25 +70,25 @@
 
 ### Tests for User Story 2
 
-- [ ] T020 [P] [US2] Add mutable hash `TypeError` tests for graph/interface/endpoint/ref classes in `tests/test_egppy/test_genetic_code/test_mutability_contract.py`
-- [ ] T021 [P] [US2] Add frozen hash stability regression tests in `tests/test_egppy/test_genetic_code/test_mutability_contract.py`
-- [ ] T022 [P] [US2] Add EGCDict mutable-hash prohibition tests in `tests/test_egppy/test_genetic_code/test_egc_dict.py`
+- [X] T020 [P] [US2] Add mutable hash `TypeError` tests for graph/interface/endpoint/ref classes in `tests/test_egppy/test_genetic_code/test_mutability_contract.py`
+- [X] T021 [P] [US2] Add frozen hash stability regression tests in `tests/test_egppy/test_genetic_code/test_mutability_contract.py`
+- [X] T022 [P] [US2] Add EGCDict mutable-hash prohibition tests in `tests/test_egppy/test_genetic_code/test_egc_dict.py`
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Set mutable hash contract (`__hash__ = None`) in c-graph ABC hierarchy in `egppy/egppy/genetic_code/c_graph_abc.py`
-- [ ] T024 [US2] Set mutable hash contract (`__hash__ = None`) in interface ABC hierarchy in `egppy/egppy/genetic_code/interface_abc.py`
-- [ ] T025 [US2] Set mutable hash contract (`__hash__ = None`) in endpoint ABC hierarchy in `egppy/egppy/genetic_code/endpoint_abc.py`
-- [ ] T026 [US2] Set mutable hash contract (`__hash__ = None`) in ep-ref ABC hierarchy in `egppy/egppy/genetic_code/ep_ref_abc.py`
-- [ ] T027 [US2] Remove mutable `__hash__` implementations and adjust behavior in `egppy/egppy/genetic_code/c_graph.py`, `egppy/egppy/genetic_code/interface.py`, `egppy/egppy/genetic_code/endpoint.py`, and `egppy/egppy/genetic_code/ep_ref.py`
-- [ ] T028 [US2] Remove/replace mutable hashing behavior in `EGCDict` in `egppy/egppy/genetic_code/egc_dict.py`
-- [ ] T029 [US2] Refactor mutable-hash call sites discovered in `egppy/**/*.py` to frozen/canonical hash pathways
-- [ ] T030 [US2] Refactor mutable-hash call sites discovered in `egpdb/**/*.py` and `egpdbmgr/**/*.py` to frozen/canonical hash pathways
-- [ ] T031 [US2] Update tests that hash mutable objects to new contract-compliant behavior in `tests/**/*.py`
+- [X] T023 [US2] Set mutable hash contract (`__hash__ = None`) in c-graph ABC hierarchy in `egppy/egppy/genetic_code/c_graph_abc.py`
+- [X] T024 [US2] Set mutable hash contract (`__hash__ = None`) in interface ABC hierarchy in `egppy/egppy/genetic_code/interface_abc.py`
+- [X] T025 [US2] Set mutable hash contract (`__hash__ = None`) in endpoint ABC hierarchy in `egppy/egppy/genetic_code/endpoint_abc.py`
+- [X] T026 [US2] Set mutable hash contract (`__hash__ = None`) in ep-ref ABC hierarchy in `egppy/egppy/genetic_code/ep_ref_abc.py`
+- [X] T027 [US2] Remove mutable `__hash__` implementations and adjust behavior in `egppy/egppy/genetic_code/c_graph.py`, `egppy/egppy/genetic_code/interface.py`, `egppy/egppy/genetic_code/endpoint.py`, and `egppy/egppy/genetic_code/ep_ref.py`
+- [X] T028 [US2] Remove/replace mutable hashing behavior in `EGCDict` in `egppy/egppy/genetic_code/egc_dict.py`
+- [X] T029 [US2] Refactor mutable-hash call sites discovered in `egppy/**/*.py` to frozen/canonical hash pathways
+- [X] T030 [US2] Refactor mutable-hash call sites discovered in `egpdb/**/*.py` and `egpdbmgr/**/*.py` to frozen/canonical hash pathways
+- [X] T031 [US2] Update tests that hash mutable objects to new contract-compliant behavior in `tests/**/*.py`
 
 **Checkpoint**: User Story 2 is independently testable and all mutable hash usage is eliminated.
 
-- [ ] T044 [US2] Run full regression suite `python -m unittest discover -s tests` immediately after WP5 completion to satisfy per-work-package regression gating (FR-011)
+- [X] T044 [US2] Run full regression suite `python -m unittest discover -s tests` immediately after WP5 completion to satisfy per-work-package regression gating (FR-011)
 
 ---
 
@@ -100,17 +100,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Add GGCDict one-step construction tests (kwargs and EGCDict builder) in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
-- [ ] T033 [P] [US3] Add GGCDict immutability mutation-failure tests in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
-- [ ] T034 [P] [US3] Add regression test proving no runtime `"immutable"` key lifecycle in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
+- [X] T032 [P] [US3] Add GGCDict one-step construction tests (kwargs and EGCDict builder) in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
+- [X] T033 [P] [US3] Add GGCDict immutability mutation-failure tests in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
+- [X] T034 [P] [US3] Add regression test proving no runtime `"immutable"` key lifecycle in `tests/test_egppy/test_genetic_code/test_ggc_dict.py`
 
 ### Implementation for User Story 3
 
-- [ ] T035 [US3] Refactor GGCDict constructor to immutable-by-construction and remove `set_members()` flow in `egppy/egppy/genetic_code/ggc_dict.py`
-- [ ] T036 [US3] Align EGCDict builder interoperability for GGCDict input validation in `egppy/egppy/genetic_code/egc_dict.py`
-- [ ] T037 [US3] Migrate GGCDict creation call sites from two-step flow in `egppy/**/*.py`
-- [ ] T038 [US3] Migrate GGCDict creation call sites from two-step flow in `egpdb/**/*.py` and `egpdbmgr/**/*.py`
-- [ ] T039 [US3] Migrate GGCDict creation call sites in `tests/**/*.py` and adjust expectations for `TypeError`
+- [X] T035 [US3] Refactor GGCDict constructor to immutable-by-construction and remove `set_members()` flow in `egppy/egppy/genetic_code/ggc_dict.py`
+- [X] T036 [US3] Align EGCDict builder interoperability for GGCDict input validation in `egppy/egppy/genetic_code/egc_dict.py`
+- [X] T037 [US3] Migrate GGCDict creation call sites from two-step flow in `egppy/**/*.py`
+- [X] T038 [US3] Migrate GGCDict creation call sites from two-step flow in `egpdb/**/*.py` and `egpdbmgr/**/*.py`
+- [X] T039 [US3] Migrate GGCDict creation call sites in `tests/**/*.py` and adjust expectations for `TypeError`
 
 **Checkpoint**: User Story 3 is independently testable and legacy GGCDict runtime-flag behavior is removed.
 
@@ -120,10 +120,10 @@
 
 **Purpose**: Final verification and documentation consistency across stories
 
-- [ ] T040 [P] Run focused genetic-code test suite for changed modules in `tests/test_egppy/test_genetic_code/`
-- [ ] T041 Run full regression suite `python -m unittest discover -s tests` from repository root in `tests/`
-- [ ] T042 [P] Update design docs to reflect final implementation deltas in `specs/001-anti-pattern-fixes/plan.md`, `specs/001-anti-pattern-fixes/research.md`, and `specs/001-anti-pattern-fixes/quickstart.md` (FR-015 governance documentation compliance)
-- [ ] T045 [P] Create and link the deferred WP7 follow-up work item in `docs/design/remaining_work_packages.md` and cross-reference it in `specs/001-anti-pattern-fixes/spec.md` (FR-014, FR-015)
+- [X] T040 [P] Run focused genetic-code test suite for changed modules in `tests/test_egppy/test_genetic_code/`
+- [X] T041 Run full regression suite `python -m unittest discover -s tests` from repository root in `tests/`
+- [X] T042 [P] Update design docs to reflect final implementation deltas in `specs/001-anti-pattern-fixes/plan.md`, `specs/001-anti-pattern-fixes/research.md`, and `specs/001-anti-pattern-fixes/quickstart.md` (FR-015 governance documentation compliance)
+- [X] T045 [P] Create and link the deferred WP7 follow-up work item in `docs/design/remaining_work_packages.md` and cross-reference it in `specs/001-anti-pattern-fixes/spec.md` (FR-014, FR-015)
 
 ---
 

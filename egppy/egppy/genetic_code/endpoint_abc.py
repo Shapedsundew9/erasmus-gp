@@ -343,6 +343,7 @@ class EndPointABC(FrozenEndPointABC, metaclass=ABCMeta):
     """
 
     __slots__ = ()
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     # Abstract Attributes
     refs: EPRefsABC  # type: ignore[override]

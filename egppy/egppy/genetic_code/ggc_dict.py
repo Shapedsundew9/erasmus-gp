@@ -36,9 +36,25 @@ _logger: Logger = egp_logger(name=__name__)
 
 # TODO: Once stable this should become a slotted class for performance.
 class GGCDict(EGCDict):
-    """General Genetic Code Dictionary Class."""
+    """General Genetic Code Dictionary Class.
+
+    Immutable-by-construction: fully frozen after __init__ completes.
+    Mutation attempts raise TypeError (Contract 4, WP6).
+    """
 
     GC_KEY_TYPES: dict[str, dict[str, Any]] = GGC_KVT
+
+    def __init__(self, gcabc: GCABC | dict[str, Any] | None = None) -> None:
+        """Construct a fully immutable GGCDict in one step.
+
+        Args:
+            gcabc: A GCABC instance, EGCDict builder, or raw dict with required keys.
+        """
+        # During super().__init__(), set_members() will be called via polymorphism.
+        # _frozen is not yet set, so __setitem__ will allow writes.
+        super().__init__(gcabc)
+        # Freeze: all subsequent mutation attempts raise TypeError.
+        object.__setattr__(self, "_frozen", True)
 
     def __eq__(self, other: object) -> bool:
         """Equality operator for GGCDict.
@@ -61,10 +77,12 @@ class GGCDict(EGCDict):
         return hash(self["signature"])
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """Set an item in the GGCDict. This is overridden to prevent modification
-        of immutable fields."""
-        if self.get("immutable", False):
-            raise RuntimeError(f"GGCDict is immutable for field {key} and cannot be modified.")
+        """Set an item in the GGCDict.
+
+        Raises TypeError after construction (immutable-by-construction, WP6).
+        """
+        if getattr(self, "_frozen", False):
+            raise TypeError(f"GGCDict is immutable: cannot set '{key}'.")
         # Skip the EGCDict __setitem__ to avoid unnecessary checks on GCA & GCB
         return CacheableDict.__setitem__(self, key, value)
 
@@ -200,8 +218,8 @@ class GGCDict(EGCDict):
                         field,
                     )
 
-        # Now certain fields are immutable.
-        self["immutable"] = True
+        # Immutability is now enforced by _frozen attribute set in __init__
+        # after set_members() completes (immutable-by-construction, WP6).
 
         if _logger.isEnabledFor(DEBUG):
             self.verify()
@@ -219,8 +237,8 @@ class GGCDict(EGCDict):
         assert isinstance(self, GCABC), "GGC must be a GCABC object."
         assert isinstance(self, CommonObj), "GGC must be a CommonObj."
 
-        # GGCDict shall be immutable after initialization.
-        if not self.get("immutable", False):
+        # GGCDict shall be immutable after initialization (WP6: _frozen attribute).
+        if not getattr(self, "_frozen", False):
             raise ValueError("GGCDict must be immutable after initialization.")
 
         # The number of descendants when the genetic code was copied from the higher layer.

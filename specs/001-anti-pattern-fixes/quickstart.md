@@ -57,9 +57,29 @@ python -m unittest discover -s tests -p "test_*genetic_code*.py"
 
 ## 6. Completion checklist
 
-- No `super-init-not-called` / `non-parent-init-called` suppression comments remain in WP4
+- [X] No `super-init-not-called` / `non-parent-init-called` suppression comments remain in WP4
   targets.
-- Mutable genetic-code classes are non-hashable by contract.
-- No mutable-hash call sites remain after audit.
-- `GGCDict` runtime immutability flag and two-step setup are removed.
-- Full test suite passes with no regressions.
+- [X] Mutable genetic-code classes are non-hashable by contract.
+- [X] No mutable-hash call sites remain after audit.
+- [X] `GGCDict` runtime immutability flag and two-step setup are removed.
+- [X] Full test suite passes with no regressions.
+
+## 7. Implementation results
+
+| Metric | Value |
+|--------|-------|
+| Baseline tests | 1299 |
+| After WP4 | 1308 (+9 constructor chain tests) |
+| After WP5 | 1317 (+5 hash prohibition + 5 frozen stability - 2 removed) |
+| After WP6 | 1322 (+5 GGCDict immutability tests) |
+| Final regression | 1322 tests, all pass |
+
+### Key implementation decisions
+
+- **WP4**: Template Method pattern (`_cache_hash()`, `_init_graph()`) instead of `_init_attrs()` helper.
+  Frozen `__init__` args made optional with early returns for MRO-safe `super()` calls.
+- **WP5**: `__hash__ = None` on both ABCs and concrete mutable classes (MRO precedence requires both).
+  Zero mutable-hash call sites found in `egpdb`/`egpdbmgr`.
+- **WP6**: `_frozen` attribute hardening (Option B) rather than full builder pattern.
+  `GGCDict.__init__` calls `super().__init__(gcabc)` then `object.__setattr__(self, "_frozen", True)`.
+  `EGCDict` references updated from `gc.get("immutable", False)` to `getattr(gc, "_frozen", False)`.

@@ -164,12 +164,11 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(self.interface1[0], self.ep1)
         self.assertEqual(self.interface1[1], self.ep2)
 
-    def test_hash(self) -> None:
-        """Test that hash is computed correctly."""
-        interface1 = Interface([self.ep1, self.ep2], DstRow.A)
-        interface2 = Interface([self.ep1, self.ep2], DstRow.A)
-        # Equal interfaces should have equal hashes
-        self.assertEqual(hash(interface1), hash(interface2))
+    def test_hash_not_supported(self) -> None:
+        """Test that mutable Interface is not hashable (WP5)."""
+        interface = Interface([self.ep1, self.ep2], DstRow.A)
+        with self.assertRaises(TypeError):
+            hash(interface)
 
     def test_init_with_5tuple(self) -> None:
         """Test initialization with EndPointMemberType (5-tuple)."""

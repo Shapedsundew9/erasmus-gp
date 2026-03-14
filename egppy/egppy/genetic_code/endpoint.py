@@ -32,18 +32,12 @@ See Also:
 
 from __future__ import annotations
 
-from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import TRACE, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import EPCls, Row
 from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.ep_ref import EPRef, EPRefs
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 from egppy.genetic_code.types_def import TypesDef
-from egppy.genetic_code.types_def_store import types_def_store
-
-# Standard EGP logging pattern
-_logger: Logger = egp_logger(name=__name__)
 
 
 class EndPoint(FrozenEndPoint, EndPointABC):
@@ -75,7 +69,7 @@ class EndPoint(FrozenEndPoint, EndPointABC):
     __copy__ = None  # type: ignore (reset to default behaviour)
     __deepcopy__ = None  # type: ignore (reset to default behaviour)
 
-    def __init__(self, *args) -> None:  # pylint: disable=super-init-not-called
+    def __init__(self, *args) -> None:
         """Initialize the endpoint.
 
         This constructor supports multiple initialization patterns:
@@ -100,32 +94,15 @@ class EndPoint(FrozenEndPoint, EndPointABC):
         Raises:
             TypeError: If arguments don't match any supported initialization pattern.
         """
-        CommonObj.__init__(self)  # pylint: disable=non-parent-init-called
-        if len(args) == 1:
-            if isinstance(args[0], FrozenEndPointABC):
-                _logger.log(TRACE, "Creating EndPoint from a FrozenEndPointABC")
-                other: FrozenEndPointABC = args[0]
-                self.row = other.row
-                self.idx = other.idx
-                self.cls = other.cls
-                self.typ = other.typ
-                self.refs = self._convert_refs(other.refs)
-            elif isinstance(args[0], tuple) and len(args[0]) == 5:
-                _logger.log(TRACE, "Creating EndPoint from a 5-tuple")
-                self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
-                self.refs = self._convert_refs(refs_arg)
-            else:
-                raise TypeError("Invalid argument for EndPoint constructor")
-        elif len(args) == 4 or len(args) == 5:
-            _logger.log(TRACE, "Creating EndPoint from explicit arguments")
-            self.row: Row = args[0]
-            self.idx: int = args[1]
-            self.cls: EPCls = args[2]
-            self.typ = args[3] if isinstance(args[3], TypesDef) else types_def_store[args[3]]
-            refs_arg = args[4] if len(args) == 5 and args[4] is not None else []
-            self.refs = self._convert_refs(refs_arg)
-        else:
-            raise TypeError("Invalid arguments for EndPoint constructor")
+        super().__init__(*args)
+
+    def _cache_hash(self) -> None:
+        """Mutable endpoints do not cache their hash.
+
+        Overrides FrozenEndPoint._cache_hash() so that calling super().__init__()
+        does not pre-compute a hash for mutable objects (FR-002).
+        """
+        self._hash = 0
 
     @staticmethod
     def _convert_refs(refs_arg) -> EPRefs:
@@ -145,17 +122,7 @@ class EndPoint(FrozenEndPoint, EndPointABC):
                 raise TypeError(f"Invalid ref format: {ref}")
         return EPRefs(refs_list)
 
-    def __hash__(self) -> int:
-        """Return the hash of the endpoint.
-
-        Computes a hash from all endpoint attributes (row, idx, cls, typ, refs)
-        to enable use in sets and as dictionary keys. References are converted
-        to tuples for hashability.
-
-        Returns:
-            int: Hash value computed from all endpoint attributes.
-        """
-        return hash((self.row, self.idx, self.cls, self.typ, self.refs))
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     def clr_refs(self) -> EndPointABC:
         """Clear all references in the endpoint.

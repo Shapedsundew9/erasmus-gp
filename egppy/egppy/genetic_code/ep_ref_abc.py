@@ -40,7 +40,7 @@ class EPRefABC(FrozenEPRefABC, metaclass=ABCMeta):
     """Abstract Base Class for Mutable EndPoint Reference."""
 
     __slots__ = ()
-    pass
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
 
 class FrozenEPRefsABC(CommonObjABC, Hashable, Sequence, metaclass=ABCMeta):
@@ -72,6 +72,7 @@ class EPRefsABC(FrozenEPRefsABC, MutableSequence, metaclass=ABCMeta):
     """Abstract Base Class for Mutable Sequence of EndPoint References."""
 
     __slots__ = ()
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     @abstractmethod
     def __setitem__(self, index: int, value: FrozenEPRefABC) -> None:  # type: ignore[override]

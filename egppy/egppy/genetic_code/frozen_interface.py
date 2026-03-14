@@ -35,11 +35,16 @@ class FrozenInterface(FrozenInterfaceABC):
 
     def __init__(
         self,
-        row: Row,
-        type_tuple: tuple[TypesDef, ...],
-        refs_tuple: tuple[tuple[tuple[Row, int], ...], ...] | tuple[FrozenEPRefs, ...],
+        row: Row | None = None,
+        type_tuple: tuple[TypesDef, ...] | None = None,
+        refs_tuple: (
+            tuple[tuple[tuple[Row, int], ...], ...] | tuple[FrozenEPRefs, ...] | None
+        ) = None,
     ):
         super().__init__()
+        if row is None:
+            # Called with no args through MRO from mutable subclass — skip frozen setup
+            return
         self._row = row
         self._cls = EPCls.SRC if isinstance(row, SrcRow) else EPCls.DST
         self.type_tuple = type_tuple
@@ -56,7 +61,7 @@ class FrozenInterface(FrozenInterfaceABC):
                     refs_store[FrozenEPRefs(FrozenEPRef(r[0], r[1]) for r in refs)]  # type: ignore
                 )
         self.refs_tuple = tuple(refs_list)
-        # Pre-compute hash for frozen interface
+        # Pre-compute hash for frozen interface (separated from attribute setup per FR-002)
         self._hash = hash((self._row, self._cls, self.type_tuple, self.refs_tuple))
 
     def __copy__(self):

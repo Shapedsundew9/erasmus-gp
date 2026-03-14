@@ -111,9 +111,22 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
             TypeError: If graph is not a dict or contains invalid interface types.
             ValueError: If graph structure violates Connection Graph rules.
         """
-        # Do not call the CGraph __init__ since we are building differently
-        CommonObj.__init__(self)
+        super().__init__()
+        self._init_graph(graph)
 
+    def _init_graph(
+        self,
+        graph: (
+            Mapping[IfKey, list[EndpointMemberType]]
+            | Mapping[IfKey, FrozenInterfaceABC]
+            | FrozenCGraphABC
+        ),
+    ) -> None:
+        """Build graph data structures from the input.
+
+        Template method: FrozenCGraph builds frozen interfaces + caches hash;
+        CGraph overrides to build mutable interfaces without hash caching (FR-002).
+        """
         # Set type tuples and connection (reference) tuples for all interfaces
         # Interfaces are stored as
         #   tuple[TypesDef, ...]
