@@ -25,32 +25,30 @@ class TestCGraphABC(unittest.TestCase):
     """Test cases for the CGraphABC abstract base class."""
 
     def test_abc_defines_required_methods(self) -> None:
-        """Test that all required abstract methods are defined in the ABC."""
+        """Test that all required abstract methods are defined in the ABC.
+
+        Methods provided by Mapping/MutableMapping mixins (__contains__, __eq__,
+        items, keys, values, get) are intentionally not abstract.
+        """
         abstract_methods = CGraphABC.__abstractmethods__
 
         expected_methods = {
-            "__contains__",
             "__iter__",
             "__len__",
             "__getitem__",
             "__setitem__",
             "__delitem__",
             "is_stable",
-            "get",
             "graph_type",
             "to_json",
             "disconnect_all",
             "connect_all",
             "stabilize",
-            "__eq__",
             "__hash__",
             "__str__",
             "__repr__",
             "consistency",
             "verify",
-            "keys",
-            "values",
-            "items",
             "connect",
         }
 
@@ -138,6 +136,27 @@ class TestCGraphABC(unittest.TestCase):
         with self.assertRaises(TypeError):
             # pylint: disable=abstract-class-instantiated
             IncompleteImplementation({})  # type: ignore
+
+    def test_mapping_mixin_methods_available(self) -> None:
+        """Test that Mapping mixin methods (items, keys, values, get) are provided by the protocol.
+
+        These methods were previously redundantly declared as abstract. They are now
+        provided by Mapping[IfKey, FrozenInterfaceABC] and do not need to be explicitly
+        overridden in concrete implementations.
+        """
+        from collections.abc import Mapping
+
+        # Verify CGraphABC inherits from Mapping
+        self.assertTrue(issubclass(CGraphABC, Mapping))
+
+        # Verify these methods are NOT abstract (provided by Mapping mixin)
+        non_abstract_methods = {"__contains__", "__eq__", "items", "keys", "values", "get"}
+        for method_name in non_abstract_methods:
+            self.assertNotIn(
+                method_name,
+                CGraphABC.__abstractmethods__,
+                f"{method_name} should not be abstract (provided by Mapping mixin)",
+            )
 
 
 if __name__ == "__main__":

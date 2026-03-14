@@ -78,7 +78,7 @@ class ObjectDeduplicator(CommonObj):
             deduplicators_registry[name] = self
 
             @lru_cache(maxsize=size)
-            def cached_hash(obj: Hashable) -> Hashable:
+            def cached_hash(obj: _T) -> _T:
                 return obj
 
             self._objects = cached_hash
@@ -93,7 +93,7 @@ class ObjectDeduplicator(CommonObj):
 
     def __getitem__(self, obj: _T) -> _T:
         """Get a deduplicated object from the cache."""
-        return self._objects(obj)  # type: ignore[return-value]
+        return self._objects(obj)
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "ObjectDeduplicator":
         """Prevent duplicate deduplicators with the same name."""

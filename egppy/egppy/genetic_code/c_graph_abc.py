@@ -178,7 +178,7 @@ Additional to the Common Rules Primitive connection graphs have the following ru
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import ItemsView, Iterator, KeysView, Mapping, MutableMapping, ValuesView
+from collections.abc import Iterator, Mapping, MutableMapping
 from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
@@ -188,43 +188,16 @@ from egppy.genetic_code.c_graph_constants import ConnectionType, DstRow, IfKey, 
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
-class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
+class FrozenCGraphABC(Mapping[IfKey, FrozenInterfaceABC], CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Frozen (Immutable) Connection Graphs.
 
     This class defines the read-only interface for Connection Graphs.
-    It inherits Mapping for standard container operations, and CommonObjABC
+    It inherits Mapping[IfKey, FrozenInterfaceABC] for standard container operations
+    (including __contains__, __eq__, items, keys, values, and get), and CommonObjABC
     for validation methods.
     """
 
     __slots__ = ()
-
-    # Abstract Container Protocol Methods
-
-    @abstractmethod
-    def __contains__(self, key: object) -> bool:
-        """Check if the interface exists in the Connection Graph.
-
-        Args:
-            key: Interface identifier, may be a row or row with class postfix.
-
-        Returns:
-            True if the interface exists, False otherwise.
-        """
-        raise NotImplementedError("FrozenCGraphABC.__contains__ must be overridden")
-
-    # Abstract Equality and Hashing
-
-    @abstractmethod
-    def __eq__(self, other: object) -> bool:
-        """Check equality of Connection Graphs.
-
-        Args:
-            other: Object to compare with.
-
-        Returns:
-            True if graphs are equivalent, False otherwise.
-        """
-        raise NotImplementedError("FrozenCGraphABC.__eq__ must be overridden")
 
     # Abstract Mapping Protocol Methods
 
@@ -274,33 +247,6 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("FrozenCGraphABC.__len__ must be overridden")
 
-    @abstractmethod
-    def items(self) -> ItemsView[IfKey, FrozenInterfaceABC]:
-        """Return a view of the items in the Connection Graph.
-
-        Returns:
-            A view of the items (key, value pairs).
-        """
-        raise NotImplementedError("FrozenCGraphABC.items must be overridden")
-
-    @abstractmethod
-    def keys(self) -> KeysView[IfKey]:
-        """Return a view of the keys in the Connection Graph.
-
-        Returns:
-            A view of the keys.
-        """
-        raise NotImplementedError("FrozenCGraphABC.keys must be overridden")
-
-    @abstractmethod
-    def values(self) -> ValuesView[FrozenInterfaceABC]:
-        """Return a view of the values in the Connection Graph.
-
-        Returns:
-            A view of the values.
-        """
-        raise NotImplementedError("FrozenCGraphABC.values must be overridden")
-
     # Abstract String Representation
 
     @abstractmethod
@@ -320,23 +266,6 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.__str__ must be overridden")
 
     # Abstract Graph State Methods
-
-    @abstractmethod
-    def get(  # type: ignore[override]
-        self, key: IfKey, default: FrozenInterfaceABC | None = None
-    ) -> FrozenInterfaceABC | None:
-        """Get the interface with the given key, or return default if not found.
-
-        Args:
-            key: Interface identifier.
-            default: Value to return if key is not found.
-
-        Returns:
-            The Interface object for the given key, or default if not found.
-        Raises:
-            KeyError: If the key is not a valid interface key.
-        """
-        raise NotImplementedError("FrozenCGraphABC.get must be overridden")
 
     @abstractmethod
     def graph_type(self) -> CGraphType:
@@ -374,7 +303,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.to_json must be overridden")
 
 
-class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
+class CGraphABC(FrozenCGraphABC, MutableMapping[IfKey, FrozenInterfaceABC]):
     """Abstract Base Class for Mutable Connection Graphs.
 
     This class extends FrozenCGraphABC with methods for modifying the graph.
