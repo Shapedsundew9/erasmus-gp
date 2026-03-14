@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Generator, Mapping
 from itertools import chain
 
-from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Integrity, Logger, egp_logger
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
@@ -46,7 +45,7 @@ class CGraph(FrozenCGraph, CGraphABC):
     __copy__ = None  # type: ignore (reset to default behaviour)
     __deepcopy__ = None  # type: ignore (reset to default behaviour)
 
-    def __init__(  # pylint: disable=super-init-not-called
+    def __init__(
         self,
         graph: (
             Mapping[str, list[EndpointMemberType]]
@@ -58,9 +57,19 @@ class CGraph(FrozenCGraph, CGraphABC):
 
         A full copy of all data is made from the provided graph to ensure independence.
         """
-        # Initialize CommonObj directly, skipping FrozenCGraph.__init__
-        CommonObj.__init__(self)  # pylint: disable=non-parent-init-called
+        # Delegate to FrozenCGraph.__init__ which calls _init_graph() (Template Method).
+        # CGraph overrides _init_graph() to build mutable Interface objects.
+        super().__init__(graph)
 
+    def _init_graph(
+        self,
+        graph: (
+            Mapping[str, list[EndpointMemberType]]
+            | Mapping[IfKey, FrozenInterfaceABC]
+            | FrozenCGraphABC
+        ),
+    ) -> None:
+        """Override to build mutable Interface objects instead of frozen ones (FR-002)."""
         # Set all interfaces from the provided graph.
         # Note that this is a mutable instance so a full copy of the initializing
         # interfaces are needed (but the graph may not be stable nor valid).
@@ -106,11 +115,7 @@ class CGraph(FrozenCGraph, CGraphABC):
             raise KeyError(f"Invalid Connection Graph key: {key}")
         setattr(self, _UNDER_KEY_DICT[key], None)
 
-    def __hash__(self) -> int:
-        """Return the hash of the Connection Graph.
-        NOTE: All CGraphABC with the same state must return the same hash value.
-        """
-        return hash(tuple(hash(iface) for iface in self.values()))
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     def __setitem__(self, key: IfKey, value: FrozenInterfaceABC) -> None:
         """Set the interface with the given key."""

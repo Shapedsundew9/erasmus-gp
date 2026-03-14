@@ -170,6 +170,7 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence[FrozenEndPointABC], metac
     """
 
     __slots__ = ()
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     @abstractmethod
     def __add__(self, other: FrozenInterfaceABC) -> InterfaceABC:

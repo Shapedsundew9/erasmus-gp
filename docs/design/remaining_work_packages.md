@@ -9,9 +9,9 @@ anti-patterns in Erasmus GP. WP1–WP3 have been completed on sub-branches off
 | WP1 — ABC Method De-duplication | **Merged** | `wp1-abc-method-dedup` |
 | WP2 — CommonObj/CommonObjABC Unification | **Complete (unmerged)** | `wp2-commonobj-unification` |
 | WP3 — GCABC Protocol Conformance | **Complete (unmerged)** | `wp3-gcabc-protocol` |
-| WP4 — Suppressed `super().__init__()` | Not started | — |
-| WP5 — Hashable Mutable Objects | Not started | — |
-| WP6 — Runtime Immutability Flag | Not started | — |
+| WP4 — Suppressed `super().__init__()` | **Complete (unmerged)** | `001-anti-pattern-fixes` |
+| WP5 — Hashable Mutable Objects | **Complete (unmerged)** | `001-anti-pattern-fixes` |
+| WP6 — Runtime Immutability Flag | **Complete (unmerged)** | `001-anti-pattern-fixes` |
 | WP7 — Diamond Inheritance Simplification | Not started | — |
 
 ---

@@ -72,15 +72,10 @@ class TestEndPoint(unittest.TestCase):
         self.assertNotEqual(ep1, ep3)
         self.assertNotEqual(ep1, "not an endpoint")
 
-    def test_hash(self) -> None:
-        """Test hashing of endpoints."""
-        h1 = hash(self.ep_src)
-        self.ep_src.refs = EPRefs([EPRef(SrcRow.A, 1)])
-        h2 = hash(self.ep_src)
-        self.assertNotEqual(h1, h2)
-        h3 = hash(self.ep_src)
-        h4 = hash(self.ep_src)
-        self.assertEqual(h3, h4)
+    def test_hash_not_supported(self) -> None:
+        """Test that mutable EndPoint is not hashable (WP5)."""
+        with self.assertRaises(TypeError):
+            hash(self.ep_src)
 
     def test_init(self) -> None:
         """Test EndPoint initialization."""
@@ -284,26 +279,6 @@ class TestEndPointEdgeCases(unittest.TestCase):
         ep1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
         ep2 = EndPoint(SrcRow.I, 0, EPCls.SRC, "float")
         self.assertNotEqual(ep1, ep2)
-
-    def test_hash_changes_with_modifications(self) -> None:
-        """Test that hash changes when endpoint is modified."""
-        ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        h1 = hash(ep)
-
-        ep.refs = EPRefs([EPRef(DstRow.A, 0)])
-        h2 = hash(ep)
-        self.assertNotEqual(h1, h2)
-
-        ep.refs.append(EPRef(DstRow.A, 1))
-        h3 = hash(ep)
-        self.assertNotEqual(h2, h3)
-
-    def test_hash_consistency_with_equality(self) -> None:
-        """Test that equal endpoints have equal hashes."""
-        ep1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [[DstRow.A, 0]])
-        ep2 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [[DstRow.A, 0]])
-        self.assertEqual(ep1, ep2)
-        self.assertEqual(hash(ep1), hash(ep2))
 
     def test_init_refs_deep_copy(self) -> None:
         """Test that refs are deep copied during initialization."""

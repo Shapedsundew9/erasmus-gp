@@ -20,6 +20,7 @@ class FrozenEPRef(CommonObj, FrozenEPRefABC):
     __slots__ = ("row", "idx", "_hash")
 
     def __init__(self, row: Row, idx: int):
+        super().__init__()
         self.row = row
         self.idx = idx
         self._hash = hash((row, idx))
@@ -66,7 +67,14 @@ class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
 
     __slots__ = ("_refs", "_hash")
 
-    def __init__(self, refs: Iterable[FrozenEPRefABC]):
+    def __init__(self, refs: Iterable[FrozenEPRefABC] | None = None):
+        super().__init__()
+        if refs is None:
+            # Called with no args through MRO from mutable subclass — skip frozen setup.
+            # Initialize slots to a valid empty state so the object is usable.
+            self._refs = ()
+            self._hash = hash(())
+            return
         self._refs = tuple(
             # pylint: disable=unidiomatic-typecheck
             ref_store[t if type(t) is FrozenEPRef else FrozenEPRef(t.row, t.idx)]

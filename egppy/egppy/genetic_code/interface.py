@@ -16,11 +16,12 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.genetic_code.endpoint import EndPoint, TypesDef
+from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType, FrozenEndPointABC
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.interface_abc import MAX_EPS, FrozenInterfaceABC, InterfaceABC
+from egppy.genetic_code.types_def import TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -83,11 +84,11 @@ def unpack_src_ref(ref: list[int | Row] | tuple[Row, int] | FrozenEPRefABC) -> t
 class Interface(CommonObj, FrozenInterface, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
-    __slots__ = ("endpoints", "_hash", "_row", "_cls")
+    __slots__ = ("endpoints",)
     __copy__ = None  # type: ignore (reset to default behaviour)
     __deepcopy__ = None  # type: ignore (reset to default behaviour)
 
-    def __init__(  # pylint: disable=super-init-not-called
+    def __init__(
         self,
         endpoints: (
             Sequence[FrozenEndPointABC]
@@ -117,7 +118,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             any ref row specified in the endpoint sequences.
         rsidx: int: The starting index to use for references when rrow is provided.
         """
-        CommonObj.__init__(self)
+        super().__init__()  # MRO: CommonObj → FrozenInterface(no args → skip) → ... → object
         self.endpoints: list[EndPoint] = []
         self._hash: int = 0
         self._row = row
@@ -255,9 +256,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         """Get an endpoint by index."""
         return self.endpoints[idx]
 
-    def __hash__(self) -> int:
-        """Return the hash of the interface."""
-        return hash(tuple(hash(ep) for ep in self.endpoints))
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     def __iter__(self) -> Iterator[EndPointABC]:
         """Return an iterator over the endpoints."""

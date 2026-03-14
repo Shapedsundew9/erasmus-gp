@@ -73,10 +73,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         """Intercept updates to GCA and GCB to maintain reference integrity."""
         if key in ("gca", "gcb"):
             old_gc = self.get(key)
-            if isinstance(old_gc, GCABC) and not old_gc.get("immutable", False):
+            if isinstance(old_gc, GCABC) and not getattr(old_gc, "_frozen", False):
                 # Remove old reference if it exists
                 del old_gc["references"][(self["uid"], key)]
-            if isinstance(value, GCABC) and not value.get("immutable", False):
+            if isinstance(value, GCABC) and not getattr(value, "_frozen", False):
                 # Set new reference if the new value is a GCABC
                 value["references"][(self["uid"], key)] = self
         super().__setitem__(key, value)
@@ -140,10 +140,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             taa = bytes.fromhex(taa)
         if isinstance(taa, bytes):
             self["ancestora"] = signature_store[taa]
-        elif taa is None or (isinstance(taa, GCABC) and taa.get("immutable", False)):
+        elif taa is None or (isinstance(taa, GCABC) and getattr(taa, "_frozen", False)):
             # None or a GGCode
             self["ancestora"] = taa
-        elif isinstance(taa, GCABC) and not taa.get("immutable", False):
+        elif isinstance(taa, GCABC) and not getattr(taa, "_frozen", False):
             # Ancestor A is transient. We want the last persisted ancestor.
             self["ancestora"] = taa["ancestora"]
         else:
@@ -155,10 +155,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tab = bytes.fromhex(tab)
         if isinstance(tab, bytes):
             self["ancestorb"] = signature_store[tab]
-        elif tab is None or (isinstance(tab, GCABC) and tab.get("immutable", False)):
+        elif tab is None or (isinstance(tab, GCABC) and getattr(tab, "_frozen", False)):
             # None or a GGCode
             self["ancestorb"] = tab
-        elif isinstance(tab, GCABC) and not tab.get("immutable", False):
+        elif isinstance(tab, GCABC) and not getattr(tab, "_frozen", False):
             # Ancestor B is transient. We want the last persisted ancestor.
             self["ancestorb"] = tab["ancestorb"]
         else:
@@ -170,7 +170,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tpgc = bytes.fromhex(tpgc)
         if isinstance(tpgc, bytes):
             self["pgc"] = signature_store[tpgc]
-        elif tpgc is None or (isinstance(tpgc, GCABC) and tpgc.get("immutable", False)):
+        elif tpgc is None or (isinstance(tpgc, GCABC) and getattr(tpgc, "_frozen", False)):
             # None or a GGCode
             self["pgc"] = tpgc
         else:
@@ -213,11 +213,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             and self["cgraph"] == other["cgraph"]
         )
 
-    def __hash__(self) -> int:
-        """Return the hash of the genetic code object.
-        Signature is guaranteed unique for a given genetic code.
-        """
-        return hash(self["gca"]) ^ hash(self["gcb"]) ^ hash(self["cgraph"])
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     def is_codon(self) -> bool:
         """Return True if the genetic code is a codon or meta-codon."""

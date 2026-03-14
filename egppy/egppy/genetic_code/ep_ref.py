@@ -15,8 +15,7 @@ class EPRef(FrozenEPRef, EPRefABC):
     Docstring for EPRef
     """
 
-    def __hash__(self) -> int:
-        return hash((self.row, self.idx))
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     def __repr__(self) -> str:
         return f"EPRef(row={self.row!r}, idx={self.idx})"
@@ -27,8 +26,9 @@ class EPRefs(FrozenEPRefs, EPRefsABC):
     Docstring for EPRefs
     """
 
-    # pylint: disable=super-init-not-called
     def __init__(self, refs: Iterable[FrozenEPRefABC] | None = None):
+        # MRO: EPRefs → FrozenEPRefs(refs=None → skip frozen setup) → CommonObj → object
+        super().__init__()
         self._refs: list[FrozenEPRefABC] = list(refs) if refs else []  # type: ignore
 
     def __setitem__(self, index: int, value: FrozenEPRefABC) -> None:
@@ -47,8 +47,7 @@ class EPRefs(FrozenEPRefs, EPRefsABC):
             raise TypeError(f"Invalid value type: {type(value)}")
         self._refs.insert(index, value)
 
-    def __hash__(self) -> int:
-        return hash(tuple(self._refs))
+    __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
     def __repr__(self) -> str:
         return f"EPRefs({self._refs!r})"

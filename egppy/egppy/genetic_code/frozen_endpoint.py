@@ -99,7 +99,15 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             self.refs = self._convert_refs(refs_arg)
         else:
             raise TypeError("Invalid arguments for EndPoint constructor")
-        # Pre-compute hash for frozen endpoint
+        # Separated from attribute setup to allow mutable subclasses to override
+        self._cache_hash()
+
+    def _cache_hash(self) -> None:
+        """Cache the hash value for frozen endpoints.
+
+        Separated from __init__ attribute setup (FR-002) so mutable subclasses
+        can call super().__init__() safely and override this to skip hash caching.
+        """
         self._hash = hash((self.row, self.idx, self.cls, self.typ, self.refs))
 
     @staticmethod

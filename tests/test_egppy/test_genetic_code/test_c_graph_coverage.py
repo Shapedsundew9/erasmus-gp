@@ -592,8 +592,8 @@ class TestCGraphEdgeCases(unittest.TestCase):
         # They should not be equal because they have different keys
         self.assertNotEqual(cgraph1, cgraph2)
 
-    def test_hash_consistency(self) -> None:
-        """Test that hash is consistent for equal graphs."""
+    def test_hash_not_supported(self) -> None:
+        """Test that mutable CGraph is not hashable (WP5)."""
         jcg = json_cgraph_to_interfaces(
             {
                 DstRow.A: [["I", 0, "int"]],
@@ -601,11 +601,9 @@ class TestCGraphEdgeCases(unittest.TestCase):
             }
         )
 
-        cgraph1 = CGraph(jcg)
-        cgraph2 = CGraph(jcg)
-
-        # Equal graphs should have equal hashes
-        self.assertEqual(hash(cgraph1), hash(cgraph2))
+        cgraph = CGraph(jcg)
+        with self.assertRaises(TypeError):
+            hash(cgraph)
 
     def test_items_method(self) -> None:
         """Test items() method returns correct (key, interface) pairs."""
