@@ -11,14 +11,17 @@ class TestInterfaceABC(TestCase):
     """Test cases for InterfaceABC."""
 
     def test_abc_defines_required_methods(self) -> None:
-        """Test that all required abstract methods are defined in the ABC."""
+        """Test that all required abstract methods are defined in the ABC.
+
+        Methods provided by Sequence/MutableSequence mixins (__iter__, append)
+        are intentionally not abstract.
+        """
         abstract_methods = InterfaceABC.__abstractmethods__
 
         # Check that the expected abstract methods are defined
         expected_methods = frozenset(
             {
                 "__getitem__",
-                "__iter__",
                 "__len__",
                 "__setitem__",
                 "__delitem__",
@@ -27,7 +30,6 @@ class TestInterfaceABC(TestCase):
                 "__hash__",
                 "__str__",
                 "__add__",
-                "append",
                 "extend",
                 "to_json",
                 "to_td_uids",
@@ -122,3 +124,25 @@ class TestInterfaceABC(TestCase):
     def test_src_interface_inherits_from_abc(self) -> None:
         """Test that SrcInterface properly inherits from InterfaceABC."""
         self.assertTrue(issubclass(SrcInterface, InterfaceABC))
+
+    def test_sequence_mixin_methods_available(self) -> None:
+        """Test that Sequence/MutableSequence mixin methods are provided by the protocol.
+
+        __iter__ and append were previously redundantly declared as abstract.
+        They are now provided by Sequence[FrozenEndPointABC] and
+        MutableSequence[FrozenEndPointABC] respectively.
+        """
+        from collections.abc import MutableSequence, Sequence
+
+        # Verify inheritance
+        self.assertTrue(issubclass(InterfaceABC, Sequence))
+        self.assertTrue(issubclass(InterfaceABC, MutableSequence))
+
+        # Verify these methods are NOT abstract (provided by mixin)
+        non_abstract_methods = {"__iter__", "append"}
+        for method_name in non_abstract_methods:
+            self.assertNotIn(
+                method_name,
+                InterfaceABC.__abstractmethods__,
+                f"{method_name} should not be abstract (provided by Sequence/MutableSequence)",
+            )
