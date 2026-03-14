@@ -8,8 +8,6 @@ from egppy.physics.runtime_context import RuntimeContext
 def crossover(rtctxt: RuntimeContext, psite1: GCABC, psite2: GCABC, a: bool) -> EGCode:
     """Crossover GCA (if a is True) or GCB (if a is False) from psite2 into psite1.
 
-    NOTE: Since crossov
-
     Args:
         rtctxt: The runtime context containing the gene pool and other necessary information.
         psite1: The first parent GC which is, or is a sub-GC of, rtctxt.root_gc.
