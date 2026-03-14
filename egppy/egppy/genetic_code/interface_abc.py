@@ -82,7 +82,6 @@ class FrozenInterfaceABC(CommonObjABC, Sequence[FrozenEndPointABC], metaclass=AB
         raise NotImplementedError("FrozenInterfaceABC.__hash__ must be overridden")
 
     @abstractmethod
-
     def __len__(self) -> int:
         """Return the number of endpoints in the interface.
 
