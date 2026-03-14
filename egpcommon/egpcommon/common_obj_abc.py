@@ -9,6 +9,8 @@ class CommonObjABC(ABC):
     See CommonObj for details.
     """
 
+    __slots__ = ()
+
     @abstractmethod
     def consistency(self) -> None:
         """Check the consistency of the CommonObjABC."""

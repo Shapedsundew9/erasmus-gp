@@ -1,10 +1,13 @@
 """Common Object Class."""
 
+from egpcommon.common_obj_abc import CommonObjABC
 
-class CommonObj:
+
+class CommonObj(CommonObjABC):
     """Common Object Class.
 
     The Common Object Class, CommonObj, is the base class for all custom objects in EGP.
+    It inherits from CommonObjABC to formally satisfy the abstract interface contract.
     EGP has the philosophy that all objects should be able to verify their own data and check
     their own consistency. The methods defined here shall always be called by derived classes.
 
