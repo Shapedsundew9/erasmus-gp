@@ -1,11 +1,10 @@
-"""Security functions for EGPPY."""
+"""Security functions for egpcommon."""
 
-import base64
-import binascii
-import hashlib
-import json
+from base64 import b64decode, b64encode
+from binascii import Error as BinAsciiError
 from datetime import UTC, datetime
-from json import dump, load
+from hashlib import sha256 as sha256_hash_func
+from json import dump, dumps, load
 from os import environ
 from os.path import exists, getsize, join
 from typing import Any
@@ -50,7 +49,7 @@ def _compute_file_hash(filepath: str) -> str:
     Returns:
         Hexadecimal string representation of the SHA-256 hash.
     """
-    sha256_hash = hashlib.sha256()
+    sha256_hash = sha256_hash_func()
     with open(filepath, "rb") as f:
         # Read file in chunks to handle large files efficiently
         for byte_block in iter(lambda: f.read(4096), b""):
@@ -74,7 +73,7 @@ def _create_signature_payload(file_hash: str, creator_uuid: str, algorithm: str)
     """
     payload = {"file_hash": file_hash, "creator_uuid": creator_uuid, "algorithm": algorithm}
     # Use sorted keys and compact separators for canonical representation
-    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
 def _file_size_limit(fullpath: str, limit: int = 2**30) -> int:
@@ -335,7 +334,7 @@ def sign_file(
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
     # Encode signature in base64
-    signature_b64 = base64.b64encode(signature_bytes).decode("utf-8")
+    signature_b64 = b64encode(signature_bytes).decode("utf-8")
 
     # Create signature metadata
     sig_data: dict[str, Any] = {
@@ -406,8 +405,8 @@ def verify_file_signature(  # pylint: disable=too-many-branches,too-many-locals
 
     # Decode signature with strict validation
     try:
-        signature_bytes = base64.b64decode(signature_b64, validate=True)
-    except binascii.Error as e:
+        signature_bytes = b64decode(signature_b64, validate=True)
+    except BinAsciiError as e:
         raise ValueError("Failed to decode signature: invalid base64 encoding") from e
 
     # Load public key and verify signature

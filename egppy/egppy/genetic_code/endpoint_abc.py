@@ -169,14 +169,26 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
     # Abstract String Representation
 
     @abstractmethod
-    def __str__(self) -> str:
-        """Return the string representation of the endpoint.
+    def __repr__(self) -> str:
+        """Return the official string representation of the endpoint.
 
-        Provides a human-readable representation including all endpoint attributes
-        for debugging and logging purposes.
+        The representation is compact and positional such that
+        eval(repr(obj)) == obj.
 
         Returns:
-            str: String representation of the endpoint showing row, idx, cls, typ, and refs.
+            str: Compact positional string suitable for eval() reconstruction.
+        """
+        raise NotImplementedError("FrozenEndPointABC.__repr__ must be overridden")
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Return a human-readable string representation of the endpoint.
+
+        Uses verbose keyword argument format for readability, e.g.
+        ``"FrozenEndPoint(row=X, idx=N, cls=CLS, typ=TYPE, refs=[...])"``.
+
+        Returns:
+            str: Human-readable string with keyword arguments.
         """
         raise NotImplementedError("FrozenEndPointABC.__str__ must be overridden")
 
@@ -221,7 +233,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
         """Check the consistency of the endpoint.
 
         Performs semantic validation that may be computationally expensive. This method
-        is called automatically by verify() when CONSISTENCY logging is enabled, following
+        is called automatically by verify() when CONSISTENCY integrity is enabled, following
         the CommonObj validation pattern.
 
         Validates:
@@ -235,7 +247,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
             and is performed at the Interface or CGraph level, not here.
 
         Raises:
-            AssertionError: If consistency checks fail (in debug mode with CONSISTENCY logging).
+            AssertionError: If consistency checks fail (in debug mode with CONSISTENCY integrity).
         """
         raise NotImplementedError("FrozenEndPointABC.consistency must be overridden")
 
@@ -311,7 +323,7 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
                 * SRC endpoints reference DST rows
 
         Note:
-            Calls consistency() automatically when CONSISTENCY logging is enabled.
+            Calls consistency() automatically when CONSISTENCY integrity is enabled.
 
         Raises:
             ValueError: If the endpoint structure is invalid.

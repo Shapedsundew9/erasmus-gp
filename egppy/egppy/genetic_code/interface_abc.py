@@ -12,7 +12,7 @@ and implementations while maintaining the flexibility to optimize specific varia
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import Iterator, MutableSequence, Sequence
+from collections.abc import MutableSequence, Sequence
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egppy.genetic_code.c_graph_constants import EPCls, Row
@@ -23,12 +23,13 @@ from egppy.genetic_code.types_def import TypesDef
 MAX_EPS = 256  # Maximum number of endpoints in an interface
 
 
-class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
+class FrozenInterfaceABC(CommonObjABC, Sequence[FrozenEndPointABC], metaclass=ABCMeta):
     """Abstract Base Class for Immutable Interface.
 
     This class defines the essential interface that all Interface
     implementations must provide. It inherits CommonObjABC for validation methods
-    and Sequence for immutable sequence operations.
+    and Sequence[FrozenEndPointABC] for immutable sequence operations
+    (including __iter__, __contains__, __reversed__, count, and index).
 
     Interfaces define collections of endpoints that represent connections in
     genetic code, either as sources (inputs) or destinations (outputs).
@@ -79,15 +80,6 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
             Hash value for the interface.
         """
         raise NotImplementedError("FrozenInterfaceABC.__hash__ must be overridden")
-
-    @abstractmethod
-    def __iter__(self) -> Iterator[FrozenEndPointABC]:
-        """Return an iterator over the endpoints.
-
-        Returns:
-            Iterator over EndPoint objects in the interface.
-        """
-        raise NotImplementedError("FrozenInterfaceABC.__iter__ must be overridden")
 
     @abstractmethod
     def __len__(self) -> int:
@@ -169,11 +161,12 @@ class FrozenInterfaceABC(CommonObjABC, Sequence, metaclass=ABCMeta):
         raise NotImplementedError("FrozenInterfaceABC.unconnected_eps must be overridden")
 
 
-class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
+class InterfaceABC(FrozenInterfaceABC, MutableSequence[FrozenEndPointABC], metaclass=ABCMeta):
     """Abstract Base Class for Mutable Interface.
 
     This class defines the interface for mutable Interface implementations.
-    It inherits FrozenInterfaceABC and MutableSequence.
+    It inherits FrozenInterfaceABC and MutableSequence[FrozenEndPointABC]
+    (which provides append via insert).
     """
 
     __slots__ = ()
@@ -211,15 +204,6 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.__getitem__ must be overridden")
 
     @abstractmethod
-    def __iter__(self) -> Iterator[EndPointABC]:
-        """Return an iterator over the endpoints.
-
-        Returns:
-            Iterator over EndPoint objects in the interface.
-        """
-        raise NotImplementedError("InterfaceABC.__iter__ must be overridden")
-
-    @abstractmethod
     def __setitem__(self, idx: int, value: FrozenEndPointABC) -> None:  # type: ignore[override]
         """Set an endpoint at a specific index.
 
@@ -249,15 +233,6 @@ class InterfaceABC(FrozenInterfaceABC, MutableSequence, metaclass=ABCMeta):
         raise NotImplementedError("InterfaceABC.insert must be overridden")
 
     # Abstract Modification Methods
-
-    @abstractmethod
-    def append(self, value: FrozenEndPointABC) -> None:
-        """Append an endpoint to the interface.
-
-        Args:
-            value: The endpoint to append.
-        """
-        raise NotImplementedError("InterfaceABC.append must be overridden")
 
     @abstractmethod
     def clr_refs(self) -> InterfaceABC:

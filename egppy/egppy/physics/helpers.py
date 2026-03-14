@@ -5,14 +5,29 @@ from egpcommon.properties import BitDictABC, CGraphType, GCType, PropertiesBD
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph, IfKey
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
+from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.genetic_code import GCABC
+from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.genetic_code.interface import Interface
-from egppy.genetic_code.interface_abc import InterfaceABC
+from egppy.genetic_code.interface_abc import FrozenInterfaceABC, InterfaceABC
+from egppy.genetic_code.types_def import TypesDef
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
 
 # Logging setup
 _logger: Logger = egp_logger(name=__name__)
+
+
+# Constants
+_ROW_O_REF_0 = (((DstRow.O, 0),),)
+_ROW_A_REF_0 = (((SrcRow.A, 0),),)
+
+# The priority sequence for local direct connections
+LDC_SEQ = (
+    (SrcIfKey.IS, DstIfKey.AD),
+    (SrcIfKey.AS, DstIfKey.BD),
+    (SrcIfKey.BS, DstIfKey.OD),
+)
 
 
 def merge_properties(
@@ -45,17 +60,7 @@ def merge_properties_base(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
     merged_properties = PropertiesBD()
 
     # GC Type: take the "higher" type
-    gcta = prop_a["gc_type"]
-    gctb = prop_b["gc_type"]
-    if (
-        gcta == GCType.META
-        or gcta == GCType.ORDINARY_META
-        and gctb == GCType.META
-        or gctb == GCType.ORDINARY_META
-    ):
-        merged_properties["gc_type"] = GCType.ORDINARY_META
-    else:
-        merged_properties["gc_type"] = GCType.ORDINARY
+    merged_properties["gc_type"] = GCType.ORDINARY
 
     # FIXME: Graph Type: for now, always STANDARD
     # but how do we pass in conditional or loop types?
@@ -77,6 +82,37 @@ def merge_properties_base(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
     # or implement specific merging logic as required.
 
     return merged_properties
+
+
+def empty_egc(
+    rtctxt: RuntimeContext, iface: FrozenInterfaceABC, oface: FrozenInterfaceABC
+) -> EGCode:
+    """Create an empty EGCode with specified input and output interfaces.
+
+    Args:
+        rtctxt: The runtime context.
+        iface: The input interface. Copied with references cleared.
+        oface: The output interface. Copied with references cleared.
+    Returns:
+        An empty EGCode with the specified interfaces.
+    """
+    cgraph_dict: dict[IfKey, InterfaceABC] = {
+        SrcIfKey.IS: Interface(iface, SrcRow.I).clr_refs(),
+        DstIfKey.OD: Interface(oface, DstRow.O).clr_refs(),
+    }
+    cgraph = CGraph(cgraph_dict)
+    init_dict = {
+        "cgraph": cgraph,
+        "pgc": rtctxt.root_gc,
+        "creator": rtctxt.creator,
+        "properties": PropertiesBD(
+            {
+                "gc_type": GCType.ORDINARY,
+                "graph_type": CGraphType.EMPTY,
+            }
+        ),
+    }
+    return EGCode(init_dict)
 
 
 def new_egc(
@@ -101,6 +137,7 @@ def new_egc(
         are populated with all references cleared.
         The I and O rows as well as any other rows for the non-standard graph types are not
         modified (remain 'None' in the case of a new EGCode).
+        All other members are reset e.g. properties, creator etc.
     """
     assert gca is not None, "GCA cannot be None as this means the resultant GC is a codon!"
     _gca = gca if isinstance(gca, GCABC) else rtctxt.gpi[gca]
@@ -112,10 +149,16 @@ def new_egc(
         _gcb = gcb if isinstance(gcb, GCABC) else rtctxt.gpi[gcb]
         _cgraph[DstIfKey.BD] = Interface(_gcb["cgraph"][SrcIfKey.IS], DstRow.B).clr_refs()
         _cgraph[SrcIfKey.BS] = Interface(_gcb["cgraph"][DstIfKey.OD], SrcRow.B).clr_refs()
+
+    # If we are building merge the updated cgraph into the rebuild
+    if rebuild is not None:
+        assert isinstance(rebuild["cgraph"], CGraph), "Rebuild must have a mutable cgraph."
+        rebuild["cgraph"].update(_cgraph)
+
     init_dict = {
         "gca": gca,
         "gcb": gcb,
-        "cgraph": CGraph(_cgraph),
+        "cgraph": CGraph(_cgraph) if rebuild is None else rebuild["cgraph"],
         "ancestora": ancestora,
         "ancestorb": ancestorb,
         "pgc": rtctxt.root_gc,
@@ -123,14 +166,7 @@ def new_egc(
         "properties": merge_properties(rtctxt=rtctxt, gca=gca, gcb=gcb),
     }
     retval = EGCode(init_dict) if rebuild is None else rebuild.set_members(init_dict)
-
-    # Update EGC references so that they can be traced back if and when
-    # the EGC becomes a GGC
-    assert isinstance(retval, EGCode), "new_egc must return a EGCode object."
-    for sig_field in retval.REFERENCE_KEYS:
-        egc = retval[sig_field]
-        if isinstance(egc, EGCode):
-            egc["references"][(retval["uid"], sig_field)] = retval
+    assert isinstance(retval, EGCode), "New EGCode creation failed - result is not an EGCode."
     return retval
 
 
@@ -138,6 +174,9 @@ def direct_connect_interfaces(
     src_iface: InterfaceABC, dst_iface: InterfaceABC, check: bool = False
 ) -> None:
     """Directly connect two interfaces together index-to-index.
+    NB: This does not perform any type checking or conversion. It is a helper function
+    for fundamental physics not a mutation operator. See local_direct_connect() in
+    stabilization.py for a higher-level function that performs type checking.
 
     Args:
         src_iface: The source interface to connect from.
@@ -172,3 +211,50 @@ def inherit_members(gpi: GenePoolInterface, egc: EGCode) -> None:
     egc["num_codes"] = gca["num_codes"] + gcb["num_codes"] + 1
     egc["generation"] = max(gca["generation"], gcb["generation"]) + 1
     egc["code_depth"] = max(gca["code_depth"], gcb["code_depth"]) + 1
+
+
+def literal_codon(rtctxt: RuntimeContext, obj: object, td: TypesDef) -> GGCDict:
+    """Create python literal codon representation of an object.
+    A type definition is required to correctly identify obj as it could be
+    a templated type.
+
+    Args:
+        obj: The object to represent as a literal codon.
+        td: The TypesDef of the object.
+
+    Returns:
+        A GGCode representing the literal codon.
+    """
+    return GGCDict(
+        {
+            "gca": None,
+            "gcb": None,
+            "cgraph": CGraph(
+                {
+                    SrcIfKey.AS: FrozenInterface(SrcRow.A, (td,), _ROW_O_REF_0),
+                    DstIfKey.OD: FrozenInterface(DstRow.O, (td,), _ROW_A_REF_0),
+                }
+            ),
+            "ancestora": None,
+            "ancestorb": None,
+            "pgc": rtctxt.root_gc,
+            "creator": rtctxt.creator,
+            "generation": 1,
+            "num_codes": 1,
+            "num_codons": 1,
+            "code_depth": 1,
+            "properties": PropertiesBD(
+                {
+                    "gc_type": GCType.CODON,
+                    "graph_type": CGraphType.PRIMITIVE,
+                    "gctsp": {"literal": True},
+                }
+            ),
+            "meta_data": {
+                "inline": repr(obj),
+                "description": "Custom literal or predefined object.",
+                "name": "LiteralCodon",
+                "imports": td.imports,
+            },
+        }
+    )

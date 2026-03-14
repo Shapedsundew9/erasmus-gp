@@ -80,7 +80,8 @@ class PsqlType(ABC):
             raise PsqlTypeError(
                 "PsqlType expression value requires at least one sub-expression or literal "
                 "(param_a) for expression construction. "
-                "param_a should be a PsqlType instance, e.g., param_a=PsqlType('column_name', is_column=True)."
+                "param_a should be a PsqlType instance, e.g., "
+                "param_a=PsqlType('column_name', is_column=True)."
             )
         self.value = self._validate(value) if is_literal else value
         self.is_literal: bool = is_literal
@@ -162,6 +163,30 @@ class PsqlNumeric(PsqlNumber):
 
 
 # --- Concrete PSQL Types ---
+
+
+class PsqlJsonb(PsqlType):
+    """JSONB type."""
+
+    sql_type_name = "JSONB"
+
+    def _validate(self, value):
+        """Validate the Python value for a PSQL JSONB.
+
+        Args:
+            value: The value to validate.
+
+        Returns:
+            The validated boolean value.
+
+        Raises:
+            PsqlValueError: If the value is not a dict.
+        """
+        if not isinstance(value, dict):
+            raise PsqlValueError(f"Invalid value for JSONB: {value!r}. Must be a dict.")
+        return value
+
+
 class PsqlBool(PsqlType):
     """Boolean type."""
 
@@ -321,15 +346,18 @@ class PsqlChar(PsqlType):
     """Character type (fixed length)"""
 
     sql_type_name = "CHAR"  # Note: CHAR has fixed length semantics in PSQL
+    __slots__ = ("length",)
 
-    # Add length validation if needed, passed to __init__?
     def __init__(
         self,
         value: Any,
         is_literal: bool = False,
         is_column: bool = False,
+        uid: int = -1,
+        param_a: PsqlType | None = None,
+        param_b: PsqlType | None = None,
         length: int | None = None,
-    ):  # Example if length needed
+    ):
         """Initialize the PsqlChar object.
 
         Args:
@@ -337,10 +365,21 @@ class PsqlChar(PsqlType):
                    column name as a string.
             is_literal: If True, 'value' is treated as a literal value.
             is_column: If True, 'value' is treated as a column name.
+            uid: Unique ID for the literal, assigned automatically if -1
+                and is_literal is True.
+            param_a: For expressions, the first sub-expression or literal.
+            param_b: For expressions, the second sub-expression or literal.
             length: The fixed length of the character type.
         """
         self.length = length
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(
+            value,
+            is_literal=is_literal,
+            is_column=is_column,
+            uid=uid,
+            param_a=param_a,
+            param_b=param_b,
+        )
 
     def _validate(self, value):
         """Validate the Python value for a PSQL CHAR.
@@ -366,15 +405,18 @@ class PsqlVarChar(PsqlType):
     """Variable character type (length is not fixed)"""
 
     sql_type_name = "VARCHAR"
+    __slots__ = ("length",)
 
-    # Add length validation if needed
     def __init__(
         self,
         value: Any,
         is_literal: bool = False,
         is_column: bool = False,
+        uid: int = -1,
+        param_a: PsqlType | None = None,
+        param_b: PsqlType | None = None,
         length: int | None = None,
-    ):  # Example if length needed
+    ):
         """Initialize the PsqlVarChar object.
 
         Args:
@@ -382,10 +424,21 @@ class PsqlVarChar(PsqlType):
                    column name as a string.
             is_literal: If True, 'value' is treated as a literal value.
             is_column: If True, 'value' is treated as a column name.
+            uid: Unique ID for the literal, assigned automatically if -1
+                and is_literal is True.
+            param_a: For expressions, the first sub-expression or literal.
+            param_b: For expressions, the second sub-expression or literal.
             length: The maximum length of the character type.
         """
         self.length = length
-        super().__init__(value, is_literal=is_literal, is_column=is_column)
+        super().__init__(
+            value,
+            is_literal=is_literal,
+            is_column=is_column,
+            uid=uid,
+            param_a=param_a,
+            param_b=param_b,
+        )
 
     def _validate(self, value):
         """Validate the Python value for a PSQL VARCHAR.

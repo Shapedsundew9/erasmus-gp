@@ -576,3 +576,137 @@ class TestTableConfig(TestCase):
         self.assertTrue(config.wait_for_table)
         with self.assertRaises(ValueError):
             config.wait_for_table = "invalid_wait_for_table"  # type: ignore
+
+    def test_copy(self):
+        """Test that copy() produces an independent deep copy."""
+        config = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="original",
+        )
+        copy = config.copy()
+        self.assertEqual(copy.table, "original")
+        copy.table = "modified"
+        self.assertEqual(config.table, "original")
+        self.assertEqual(copy.table, "modified")
+
+    def test_dict_access(self):
+        """Test dictionary-style access via DictTypeAccessor."""
+        config = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="test_dict",
+        )
+        self.assertEqual(config["table"], "test_dict")
+        config["table"] = "new_name"
+        self.assertEqual(config["table"], "new_name")
+
+    def test_contains(self):
+        """Test __contains__ via DictTypeAccessor."""
+        config = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+        )
+        self.assertIn("table", config)
+        self.assertIn("database", config)
+
+    def test_table_config_equality(self):
+        """Test equality comparison between TableConfig instances."""
+        config1 = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="same_table",
+        )
+        config2 = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="same_table",
+        )
+        self.assertEqual(config1, config2)
+
+    def test_table_config_inequality(self):
+        """Test inequality comparison between TableConfig instances."""
+        config1 = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="table_a",
+        )
+        config2 = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="table_b",
+        )
+        self.assertNotEqual(config1, config2)
+
+    def test_schema_from_dict(self):
+        """Test that schema can be initialized from plain dicts."""
+        config = TableConfig(
+            database=DatabaseConfig(password=PSWD_FILE),
+            table="dict_schema_test",
+            schema={"col1": {"db_type": "INTEGER", "primary_key": True}},
+        )
+        self.assertIsInstance(config.schema["col1"], ColumnSchema)
+        self.assertEqual(config.schema["col1"].db_type, "INTEGER")
+        self.assertTrue(config.schema["col1"].primary_key)
+
+    def test_database_from_dict(self):
+        """Test that database can be initialized from a plain dict."""
+        config = TableConfig(
+            database={"dbname": "from_dict", "password": PSWD_FILE},
+            table="test_from_dict",
+        )
+        self.assertIsInstance(config.database, DatabaseConfig)
+        self.assertEqual(config.database.dbname, "from_dict")
+
+    def test_conversions_validation(self):
+        """Test conversions tuple validation."""
+        config = TableConfig()
+        # Valid conversion tuple
+        config.conversions = (("col1", lambda x: x, lambda x: x),)
+        self.assertEqual(len(config.conversions), 1)
+
+        # Invalid: element not a tuple or callable
+        with self.assertRaises(ValueError):
+            config.conversions = (123,)  # type: ignore
+
+
+class TestColumnSchemaEdgeCases(TestCase):
+    """Test edge cases for ColumnSchema."""
+
+    def test_alignment_default(self):
+        """Test that alignment defaults to 1."""
+        schema = ColumnSchema()
+        self.assertEqual(schema.alignment, 1)
+
+    def test_alignment_set(self):
+        """Test setting alignment."""
+        schema = ColumnSchema(alignment=8)
+        self.assertEqual(schema.alignment, 8)
+
+    def test_alignment_invalid(self):
+        """Test setting alignment to non-int raises."""
+        schema = ColumnSchema()
+        with self.assertRaises(ValueError):
+            schema.alignment = "invalid"  # type: ignore
+
+    def test_db_type_none_raises(self):
+        """Test that db_type cannot be None."""
+        schema = ColumnSchema()
+        with self.assertRaises(ValueError):
+            schema.db_type = None  # type: ignore
+
+    def test_db_type_too_long(self):
+        """Test that db_type over 64 chars raises."""
+        schema = ColumnSchema()
+        with self.assertRaises(ValueError):
+            schema.db_type = "A" * 65
+
+    def test_description_too_long(self):
+        """Test that description over 256 chars raises."""
+        schema = ColumnSchema()
+        with self.assertRaises(ValueError):
+            schema.description = "A" * 257
+
+    def test_index_invalid_algorithm(self):
+        """Test that index with invalid algorithm raises."""
+        schema = ColumnSchema()
+        with self.assertRaises(ValueError):
+            schema.index = "invalid_algo"
+
+    def test_volatile_default_false(self):
+        """Test that volatile defaults to False."""
+        schema = ColumnSchema()
+        self.assertFalse(schema.volatile)

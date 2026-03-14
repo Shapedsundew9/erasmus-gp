@@ -39,6 +39,9 @@ class EPRefs(FrozenEPRefs, EPRefsABC):
     def __delitem__(self, index: int) -> None:
         del self._refs[index]
 
+    def clear(self) -> None:
+        self._refs.clear()
+
     def insert(self, index: int, value: FrozenEPRefABC) -> None:
         if not isinstance(value, FrozenEPRefABC):
             raise TypeError(f"Invalid value type: {type(value)}")

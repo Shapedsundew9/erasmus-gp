@@ -4,10 +4,11 @@ The EGP Database Manager main function is the entry point for the EGP Database M
 It is launched from the command line and is responsible for parsing command line arguments.
 
 Command line arguments:
-    # -h, --help: Display help message
-    # -v, --version: Display version information
-    # -c <config_file>, --config <config_file>: Use the specified configuration file
-
+    -h, --help: Display help message.
+    -c <config_file>, --config_file <config_file>: Use the specified configuration file.
+    -D, --use_default_config: Use the default internal configuration.
+    -d, --default_config: Generate a default configuration file.
+    -g, --gallery: Display the Erasmus GP logo gallery.
 """
 
 from argparse import ArgumentParser, Namespace
@@ -39,7 +40,15 @@ _HEADER = "\n".join(
 
 
 def init_db_manager(args: Namespace) -> None:
-    """Initialize the DB Manager."""
+    """Initialize the DB Manager.
+
+    Processes CLI arguments to either dump a default config, display the
+    logo gallery, or create and run a DBManager with the given configuration.
+
+    Args
+    ----
+    args: Parsed command line arguments from parse_cmdline_args().
+    """
     # Erasmus header to stdout and logfile
     print(_HEADER)
     print(header())
@@ -69,8 +78,17 @@ def init_db_manager(args: Namespace) -> None:
 
 
 def parse_cmdline_args(args: list[str]) -> Namespace:
-    """Parse the command line arguments."""
-    parser: ArgumentParser = ArgumentParser(prog="egp-worker")
+    """Parse the command line arguments.
+
+    Args
+    ----
+    args: List of command line argument strings.
+
+    Returns
+    -------
+    Namespace: Parsed arguments.
+    """
+    parser: ArgumentParser = ArgumentParser(prog="egp-db-manager")
     meg = parser.add_mutually_exclusive_group()
     parser.add_argument("-c", "--config_file", help="Path to a JSON configuration file.")
     meg.add_argument(

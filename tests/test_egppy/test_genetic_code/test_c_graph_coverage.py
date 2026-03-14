@@ -5,16 +5,14 @@ focusing on error paths and edge cases not covered by existing tests.
 """
 
 import unittest
-from unittest.mock import patch
 
-from egpcommon.egp_log import VERIFY
-from egppy.genetic_code.c_graph import CGraph, _logger
+from egppy.genetic_code.c_graph import CGraph
 from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 
 class TestCGraphContainsErrors(unittest.TestCase):
@@ -26,7 +24,6 @@ class TestCGraphContainsErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -68,7 +65,6 @@ class TestCGraphDelItemErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -89,7 +85,6 @@ class TestCGraphGetItemErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -119,7 +114,6 @@ class TestCGraphSetItemErrors(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -148,7 +142,6 @@ class TestCGraphGetMethod(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         self.cgraph = CGraph(self.primitive_jcg)
@@ -170,32 +163,6 @@ class TestCGraphGetMethod(unittest.TestCase):
         """Test get() returns None for missing keys with default=None."""
         result = self.cgraph.get(DstIfKey.FD, None)
         self.assertIsNone(result)
-
-
-class TestCGraphStabilizeWithVerify(unittest.TestCase):
-    """Test stabilize() with VERIFY logging enabled."""
-
-    def setUp(self) -> None:
-        """Set up test fixtures."""
-        self.primitive_jcg = json_cgraph_to_interfaces(
-            {
-                DstRow.A: [["I", 0, "int"]],
-                DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
-            }
-        )
-
-    def test_stabilize_calls_verify_when_logging_enabled(self) -> None:
-        """Test that stabilize() calls verify() when VERIFY logging is enabled."""
-        cgraph = CGraph(self.primitive_jcg)
-
-        # Mock the logger to make it appear that VERIFY level is enabled
-        with patch.object(_logger, "isEnabledFor", return_value=True) as mock_is_enabled:
-            # Graph is already stable, so stabilize should succeed and call verify
-            cgraph.stabilize(if_locked=True)
-
-            # Verify that isEnabledFor was called with VERIFY level
-            mock_is_enabled.assert_called_with(level=VERIFY)
 
 
 class TestCGraphVerifyConnectivityErrors(unittest.TestCase):
@@ -631,7 +598,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
 
@@ -647,7 +613,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -670,7 +635,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -687,7 +651,6 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -739,15 +702,14 @@ class TestCGraphEdgeCases(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
 
         values_list = list(cgraph.values())
 
-        # Should have 5 interfaces: Is, As, Ad, Od, Ud (U is created in JSONCGraph)
-        self.assertEqual(len(values_list), 5)
+        # Should have 5 interfaces: Is, As, Ad, Od
+        self.assertEqual(len(values_list), 4)
 
         # All should be Interface instances
         for value in values_list:

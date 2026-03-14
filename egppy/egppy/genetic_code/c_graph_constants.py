@@ -86,6 +86,18 @@ assert len(SrcIfKey) == len(SrcRow), "Mismatch between SrcIfKey and SrcRow lengt
 assert len(DstIfKey) == len(DstRow), "Mismatch between DstIfKey and DstRow lengths"
 
 
+# Connection Types
+class ConnectionType(IntEnum):
+    """Types of connections.
+
+    COMPATIBLE: Connection where source and destination types match or are upcastable.
+    DOWNCAST: Connection requiring downcasting of source type.
+    """
+
+    COMPATIBLE = 0
+    DOWNCAST = 1
+
+
 class EPCls(IntEnum):
     """End Point Class."""
 
@@ -112,7 +124,7 @@ JSONCGraph = dict[DstRow, JSONRefRow]
 
 
 # The minimum JSON graph.
-EMPTY_JSON_CGRAPH: JSONCGraph = {DstRow.O: [], DstRow.U: []}
+EMPTY_JSON_CGRAPH: JSONCGraph = {DstRow.O: []}
 
 
 # Constants
@@ -143,10 +155,12 @@ IMPLY_P_ROWS: set[DstRow] = {DstRow.F, DstRow.L, DstRow.S, DstRow.W}
 IMPLY_P_IFKEYS: set[DstIfKey] = {DstIfKey.FD, DstIfKey.LD, DstIfKey.SD, DstIfKey.WD}
 ROW_CLS_INDEXED_ORDERED: tuple[IfKey, ...] = tuple(SrcIfKey) + tuple(DstIfKey)
 ROW_CLS_INDEXED_SET: set[str] = set(ROW_CLS_INDEXED_ORDERED)
+DST_KEY_DICT: dict[DstRow, DstIfKey] = {row: DstIfKey(row + EPClsPostfix.DST) for row in DstRow}
+SRC_KEY_DICT: dict[SrcRow, SrcIfKey] = {row: SrcIfKey(row + EPClsPostfix.SRC) for row in SrcRow}
 _UNDER_ROW_CLS_INDEXED: tuple[str, ...] = tuple("_" + row for row in ROW_CLS_INDEXED_ORDERED)
 _UNDER_ROW_DST_INDEXED: tuple[str, ...] = tuple("_" + row + EPClsPostfix.DST for row in DstRow)
-_UNDER_DST_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.DST for row in DstRow}
-_UNDER_SRC_KEY_DICT: dict[str | Row, str] = {row: "_" + row + EPClsPostfix.SRC for row in SrcRow}
+_UNDER_DST_KEY_DICT: dict[str | Row, str] = {row: "_" + DST_KEY_DICT[row] for row in DstRow}
+_UNDER_SRC_KEY_DICT: dict[str | Row, str] = {row: "_" + SRC_KEY_DICT[row] for row in SrcRow}
 _UNDER_KEY_DICT: dict[str | DstIfKey | SrcIfKey, str] = {
     k: ("_" + k) for k in chain(DstIfKey, SrcIfKey)
 }

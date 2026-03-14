@@ -4,3 +4,4 @@ pylint
 pyright
 snakeviz
 coverage
+pyvis

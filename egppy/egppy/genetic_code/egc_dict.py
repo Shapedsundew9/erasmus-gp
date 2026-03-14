@@ -11,7 +11,7 @@ from itertools import count
 from typing import Any
 from uuid import UUID
 
-from egpcommon.common import ANONYMOUS_CREATOR
+from egpcommon.common import ANONYMOUS_CREATOR, debug_exceptions
 from egpcommon.common_obj import CommonObj
 from egpcommon.deduplication import properties_store, signature_store, uuid_store
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
@@ -39,6 +39,7 @@ _logger: Logger = egp_logger(name=__name__)
 UID_GENERATOR = count(start=-(2**63))
 
 
+# TODO: Once stable this should become a slotted class for performance.
 class EGCDict(CacheableDict, GCABC):  # type: ignore
     """Embryonic Genetic Code Dictionary Class."""
 
@@ -68,6 +69,18 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
 
         self.set_members(gcabc if gcabc is not None else {})
 
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Intercept updates to GCA and GCB to maintain reference integrity."""
+        if key in ("gca", "gcb"):
+            old_gc = self.get(key)
+            if isinstance(old_gc, GCABC) and not old_gc.get("immutable", False):
+                # Remove old reference if it exists
+                del old_gc["references"][(self["uid"], key)]
+            if isinstance(value, GCABC) and not value.get("immutable", False):
+                # Set new reference if the new value is a GCABC
+                value["references"][(self["uid"], key)] = self
+        super().__setitem__(key, value)
+
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the attributes of the EGC.
 
@@ -87,12 +100,16 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         elif isinstance(cgraph, FrozenCGraphABC):
             # EGDict must be mutable, so convert FrozenCGraph to CGraph
             self["cgraph"] = CGraph(cgraph)
-        else:
+        elif isinstance(cgraph, dict):
             # json_cgraph_to_interfaces may return a type not statically recognized
             # as valid input for CGraph,
             # but runtime checks ensure correctness; type ignore is required
             # for pyright/mypy compatibility.
             self["cgraph"] = CGraph(json_cgraph_to_interfaces(cgraph))
+        else:
+            raise ValueError(
+                "Invalid type for cgraph: must be CGraphABC, FrozenCGraphABC, or JSONCGraph"
+            )
 
         # GCA
         # NULL signatures are now represented as None for storage and computation efficiency.
@@ -101,8 +118,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tgca = bytes.fromhex(tgca)
         if isinstance(tgca, bytes):
             self["gca"] = signature_store[tgca]
-        else:
+        elif tgca is None or isinstance(tgca, GCABC):
             self["gca"] = tgca
+        else:
+            raise ValueError("Invalid type for gca: must be str, bytes, GCABC, or None")
 
         # GCB
         tgcb: str | bytes | GCABC | None = gcabc.get("gcb")
@@ -110,8 +129,10 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tgcb = bytes.fromhex(tgcb)
         if isinstance(tgcb, bytes):
             self["gcb"] = signature_store[tgcb]
-        else:
+        elif tgcb is None or isinstance(tgcb, GCABC):
             self["gcb"] = tgcb
+        else:
+            raise ValueError("Invalid type for gcb: must be str, bytes, GCABC, or None")
 
         # Ancestor A
         taa: str | bytes | GCABC | None = gcabc.get("ancestora")
@@ -119,8 +140,14 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             taa = bytes.fromhex(taa)
         if isinstance(taa, bytes):
             self["ancestora"] = signature_store[taa]
-        else:
+        elif taa is None or (isinstance(taa, GCABC) and taa.get("immutable", False)):
+            # None or a GGCode
             self["ancestora"] = taa
+        elif isinstance(taa, GCABC) and not taa.get("immutable", False):
+            # Ancestor A is transient. We want the last persisted ancestor.
+            self["ancestora"] = taa["ancestora"]
+        else:
+            raise ValueError("Invalid type for ancestora: must be str, bytes, GCABC, or None")
 
         # Ancestor B
         tab: str | bytes | GCABC | None = gcabc.get("ancestorb")
@@ -128,17 +155,27 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             tab = bytes.fromhex(tab)
         if isinstance(tab, bytes):
             self["ancestorb"] = signature_store[tab]
-        else:
+        elif tab is None or (isinstance(tab, GCABC) and tab.get("immutable", False)):
+            # None or a GGCode
             self["ancestorb"] = tab
+        elif isinstance(tab, GCABC) and not tab.get("immutable", False):
+            # Ancestor B is transient. We want the last persisted ancestor.
+            self["ancestorb"] = tab["ancestorb"]
+        else:
+            raise ValueError("Invalid type for ancestorb: must be str, bytes, GCABC, or None")
 
-        # Parent Genetic Code
+        # Physical Genetic Code
         tpgc: str | bytes | GCABC | None = gcabc.get("pgc")
         if isinstance(tpgc, str):
             tpgc = bytes.fromhex(tpgc)
         if isinstance(tpgc, bytes):
             self["pgc"] = signature_store[tpgc]
-        else:
+        elif tpgc is None or (isinstance(tpgc, GCABC) and tpgc.get("immutable", False)):
+            # None or a GGCode
             self["pgc"] = tpgc
+        else:
+            # Note that the PGC cannot be an EGCode as it is not executable
+            raise ValueError("Invalid type for pgc: must be str, bytes, GGCode, or None")
 
         # Created Timestamp
         tmp = gcabc.get("created", datetime.now(UTC))
@@ -164,6 +201,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
     def consistency(self) -> None:
         """Check the genetic code object for consistency."""
         # Need to call consistency down both MRO paths.
+        self["cgraph"].consistency()
         CacheableDict.consistency(self)
 
     def __eq__(self, other: object) -> bool:
@@ -185,13 +223,7 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         """Return True if the genetic code is a codon or meta-codon."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
         codon = PropertiesBD.fast_fetch("gc_type", self["properties"])
-        retval = codon == GCType.CODON or codon == GCType.META
-        assert (
-            retval and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
-        ) or not retval, "If gc_type is a codon or meta-codon then cgraph must be primitive."
-        assert (
-            retval and self["ancestora"] is None and self["ancestorb"] is None
-        ) or not retval, "Codons must not have ancestors."
+        retval = codon == GCType.CODON
         return retval
 
     def is_conditional(self) -> bool:
@@ -200,17 +232,17 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
         cgt: CGraphType = c_graph_type(self["cgraph"])
         return cgt == CGraphType.IF_THEN or cgt == CGraphType.IF_THEN_ELSE
 
-    def is_meta(self) -> bool:
-        """Return True if the genetic code is a meta-codon."""
+    def is_empty(self) -> bool:
+        """Return True if the genetic code is empty."""
         assert isinstance(self, GCABC), "GC must be a GCABC object."
-        meta = PropertiesBD.fast_fetch("gc_type", self["properties"]) == GCType.META
-        assert (
-            meta and c_graph_type(self["cgraph"]) == CGraphType.PRIMITIVE
-        ) or not meta, "If gc_type is a meta-codon then cgraph must be primitive."
-        assert (
-            meta and self["ancestora"] is None and self["ancestorb"] is None
-        ) or not meta, "Meta-codons must not have ancestors."
-        return meta
+        cgt: CGraphType = c_graph_type(self["cgraph"])
+        return cgt == CGraphType.EMPTY
+
+    def is_standard(self) -> bool:
+        """Return True if the genetic code is standard."""
+        assert isinstance(self, GCABC), "GC must be a GCABC object."
+        cgt: CGraphType = c_graph_type(self["cgraph"])
+        return cgt == CGraphType.STANDARD
 
     def is_pgc(self) -> bool:
         """Return True if the genetic code is a physical genetic code (PGC)."""
@@ -273,66 +305,56 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
             # and GGCDict uses signatures. Due to circular importing we cannot use isinstance
             # checks against GGCDict here.
             if type(self) is EGCDict:  # pylint: disable=unidiomatic-typecheck
-                self.debug_type_error(
-                    isinstance(self["cgraph"], CGraphABC),
-                    "cgraph must be a Connection Graph object",
-                )
-                self.debug_type_error(
-                    self["gca"] is None or isinstance(self["gca"], GCABC),
-                    "gca must be None or a GCABC object",
-                )
-                self.debug_type_error(
-                    self["gcb"] is None or isinstance(self["gcb"], GCABC),
-                    "gcb must be None or a GCABC object",
-                )
-                self.debug_type_error(
-                    self["ancestora"] is None or isinstance(self["ancestora"], GCABC),
-                    "ancestora must be None or a GCABC object",
-                )
-                self.debug_type_error(
-                    self["ancestorb"] is None or isinstance(self["ancestorb"], GCABC),
-                    "ancestorb must be None or a GCABC object",
-                )
-                self.debug_type_error(
-                    self["pgc"] is None or isinstance(self["pgc"], GCABC),
-                    "pgc must be None or a GCABC object",
-                )
-            self.debug_type_error(isinstance(self["created"], datetime), "created must be datetime")
-            self.debug_type_error(isinstance(self["properties"], int), "properties must be int")
+                if not isinstance(self["cgraph"], CGraphABC):
+                    raise debug_exceptions.DebugTypeError(
+                        "cgraph must be a Connection Graph object"
+                    )
+                if not (self["gca"] is None or isinstance(self["gca"], GCABC)):
+                    raise debug_exceptions.DebugTypeError("gca must be None or a GCABC object")
+                if not (self["gcb"] is None or isinstance(self["gcb"], GCABC)):
+                    raise debug_exceptions.DebugTypeError("gcb must be None or a GCABC object")
+                if not (self["ancestora"] is None or isinstance(self["ancestora"], GCABC)):
+                    raise debug_exceptions.DebugTypeError(
+                        "ancestora must be None or a GCABC object"
+                    )
+                if not (self["ancestorb"] is None or isinstance(self["ancestorb"], GCABC)):
+                    raise debug_exceptions.DebugTypeError(
+                        "ancestorb must be None or a GCABC object"
+                    )
+                if not (self["pgc"] is None or isinstance(self["pgc"], GCABC)):
+                    raise debug_exceptions.DebugTypeError("pgc must be None or a GCABC object")
+            if not isinstance(self["created"], datetime):
+                raise debug_exceptions.DebugTypeError("created must be datetime")
+            if not isinstance(self["properties"], int):
+                raise debug_exceptions.DebugTypeError("properties must be int")
 
             # Verify the connection graph
             self["cgraph"].verify()
 
             # Validate properties bitdict
-            self.debug_runtime_error(properties.valid(), "Properties bitdict is invalid")
+            if not properties.valid():
+                raise debug_exceptions.DebugRuntimeError("Properties bitdict is invalid")
 
             # GC Type and Connection Graph Type Constraints
             # Reference: egppy/egppy/genetic_code/docs/gc_types.md
 
             if graph_type == CGraphType.PRIMITIVE:
-                # PRIMITIVE graphs can only be used with CODON or META types
-                self.debug_value_error(
-                    gc_type in (GCType.CODON, GCType.META),
-                    f"PRIMITIVE connection graph requires gc_type to be CODON or META, "
-                    f"but got {GCType(gc_type).name}",
-                )
+                # PRIMITIVE graphs can only be used with CODON types
+                if not gc_type == GCType.CODON:
+                    raise debug_exceptions.DebugValueError(
+                        f"PRIMITIVE connection graph requires gc_type to be CODON, "
+                        f"but got {GCType(gc_type).name}"
+                    )
             elif gc_type == GCType.CODON:
                 # CODON type must use PRIMITIVE graph
-                self.debug_value_error(
-                    graph_type == CGraphType.PRIMITIVE,
-                    f"CODON gc_type requires PRIMITIVE connection graph, "
-                    f"but got {CGraphType(graph_type).name}",
-                )
-            elif gc_type == GCType.META:
-                # META type must use PRIMITIVE or STANDARD graph
-                self.debug_value_error(
-                    graph_type == CGraphType.PRIMITIVE,
-                    f"META gc_type requires a PRIMITIVE connection graph, "
-                    f"but got {CGraphType(graph_type).name}",
-                )
+                if not graph_type == CGraphType.PRIMITIVE:
+                    raise debug_exceptions.DebugValueError(
+                        f"CODON gc_type requires PRIMITIVE connection graph, "
+                        f"but got {CGraphType(graph_type).name}"
+                    )
             elif gc_type == GCType.ORDINARY:
                 # ORDINARY can use STANDARD, IF_THEN, IF_THEN_ELSE, FOR_LOOP, WHILE_LOOP, EMPTY
-                self.debug_value_error(
+                if not (
                     graph_type
                     in (
                         CGraphType.STANDARD,
@@ -341,9 +363,12 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
                         CGraphType.FOR_LOOP,
                         CGraphType.WHILE_LOOP,
                         CGraphType.EMPTY,
-                    ),
-                    f"ORDINARY gc_type cannot use {CGraphType(graph_type).name} connection graph",
-                )
+                    )
+                ):
+                    raise debug_exceptions.DebugValueError(
+                        f"ORDINARY gc_type cannot use "
+                        f"{CGraphType(graph_type).name} connection graph"
+                    )
             PropertiesBD(self["properties"]).verify()
 
         # Ancestral Relationship Validation based on Connection Graph Structure
@@ -354,91 +379,56 @@ class EGCDict(CacheableDict, GCABC):  # type: ignore
 
         # Validate gca against connection graph structure
         if has_row_a and graph_type != CGraphType.PRIMITIVE:
-            self.value_error(
-                self["gca"] is not None,
-                "Connection graph has Row A defined, but gca is None",
-            )
+            if not self["gca"] is not None:
+                raise ValueError("Connection graph has Row A defined, but gca is None")
         else:
-            self.value_error(
-                self["gca"] is None,
-                "Connection graph has no Row A defined, but gca is not None",
-            )
+            if not self["gca"] is None:
+                raise ValueError("Connection graph has no Row A defined, but gca is not None")
 
         # Validate gcb against connection graph structure
         if has_row_b:
-            self.value_error(
-                self["gcb"] is not None,
-                "Connection graph has Row B defined, but gcb is None",
-            )
+            if not self["gcb"] is not None:
+                raise ValueError("Connection graph has Row B defined, but gcb is None")
         else:
-            self.value_error(
-                self["gcb"] is None,
-                "Connection graph has no Row B defined, but gcb is not None",
-            )
+            if not self["gcb"] is None:
+                raise ValueError("Connection graph has no Row B defined, but gcb is not None")
 
         # PRIMITIVE graphs have no ancestors or pgc
         if graph_type == CGraphType.PRIMITIVE:
-            self.value_error(
-                self["ancestora"] is None,
-                "PRIMITIVE connection graph requires ancestora to be None",
-            )
-            self.value_error(
-                self["ancestorb"] is None,
-                "PRIMITIVE connection graph requires ancestorb to be None",
-            )
-            self.value_error(
-                self["pgc"] is None,
-                "PRIMITIVE connection graph requires pgc to be None",
-            )
+            if not self["ancestora"] is None:
+                raise ValueError("PRIMITIVE connection graph requires ancestora to be None")
+            if not self["ancestorb"] is None:
+                raise ValueError("PRIMITIVE connection graph requires ancestorb to be None")
+
+            # Not true for a generated literal codon
+            # if not self["pgc"] is None:
+            #     raise ValueError("PRIMITIVE connection graph requires pgc to be None")
 
         # CODON type validation (codons have no ancestors)
         if gc_type == GCType.CODON:
-            self.value_error(self["gca"] is None, "CODON gc_type requires gca to be None")
-            self.value_error(self["gcb"] is None, "CODON gc_type requires gcb to be None")
-            self.value_error(
-                self["ancestora"] is None,
-                "CODON gc_type requires ancestora to be None",
-            )
-            self.value_error(
-                self["ancestorb"] is None,
-                "CODON gc_type requires ancestorb to be None",
-            )
-            self.value_error(self["pgc"] is None, "CODON gc_type requires pgc to be None")
-
-        # META type validation (meta-codons have no ancestors)
-        if gc_type == GCType.META:
-            self.value_error(
-                graph_type == CGraphType.PRIMITIVE,
-                "META gc_type requires PRIMITIVE connection graph",
-            )
-            self.value_error(self["gca"] is None, "META codon requires gca to be None")
-            self.value_error(self["gcb"] is None, "META codon requires gcb to be None")
-            self.value_error(
-                self["ancestora"] is None,
-                "META codon requires ancestora to be None",
-            )
-            self.value_error(
-                self["ancestorb"] is None,
-                "META codon requires ancestorb to be None",
-            )
-            self.value_error(self["pgc"] is None, "META codon requires pgc to be None")
-            self.value_error(
-                not (properties["gctsp"]["type_upcast"] and properties["gctsp"]["type_downcast"]),
-                "META codon cannot be both type upcast and type downcast",
-            )
+            if not self["gca"] is None:
+                raise ValueError("CODON gc_type requires gca to be None")
+            if not self["gcb"] is None:
+                raise ValueError("CODON gc_type requires gcb to be None")
+            if not self["ancestora"] is None:
+                raise ValueError("CODON gc_type requires ancestora to be None")
+            if not self["ancestorb"] is None:
+                raise ValueError("CODON gc_type requires ancestorb to be None")
+            # Not true for a generated literal codon
+            # if not self["pgc"] is None:
+            #     raise ValueError("CODON gc_type requires pgc to be None")
 
         # ORDINARY type validation (ordinary codes have ancestors and pgc)
         if gc_type == GCType.ORDINARY:
             # At least one of gca or gcb must be present for ordinary codes
-            self.value_error(
-                self["gca"] is not None or self["gcb"] is not None,
-                "ORDINARY gc_type requires at least one of gca or gcb to be non-None",
-            )
+            if not self["gca"] is not None and not self["gcb"] is not None:
+                raise ValueError(
+                    "ORDINARY gc_type requires at least one of gca or gcb to be non-None"
+                )
 
         # Extra coverage is asserted in DEBUG mode
         if _logger.isEnabledFor(level=DEBUG):
             self.is_codon()
-            self.is_meta()
             self.is_conditional()
 
         # Call base class verify at the end

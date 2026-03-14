@@ -6,7 +6,7 @@ from collections.abc import Iterator
 from typing import Sequence
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import CONSISTENCY, Logger, egp_logger
+from egpcommon.egp_log import Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -90,7 +90,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
     def __init__(  # pylint: disable=super-init-not-called
         self,
         endpoints: (
-            Sequence[EndPoint]
+            Sequence[FrozenEndPointABC]
             | Sequence[EndpointMemberType]
             | Sequence[list | tuple]
             | Sequence[str | int | TypesDef]
@@ -131,7 +131,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             return
 
         # Handle case where endpoints is an FrozenInterfaceABC or contains EndPointABC instances
-        if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], EndPointABC):
+        if isinstance(endpoints, FrozenInterfaceABC) or isinstance(endpoints[0], FrozenEndPointABC):
             assert all(
                 isinstance(ep, FrozenEndPointABC) for ep in endpoints
             ), "All endpoints must be FrozenEndPointABC instances"
@@ -321,20 +321,6 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
             ep.clr_refs()
         return self
 
-    def consistency(self) -> None:
-        """Check the consistency of the Interface.
-
-        Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
-        """
-        _logger.log(
-            level=CONSISTENCY,
-            msg=f"Consistency check for Interface with {len(self.endpoints)} endpoints",
-        )
-
-        # Call parent consistency()
-        super().consistency()
-
     def extend(self, values: Sequence[FrozenEndPointABC] | FrozenInterfaceABC) -> None:
         """Extend the interface with multiple endpoints.
 
@@ -482,7 +468,7 @@ class Interface(CommonObj, FrozenInterface, InterfaceABC):
         for ep in self.endpoints:
             ep.verify()
 
-        # Call parent verify() which will trigger consistency() if CONSISTENCY logging is enabled
+        # Call parent verify() which will trigger consistency() if CONSISTENCY integrity is enabled
         super().verify()
 
 

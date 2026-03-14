@@ -25,7 +25,7 @@ from typing import Any
 
 from egpcommon.codon_dev_load import find_codon_signature
 from egpcommon.common import ACYBERGENESIS_PROBLEM, bin_counts
-from egpcommon.egp_log import Logger, egp_logger, enable_debug_logging
+from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.object_deduplicator import deduplicators_info
 from egpcommon.properties import BASIC_ORDINARY_PROPERTIES
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
@@ -33,13 +33,12 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.genetic_code.egc_dict import EGCDict
 from egppy.genetic_code.genetic_code import GCABC, mermaid_key
 from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 from egppy.local_db_config import LOCAL_DB_MANAGER_CONFIG
 from egppy.worker.executor.execution_context import ExecutionContext, FunctionInfo, GCNode
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-enable_debug_logging()
 
 
 # Set the seed for reproducibility
@@ -63,13 +62,13 @@ CODON_SIGS: dict[str, bytes] = {}
 
 # Define all codon signatures
 _codon_specs = {
-    "RSHIFT_SIG": (["Integral"], ["EGPNumber"], ">>"),
-    "XOR_SIG": (["Integral"], ["EGPNumber"], "^"),
+    "RSHIFT_SIG": (["Integral"], ["Integral"], ">>"),
+    "XOR_SIG": (["Integral"], ["Integral"], "^"),
     "GETRANDBITS_SIG": (["int"], ["int"], "getrandbits"),
     "LITERAL_1_SIG": ([], ["int"], "1"),
     "SIXTYFOUR_SIG": ([], ["int"], "64"),
     "CUSTOM_PGC_SIG": ([], [], "custom"),
-    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
+    #    "TO_INT_SIG": (["EGPNumber"], ["int"], "raise_if_not_instance_of(i0, t0)"),
 }
 
 
@@ -98,7 +97,6 @@ def append_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "B": [["I", i + gca["num_inputs"], INT_T] for i in randomrange(gcb["num_inputs"])],
                 "O": [["A", i, INT_T] for i in randomrange(gca["num_outputs"])]
                 + [["B", i, INT_T] for i in randomrange(gcb["num_outputs"])],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -160,7 +158,6 @@ def cast_to_int_at_output_idx(mc: GGCDict, gc: GGCDict, idx: int) -> GGCDict:
                     ["A", ep.idx, ep.typ.name] if ep.idx != idx else ["B", 0, mcot]
                     for ep in gc["cgraph"][DstIfKey.OD]
                 ],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -239,8 +236,8 @@ def create_primitive_gcs() -> None:
         CODON_SIGS[cname] = csig
 
     # Right shift and xor need interfaces casting
-    rshift_gc = cast_interfaces_to_int(gpi[CODON_SIGS["RSHIFT_SIG"]])
-    xor_gc = cast_interfaces_to_int(gpi[CODON_SIGS["XOR_SIG"]])
+    rshift_gc = gpi[CODON_SIGS["RSHIFT_SIG"]]
+    xor_gc = gpi[CODON_SIGS["XOR_SIG"]]
 
     # random_long_gc signature:
     random_long_gc = inherit_members(
@@ -254,7 +251,6 @@ def create_primitive_gcs() -> None:
                 "A": [],
                 "B": [["A", 0, INT_T]],
                 "O": [["B", 0, INT_T]],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -269,9 +265,7 @@ def create_primitive_gcs() -> None:
             "ancestorb": rshift_gc,
             "created": "2025-03-29 22:05:08.489847+00:00",
             "code_depth": 2,
-            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]][
-                "signature"
-            ],  # Makes the structure of this GC unknown
+            "gca": gpi[CODON_SIGS["LITERAL_1_SIG"]],  # Makes the structure of this GC unknown
             "gcb": rshift_gc,
             "generation": 2,
             "cgraph": {
@@ -281,7 +275,6 @@ def create_primitive_gcs() -> None:
                     ["A", 0, rshift_gc["cgraph"][SrcIfKey.IS][1].typ.name],
                 ],
                 "O": [["B", 0, rshift_gc["cgraph"][DstIfKey.OD][0].typ.name]],
-                "U": [],
             },
             "num_codes": 3,
             "num_codons": 2,
@@ -306,7 +299,6 @@ def create_primitive_gcs() -> None:
                     ["A", 0, rshift_1_gc["cgraph"][DstIfKey.OD][0].typ.name],
                 ],
                 "O": [["B", 0, xor_gc["cgraph"][DstIfKey.OD][0].typ.name]],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -326,7 +318,6 @@ def create_primitive_gcs() -> None:
                 "A": [],
                 "B": [["I", 0, INT_T], ["A", 0, INT_T]],
                 "O": [["B", 0, INT_T], ["A", 0, INT_T]],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -431,7 +422,6 @@ def expand_gc_outputs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "B": [["I", i, INT_T] for i in randomrange(len_ai, len_bi)],
                 "O": [["A", i, INT_T] for i in randomrange(len_ao)]
                 + [["B", i, INT_T] for i in randomrange(len_bo)],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -568,7 +558,6 @@ def stack_gcs(gc1: GCABC, gc2: GCABC) -> GCABC:
                 "A": [["I", i, INT_T] for i in randomrange(len_1i)],
                 "B": [["A", i, INT_T] for i in randomrange(len_2i)],
                 "O": [["B", i, INT_T] for i in randomrange(len_2o)],
-                "U": [],
             },
             "pgc": gpi[CODON_SIGS["CUSTOM_PGC_SIG"]],
             "problem": ACYBERGENESIS_PROBLEM,
@@ -591,7 +580,7 @@ if __name__ == "__main__":
 
     # 2 different execution contexts
     ec1 = ExecutionContext(gpi, 3)
-    ec2 = ExecutionContext(gpi, 50, wmc=True)  # Write the meta codons
+    ec2 = ExecutionContext(gpi, 50)
     # Hack in pre-defined function
     ec1.function_map[primitive_gcs["rshift_1"]["signature"]] = FunctionInfo(
         f_7fffffff, 0x7FFFFFFF, 2, primitive_gcs["rshift_1"]

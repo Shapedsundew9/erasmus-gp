@@ -143,7 +143,6 @@ Additional to the Common Rules For-Loop graphs have the following rules
     - Ls can only connect to Ad
     - Ss can only connect to Ad or Ud
     - As can only connect to Td or Od
-    - Td can only connect to Od or Ud
     - Ld must be an iterable compatible endpoint type.
     - Ls must be the object type returned by iterating Ld.
     - Is can connect to Od or Ud
@@ -156,8 +155,6 @@ Additional to the Common Rules While-Loop graphs have the following rules
     - Ws can only connect to Ad or Ud
     - Ss can only connect to Ad or Ud
     - As can only connect to Xd, Td, or Od
-    - Xd can only connect to Od or Ud
-    - Td can only connect to Od or Ud
     - Wd and Ws must be boolean type
     - Xd must be boolean type
     - Is can connect to Od or Ud
@@ -165,11 +162,15 @@ Additional to the Common Rules While-Loop graphs have the following rules
 
 Additional to the Common Rules Standard graphs have the following rules
     - Must not have an Fd, Ld, Ls, Sd, Ss, Td, Wd, Ws, Xd, or Pd interface
+    - Is can connect to Ad or Bd
+    - As can connect to Bd or Od or Ud
     - Bs can only connect to Od or Ud
     - Is cannot connect to Od
 
 Additional to the Common Rules Primitive connection graphs have the following rules
     - Must not have an Fd, Ld, Wd, Ls, Pd, Bd, Bs or Ud interfaces
+    - Is can connect to Ad
+    - As can connect to Od or Ud
     - All sources must be connected to destinations
     - Is cannot connect to Od
 """
@@ -177,53 +178,26 @@ Additional to the Common Rules Primitive connection graphs have the following ru
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from collections.abc import ItemsView, Iterator, KeysView, Mapping, MutableMapping, ValuesView
+from collections.abc import Iterator, Mapping, MutableMapping
 from typing import Any
 
 from egpcommon.common_obj_abc import CommonObjABC
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egpcommon.properties import CGraphType
-from egppy.genetic_code.c_graph_constants import DstRow, IfKey, JSONCGraph, SrcRow
+from egppy.genetic_code.c_graph_constants import ConnectionType, DstRow, IfKey, JSONCGraph, SrcRow
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
-class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
+class FrozenCGraphABC(Mapping[IfKey, FrozenInterfaceABC], CommonObjABC, metaclass=ABCMeta):
     """Abstract Base Class for Frozen (Immutable) Connection Graphs.
 
     This class defines the read-only interface for Connection Graphs.
-    It inherits Mapping for standard container operations, and CommonObjABC
+    It inherits Mapping[IfKey, FrozenInterfaceABC] for standard container operations
+    (including __contains__, __eq__, items, keys, values, and get), and CommonObjABC
     for validation methods.
     """
 
     __slots__ = ()
-
-    # Abstract Container Protocol Methods
-
-    @abstractmethod
-    def __contains__(self, key: object) -> bool:
-        """Check if the interface exists in the Connection Graph.
-
-        Args:
-            key: Interface identifier, may be a row or row with class postfix.
-
-        Returns:
-            True if the interface exists, False otherwise.
-        """
-        raise NotImplementedError("FrozenCGraphABC.__contains__ must be overridden")
-
-    # Abstract Equality and Hashing
-
-    @abstractmethod
-    def __eq__(self, other: object) -> bool:
-        """Check equality of Connection Graphs.
-
-        Args:
-            other: Object to compare with.
-
-        Returns:
-            True if graphs are equivalent, False otherwise.
-        """
-        raise NotImplementedError("FrozenCGraphABC.__eq__ must be overridden")
 
     # Abstract Mapping Protocol Methods
 
@@ -273,62 +247,25 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         """
         raise NotImplementedError("FrozenCGraphABC.__len__ must be overridden")
 
-    @abstractmethod
-    def items(self) -> ItemsView[IfKey, FrozenInterfaceABC]:
-        """Return a view of the items in the Connection Graph.
-
-        Returns:
-            A view of the items (key, value pairs).
-        """
-        raise NotImplementedError("FrozenCGraphABC.items must be overridden")
-
-    @abstractmethod
-    def keys(self) -> KeysView[IfKey]:
-        """Return a view of the keys in the Connection Graph.
-
-        Returns:
-            A view of the keys.
-        """
-        raise NotImplementedError("FrozenCGraphABC.keys must be overridden")
-
-    @abstractmethod
-    def values(self) -> ValuesView[FrozenInterfaceABC]:
-        """Return a view of the values in the Connection Graph.
-
-        Returns:
-            A view of the values.
-        """
-        raise NotImplementedError("FrozenCGraphABC.values must be overridden")
-
     # Abstract String Representation
 
     @abstractmethod
     def __repr__(self) -> str:
-        """Return a string representation of the Connection Graph.
+        """Return a string representation of the python instanciation
+        of the Connection Graph such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
 
         Returns:
-            String representation suitable for debugging and logging.
+            String representation suitable for python instanciation.
         """
         raise NotImplementedError("FrozenCGraphABC.__repr__ must be overridden")
 
-    # Abstract Graph State Methods
-
     @abstractmethod
-    def get(  # type: ignore[override]
-        self, key: IfKey, default: FrozenInterfaceABC | None = None
-    ) -> FrozenInterfaceABC | None:
-        """Get the interface with the given key, or return default if not found.
+    def __str__(self) -> str:
+        """Return a human-readable string representation of the Connection Graph."""
+        raise NotImplementedError("FrozenCGraphABC.__str__ must be overridden")
 
-        Args:
-            key: Interface identifier.
-            default: Value to return if key is not found.
-
-        Returns:
-            The Interface object for the given key, or default if not found.
-        Raises:
-            KeyError: If the key is not a valid interface key.
-        """
-        raise NotImplementedError("FrozenCGraphABC.get must be overridden")
+    # Abstract Graph State Methods
 
     @abstractmethod
     def graph_type(self) -> CGraphType:
@@ -366,7 +303,7 @@ class FrozenCGraphABC(Mapping, CommonObjABC, metaclass=ABCMeta):
         raise NotImplementedError("FrozenCGraphABC.to_json must be overridden")
 
 
-class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
+class CGraphABC(FrozenCGraphABC, MutableMapping[IfKey, FrozenInterfaceABC]):
     """Abstract Base Class for Mutable Connection Graphs.
 
     This class extends FrozenCGraphABC with methods for modifying the graph.
@@ -433,7 +370,12 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         raise NotImplementedError("CGraphABC.connect must be overridden")
 
     @abstractmethod
-    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+    def connect_all(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """Connect all unconnected destination endpoints to valid source endpoints.
 
         This method establishes connections between unconnected destination endpoints
@@ -442,6 +384,8 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         Args:
             if_locked: If True, prevents creation of new input interface endpoints.
                       If False, allows extending input interface when needed.
+            rng: Random number generator for connection selection.
+            ct: The type of connection to attempt (COMPATIBLE or DOWNCAST).
         """
         raise NotImplementedError("CGraphABC.connect_all must be overridden")
 
@@ -455,7 +399,12 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         raise NotImplementedError("CGraphABC.disconnect_all must be overridden")
 
     @abstractmethod
-    def stabilize(self, if_locked: bool = True) -> None:
+    def stabilize(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """Stabilize the graph by connecting all unconnected destinations.
 
         Stabilization ensures all mandatory connections are made and attempts
@@ -464,5 +413,7 @@ class CGraphABC(FrozenCGraphABC, MutableMapping):  # type: ignore[override]
         Args:
             if_locked: If True, prevents creation of new input interface endpoints.
                       If False, allows extending input interface as needed.
+            rng: Random number generator for selecting source endpoints.
+            ct: The type of connection to attempt (COMPATIBLE or DOWNCAST).
         """
         raise NotImplementedError("CGraphABC.stabilize must be overridden")

@@ -3,12 +3,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Literal, LiteralString
 
-from egpcommon.egp_log import Logger, egp_logger
-
-# Standard EGP logging pattern
-_logger: Logger = egp_logger(name=__name__)
-
-
 EGP_DEFAULT_BW_HEADER: Literal["wide3_bold"] = "wide3_bold"
 _SPACER: Literal[6] = 6
 # pylint: disable=fixme
@@ -138,14 +132,12 @@ EGP_TEXT_TREE: dict[str, tuple[LiteralString, LiteralString, LiteralString]] = {
 def as_string(text_tree: str = "wide3", attr: str = "color") -> str:
     """A string representation of the selected text tree logo.
 
-    Args
-    ----
-    text_tree: Must be a valid key of egp_logo.text_tree
-    attr: One of 'color', 'bold', 'bw'
+    Args:
+        text_tree: Must be a valid key of egp_logo.text_tree.
+        attr: One of 'color', 'bold', 'bw'.
 
-    Returns
-    -------
-    Single string of text logo lines delimited by \\n.
+    Returns:
+        Single string of text logo lines delimited by \\n.
     """
     return "\n".join(EGP_TEXT_TREE[text_tree + "_" + attr])
 
@@ -161,21 +153,19 @@ def gallery() -> str:
         string += logo[0] + "\n"
         for line in logo[1:]:
             string += spacer + line + "\n"
-        string = string + "\nAll EGP text logos are Copyright (c) 2023 Shapedsundew9\n"
+    string += "\nAll EGP text logos are Copyright (c) 2023 Shapedsundew9\n"
     return string
 
 
 def header(text_tree: str = "wide3", attr: str = "color") -> str:
     """Text header with logo.
 
-    Args
-    ----
-    text_tree: Must be a valid key of EGP_TEXT_TREE
-    attr: One of 'color', 'bold', 'bw'
+    Args:
+        text_tree: Must be a valid key of EGP_TEXT_TREE.
+        attr: One of 'color', 'bold', 'bw'.
 
-    Returns
-    -------
-    Single string of text logo lines delimited by \\n.
+    Returns:
+        Single string of text logo lines delimited by \\n.
     """
     return "\n".join(header_lines(text_tree, attr))
 
@@ -183,14 +173,12 @@ def header(text_tree: str = "wide3", attr: str = "color") -> str:
 def header_lines(text_tree: str = "wide3", attr: str = "color") -> list[str]:
     """Text header with logo.
 
-    Args
-    ----
-    text_tree: Must be a valid key of EGP_TEXT_TREE
-    attr: One of 'color', 'bold', 'bw'
+    Args:
+        text_tree: Must be a valid key of EGP_TEXT_TREE.
+        attr: One of 'color', 'bold', 'bw'.
 
-    Returns
-    -------
-    A list of strings, one for each line in the header.
+    Returns:
+        A list of strings, one for each line in the header.
     """
     str_list: list[str] = [""]
     for line, _header in zip(EGP_TEXT_TREE[text_tree + "_" + attr], _HEADER, strict=True):

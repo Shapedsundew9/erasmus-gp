@@ -1,6 +1,8 @@
 """Frozen Endpoint implementation for immutable graphs."""
 
 from egpcommon.common_obj import CommonObj
+from egpcommon.deduplication import refs_store
+from egpcommon.egp_log import TRACE, Logger, egp_logger
 from egppy.genetic_code.c_graph_constants import (
     DESTINATION_ROW_SET,
     ROW_SET,
@@ -19,7 +21,14 @@ from egppy.genetic_code.endpoint_abc import FrozenEndPointABC
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 from egppy.genetic_code.json_cgraph import UNKNOWN_REVERSED, UNKNOWN_VALID
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import TypesDef
+from egppy.genetic_code.types_def_store import types_def_store
+
+# Standard EGP logging setup
+_logger: Logger = egp_logger(name=__name__)
+
+# Constants
+EMPTY_FROZEN_EP_REFS = refs_store[FrozenEPRefs(tuple())]
 
 
 class FrozenEndPoint(CommonObj, FrozenEndPointABC):
@@ -67,21 +76,21 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         super().__init__()
         if len(args) == 1:
             if isinstance(args[0], FrozenEndPointABC):
+                _logger.log(TRACE, "Creating FrozenEndPoint from a FrozenEndPointABC %s", args[0])
                 other: FrozenEndPointABC = args[0]
                 self.row = other.row
                 self.idx = other.idx
                 self.cls = other.cls
                 self.typ = other.typ
-                if isinstance(other.refs, FrozenEPRefs):
-                    self.refs = other.refs
-                else:
-                    self.refs = self._convert_refs(other.refs)
+                self.refs = self._convert_refs(other.refs)
             elif isinstance(args[0], tuple) and len(args[0]) == 5:
+                _logger.log(TRACE, "Creating FrozenEndPoint from a 5-tuple %s", args[0])
                 self.row, self.idx, self.cls, self.typ, refs_arg = args[0]
                 self.refs = self._convert_refs(refs_arg)
             else:
                 raise TypeError("Invalid argument for EndPoint constructor")
         elif len(args) == 4 or len(args) == 5:
+            _logger.log(TRACE, "Creating FrozenEndPoint from explicit arguments %s", args)
             self.row: Row = args[0]
             self.idx: int = args[1]
             self.cls: EPCls = args[2]
@@ -96,19 +105,22 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
     @staticmethod
     def _convert_refs(refs_arg) -> FrozenEPRefs:
         if refs_arg is None:
-            return FrozenEPRefs(tuple())
-        if isinstance(refs_arg, FrozenEPRefs):
+            return EMPTY_FROZEN_EP_REFS
+        # pylint: disable=unidiomatic-typecheck
+        # Cannot be an EPRefs
+        if type(refs_arg) is FrozenEPRefs:
             return refs_arg
 
         refs_list = []
         for ref in refs_arg:
-            if isinstance(ref, FrozenEPRefABC):
+            # NB: FrozenEPRefs init will put all the FrozenEPRef into ref_store
+            if type(ref) is FrozenEPRef:
                 refs_list.append(FrozenEPRef(ref.row, ref.idx))
             elif isinstance(ref, (list, tuple)) and len(ref) == 2:
                 refs_list.append(FrozenEPRef(ref[0], ref[1]))
             else:
                 raise TypeError(f"Invalid ref format: {ref}")
-        return FrozenEPRefs(tuple(refs_list))
+        return refs_store[FrozenEPRefs(refs_list)]
 
     def __copy__(self):
         """Called by copy.copy()"""
@@ -232,18 +244,24 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         """
         return not self.__eq__(value)
 
-    def __str__(self) -> str:
-        """Return the string representation of the endpoint.
+    def __repr__(self) -> str:
+        """Return the official string representation of the endpoint."""
+        return (
+            f"{self.__class__.__name__}({self.row!r}, {self.idx!r}, {self.cls!r}, "
+            f"{self.typ!r}, {self.refs!r})"
+        )
 
-        Provides a detailed string showing all endpoint attributes for debugging
-        and logging purposes.
+    def __str__(self) -> str:
+        """Return a string representation of the python instanciation
+        of the Endpoint such that eval(str(obj)) == obj.
+        str(obj) should be as compact as possible
 
         Returns:
-            str: String in format "FrozenEndPoint(row=X, idx=N, cls=CLS, typ=TYPE, refs=[...])"
+            String representation suitable for python instanciation.
         """
         return (
-            f"FrozenEndPoint(row={self.row}, idx={self.idx}, cls={self.cls}"
-            f", typ={self.typ}, refs={list(self.refs)})"
+            f"{self.__class__.__name__}(row={self.row}, idx={self.idx}, cls={self.cls}"
+            f", typ={self.typ}, refs={self.refs})"
         )
 
     def can_connect(self, other: FrozenEndPointABC) -> bool:
@@ -261,30 +279,53 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             bool: True if connection is possible, False otherwise.
         """
         assert isinstance(other, FrozenEndPointABC), "Other endpoint is not a FrozenEndPointABC"
-        # Self id the source endpoint
+        # Self is the source endpoint
         if self.cls == EPCls.SRC:
+            # Most common reason not to connect first
+            if other.is_connected():
+                _logger.log(TRACE, "Other endpoint is already connected")
+                return False
             if other.cls != EPCls.DST:
+                _logger.log(TRACE, "Other endpoint is not DST")
                 return False
             assert isinstance(self.row, SrcRow), "self.row is not a SrcRow"
-            if other.row not in UNKNOWN_VALID[self.row]:
+            if other.row not in (valid_rows := UNKNOWN_VALID[self.row]):
+                _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
                 return False
-            if other.typ not in types_def_store.ancestors(self.typ):
+            if not types_def_store.is_compatible(self.typ, other.typ):
+                _logger.log(
+                    TRACE, "Other endpoint type %s is not compatible with %s", other.typ, self.typ
+                )
                 return False
 
             return True
 
         # Other is the source endpoint
+        # Most common reason not to connect first
+        if self.is_connected():
+            _logger.log(TRACE, "Self endpoint is already connected")
+            return False
         if other.cls != EPCls.SRC:
+            _logger.log(TRACE, "Other endpoint is not SRC")
             return False
         assert isinstance(self.row, DstRow), "self.row is not a DstRow"
-        if other.row not in UNKNOWN_REVERSED[self.row]:
+        if other.row not in (valid_rows := UNKNOWN_REVERSED[self.row]):
+            _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
             return False
-        if self.typ not in types_def_store.ancestors(other.typ):
+        if not types_def_store.is_compatible(other.typ, self.typ):
+            _logger.log(
+                TRACE, "Self endpoint type %s is not compatible with %s", self.typ, other.typ
+            )
             return False
         return True
 
     def can_downcast_connect(self, other: FrozenEndPointABC) -> bool:
         """Check if this endpoint can connect to another endpoint if it is downcast.
+
+        NOTE: A downcast is risky e.g. connecting an Integral to an int
+        because the logic may rely on the 'int' specific behavior. However it could is still
+        result in a valid runtime in some cases, if there are no other alternatives.
+        This method checks
 
         Connection rules:
             - The destination endpoint is not already connected
@@ -303,32 +344,52 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         if self.cls == EPCls.SRC:
             # Most common reason not to connect first
             if other.is_connected():
+                _logger.log(TRACE, "Other endpoint is already connected")
                 return False
             if other.cls != EPCls.DST:
+                _logger.log(TRACE, "Other endpoint is not DST")
                 return False
             assert isinstance(self.row, SrcRow), "self.row is not a SrcRow"
-            if other.row not in UNKNOWN_VALID[self.row]:
+            if other.row not in (valid_rows := UNKNOWN_VALID[self.row]):
+                _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
                 return False
             if other.typ == self.typ:
+                _logger.log(TRACE, "Other endpoint type is equal to self type (not a downcast)")
                 return False
             # Descendants includes self.typ, so we need to exclude that case (above)
             if other.typ not in types_def_store.descendants(self.typ):
+                _logger.log(
+                    TRACE,
+                    "Other endpoint type %s not in descendants of %s",
+                    other.typ,
+                    self.typ,
+                )
                 return False
             return True
 
         # Other is the source endpoint
         # Most common reason not to connect first
         if self.is_connected():
+            _logger.log(TRACE, "Self endpoint is already connected")
             return False
         if other.cls != EPCls.SRC:
+            _logger.log(TRACE, "Other endpoint is not SRC")
             return False
         assert isinstance(other.row, SrcRow), "other.row is not a SrcRow"
-        if other.row not in UNKNOWN_VALID[other.row]:
+        if other.row not in (valid_rows := UNKNOWN_VALID[other.row]):
+            _logger.log(TRACE, "Other endpoint row %s not in %s", other.row, valid_rows)
             return False
         if self.typ == other.typ:
+            _logger.log(TRACE, "Self endpoint type is equal to other type (not a downcast)")
             return False
         # Descendants includes other.typ, so we need to exclude that case (above)
         if self.typ not in types_def_store.descendants(other.typ):
+            _logger.log(
+                TRACE,
+                "Self endpoint type %s not in descendants of %s",
+                self.typ,
+                other.typ,
+            )
             return False
         return True
 
@@ -336,7 +397,7 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
         """Check the consistency of the FrozenEndPoint.
 
         Performs semantic validation that may be expensive. This method is called
-        by verify() when CONSISTENCY logging is enabled.
+        by verify() when CONSISTENCY integrity is enabled.
 
         Validates:
             - Reference structure matches endpoint class rules
@@ -433,59 +494,59 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
             TypeError: If types are incorrect.
         """
         # Verify index range
-        self.value_error(
-            0 <= self.idx < 256,
-            f"Endpoint index must be between 0 and 255, got {self.idx} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
+        if not (0 <= self.idx < 256):
+            raise ValueError(
+                f"Endpoint index must be between 0 and 255, got {self.idx} "
+                f"for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+            )
 
         # Verify that row is not U (special case)
-        self.value_error(
-            self.row != "U",
-            f"Endpoint row cannot be 'U', got {self.row} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
+        if not (self.row != "U"):
+            raise ValueError(
+                f"Endpoint row cannot be 'U', got {self.row} "
+                f"for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+            )
 
         # Verify that typ is a TypesDef instance
-        self.type_error(
-            isinstance(self.typ, TypesDef),
-            f"Endpoint type must be a TypesDef instance, got {type(self.typ).__name__} "
-            f"for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-        )
+        if not isinstance(self.typ, TypesDef):
+            raise TypeError(
+                f"Endpoint type must be a TypesDef instance, got {type(self.typ).__name__} "
+                f"for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+            )
 
         # Verify row and class compatibility for destination endpoints
         if self.cls == EPCls.DST:
-            self.value_error(
-                self.row in DESTINATION_ROW_SET,
-                f"Destination endpoint must use a destination row. "
-                f"Got row={self.row} with cls=DST for endpoint {self.row}d{self.idx}. "
-                f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}",
-            )
+            if not (self.row in DESTINATION_ROW_SET):
+                raise ValueError(
+                    f"Destination endpoint must use a destination row. "
+                    f"Got row={self.row} with cls=DST for endpoint {self.row}d{self.idx}. "
+                    f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}"
+                )
 
         # Verify row and class compatibility for source endpoints
         if self.cls == EPCls.SRC:
-            self.value_error(
-                self.row in SOURCE_ROW_SET,
-                f"Source endpoint must use a source row. "
-                f"Got row={self.row} with cls=SRC for endpoint {self.row}s{self.idx}. "
-                f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
-            )
+            if not (self.row in SOURCE_ROW_SET):
+                raise ValueError(
+                    f"Source endpoint must use a source row. "
+                    f"Got row={self.row} with cls=SRC for endpoint {self.row}s{self.idx}. "
+                    f"Valid source rows: {sorted(SOURCE_ROW_SET)}"
+                )
 
         # Verify single-only row constraint (F, W, L rows can only have index 0)
         if self.row in SINGLE_ONLY_ROWS:
-            self.value_error(
-                self.idx == 0,
-                f"Row {self.row} can only have a single endpoint (index 0). "
-                f"Got index {self.idx} for endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
+            if not (self.idx == 0):
+                raise ValueError(
+                    f"Row {self.row} can only have a single endpoint (index 0). "
+                    f"Got index {self.idx} for endpoint {self.row}{self.cls.name[0]}{self.idx}"
+                )
 
         # Verify destination endpoints have at most one reference
         if self.cls == EPCls.DST:
-            self.value_error(
-                len(self.refs) <= 1,
-                f"Destination endpoint can have at most 1 reference. "
-                f"Got {len(self.refs)} references for endpoint {self.row}d{self.idx}: {self.refs}",
-            )
+            if not (len(self.refs) <= 1):
+                raise ValueError(
+                    f"Destination endpoint can have at most 1 reference. "
+                    f"Got {len(self.refs)} references for endpoint {self.row}d{self.idx}: {self.refs}"
+                )
 
         # Verify reference structure and validity
         ref_set = set()
@@ -497,11 +558,11 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 ref_tuple = (ref.row, ref.idx)
             else:
                 ref_tuple = tuple(ref)
-            self.value_error(
-                ref_tuple not in ref_set,
-                f"Duplicate reference {ref} found at index {ref_idx} "
-                f"in endpoint {self.row}{self.cls.name[0]}{self.idx}",
-            )
+            if not (ref_tuple not in ref_set):
+                raise ValueError(
+                    f"Duplicate reference {ref} found at index {ref_idx} "
+                    f"in endpoint {self.row}{self.cls.name[0]}{self.idx}"
+                )
             ref_set.add(ref_tuple)
 
             # Check reference is a list or a tuple as appropriate
@@ -510,70 +571,70 @@ class FrozenEndPoint(CommonObj, FrozenEndPointABC):
                 ref_row = ref.row
                 ref_ep_idx = ref.idx
             else:
-                self.type_error(
+                if not (
                     (isinstance(ref, list) and not is_frozen)
-                    or (isinstance(ref, tuple) and is_frozen),
-                    "Reference must be a list if not frozen, or a tuple if frozen"
-                    f", got {type(ref).__name__} at index {ref_idx} in endpoint "
-                    f"{self.row}{self.cls.name[0]}{self.idx}"
-                    f"{' which is frozen.' if is_frozen else ''}",
-                )
+                    or (isinstance(ref, tuple) and is_frozen)
+                ):
+                    raise TypeError(
+                        "Reference must be a list if not frozen, or a tuple if frozen"
+                        f", got {type(ref).__name__} at index {ref_idx} in endpoint "
+                        f"{self.row}{self.cls.name[0]}{self.idx}"
+                        f"{' which is frozen.' if is_frozen else ''}"
+                    )
 
                 # Check reference has exactly 2 elements [row, idx]
-                self.value_error(
-                    len(ref) == 2,
-                    f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
-                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-                )
+                if not (len(ref) == 2):
+                    raise ValueError(
+                        f"Reference must have exactly 2 elements [row, idx], got {len(ref)} elements "
+                        f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}"
+                    )
 
                 # Extract and validate reference components
                 ref_row = ref[0]
                 ref_ep_idx = ref[1]
 
             # Check reference row is valid
-            self.type_error(
-                isinstance(ref_row, str),
-                f"Reference row must be a string, got {type(ref_row).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
+            if not isinstance(ref_row, str):
+                raise TypeError(
+                    f"Reference row must be a string, got {type(ref_row).__name__} "
+                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}"
+                )
 
             # Verify reference row is in valid ROW_SET
-            self.value_error(
-                ref_row in ROW_SET,
-                f"Reference row must be a valid row. "
-                f"Got '{ref_row}' at index {ref_idx} in endpoint"
-                f"{self.row}{self.cls.name[0]}{self.idx}. "
-                f"Valid rows: {ROW_SET}",
-            )
+            if not (ref_row in ROW_SET):
+                raise ValueError(
+                    f"Reference row must be a valid row. "
+                    f"Got '{ref_row}' at index {ref_idx} in endpoint"
+                    f"{self.row}{self.cls.name[0]}{self.idx}. "
+                    f"Valid rows: {ROW_SET}"
+                )
 
             # Check reference index is valid
-            self.type_error(
-                isinstance(ref_ep_idx, int),
-                f"Reference index must be an integer, got {type(ref_ep_idx).__name__} "
-                f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}",
-            )
+            if not isinstance(ref_ep_idx, int):
+                raise TypeError(
+                    f"Reference index must be an integer, got {type(ref_ep_idx).__name__} "
+                    f"at index {ref_idx} in endpoint {self.row}{self.cls.name[0]}{self.idx}: {ref}"
+                )
 
             # Verify reference index is within valid range (0-255)
             assert isinstance(ref_ep_idx, int), "Reference index must be an integer"
-            self.value_error(
-                0 <= ref_ep_idx < 256,
-                f"Reference index must be between 0 and 255, got {ref_ep_idx}",
-            )
+            if not (0 <= ref_ep_idx < 256):
+                raise ValueError(f"Reference index must be between 0 and 255, got {ref_ep_idx}")
 
             # Verify row/class pairing: DST endpoints should reference SRC rows, and vice versa
             if self.cls == EPCls.DST:
-                self.value_error(
-                    ref_row in SOURCE_ROW_SET,
-                    f"Destination endpoint must reference a source row. "
-                    f"Got reference to row '{ref_row}' at index {ref_idx} "
-                    f"in endpoint {self.row}d{self.idx}. "
-                    f"Valid source rows: {sorted(SOURCE_ROW_SET)}",
-                )
+                if not (ref_row in SOURCE_ROW_SET):
+                    raise ValueError(
+                        f"Destination endpoint must reference a source row. "
+                        f"Got reference to row '{ref_row}' at index {ref_idx} "
+                        f"in endpoint {self.row}d{self.idx}. "
+                        f"Valid source rows: {sorted(SOURCE_ROW_SET)}"
+                    )
             else:  # self.cls == EPCls.SRC
-                self.value_error(
-                    ref_row in DESTINATION_ROW_SET,
-                    f"Source endpoint must reference a destination row. "
-                    f"Got reference to row '{ref_row}' at index {ref_idx} "
-                    f"in endpoint {self.row}s{self.idx}. "
-                    f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}",
-                )
+                if not (ref_row in DESTINATION_ROW_SET):
+                    raise ValueError(
+                        f"Source endpoint must reference a destination row. "
+                        f"Got reference to row '{ref_row}' at index {ref_idx} "
+                        f"in endpoint {self.row}s{self.idx}. "
+                        f"Valid destination rows: {sorted(DESTINATION_ROW_SET)}"
+                    )

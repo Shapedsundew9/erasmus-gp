@@ -1,11 +1,6 @@
-"""Common Object Abstract Base Class"""
+"""Common Object Abstract Base Class."""
 
 from abc import ABC, abstractmethod
-
-from egpcommon.egp_log import Logger, egp_logger
-
-# Standard EGP logging pattern
-_logger: Logger = egp_logger(name=__name__)
 
 
 class CommonObjABC(ABC):
@@ -13,6 +8,8 @@ class CommonObjABC(ABC):
 
     See CommonObj for details.
     """
+
+    __slots__ = ()
 
     @abstractmethod
     def consistency(self) -> None:

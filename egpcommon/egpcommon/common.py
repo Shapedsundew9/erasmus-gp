@@ -1,6 +1,6 @@
-"""Common functions for the EGPPY package."""
+"""Common functions for the egpcommon package."""
 
-from collections.abc import Sequence
+from collections.abc import Container, Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -17,6 +17,9 @@ from egpcommon.parallel_exceptions import create_parallel_exceptions
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
+
+# Sentinel object for slot comparison in DictTypeAccessor.__eq__
+_SENTINEL: object = object()
 
 
 # Create the Debug exception hierarchy
@@ -45,7 +48,11 @@ EGP_DEV_PROFILE = "DEV"
 EGP_CI_PROFILE = "CI"
 EGP_PROD_PROFILE = "PROD"
 EGP_PROFILE: str = environ.get("EGP_PROFILE", "PROD")
-assert EGP_PROFILE in (EGP_DEV_PROFILE, EGP_CI_PROFILE, EGP_PROD_PROFILE)
+if EGP_PROFILE not in (EGP_DEV_PROFILE, EGP_CI_PROFILE, EGP_PROD_PROFILE):
+    raise ValueError(
+        f"Invalid EGP_PROFILE '{EGP_PROFILE}': must be one of"
+        f" {EGP_DEV_PROFILE!r}, {EGP_CI_PROFILE!r}, {EGP_PROD_PROFILE!r}"
+    )
 
 
 # Some common types
@@ -122,15 +129,13 @@ def ensure_sorted_json_keys(file_path: Path | str) -> None:
     verifies if the keys are in sorted order, and rewrites the file with sorted keys
     if necessary.
 
-    Args
-    ----
-    file_path: Path to the JSON file to check and potentially sort.
+    Args:
+        file_path: Path to the JSON file to check and potentially sort.
 
-    Raises
-    ------
-    FileNotFoundError: If the file does not exist.
-    ValueError: If the JSON content is not a dictionary or if any key is not a string.
-    json.JSONDecodeError: If the file does not contain valid JSON.
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the JSON content is not a dictionary or if any key is not a string.
+        json.JSONDecodeError: If the file does not contain valid JSON.
     """
     # Convert to Path object if string
     path = Path(file_path) if isinstance(file_path, str) else file_path
@@ -176,20 +181,32 @@ def ensure_sorted_json_keys(file_path: Path | str) -> None:
         _logger.debug("Keys in %s are already sorted", path)
 
 
-class DictTypeAccessor:
+class DictTypeAccessor(Container):
     """Provide very simple get/set dictionary like access to an objects members."""
 
     __slots__ = tuple()
 
-    def __contains__(self, key: str) -> bool:
+    def __contains__(self, key: object) -> bool:
         """Check if the attribute exists."""
+        if not isinstance(key, str):
+            return False
         return hasattr(self, key)
 
     def __eq__(self, value: object) -> bool:
         """Check if the object is equal to the value."""
         if not isinstance(value, self.__class__):
             return False
-        return self.__dict__ == value.__dict__
+        # Compare slotted attributes across the MRO
+        for cls in type(self).__mro__:
+            for slot in getattr(cls, "__slots__", ()):
+                if getattr(self, slot, _SENTINEL) != getattr(value, slot, _SENTINEL):
+                    return False
+        # Compare __dict__ attributes for non-slotted subclasses
+        self_dict = getattr(self, "__dict__", {})
+        value_dict = getattr(value, "__dict__", {})
+        if self_dict != value_dict:
+            return False
+        return True
 
     def __getitem__(self, key: str) -> Any:
         """Get the value of the attribute."""
@@ -216,32 +233,33 @@ class DictTypeAccessor:
 
 
 # https://stackoverflow.com/questions/7204805/how-to-merge-dictionaries-of-dictionaries
-def merge(  # pylint: disable=dangerous-default-value
+def merge(
     dict_a: dict[Any, Any],
     dict_b: dict[Any, Any],
-    path: list[str] = [],
+    path: list[str] | None = None,
     no_new_keys: bool = False,
-    update=False,
+    update: bool = False,
 ) -> dict[Any, Any]:
-    """Merge dict b into a recursively. a is modified.
-    This function is equivilent to a.update(b) unless update is False in which case
-    if b contains dictionary differing values with the same key a ValueError is raised.
-    If there are dictionaries
-    in b that have the same key as a then those dictionaries are merged in the same way.
-    Keys in a & b (or common key'd sub-dictionaries) where one is a dict and the other
-    some other type raise an exception.
+    """Merge dict_b into dict_a recursively. dict_a is modified.
 
-    Args
-    ----
-    a: Dictionary to merge in to.
-    b: Dictionary to merge.
-    no_new_keys: If True keys in b that are not in a are ignored
-    update: When false keys with non-dict values that differ will raise an error.
+    This function is equivalent to dict_a.update(dict_b) unless update is False
+    in which case if dict_b contains differing values with the same key a
+    ValueError is raised. If there are dictionaries in dict_b that have the
+    same key as dict_a then those dictionaries are merged in the same way.
+    Keys in dict_a & dict_b (or common key'd sub-dictionaries) where one is
+    a dict and the other some other type raise an exception.
 
-    Returns
-    -------
-    a (modified)
+    Args:
+        dict_a: Dictionary to merge in to.
+        dict_b: Dictionary to merge.
+        no_new_keys: If True keys in dict_b that are not in dict_a are ignored.
+        update: When False keys with non-dict values that differ will raise an error.
+
+    Returns:
+        dict_a (modified).
     """
+    if path is None:
+        path = []
     for key in dict_b:
         if key in dict_a:
             if isinstance(dict_a[key], dict) and isinstance(dict_b[key], dict):
@@ -264,13 +282,13 @@ def random_int_tuple_generator(n: int, x: int) -> tuple[int, ...]:
 
     Args:
       n: The number of random integers (tuple length). Must be non-negative.
-      x: The maximum value for the random integers (exclusive). Must be non-negative.
+      x: The upper bound for the random integers (exclusive). Must be >= 1.
 
     Returns:
       A tuple containing N random integers.
 
     Raises:
-      ValueError: If n or x is negative.
+      ValueError: If n is negative or x is less than 1.
     """
     if n < 0:
         raise ValueError("Number of elements (n) cannot be negative")
@@ -295,7 +313,6 @@ def sha256_signature(
     imports: tuple,  # tuple[ImportDef, ...] but would be a circular reference
     inline: str,
     code: str,
-    created: int,
     creator: bytes,
 ) -> bytes:
     """Return the SHA256 signature of the data.
@@ -309,13 +326,6 @@ def sha256_signature(
     number generator used to create the GC. All this combined means it is possible to
     deterministically recreate the GC from the ancestors and know if the GC can be trusted.
     If the meta_data is provided then the function code is also included in the signature.
-
-    If created > 0 then the created time is encoded in the signature. Note that
-    this is used to indicate that the created time should be part of the signature.
-    It is a convenience when developing with primitives that get re-generated regularly
-    where the changing signature is overhead.
-
-    NOTE: Created is the creation time of the GC in seconds from epoch when > 0
 
     THIS FUNCTION MUST NOT CHANGE!
     MAKE SURE THE UNIT TESTS PASS!
@@ -340,6 +350,4 @@ def sha256_signature(
         hash_obj.update(code.encode())
         for import_def in imports:
             hash_obj.update(dumps(import_def.to_json()).encode())
-    if created > 0:
-        hash_obj.update(created.to_bytes(8, "big"))
     return hash_obj.digest()

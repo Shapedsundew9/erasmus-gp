@@ -1,10 +1,15 @@
-# egpdbmgr - Erasmus Genetic Programing - Database Manager
+# egpdbmgr — Erasmus Genetic Programming — Database Manager
 
-This is the `egpdbmgr` package, a Python package for managing EGP genetic code databases.
+The `egpdbmgr` package manages EGP genetic code databases backed by PostgreSQL.
+
+## Features
+
+- **Configuration** — Validated `DBManagerConfig` loaded from signed JSON files, with cross-field verification.
+- **Table Management** — Creates and manages genetic code, meta-data, and source tracking tables.
+- **Schema Derivation** — Genetic code table schemas are derived from `GGC_KVT` with configurable table types (Local, Pool, Library, Archive).
+- **CLI Entry Point** — Command-line interface for initialising the DB Manager with a configuration file.
 
 ## Installation
-
-You can install the `egpdbmgr` package using pip:
 
 ```shell
 pip install egpdbmgr
@@ -12,28 +17,32 @@ pip install egpdbmgr
 
 ## Usage
 
-To use the `egpdbmgr` package, you can import it in your Python code:
+### Default Configuration
 
-```python
-import egpdbmgr
+Generate a default configuration file:
+
+```shell
+python -m egpdbmgr.main -d
 ```
 
-[insert usage examples and instructions here]
+### Run with Configuration
+
+```shell
+python -m egpdbmgr.main -c config.json
+```
+
+### Run with Default Internal Configuration
+
+```shell
+python -m egpdbmgr.main -D
+```
 
 ## Testing
-
-The `egpdbmgr` package includes test cases to ensure its functionality. You can run the tests using the following command:
 
 ```shell
 python -m unittest discover tests
 ```
 
-## Contributing
-
-Contributions to the `egpdbmgr` package are welcome. If you find any issues or have suggestions for improvement, please open an issue or submit a pull request on the [GitHub repository](https://github.com/your-username/egpdbmgr).
-
 ## License
 
-The `egpdbmgr` package is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-Please note that you should replace `[insert description of the package]` and `[your-username]` with the appropriate information for your project.
+See the [LICENSE](../LICENSE) file.

@@ -1,36 +1,32 @@
 """EGP Database Manager.
 
-This module provides the database manager for a EGP database.
+This module provides the database manager for an EGP database.
 The EGP database in question may be for the gene-pool or a genomic-library.
 There can only be one DB manager for a database at a time.
 
 The DB Manager is responsible for:
-    # Creation of the DB as necessary
-    # Creation of tables as necessary
-    # Initial population of tables (codons etc.)
-    # DB data analytics (profiling data, etc.)
-    # DB analytics (connection, query, etc.) logging
-    # DB maintenance (e.g. vacuuming, re-indexing etc.)
-    # Sync'ing the DB back to higher layer databases (micro-biome --> biome etc.)
-    # Pulling data from higher layer databases (biome --> micro-biome etc.)
-    # DB backup and restore
-    # DB migration (e.g. from one version to another)
+    - Creation of the DB as necessary.
+    - Creation of tables as necessary.
+    - Initial population of tables (codons etc.).
+    - DB data analytics (profiling data, etc.).
+    - DB analytics (connection, query, etc.) logging.
+    - DB maintenance (e.g. vacuuming, re-indexing etc.).
+    - Sync'ing the DB back to higher layer databases (micro-biome --> biome etc.).
+    - Pulling data from higher layer databases (biome --> micro-biome etc.).
+    - DB backup and restore.
+    - DB migration (e.g. from one version to another).
 """
 
 from copy import deepcopy
 from datetime import UTC, datetime
+from logging import DEBUG
 from typing import Any, Callable
 
-from egpcommon.common import SHAPEDSUNDEW9_UUID
-from egpcommon.conversions import (
-    compress_json,
-    decompress_json,
-    encode_properties,
-    memoryview_to_signature,
-)
+from egpcommon.common import SHAPEDSUNDEW9_UUID, debug_exceptions
+from egpcommon.conversions import encode_properties, memoryview_to_signature
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.gp_db_config import GGC_KVT
-from egpdb.raw_table import ColumnSchema
+from egpdb.configuration import ColumnSchema
 from egpdb.table import Table, TableConfig
 from egpdbmgr.configuration import DBManagerConfig, TableTypes
 
@@ -44,21 +40,16 @@ _logger: Logger = egp_logger(name=__name__)
 # value.
 # {name, encode (output to DB), decode (output to application)}
 GC_TABLE_CONVERSIONS: tuple[tuple[str, Callable | None, Callable | None], ...] = (
-    (
-        "cgraph",
-        lambda x: compress_json(x.to_json(True)),
-        decompress_json,
-    ),
-    ("meta_data", compress_json, decompress_json),
+    ("cgraph", lambda x: x.to_json(True), None),
     ("properties", encode_properties, None),
 ) + tuple(
     (name, None, memoryview_to_signature)
     for name, field in GGC_KVT.items()
     if field.get("signature", False)
 )
-META_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
-    "created": {"db_type": "TIMESTAMP", "nullable": False},
-    "creator": {"db_type": "UUID", "nullable": False},
+META_TABLE_SCHEMA: dict[str, ColumnSchema] = {
+    "created": ColumnSchema(db_type="TIMESTAMP", nullable=False),
+    "creator": ColumnSchema(db_type="UUID", nullable=False),
 }
 SOURCES_TABLE_SCHEMA: dict[str, ColumnSchema] = {
     "source_path": ColumnSchema(db_type="VARCHAR", nullable=False),
@@ -71,11 +62,30 @@ SOURCES_TABLE_SCHEMA: dict[str, ColumnSchema] = {
 
 
 class DBManager:
-    """Database Manager for the EGP."""
+    """Database Manager for the EGP.
+
+    Manages genetic code tables, meta-data tables, and source tracking tables
+    for a configured database. Creates tables on initialization and inserts
+    initial meta-data records.
+
+    Attributes
+    ----------
+    config: The DB Manager configuration.
+    managed_gc_table: The managed genetic code Table.
+    managed_gc_meta_table: The managed meta-data Table.
+    managed_sources_table: The managed sources Table.
+    """
 
     def __init__(self, config: DBManagerConfig, delete: bool = False) -> None:
-        self.config = config
-        self._delete = delete  # Delete existing tables if True
+        """Initialize the DB Manager.
+
+        Args
+        ----
+        config: The DB Manager configuration.
+        delete: If True, delete existing tables before creating new ones.
+        """
+        self.config: DBManagerConfig = config
+        self._delete: bool = delete
         self.managed_gc_table = self.create_managed_table()
         self.managed_gc_meta_table = self.create_managed_meta_table()
         self.managed_sources_table = self.create_managed_sources_table()
@@ -91,8 +101,30 @@ class DBManager:
                 )
             )
 
+        if _logger.isEnabledFor(level=DEBUG):
+            assert isinstance(self.config, DBManagerConfig), debug_exceptions.DebugTypeError(
+                f"config must be DBManagerConfig, got {type(self.config)}"
+            )
+            assert isinstance(self.managed_gc_table, Table), debug_exceptions.DebugTypeError(
+                f"managed_gc_table must be Table, got {type(self.managed_gc_table)}"
+            )
+            assert isinstance(self.managed_gc_meta_table, Table), debug_exceptions.DebugTypeError(
+                f"managed_gc_meta_table must be Table, got {type(self.managed_gc_meta_table)}"
+            )
+            assert isinstance(self.managed_sources_table, Table), debug_exceptions.DebugTypeError(
+                f"managed_sources_table must be Table, got {type(self.managed_sources_table)}"
+            )
+
     def create_managed_meta_table(self) -> Table:
-        """Create and return the managed meta Table object for the DB Manager."""
+        """Create and return the managed meta Table object for the DB Manager.
+
+        The meta table stores creation timestamps and creator UUIDs
+        for tracking database provenance.
+
+        Returns
+        -------
+        Table: The meta-data table.
+        """
         # Check if remote DB exists. If so download from there.
         # If not download database file from remote URL: Check if it is signed.
         table_config = TableConfig(
@@ -106,7 +138,15 @@ class DBManager:
         return Table(table_config)
 
     def create_managed_sources_table(self) -> Table:
-        """Create and return the managed sources Table object for the DB Manager."""
+        """Create and return the managed sources Table object for the DB Manager.
+
+        The sources table tracks source file provenance: paths, creators,
+        timestamps, hashes, signatures, and algorithms.
+
+        Returns
+        -------
+        Table: The sources table.
+        """
         # Check if remote DB exists. If so download from there.
         # If not download database file from remote URL: Check if it is signed.
         table_config = TableConfig(
@@ -120,7 +160,15 @@ class DBManager:
         return Table(table_config)
 
     def create_managed_table(self) -> Table:
-        """Create and return the managed Table object for the DB Manager."""
+        """Create and return the managed genetic code Table object for the DB Manager.
+
+        The table schema is derived from GGC_KVT and filtered based
+        on the configured managed_type.
+
+        Returns
+        -------
+        Table: The genetic code table.
+        """
         schemas = self.prepare_schemas()
         schema = schemas[self.config.managed_type]
         # Check if remote DB exists. If so download from there.
@@ -141,7 +189,11 @@ class DBManager:
         return Table(table_config)
 
     def operations(self) -> None:
-        """Operations for the DB Manager."""
+        """Run operations for the DB Manager.
+
+        Placeholder for ongoing DB Manager operations such as synchronization,
+        archival, and maintenance tasks.
+        """
         _logger.info("Operations for the DB Manager for config named '%s'.", self.config.name)
 
     def prepare_schemas(self) -> dict[TableTypes, dict[str, Any]]:

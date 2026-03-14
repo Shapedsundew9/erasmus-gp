@@ -297,9 +297,9 @@ class TestValidJCG(unittest.TestCase):
 
     def test_invalid_key_in_jcg(self) -> None:
         """Test that invalid keys in JCG raise ValueError."""
-        jcg = {"INVALID_KEY": [], DstRow.U: []}
+        jcg = {"INVALID_KEY": []}
         with self.assertRaises(ValueError):
-            valid_jcg(jcg)
+            valid_jcg(jcg)  # type: ignore
 
     def test_invalid_row_in_endpoint(self) -> None:
         """Test that invalid source rows in endpoints raise ValueError."""
@@ -309,19 +309,19 @@ class TestValidJCG(unittest.TestCase):
 
     def test_invalid_value_type_in_jcg(self) -> None:
         """Test that invalid value types raise TypeError."""
-        jcg = {DstRow.O: "not a list", DstRow.U: []}
+        jcg = {DstRow.O: "not a list"}
         with self.assertRaises(TypeError):
-            valid_jcg(jcg)
+            valid_jcg(jcg)  # type: ignore
 
     def test_valid_empty_jcg(self) -> None:
         """Test validation of a valid empty JSON connection graph."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = {DstRow.O: []}
         self.assertTrue(valid_jcg(jcg))
 
     def test_valid_simple_jcg(self) -> None:
         """Test validation of a simple valid JSON connection graph."""
         # A primitive graph with I -> A -> O
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         self.assertTrue(valid_jcg(jcg))
 
 
@@ -330,7 +330,7 @@ class TestCGraphType(unittest.TestCase):
 
     def test_empty_identification(self) -> None:
         """Test identification of Empty graphs."""
-        jcg = {DstRow.O: [], DstRow.U: []}
+        jcg = {DstRow.O: []}
         self.assertEqual(c_graph_type(jcg), CGraphType.EMPTY)
 
     def test_for_loop_identification(self) -> None:
@@ -340,7 +340,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["L", 0, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.FOR_LOOP)
 
@@ -352,7 +351,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.B: [["I", 2, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["B", 0, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN_ELSE)
 
@@ -363,13 +361,12 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.IF_THEN)
 
     def test_primitive_identification(self) -> None:
         """Test identification of Primitive graphs."""
-        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
+        jcg = {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]}
         self.assertEqual(c_graph_type(jcg), CGraphType.PRIMITIVE)
 
     def test_standard_identification(self) -> None:
@@ -378,7 +375,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["A", 0, "int"]],
             DstRow.O: [["B", 0, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.STANDARD)
 
@@ -389,7 +385,6 @@ class TestCGraphType(unittest.TestCase):
             DstRow.A: [["W", 0, "bool"]],
             DstRow.O: [["A", 1, "int"]],
             DstRow.P: [["I", 0, "int"]],
-            DstRow.U: [],
         }
         self.assertEqual(c_graph_type(jcg), CGraphType.WHILE_LOOP)
 
@@ -404,12 +399,11 @@ class TestCGraph(unittest.TestCase):
             {
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
-                DstRow.U: [],
             }
         )
 
         # Create an empty graph
-        self.empty_jcg = json_cgraph_to_interfaces({DstRow.O: [], DstRow.U: []})
+        self.empty_jcg = json_cgraph_to_interfaces({DstRow.O: []})
 
     def test_cgraph_contains(self) -> None:
         """Test CGraph __contains__ method."""
@@ -496,14 +490,25 @@ class TestCGraph(unittest.TestCase):
 
         self.assertEqual(cgraph[DstIfKey.AD], new_interface)
 
-    def test_cgraph_to_json(self) -> None:
-        """Test CGraph to_json conversion."""
+    def test_to_json_false(self) -> None:
+        """Test JSON conversion json_c_graph=False."""
         cgraph = CGraph(self.primitive_jcg)
-        jcg = cgraph.to_json()
+        json_obj = cgraph.to_json()
+        self.assertIsInstance(json_obj, dict)
+        self.assertIn(DstIfKey.AD, json_obj)
+        self.assertIn(DstIfKey.OD, json_obj)
+        self.assertIn(SrcIfKey.AS, json_obj)
+        self.assertIn(SrcIfKey.IS, json_obj)
+        self.assertEqual(len(json_obj), 4)
 
-        self.assertIsInstance(jcg, dict)
-        self.assertIn(DstRow.A, jcg)
-        self.assertIn(DstRow.O, jcg)
+    def test_to_json_true(self) -> None:
+        """Test JSON conversion json_c_graph=True."""
+        cgraph = CGraph(self.primitive_jcg)
+        json_obj = cgraph.to_json(json_c_graph=True)
+        self.assertIsInstance(json_obj, dict)
+        self.assertIn(DstRow.A, json_obj)
+        self.assertIn(DstRow.O, json_obj)
+        self.assertEqual(len(json_obj), 2)
 
 
 class TestCGraphConstants(unittest.TestCase):
@@ -539,7 +544,7 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_empty_graph_rules(self) -> None:
         """Test Empty graph follows its specific rules."""
-        jcg = json_cgraph_to_interfaces({DstRow.O: [], DstRow.U: []})
+        jcg = json_cgraph_to_interfaces({DstRow.O: []})
         cgraph = CGraph(jcg)
 
         # Must only have O (and potentially I if provided)
@@ -560,7 +565,6 @@ class TestCGraphGraphTypes(unittest.TestCase):
                 DstRow.A: [["L", 0, "int"]],
                 DstRow.O: [["A", 0, "int"]],
                 DstRow.P: [["I", 1, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -586,7 +590,6 @@ class TestCGraphGraphTypes(unittest.TestCase):
                 DstRow.B: [["I", 2, "int"]],
                 DstRow.O: [["A", 0, "int"]],
                 DstRow.P: [["B", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -610,7 +613,6 @@ class TestCGraphGraphTypes(unittest.TestCase):
                 DstRow.A: [["I", 1, "int"]],
                 DstRow.O: [["A", 0, "int"]],
                 DstRow.P: [["I", 1, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -629,9 +631,7 @@ class TestCGraphGraphTypes(unittest.TestCase):
 
     def test_primitive_graph_rules(self) -> None:
         """Test Primitive graph follows its specific rules."""
-        jcg = json_cgraph_to_interfaces(
-            {DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]], DstRow.U: []}
-        )
+        jcg = json_cgraph_to_interfaces({DstRow.A: [["I", 0, "int"]], DstRow.O: [["A", 0, "int"]]})
         cgraph = CGraph(jcg)
 
         # Must not have F, L, W, P, B
@@ -653,7 +653,6 @@ class TestCGraphGraphTypes(unittest.TestCase):
                 DstRow.A: [["I", 0, "int"]],
                 DstRow.B: [["A", 0, "int"]],
                 DstRow.O: [["B", 0, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)
@@ -677,7 +676,6 @@ class TestCGraphGraphTypes(unittest.TestCase):
                 DstRow.A: [["W", 0, "bool"]],
                 DstRow.O: [["A", 1, "int"]],
                 DstRow.P: [["I", 1, "int"]],
-                DstRow.U: [],
             }
         )
         cgraph = CGraph(jcg)

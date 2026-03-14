@@ -5,7 +5,8 @@ import unittest
 from egppy.genetic_code.c_graph_constants import SINGLE_ONLY_ROWS, DstRow, EPCls, SrcRow
 from egppy.genetic_code.endpoint import DstEndPoint, EndPoint, SrcEndPoint
 from egppy.genetic_code.ep_ref import EPRef, EPRefs
-from egppy.genetic_code.types_def import TypesDef, types_def_store
+from egppy.genetic_code.types_def import TypesDef
+from egppy.genetic_code.types_def_store import types_def_store
 
 
 class TestEndPoint(unittest.TestCase):
@@ -106,7 +107,7 @@ class TestEndPoint(unittest.TestCase):
 
     def test_init_from_endpoint(self) -> None:
         """Test copy constructor from another EndPoint."""
-        original = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [["A", 1]])
+        original = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [[SrcRow.A, 1]])
         copy = EndPoint(original)
         self.assertEqual(copy, original)
         # Verify deep copy of refs
@@ -118,13 +119,13 @@ class TestEndPoint(unittest.TestCase):
 
     def test_init_from_tuple(self) -> None:
         """Test initialization from a 5-tuple."""
-        tuple_data = (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [["A", 1]])
+        tuple_data = (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], [[SrcRow.A, 1]])
         ep = EndPoint(tuple_data)
         self.assertEqual(ep.row, SrcRow.I)
         self.assertEqual(ep.idx, 0)
         self.assertEqual(ep.cls, EPCls.SRC)
         self.assertEqual(str(ep.typ), "int")
-        self.assertEqual(ep.refs, EPRefs([EPRef("A", 1)]))
+        self.assertEqual(ep.refs, EPRefs([EPRef(SrcRow.A, 1)]))
 
         # Test with None refs
         tuple_data_no_refs = (SrcRow.I, 0, EPCls.SRC, types_def_store["int"], None)
@@ -139,17 +140,17 @@ class TestEndPoint(unittest.TestCase):
 
         # Invalid tuple length
         with self.assertRaises(TypeError):
-            EndPoint(("I", 0, EPCls.SRC))
+            EndPoint((SrcRow.I, 0, EPCls.SRC))
 
         # Invalid number of arguments
         with self.assertRaises(TypeError):
             EndPoint()
 
         with self.assertRaises(TypeError):
-            EndPoint("I", 0)
+            EndPoint(SrcRow.I, 0)
 
         with self.assertRaises(TypeError):
-            EndPoint("I", 0, EPCls.SRC, "int", [], "extra")
+            EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [], "extra")
 
     def test_init_with_types_def_instance(self) -> None:
         """Test initialization with TypesDef instance instead of string."""
@@ -180,17 +181,17 @@ class TestEndPoint(unittest.TestCase):
         self.ep_src.refs = EPRefs([EPRef(DstRow.A, 1)])
         json_obj = self.ep_src.to_json()
         expected_json = {
-            "row": "I",
+            "row": SrcRow.I,
             "idx": 0,
             "cls": EPCls.SRC,
             "typ": "int",
-            "refs": [["A", 1]],
+            "refs": [[SrcRow.A, 1]],
         }
         self.assertEqual(json_obj, expected_json)
 
-        ep_dst = EndPoint(DstRow.A, 0, EPCls.DST, "int", [["I", 0]])
+        ep_dst = EndPoint(DstRow.A, 0, EPCls.DST, "int", [[SrcRow.I, 0]])
         json_c_graph = ep_dst.to_json(json_c_graph=True)
-        self.assertEqual(json_c_graph, ["I", 0, "int"])
+        self.assertEqual(json_c_graph, [SrcRow.I, 0, "int"])
 
         with self.assertRaises(ValueError):
             self.ep_src.to_json(json_c_graph=True)
@@ -241,28 +242,28 @@ class TestEndPointEdgeCases(unittest.TestCase):
         src.connect(dst3)
         self.assertEqual(len(src.refs), 3)
 
-        self.assertEqual(src.refs[0], EPRef("A", 0))
-        self.assertEqual(src.refs[1], EPRef("A", 1))
-        self.assertEqual(src.refs[2], EPRef("B", 0))
+        self.assertEqual(src.refs[0], EPRef(SrcRow.A, 0))
+        self.assertEqual(src.refs[1], EPRef(SrcRow.A, 1))
+        self.assertEqual(src.refs[2], EPRef(SrcRow.B, 0))
 
     def test_connect_preserves_existing_refs_for_src(self) -> None:
         """Test that connect() appends to existing refs for source endpoints."""
-        src = SrcEndPoint(SrcRow.I, 0, "int", [["A", 0]])
+        src = SrcEndPoint(SrcRow.I, 0, "int", [[SrcRow.A, 0]])
         dst = DstEndPoint(DstRow.A, 1, "int")
 
         src.connect(dst)
         self.assertEqual(len(src.refs), 2)
-        self.assertEqual(src.refs[0], EPRef("A", 0))
-        self.assertEqual(src.refs[1], EPRef("A", 1))
+        self.assertEqual(src.refs[0], EPRef(SrcRow.A, 0))
+        self.assertEqual(src.refs[1], EPRef(SrcRow.A, 1))
 
     def test_connect_replaces_refs_for_dst(self) -> None:
         """Test that connect() replaces refs for destination endpoints."""
-        dst = DstEndPoint(DstRow.A, 0, "int", [["I", 0]])
+        dst = DstEndPoint(DstRow.A, 0, "int", [[SrcRow.I, 0]])
         src = SrcEndPoint(SrcRow.I, 1, "int")
 
         dst.connect(src)
         self.assertEqual(len(dst.refs), 1)
-        self.assertEqual(dst.refs[0], EPRef("I", 1))
+        self.assertEqual(dst.refs[0], EPRef(SrcRow.I, 1))
 
     def test_different_row_same_idx_comparison(self) -> None:
         """Test comparison of endpoints with different rows but same idx."""
@@ -274,8 +275,8 @@ class TestEndPointEdgeCases(unittest.TestCase):
 
     def test_equality_different_refs_order(self) -> None:
         """Test that endpoints with different ref order are not equal."""
-        ep1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [["A", 0], ["A", 1]])
-        ep2 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [["A", 1], ["A", 0]])
+        ep1 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [[SrcRow.A, 0], [SrcRow.A, 1]])
+        ep2 = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [[SrcRow.A, 1], [SrcRow.A, 0]])
         self.assertNotEqual(ep1, ep2)
 
     def test_equality_different_typ(self) -> None:
@@ -311,10 +312,10 @@ class TestEndPointEdgeCases(unittest.TestCase):
 
         # Modify original refs
         original_refs[0][1] = 99
-        original_refs.append(["B", 0])
+        original_refs.append([SrcRow.B, 0])
 
         # Endpoint refs should be unchanged
-        self.assertEqual(ep.refs, EPRefs([EPRef("A", 0), EPRef("A", 1)]))
+        self.assertEqual(ep.refs, EPRefs([EPRef(SrcRow.A, 0), EPRef(SrcRow.A, 1)]))
 
     def test_to_json_with_multiple_refs(self) -> None:
         """Test to_json() with multiple references."""
@@ -325,9 +326,9 @@ class TestEndPointEdgeCases(unittest.TestCase):
         if isinstance(json_obj, dict):
             refs_list = json_obj["refs"]
             self.assertEqual(len(refs_list), 3)
-            self.assertEqual(refs_list[0], ["A", 0])
-            self.assertEqual(refs_list[1], ["A", 1])
-            self.assertEqual(refs_list[2], ["B", 2])
+            self.assertEqual(refs_list[0], [SrcRow.A, 0])
+            self.assertEqual(refs_list[1], [SrcRow.A, 1])
+            self.assertEqual(refs_list[2], [SrcRow.B, 2])
 
     def test_verify_all_valid_rows(self) -> None:
         """Test verify() with all valid row types."""
@@ -354,14 +355,14 @@ class TestEndPointSubclasses(unittest.TestCase):
         row = DstRow.F
         idx = 0
         typ: TypesDef | int | str = "float"
-        refs = [["B", 2]]
+        refs = [[SrcRow.B, 2]]
         ep = DstEndPoint(row, idx, typ, refs)
         self.assertIsInstance(ep, EndPoint)
         self.assertEqual(ep.row, row)
         self.assertEqual(ep.idx, idx)
         self.assertEqual(ep.cls, EPCls.DST)
         self.assertEqual(str(ep.typ), "float")
-        self.assertEqual(ep.refs, EPRefs([EPRef("B", 2)]))
+        self.assertEqual(ep.refs, EPRefs([EPRef(SrcRow.B, 2)]))
 
         with self.assertRaises(ValueError):
             DstEndPoint(DstRow.F, 1, "float").verify()
@@ -371,14 +372,14 @@ class TestEndPointSubclasses(unittest.TestCase):
         row = SrcRow.I
         idx = 0
         typ: TypesDef | int | str = "int"
-        refs = [["A", 1]]
+        refs = [[SrcRow.A, 1]]
         ep = SrcEndPoint(row, idx, typ, refs)
         self.assertIsInstance(ep, EndPoint)
         self.assertEqual(ep.row, row)
         self.assertEqual(ep.idx, idx)
         self.assertEqual(ep.cls, EPCls.SRC)
         self.assertEqual(str(ep.typ), "int")
-        self.assertEqual(ep.refs, EPRefs([EPRef("A", 1)]))
+        self.assertEqual(ep.refs, EPRefs([EPRef(SrcRow.A, 1)]))
 
 
 class TestEndPointVerify(unittest.TestCase):
@@ -395,7 +396,7 @@ class TestEndPointVerify(unittest.TestCase):
     def test_verify_dst_must_reference_src_rows(self) -> None:
         """Test verify() ensures DST endpoints reference SRC rows."""
         ep = EndPoint(DstRow.A, 0, EPCls.DST, "int")
-        ep.refs = [[DstRow.O, 0]]  # O is a destination-only row
+        ep.refs = EPRefs([EPRef(DstRow.O, 0)])  # O is a destination-only row
         with self.assertRaises(ValueError) as cm:
             ep.verify()
         self.assertIn("must reference a source row", str(cm.exception))
@@ -424,48 +425,6 @@ class TestEndPointVerify(unittest.TestCase):
             ep.verify()
         self.assertIn("must be between 0 and 255", str(cm.exception))
 
-    def test_verify_ref_index_must_be_int(self) -> None:
-        """Test verify() requires ref index to be an integer."""
-        ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [["A", "0"]]  # type: ignore  # Index as string
-        with self.assertRaises(TypeError) as cm:
-            ep.verify()
-        self.assertIn("Reference index must be an integer", str(cm.exception))
-
-    def test_verify_ref_index_range(self) -> None:
-        """Test verify() requires ref index to be in valid range."""
-        ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [[DstRow.A, -1]]  # Negative index
-        with self.assertRaises(ValueError) as cm:
-            ep.verify()
-        self.assertIn("must be between 0 and 255", str(cm.exception))
-
-        ep.refs = [[DstRow.A, 256]]  # Too large
-        with self.assertRaises(ValueError) as cm:
-            ep.verify()
-        self.assertIn("must be between 0 and 255", str(cm.exception))
-
-    def test_verify_ref_must_have_two_elements(self) -> None:
-        """Test verify() requires refs to have exactly 2 elements."""
-        ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [[DstRow.A]]  # Only 1 element
-        with self.assertRaises(ValueError) as cm:
-            ep.verify()
-        self.assertIn("must have exactly 2 elements", str(cm.exception))
-
-        ep.refs = [[DstRow.A, 0, 0]]  # 3 elements
-        with self.assertRaises(ValueError) as cm:
-            ep.verify()
-        self.assertIn("must have exactly 2 elements", str(cm.exception))
-
-    def test_verify_ref_row_must_be_string(self) -> None:
-        """Test verify() requires ref row to be a string."""
-        ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [[123, 0]]  # type: ignore  # Row as int
-        with self.assertRaises(TypeError) as cm:
-            ep.verify()
-        self.assertIn("Reference row must be a string", str(cm.exception))
-
     def test_verify_ref_row_must_be_valid(self) -> None:
         """Test verify() requires ref row to be a valid row."""
         ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
@@ -478,7 +437,7 @@ class TestEndPointVerify(unittest.TestCase):
     def test_verify_ref_structure_must_be_list(self) -> None:
         """Test verify() requires each ref to be a list."""
         ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [("A", 0)]  # type: ignore  # Tuple instead of list
+        ep.refs = [(SrcRow.A, 0)]  # type: ignore  # Tuple instead of list
         with self.assertRaises(TypeError) as cm:
             ep.verify()
         self.assertIn("Reference must be a list", str(cm.exception))
@@ -514,7 +473,7 @@ class TestEndPointVerify(unittest.TestCase):
     def test_verify_src_must_reference_dst_rows(self) -> None:
         """Test verify() ensures SRC endpoints reference DST rows."""
         ep = EndPoint(SrcRow.I, 0, EPCls.SRC, "int")
-        ep.refs = [[SrcRow.I, 0]]  # I is a source-only row
+        ep.refs = EPRefs([EPRef(SrcRow.I, 0)])  # I is a source-only row
         with self.assertRaises(ValueError) as cm:
             ep.verify()
         self.assertIn("must reference a destination row", str(cm.exception))
@@ -541,11 +500,11 @@ class TestEndPointVerify(unittest.TestCase):
     def test_verify_valid_endpoints(self) -> None:
         """Test verify() succeeds for valid endpoints."""
         # Valid SRC endpoint
-        ep_src = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [["A", 0], ["A", 1]])
+        ep_src = EndPoint(SrcRow.I, 0, EPCls.SRC, "int", [[SrcRow.A, 0], [SrcRow.A, 1]])
         ep_src.verify()  # Should not raise
 
         # Valid DST endpoint
-        ep_dst = EndPoint(DstRow.A, 5, EPCls.DST, "float", [["I", 0]])
+        ep_dst = EndPoint(DstRow.A, 5, EPCls.DST, "float", [[SrcRow.I, 0]])
         ep_dst.verify()  # Should not raise
 
         # Valid endpoint with no refs

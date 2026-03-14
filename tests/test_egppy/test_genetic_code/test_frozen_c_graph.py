@@ -13,7 +13,7 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfK
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph, FrozenEndPoint, FrozenInterface
 from egppy.genetic_code.interface import Interface
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 
 class TestFrozenEndPoint(unittest.TestCase):
@@ -348,12 +348,23 @@ class TestFrozenCGraph(unittest.TestCase):
         for val in values:
             self.assertIsInstance(val, FrozenInterface)
 
-    def test_to_json(self) -> None:
-        """Test JSON conversion."""
+    def test_to_json_false(self) -> None:
+        """Test JSON conversion json_c_graph=False."""
         json_obj = self.frozen_graph.to_json()
+        self.assertIsInstance(json_obj, dict)
+        self.assertIn(DstIfKey.AD, json_obj)
+        self.assertIn(DstIfKey.OD, json_obj)
+        self.assertIn(SrcIfKey.AS, json_obj)
+        self.assertIn(SrcIfKey.IS, json_obj)
+        self.assertEqual(len(json_obj), 4)
+
+    def test_to_json_true(self) -> None:
+        """Test JSON conversion json_c_graph=True."""
+        json_obj = self.frozen_graph.to_json(json_c_graph=True)
         self.assertIsInstance(json_obj, dict)
         self.assertIn(DstRow.A, json_obj)
         self.assertIn(DstRow.O, json_obj)
+        self.assertEqual(len(json_obj), 2)
 
     def test_verify(self) -> None:
         """Test verify method."""
@@ -391,7 +402,13 @@ class TestFrozenCGraphComplexCases(unittest.TestCase):
             {
                 SrcIfKey.IS: [
                     (SrcRow.I, 0, EPCls.SRC, types_def_store["bool"], [[DstRow.F, 0]]),
-                    (SrcRow.I, 1, EPCls.SRC, types_def_store["int"], [[DstRow.A, 0]]),
+                    (
+                        SrcRow.I,
+                        1,
+                        EPCls.SRC,
+                        types_def_store["int"],
+                        [[DstRow.A, 0], [DstRow.P, 0]],
+                    ),
                 ],
                 DstIfKey.FD: [(DstRow.F, 0, EPCls.DST, types_def_store["bool"], [[SrcRow.I, 0]])],
                 DstIfKey.AD: [(DstRow.A, 0, EPCls.DST, types_def_store["int"], [[SrcRow.I, 1]])],

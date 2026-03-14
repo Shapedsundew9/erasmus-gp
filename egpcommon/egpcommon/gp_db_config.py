@@ -6,6 +6,15 @@ The GP schema is used in egppy & egpdbmgr.
 
 from typing import Any
 
+# Metadata has a dictionary structure with the following keys. The values
+# are of type:
+# - inline: str
+# - imports: list[dict[str, str]]
+# - code: str
+# - io_map: dict[int, int]
+META_DATA_KEYS = {"inline", "code", "imports", "io_map", "name", "description"}
+
+
 # GP GC Fields with Postgres definitions.
 # {
 #   column_name: {
@@ -18,10 +27,10 @@ from typing import Any
 # }
 EGC_KVT: dict[str, dict[str, Any]] = {
     "cgraph": {
-        "db_type": "BYTEA",
+        "db_type": "JSONB",
         "nullable": False,
-        "phy_type": "bytes",
-        "psql_type": "PsqlBytea",
+        "phy_type": "CGraphABC",
+        "psql_type": "PsqlJsonb",
     },
     "creator": {"db_type": "UUID", "nullable": False, "phy_type": "UUID", "psql_type": "PsqlUUID"},
     "gca": {
@@ -128,10 +137,10 @@ GGC_KVT: dict[str, dict[str, Any]] = EGC_KVT | {
         "psql_type": "PsqlBigInt",
     },
     "meta_data": {
-        "db_type": "BYTEA",
+        "db_type": "JSONB",
         "nullable": True,
-        "phy_type": "bytes",
-        "psql_type": "PsqlBytea",
+        "phy_type": "dict[str, object]",
+        "psql_type": "PsqlJsonb",
     },
     "num_codes": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},
     "num_codons": {"db_type": "INT", "nullable": False, "phy_type": "int", "psql_type": "PsqlInt"},

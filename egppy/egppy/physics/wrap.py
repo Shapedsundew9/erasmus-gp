@@ -1,5 +1,8 @@
-"""
-Docstring for egppy.physics.insertion
+"""The wrap module provides wrapping operations for genetic codes.
+
+Wrapping transforms a genetic code by encapsulating it within another genetic
+code structure, supporting various wrapping strategies defined by WrapCase.
+See docs/insertion.md for details on wrapping cases.
 """
 
 from enum import IntEnum
@@ -43,19 +46,22 @@ def wrap(
         The modified rgc.
     """
     # pylint: disable=arguments-out-of-order
+    assert not igc.is_empty(), "IGC cannot be an empty GC!"
+    assert not tgc.is_empty(), "TGC cannot be an empty GC!"
     match case:
         case WrapCase.STACK:
-            return _stack(rtctxt, igc, tgc, rgc)
+            _rgc = _stack(rtctxt, igc, tgc, rgc)
         case WrapCase.ISTACK:
-            return _stack(rtctxt, tgc, igc, rgc)
+            _rgc = _stack(rtctxt, tgc, igc, rgc)
         case WrapCase.WRAP:
-            return _wrap(rtctxt, igc, tgc, rgc)
+            _rgc = _wrap(rtctxt, igc, tgc, rgc)
         case WrapCase.IWRAP:
-            return _wrap(rtctxt, tgc, igc, rgc)
+            _rgc = _wrap(rtctxt, tgc, igc, rgc)
         case WrapCase.HARMONY:
-            return _harmony(rtctxt, igc, tgc, rgc)
+            _rgc = _harmony(rtctxt, igc, tgc, rgc)
         case _:
             raise ValueError(f"Invalid wrapping case: {case}")
+    return _wrap_connection_process(_rgc)
 
 
 def _stack(rtctxt: RuntimeContext, igc: GCABC, tgc: GCABC, rgc: EGCode | None) -> EGCode:
@@ -134,4 +140,10 @@ def _harmony(rtctxt: RuntimeContext, gca: GCABC, gcb: GCABC, rgc: EGCode | None)
     )
     assert rgc["cgraph"].is_stable(), "Harmony resultant GC is not stable!"
     assert rgc.verify() is None, "Harmony resultant GC verification failed!"
+    return rgc
+
+
+def _wrap_connection_process(rgc: EGCode) -> EGCode:
+    """TODO: Implement connection processing for wrap cases.
+    rgc is modified in place and is returned."""
     return rgc

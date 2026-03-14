@@ -1,13 +1,14 @@
 """ObjectDeduplicator class.
 
-An object dict is a weak value dictionary of unique objects that
-may be referenced in many places. The intent is to reduce memory consumption when a
-lot of duplicate objects are used in a program that require access by a unique obj.
+Uses functools.lru_cache to deduplicate immutable objects that may be
+referenced in many places. The intent is to reduce memory consumption when
+many duplicate objects are used in a program. See
+``egpcommon/docs/object_deduplicator.md`` for the break-even analysis.
 """
 
 from collections.abc import Hashable
 from functools import lru_cache
-from typing import Any
+from typing import Any, TypeVar
 
 from egpcommon.common_obj import CommonObj
 from egpcommon.egp_log import Logger, egp_logger
@@ -15,6 +16,8 @@ from egpcommon.egp_log import Logger, egp_logger
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
+# TypeVar for preserving input types through deduplication
+_T = TypeVar("_T", bound=Hashable)
 
 # Deduplicator register
 # This is a global registry of all deduplicators for monitoring purposes.
@@ -45,10 +48,10 @@ def format_deduplicator_info(
 class ObjectDeduplicator(CommonObj):
     """ObjectDeduplicator class.
 
-    There is no __setitem__ method. This is because addition to the dictionary must not overwrite
-    existing objects. The __setitem__ method would overwrite the existing object with the new
-    object. This is not the desired behavior. The add method must be used to add objects to the
-    dictionary returning the existing object if it already exists.
+    There is no ``__setitem__`` method. This is because addition to the dictionary
+    must not overwrite existing objects. Use ``__getitem__`` (i.e. ``dedup[obj]``)
+    to obtain the canonical instance: if the object already exists in the cache,
+    the cached instance is returned; otherwise the new object is stored and returned.
     """
 
     __slots__ = ("_objects", "name", "target_rate")
@@ -75,7 +78,7 @@ class ObjectDeduplicator(CommonObj):
             deduplicators_registry[name] = self
 
             @lru_cache(maxsize=size)
-            def cached_hash(obj: Hashable) -> Hashable:
+            def cached_hash(obj: _T) -> _T:
                 return obj
 
             self._objects = cached_hash
@@ -88,14 +91,11 @@ class ObjectDeduplicator(CommonObj):
         """Test if an object is in the deduplicator."""
         raise RuntimeError("ObjectDeduplicator does not support __contains__ operation.")
 
-    def __getitem__(self, obj: Hashable) -> Any:
-        """Get a object from the dict."""
-        assert obj.is_frozen() if hasattr(obj, "is_frozen") else True, (  # type: ignore
-            "FreezableObjects must be frozen to be placed in an ObjectDeduplicator."
-        )
+    def __getitem__(self, obj: _T) -> _T:
+        """Get a deduplicated object from the cache."""
         return self._objects(obj)
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> "ObjectDeduplicator":
         """Prevent duplicate deduplicators with the same name."""
         name = args[0] if args else kwargs.get("name")
         if name in deduplicators_registry:
@@ -107,7 +107,11 @@ class ObjectDeduplicator(CommonObj):
         self._objects.cache_clear()
 
     def info(self) -> str:
-        """Print cache hit and miss statistics."""
+        """Log and return cache hit and miss statistics.
+
+        Returns:
+            Formatted string containing cache statistics.
+        """
         info = self._objects.cache_info()
         info_str = format_deduplicator_info(
             self.name,

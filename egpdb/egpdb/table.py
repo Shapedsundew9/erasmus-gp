@@ -4,7 +4,7 @@ from json import load
 from os.path import join
 from typing import Any, Callable, Iterable, Literal
 
-from egpcommon.egp_log import Logger, egp_logger
+from egpcommon.egp_log import FLOW, Logger, egp_logger
 from egpcommon.text_token import TextToken
 from egpdb.configuration import TableConfig
 from egpdb.raw_table import RawTable
@@ -140,8 +140,9 @@ class Table:
         if self.raw.creator and self.raw.config["data_files"]:
             for data_file in self.raw.config["data_files"]:
                 abspath = join(self.raw.config["data_file_folder"], data_file)
-                _logger.info(
-                    TextToken({"I05004": {"table": self.raw.config["table"], "file": abspath}})
+                _logger.log(
+                    FLOW,
+                    TextToken({"I05004": {"table": self.raw.config["table"], "file": abspath}}),
                 )
                 with open(abspath, "r", encoding="utf-8") as file_ptr:
                     self.insert(load(file_ptr))

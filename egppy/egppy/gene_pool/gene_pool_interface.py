@@ -1,20 +1,20 @@
 """The Gene Pool Interface."""
 
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 from os.path import dirname, join
-from typing import Any, Literal, Sequence
+from typing import Any, Literal
+from uuid import uuid4
 
 from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE
 from egpcommon.egp_log import Logger, egp_logger
-from egpcommon.properties import GC_TYPE_MASK, GCType
+from egpcommon.manage_github_data import download_data
 from egpcommon.security import load_signature_data, load_signed_json_list
 from egpdb.table import RowIter
 from egpdbmgr.db_manager import DBManager, DBManagerConfig
 from egppy.gene_pool.gene_pool_interface_abc import GPIABC
 from egppy.genetic_code.genetic_code import GCABC
-from egppy.genetic_code.ggc_dict import NULL_GC, GGCDict
+from egppy.genetic_code.ggc_dict import GGCDict
 from egppy.genetic_code.gpg_view import GPGCView
-from egppy.genetic_code.types_def import TypesDef
 from egppy.populations.configuration import PopulationConfig
 from egppy.storage.cache.cache import DictCache
 from egppy.storage.store.db_table_store import DBTableStore
@@ -25,12 +25,11 @@ _logger: Logger = egp_logger(name=__name__)
 
 # Source files
 SOURCE_FILES = tuple(
-    join(dirname(__file__), "..", "data", filename)
-    for filename in ("codons.json", "meta_codons.json")
+    join(dirname(__file__), "..", "data", filename) for filename in ("codons.json",)
 )
 
 
-class GenePoolInterface(GPIABC):
+class GenePoolInterface(GPIABC, Hashable):
     """Gene Pool Interface.
 
     A Gene Pool Interface is used to interact with the Gene Pool.
@@ -39,12 +38,11 @@ class GenePoolInterface(GPIABC):
     """
 
     def __init__(self, config: DBManagerConfig, cache_size: int = 2**16) -> None:
-        """Initialize the Gene Pool Interface.
-
-        The database manager is only configured once. All subsequent initializations
-        will use the already configured instances.
-        """
+        """Initialize the Gene Pool Interface."""
+        # Ensure latest data files are available before loading sources
+        download_data()
         self._dbm = DBManager(config)
+        self.uuid = uuid4()
         if self._should_reload_sources():
             _logger.info("Developer mode: Reloading Gene Pool data sources.")
             self._dbm = DBManager(config, delete=True)
@@ -81,13 +79,23 @@ class GenePoolInterface(GPIABC):
         """Check if a Genetic Code exists in the local cache using its signature."""
         return signature in self._ggc_cache
 
+    def __eq__(self, other: object) -> bool:
+        """Check if two Gene Pool Interfaces are equal based on their hash."""
+        if not isinstance(other, GenePoolInterface):
+            return NotImplemented
+        return self.uuid == other.uuid
+
+    def __hash__(self) -> int:
+        return hash(self.uuid)
+
     def __getitem__(self, gc: bytes | GGCDict) -> GGCDict:
         """Get a Genetic Code by its signature."""
         # TODO: Need to handle the case where the GC is not found in the GP.
         # In that case we fall back to the microbiome GPL (which will fallback
         # to the biome GPL etc.) and we could receive a timeout or rate limit
         # response.
-        return self._ggc_cache[gc if isinstance(gc, bytes) else gc["signature"]]
+        assert isinstance(gc, (bytes, GGCDict)), "gc must be bytes or GGCDict"
+        return self._ggc_cache[gc["signature"] if isinstance(gc, GGCDict) else gc]
 
     def __setitem__(self, signature: bytes, value: GCABC) -> None:
         """Place a genetic code in the cache. NB: It is not persisted to the
@@ -116,6 +124,17 @@ class GenePoolInterface(GPIABC):
                 hashes.remove(file_hash)
             return bool(hashes)
         return num_entries < len(SOURCE_FILES)
+
+    def add(self, value: GCABC) -> GGCDict:
+        """Place a genetic code in the cache. NB: It is not persisted to the
+        database until the cache is flushed / purged.
+
+        The same behaviour as __setitem__ only there is no need to extract the signature
+        and the value is returned from the cache.
+        """
+        signature = value["signature"]
+        self._ggc_cache[signature] = value if isinstance(value, GGCDict) else GGCDict(value)
+        return self._ggc_cache[signature]
 
     def consistency(self) -> None:
         """Check the consistency of the Gene Pool."""
@@ -168,66 +187,6 @@ class GenePoolInterface(GPIABC):
         for ggc in row_iter:
             return GGCDict(ggc)
         raise KeyError("No Genetic Code found matching the query.")
-
-    def select_meta(self, pts: Sequence[tuple[TypesDef, TypesDef]]) -> GCABC:
-        """Select a meta Genetic Code that has the exact matching input and output types.
-        Note that the order does not matter but the inputs and outputs must be aligned.
-
-        Example
-        -------
-        Suppose we have the following input-output type pairs:
-            pts: [(int, Integral), (int, Integral), (object, str)]
-        Then the selected meta Genetic Code can be any order of the input and output pairs:
-            (int -> Integral), (int -> Integral), (object -> str)
-
-        Args:
-            ipts: The input types definitions.
-            opts: The output types definitions.
-        Returns:
-            The selected meta Genetic Code or NULL_GC if none is found.
-        """
-        # Sanity on parameters
-        assert all(i != o for i, o in pts), "Input and output types must differ."
-
-        # Input types and indices
-        # Note that meta genetic codes input interfaces are always sorted in type order
-        # to make them easier to find.
-        itypes = sorted(set(t[0].uid for t in pts))
-        lookup_indices: dict[int, int] = {uid: idx for idx, uid in enumerate(itypes)}
-        isort = sorted(pts, key=lambda pair: pair[0].uid)
-        iindices = bytes(lookup_indices[t[0].uid] for t in isort)
-
-        # Output types and indices
-        otypes = sorted(set(t[1].uid for t in pts))
-        lookup_indices = {uid: idx for idx, uid in enumerate(otypes)}
-        oindices = bytes(lookup_indices[t[1].uid] for t in isort)
-
-        query = (
-            " WHERE ({properties} & {mask} in ({meta}, {ordinary_meta}))"
-            " AND {input_types} = {itypes}"
-            " AND {inputs} = {iindices} AND {output_types} = {otypes}"
-            " AND {outputs} = {oindices}"
-        )
-        literals = {
-            "mask": GC_TYPE_MASK,
-            "meta": GCType.META,
-            "ordinary_meta": GCType.ORDINARY_META,
-            "itypes": itypes,
-            "iindices": iindices,
-            "otypes": otypes,
-            "oindices": oindices,
-        }
-        row_iter = self._dbm.managed_gc_table.select(
-            query,
-            literals=literals,
-            columns="*",
-            container="dict",
-        )
-
-        # Return the first matching genetic code or NULL_GC
-        for ggc in row_iter:
-            return GGCDict(ggc)
-        return NULL_GC
 
     def verify(self) -> None:
         """Verify the Gene Pool."""

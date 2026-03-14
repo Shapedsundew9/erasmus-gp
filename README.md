@@ -6,23 +6,42 @@
 
 Erasmus Meta Genetic Programming, Erasmsus GP or just EGP, emulates the principles of evolution through a synthetic framework, using functional primitives creating a dynamic and adaptive artificial ecosystem to solve problems.
 
-## Index
+## Devcontainer Secrets
 
-- [An Introduction to Genetic Programming](docs/background.md)
-- [Goals of EGP](docs/goals.md)
-- [An Overview of How EGP works](docs/overview.md)
-- [Why!? (a.k.a FAQ)](docs/why.md)
-- [An Alternate View "Evolution: A Synthetic Approach"](docs/alternate.md)
-- How EGP Works in More Detail
-  - [Genetic Codes](egppy/egppy/gc_types/docs/gcs.md)
-  - [Populations](egppy/egppy/populations/docs/populations.md)
-    - [EGP Seed](egpseed/docs/overview.md)
-  - [Problems](egppy/egppy/problems/docs/problems.md)
-    - [Genesis](egppy/egppy/problems/docs/genesis.md)
-    - [Tic-Tac-Toe](egppy/egppy/problems/docs/tic-tac-toe.md)
-  - [EGP Physics](egppy/egppy/physics/docs/physics.md)
+For Codespaces/local environment variable and secret handling, see
+[docs/development/setup.md](docs/development/setup.md#devcontainer-environment-variables--secrets).
 
-- EGP Application
-  - Quick Start Guide
-  - [Architecture](docs/architecture.md)
-  - [Implementation](docs/implementation.md)
+## Documentation Index
+
+### 🏁 Introduction
+
+- [**Overview**](docs/intro/overview.md) – How EGP works at a high level.
+- [**Background**](docs/intro/background.md) – An introduction to Genetic Programming.
+- [**Goals**](docs/intro/goals.md) – What EGP aims to achieve.
+- [**Why? (FAQ)**](docs/intro/why.md) – Common questions and answers.
+- [**Architecture**](docs/intro/architecture.md) – The high-level system structure.
+- [**Implementation**](docs/intro/implementation.md) – Technical details of the implementation.
+- [**Alternate View**](docs/intro/alternate.md) – "Evolution: A Synthetic Approach."
+
+### 📐 Design & Development
+
+- [**Design Principles**](docs/design/principles.md) – The core philosophy.
+- [**Design Concepts**](docs/design/concepts.md) – Fundamental ideas.
+- [**Selection Algorithm**](docs/design/selection.md) – How evolution is driven.
+- [**Setup & Development**](docs/development/setup.md) – Getting started as a developer.
+- [**Style Guide**](docs/development/style_guide.md) – Coding standards.
+- [**Lifecycle**](docs/development/lifecycle.md) – System lifecycle and states.
+
+### 🏗️ Components Deep-Dive
+
+- [**Common Utilities**](docs/components/common/object_deduplicator.md) – Shared logic and logo.
+- [**Database**](docs/components/database/database.md) – Schema and [manager architecture](docs/components/database/manager_architecture.md).
+- **Core Engine (egppy):**
+  - [**Genotype**](docs/components/core/genotype.md) – Structure of genetic material.
+  - [**Gene Pool**](docs/components/core/gene_pool.md) – Managing genetic diversity.
+  - [**Populations**](docs/components/core/populations.md) – Groups of individuals.
+  - [**Genetic Codes**](docs/components/core/genetic_code/definitions.md) – Rules and [relationships](docs/components/core/genetic_code/relationships.md).
+  - [**Physics**](docs/components/core/physics/overview.md) – [Mutation](docs/components/core/physics/mutation.md), [Insertion](docs/components/core/physics/insertion.md), and [Selection](docs/components/core/physics/selection.md).
+- [**Worker**](docs/components/worker/design.md) – [Executor](docs/components/worker/executor.md) and [workflow](docs/components/worker/workflow.md).
+- [**Storage**](docs/components/storage/stores.md) – Data persistence.
+- [**Problems**](docs/components/problems/overview.md) – [Genesis](docs/components/problems/genesis.md) and [Tic-Tac-Toe](docs/components/problems/tic-tac-toe.md).

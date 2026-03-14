@@ -24,6 +24,8 @@ from egpdb.database import (
     db_transaction,
 )
 
+# pylint: disable=protected-access
+
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
@@ -489,6 +491,9 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
+            def commit(self) -> None:
+                """Commit the transaction."""
+
         mock_connect.return_value = MockConnection()
         mock_as_string.return_value = "SQL string"
         self.assertTrue(db_exists(_MOCK_DBNAME, _MOCK_CONFIG))
@@ -538,6 +543,9 @@ class TestDatabase(TestCase):
             def close(self):
                 """Close the connection."""
                 self.value = None
+
+            def commit(self) -> None:
+                """Commit the transaction."""
 
         mock_connect.return_value = MockConnection()
         mock_as_string.return_value = "SQL string"
@@ -887,6 +895,9 @@ class TestDatabase(TestCase):
                 """Close the connection."""
                 self.value = None
 
+            def commit(self) -> None:
+                """Commit the transaction."""
+
         mock_connect.return_value = MockConnection()
         dbcur = db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, ("SQL0",))
         assert not dbcur.fetchone()
@@ -940,3 +951,143 @@ class TestDatabase(TestCase):
         dbcur = db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, "SQL0", read=False)
         assert dbcur.fetchone() == 2
         assert db_connect(_MOCK_DBNAME, _MOCK_CONFIG).commit
+
+    @patch("egpdb.database.connect")
+    def test_db_disconnect_all_clears_state(self, mock_connect):
+        """Verify db_disconnect_all clears _connections entirely."""
+        db_disconnect_all()
+
+        class MockConnection:
+            """Mock connection class for testing."""
+
+            def __init__(self) -> None:
+                """Initialize the connection."""
+                self.value = _MOCK_VALUE_1
+
+            def close(self) -> None:
+                """Close the connection."""
+                self.value = None
+
+        mock_connect.return_value = MockConnection()
+        db_connect(_MOCK_DBNAME, _MOCK_CONFIG)
+        db_connect("other_db", _MOCK_CONFIG)
+
+        # Ensure connections are tracked
+        self.assertIn(
+            _MOCK_CONFIG["host"], database._connections
+        )  # pylint: disable=protected-access
+
+        db_disconnect_all()
+
+        # _connections should be completely empty
+        self.assertEqual(database._connections, {})  # pylint: disable=protected-access
+
+    @patch("egpdb.database.connect")
+    def test_db_disconnect_nonexistent_is_noop(self, mock_connect):
+        """Disconnecting from a non-connected database should be a no-op."""
+        db_disconnect_all()
+
+        class MockConnection:
+            """Mock connection class for testing."""
+
+            def __init__(self) -> None:
+                """Initialize the connection."""
+                self.value = _MOCK_VALUE_1
+
+            def close(self) -> None:
+                """Close the connection."""
+                self.value = None
+
+        mock_connect.return_value = MockConnection()
+
+        # Should not raise even though no connection exists
+        db_disconnect("nonexistent_db", _MOCK_CONFIG)
+
+    @patch("egpdb.database.connect")
+    def test_clean_connections_p1_with_none_connection(self, mock_connect):
+        """Dead thread entry with None connection should be removed without error."""
+        db_disconnect_all()
+
+        class MockConnection:
+            """Mock connection class for testing."""
+
+            def __init__(self) -> None:
+                """Initialize the connection."""
+                self.value = _MOCK_VALUE_1
+
+            def close(self) -> None:
+                """Close the connection."""
+                self.value = None
+
+        mock_connect.return_value = MockConnection()
+
+        # 999999 is unlikely to be a valid thread ident
+        with patch.dict(
+            database._connections,  # pylint: disable=protected-access
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {999999: None}}},
+            clear=True,
+        ):
+            _clean_connections()
+            # The dead thread entry should be removed
+            self.assertNotIn(
+                999999,
+                database._connections.get(_MOCK_CONFIG["host"], {}).get(
+                    _MOCK_DBNAME, {}
+                ),  # pylint: disable=protected-access
+            )
+
+    @patch("egpdb.database.connect")
+    def test_clean_connections_n1_interface_error(self, mock_connect):
+        """Dead thread whose connection raises InterfaceError on close is handled."""
+        db_disconnect_all()
+
+        from psycopg2 import InterfaceError  # pylint: disable=import-outside-toplevel
+
+        class MockConnection:
+            """Mock connection class that raises InterfaceError on close."""
+
+            def __init__(self) -> None:
+                """Initialize the connection."""
+                self.value = _MOCK_VALUE_1
+
+            def close(self) -> None:
+                """Close the connection and raise InterfaceError."""
+                raise InterfaceError
+
+        mock_connect.return_value = MockConnection()
+
+        with patch.dict(
+            database._connections,  # pylint: disable=protected-access
+            {_MOCK_CONFIG["host"]: {_MOCK_DBNAME: {888888: MockConnection()}}},
+            clear=True,
+        ):
+            _clean_connections()
+            # Entry should remain because close() raised and it's caught
+            # but the entry is not deleted on exception
+            self.assertIn(
+                888888,
+                database._connections.get(_MOCK_CONFIG["host"], {}).get(
+                    _MOCK_DBNAME, {}
+                ),  # pylint: disable=protected-access
+            )
+
+    def test_db_transaction_n5_zero_recons(self) -> None:
+        """Zero reconnection attempts raises ProgrammingError immediately."""
+        with self.assertRaises(ProgrammingError):
+            db_transaction(_MOCK_DBNAME, _MOCK_CONFIG, "SQL0", recons=0)
+
+    @patch("egpdb.database.connect")
+    def test_get_connection_creates_nested_dicts(self, _):
+        """_get_connection correctly initializes nested dict structure."""
+        db_disconnect_all()
+
+        from egpdb.database import _get_connection  # pylint: disable=import-outside-toplevel
+
+        result = _get_connection("newdb", "newhost")
+        self.assertIsNone(result)
+        # Verify nested structure was created
+        self.assertIn("newhost", database._connections)  # pylint: disable=protected-access
+        self.assertIn("newdb", database._connections["newhost"])  # pylint: disable=protected-access
+
+        # Cleanup
+        db_disconnect_all()

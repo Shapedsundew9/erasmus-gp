@@ -1,4 +1,7 @@
-"""Common functions for database."""
+"""Common utility functions for egpdb.
+
+Provides connection retry backoff logic and connection string construction.
+"""
 
 from random import random
 from typing import Any, Callable, Generator
@@ -39,7 +42,7 @@ def backoff_generator(
 
 
 def connection_str_from_config(db_config: DatabaseConfig, with_password: bool = False) -> str:
-    """Create a posgresl connection string from a DB configutation.
+    """Create a postgresql connection string from a DB configuration.
 
     Args
     ----
@@ -49,7 +52,7 @@ def connection_str_from_config(db_config: DatabaseConfig, with_password: bool = 
     Returns
     -------
     A postgresql connection string.
-    postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
+    Format: postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
     """
     connection_str: str = "postgresql://"
     connection_str += db_config["user"]

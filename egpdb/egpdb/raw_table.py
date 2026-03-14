@@ -8,8 +8,9 @@ from time import sleep
 from typing import Any, Generator, Iterable, Literal
 
 from psycopg2 import ProgrammingError, errors, sql
+from psycopg2.extras import Json
 
-from egpcommon.egp_log import DEBUG, Logger, egp_logger
+from egpcommon.egp_log import DEBUG, FLOW, Logger, egp_logger
 from egpcommon.text_token import TextToken, register_token_code
 from egpdb.common import backoff_generator
 from egpdb.configuration import ColumnSchema, TableConfig
@@ -97,6 +98,8 @@ _TYPE_ALIGNMENTS: dict[str, int] = {
     "TIME": 8,
     "TIMESTAMP": 8,
     "UUID": 8,
+    "JSON": 0,
+    "JSONB": 0,
 }
 TYPES = tuple(_TYPE_ALIGNMENTS.keys())
 _TABLE_LEN_SQL = sql.SQL("SELECT COUNT(*) FROM {0}")
@@ -177,6 +180,10 @@ class RawTable:
         create_table: bool = (
             not self._table_exists(self.config["wait_for_table"]) and self.config["create_table"]
         )
+        # Find the JSON columns so we can quickly determine if we need to wrap literals
+        self._json_columns = {
+            c for c, d in self.config["schema"].items() if d["db_type"].upper() in ("JSON", "JSONB")
+        }
         self.columns = self._create_table() if create_table else self._table_definition()
         if not create_table and not self.columns:
             raise ValueError(
@@ -234,7 +241,7 @@ class RawTable:
             )
             sql_str += sql.SQL(" USING ") + sql.Identifier(definition["index"])
             sql_str += _TABLE_INDEX_COLUMN_SQL.format(sql.Identifier(column))
-            _logger.info(TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
+            _logger.log(DEBUG, TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
             self._db_transaction(sql_str, read=False)
 
     def _create_table(self):
@@ -251,7 +258,7 @@ class RawTable:
         columns: list[sql.Composed] = []
         self.columns: set[str] = set()
         definition_list = self._order_schema()
-        _logger.info("Table will be created with columns in the order logged below.")
+        _logger.log(FLOW, "Table will be created with columns in the order logged below.")
         for column, definition in definition_list:
             sql_str = " " + definition["db_type"]
             if not definition["nullable"]:
@@ -263,7 +270,8 @@ class RawTable:
             if definition["default"] is not None:
                 sql_str += " DEFAULT " + definition["default"]
             self.columns.add(column)
-            _logger.info(
+            _logger.log(
+                FLOW,
                 "Column: %s, SQL Definition: %s, Alignment: %s",
                 column,
                 sql_str,
@@ -272,12 +280,13 @@ class RawTable:
             columns.append(sql.Identifier(column) + sql.SQL(sql_str))
 
         sql_str = _TABLE_CREATE_SQL.format(self._table, sql.SQL(", ").join(columns))
-        _logger.info(TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
+        _logger.log(DEBUG, TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
         try:
             self._db_transaction(sql_str, read=False)
         except ProgrammingError as exc:
             if exc.pgcode == errors.DuplicateTable:  # pylint: disable=no-member
-                _logger.info(
+                _logger.log(
+                    FLOW,
                     TextToken(
                         {
                             "I05001": {
@@ -285,7 +294,7 @@ class RawTable:
                                 "dbname": self.config["database"],
                             }
                         }
-                    )
+                    ),
                 )
                 return self._table_definition()
             raise exc
@@ -304,7 +313,8 @@ class RawTable:
                 # deepcode ignore unguarded~next~call: backoff generator is infinite
                 backoff = next(backoff_gen)
                 dbname = self.config["database"]["dbname"]
-                _logger.info(
+                _logger.log(
+                    FLOW,
                     TextToken(
                         {
                             "I05008": {
@@ -312,7 +322,7 @@ class RawTable:
                                 "backoff": backoff,
                             }
                         }
-                    )
+                    ),
                 )
                 sleep(backoff)
             return True
@@ -336,6 +346,7 @@ class RawTable:
         format_dict: dict[str, sql.Identifier | sql.Literal] = {
             k: sql.Identifier(k) for k in self.columns
         }
+        format_dict[self.config["table"]] = self._table
         if literals is not None:
             dupes: set[str] = set(literals.keys()).intersection(self.columns)
             if dupes:
@@ -387,8 +398,9 @@ class RawTable:
         if self.populate and self.config["data_files"]:
             for data_file in self.config["data_files"]:
                 abspath: str = join(self.config["data_file_folder"], data_file)
-                _logger.info(
-                    TextToken({"I05004": {"table": self.config["table"], "file": abspath}})
+                _logger.log(
+                    FLOW,
+                    TextToken({"I05004": {"table": self.config["table"], "file": abspath}}),
                 )
                 with open(abspath, "r", encoding="utf-8") as file_ptr:
                     for columns, values in self.batch_dict_data(load(file_ptr)):
@@ -476,7 +488,8 @@ class RawTable:
         while not exists and wait:
             # deepcode ignore unguarded~next~call: backoff generator is infinite
             backoff = next(backoff_gen)
-            _logger.info(
+            _logger.log(
+                FLOW,
                 TextToken(
                     {
                         "I05003": {
@@ -485,7 +498,7 @@ class RawTable:
                             "backoff": backoff,
                         }
                     }
-                )
+                ),
             )
             exists = self._table_exists_()
             sleep(backoff)
@@ -636,7 +649,7 @@ class RawTable:
         """Delete the table."""
         if db_exists(self.config["database"]["dbname"], self.config["database"]):
             sql_str: sql.Composed = _TABLE_DELETE_TABLE_SQL.format(self._table)
-            _logger.info(TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
+            _logger.log(DEBUG, TextToken({"I05000": {"sql": self._sql_to_string(sql_str)}}))
             self._db_transaction(sql_str, read=False)
 
     def insert(self, columns, values, returning=tuple()):
@@ -903,10 +916,13 @@ class RawTable:
             )
         columns_sql = sql.SQL(",").join([sql.Identifier(k) for k in columns])
         values_sql = sql.SQL(",").join(
-            (
-                sql.SQL("({0})").format(sql.SQL(",").join((sql.Literal(value) for value in row)))
-                for row in values
+            sql.SQL("({0})").format(
+                sql.SQL(",").join(
+                    (sql.Literal(Json(value)) if col in self._json_columns else sql.Literal(value))
+                    for value, col in zip(row, columns)
+                )
             )
+            for row in values
         )
         if not values_sql.seq:
             return iter(tuple())

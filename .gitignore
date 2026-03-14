@@ -215,10 +215,12 @@ __marimo__/
 
 # EGP
 codons.json
-meta_codons.json
 codons.json.sig
-meta_codons.json.sig
 types_def.json
 types_def.json.sig
 profile_analysis.txt
 temp.*
+types_graph.html
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md

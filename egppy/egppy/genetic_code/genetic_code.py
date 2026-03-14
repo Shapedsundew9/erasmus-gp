@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import MutableMapping
 from typing import Any, Iterator
 
 from egpcommon.egp_log import Logger, egp_logger
@@ -22,17 +23,28 @@ NULL_PROBLEM_SET: None = None
 
 
 # Mermaid Chart header and footer
-MERMAID_BLUE = "blue"
-MERMAID_GREEN = "green"
-MERMAID_RED = "red"
-MERMAID_BLACK = "black"
-MERMAID_HEADER: list[str] = ["flowchart TD"]
+MERMAID_BLUE = "dataBlue"
+MERMAID_GREEN = "dataPurple"
+MERMAID_RED = "dataRed"
+MERMAID_BLACK = "default"
+MERMAID_HEADER: list[str] = [
+    "%%{init: { 'theme': 'dark', 'themeVariables': { 'lineColor': '#6c7a89', 'textColor': '#edf2f4', 'mainBkg': '#2b2d42', 'primaryBorderColor': '#4a4e69' }}}%%",
+    "flowchart TD",
+]
 MERMAID_FOOTER: list[str] = [
-    "classDef grey fill:#444444,stroke:#333333,stroke-width:2px",
-    "classDef red fill:#A74747,stroke:#996666,stroke-width:2px",
-    "classDef blue fill:#336699,stroke:#556688,stroke-width:2px",
-    "classDef green fill:#576457,stroke:#667766,stroke-width:2px",
-    "linkStyle default stroke:#AAAAAA,stroke-width:2px",
+    "classDef default fill:#2b2d42,stroke:#4a4e69,stroke-width:2px,color:#edf2f4",
+    "classDef dataBlue fill:#3a506b,stroke:#5c6b73,stroke-width:2px,color:#ffffff",
+    "classDef dataGreen fill:#425c52,stroke:#5d7a6f,stroke-width:2px,color:#ffffff",
+    "classDef dataGold fill:#6e6246,stroke:#8f8160,stroke-width:2px,color:#ffffff",
+    "classDef dataRed fill:#6e4646,stroke:#8f6060,stroke-width:2px,color:#ffffff",
+    "classDef dataPurple fill:#594a5c,stroke:#7b687f,stroke-width:2px,color:#ffffff",
+    "classDef dataTeal fill:#3b5e60,stroke:#5b7a7c,stroke-width:2px,color:#ffffff",
+    "classDef dataPlum fill:#4a3b52,stroke:#685b70,stroke-width:2px,color:#ffffff",
+    "classDef dataOlive fill:#525c42,stroke:#6f7a5d,stroke-width:2px,color:#ffffff",
+    "classDef dataNavy fill:#2c3e50,stroke:#4a5c6e,stroke-width:2px,color:#ffffff",
+    "classDef zonePrimary fill:#1f2130,stroke:#3a3e59,stroke-width:2px,stroke-dasharray: 5 5",
+    "classDef zoneExternal fill:#221f2e,stroke:#4a3b52,stroke-width:2px,stroke-dasharray: 5 5",
+    "linkStyle default stroke:#6c7a89,stroke-width:2px",
 ]
 
 
@@ -71,8 +83,6 @@ def mc_gc_str(gcabc: GCABC, prefix: str, row: Row, color: str = "") -> str:
     if color == "":
         color = MERMAID_BLUE
         if gcabc.is_codon():
-            if gcabc.is_meta():
-                return mc_meta_str(gcabc, prefix, row)
             return mc_codon_str(gcabc, prefix, row)
     label = f"{row}<br>{gcabc['signature'].hex()[-8:]}"
     return mc_rectangle_str(prefix + gcabc["signature"].hex()[-8:], label, color)
@@ -126,11 +136,14 @@ def mermaid_key() -> str:
     return "\n".join(_MERMAID_KEY)
 
 
-class GCABC(CacheableObjABC):
+class GCABC(MutableMapping[str, Any], CacheableObjABC):
     """Genetic Code Abstract Base Class.
 
-    Add Genetic Code classes have a very simple dictionary like interface for getting and
-    setting members. All GC keys are strings from a frozen set of keys.
+    All Genetic Code classes have a MutableMapping[str, Any] interface for getting
+    and setting members. All GC keys are strings from a frozen set of keys.
+    Inherits from MutableMapping to formally conform to the mapping protocol,
+    which provides get, setdefault, pop, popitem, clear, update, keys, values,
+    and items as mixin methods.
     """
 
     GC_KEY_TYPES: dict[str, dict[str, str | bool]]
@@ -161,11 +174,6 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.__setitem__ must be overridden")
 
     @abstractmethod
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get the value of a key or return the default."""
-        raise NotImplementedError("GCABC.get must be overridden")
-
-    @abstractmethod
     def is_codon(self) -> bool:
         """Return True if the GCABC is a codon."""
         raise NotImplementedError("GCABC.is_codon must be overridden")
@@ -176,9 +184,14 @@ class GCABC(CacheableObjABC):
         raise NotImplementedError("GCABC.is_conditional must be overridden")
 
     @abstractmethod
-    def is_meta(self) -> bool:
-        """Return True if the genetic code is a meta-codon."""
-        raise NotImplementedError("GCABC.is_meta must be overridden")
+    def is_empty(self) -> bool:
+        """Return True if the GCABC is empty."""
+        raise NotImplementedError("GCABC.is_empty must be overridden")
+
+    @abstractmethod
+    def is_standard(self) -> bool:
+        """Return True if the GCABC is standard."""
+        raise NotImplementedError("GCABC.is_standard must be overridden")
 
     @abstractmethod
     def is_pgc(self) -> bool:
@@ -194,8 +207,3 @@ class GCABC(CacheableObjABC):
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the data members of the GCABC."""
         raise NotImplementedError("GCABC.set_members must be overridden")
-
-    @abstractmethod
-    def setdefault(self, key: str, default: Any = None) -> Any:
-        """Set the value of a key if it does not exist and return the set value."""
-        raise NotImplementedError("GCABC.setdefault must be overridden")

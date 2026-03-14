@@ -22,11 +22,11 @@ from egppy.genetic_code.c_graph_constants import (
     SrcRow,
 )
 from egppy.genetic_code.endpoint_abc import EndpointMemberType
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 # This pattern involves creating a logger instance using the egp_logger function,
-# and setting up boolean flags to check if certain logging levels (DEBUG, VERIFY, CONSISTENCY)
+# and setting up boolean flags to check if certain logging levels
 # are enabled. This allows for conditional logging based on the configured log level.
 _logger: Logger = egp_logger(name=__name__)
 
@@ -199,6 +199,10 @@ def valid_jcg(jcg: JSONCGraph) -> bool:
     for key, epts in jcg.items():
         if not isinstance(epts, list):
             raise TypeError(f"Invalid value in JSON connection graph: {epts}")
+
+    # If row U exists it must have a non-zero length
+    if DstRow.U in jcg and len(jcg[DstRow.U]) == 0:
+        raise ValueError("Row U must have a non-zero length if it exists")
 
     # Check that connectivity is valid
     for dst, vsr in valid_src_rows(c_graph_type(jcg)).items():

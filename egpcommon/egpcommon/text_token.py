@@ -36,16 +36,16 @@ def register_token_code(code: str, fmt_str: str) -> None:
     """Register a token code and text in the token_library.
 
     The registered code can then be used to generate a human readable
-    string when the _str_() function is called on a token with that code.
+    string when the ``__str__()`` method is called on a TextToken with that code.
 
-    Args
-    ----
-    code : Format "E<i><i><i><i><i>" where <i> is a digit 0 to 9. Every code is unique.
-    fmt_str : A human readable string for the code with optional formatting parameters.
+    Args:
+        code: Format ``"E<i><i><i><i><i>"`` where ``<i>`` is a digit 0 to 9.
+            Every code is unique.
+        fmt_str: A human readable string for the code with optional
+            formatting parameters.
 
-    Returns
-    -------
-    True if the token is valid else False
+    Raises:
+        ValueError: If the code prefix, length, number, or uniqueness is invalid.
     """
     if not code[0] in _CODE_PREFIXES:
         raise ValueError(f"Invalid token code prefix '{code[0]}' must be one of {_CODE_PREFIXES}.")
@@ -74,7 +74,7 @@ class TextToken:
         self.parameters: dict[str, Any] = token[self.code]
 
     def __str__(self) -> str:
-        """Convert the token to a human readbale string."""
+        """Convert the token to a human readable string."""
         # text_token._logger.debug("Code {}: Parameters: {} Library string: {}".format(
         #   self.code, self.parameters, token_library[self.code]))
         return (

@@ -6,7 +6,7 @@ from collections.abc import Generator, Mapping
 from itertools import chain
 
 from egpcommon.common_obj import CommonObj
-from egpcommon.egp_log import VERIFY, Logger, egp_logger
+from egpcommon.egp_log import Integrity, Logger, egp_logger
 from egpcommon.egp_rnd_gen import EGPRndGen, egp_rng
 from egppy.genetic_code.c_graph_abc import CGraphABC, FrozenCGraphABC
 from egppy.genetic_code.c_graph_constants import (
@@ -18,6 +18,7 @@ from egppy.genetic_code.c_graph_constants import (
     IMPLY_P_IFKEYS,
     ROW_CLS_INDEXED_ORDERED,
     ROW_CLS_INDEXED_SET,
+    ConnectionType,
     DstIfKey,
     DstRow,
     EPCls,
@@ -31,7 +32,7 @@ from egppy.genetic_code.frozen_c_graph import FrozenCGraph
 from egppy.genetic_code.interface import Interface, InterfaceABC
 from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 from egppy.genetic_code.json_cgraph import c_graph_type, valid_src_rows
-from egppy.genetic_code.types_def import types_def_store
+from egppy.genetic_code.types_def_store import types_def_store
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -81,7 +82,7 @@ class CGraph(FrozenCGraph, CGraphABC):
                 setattr(self, _key, iface)
             elif key in (SrcIfKey.IS, DstIfKey.OD):
                 # Is and Od must exist even if empty
-                setattr(self, _key, [])  # Empty interface
+                setattr(self, _key, Interface([], row))  # Empty interface
             else:
                 setattr(self, _key, None)
 
@@ -89,7 +90,15 @@ class CGraph(FrozenCGraph, CGraphABC):
         # Ensure PD exists if LD, WD, or FD exist and OD is empty
         need_p = any(getattr(self, _UNDER_KEY_DICT[key]) is not None for key in IMPLY_P_IFKEYS)
         if need_p and len(getattr(self, _UNDER_KEY_DICT[DstIfKey.OD])) == 0:
-            setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], [])
+            setattr(self, _UNDER_KEY_DICT[DstIfKey.PD], Interface([], DstRow.P))
+
+        # Sanity check that all interfaces are valid Interface instances
+        # or None (i.e. non-existent)
+        assert all(
+            getattr(self, _UNDER_KEY_DICT[key]) is None
+            or isinstance(getattr(self, _UNDER_KEY_DICT[key]), InterfaceABC)
+            for key in ROW_CLS_INDEXED_ORDERED
+        ), "Invalid interface types in graph initialization."
 
     def __delitem__(self, key: IfKey) -> None:
         """Delete the interface with the given key."""
@@ -143,7 +152,12 @@ class CGraph(FrozenCGraph, CGraphABC):
         dst_ep.connect(src_ep)
         src_ep.connect(dst_ep)
 
-    def connect_all(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+    def connect_all(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """
         Connect all unconnected destination endpoints in the Connection Graph to randomly
         selected valid source endpoints.
@@ -156,7 +170,10 @@ class CGraph(FrozenCGraph, CGraphABC):
             if_locked (bool): If True, prevents the creation of new input interface endpoints.
                 If False, allows extending the input interface ('I') with new endpoints when needed
                 and when 'I' is a valid source row for the destination. Defaults to True.
-            seed (int | None): Seed for the random number generator to ensure reproducibility.
+            rng (EGPRndGen): Random number generator instance for reproducible shuffling.
+                Defaults to the global ``egp_rng``.
+            ct (ConnectionType): The type of connection to attempt (COMPATIBLE or DOWNCAST).
+                Defaults to COMPATIBLE.
 
         Returns:
             None: Modifies the graph in-place by establishing connections between endpoints.
@@ -193,10 +210,25 @@ class CGraph(FrozenCGraph, CGraphABC):
             valid_src_rows_for_dst = vsrc_rows[DstRow(dep.row)]
             _vifs = (getattr(self, _UNDER_SRC_KEY_DICT[row]) for row in valid_src_rows_for_dst)
             vifs = (vif for vif in _vifs if vif is not None)
-            # Gather all the source endpoints that are compatible with the destination endpoint.
-            vsrcs = [
-                sep for vif in vifs for sep in vif if dep.typ in types_def_store.ancestors(sep.typ)
-            ]
+            if ct == ConnectionType.COMPATIBLE:
+                # Gather all the source endpoints that are compatible with the destination endpoint.
+                vsrcs = [
+                    sep
+                    for vif in vifs
+                    for sep in vif
+                    if types_def_store.is_compatible(sep.typ, dep.typ)
+                ]
+            elif ct == ConnectionType.DOWNCAST:
+                # Gather all the source endpoints that are downcast compatible with the
+                # destination endpoint.
+                vsrcs = [
+                    sep
+                    for vif in vifs
+                    for sep in vif
+                    if types_def_store.is_downcast_compatible(sep.typ, dep.typ)
+                ]
+            else:
+                raise ValueError(f"Invalid ConnectionType: {ct}")
             # If the interface of the GC is not fixed (i.e. it is not an empty GC) then
             # a new input interface endpoint is an option, BUT only if I is a valid source
             # for this destination row according to the graph type rules.
@@ -234,7 +266,12 @@ class CGraph(FrozenCGraph, CGraphABC):
         difs: Generator[InterfaceABC] = (getattr(self, key) for key in _UNDER_ROW_DST_INDEXED)
         return all(not iface.unconnected_eps() for iface in difs if iface is not None)
 
-    def stabilize(self, if_locked: bool = True, rng: EGPRndGen = egp_rng) -> None:
+    def stabilize(
+        self,
+        if_locked: bool = True,
+        rng: EGPRndGen = egp_rng,
+        ct: ConnectionType = ConnectionType.COMPATIBLE,
+    ) -> None:
         """Stablization involves making all the mandatory connections and
         connecting all the remaining unconnected destination endpoints.
         Destinations are connected to sources in a random order.
@@ -244,7 +281,14 @@ class CGraph(FrozenCGraph, CGraphABC):
 
         After stabilization, check is_stable() to determine if all destinations
         were successfully connected.
+
+        Args:
+            if_locked (bool): If True, prevents the creation of new input interface endpoints.
+                If False, allows extending the input interface ('I') with new endpoints when needed
+            rng (EGPRndGen): Random number generator for selecting source endpoints.
+            ct (ConnectionType): The type of connection to attempt (COMPATIBLE or DOWNCAST).
+                Defaults to COMPATIBLE.
         """
-        self.connect_all(if_locked, rng)
-        if _logger.isEnabledFor(level=VERIFY):
+        self.connect_all(if_locked, rng, ct)
+        if Integrity.is_enabled_for(level=Integrity.VERIFY):
             self.verify()

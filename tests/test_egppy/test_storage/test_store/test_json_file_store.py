@@ -1,14 +1,17 @@
 """Test case for JSONFileStore class."""
+
 import unittest
+
 from egppy.storage.store.json_file_store import JSONFileStore
 from egppy.storage.store.storable_obj import StorableDict, StorableList, StorableSet, StorableTuple
 from egppy.storage.store.storable_obj_abc import StorableObjABC
-from test_egppy.test_storage.store_test_base import DEFAULT_VALUES
-from test_egppy.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
+from tests.test_egppy.test_storage.store_test_base import DEFAULT_VALUES
+from tests.test_egppy.test_storage.test_store.json_file_store_test_base import JSONFileStoreTestBase
 
 
 class TestJSONFileStoreStorableDict(JSONFileStoreTestBase):
     """Test cases for JSONFileStore class with StorableDict."""
+
     store_type = JSONFileStore
     value_type = StorableDict
     value: StorableObjABC = StorableDict(DEFAULT_VALUES[0])
@@ -18,6 +21,7 @@ class TestJSONFileStoreStorableDict(JSONFileStoreTestBase):
 
 class TestJSONFileStoreStorableList(JSONFileStoreTestBase):
     """Test cases for JSONFileStore class with StorableList."""
+
     store_type = JSONFileStore
     value_type = StorableList
     value: StorableObjABC = StorableList(DEFAULT_VALUES[0])
@@ -27,6 +31,7 @@ class TestJSONFileStoreStorableList(JSONFileStoreTestBase):
 
 class TestJSONFileStoreStorableSet(JSONFileStoreTestBase):
     """Test cases for JSONFileStore class with StorableSet."""
+
     store_type = JSONFileStore
     value_type = StorableSet
     value: StorableObjABC = StorableSet(DEFAULT_VALUES[0])
@@ -36,6 +41,7 @@ class TestJSONFileStoreStorableSet(JSONFileStoreTestBase):
 
 class TestJSONFileStoreStorableTuple(JSONFileStoreTestBase):
     """Test cases for JSONFileStore class with StorableTuple."""
+
     store_type = JSONFileStore
     value_type = StorableTuple
     value: StorableObjABC = StorableTuple(DEFAULT_VALUES[0])
@@ -43,5 +49,5 @@ class TestJSONFileStoreStorableTuple(JSONFileStoreTestBase):
     value2: StorableObjABC = StorableTuple(DEFAULT_VALUES[2])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

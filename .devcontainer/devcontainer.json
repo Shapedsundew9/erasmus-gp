@@ -26,13 +26,12 @@
 				"python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
 				"python.terminal.activateEnvironment": true,
 				"python.analysis.extraPaths": [
-					"/usr/local/share/bitdict",
+					"/workspaces/bitdict",
 					"/workspaces/erasmus-gp/egpcommon",
 					"/workspaces/erasmus-gp/egppkrapi",
 					"/workspaces/erasmus-gp/egppy",
 					"/workspaces/erasmus-gp/egpdb",
-					"/workspaces/erasmus-gp/egpdbmgr",
-					"/workspaces/egpseed"
+					"/workspaces/erasmus-gp/egpdbmgr"
 				],
 				"python.analysis.autoImportCompletions": true,
 				"python.analysis.indexing": true,
@@ -80,7 +79,8 @@
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {}
 	},
-	"postCreateCommand": "npm install -g @github/copilot && bash .devcontainer/post-create.sh",
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"postStartCommand": "bash .devcontainer/post-start.sh",
 	"forwardPorts": [
 		8080,
 		5432
@@ -89,9 +89,5 @@
 		"app",
 		"postgres",
 		"pgadmin"
-	],
-	// Mount the config directory to a volume so you don't have to login on every rebuild.
-	"mounts": [
-		"source=copilot-config,target=/home/vscode/.config/github-copilot,type=volume"
 	]
 }

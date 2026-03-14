@@ -21,7 +21,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 0, "int"], ["I", 1, "str"], ["I", 2, "bool"]],
             DstRow.B: [["A", 0, "int"], ["A", 2, "bool"]],
             DstRow.O: [["B", 0, "int"], ["A", 1, "str"], ["B", 1, "bool"]],
-            DstRow.U: [],
         }
 
         interfaces = json_cgraph_to_interfaces(jcg)
@@ -49,7 +48,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
 
         interfaces = json_cgraph_to_interfaces(jcg)
@@ -82,7 +80,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         invalid_jcg = {
             "Z": [["I", 0, "int"]],  # Z is not a valid destination row
             DstRow.O: [],
-            DstRow.U: [],
         }
 
         with self.assertRaises(ValueError):
@@ -92,7 +89,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         invalid_jcg2 = {
             DstRow.A: [["X", 0, "int"]],  # X is not a valid source row
             DstRow.O: [],
-            DstRow.U: [],
         }
 
         with self.assertRaises(ValueError):
@@ -103,7 +99,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
         jcg = {
             DstRow.A: [["I", 0, "int"]],
             DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
         }
 
         interfaces = json_cgraph_to_interfaces(jcg)
@@ -142,7 +137,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["A", 0, "int"]],
             DstRow.O: [["B", 0, "int"]],
-            DstRow.U: [],
         }
 
         interfaces = json_cgraph_to_interfaces(jcg)
@@ -172,7 +166,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["I", 0, "int"]],  # Same source endpoint, same type
             DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
         }
 
         interfaces = json_cgraph_to_interfaces(valid_jcg)
@@ -183,7 +176,6 @@ class TestJsonCGraphToInterfaces(unittest.TestCase):
             DstRow.A: [["I", 0, "int"]],
             DstRow.B: [["I", 0, "str"]],  # Same source endpoint as A, different type
             DstRow.O: [["A", 0, "int"]],
-            DstRow.U: [],
         }
 
         with self.assertRaises(ValueError):
@@ -201,7 +193,6 @@ class TestNewUsagePattern(unittest.TestCase):
             DstRow.A: [["I", 1, "int"]],
             DstRow.O: [["A", 0, "int"]],
             DstRow.P: [["I", 1, "int"]],
-            DstRow.U: [],
         }
 
         # NEW PATTERN: Use helper function first, then create CGraph

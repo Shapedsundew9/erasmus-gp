@@ -3,71 +3,19 @@
 from __future__ import annotations
 
 from array import array
-from json import dumps, loads
-from os.path import dirname, join
-from typing import Any, Final, Generator, Iterable, Iterator
+from json import loads
+from typing import Any, Final, Generator, Iterable
 
 from bitdict import BitDictABC, bitdict_factory
 
-from egpcommon.common import EGP_DEV_PROFILE, EGP_PROFILE, NULL_TUPLE
+from egpcommon.common import NULL_TUPLE
 from egpcommon.egp_log import DEBUG, Logger, egp_logger
-from egpcommon.freezable_object import FreezableObject
-from egpcommon.object_deduplicator import format_deduplicator_info
-from egpcommon.security import InvalidSignatureError, load_signature_data, verify_signed_file
 from egpcommon.validator import Validator
-from egpdb.configuration import ColumnSchema
-from egpdb.table import RowIter, Table, TableConfig
 from egppy.genetic_code.import_def import ImportDef
 from egppy.genetic_code.types_def_bit_dict import TYPESDEF_CONFIG
-from egppy.local_db_config import LOCAL_DB_CONFIG
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
-
-
-# SQL
-_MAX_UID_SQL = "WHERE uid >= ({tt} << 16) AND uid < (({tt} + 1) << 16)"
-
-# Initialize the database connection
-DB_STORE_TABLE_CONFIG = TableConfig(
-    database=LOCAL_DB_CONFIG,
-    table="types_def",
-    schema={
-        "uid": ColumnSchema(db_type="int4", primary_key=True),
-        "name": ColumnSchema(db_type="VARCHAR", index="btree"),
-        "default": ColumnSchema(db_type="VARCHAR", nullable=True),
-        "depth": ColumnSchema(db_type="int4"),
-        "abstract": ColumnSchema(db_type="bool"),
-        "imports": ColumnSchema(db_type="VARCHAR"),
-        "parents": ColumnSchema(db_type="INT4[]"),
-        "children": ColumnSchema(db_type="INT4[]"),
-    },
-    data_file_folder=join(dirname(__file__), "..", "data"),
-    data_files=["types_def.json"],
-    delete_table=False,
-    create_db=True,
-    create_table=True,
-    conversions=(("imports", dumps, loads),),
-)
-DB_SOURCES_TABLE_CONFIG = TableConfig(
-    database=LOCAL_DB_CONFIG,
-    table="types_def_sources",
-    schema={
-        "source_path": ColumnSchema(db_type="VARCHAR", nullable=False),
-        "creator_uuid": ColumnSchema(db_type="VARCHAR", nullable=False),
-        "timestamp": ColumnSchema(db_type="VARCHAR", nullable=False),
-        "file_hash": ColumnSchema(db_type="VARCHAR", nullable=False),
-        "signature": ColumnSchema(db_type="VARCHAR", nullable=False),
-        "algorithm": ColumnSchema(db_type="VARCHAR", nullable=False),
-    },
-    delete_table=False,
-    create_db=True,
-    create_table=True,
-)
-
-
-# The generic tuple type UID
-_TUPLE_UID: int = 0
 
 
 # The BitDict format of the EGP type UID
@@ -78,7 +26,7 @@ TypesDefBD: type[BitDictABC] = bitdict_factory(
 )
 
 
-class TypesDef(FreezableObject, Validator):
+class TypesDef(Validator):
     """The Type Definition class stores all the information in order
     to define a type in the EGP system.
 
@@ -87,26 +35,34 @@ class TypesDef(FreezableObject, Validator):
     """
 
     __slots__: tuple[str, ...] = (
-        "__name",
-        "__default",
-        "__depth",
-        "__abstract",
-        "__imports",
-        "__parents",
-        "__children",
-        "__uid",
+        "name",
+        "alias",
+        "default",
+        "depth",
+        "abstract",
+        "imports",
+        "parents",
+        "children",
+        "uid",
+        "subtypes",
+        "template",
+        "tt",
     )
 
     def __init__(
         self,
         name: str,
         uid: int | dict[str, Any],
+        alias: str | None = None,
         abstract: bool = False,
         default: str | None = None,
         depth: int | None = None,
         imports: Iterable[ImportDef] | dict = NULL_TUPLE,
         parents: Iterable[int | TypesDef] = NULL_TUPLE,
         children: Iterable[int | TypesDef] = NULL_TUPLE,
+        subtypes: Iterable[int | TypesDef] = NULL_TUPLE,
+        template: Iterable[str] | str | None = None,
+        tt: int = 0,
     ) -> None:
         """Initialize Type Definition.
 
@@ -119,64 +75,108 @@ class TypesDef(FreezableObject, Validator):
             imports: List of import definitions need to instantiate the type.
             parents: List of type uids or definitions that the type inherits from.
             children: List of type uids or definitions that the type has as children.
+            subtypes: list of type uids or definitions that are subtypes of the type.
+                For generic/templated types (e.g., dict[str, int]), this stores the 
+                ordered list of concrete subtype UIDs (e.g., [uid(str), uid(int)]) 
+                used for covariance checks in `is_compatible`.
+            alias: Alias name of the type definition (only for container types).
+            template: Template mapping for templated (container) types.
+                A list of template strings (e.g., ["dict[-Hashable0, -object0]"])
+                used to define the structure of the generic type.
         """
         # Always set frozen to False
         # because we want to be able to set the attributes during initialization.
-        super().__init__(frozen=False)
-        self.__name: Final[str] = self._name(name)
-        self.__default: Final[str | None] = self._default(default)
-        self.__depth: Final[int] = self._depth(depth if depth is not None else 0)
-        self.__abstract: Final[bool] = self._abstract(abstract)
-        self.__imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
-        self.__parents: Final[array[int]] = self._parents(parents)
-        self.__children: Final[array[int]] = self._children(children)
-        self.__uid: Final[int] = self._uid(uid)
+        self.name: Final[str] = self._name(name)
+        self.default: Final[str | None] = self._default(default)
+        self.depth: Final[int] = self._depth(depth if depth is not None else 0)
+        self.abstract: Final[bool] = self._abstract(abstract)
+        self.imports: Final[tuple[ImportDef, ...]] = self._imports(imports)
+        self.parents: Final[array[int]] = self._parents(parents)
+        self.children: Final[array[int]] = self._children(children)
+        self.uid: Final[int] = self._uid(uid)
+        self.alias: Final[str | None] = self._alias(alias)
+        self.subtypes: Final[array[int]] = self._subtypes(subtypes)
+        self.template: Final[list[str] | None] = self._template(template)
+        self.tt: Final[int] = self._tt(tt)
+
+    def _alias(self, alias: str | None) -> str | None:
+        """Validate the alias of the type definition."""
+        if alias is None:
+            return None
+        self._is_string("alias", alias)
+        self._is_length("alias", alias, 1, 64)
+        self._is_printable_string("alias", alias)
+        return alias
+
+    def _subtypes(self, subtypes: Iterable[int | TypesDef]) -> array[int]:
+        """Mash the sub-type definitions into an array of type uids.
+        Names are used to look up the type in the types database on an as needed basis.
+        This allows TypesDef objects to be independently cached.
+        """
+        # If it is already an array no need to copy it. Saves memory.
+        if isinstance(subtypes, array) and subtypes.typecode == "i":
+            return subtypes
+        subtype_list: list[int] = []
+        for subtype in subtypes:
+            if isinstance(subtype, int):
+                subtype_list.append(subtype)
+            elif isinstance(subtype, TypesDef):
+                subtype_list.append(subtype.uid)
+            else:
+                raise ValueError("Invalid subtypes definition.")
+        return array("i", subtype_list)
+
+    def _template(self, template: Iterable[str] | None) -> list[str] | None:
+        """Validate the template of the type definition."""
+        if template is None:
+            return None
+        if isinstance(template, str):
+            template = loads(template)
+        return template if isinstance(template, (list, type(None))) else list(template)
+
+    def _tt(self, tt: int) -> int:
+        """Validate the Template Type number of the type definition."""
+        self._is_int("tt", tt)
+        self._in_range("tt", tt, 0, 7)
+        return tt
 
     def __eq__(self, value: object) -> bool:
         """Return True if the value is equal to this object."""
         if isinstance(value, TypesDef):
-            return self.__uid == value.uid
+            return self.uid == value.uid
         return False
 
     def __ge__(self, other: object) -> bool:
         """Return True if this object's UID is greater than or equal to the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid >= other.uid
+        return self.uid >= other.uid
 
     def __gt__(self, other: object) -> bool:
         """Return True if this object's UID is greater than the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid > other.uid
+        return self.uid > other.uid
 
     def __hash__(self) -> int:
         """Return globally unique hash for the object.
         TypeDefs are unique by design and should not be duplicated.
         """
-        return self.__uid
+        return self.uid
 
     def __iter__(self) -> Generator[Any, Any, None]:
         """
         Allows iteration over the *values* of public instance variables.
         This is define by the to_json() method.
         """
-        for value in (
-            self.__name,
-            self.uid,
-            self.__default,
-            self.__depth,
-            self.__imports,
-            self.__parents,
-            self.__children,
-        ):
+        for value in self.to_json().values():
             yield value
 
     def __le__(self, other: object) -> bool:
         """Return True if this object's UID is less than or equal to the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid <= other.uid
+        return self.uid <= other.uid
 
     def __len__(self) -> int:
         """Return the number of publicly exposed variables."""
@@ -186,21 +186,21 @@ class TypesDef(FreezableObject, Validator):
         """Return True if this object's UID is less than the other object's UID."""
         if not isinstance(other, TypesDef):
             return NotImplemented
-        return self.__uid < other.uid
+        return self.uid < other.uid
 
     def __ne__(self, value: object) -> bool:
         """Return True if the value is not equal to this object."""
         if not isinstance(value, TypesDef):
             return NotImplemented
-        return self.__uid != value.uid
+        return self.uid != value.uid
 
     def __repr__(self) -> str:
         """Return the string representation of the type definition."""
         return (
-            f"TypesDef(name={self.__name!r}, uid={self.uid}, "
-            f"abstract={self.__abstract}, default={self.__default!r}, "
-            f"imports={self.__imports!r}, parents={self.__parents!r}, "
-            f"children={self.__children!r})"
+            f"TypesDef(name={self.name!r}, uid={self.uid}, "
+            f"abstract={self.abstract}, default={self.default!r}, "
+            f"imports={self.imports!r}, parents={self.parents!r}, "
+            f"children={self.children!r}, subtypes={self.subtypes!r})"
         )
 
     def __str__(self) -> str:
@@ -209,9 +209,7 @@ class TypesDef(FreezableObject, Validator):
 
     def _abstract(self, abstract: bool) -> bool:
         """Validate the abstract flag of the type definition."""
-        self.value_error(
-            self._is_bool("abstract", abstract), f"abstract must be a bool, but is {type(abstract)}"
-        )
+        self._is_bool("abstract", abstract)
         return abstract
 
     def _children(self, children: Iterable[int | TypesDef]) -> array[int]:
@@ -231,7 +229,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(child, TypesDef):
                 child_list.append(child.uid)
             else:
-                self.value_error(False, "Invalid children definition.")
+                raise ValueError("Invalid children definition.")
         return array("i", child_list)
 
     def _default(self, default: str | None) -> str | None:
@@ -252,15 +250,15 @@ class TypesDef(FreezableObject, Validator):
     def _imports(self, imports: Iterable[ImportDef] | dict) -> tuple[ImportDef, ...]:
         """Mash the import definitions into a tuple of ImportDef objects
         and ensure they are in the ImportDef store."""
-        import_list: list[ImportDef] = []
+        import_list: set[ImportDef] = set()
         for import_def in imports:
             if isinstance(import_def, dict):
                 # The import store will ensure that the same import is not duplicated.
-                import_list.append(ImportDef(**import_def).freeze())
+                import_list.add(ImportDef(**import_def))
             elif isinstance(import_def, ImportDef):
-                import_list.append(import_def)
+                import_list.add(import_def)
             else:
-                self.value_error(False, "Invalid imports definition.")
+                raise ValueError("Invalid imports definition.")
         return tuple(import_list)
 
     def _name(self, name: str) -> str:
@@ -286,7 +284,7 @@ class TypesDef(FreezableObject, Validator):
             elif isinstance(parent, TypesDef):
                 parent_list.append(parent.uid)
             else:
-                self.value_error(False, "Invalid parents definition.")
+                raise ValueError("Invalid parents definition.")
         return array("i", parent_list)
 
     def _uid(self, uid: int | dict[str, Any]) -> int:
@@ -300,383 +298,32 @@ class TypesDef(FreezableObject, Validator):
             # The BitDict will handle the validation.
             return TypesDefBD(uid).to_int()
         else:
-            self.value_error(False, "Invalid UID definition.")
+            raise ValueError("Invalid UID definition.")
 
-    @property
-    def abstract(self) -> bool:
-        """Return True if the type is abstract."""
-        return self.__abstract
-
-    @property
     def bd(self) -> BitDictABC:
         """Return the BitDict object."""
-        return TypesDefBD(self.__uid)
-
-    @property
-    def children(self) -> array[int]:
-        """Return the children of the type definition."""
-        # TODO: Special case this for Any and tuple types
-        return self.__children
-
-    @property
-    def default(self) -> str | None:
-        """Return the default instantiation of the type."""
-        return self.__default
-
-    @property
-    def depth(self) -> int:
-        """Return the depth of the type definition."""
-        return self.__depth
-
-    @property
-    def imports(self) -> tuple[ImportDef, ...]:
-        """Return the imports of the type definition."""
-        return self.__imports
-
-    @property
-    def name(self) -> str:
-        """Return the name of the type definition."""
-        return self.__name
-
-    @property
-    def parents(self) -> array[int]:
-        """Return the parents of the type definition."""
-        return self.__parents
+        return TypesDefBD(self.uid)
 
     def to_json(self) -> dict:
         """Return Type Definition as a JSON serializable dictionary."""
         return {
-            "abstract": self.__abstract,
-            "children": list(self.__children),
-            "default": self.__default,
-            "depth": self.__depth,
-            "imports": [idef.to_json() for idef in self.__imports],
-            "name": self.__name,
-            "parents": list(self.__parents),
+            "abstract": self.abstract,
+            "alias": self.alias,
+            "children": list(self.children),
+            "default": self.default,
+            "depth": self.depth,
+            "imports": [idef.to_json() for idef in self.imports],
+            "name": self.name,
+            "parents": list(self.parents),
+            "subtypes": list(self.subtypes),
+            "template": self.template,
+            "tt": self.tt,
             "uid": self.uid,
         }
 
-    def tt(self) -> int:
-        """Return the Template Type number."""
-        bd = self.bd
-        retval = bd["tt"]
-        assert isinstance(retval, int), "TT must be an integer."
-        return retval
-
-    @property
-    def uid(self) -> int:
-        """Return the UID of the type definition."""
-        return self.bd.to_int()
-
     def xuid(self) -> int:
         """Return the XUID of the type definition."""
-        bd = self.bd
+        bd = self.bd()
         retval = bd["xuid"]
         assert isinstance(retval, int), "XUID must be an integer."
         return retval
-
-
-class TypesDefStore:
-    """Types Definition Database.
-
-    The TDDB is a double dictionary that maps type names to TypesDef objects
-    and type UIDs to TypesDef objects. It is implemented as a cache of the
-    full types database which is a local postgres database.
-
-    The expectation is that the types used at runtime will be small enough
-    to fit in memory (but the user should look for frequent GC cache evictions
-    in the logs and adjust the cache size accordingly) as EGP should use a tight
-    subset for a population.
-
-    New compound types can be created during evolution requiring the store and
-    database to be updated. Since types have to be globally unique a cloud service
-    call is required to create a new type.
-    """
-
-    _db_store: Final[Table] | None = None
-    _db_sources: Final[Table] | None = None
-    _cache: dict[int | str, TypesDef] = {}
-    _cache_order: list[int | str] = []
-    _cache_maxsize: int = 1024
-    _cache_hits: int = 0
-    _cache_misses: int = 0
-
-    _ancestors_cache: dict[int, frozenset[TypesDef]] = {}
-    _ancestors_cache_order: list[int] = []
-    _ancestors_cache_maxsize: int = 128
-    _ancestors_cache_hits: int = 0
-    _ancestors_cache_misses: int = 0
-
-    _descendants_cache: dict[int, frozenset[TypesDef]] = {}
-    _descendants_cache_order: list[int] = []
-    _descendants_cache_maxsize: int = 128
-    _descendants_cache_hits: int = 0
-    _descendants_cache_misses: int = 0
-
-    def __contains__(self, key: int | str) -> bool:
-        """Check if the key is in the store."""
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        try:
-            self[key]  # This will populate the cache if the key exists.
-        except KeyError:
-            return False
-        return True
-
-    def __copy__(self):
-        """Called by copy.copy()"""
-        return self
-
-    def __deepcopy__(self, memo):
-        """
-        Called by copy.deepcopy().
-        'memo' is a dictionary used to track recursion loops.
-        """
-        # Since we are returning self, we don't need to use memo,
-        # but the signature requires it.
-        return self
-
-    def __getitem__(self, key: int | str) -> TypesDef:
-        """Get a object from the dict."""
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        assert TypesDefStore._db_store is not None, "DB store must be initialized."
-
-        # Check cache first
-        if key in TypesDefStore._cache:
-            TypesDefStore._cache_hits += 1
-            return TypesDefStore._cache[key]
-
-        TypesDefStore._cache_misses += 1
-
-        if isinstance(key, int):
-            td = TypesDefStore._db_store.get(key, {})
-        elif isinstance(key, str):
-            tds = tuple(TypesDefStore._db_store.select("WHERE name = {id}", literals={"id": key}))
-            td = tds[0] if len(tds) == 1 else {}
-        else:
-            raise TypeError(f"Invalid key type: {type(key)}")
-        if not td:
-            # TODO: Go to an external service to find or create the type definition.
-            # NOTE: "Any" and potentially other types will be affected by any new type.
-            raise KeyError(f"Object not found with key: {key}")
-
-        # Create a frozen TypesDef object but do not put it in the object_store as
-        # we will cache it here.
-        ntd = TypesDef(**td).freeze(store=False)
-
-        # Cache the result with LRU eviction
-        TypesDefStore._cache[key] = ntd
-        TypesDefStore._cache_order.append(key)
-
-        # LRU eviction if cache is full
-        if len(TypesDefStore._cache_order) > TypesDefStore._cache_maxsize:
-            evict_key = TypesDefStore._cache_order.pop(0)
-            del TypesDefStore._cache[evict_key]
-
-        return ntd
-
-    def _initialize_db_store(self) -> None:
-        """Initialize the database store if it has not been initialized yet.
-        This is done lazily to avoid import overheads when not used.
-        """
-        TypesDefStore._db_sources = Table(config=DB_SOURCES_TABLE_CONFIG)
-        DB_STORE_TABLE_CONFIG.delete_table = self._should_reload_table()
-        if DB_STORE_TABLE_CONFIG.delete_table:
-            TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
-            for name in DB_STORE_TABLE_CONFIG.data_files:
-                filename = join(DB_STORE_TABLE_CONFIG.data_file_folder, name)
-                if not verify_signed_file(filename):
-                    raise InvalidSignatureError(
-                        f"Signature verification failed for file: {filename}"
-                    )
-                sig_data = load_signature_data(filename + ".sig")
-                sig_data["source_path"] = filename
-                TypesDefStore._db_sources.insert((sig_data,))
-        TypesDefStore._db_store = Table(config=DB_STORE_TABLE_CONFIG)
-
-    def _should_reload_table(self) -> bool:
-        """Determine if the types_def table should be reloaded."""
-        db_sources = TypesDefStore._db_sources
-        assert db_sources is not None, "DB sources must be initialized."
-        folder = DB_STORE_TABLE_CONFIG.data_file_folder
-        num_entries = len(db_sources)
-        num_files = len(DB_STORE_TABLE_CONFIG.data_files)
-        if EGP_PROFILE == EGP_DEV_PROFILE and num_entries >= num_files:
-            sources: RowIter = db_sources.select()
-            hashes: set[bytes] = {row["file_hash"] for row in sources}
-            for filename in DB_STORE_TABLE_CONFIG.data_files:
-                data = load_signature_data(join(folder, filename + ".sig"))
-                file_hash = data["file_hash"]
-                if file_hash not in hashes:
-                    return True
-                hashes.remove(file_hash)
-            return bool(hashes)
-        TypesDefStore._db_sources = db_sources
-        return num_entries < num_files
-
-    def ancestors(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
-        """Returns the specified type definition and all its ancestor type
-        definitions in depth order.
-
-        Ancestors are defined as the parents, grandparents, etc., of the given type,
-        including the type itself. The search starts from the provided key
-        (which can be a name, UID, or TypesDef instance) and traverses up the parent hierarchy.
-        Results are cached for performance.
-
-        Args:
-            key (str | int | TypesDef): The identifier (name, UID, or TypesDef instance)
-            of the type definition to start from.
-
-        Returns:
-            frozenset[TypesDef]: A frozenset containing the type definition and all its
-            ancestors, in depth order.
-
-        Raises:
-            KeyError: If the provided key does not correspond to a valid type definition.
-        """
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        td = self[key] if not isinstance(key, TypesDef) else key
-
-        if td.uid in TypesDefStore._ancestors_cache:
-            TypesDefStore._ancestors_cache_hits += 1
-            return TypesDefStore._ancestors_cache[td.uid]
-
-        TypesDefStore._ancestors_cache_misses += 1
-
-        stack: set[TypesDef] = {td}
-        ancestors: set[TypesDef] = set()
-        while stack:
-            parent: TypesDef = stack.pop()
-            if parent not in ancestors:
-                ancestors.add(parent)
-                stack.update(self[p] for p in parent.parents)
-
-        result = frozenset(ancestors)
-        TypesDefStore._ancestors_cache[td.uid] = result
-        TypesDefStore._ancestors_cache_order.append(td.uid)
-
-        if len(TypesDefStore._ancestors_cache_order) > TypesDefStore._ancestors_cache_maxsize:
-            evict_key = TypesDefStore._ancestors_cache_order.pop(0)
-            del TypesDefStore._ancestors_cache[evict_key]
-
-        return result
-
-    def descendants(self, key: str | int | TypesDef) -> frozenset[TypesDef]:
-        """Returns the specified type definition and all its descendant type
-        definitions in depth order.
-
-        Descendants are defined as the children, grandchildren, etc., of the given type,
-        including the type itself. The search starts from the provided key
-        (which can be a name, UID, or TypesDef instance) and traverses down the child hierarchy.
-        Results are cached for performance.
-
-        Args:
-            key (str | int | TypesDef): The identifier (name, UID, or TypesDef instance)
-            of the type definition to start from.
-
-        Returns:
-            frozenset[TypesDef]: A frozenset containing the type definition and all its
-            descendants, in depth order.
-
-        Raises:
-            KeyError: If the provided key does not correspond to a valid type definition.
-        """
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        td = self[key] if not isinstance(key, TypesDef) else key
-
-        if td.uid in TypesDefStore._descendants_cache:
-            TypesDefStore._descendants_cache_hits += 1
-            return TypesDefStore._descendants_cache[td.uid]
-
-        TypesDefStore._descendants_cache_misses += 1
-
-        stack: set[TypesDef] = {td}
-        descendants: set[TypesDef] = set()
-        while stack:
-            child: TypesDef = stack.pop()
-            if child not in descendants:
-                descendants.add(child)
-                stack.update(self[c] for c in child.children)
-
-        result = frozenset(descendants)
-        TypesDefStore._descendants_cache[td.uid] = result
-        TypesDefStore._descendants_cache_order.append(td.uid)
-
-        if len(TypesDefStore._descendants_cache_order) > TypesDefStore._descendants_cache_maxsize:
-            evict_key = TypesDefStore._descendants_cache_order.pop(0)
-            del TypesDefStore._descendants_cache[evict_key]
-
-        return result
-
-    def get(self, base_key: str) -> tuple[TypesDef, ...]:
-        """Get a tuple of TypesDef objects by base key. e.g. All "Pair" types."""
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        assert TypesDefStore._db_store is not None, "DB store must be initialized."
-        tds = TypesDefStore._db_store.select(
-            "WHERE name LIKE {id}", literals={"id": f"{base_key}%"}
-        )
-        return tuple(TypesDef(**td) for td in tds)
-
-    def info(self) -> str:
-        """Print cache hit and miss statistics."""
-        info_str = "\n".join(
-            (
-                format_deduplicator_info(
-                    "TypesDefStore",
-                    0.649,
-                    TypesDefStore._cache_hits,
-                    TypesDefStore._cache_misses,
-                    len(TypesDefStore._cache),
-                    TypesDefStore._cache_maxsize,
-                ),
-                format_deduplicator_info(
-                    "Ancestors",
-                    0.649,
-                    TypesDefStore._ancestors_cache_hits,
-                    TypesDefStore._ancestors_cache_misses,
-                    len(TypesDefStore._ancestors_cache),
-                    TypesDefStore._ancestors_cache_maxsize,
-                ),
-                format_deduplicator_info(
-                    "Descendants",
-                    0.649,
-                    TypesDefStore._descendants_cache_hits,
-                    TypesDefStore._descendants_cache_misses,
-                    len(TypesDefStore._descendants_cache),
-                    TypesDefStore._descendants_cache_maxsize,
-                ),
-            )
-        )
-        _logger.info(info_str)
-        return info_str
-
-    def next_xuid(self, tt: int = 0) -> int:
-        """Get the next X unique ID for a type."""
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        assert TypesDefStore._db_store is not None, "DB store must be initialized."
-        max_uid = tuple(TypesDefStore._db_store.select(_MAX_UID_SQL, literals={"tt": tt}))
-        assert max_uid, "No UIDs available for this Template Type."
-        if max_uid[0] & 0xFFFF == 0xFFFF:
-            raise OverflowError("No more UIDs available for this Template Type.")
-        return max_uid[0] & 0xFFFF + 1
-
-    def values(self) -> Iterator[TypesDef]:
-        """Iterate through all the types in the store."""
-        if TypesDefStore._db_store is None:
-            self._initialize_db_store()
-        assert TypesDefStore._db_store is not None, "DB store must be initialized."
-        for td in TypesDefStore._db_store.select():
-            yield TypesDef(**td)
-
-
-# Create the TypesDefStore object
-types_def_store = TypesDefStore()
-
-
-# Important check
-assert types_def_store["tuple"].uid == _TUPLE_UID, "Tuple UID is used as a constant."

@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     # List your project's runtime dependencies here
-    # "requests",
+    "requests",
 ]
 
 [project.urls]

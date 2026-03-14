@@ -1,10 +1,10 @@
 """Codon development loader.
 
 This module assists codon development when codon signatures change frequently.
-It loads codon and meta-codon definitions from JSON files and finds codons that
-match a given list of input types, output types, and the codon name stored in
-the codon's metadata. When a match is found, the codon's signature is returned
-as a bytes object.
+It loads codon definitions from JSON files and finds codons that match a given
+list of input types, output types, and the codon name stored in the codon's
+metadata. When a match is found, the codon's signature is returned as a bytes
+object.
 
 Note: JSON files should be loaded with the security module's helper (e.g.
 load_json_file_list) or an equivalent routine to ensure the expected structure and
@@ -26,7 +26,6 @@ _LOG_DEBUG: bool = _logger.isEnabledFor(level=DEBUG)
 # Default paths to codon JSON files
 DEFAULT_CODON_PATHS: tuple[str, ...] = (
     join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "codons.json"),
-    join(dirname(__file__), "..", "..", "egppy", "egppy", "data", "meta_codons.json"),
 )
 
 # Cache for loaded codons indexed by (input_types, output_types, name)
@@ -69,10 +68,7 @@ def _load_codons_from_files(file_paths: Sequence[str]) -> None:
             # Extract the name from metadata
             # Structure: meta_data -> function -> python3 -> "0" -> name
             meta_data = codon.get("meta_data", {})
-            function_data = meta_data.get("function", {})
-            python3_data = function_data.get("python3", {})
-            variant_0 = python3_data.get("0", {})
-            name = variant_0.get("name", "")
+            name = meta_data.get("name", "")
 
             if not name:
                 if _LOG_DEBUG:
@@ -154,8 +150,7 @@ def find_codon_signature(
 
     Example:
         >>> sig = find_codon_signature(["int", "int"], ["int"], "add")
-        >>> if sig:
-        ...     print(f"Found signature: {sig.hex()}")
+        >>> print(f"Found signature: {sig.hex()}")
     """
     # Use default paths if none provided
     if file_paths is None:
@@ -170,13 +165,13 @@ def find_codon_signature(
     # Look up in cache
     signature = _codon_cache.get(cache_key)
 
-    if signature is None and _LOG_DEBUG:
-        _logger.debug(
-            "Codon not found: name=%s, inputs=%s, outputs=%s", name, input_types, output_types
-        )
+    if signature is None:
+        if _LOG_DEBUG:
+            _logger.debug(
+                "Codon not found: name=%s, inputs=%s, outputs=%s", name, input_types, output_types
+            )
         raise ValueError(
             f"Codon not found: name={name}, inputs={input_types}, outputs={output_types}"
         )
 
-    assert signature is not None  # For type checkers
     return signature

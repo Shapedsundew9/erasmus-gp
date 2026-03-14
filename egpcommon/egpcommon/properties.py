@@ -1,4 +1,4 @@
-""" "This module defines the Genetic Code properties."""
+"""This module defines the Genetic Code properties."""
 
 from enum import IntEnum
 
@@ -11,8 +11,8 @@ class GCType(IntEnum):
 
     CODON = 0
     ORDINARY = 1
-    META = 2
-    ORDINARY_META = 3
+    RESERVED_2 = 2
+    RESERVED_3 = 3
 
 
 class CGraphType(IntEnum):
@@ -133,39 +133,6 @@ PROPERTIES_CONFIG = {
         "description": "GC type specific properties.",
         "subtype": [
             {
-                "simplification": {
-                    "type": "bool",
-                    "start": 0,
-                    "width": 1,
-                    "default": False,
-                    "description": (
-                        "The genetic code is eligible to be simplified by symbolic regression."
-                    ),
-                },
-                "reserved7": {
-                    "type": "uint",
-                    "start": 1,
-                    "width": 5,
-                    "default": 0,
-                    "description": "Reserved for future use.",
-                    "valid": {"value": {0}},
-                },
-                "python": {
-                    "type": "bool",
-                    "start": 6,
-                    "width": 1,
-                    "default": True,
-                    "description": "Codon code is Python.",
-                },
-                "psql": {
-                    "type": "bool",
-                    "start": 7,
-                    "width": 1,
-                    "default": False,
-                    "description": "Codon code is Postgres flavoured SQL.",
-                },
-            },
-            {
                 "literal": {
                     "type": "bool",
                     "start": 0,
@@ -200,60 +167,53 @@ PROPERTIES_CONFIG = {
                 },
             },
             {
-                "type_upcast": {
+                "simplification": {
                     "type": "bool",
                     "start": 0,
                     "width": 1,
                     "default": False,
                     "description": (
-                        "The meta codon is a type upcast e.g. int "
-                        "--> Integral which is always valid."
+                        "The genetic code is eligible to be simplified by symbolic regression."
                     ),
                 },
-                "type_downcast": {
-                    "type": "bool",
+                "reserved7": {
+                    "type": "uint",
                     "start": 1,
+                    "width": 5,
+                    "default": 0,
+                    "description": "Reserved for future use.",
+                    "valid": {"value": {0}},
+                },
+                "python": {
+                    "type": "bool",
+                    "start": 6,
                     "width": 1,
                     "default": True,
-                    "description": (
-                        "The meta codon is a type downcast e.g. "
-                        "Integral --> int which means it must be verified."
-                    ),
+                    "description": "Codon code is Python.",
                 },
+                "psql": {
+                    "type": "bool",
+                    "start": 7,
+                    "width": 1,
+                    "default": False,
+                    "description": "Codon code is Postgres flavoured SQL.",
+                },
+            },
+            {
                 "reserved8": {
                     "type": "uint",
-                    "start": 2,
-                    "width": 6,
+                    "start": 0,
+                    "width": 8,
                     "default": 0,
                     "description": "Reserved for future use.",
                     "valid": {"value": {0}},
                 },
             },
             {
-                "type_upcast": {
-                    "type": "bool",
-                    "start": 0,
-                    "width": 1,
-                    "default": False,
-                    "description": (
-                        "The meta codon is a type upcast e.g. int "
-                        "--> Integral which is always valid."
-                    ),
-                },
-                "type_downcast": {
-                    "type": "bool",
-                    "start": 1,
-                    "width": 1,
-                    "default": True,
-                    "description": (
-                        "The meta codon is a type downcast e.g. "
-                        "Integral --> int which means it must be verified."
-                    ),
-                },
                 "reserved8": {
                     "type": "uint",
-                    "start": 2,
-                    "width": 6,
+                    "start": 0,
+                    "width": 8,
                     "default": 0,
                     "description": "Reserved for future use.",
                     "valid": {"value": {0}},
@@ -268,7 +228,7 @@ PROPERTIES_CONFIG = {
         "default": False,
         "description": (
             "Runtime property. "
-            "The genetic code is eligible for result caching. e.g. with the functool `lru_cache`."
+            "The genetic code is eligible for result caching. e.g. with the functool `lru_cache`. "
             "Runtime profiling and resource availability will determine if it is actually cached."
         ),
     },
@@ -318,7 +278,8 @@ PropertiesBD.__doc__ = "BitDict for Genetic Code properties."
 
 def _verify(properties: BitDictABC) -> bool:
     """Verify the properties for consistency."""
-    assert isinstance(properties, BitDictABC)
+    if not isinstance(properties, BitDictABC):
+        raise TypeError(f"Expected BitDictABC, got {type(properties).__name__}")
 
     # Make sure the properties are valid first.
     if not properties.valid():
