@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import MutableMapping
 from typing import Any, Iterator
 
 from egpcommon.egp_log import Logger, egp_logger
@@ -135,11 +136,14 @@ def mermaid_key() -> str:
     return "\n".join(_MERMAID_KEY)
 
 
-class GCABC(CacheableObjABC):
+class GCABC(MutableMapping[str, Any], CacheableObjABC):
     """Genetic Code Abstract Base Class.
 
-    Add Genetic Code classes have a very simple dictionary like interface for getting and
-    setting members. All GC keys are strings from a frozen set of keys.
+    All Genetic Code classes have a MutableMapping[str, Any] interface for getting
+    and setting members. All GC keys are strings from a frozen set of keys.
+    Inherits from MutableMapping to formally conform to the mapping protocol,
+    which provides get, setdefault, pop, popitem, clear, update, keys, values,
+    and items as mixin methods.
     """
 
     GC_KEY_TYPES: dict[str, dict[str, str | bool]]
@@ -168,11 +172,6 @@ class GCABC(CacheableObjABC):
     def __setitem__(self, key: str, value: Any) -> None:
         """Set the value of a key."""
         raise NotImplementedError("GCABC.__setitem__ must be overridden")
-
-    @abstractmethod
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get the value of a key or return the default."""
-        raise NotImplementedError("GCABC.get must be overridden")
 
     @abstractmethod
     def is_codon(self) -> bool:
@@ -208,8 +207,3 @@ class GCABC(CacheableObjABC):
     def set_members(self, gcabc: GCABC | dict[str, Any]) -> GCABC:
         """Set the data members of the GCABC."""
         raise NotImplementedError("GCABC.set_members must be overridden")
-
-    @abstractmethod
-    def setdefault(self, key: str, default: Any = None) -> Any:
-        """Set the value of a key if it does not exist and return the set value."""
-        raise NotImplementedError("GCABC.setdefault must be overridden")
