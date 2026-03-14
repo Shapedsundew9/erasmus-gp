@@ -11,7 +11,7 @@ See specs/001-anti-pattern-fixes/contracts/genetic-code-mutability-contract.md
 import unittest
 
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import DstRow, EPCls, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, IfKey, SrcIfKey, SrcRow
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.ep_ref import EPRef, EPRefs
 from egppy.genetic_code.frozen_c_graph import FrozenCGraph
@@ -21,6 +21,8 @@ from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.json_cgraph import json_cgraph_to_interfaces
 from egppy.genetic_code.types_def_store import types_def_store
+
+# pylint: disable=protected-access
 
 
 class TestConstructorChainIntegrity(unittest.TestCase):
@@ -63,8 +65,8 @@ class TestConstructorChainIntegrity(unittest.TestCase):
         jcg = {"A": [["I", 0, "int"]], "O": [["A", 0, "int"]]}
         graph = CGraph(json_cgraph_to_interfaces(jcg))
         # Graph must have Is and Od interfaces at minimum
-        self.assertIsNotNone(graph["Is"])
-        self.assertIsNotNone(graph["Od"])
+        self.assertIsNotNone(graph[SrcIfKey.IS])
+        self.assertIsNotNone(graph[DstIfKey.OD])
 
     def test_eprefs_init_chain(self) -> None:
         """EPRefs must call through FrozenEPRefs.__init__ via super()."""
@@ -97,10 +99,6 @@ class TestConstructorChainIntegrity(unittest.TestCase):
         frozen = FrozenCGraph(mutable)
         self.assertIsInstance(frozen._hash, int)
         self.assertEqual(hash(frozen), frozen._hash)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class TestMutableHashProhibition(unittest.TestCase):
@@ -188,3 +186,7 @@ class TestFrozenHashStability(unittest.TestCase):
         h2 = hash(refs)
         self.assertEqual(h1, h2)
         self.assertIsInstance(h1, int)
+
+
+if __name__ == "__main__":
+    unittest.main()

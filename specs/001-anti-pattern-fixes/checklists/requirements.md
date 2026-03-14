@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Anti-Pattern Fixes (WP4–WP7)
+# Specification Quality Checklist: Anti-Pattern Fixes (WP4–WP6)
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-03-14  
@@ -35,5 +35,5 @@ All items pass. The spec is ready for `/speckit.plan`.
 
 Notable assumptions captured in spec:
 - WP2 must be available (merged or cherry-picked) before WP4 implementation begins.
-- Snapshot-hashing (Option A) is preferred for WP5; confirmed at plan stage.
-- WP7 is in scope but explicitly low-priority and may be deferred.
+- Mutable objects use `__hash__ = None` (not snapshot-hashing) for WP5, as confirmed in spec.
+- WP7 is explicitly out of scope for this branch and deferred to a follow-up work item.

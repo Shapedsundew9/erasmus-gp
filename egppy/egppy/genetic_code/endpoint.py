@@ -37,7 +37,6 @@ from egppy.genetic_code.endpoint_abc import EndPointABC, FrozenEndPointABC
 from egppy.genetic_code.ep_ref import EPRef, EPRefs
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
-from egppy.genetic_code.types_def import TypesDef
 
 
 class EndPoint(FrozenEndPoint, EndPointABC):
@@ -69,32 +68,30 @@ class EndPoint(FrozenEndPoint, EndPointABC):
     __copy__ = None  # type: ignore (reset to default behaviour)
     __deepcopy__ = None  # type: ignore (reset to default behaviour)
 
-    def __init__(self, *args) -> None:
-        """Initialize the endpoint.
+    """Initialize the endpoint.
 
-        This constructor supports multiple initialization patterns:
+    This constructor supports multiple initialization patterns:
 
-        1. Copy from another FrozenEndPointABC instance:
-           EndPoint(other_endpoint)
+    1. Copy from another FrozenEndPointABC instance:
+        EndPoint(other_endpoint)
 
-        2. Initialize from a 5-tuple:
-           EndPoint((row, idx, cls, typ, refs))
+    2. Initialize from a 5-tuple:
+        EndPoint((row, idx, cls, typ, refs))
 
-        3. Initialize from explicit arguments (4 or 5 args):
-           EndPoint(row, idx, cls, typ)
-           EndPoint(row, idx, cls, typ, refs)
+    3. Initialize from explicit arguments (4 or 5 args):
+        EndPoint(row, idx, cls, typ)
+        EndPoint(row, idx, cls, typ, refs)
 
-        The typ argument can be either a TypesDef instance or a string key that
-        will be looked up in types_def_store. The refs argument, if provided,
-        will be deep copied to ensure mutability and independence.
+    The typ argument can be either a TypesDef instance or a string key that
+    will be looked up in types_def_store. The refs argument, if provided,
+    will be deep copied to ensure mutability and independence.
 
-        Args:
-            *args: Variable arguments supporting the patterns described above.
+    Args:
+        *args: Variable arguments supporting the patterns described above.
 
-        Raises:
-            TypeError: If arguments don't match any supported initialization pattern.
-        """
-        super().__init__(*args)
+    Raises:
+        TypeError: If arguments don't match any supported initialization pattern.
+    """
 
     def _cache_hash(self) -> None:
         """Mutable endpoints do not cache their hash.

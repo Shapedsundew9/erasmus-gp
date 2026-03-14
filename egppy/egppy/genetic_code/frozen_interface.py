@@ -43,7 +43,13 @@ class FrozenInterface(FrozenInterfaceABC):
     ):
         super().__init__()
         if row is None:
-            # Called with no args through MRO from mutable subclass — skip frozen setup
+            # Called with no args through MRO from mutable subclass — skip frozen setup.
+            # Initialize slots to a valid empty state so the object is usable.
+            self._row = None  # type: ignore[assignment]
+            self._cls = None  # type: ignore[assignment]
+            self.type_tuple = None  # type: ignore[assignment]
+            self.refs_tuple = None  # type: ignore[assignment]
+            self._hash = 0
             return
         self._row = row
         self._cls = EPCls.SRC if isinstance(row, SrcRow) else EPCls.DST

@@ -16,11 +16,12 @@ from egppy.genetic_code.c_graph_constants import (
     Row,
     SrcRow,
 )
-from egppy.genetic_code.endpoint import EndPoint, TypesDef
+from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.endpoint_abc import EndPointABC, EndpointMemberType, FrozenEndPointABC
 from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC
 from egppy.genetic_code.frozen_interface import FrozenInterface
 from egppy.genetic_code.interface_abc import MAX_EPS, FrozenInterfaceABC, InterfaceABC
+from egppy.genetic_code.types_def import TypesDef
 
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
@@ -83,7 +84,7 @@ def unpack_src_ref(ref: list[int | Row] | tuple[Row, int] | FrozenEPRefABC) -> t
 class Interface(CommonObj, FrozenInterface, InterfaceABC):
     """The Interface class provides a base for defining interfaces in the EGP system."""
 
-    __slots__ = ("endpoints", "_hash", "_row", "_cls")
+    __slots__ = ("endpoints",)
     __copy__ = None  # type: ignore (reset to default behaviour)
     __deepcopy__ = None  # type: ignore (reset to default behaviour)
 

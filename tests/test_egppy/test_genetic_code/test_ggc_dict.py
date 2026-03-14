@@ -9,7 +9,6 @@ See specs/001-anti-pattern-fixes/contracts/genetic-code-mutability-contract.md, 
 """
 
 import unittest
-from uuid import UUID
 
 from egpcommon.common import EGP_EPOCH, SHAPEDSUNDEW9_UUID
 from egpcommon.properties import BASIC_CODON_PROPERTIES

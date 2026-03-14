@@ -56,6 +56,13 @@ class GGCDict(EGCDict):
         # Freeze: all subsequent mutation attempts raise TypeError.
         object.__setattr__(self, "_frozen", True)
 
+        # DEBUG verification must happen after _frozen is set, because verify()
+        # checks that _frozen is True (WP6 immutability contract).
+        if _logger.isEnabledFor(DEBUG):
+            self.verify()
+            if _logger.isEnabledFor(OBJECT):
+                self.consistency()
+
     def __eq__(self, other: object) -> bool:
         """Equality operator for GGCDict.
         Uses the signature for fast comparison.
@@ -220,11 +227,8 @@ class GGCDict(EGCDict):
 
         # Immutability is now enforced by _frozen attribute set in __init__
         # after set_members() completes (immutable-by-construction, WP6).
-
-        if _logger.isEnabledFor(DEBUG):
-            self.verify()
-            if _logger.isEnabledFor(OBJECT):
-                self.consistency()
+        # NOTE: verify()/consistency() are called from __init__ after _frozen is set,
+        # not here, because _frozen must be True before verify() checks it.
 
         return self
 
