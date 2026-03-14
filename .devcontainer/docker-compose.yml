@@ -20,7 +20,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qlkjidfkoqwfbg}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-0}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
@@ -38,7 +38,7 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-qlkjidfkoqwfbg}
       - PGADMIN_DISABLE_POSTFIX=true
     ports:
-      - "8080:80"
+      - "${PGADMIN_HOST_PORT:-0}:80"
     depends_on:
       - postgres
     networks:
