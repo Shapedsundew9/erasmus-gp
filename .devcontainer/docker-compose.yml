@@ -9,6 +9,7 @@ services:
       EGP_PRIVATE_KEY_FILE: /run/secrets/private_key
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qlkjidfkoqwfbg}
       PRIVATE_KEY_PEM_B64: ${PRIVATE_KEY_PEM_B64:-}
+      RELEASE_DATA_MANAGER_TOKEN: ${RELEASE_DATA_MANAGER_TOKEN:-}
     command: sleep infinity
     depends_on:
       - postgres

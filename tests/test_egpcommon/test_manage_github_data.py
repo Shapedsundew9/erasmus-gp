@@ -45,12 +45,14 @@ class TestGetGitHubToken(TestCase):
     """Tests for _get_github_token()."""
 
     @patch.dict("os.environ", {"RELEASE_DATA_MANAGER_TOKEN": "test-token-123"})
-    def test_returns_token_when_set(self) -> None:
+    @patch("builtins.open", side_effect=FileNotFoundError)
+    def test_returns_token_when_set(self, _: MagicMock) -> None:
         """Token is returned when the environment variable is set."""
         self.assertEqual(_get_github_token(), "test-token-123")
 
     @patch.dict("os.environ", {}, clear=True)
-    def test_raises_when_token_missing(self) -> None:
+    @patch("builtins.open", side_effect=FileNotFoundError)
+    def test_raises_when_token_missing(self, _: MagicMock) -> None:
         """EnvironmentError is raised when the token is not set."""
         with self.assertRaises(EnvironmentError):
             _get_github_token()
@@ -267,7 +269,8 @@ class TestUploadData(TestCase):
     """Tests for upload_data()."""
 
     @patch.dict("os.environ", {}, clear=True)
-    def test_raises_without_token(self) -> None:
+    @patch("builtins.open", side_effect=FileNotFoundError)
+    def test_raises_without_token(self, _: MagicMock) -> None:
         """Raises EnvironmentError when token is not set."""
         with self.assertRaises(EnvironmentError):
             upload_data()
@@ -296,6 +299,52 @@ class TestUploadData(TestCase):
 
         mock_post.assert_not_called()
         mock_delete.assert_not_called()
+
+    @patch("egpcommon.manage_github_data.post")
+    @patch("egpcommon.manage_github_data.requests_delete")
+    @patch("egpcommon.manage_github_data._remote_sig_data")
+    @patch("egpcommon.manage_github_data._get_or_create_release")
+    @patch("egpcommon.manage_github_data._get_github_token", return_value="fake-token")
+    @patch("egpcommon.manage_github_data._local_sig_data")
+    @patch("egpcommon.manage_github_data.exists", return_value=True)
+    @patch("builtins.open", new_callable=MagicMock)
+    def test_uploads_when_timestamps_equal_but_hash_differs(
+        self,
+        mock_open: MagicMock,
+        _: MagicMock,
+        mock_local_data: MagicMock,
+        __: MagicMock,
+        mock_release: MagicMock,
+        mock_remote_data: MagicMock,
+        mock_delete: MagicMock,
+        mock_post: MagicMock,
+    ) -> None:
+        """Uploads when timestamps are equal but signature hashes differ."""
+        mock_release.return_value = {
+            "id": 1,
+            "assets": [
+                {"name": "codons.json", "id": 11},
+                {"name": "codons.json.sig", "id": 12},
+                {"name": "types_def.json", "id": 21},
+                {"name": "types_def.json.sig", "id": 22},
+            ],
+        }
+        mock_local_data.return_value = _make_sig(timestamp=_TS_OLD, file_hash="local-hash")
+        mock_remote_data.return_value = {
+            s: _make_sig(timestamp=_TS_OLD, file_hash="remote-hash") for s in SIG_FILES
+        }
+
+        # Opened files are posted as binary payloads during upload.
+        mock_file = MagicMock()
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        mock_delete.return_value.raise_for_status = MagicMock()
+        mock_post.return_value.raise_for_status = MagicMock()
+
+        upload_data()
+
+        self.assertEqual(mock_delete.call_count, 4)
+        self.assertEqual(mock_post.call_count, 4)
 
     @patch("egpcommon.manage_github_data.post")
     @patch("egpcommon.manage_github_data.requests_delete")

@@ -58,7 +58,7 @@ EGP is a research project, not a product. The primary goal is to demonstrate met
 - **Imports**: Explicit (`from json import dump, load`), never wildcard or module-level.
 - **Logging**: Custom logger from `egpcommon.egp_log` with levels FLOW, GC_DEBUG, OBJECT, TRACE, and integrity levels VERIFY / CONSISTENCY. Lazy formatting required; expensive computations guarded by `_logger.isEnabledFor()`.
 - **Docstrings**: Google style for all modules, classes, and functions, including tests.
-- **Testing**: `unittest` framework. Tests in `tests/test_<package>/` mirroring source structure. Class/test fixtures for expensive setup. `coverage` measured; high coverage mandatory for critical components. All PRs must pass all unit tests and summarise results.
+- **Testing**: `unittest` framework only. Do not use `pytest`. Tests in `tests/test_<package>/` mirroring source structure. Class/test fixtures for expensive setup. `coverage` measured; high coverage mandatory for critical components. All PRs must pass all unit tests and summarise results.
 - **Documentation**: Markdown in `docs/`, LaTeX for formulas, compact tables, Mermaid diagrams with the Erasmus dark theme and semantic color mapping defined in the style guide.
 - **Versioned API**: `egppy.physics.pgc_api` is the single source of truth for types and operations consumed by evolved code. It preserves binary compatibility across refactors.
 

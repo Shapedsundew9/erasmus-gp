@@ -40,13 +40,13 @@ echo "Adding custom aliases to .bashrc..."
 echo "# My Custom Aliases" >> ~/.bashrc
 echo "alias profile='/workspaces/erasmus-gp/.venv/bin/python -m cProfile -o profile.prof -m unittest discover && /workspaces/erasmus-gp/.venv/bin/python -m snakeviz profile.prof'" >> ~/.bashrc
 
-# Sync the codon and types def data
-echo "Syncing GitHub data..."
-./.venv/bin/python3 ./egpcommon/egpcommon/manage_github_data.py download
-
 # If egp seed is installed, add an alias for the generate script
 if [ -d "/workspaces/egpseed" ]; then
     echo "alias generate='/workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_gcabc_json.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_types.py --write && /workspaces/erasmus-gp/.venv/bin/python /workspaces/egpseed/egpseed/generate_codons.py --write'" >> ~/.bashrc
+
+    # Sync the codon and types def data
+    echo "Syncing GitHub data..."
+    ./.venv/bin/python3 /workspaces/egpcommon/egpcommon/manage_github_data.py download
 fi
 
 # Install CLI's

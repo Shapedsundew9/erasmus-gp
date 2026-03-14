@@ -54,20 +54,35 @@ FILES_FOLDER: str = join(dirname(__file__), "..", "..", "egppy", "egppy", "data"
 # ---------------------
 
 
+# Default secrets file for the release data manager token
+_RELEASE_DATA_MANAGER_TOKEN_FILE = "/run/secrets/release_data_manager_token"
+
+
 def _get_github_token() -> str:
-    """Retrieve the GitHub token from the environment.
+    """Retrieve the GitHub token from the secrets file or environment.
+
+    Looks for the token in the following order:
+        1. /run/secrets/release_data_manager_token file
+        2. RELEASE_DATA_MANAGER_TOKEN environment variable
 
     Returns:
         The GitHub token string.
 
     Raises:
-        EnvironmentError: If the token environment variable is not set.
+        EnvironmentError: If the token is not available from any source.
     """
-    token = getenv("RELEASE_DATA_MANAGER_TOKEN")
+    try:
+        with open(_RELEASE_DATA_MANAGER_TOKEN_FILE, "r", encoding="utf-8") as f:
+            token = f.read().strip()
+            if token:
+                return token
+    except FileNotFoundError:
+        pass
+    token = getenv("RELEASE_DATA_MANAGER_TOKEN", "")
     if not token:
         raise EnvironmentError(
-            "RELEASE_DATA_MANAGER_TOKEN environment variable is not set. "
-            "This is required for upload operations."
+            "RELEASE_DATA_MANAGER_TOKEN is not available. Set the environment variable "
+            "or ensure /run/secrets/release_data_manager_token exists."
         )
     return token
 
@@ -215,13 +230,37 @@ def upload_data() -> None:
         local_ts = _parse_sig_timestamp(local_data)
         remote_data = remote_sigs.get(sig_file)
         remote_ts = _parse_sig_timestamp(remote_data) if remote_data else None
+        local_hash = local_data.get("file_hash")
+        remote_hash = remote_data.get("file_hash") if remote_data else None
 
-        if local_ts is not None and (remote_ts is None or local_ts > remote_ts):
+        should_upload = False
+        if remote_data is None:
+            # No remote signature means the asset is missing/corrupt remotely.
+            should_upload = True
+        elif local_ts is not None and (remote_ts is None or local_ts > remote_ts):
+            should_upload = True
+        elif (
+            local_ts is not None
+            and remote_ts is not None
+            and local_ts == remote_ts
+            and local_hash
+            and remote_hash
+            and local_hash != remote_hash
+        ):
+            # If timestamps are equal but hashes differ, prefer local and heal remote drift.
+            should_upload = True
+
+        if should_upload:
             json_file = sig_file.removesuffix(".sig")
             files_to_upload.extend([json_file, sig_file])
         else:
             if _LOG_INFO:
-                _logger.info("Remote is same or newer, skipping upload: %s", sig_file)
+                _logger.info(
+                    "Remote is same or newer, skipping upload: %s (local_ts=%s, remote_ts=%s)",
+                    sig_file,
+                    local_ts,
+                    remote_ts,
+                )
 
     if not files_to_upload:
         _logger.info("All files are up to date. Nothing to upload.")
@@ -283,12 +322,16 @@ def download_data() -> bool:
             remote_sigs[sig_file] = loads(resp.text)
         except (RequestsConnectionError, Timeout) as exc:
             _logger.warning(
-                "Network error fetching remote sig file %s: %s. Using local data.", sig_file, exc
+                "Network error fetching remote sig file %s: %s. Using local data.",
+                sig_file,
+                exc,
             )
             return False
         except (HTTPError, RequestException, ValueError) as exc:
             _logger.warning(
-                "Failed to fetch remote sig file %s: %s. Using local data.", sig_file, exc
+                "Failed to fetch remote sig file %s: %s. Using local data.",
+                sig_file,
+                exc,
             )
             return False
 
@@ -335,7 +378,9 @@ def download_data() -> bool:
             )
         except (HTTPError, RequestException) as exc:
             _logger.warning(
-                "Failed to download %s: %s. Using local data if available.", filename, exc
+                "Failed to download %s: %s. Using local data if available.",
+                filename,
+                exc,
             )
 
     return downloaded

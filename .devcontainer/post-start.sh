@@ -31,4 +31,12 @@ else
     echo "[$(date -Iseconds)] post-start: PRIVATE_KEY_PEM_B64 not set; private_key not written" | tee -a "$LOG_FILE"
 fi
 
+if [ -n "${RELEASE_DATA_MANAGER_TOKEN:-}" ]; then
+    printf '%s' "${RELEASE_DATA_MANAGER_TOKEN}" | sudo tee /run/secrets/release_data_manager_token > /dev/null
+    sudo chmod 644 /run/secrets/release_data_manager_token
+    echo "[$(date -Iseconds)] post-start: wrote /run/secrets/release_data_manager_token" | tee -a "$LOG_FILE"
+else
+    echo "[$(date -Iseconds)] post-start: RELEASE_DATA_MANAGER_TOKEN not set; release_data_manager_token not written" | tee -a "$LOG_FILE"
+fi
+
 echo "[$(date -Iseconds)] post-start: complete" | tee -a "$LOG_FILE"
