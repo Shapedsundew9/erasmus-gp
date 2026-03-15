@@ -13,7 +13,7 @@ regression tests without changing runtime behavior.
 source /workspaces/erasmus-gp/.venv/bin/activate
 ```
 
-2. Ensure codon/type data files exist (project baseline requirement):
+1. Ensure codon/type data files exist (project baseline requirement):
 
 ```bash
 python /workspaces/erasmus-gp/egpcommon/egpcommon/manage_github_data.py download
@@ -49,20 +49,28 @@ python /workspaces/erasmus-gp/egpcommon/egpcommon/manage_github_data.py download
 1. Run focused tests:
 
 ```bash
-python -m unittest tests/test_egppy/test_genetic_code/test_mro_diamond.py
+/workspaces/erasmus-gp/.venv/bin/python -m unittest tests.test_egppy.test_genetic_code.test_mro_diamond
 ```
 
-2. Run relevant existing tests:
+1. Run relevant existing tests:
 
 ```bash
-python -m unittest tests/test_egppy/test_genetic_code/test_mutability_contract.py
+/workspaces/erasmus-gp/.venv/bin/python -m unittest tests.test_egppy.test_genetic_code.test_mutability_contract
 ```
 
-3. Run full baseline suite:
+1. Run full baseline suite:
 
 ```bash
-python -m unittest discover -s tests
+/workspaces/erasmus-gp/.venv/bin/python -m unittest discover -s tests
 ```
+
+## Latest Validation Results
+
+Validation run date: 2026-03-15
+
+- Focused MRO regression module: `11` tests, `OK`
+- Existing mutability contract module: `19` tests, `OK`
+- Full baseline suite: `1333` tests, `OK`
 
 ## Completion Checklist
 

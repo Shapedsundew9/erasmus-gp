@@ -28,17 +28,18 @@ EndpointMemberType = tuple[Row, int, EPCls, TypesDef, list[list[str | int]]]
 
 
 class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
-    """Abstract Base Class for Frozen (Immutable) EndPoint.
+    """Frozen EndPoint family shared base (frozen ABC role).
 
-    This class defines the read-only interface for EndPoints.
-    It inherits from CommonObjABC for validation methods and Hashable.
+    Role:
+        Shared frozen abstract base class in the EndPoint diamond family.
 
-    Attributes:
-        row (Row): The row identifier where this endpoint resides.
-        idx (int): The index of this endpoint within its row.
-        cls (EPCls): The endpoint class - either SRC or DST.
-        typ (TypesDef): The data type associated with this endpoint.
-        refs (FrozenEPRefsABC): References to connected endpoints.
+    Direct Parents:
+        `CommonObjABC`, `Hashable`.
+
+    Shared Grandparent:
+        This class is the shared grandparent in the mutable-concrete diamond:
+        `FrozenEndPoint` and `EndPointABC` both derive from it, then `EndPoint`
+        combines those branches.
     """
 
     __slots__ = ()
@@ -333,13 +334,17 @@ class FrozenEndPointABC(CommonObjABC, Hashable, metaclass=ABCMeta):
 
 
 class EndPointABC(FrozenEndPointABC, metaclass=ABCMeta):
-    """Abstract Base Class for Mutable EndPoint.
+    """Mutable EndPoint API contract (mutable ABC role).
 
-    This class defines the mutable interface for EndPoints.
-    It inherits from FrozenEndPointABC.
+    Role:
+        Mutable abstract branch in the EndPoint diamond family.
 
-    Attributes:
-        refs (EPRefsABC): Mutable list of references to connected endpoints.
+    Direct Parents:
+        `FrozenEndPointABC`.
+
+    Shared Grandparent:
+        `FrozenEndPointABC` is shared with the frozen concrete branch
+        (`FrozenEndPoint`) and the branches converge in `EndPoint`.
     """
 
     __slots__ = ()

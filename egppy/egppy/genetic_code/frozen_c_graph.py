@@ -69,27 +69,17 @@ frozen_cgraph_store: ObjectDeduplicator = ObjectDeduplicator("Frozen CGraph", 2*
 
 
 class FrozenCGraph(FrozenCGraphABC, CommonObj):
-    """Frozen Connection Graph implementation.
+    """Frozen CGraph implementation (frozen concrete role).
 
-    This class provides an immutable, memory-efficient implementation of CGraphABC
-    that is optimized for frozen graphs. It uses compact data structures and
-    assumes immutability from construction, allowing for optimizations that are
-    not possible with the standard mutable CGraph.
+    Role:
+        Frozen concrete branch in the CGraph diamond family.
 
-    Key characteristics:
-    - Always frozen (immutable from creation)
-    - Optimized memory layout using compact slots
-    - Pre-computed hash for O(1) hashing
-    - Efficient equality comparison
-    - No mutation operations allowed
+    Direct Parents:
+        `FrozenCGraphABC`, `CommonObj`.
 
-    The frozen graph is created from a dictionary of interfaces.
-
-    A CGraph is built up from Interface objects which are inturn built from
-    EndPoint objects allowing for flexible manipulation of the graph structure
-    as it is created & mutated. In a FrozenCGraph, the CGraph compactly stores
-    the data and VirtualInterface objects are used to provide an InterfaceABC
-    interface to the underlying data.
+    Shared Grandparent:
+        `FrozenCGraphABC` is shared with the mutable-ABC branch (`CGraphABC`)
+        and the branches converge in the mutable concrete class `CGraph`.
     """
 
     __slots__ = _UNDER_ROW_CLS_INDEXED + ("_hash",)

@@ -17,9 +17,9 @@
 
 **Purpose**: Create initial artifacts and scaffolding for documentation and test work.
 
-- [ ] T001 Create architecture document stub with top-level sections in `docs/components/worker/diamond_inheritance.md`
-- [ ] T002 Create regression test module scaffold in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
-- [ ] T003 [P] Add feature-task cross-reference note in `specs/002-diamond-inheritance/contracts/mro-documentation-contract.md`
+- [x] T001 Create architecture document stub with top-level sections in `docs/components/worker/diamond_inheritance.md`
+- [x] T002 Create regression test module scaffold in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T003 [P] Add feature-task cross-reference note in `specs/002-diamond-inheritance/contracts/mro-documentation-contract.md`
 
 ---
 
@@ -29,9 +29,9 @@
 
 **⚠️ CRITICAL**: No user story work should begin until this phase is complete.
 
-- [ ] T004 Define canonical family/diamond inventory table (4 families, 5 diamonds, 20 classes) in `docs/components/worker/diamond_inheritance.md`
-- [ ] T005 Define shared class import map and expected-MRO fixture data in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
-- [ ] T006 Implement shared assertion helper that prints expected vs actual MRO clearly in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T004 Define canonical family/diamond inventory table (4 families, 5 diamonds, 20 classes) in `docs/components/worker/diamond_inheritance.md`
+- [x] T005 Define shared class import map and expected-MRO fixture data in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T006 Implement shared assertion helper that prints expected vs actual MRO clearly in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
 
 **Checkpoint**: Foundation is ready; user story tasks can begin.
 
@@ -45,15 +45,15 @@
 
 ### Tests for User Story 1
 
-- [ ] T007 [US1] Add docstring coverage tests for hierarchy-role, parent metadata, and Google-style class-docstring requirements across all target classes in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T007 [US1] Add docstring coverage tests for hierarchy-role, parent metadata, and Google-style class-docstring requirements across all target classes in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
 
 ### Implementation for User Story 1
 
-- [ ] T008 [P] [US1] Update CGraph family class docstrings in `egppy/egppy/genetic_code/c_graph_abc.py`, `egppy/egppy/genetic_code/frozen_c_graph.py`, `egppy/egppy/genetic_code/c_graph.py`
-- [ ] T009 [P] [US1] Update Interface family class docstrings in `egppy/egppy/genetic_code/interface_abc.py`, `egppy/egppy/genetic_code/frozen_interface.py`, `egppy/egppy/genetic_code/interface.py`
-- [ ] T010 [P] [US1] Update EndPoint family class docstrings in `egppy/egppy/genetic_code/endpoint_abc.py`, `egppy/egppy/genetic_code/frozen_endpoint.py`, `egppy/egppy/genetic_code/endpoint.py`
-- [ ] T011 [P] [US1] Update EPRef/EPRefs family class docstrings in `egppy/egppy/genetic_code/ep_ref_abc.py`, `egppy/egppy/genetic_code/frozen_ep_ref.py`, `egppy/egppy/genetic_code/ep_ref.py`
-- [ ] T012 [US1] Write architecture overview, rationale, and family/diamond diagrams in `docs/components/worker/diamond_inheritance.md`
+- [x] T008 [P] [US1] Update CGraph family class docstrings in `egppy/egppy/genetic_code/c_graph_abc.py`, `egppy/egppy/genetic_code/frozen_c_graph.py`, `egppy/egppy/genetic_code/c_graph.py`
+- [x] T009 [P] [US1] Update Interface family class docstrings in `egppy/egppy/genetic_code/interface_abc.py`, `egppy/egppy/genetic_code/frozen_interface.py`, `egppy/egppy/genetic_code/interface.py`
+- [x] T010 [P] [US1] Update EndPoint family class docstrings in `egppy/egppy/genetic_code/endpoint_abc.py`, `egppy/egppy/genetic_code/frozen_endpoint.py`, `egppy/egppy/genetic_code/endpoint.py`
+- [x] T011 [P] [US1] Update EPRef/EPRefs family class docstrings in `egppy/egppy/genetic_code/ep_ref_abc.py`, `egppy/egppy/genetic_code/frozen_ep_ref.py`, `egppy/egppy/genetic_code/ep_ref.py`
+- [x] T012 [US1] Write architecture overview, rationale, and family/diamond diagrams in `docs/components/worker/diamond_inheritance.md`
 
 **Checkpoint**: User Story 1 is independently complete and reviewable.
 
@@ -67,14 +67,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T013 [US2] Add exact-MRO assertions for `CGraph` and `Interface` diamonds in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
-- [ ] T014 [US2] Add exact-MRO assertions for `EndPoint`, `EPRef`, and `EPRefs` diamonds in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
-- [ ] T015 [US2] Add failure-message assertions/format checks for expected-vs-actual MRO output in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T013 [US2] Add exact-MRO assertions for `CGraph` and `Interface` diamonds in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T014 [US2] Add exact-MRO assertions for `EndPoint`, `EPRef`, and `EPRefs` diamonds in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T015 [US2] Add failure-message assertions/format checks for expected-vs-actual MRO output in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Document full canonical MRO listings for all five diamonds in `docs/components/worker/diamond_inheritance.md`
-- [ ] T017 [US2] Add MRO-regression demonstration instructions (intentional reorder experiment and revert guidance) in `docs/components/worker/diamond_inheritance.md`
+- [x] T016 [US2] Document full canonical MRO listings for all five diamonds in `docs/components/worker/diamond_inheritance.md`
+- [x] T017 [US2] Add MRO-regression demonstration instructions (intentional reorder experiment and revert guidance) in `docs/components/worker/diamond_inheritance.md`
 
 **Checkpoint**: User Story 2 is independently complete and executable.
 
@@ -88,12 +88,12 @@
 
 ### Tests for User Story 3
 
-- [ ] T018 [US3] Add positive subclass-contract tests (`mutable concrete` is subclass of `frozen ABC` and `mutable ABC`) in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
-- [ ] T019 [US3] Add negative subclass-contract tests (`frozen concrete` is not subclass of `mutable ABC`) in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T018 [US3] Add positive subclass-contract tests (`mutable concrete` is subclass of `frozen ABC` and `mutable ABC`) in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T019 [US3] Add negative subclass-contract tests (`frozen concrete` is not subclass of `mutable ABC`) in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Document subclass-contract intent and risk notes for all families in `docs/components/worker/diamond_inheritance.md`
+- [x] T020 [US3] Document subclass-contract intent and risk notes for all families in `docs/components/worker/diamond_inheritance.md`
 
 **Checkpoint**: User Story 3 is independently complete and executable.
 
@@ -107,12 +107,12 @@
 
 ### Tests for User Story 4
 
-- [ ] T021 [US4] Add architecture-doc content tests for required init-pattern sections in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T021 [US4] Add architecture-doc content tests for required init-pattern sections in `tests/test_egppy/test_genetic_code/test_mro_diamond.py`
 
 ### Implementation for User Story 4
 
-- [ ] T022 [US4] Document optional-args-with-early-return, separated-hash-computation, and template-method-with-override patterns in `docs/components/worker/diamond_inheritance.md`
-- [ ] T023 [US4] Add contributor playbook for adding a new frozen/mutable pair in `docs/components/worker/diamond_inheritance.md`
+- [x] T022 [US4] Document optional-args-with-early-return, separated-hash-computation, and template-method-with-override patterns in `docs/components/worker/diamond_inheritance.md`
+- [x] T023 [US4] Add contributor playbook for adding a new frozen/mutable pair in `docs/components/worker/diamond_inheritance.md`
 
 **Checkpoint**: User Story 4 is independently complete and reviewable.
 
@@ -122,13 +122,13 @@
 
 **Purpose**: Final consistency checks and validation across all stories.
 
-- [ ] T024 [P] Align feature contract wording with finalized tests/docs in `specs/002-diamond-inheritance/contracts/mro-documentation-contract.md`
-- [ ] T025 [P] Update end-to-end validation commands and completion criteria in `specs/002-diamond-inheritance/quickstart.md`
-- [ ] T026 Run focused MRO regression tests in `tests/test_egppy/test_genetic_code/test_mro_diamond.py` using `python -m unittest tests/test_egppy/test_genetic_code/test_mro_diamond.py`
-- [ ] T027 Run existing mutability contract tests in `tests/test_egppy/test_genetic_code/test_mutability_contract.py` using `python -m unittest tests/test_egppy/test_genetic_code/test_mutability_contract.py`
-- [ ] T028 Run full baseline suite with `python -m unittest discover -s tests` and capture pass/fail summary in `specs/002-diamond-inheritance/quickstart.md`
-- [ ] T029 [P] Validate quickstart expected outcomes/commands remain accurate in `specs/002-diamond-inheritance/quickstart.md`
-- [ ] T030 [P] Record final requirement-quality review outcomes in `specs/002-diamond-inheritance/checklists/inheritance.md`
+- [x] T024 [P] Align feature contract wording with finalized tests/docs in `specs/002-diamond-inheritance/contracts/mro-documentation-contract.md`
+- [x] T025 [P] Update end-to-end validation commands and completion criteria in `specs/002-diamond-inheritance/quickstart.md`
+- [x] T026 Run focused MRO regression tests in `tests/test_egppy/test_genetic_code/test_mro_diamond.py` using `python -m unittest tests/test_egppy/test_genetic_code/test_mro_diamond.py`
+- [x] T027 Run existing mutability contract tests in `tests/test_egppy/test_genetic_code/test_mutability_contract.py` using `python -m unittest tests/test_egppy/test_genetic_code/test_mutability_contract.py`
+- [x] T028 Run full baseline suite with `python -m unittest discover -s tests` and capture pass/fail summary in `specs/002-diamond-inheritance/quickstart.md`
+- [x] T029 [P] Validate quickstart expected outcomes/commands remain accurate in `specs/002-diamond-inheritance/quickstart.md`
+- [x] T030 [P] Record final requirement-quality review outcomes in `specs/002-diamond-inheritance/checklists/inheritance.md`
 
 ---
 
@@ -152,10 +152,10 @@
 
 ```text
 Foundational (Phase 2)
-	├── US1 (Phase 3)
-	├── US2 (Phase 4)
-	├── US3 (Phase 5)
-	└── US4 (Phase 6)
+  |- US1 (Phase 3)
+  |- US2 (Phase 4)
+  |- US3 (Phase 5)
+  `- US4 (Phase 6)
 ```
 
 ### Within Each User Story

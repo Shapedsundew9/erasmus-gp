@@ -40,29 +40,17 @@ from egppy.genetic_code.frozen_endpoint import FrozenEndPoint
 
 
 class EndPoint(FrozenEndPoint, EndPointABC):
-    """Mutable Endpoint class implementation.
+    """Mutable EndPoint implementation (mutable concrete role).
 
-    This concrete implementation of EndPointABC uses builtin Python collections for
-    efficient storage and manipulation of endpoint data. It provides a mutable endpoint
-    representation suitable for building and modifying connection graphs.
+    Role:
+        Mutable concrete class at the convergence point of the EndPoint diamond.
 
-    The EndPoint class uses __slots__ for memory efficiency and maintains endpoint state
-    using standard Python lists for references, enabling dynamic modification of connections
-    during graph construction.
+    Direct Parents:
+        `FrozenEndPoint`, `EndPointABC`.
 
-    Attributes:
-        row (Row): The row identifier where this endpoint resides.
-        idx (int): The index of this endpoint within its row (0-255).
-        cls (EPCls): The endpoint class - either SRC (source) or DST (destination).
-        typ (TypesDef): The data type associated with this endpoint.
-        refs (EPRefs): Mutable list of references to connected endpoints.
-
-    See Also:
-        - EndPointABC: Abstract base class defining the endpoint interface
-        - SrcEndPoint: Convenience class for creating source endpoints
-        - DstEndPoint: Convenience class for creating destination endpoints
-        - Interface: Collection of endpoints forming an interface
-        - CGraph: Connection graph composed of interfaces
+    Shared Grandparent:
+        `FrozenEndPointABC` is shared by both parent branches and parent order
+        is intentional for MRO-safe initialization.
     """
 
     __copy__ = None  # type: ignore (reset to default behaviour)

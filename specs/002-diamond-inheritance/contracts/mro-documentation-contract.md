@@ -8,6 +8,11 @@ Define the acceptance contract for WP7 Option C artifacts:
 - Architecture reference document
 - Deterministic MRO regression tests
 
+## Task Traceability
+
+This contract is implemented by tasks `T001` through `T030` in
+`specs/002-diamond-inheritance/tasks.md`.
+
 ## Scope
 
 Applies to five diamond hierarchies in `egppy/egppy/genetic_code/`:

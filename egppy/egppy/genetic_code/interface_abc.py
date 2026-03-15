@@ -24,15 +24,18 @@ MAX_EPS = 256  # Maximum number of endpoints in an interface
 
 
 class FrozenInterfaceABC(CommonObjABC, Sequence[FrozenEndPointABC], metaclass=ABCMeta):
-    """Abstract Base Class for Immutable Interface.
+    """Frozen Interface family shared base (frozen ABC role).
 
-    This class defines the essential interface that all Interface
-    implementations must provide. It inherits CommonObjABC for validation methods
-    and Sequence[FrozenEndPointABC] for immutable sequence operations
-    (including __iter__, __contains__, __reversed__, count, and index).
+    Role:
+        Shared frozen abstract base class in the Interface diamond family.
 
-    Interfaces define collections of endpoints that represent connections in
-    genetic code, either as sources (inputs) or destinations (outputs).
+    Direct Parents:
+        `CommonObjABC`, `Sequence[FrozenEndPointABC]`.
+
+    Shared Grandparent:
+        This class is the shared grandparent in the mutable-concrete diamond:
+        `FrozenInterface` and `InterfaceABC` both derive from it, then `Interface`
+        combines those branches.
     """
 
     __slots__ = ()
@@ -162,11 +165,17 @@ class FrozenInterfaceABC(CommonObjABC, Sequence[FrozenEndPointABC], metaclass=AB
 
 
 class InterfaceABC(FrozenInterfaceABC, MutableSequence[FrozenEndPointABC], metaclass=ABCMeta):
-    """Abstract Base Class for Mutable Interface.
+    """Mutable Interface API contract (mutable ABC role).
 
-    This class defines the interface for mutable Interface implementations.
-    It inherits FrozenInterfaceABC and MutableSequence[FrozenEndPointABC]
-    (which provides append via insert).
+    Role:
+        Mutable abstract branch in the Interface diamond family.
+
+    Direct Parents:
+        `FrozenInterfaceABC`, `MutableSequence[FrozenEndPointABC]`.
+
+    Shared Grandparent:
+        `FrozenInterfaceABC` is shared with the frozen concrete branch
+        (`FrozenInterface`) and the branches converge in `Interface`.
     """
 
     __slots__ = ()

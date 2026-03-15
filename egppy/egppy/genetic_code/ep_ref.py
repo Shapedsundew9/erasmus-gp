@@ -11,8 +11,16 @@ from egppy.genetic_code.frozen_ep_ref import FrozenEPRef, FrozenEPRefs
 
 
 class EPRef(FrozenEPRef, EPRefABC):
-    """
-    Docstring for EPRef
+    """Mutable EPRef implementation (mutable concrete role for EPRef diamond).
+
+    Role:
+        Mutable concrete class where EPRef frozen and mutable-ABC branches meet.
+
+    Direct Parents:
+        `FrozenEPRef`, `EPRefABC`.
+
+    Shared Grandparent:
+        `FrozenEPRefABC` is shared by both parent branches.
     """
 
     __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
@@ -22,8 +30,16 @@ class EPRef(FrozenEPRef, EPRefABC):
 
 
 class EPRefs(FrozenEPRefs, EPRefsABC):
-    """
-    Docstring for EPRefs
+    """Mutable EPRefs implementation (mutable concrete role for EPRefs diamond).
+
+    Role:
+        Mutable concrete class where EPRefs frozen and mutable-ABC branches meet.
+
+    Direct Parents:
+        `FrozenEPRefs`, `EPRefsABC`.
+
+    Shared Grandparent:
+        `FrozenEPRefsABC` is shared by both parent branches.
     """
 
     def __init__(self, refs: Iterable[FrozenEPRefABC] | None = None):
