@@ -6,15 +6,15 @@ from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfK
 from egppy.genetic_code.endpoint import EndPoint
 from egppy.genetic_code.interface import Interface
 from egppy.genetic_code.types_def_store import types_def_store
-from egppy.physics.mutations.common import copy_rgc, verify_graph_size
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
+from egppy.physics.mutations.common import copy_rgc, verify_graph_size
 
 # Logging setup
 _logger: Logger = egp_logger(name=__name__)
 
 
-def split(_: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode:
+def split(rtctxt: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode:
     """Introduce an if-then or if-then-else conditional branching structure.
 
     rgc is not modified; a deep copy is created and returned (FR-010).
@@ -22,7 +22,7 @@ def split(_: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode
     and restructures the graph to be conditional.
 
     Arguments:
-        _: The runtime context.
+        rtctxt: The runtime context.
         rgc: The genetic code to modify.
         if_key: The interface key that provides the condition endpoint.
     Returns:
@@ -44,18 +44,14 @@ def split(_: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode
     new_type = CGraphType.IF_THEN_ELSE if has_gcb else CGraphType.IF_THEN
 
     # 2. Update properties
-    _logger.debug(
-        "Splitting GC %s: changing graph type to %s", rgc.get("signature", "unnamed"), new_type.name
-    )
+    _logger.debug("Splitting GC %s: changing graph type to %s", rgc.get("signature", "unnamed"), new_type.name)
     props = PropertiesBD(rgc_new["properties"])
     props["graph_type"] = new_type
     rgc_new["properties"] = props.to_int()
 
     # 3. Create Row F (Condition) interface if it doesn't exist
     if DstIfKey.FD not in cgraph or cgraph[DstIfKey.FD] is None:
-        _logger.debug(
-            "Splitting GC %s: creating condition interface FD", rgc.get("signature", "unnamed")
-        )
+        _logger.debug("Splitting GC %s: creating condition interface FD", rgc.get("signature", "unnamed"))
         # Condition endpoint typically expects 'bool'
         bool_type = types_def_store["bool"]
         f_ep = EndPoint(DstRow.F, 0, EPCls.DST, bool_type, [])
@@ -64,12 +60,8 @@ def split(_: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode
     # 4. Connect the split interface's first endpoint to the condition if compatible
     src_ep = iface[0]
     dst_ep = cgraph[DstIfKey.FD][0]
-    if not dst_ep.is_connected() and (
-        dst_ep.can_connect(src_ep) or dst_ep.can_downcast_connect(src_ep)
-    ):
-        _logger.debug(
-            "Splitting GC %s: connecting %s[0] to FD[0]", rgc.get("signature", "unnamed"), if_key
-        )
+    if not dst_ep.is_connected() and (dst_ep.can_connect(src_ep) or dst_ep.can_downcast_connect(src_ep)):
+        _logger.debug("Splitting GC %s: connecting %s[0] to FD[0]", rgc.get("signature", "unnamed"), if_key)
         dst_ep.connect(src_ep)
         src_ep.connect(dst_ep)
 
@@ -97,12 +89,7 @@ def split(_: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode
                     if ref.row == DstRow.O:
                         idx = ref.idx
                         if idx < len(pd_if):
-                            _logger.debug(
-                                "Splitting GC %s: re-routing BS[%d] to PD[%d]",
-                                rgc.get("signature", "unnamed"),
-                                bs_ep.idx,
-                                idx,
-                            )
+                            _logger.debug("Splitting GC %s: re-routing BS[%d] to PD[%d]", rgc.get("signature", "unnamed"), bs_ep.idx, idx)
                             target = od_if[idx]
                             # Disconnect BS -> OD
                             target.clr_refs()
@@ -111,7 +98,7 @@ def split(_: RuntimeContext, rgc: EGCode, if_key: DstIfKey | SrcIfKey) -> EGCode
                                 if r.row == DstRow.O and r.idx == idx:
                                     del bs_ep.refs[i]
                                     break
-
+                            
                             # Connect BS -> PD
                             pd_if[idx].connect(bs_ep)
                             bs_ep.connect(pd_if[idx])

@@ -1,8 +1,8 @@
 """Common utilities for mutation primitives."""
 
 from copy import deepcopy
-
 from egpcommon.egp_log import Logger, egp_logger
+from egppy.genetic_code.c_graph import CGraph
 from egppy.physics.pgc_api import EGCode
 
 # Logging setup
@@ -44,7 +44,7 @@ def copy_rgc(rgc: EGCode) -> EGCode:
         "creator": rgc["creator"],
         "properties": deepcopy(rgc["properties"]),
     }
-
+    
     # Create the new EGCode
     rgc_new = EGCode(new_init_dict)
 

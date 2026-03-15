@@ -16,7 +16,7 @@ _logger: Logger = egp_logger(name=__name__)
 
 
 def rewire(
-    _: RuntimeContext,
+    rtctxt: RuntimeContext,
     rgc: EGCode,
     dst_if_key: DstIfKey,
     dst_idx: int,
@@ -29,7 +29,7 @@ def rewire(
     The mutation verifies interface type compatibility (FR-011).
 
     Arguments:
-        _: The runtime context.
+        rtctxt: The runtime context.
         rgc: The genetic code to rewire.
         dst_if_key: The destination interface key.
         dst_idx: The index of the destination endpoint.

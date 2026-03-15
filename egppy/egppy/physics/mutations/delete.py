@@ -1,29 +1,26 @@
 """The delete module provides deletion operations for genetic codes."""
 
 from egpcommon.egp_log import Logger, egp_logger
-from egppy.genetic_code.c_graph_constants import (
-    DST_KEY_DICT,
-    SRC_KEY_DICT,
-    DstIfKey,
-    EPCls,
-    SrcIfKey,
-)
-from egppy.physics.mutations.common import copy_rgc, verify_graph_size
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
+from egppy.physics.mutations.common import copy_rgc, verify_graph_size
 
 # Logging setup
 _logger: Logger = egp_logger(name=__name__)
 
 
-def delete(_: RuntimeContext, rgc: EGCode, a: bool = False, b: bool = False) -> EGCode:
+from egppy.genetic_code.c_graph_constants import DstIfKey, SrcIfKey, SRC_KEY_DICT, DST_KEY_DICT
+
+
+def delete(rtctxt: RuntimeContext, rgc: EGCode, a: bool = False, b: bool = False) -> EGCode:
     """Delete GCA (if a is True) and/or GCB (if b is True).
 
     rgc is not modified; a deep copy is created and returned (FR-010).
     The mutation removes the sub-GC and clears related interface connections.
 
     Arguments:
-        _: The runtime context.
+        rtctxt: The runtime context.
         rgc: The genetic code to modify.
         a: If True, delete GCA.
         b: If True, delete GCB.

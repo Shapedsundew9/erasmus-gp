@@ -11,14 +11,14 @@ from egppy.physics.runtime_context import RuntimeContext
 _logger: Logger = egp_logger(name=__name__)
 
 
-def crossover(_: RuntimeContext, rgc: EGCode, psite2: GCABC, a: bool) -> EGCode:
+def crossover(rtctxt: RuntimeContext, rgc: EGCode, psite2: GCABC, a: bool) -> EGCode:
     """Perform crossover by replacing GCA or GCB with another GC.
 
     rgc is not modified; a deep copy is created and returned (FR-010).
     The connection process handles interface updates and wiring (US2).
 
     Arguments:
-        _: The runtime context.
+        rtctxt: The runtime context.
         rgc: The target genetic code (TGC).
         psite2: The genetic code to swap in.
         a: If True, replace GCA. If False, replace GCB.
@@ -26,7 +26,7 @@ def crossover(_: RuntimeContext, rgc: EGCode, psite2: GCABC, a: bool) -> EGCode:
         The crossover EGCode.
     """
     _logger.debug("Crossover: Replacing %s with new genetic code", "GCA" if a else "GCB")
-
+    
     # Create a deep copy for atomicity (FR-010)
     rgc_new = copy_rgc(rgc)
 

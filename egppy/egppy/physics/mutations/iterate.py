@@ -1,19 +1,19 @@
 """The iterate module provides iteration (loop) operations for genetic codes."""
 
 from egpcommon.properties import CGraphType, PropertiesBD
-from egppy.physics.mutations.common import copy_rgc, verify_graph_size
 from egppy.physics.pgc_api import EGCode
 from egppy.physics.runtime_context import RuntimeContext
+from egppy.physics.mutations.common import copy_rgc, verify_graph_size
 
 
-def iterate(_: RuntimeContext, rgc: EGCode, loop_type: CGraphType) -> EGCode:
+def iterate(rtctxt: RuntimeContext, rgc: EGCode, loop_type: CGraphType) -> EGCode:
     """Convert a standard GC into a loop GC (FOR or WHILE).
 
     rgc is not modified; a deep copy is created and returned (FR-010).
     The mutation changes the graph type and sets up loop-specific interfaces.
 
     Arguments:
-        _: The runtime context.
+        rtctxt: The runtime context.
         rgc: The genetic code to modify.
         loop_type: The type of loop (CGraphType.FOR_LOOP or CGraphType.WHILE_LOOP).
     Returns:
