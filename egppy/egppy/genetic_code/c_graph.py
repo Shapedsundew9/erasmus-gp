@@ -59,7 +59,7 @@ class CGraph(FrozenCGraph, CGraphABC):
     def __init__(
         self,
         graph: (
-            Mapping[str, list[EndpointMemberType]]
+            Mapping[IfKey, list[EndpointMemberType]]
             | Mapping[IfKey, FrozenInterfaceABC]
             | FrozenCGraphABC
         ),
@@ -75,7 +75,7 @@ class CGraph(FrozenCGraph, CGraphABC):
     def _init_graph(  # type: ignore[override]
         self,
         graph: (
-            Mapping[str, list[EndpointMemberType]]
+            Mapping[IfKey, list[EndpointMemberType]]
             | Mapping[IfKey, FrozenInterfaceABC]
             | FrozenCGraphABC
         ),
