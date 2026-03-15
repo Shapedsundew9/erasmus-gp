@@ -189,12 +189,18 @@ from egppy.genetic_code.interface_abc import FrozenInterfaceABC
 
 
 class FrozenCGraphABC(Mapping[IfKey, FrozenInterfaceABC], CommonObjABC, metaclass=ABCMeta):
-    """Abstract Base Class for Frozen (Immutable) Connection Graphs.
+    """Frozen CGraph family shared base (frozen ABC role).
 
-    This class defines the read-only interface for Connection Graphs.
-    It inherits Mapping[IfKey, FrozenInterfaceABC] for standard container operations
-    (including __contains__, __eq__, items, keys, values, and get), and CommonObjABC
-    for validation methods.
+    Role:
+        Shared frozen abstract base class in the CGraph diamond family.
+
+    Direct Parents:
+        `Mapping[IfKey, FrozenInterfaceABC]`, `CommonObjABC`.
+
+    Shared Grandparent:
+        This class is the shared grandparent in the mutable-concrete diamond:
+        `FrozenCGraph` and `CGraphABC` both derive from `FrozenCGraphABC`, and
+        `CGraph` derives from both of those branches.
     """
 
     __slots__ = ()
@@ -304,10 +310,17 @@ class FrozenCGraphABC(Mapping[IfKey, FrozenInterfaceABC], CommonObjABC, metaclas
 
 
 class CGraphABC(FrozenCGraphABC, MutableMapping[IfKey, FrozenInterfaceABC]):
-    """Abstract Base Class for Mutable Connection Graphs.
+    """Mutable CGraph API contract (mutable ABC role).
 
-    This class extends FrozenCGraphABC with methods for modifying the graph.
-    It inherits MutableMapping for standard mutable container operations.
+    Role:
+        Mutable abstract branch in the CGraph diamond family.
+
+    Direct Parents:
+        `FrozenCGraphABC`, `MutableMapping[IfKey, FrozenInterfaceABC]`.
+
+    Shared Grandparent:
+        `FrozenCGraphABC` is the shared grandparent with the frozen concrete
+        branch (`FrozenCGraph`) that converges in `CGraph`.
     """
 
     __slots__ = ()

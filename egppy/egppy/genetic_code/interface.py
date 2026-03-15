@@ -82,7 +82,18 @@ def unpack_src_ref(ref: list[int | Row] | tuple[Row, int] | FrozenEPRefABC) -> t
 
 
 class Interface(CommonObj, FrozenInterface, InterfaceABC):
-    """The Interface class provides a base for defining interfaces in the EGP system."""
+    """Mutable Interface implementation (mutable concrete role).
+
+    Role:
+        Mutable concrete class at the convergence point of the Interface diamond.
+
+    Direct Parents:
+        `CommonObj`, `FrozenInterface`, `InterfaceABC`.
+
+    Shared Grandparent:
+        `FrozenInterfaceABC` is shared by the frozen concrete and mutable-ABC
+        branches; parent order is intentional for MRO-safe initialization.
+    """
 
     __slots__ = ("endpoints",)
     __copy__ = None  # type: ignore (reset to default behaviour)

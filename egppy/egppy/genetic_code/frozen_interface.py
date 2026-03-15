@@ -20,15 +20,17 @@ from egppy.genetic_code.types_def import TypesDef
 
 
 class FrozenInterface(FrozenInterfaceABC):
-    """Frozen interfaces are immutable and introspect FrozenCGraph data structures directly.
+    """Frozen Interface implementation (frozen concrete role).
 
-    This class provides an immutable interface implementation that stores endpoint data
-    as tuples instead of lists. It creates FrozenEndPoint instances on-the-fly when accessed.
+    Role:
+        Frozen concrete branch in the Interface diamond family.
 
-    Attributes:
-        row: Row: The row of the interface. The correct row enum must be used (DstRow or SrcRow).
-        type_tuple (tuple[TypesDef, ...]): Tuple of types for each endpoint.
-        refs_tuple (tuple[FrozenEPRefs, ...]): Tuple of reference tuples for each endpoint.
+    Direct Parents:
+        `FrozenInterfaceABC`.
+
+    Shared Grandparent:
+        `FrozenInterfaceABC` is shared with the mutable-ABC branch
+        (`InterfaceABC`) and the branches converge in `Interface`.
     """
 
     __slots__ = ("_row", "_cls", "type_tuple", "refs_tuple", "_hash")

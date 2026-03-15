@@ -12,7 +12,18 @@ from egppy.genetic_code.c_graph_constants import Row
 
 
 class FrozenEPRefABC(CommonObjABC, Hashable, metaclass=ABCMeta):
-    """Abstract Base Class for Frozen (Immutable) EndPoint Reference."""
+    """Frozen EPRef shared base (frozen ABC role for EPRef diamond).
+
+    Role:
+        Shared frozen abstract base for the single-reference EPRef diamond.
+
+    Direct Parents:
+        `CommonObjABC`, `Hashable`.
+
+    Shared Grandparent:
+        This class is the shared grandparent in the EPRef mutable-concrete
+        diamond (`FrozenEPRef` and `EPRefABC` converge in `EPRef`).
+    """
 
     __slots__ = ()
     row: Row
@@ -37,14 +48,36 @@ class FrozenEPRefABC(CommonObjABC, Hashable, metaclass=ABCMeta):
 
 
 class EPRefABC(FrozenEPRefABC, metaclass=ABCMeta):
-    """Abstract Base Class for Mutable EndPoint Reference."""
+    """Mutable EPRef API contract (mutable ABC role for EPRef diamond).
+
+    Role:
+        Mutable abstract branch for the single-reference EPRef diamond.
+
+    Direct Parents:
+        `FrozenEPRefABC`.
+
+    Shared Grandparent:
+        `FrozenEPRefABC` is shared with `FrozenEPRef` and the branches
+        converge in `EPRef`.
+    """
 
     __slots__ = ()
     __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)
 
 
 class FrozenEPRefsABC(CommonObjABC, Hashable, Sequence, metaclass=ABCMeta):
-    """Abstract Base Class for Frozen Sequence of EndPoint References."""
+    """Frozen EPRefs shared base (frozen ABC role for EPRefs diamond).
+
+    Role:
+        Shared frozen abstract base for the reference-sequence EPRefs diamond.
+
+    Direct Parents:
+        `CommonObjABC`, `Hashable`, `Sequence`.
+
+    Shared Grandparent:
+        This class is the shared grandparent in the EPRefs mutable-concrete
+        diamond (`FrozenEPRefs` and `EPRefsABC` converge in `EPRefs`).
+    """
 
     __slots__ = ()
     _refs: Sequence[FrozenEPRefABC]
@@ -69,7 +102,18 @@ class FrozenEPRefsABC(CommonObjABC, Hashable, Sequence, metaclass=ABCMeta):
 
 
 class EPRefsABC(FrozenEPRefsABC, MutableSequence, metaclass=ABCMeta):
-    """Abstract Base Class for Mutable Sequence of EndPoint References."""
+    """Mutable EPRefs API contract (mutable ABC role for EPRefs diamond).
+
+    Role:
+        Mutable abstract branch for the EPRefs diamond.
+
+    Direct Parents:
+        `FrozenEPRefsABC`, `MutableSequence`.
+
+    Shared Grandparent:
+        `FrozenEPRefsABC` is shared with `FrozenEPRefs` and the branches
+        converge in `EPRefs`.
+    """
 
     __slots__ = ()
     __hash__ = None  # type: ignore[assignment]  # Mutable objects must not be hashable (WP5)

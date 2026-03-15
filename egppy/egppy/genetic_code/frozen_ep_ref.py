@@ -13,8 +13,17 @@ from egppy.genetic_code.ep_ref_abc import FrozenEPRefABC, FrozenEPRefsABC
 
 
 class FrozenEPRef(CommonObj, FrozenEPRefABC):
-    """
-    Docstring for FrozenEPRef
+    """Frozen EPRef implementation (frozen concrete role for EPRef diamond).
+
+    Role:
+        Frozen concrete branch in the single-reference EPRef diamond.
+
+    Direct Parents:
+        `CommonObj`, `FrozenEPRefABC`.
+
+    Shared Grandparent:
+        `FrozenEPRefABC` is shared with `EPRefABC` and the branches converge
+        in mutable concrete `EPRef`.
     """
 
     __slots__ = ("row", "idx", "_hash")
@@ -61,8 +70,17 @@ class FrozenEPRef(CommonObj, FrozenEPRefABC):
 
 
 class FrozenEPRefs(CommonObj, FrozenEPRefsABC):
-    """
-    Docstring for FrozenEPRefs
+    """Frozen EPRefs implementation (frozen concrete role for EPRefs diamond).
+
+    Role:
+        Frozen concrete branch in the EPRefs reference-sequence diamond.
+
+    Direct Parents:
+        `CommonObj`, `FrozenEPRefsABC`.
+
+    Shared Grandparent:
+        `FrozenEPRefsABC` is shared with `EPRefsABC` and the branches converge
+        in mutable concrete `EPRefs`.
     """
 
     __slots__ = ("_refs", "_hash")

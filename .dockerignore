@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# Docker-specific
+.git/
+Dockerfile*
+.dockerignore
+*.log*
+.env*
+coverage/
+
+# Optional ecosystem directories
+node_modules/

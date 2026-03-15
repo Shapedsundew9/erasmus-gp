@@ -32,18 +32,17 @@ EMPTY_FROZEN_EP_REFS = refs_store[FrozenEPRefs(tuple())]
 
 
 class FrozenEndPoint(CommonObj, FrozenEndPointABC):
-    """Frozen End Points are immutable and introspect FrozenInterface data structures directly.
+    """Frozen EndPoint implementation (frozen concrete role).
 
-    This class provides an immutable endpoint implementation that stores references as a
-    tuple instead of a list. It is memory-efficient and suitable for frozen graphs.
+    Role:
+        Frozen concrete branch in the EndPoint diamond family.
 
-    Attributes:
-        row (Row): The row identifier where this endpoint resides.
-        idx (int): The index of this endpoint within its row (stored externally,
-                   accessed via context).
-        cls (EPCls): The endpoint class - either SRC or DST (stored as epcls).
-        typ (TypesDef): The data type associated with this endpoint.
-        refs (FrozenEPRefs): Immutable tuple of references to connected endpoints.
+    Direct Parents:
+        `CommonObj`, `FrozenEndPointABC`.
+
+    Shared Grandparent:
+        `FrozenEndPointABC` is shared with the mutable-ABC branch (`EndPointABC`)
+        and the branches converge in `EndPoint`.
     """
 
     __slots__ = ("typ", "refs", "row", "cls", "idx", "_hash")

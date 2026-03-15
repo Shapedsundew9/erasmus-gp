@@ -156,8 +156,7 @@ class TestCGraphGetMethod(unittest.TestCase):
         """Test get() returns custom default for missing keys."""
         custom_default = Interface([], DstRow.A)
         result = self.cgraph.get(DstIfKey.FD, custom_default)
-        # get() returns the attribute value or default, which is None for missing keys
-        self.assertIsNone(result)
+        self.assertIs(result, custom_default)
 
     def test_get_with_default_none(self) -> None:
         """Test get() returns None for missing keys with default=None."""

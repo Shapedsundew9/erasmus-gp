@@ -38,7 +38,18 @@ _logger: Logger = egp_logger(name=__name__)
 
 
 class CGraph(FrozenCGraph, CGraphABC):
-    """Mutable CGraph class."""
+    """Mutable CGraph implementation (mutable concrete role).
+
+    Role:
+        Mutable concrete class at the convergence point of the CGraph diamond.
+
+    Direct Parents:
+        `FrozenCGraph`, `CGraphABC`.
+
+    Shared Grandparent:
+        `FrozenCGraphABC` is shared by both parent branches and determines the
+        core read-only graph contract used by MRO dispatch.
+    """
 
     # Inherit slots from FrozenCGraph
     __slots__ = ()
@@ -48,7 +59,7 @@ class CGraph(FrozenCGraph, CGraphABC):
     def __init__(
         self,
         graph: (
-            Mapping[str, list[EndpointMemberType]]
+            Mapping[IfKey, list[EndpointMemberType]]
             | Mapping[IfKey, FrozenInterfaceABC]
             | FrozenCGraphABC
         ),
@@ -59,12 +70,12 @@ class CGraph(FrozenCGraph, CGraphABC):
         """
         # Delegate to FrozenCGraph.__init__ which calls _init_graph() (Template Method).
         # CGraph overrides _init_graph() to build mutable Interface objects.
-        super().__init__(graph)
+        super().__init__(graph)  # type: ignore
 
-    def _init_graph(
+    def _init_graph(  # type: ignore[override]
         self,
         graph: (
-            Mapping[str, list[EndpointMemberType]]
+            Mapping[IfKey, list[EndpointMemberType]]
             | Mapping[IfKey, FrozenInterfaceABC]
             | FrozenCGraphABC
         ),
