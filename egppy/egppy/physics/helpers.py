@@ -38,11 +38,8 @@ def merge_properties(
 
     # Extract GCA properties
     gca = gca if isinstance(gca, GCABC) else rtctxt.gpi[gca]
-    _prop_a = gca["properties"]
-    if isinstance(_prop_a, (int, dict, bytes, bytearray, type(None))):
-        prop_a = PropertiesBD(_prop_a)
-    else:
-        prop_a = _prop_a
+    _prop_a: BitDictABC | int = gca["properties"]
+    prop_a = _prop_a if isinstance(_prop_a, BitDictABC) else PropertiesBD(_prop_a)
 
     # If GCB is None, return GCA properties
     if gcb is None:
@@ -50,11 +47,8 @@ def merge_properties(
 
     # Extract GCB properties
     gcb = gcb if isinstance(gcb, GCABC) else rtctxt.gpi[gcb]
-    _prop_b = gcb["properties"]
-    if isinstance(_prop_b, (int, dict, bytes, bytearray, type(None))):
-        prop_b = PropertiesBD(_prop_b)
-    else:
-        prop_b = _prop_b
+    _prop_b: BitDictABC | int = gcb["properties"]
+    prop_b = _prop_b if isinstance(_prop_b, BitDictABC) else PropertiesBD(_prop_b)
 
     # TODO: Implement GC type specific merging logic
     return merge_properties_base(prop_a, prop_b)
@@ -73,16 +67,16 @@ def merge_properties_base(prop_a: BitDictABC, prop_b: BitDictABC) -> BitDictABC:
     merged_properties["graph_type"] = CGraphType.STANDARD
 
     # Constant: only if both are constant
-    merged_properties["constant"] = bool(prop_a["constant"] and prop_b["constant"])
+    merged_properties["constant"] = prop_a["constant"] and prop_b["constant"]
 
     # Deterministic: only if both are deterministic
-    merged_properties["deterministic"] = bool(prop_a["deterministic"] and prop_b["deterministic"])
+    merged_properties["deterministic"] = prop_a["deterministic"] and prop_b["deterministic"]
 
     # Abstract: if either is abstract - not used - do we care?
     # TODO: merged_properties["abstract"] = if row I or O has abstract endpoint?
 
     # Side Effects: if either has side effects
-    merged_properties["side_effects"] = bool(prop_a["side_effects"] or prop_b["side_effects"])
+    merged_properties["side_effects"] = prop_a["side_effects"] or prop_b["side_effects"]
 
     # Other properties can be merged as needed; for now, we set them to default values
     # or implement specific merging logic as required.

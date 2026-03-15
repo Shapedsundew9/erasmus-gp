@@ -16,55 +16,55 @@ We will follow an incremental delivery approach, starting with the core mutation
 
 ## Phase 1: Setup
 
-- [X] T001 Initialize `egppy/egppy/physics/mutations/` package and move existing mutation files (`create.py`, `wrap.py`, `insert.py`, `crossover.py`) into it.
-- [X] T002 Create stub file for connection processes in `egppy/egppy/physics/processes.py`.
-- [X] T003 Create stub file for optimizations in `egppy/egppy/physics/optimization.py`.
-- [X] T004 Initialize test files in `tests/test_egppy/test_physics/` for mutations, processes, and optimization.
+- [ ] T001 Initialize `egppy/egppy/physics/mutations/` package and move existing mutation files (`create.py`, `wrap.py`, `insert.py`, `crossover.py`) into it.
+- [ ] T002 Create stub file for connection processes in `egppy/egppy/physics/processes.py`.
+- [ ] T003 Create stub file for optimizations in `egppy/egppy/physics/optimization.py`.
+- [ ] T004 Initialize test files in `tests/test_egppy/test_physics/` for mutations, processes, and optimization.
 
 ## Phase 2: Foundational
 
-- [X] T005 [P] Implement `CGraph` deep copy helper in `egppy/egppy/physics/mutations/common.py` to ensure transactional atomicity (FR-010).
-- [X] T006 [P] Define `PrimarySource` mapping and `ForcePrimary` connection logic in `egppy/egppy/physics/processes.py` (FR-003).
+- [ ] T005 [P] Implement `CGraph` deep copy helper in `egppy/egppy/physics/mutations/common.py` to ensure transactional atomicity (FR-010).
+- [ ] T006 [P] Define `PrimarySource` mapping and `ForcePrimary` connection logic in `egppy/egppy/physics/processes.py` (FR-003).
 
 ## Phase 3: User Story 1 - Full Set of Mutation Primitives (Priority: P1)
 
 **Story Goal**: Complete the library of 8 mutation primitives.
 **Independent Test**: Verify each primitive individually transforms the `CGraph` topology as expected.
 
-- [X] T007 [P] [US1] Implement `Rewire` mutation in `egppy/egppy/physics/mutations/rewire.py`.
-- [X] T008 [P] [US1] Implement `Delete` mutation in `egppy/egppy/physics/mutations/delete.py`.
-- [X] T009 [P] [US1] Implement `Split` mutation in `egppy/egppy/physics/mutations/split.py`.
-- [X] T010 [P] [US1] Implement `Iterate` mutation in `egppy/egppy/physics/mutations/iterate.py`.
-- [X] T011 [US1] Update `Create`, `Wrap`, `Insert`, and `Crossover` to use the atomicity pattern, verified interface compatibility, and defensive validation calls (`verify()`, `consistency()`) in `egppy/egppy/physics/mutations/`.
-- [X] T012 [US1] Implement unit tests for all 8 mutation primitives, including edge cases (Empty Mutations, Graph Disconnection, Interface Mismatch) in `tests/test_egppy/test_physics/test_mutations.py`.
+- [ ] T007 [P] [US1] Implement `Rewire` mutation in `egppy/egppy/physics/mutations/rewire.py`.
+- [ ] T008 [P] [US1] Implement `Delete` mutation in `egppy/egppy/physics/mutations/delete.py`.
+- [ ] T009 [P] [US1] Implement `Split` mutation in `egppy/egppy/physics/mutations/split.py`.
+- [ ] T010 [P] [US1] Implement `Iterate` mutation in `egppy/egppy/physics/mutations/iterate.py`.
+- [ ] T011 [US1] Update `Create`, `Wrap`, `Insert`, and `Crossover` to use the atomicity pattern, verified interface compatibility, and defensive validation calls (`verify()`, `consistency()`) in `egppy/egppy/physics/mutations/`.
+- [ ] T012 [US1] Implement unit tests for all 8 mutation primitives, including edge cases (Empty Mutations, Graph Disconnection, Interface Mismatch) in `tests/test_egppy/test_physics/test_mutations.py`.
 
 ## Phase 4: User Story 2 - Idiomatic Wiring via Connection Processes (Priority: P1)
 
 **Story Goal**: Implement wiring logic that encourages functional architectures.
 **Independent Test**: Perform an `Insertion` and verify that `Force Primary` correctly establishes or re-routes connections.
 
-- [X] T013 [P] [US2] Implement the `Create` connection process in `egppy/egppy/physics/processes.py`.
-- [X] T014 [P] [US2] Implement the `Wrap` connection process in `egppy/egppy/physics/processes.py`.
-- [X] T015 [P] [US2] Implement the `Insertion` connection process in `egppy/egppy/physics/processes.py`.
-- [X] T016 [P] [US2] Implement the `Crossover` connection process in `egppy/egppy/physics/processes.py`.
-- [X] T017 [US2] Implement unit tests for all connection processes, ensuring "Force Primary" correctly handles already-connected interfaces, in `tests/test_egppy/test_physics/test_processes.py`.
+- [ ] T013 [P] [US2] Implement the `Create` connection process in `egppy/egppy/physics/processes.py`.
+- [ ] T014 [P] [US2] Implement the `Wrap` connection process in `egppy/egppy/physics/processes.py`.
+- [ ] T015 [P] [US2] Implement the `Insertion` connection process in `egppy/egppy/physics/processes.py`.
+- [ ] T016 [P] [US2] Implement the `Crossover` connection process in `egppy/egppy/physics/processes.py`.
+- [ ] T017 [US2] Implement unit tests for all connection processes, ensuring "Force Primary" correctly handles already-connected interfaces, in `tests/test_egppy/test_physics/test_processes.py`.
 
 ## Phase 5: User Story 3 - Structural Optimization (Priority: P2)
 
 **Story Goal**: Prune dead code and unused parameters from genetic structures.
 **Independent Test**: Verify that optimized graphs are functionally equivalent but strictly smaller.
 
-- [X] T018 [P] [US3] Implement `Dead Code Elimination` (DCE) using bottom-up reachability in `egppy/egppy/physics/optimization.py`.
-- [X] T019 [P] [US3] Implement `Unused Parameter Removal` in `egppy/egppy/physics/optimization.py`.
-- [X] T020 [US3] Implement unit tests for optimizations in `tests/test_egppy/test_physics/test_optimization.py`.
+- [ ] T018 [P] [US3] Implement `Dead Code Elimination` (DCE) using bottom-up reachability in `egppy/egppy/physics/optimization.py`.
+- [ ] T019 [P] [US3] Implement `Unused Parameter Removal` in `egppy/egppy/physics/optimization.py`.
+- [ ] T020 [US3] Implement unit tests for optimizations in `tests/test_egppy/test_physics/test_optimization.py`.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [ ] T021 [P] Integrate `DEBUG` level logging for detailed topology changes across all mutation functions (FR-009).
-- [X] T021.5 [P] Implement maximum graph size enforcement (FR-008) in `egppy/egppy/physics/mutations/common.py`.
-- [X] T022 Ensure all mutation primitives explicitly verify interface type compatibility and enforce graph size limits (FR-008, FR-011).
-- [X] T023 Verify that chained mutation sequences stabilize correctly with `sfss()` in integration tests.
-- [X] T024 Final validation of all Success Criteria (SC-001 to SC-004).
+- [ ] T021.5 [P] Implement maximum graph size enforcement (FR-008) in `egppy/egppy/physics/mutations/common.py`.
+- [ ] T022 Ensure all mutation primitives explicitly verify interface type compatibility and enforce graph size limits (FR-008, FR-011).
+- [ ] T023 Verify that chained mutation sequences stabilize correctly with `sfss()` in integration tests.
+- [ ] T024 Final validation of all Success Criteria (SC-001 to SC-004).
 
 ## Dependency Graph
 
