@@ -62,7 +62,6 @@ from egppy.genetic_code.types_def_store import types_def_store
 # Standard EGP logging pattern
 _logger: Logger = egp_logger(name=__name__)
 
-
 # Deduplication stores
 type_tuple_store: ObjectDeduplicator = ObjectDeduplicator("Type Tuple", 2**14)
 frozen_cgraph_store: ObjectDeduplicator = ObjectDeduplicator("Frozen CGraph", 2**12)
@@ -441,23 +440,6 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
                                 f"type '{dst_ep.typ.name}' is not compatible with source "
                                 f"endpoint {ref_row_str}{ref_idx} type '{src_ep.typ.name}'"
                             )
-
-    def get(
-        self, key: IfKey, default: FrozenInterfaceABC | None = None
-    ) -> FrozenInterfaceABC | None:
-        """Get the interface with the given key, or return default if not found.
-
-        Args:
-            key: The interface key to look up.
-            default: The value to return if the key is not found. Defaults to None.
-
-        Returns:
-            The interface associated with the key, or default if not found.
-
-        Raises:
-            KeyError: If key is not a valid interface key.
-        """
-        return getattr(self, _UNDER_KEY_DICT[key], default)
 
     def graph_type(self) -> CGraphType:
         """Identify and return the type of this connection graph."""

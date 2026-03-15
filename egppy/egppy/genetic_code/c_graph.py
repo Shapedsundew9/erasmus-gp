@@ -70,9 +70,9 @@ class CGraph(FrozenCGraph, CGraphABC):
         """
         # Delegate to FrozenCGraph.__init__ which calls _init_graph() (Template Method).
         # CGraph overrides _init_graph() to build mutable Interface objects.
-        super().__init__(graph)
+        super().__init__(graph)  # type: ignore
 
-    def _init_graph(
+    def _init_graph(  # type: ignore[override]
         self,
         graph: (
             Mapping[str, list[EndpointMemberType]]
