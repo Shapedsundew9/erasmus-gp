@@ -120,6 +120,10 @@ class CGraph(FrozenCGraph, CGraphABC):
             for key in ROW_CLS_INDEXED_ORDERED
         ), "Invalid interface types in graph initialization."
 
+    def _cache_hash(self) -> None:
+        """Skip hash caching for mutable CGraph."""
+        self._hash = 0
+
     def __delitem__(self, key: IfKey) -> None:
         """Delete the interface with the given key."""
         if key not in ROW_CLS_INDEXED_SET:

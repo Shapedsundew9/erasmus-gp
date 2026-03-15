@@ -177,10 +177,14 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
         # Pre-compute the hash for the frozen graphs
         # For consistency, we use the same hash calculation as unfrozen graphs
-        self._hash = hash(tuple(hash(iface) for iface in self.values()))
+        self._cache_hash()
         if _logger.isEnabledFor(OBJECT):
             self.verify()
             self.consistency()
+
+    def _cache_hash(self) -> None:
+        """Pre-compute and cache the hash of the graph."""
+        self._hash = hash(tuple(hash(iface) for iface in self.values()))
 
     def __contains__(self, key: object) -> bool:
         """Check if the interface exists in the Connection Graph.
@@ -569,12 +573,14 @@ class FrozenCGraph(FrozenCGraphABC, CommonObj):
 
         # Verify hash consistency
         # Must iterate the same way as __init__ does (using self.values())
-        recomputed_hash = hash(tuple(hash(iface) for iface in self.values()))
-        if self._hash != recomputed_hash:
-            raise ValueError(
-                f"Hash inconsistency: stored hash {self._hash} does not match "
-                f"recomputed hash {recomputed_hash}"
-            )
+        _hash = getattr(self, "_hash", 0)
+        if _hash != 0:
+            recomputed_hash = hash(tuple(hash(iface) for iface in self.values()))
+            if _hash != recomputed_hash:
+                raise ValueError(
+                    f"Hash inconsistency: stored hash {_hash} does not match "
+                    f"recomputed hash {recomputed_hash}"
+                )
 
     # Graph State Methods
 

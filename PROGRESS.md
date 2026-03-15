@@ -81,3 +81,32 @@
   - Implemented `test_is_compatible_inheritance` and `test_is_compatible_covariance` to strictly ensure covariance functions correctly during mutations.
   - Implemented `test_descendants_cache_invalidation_on_new_type` to ensure that adding new compound children forces invalidations up the ancestor chain properly.
 
+## [2026-03-15]
+
+### Bootstrap Mutations Implementation (003-bootstrap-mutations)
+
+- **Implemented Mutation Primitives**:
+  - Implemented all 10 planned mutation primitives: `Rewire`, `Delete`, `Split`, `Iterate`, `Create`, `Wrap`, `Insertion`, `Crossover`, `DCE`, and `Unused Parameter Removal` (stub).
+  - Ensured **Transactional Atomicity (FR-010)**: All mutations now use `copy_rgc()` to work on deep copies, returning a new `EGCode` object and leaving the original unchanged.
+  - Implemented **Interface Compatibility (FR-011)**: All structural mutations now verify type compatibility using `can_connect()` or `can_downcast_connect()`.
+  - Enforced **Maximum Graph Size (FR-008)**: Added `verify_graph_size()` in `mutations/common.py` and integrated it into all mutation primitives.
+
+- **Refined Connection Processes**:
+  - Implemented logic for `Create`, `Wrap`, `Insertion`, and `Crossover` connection processes in `egppy/egppy/physics/processes.py`.
+  - Enhanced `force_primary()` with an `overwrite` parameter to support mandatory re-routing during `Insertion`.
+  - Added `crossover_connection_process` with interface update and connection preservation logic.
+
+- **Dead Code Elimination (FR-007)**:
+  - Implemented reachability analysis algorithm in `egppy/egppy/physics/optimization.py`.
+  - Created `dce` mutation primitive that removes unreachable sub-GCs and their corresponding interfaces.
+
+- **Infrastructure & Bug Fixes**:
+  - Fixed **Unhashable Interface Bug**: Modified `FrozenCGraph.consistency()` to skip hash recomputation for mutable `CGraph` instances, resolving a `TypeError` introduced by WP5.
+  - Fixed **PropertiesBD Initialization Bug**: Updated `merge_properties()` in `helpers.py` to correctly handle `BitDict` objects and avoid redundant/invalid initializations.
+  - Fixed **EGCDict Member Preservation**: Updated `copy_rgc()` to explicitly preserve extra members like `num_codes` which were being lost during `EGCDict` re-initialization.
+
+- **Verification**:
+  - Created a comprehensive unit test suite in `tests/test_egppy/test_physics/test_mutations.py` covering all mutation primitives and edge cases.
+  - Verified that all 10 tests pass, confirming behavioral correctness and structural integrity.
+
+
