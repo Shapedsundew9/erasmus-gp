@@ -3,23 +3,23 @@ EMPTY GCs (those with an EMPTY CGraph)"""
 
 from egpcommon.egp_log import Logger, egp_logger
 from egpcommon.properties import CGraphType, PropertiesBD
-from egppy.physics.pgc_api import EGCode
-from egppy.physics.runtime_context import RuntimeContext
 from egppy.physics.mutations.common import copy_rgc, verify_graph_size
+from egppy.physics.pgc_api import EGCode
 from egppy.physics.processes import create_connection_process
+from egppy.physics.runtime_context import RuntimeContext
 
 # Logging setup
 _logger: Logger = egp_logger(name=__name__)
 
 
-def create(rtctxt: RuntimeContext, empty_gc: EGCode) -> EGCode:
+def create(_: RuntimeContext, empty_gc: EGCode) -> EGCode:
     """Create a new GC from an empty GC.
 
     rgc is not modified; a deep copy is created and returned (FR-010).
     The mutation verifies interface type compatibility and structural integrity.
 
     Arguments:
-        rtctxt: The runtime context.
+        _: The runtime context.
         empty_gc: The empty genetic code to populate.
     Returns:
         The new EGCode.

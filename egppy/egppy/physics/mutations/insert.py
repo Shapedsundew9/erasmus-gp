@@ -8,7 +8,7 @@ See docs/design/bootstrap_mutations.md for details on each case.
 from enum import IntEnum
 
 from egpcommon.egp_log import Logger, egp_logger
-from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, EPCls, SrcIfKey, SrcRow
+from egppy.genetic_code.c_graph_constants import DstIfKey, DstRow, SrcIfKey, SrcRow
 from egppy.genetic_code.interface import Interface
 from egppy.physics.helpers import direct_connect_interfaces, new_egc
 from egppy.physics.mutations.common import copy_rgc, verify_graph_size
