@@ -27,7 +27,7 @@ from typing import Callable
 from egpcommon.egp_log import GC_DEBUG, INFO, TRACE, Logger, egp_logger
 from egppy.gene_pool.gene_pool_interface import GenePoolInterface
 from egppy.genetic_code.c_graph import CGraph
-from egppy.genetic_code.c_graph_constants import ConnectionType, DstIfKey, SrcIfKey
+from egppy.genetic_code.c_graph_constants import ConnectionType
 from egppy.genetic_code.endpoint_abc import EndPointABC
 from egppy.genetic_code.genetic_code import GCABC
 from egppy.physics.helpers import LDC_SEQ, inherit_members

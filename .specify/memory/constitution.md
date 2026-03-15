@@ -57,9 +57,9 @@ EGP is a research project, not a product. The primary goal is to demonstrate met
 - **Type checking**: `pyright` on all function signatures and variables.
 - **Imports**: Explicit (`from json import dump, load`), never wildcard or module-level.
 - **Logging**: Custom logger from `egpcommon.egp_log` with levels FLOW, GC_DEBUG, OBJECT, TRACE, and integrity levels VERIFY / CONSISTENCY. Lazy formatting required; expensive computations guarded by `_logger.isEnabledFor()`.
-- **Docstrings**: Google style for all modules, classes, and functions, including tests.
+- **Docstrings**: Google style for all modules, classes, and functions, including tests. See Documentation requirements for broader use cases.
 - **Testing**: `unittest` framework only. Do not use `pytest`. Tests in `tests/test_<package>/` mirroring source structure. Class/test fixtures for expensive setup. `coverage` measured; high coverage mandatory for critical components. All PRs must pass all unit tests and summarise results.
-- **Documentation**: Markdown in `docs/`, LaTeX for formulas, compact tables, Mermaid diagrams with the Erasmus dark theme and semantic color mapping defined in the style guide.
+- **Documentation**: User, overall architecture, use case, concept, background and high level design documentation are created and maintained in markdown in `docs/`, LaTeX for formulas, compact tables, Mermaid diagrams with the Erasmus dark theme and semantic color mapping defined in the style guide.
 - **Versioned API**: `egppy.physics.pgc_api` is the single source of truth for types and operations consumed by evolved code. It preserves binary compatibility across refactors.
 
 ## Governance
@@ -70,4 +70,4 @@ This constitution supersedes all ad-hoc practices and is the authoritative refer
 - **Complexity** must be justified by the current task; speculative abstractions are rejected.
 - **The copilot-instructions.md** file (`.github/copilot-instructions.md`) provides the operational implementation of these principles for AI and human contributors.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-07
+**Version**: 1.0.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-15

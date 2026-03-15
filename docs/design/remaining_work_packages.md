@@ -254,7 +254,7 @@ Any use as a dict key or set member before `set_members()` completes is unsafe.
 
 ### Current Inheritance Chain
 
-```
+```text
 CommonObjABC → StorableObjABC → CacheableObjABC → GCABC
                                                     ↓
 MutableMapping + CacheableObjMixin + CommonObj → CacheableDict
@@ -338,7 +338,7 @@ The Frozen/Mutable concrete class pairs use a diamond inheritance pattern where
 the mutable concrete class inherits from **both** the frozen concrete class and
 the mutable ABC, which both share a common frozen ABC grandparent:
 
-```
+```text
         FrozenFooABC
        /            \
       /              \
@@ -360,6 +360,7 @@ This pattern exists in four class families:
 ### Why This Exists
 
 The diamond arises because:
+
 1. The mutable class needs the **implementation** from the frozen concrete class
    (attribute storage, `__slots__`, common methods).
 2. The mutable class needs the **interface** from the mutable ABC (mutation
@@ -443,7 +444,7 @@ Add MRO tests to prevent accidental breakage.
 
 ## Suggested Execution Order
 
-```
+```text
 WP4 (super().__init__) → WP5 (hashable mutables) → WP6 (GGCDict) → WP7 (diamond)
 ```
 
