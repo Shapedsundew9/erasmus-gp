@@ -194,7 +194,7 @@ flowchart TB
     S["[S]tate (dst) / [S]tate (src)"]:::dataPlum
     T["[T] next-state (dst)"]:::dataPlum
     A["GC[A] loop body"]:::dataNavy
-    O["[O]utputs"]:::dataTeal
+    O["[O]utputs (final state)"]:::dataTeal
     
     I --> L
     I --> S
@@ -202,7 +202,6 @@ flowchart TB
     S --> A
     A --> T
     A --> O
-    T --> O
     T -.->|implicit feedback| S
     I --> O
 ```
@@ -212,6 +211,7 @@ flowchart TB
 # Execution Mapping:
 # 0 iterations naturally fall through via Is -> Od. 
 # Implicit feedback loop routes Td -> Ss between iterations.
+# The mutated state is exposed directly to the output interface (O).
 
 def for_loop_graph(I_src_iterable, I_src_state):
     L_dst = I_src_iterable       # Route I -> L
@@ -224,14 +224,16 @@ def for_loop_graph(I_src_iterable, I_src_state):
         A_dst_item = L_src       # Route L -> A
         A_dst_state = S_dst      # Route S -> A
         
-        # Execute loop body
-        A_src_next_state, A_src_out = GCA(A_dst_item, A_dst_state)
+        # Execute loop body: returns the mutated state
+        A_src_next_state = GCA(A_dst_item, A_dst_state)
         
+        # Route A's output to both Next-State (T) and Output (O)
         T_dst = A_src_next_state # Route A -> T
-        O_dst = A_src_out        # Route A -> O
+        O_dst = A_src_next_state # Route A -> O (continually overwrites with latest)
         
         S_dst = T_dst            # Implicit Feedback: T -> S
         
+    # Returns the accumulated state, matching Python's native variable scope mutation
     return O_dst
 ```
 
@@ -254,7 +256,7 @@ flowchart TB
     S["[S]tate (dst) / [S]tate (src)"]:::dataPlum
     T["[T] next-state (dst)"]:::dataPlum
     A["GC[A] loop body"]:::dataNavy
-    O["[O]utputs"]:::dataTeal
+    O["[O]utputs (final state)"]:::dataTeal
     
     I --> W
     I --> S
@@ -273,28 +275,33 @@ flowchart TB
 # Execution Mapping:
 # 0 iterations naturally fall through via Is -> Od.
 # Implicit feedback routes Td -> Ss and Xd -> Ws between iterations.
+# The mutated state is exposed directly to the output interface (O).
 
 def while_loop_graph(I_src_condition, I_src_state):
     W_dst = I_src_condition      # Route I -> W
     S_dst = I_src_state          # Route I -> S
     
     W_src = W_dst
-    O_dst = S_dst                # Route I -> O directly (fall-through output)
+    
+    # Route I -> O directly (fall-through output if condition initially false)
+    O_dst = S_dst                
     
     while W_src is True:         # Internal condition check
         A_dst_cond = W_src       # Route W -> A
         A_dst_state = S_dst      # Route S -> A
         
-        # Execute loop body
-        A_src_next_cond, A_src_next_state, A_src_out = GCA(A_dst_cond, A_dst_state)
+        # Execute loop body: mutates state and updates condition
+        A_src_next_cond, A_src_next_state = GCA(A_dst_cond, A_dst_state)
         
+        # Route outputs to condition (X), next-state (T), and standard output (O)
         X_dst = A_src_next_cond  # Route A -> X
         T_dst = A_src_next_state # Route A -> T
-        O_dst = A_src_out        # Route A -> O
+        O_dst = A_src_next_state # Route A -> O (captures latest state)
         
         W_src = X_dst            # Implicit Feedback: X -> W
         S_dst = T_dst            # Implicit Feedback: T -> S
         
+    # Returns the accumulated final state
     return O_dst
 ```
 
